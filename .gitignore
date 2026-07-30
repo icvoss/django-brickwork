@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+*.sqlite3
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Node / frontend
+node_modules/
+npm-debug.log*
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+
+# NOTE: src/saas_ui/static/saas_ui/dist/ IS committed and shipped (the
+# compiled CSS/JS/token artefacts are the package's product). Do not ignore it.

@@ -1,0 +1,101 @@
+name: CI
+
+# Adapted from the canonical ICV template (templates/repo/ci.yml).
+# saas_ui specifics:
+#   - Django 6.0 FLOOR (uses core template partials); matrix is 6.0 only, no 5.2.
+#   - SQLite tests (postgres service block deleted).
+#   - Consumer smoke-test job deleted (no tests/consumer/ harness yet; a pre-1.0
+#     checkpoint, added when the package approaches release per ADR-027).
+#   - Frontend build + accessibility (axe-core/Playwright) + no-JS browser jobs
+#     are STUBBED: the spec makes the WCAG 2.2 AA gate and the no-JS floor
+#     load-bearing, so the jobs exist from day one but are filled in Phase 0
+#     when there are real components to test. They must not silently pass as if
+#     coverage exists, so they announce themselves and exit 0 until wired.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  FORCE_COLOR: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PIP_NO_PYTHON_VERSION_WARNING: "1"
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install ruff
+        run: pip install "ruff==0.15.22"
+      - name: Run ruff check
+        run: ruff check .
+      - name: Run ruff format check
+        run: ruff format --check .
+
+  test:
+    name: Test (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+        django-version: ["6.0"]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "Django~=${{ matrix.django-version }}.0"
+          pip install pytest pytest-django pytest-cov
+          pip install -e ".[dev]"
+      - name: Run tests
+        run: pytest tests/ -v --tb=short --color=yes
+        env:
+          DJANGO_SETTINGS_MODULE: settings
+          PYTHONPATH: src:tests
+
+  # ── STUB: frontend build (Phase 0) ───────────────────────────────────
+  # Will run: npm ci && npm run build (Style Dictionary tokens + Vite assets),
+  # then assert the compiled artefacts land in src/saas_ui/static/saas_ui/dist
+  # with the expected STABLE filenames. Stubbed until the pipeline exists.
+  frontend-build:
+    name: Frontend build (STUB - Phase 0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Placeholder
+        run: |
+          echo "STUB: Phase 0 wires 'npm ci && npm run build' and asserts"
+          echo "stable-named artefacts in src/saas_ui/static/saas_ui/dist/."
+          exit 0
+
+  # ── STUB: accessibility gate (Phase 0, load-bearing per spec) ─────────
+  # Will run axe-core + Playwright against rendered components (WCAG 2.2 AA),
+  # keyboard-nav tests, focus-trap/focus-return/scroll-lock on modals, and the
+  # NO-JS suite (shell renders and functions with Alpine + htmx absent). This
+  # gate is the package's core promise; it exists from day one so it cannot be
+  # forgotten, and it is wired the moment the first component lands.
+  a11y-gate:
+    name: Accessibility + no-JS gate (STUB - Phase 0, load-bearing)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Placeholder
+        run: |
+          echo "STUB: Phase 0 wires axe-core + Playwright (WCAG 2.2 AA),"
+          echo "keyboard/focus-trap tests, and the no-JS floor suite."
+          exit 0

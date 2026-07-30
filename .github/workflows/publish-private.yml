@@ -1,0 +1,298 @@
+name: Publish __PACKAGE_NAME__ to the private index
+
+# Canonical publish template for PRIVATE ICV package repos
+# (templates/repo/publish-private.yml). Public repos use publish.yml
+# (OIDC to PyPI); private repos publish to the private index at
+# https://pypi.icvoss.com/ per ADR-020.
+#
+# Copy to .github/workflows/publish.yml and replace:
+#   __PACKAGE_NAME__  package / repo name, e.g. icv-cms
+#   __TEST_DB__       CI PostgreSQL database name, e.g. icv_cms_test
+# SQLite packages: strip the postgres service block and POSTGRES_* env as in ci.yml.
+#
+# RUNNER AND AUTH (owner ruling 2026-07-23, zero-GitHub-secrets
+# convention): every job runs on ubuntu-latest EXCEPT the publish job,
+# which runs on `[self-hosted, icv-vps]` and resolves the index
+# credentials from the runner user's ~/.netrc entry for pypi.icvoss.com at
+# run time. No repository or organisation Actions secrets (the icvoss org
+# is on the GitHub free plan, where org secrets cannot reach private
+# repos; per-repo PRIVATE_PYPI_* secrets are the deprecated older
+# convention, still present on repos released before this ruling). If the
+# netrc entry is missing, the publish job fails fast before any upload:
+# fix the netrc on the runner host and re-run the workflow; never re-tag.
+# If the test job needs private-index deps (icv-provider-adapters,
+# icv-connections, ...), run it on the self-hosted runner too and install
+# with --extra-index-url read from the same netrc, not from secrets: see
+# the commented pattern above the test job's install step below. Packages
+# with only public deps (the common case) need no private index in CI at
+# all; do not carry an inert PIP_EXTRA_INDEX_URL line.
+#
+# Triggered by tags of the form: v0.4.0
+#
+# The index rejects nothing on re-upload of an existing version file name;
+# treat versions as immutable anyway: never re-tag a published version.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  FORCE_COLOR: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PIP_NO_PYTHON_VERSION_WARNING: "1"
+  PACKAGE_NAME: __PACKAGE_NAME__
+
+permissions:
+  contents: write
+
+jobs:
+  # 1. Parse version from the tag
+  resolve:
+    name: Resolve version from tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+      release_title: ${{ steps.parse.outputs.release_title }}
+      prerelease: ${{ steps.parse.outputs.prerelease }}
+    steps:
+      - name: Parse tag
+        id: parse
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          if [[ -z "$VERSION" ]]; then
+            echo "ERROR: Could not parse version from tag '$TAG'"
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "release_title=__PACKAGE_NAME__ v${VERSION}" >> "$GITHUB_OUTPUT"
+          # A version is a pre-release if it is 0.x OR carries a PEP 440
+          # pre-release / dev marker (rc, a, b, alpha, beta, dev). The old
+          # startsWith('0.') check wrongly flagged 1.0.0rc1 as a full release.
+          if [[ "$VERSION" =~ ^0\. || "$VERSION" =~ (a|b|rc|alpha|beta|dev)[0-9]* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Version: $VERSION"
+
+      - uses: actions/checkout@v6
+
+      - name: Require a CHANGELOG entry for this version
+        env:
+          VERSION: ${{ steps.parse.outputs.version }}
+        run: |
+          CHANGELOG="CHANGELOG.md"
+          if [[ ! -f "$CHANGELOG" ]]; then
+            echo "ERROR: $CHANGELOG does not exist. Every release must ship a CHANGELOG."
+            exit 1
+          fi
+          # Require a heading like "## [0.4.0]" (date and surrounding text optional).
+          if ! grep -qE "^##[[:space:]]+\[${VERSION//./\\.}\]" "$CHANGELOG"; then
+            echo "ERROR: No CHANGELOG entry found for version ${VERSION} in $CHANGELOG."
+            echo "Add a '## [${VERSION}] - <date>' section (rename [Unreleased]) before tagging."
+            echo "See RELEASING.md - every release must ship a dated CHANGELOG entry."
+            exit 1
+          fi
+          echo "Found CHANGELOG entry for ${VERSION}."
+
+  # 2. Run the test suite before publishing
+  test:
+    name: Test __PACKAGE_NAME__
+    runs-on: ubuntu-latest
+    needs: resolve
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: icv_test
+          POSTGRES_PASSWORD: icv_test_password
+          POSTGRES_DB: __TEST_DB__
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # Default: no private-index access. Most private packages depend only
+      # on public PyPI deps; icv-core is an optional extra, never installed
+      # in CI. If THIS package has a hard dependency on a PRIVATE sibling
+      # (e.g. icv-provider-adapters, icv-connections), do NOT add a secret
+      # here: move this test job onto `[self-hosted, icv-vps]` and read the
+      # index credentials from the runner netrc, exactly as the publish job
+      # does. The install step then becomes:
+      #     - name: Install dependencies
+      #       run: |
+      #         python -m pip install --upgrade pip
+      #         pip install "Django~=5.2.0"
+      #         EXTRA="$(awk '/machine pypi.icvoss.com/{f=1} f&&/login/{u=$2} f&&/password/{print "https://"u":"$2"@pypi.icvoss.com/simple/"; exit}' "$HOME/.netrc")"
+      #         pip install --extra-index-url "$EXTRA" -e ".[dev]"
+      # Install the `dev` extra, never a hand-listed dep set: the extra is the
+      # single source of truth for a package's test deps (pytest, DRF,
+      # django-filter, psycopg, ...), so a package that adds a test dep does
+      # not silently drift its publish-gate test job. A hand-list omitting
+      # djangorestframework crashed icv-commerce's v1.0.0rc1 publish gate.
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "Django~=5.2.0"
+          pip install -e ".[dev]"
+
+      # Publish smoke gate: run the DEFAULT leg only. Any leg that needs its
+      # own settings module or service (a locations sub-app, a postgres
+      # concurrency leg) runs in full on the merged PR via ci.yml, and fails
+      # if collected here under the default settings. Deselect those markers
+      # exactly as ci.yml's default leg does; a package with no such markers
+      # deselects nothing (harmless). icv-commerce omitted this and its
+      # v1.0.0rc1 publish gate collected locations/postgres tests it could not
+      # satisfy.
+      - name: Run tests
+        run: pytest tests/ -v --tb=short --color=yes -m "not locations_leg and not postgres"
+        env:
+          DJANGO_SETTINGS_MODULE: settings
+          PYTHONPATH: src:tests
+          POSTGRES_USER: icv_test
+          POSTGRES_PASSWORD: icv_test_password
+          POSTGRES_DB: __TEST_DB__
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
+
+  # 3. Build wheel and sdist
+  build:
+    name: Build __PACKAGE_NAME__
+    runs-on: ubuntu-latest
+    needs: [resolve, test]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Verify distributions with twine
+        run: twine check dist/*
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-__PACKAGE_NAME__-${{ needs.resolve.outputs.version }}
+          path: dist/
+          if-no-files-found: error
+
+  # 4. Publish to the private index. Runs on the VPS runner: the index
+  # credentials come from the runner user's ~/.netrc, never from GitHub
+  # secrets (see the header note).
+  publish:
+    name: Publish __PACKAGE_NAME__ to pypi.icvoss.com
+    runs-on: [self-hosted, icv-vps]
+    needs: [resolve, build]
+    environment: private-pypi
+
+    steps:
+      # The self-hosted runner is persistent: wipe any dist/ left by a prior
+      # publish run before downloading this run's artifacts, or twine would
+      # upload a stale wheel and 400 on the duplicate.
+      - name: Clean the dist directory
+        run: rm -rf dist
+
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: dist-__PACKAGE_NAME__-${{ needs.resolve.outputs.version }}
+          path: dist/
+
+      - name: Publish to the private index (credentials from the runner netrc)
+        run: |
+          NETRC="$HOME/.netrc"
+          # Root-owned source of truth for the index credentials, placed on the
+          # runner host once (root:root, 0600). The live ~/.netrc has repeatedly
+          # gone missing or become unreadable across releases (rc13/rc14/cms
+          # rc1); self-heal from the source so a wiped or mis-owned file repairs
+          # itself here instead of failing the publish. See docs/RELEASING.md.
+          NETRC_SOURCE="/etc/icv/pypi-netrc"
+
+          # Diagnostics: reveal the true HOME / workspace / file state so a
+          # recurrence shows WHY (deleted vs unreadable vs workspace==HOME).
+          echo "HOME=$HOME  GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          echo "netrc state:"; ls -la "$NETRC" 2>&1 || echo "  (no $NETRC)"
+
+          have_entry() { grep -q "machine pypi.icvoss.com" "$1" 2>/dev/null; }
+
+          if ! have_entry "$NETRC"; then
+            echo "::warning::$NETRC missing or unreadable / lacks the pypi.icvoss.com entry; attempting self-heal from $NETRC_SOURCE."
+            if sudo -n test -r "$NETRC_SOURCE" 2>/dev/null; then
+              sudo -n install -o "$(id -un)" -g "$(id -gn)" -m 600 "$NETRC_SOURCE" "$NETRC"
+              echo "Restored $NETRC from $NETRC_SOURCE."
+            fi
+          fi
+
+          if ! have_entry "$NETRC"; then
+            echo "::error::$NETRC has no readable pypi.icvoss.com entry and self-heal failed."
+            echo "::error::Place the credentials at $NETRC_SOURCE (root:root, 0600) so the runner self-heals, or restore $NETRC directly, then RE-RUN this workflow. Do not re-tag. See docs/RELEASING.md."
+            exit 1
+          fi
+          export TWINE_USERNAME="$(awk '/machine pypi.icvoss.com/{f=1} f && /login/{print $2; exit}' "$NETRC")"
+          export TWINE_PASSWORD="$(awk '/machine pypi.icvoss.com/{f=1} f && /password/{print $2; exit}' "$NETRC")"
+          # The host Python is Debian externally-managed (PEP 668), so twine
+          # runs from an ephemeral venv in the job temp dir, not --user.
+          if command -v twine >/dev/null 2>&1; then
+            TWINE="$(command -v twine)"
+          else
+            python3 -m venv "$RUNNER_TEMP/twine-venv"
+            "$RUNNER_TEMP/twine-venv/bin/pip" install --quiet --upgrade twine
+            TWINE="$RUNNER_TEMP/twine-venv/bin/twine"
+          fi
+          # No --skip-existing: this pypiserver index rejects it as an
+          # unsupported configuration. The clean-dist step above prevents a
+          # stale wheel from a prior run being re-uploaded.
+          "$TWINE" upload --non-interactive --repository-url https://pypi.icvoss.com/ dist/*
+
+  # 5. Create GitHub Release
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [resolve, publish]
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: dist-__PACKAGE_NAME__-${{ needs.resolve.outputs.version }}
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: ${{ needs.resolve.outputs.release_title }}
+          files: dist/*
+          generate_release_notes: true
+          prerelease: ${{ needs.resolve.outputs.prerelease }}
+          fail_on_unmatched_files: true
