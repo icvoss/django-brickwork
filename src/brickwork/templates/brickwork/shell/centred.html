@@ -1,0 +1,17 @@
+{% extends "brickwork/shell/base.html" %}
+{% comment %}
+The centred shell (SHL-011/013): a generic centred single-panel layout for
+anything that is neither the app shell nor an auth page (a standalone
+confirmation, an empty state, an error page). A "full-bleed no-chrome" need is
+served by an essentially-empty content block here, not a distinct fourth shell
+(SHL-013). Fully static (no JS required).
+{% endcomment %}
+{% block shell_variant %}centred{% endblock %}
+
+{% block shell %}
+<div class="bw-centred">
+  <main id="bw-main" class="bw-centred__panel" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

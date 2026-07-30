@@ -1,0 +1,15 @@
+{% load brickwork_icons %}
+{% comment %}
+Full-width banner alert (STA-008/009). role="alert" so it is announced. The
+status icon is decorative (the variant + text carry the meaning; the icon is
+reinforcement, not the sole signal). This is the loud surface for page-level
+errors and status, distinct from a field's inline error (forms/_field.html).
+{% endcomment %}
+<div class="bw-alert bw-alert--{{ variant }}" role="alert">
+  {% bw_icon icon size="md" decorative=True css_class="bw-alert__icon" %}
+  <div class="bw-alert__body">
+    {% if title %}<p class="bw-alert__title">{{ title }}</p>{% endif %}
+    {% if message %}<p class="bw-alert__message">{{ message }}</p>{% endif %}
+    {% block alert_body %}{% endblock %}
+  </div>
+</div>

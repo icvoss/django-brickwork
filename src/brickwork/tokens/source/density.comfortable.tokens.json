@@ -1,0 +1,27 @@
+{
+  "density": {
+    "$description": "Density axis: COMFORTABLE (default). Density scales spacing/sizing component tokens only, never colour (BR-BW-TOK-004). Same token names as the compact/spacious files. Selected via [data-density='comfortable'] (the default, also emitted on :root).",
+    "$type": "dimension",
+    "control-height": {
+      "$value": "2.5rem"
+    },
+    "control-padding-inline": {
+      "$value": "0.75rem"
+    },
+    "row-padding-block": {
+      "$value": "0.625rem"
+    },
+    "row-padding-inline": {
+      "$value": "0.75rem"
+    },
+    "stack-gap": {
+      "$value": "1rem"
+    },
+    "sidebar-width": {
+      "$value": "16rem"
+    },
+    "sidebar-width-collapsed": {
+      "$value": "4rem"
+    }
+  }
+}

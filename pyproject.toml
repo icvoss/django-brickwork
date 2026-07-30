@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-brickwork"
-version = "0.0.0"
+version = "0.1.0"
 description = "Brand-agnostic, app-facing professional UI substrate for server-rendered Django (Tailwind 4, Alpine 3, HTMX 2). Accessible by construction; not a Django-admin skin."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
 authors = [{name = "Nigel Copley"}]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Environment :: Web Environment",
     "Framework :: Django",
     "Framework :: Django :: 6.0",
@@ -79,16 +79,24 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 # Ship templates, the compiled CSS/JS/token artefacts (built by the frontend
-# pipeline into static/brickwork/dist), and the PEP 561 typed marker.
+# pipeline into static/brickwork/dist), the vendored icon artwork the registry
+# loads at import, the DTCG token source, and the PEP 561 typed marker.
 brickwork = [
     "py.typed",
     "templates/**/*.html",
     "static/**/*",
+    "icons/vendor/**/*.svg",
+    "tokens/source/**/*.json",
 ]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"
-pythonpath = ["src", "tests"]
+# "." (repo root) so `tests.settings` resolves as a package; "src" for the
+# package. NOT "tests" itself: that would put tests/'s contents at top level and
+# shadow the `tests` package, breaking the `tests.settings` import (CI-caught).
+# The seams leg additionally needs `brickwork_testapp` importable; its CI step
+# and the a11y fixtures set PYTHONPATH=src:.:tests for that.
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 
 [tool.ruff]

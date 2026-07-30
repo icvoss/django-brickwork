@@ -1,6 +1,6 @@
 # Releasing
 
-How to cut a release for __PACKAGE_NAME__.
+How to cut a release for django-brickwork.
 
 ## TL;DR
 
@@ -9,9 +9,13 @@ branch  ->  PR  ->  review  ->  merge to main  ->  tag the merged commit  ->  CI
 ```
 
 The **tag is the trigger**. Pushing a tag of the form `v<semver>` runs the
-publish workflow, which tests, builds, uploads to PyPI (OIDC trusted
-publishing, no token), and creates a GitHub release. **Tagging is publishing.
-There is no separate "publish" step and no undo.**
+publish workflow (`publish-private.yml`), which tests, builds, and uploads to the
+private index `pypi.icvoss.com` (ADR-020). The upload job runs on the
+`[self-hosted, icv-vps]` runner and reads index credentials from that runner's
+host-level `~ghrunner/.netrc` (login `ci-publish`), never a GitHub secret. If the
+netrc entry is missing the job fails fast before any upload; fix the netrc on the
+runner host and re-run, never re-tag. **Tagging is publishing. There is no
+separate "publish" step and no undo.**
 
 ## Canonical flow
 
@@ -19,7 +23,7 @@ There is no separate "publish" step and no undo.**
    `release/<version>` (e.g. `release/0.5.0`).
 2. **Bump** on the branch:
    - `pyproject.toml` - update `version`
-   - `src/__MODULE__/__init__.py` - update `__version__` (keep in sync)
+   - `src/brickwork/__init__.py` - update `__version__` (keep in sync)
    - `CHANGELOG.md` - rename `[Unreleased]` to `[<version>] - <YYYY-MM-DD>`
 3. **Open a PR** to `main`. CI runs lint and tests. Get it reviewed. This is
    the gate, do not skip it.
@@ -33,8 +37,9 @@ There is no separate "publish" step and no undo.**
 6. **Watch the publish run** and confirm PyPI:
    ```bash
    gh run watch <run-id> --exit-status
-   curl -s https://pypi.org/pypi/__PACKAGE_NAME__/json | python -c \
-     "import sys,json;print(json.load(sys.stdin)['info']['version'])"
+   # confirm the version landed on the private index (query with --pre for rc/beta):
+   pip index versions django-brickwork --pre \
+     --index-url https://pypi.icvoss.com/simple/    # netrc-authed
    ```
 
 > **Tag the commit that is on `main`, not a feature branch.** Tags point at
@@ -92,7 +97,7 @@ The version lives in exactly two places. Both must match at the time of
 tagging:
 
 - `pyproject.toml` under `[project]` -> `version`
-- `src/__MODULE__/__init__.py` -> `__version__`
+- `src/brickwork/__init__.py` -> `__version__`
 
 ## Keep the CI Django pin in step with the floor
 
@@ -115,7 +120,7 @@ after release. The gate moves those to "caught before the tag".
 - **Declared mypy / django-stubs pair.** This package typechecks clean against a
   specific `mypy` + `django-stubs` pair, declared in the `[dev]` extra of
   `pyproject.toml` and pinned by the smoke-test job. Consumers pin the same pair.
-  Current pair: `__MYPY_PAIR__` (e.g. `mypy 1.19.x` + `django-stubs 5.2.x`).
+  Current pair: `mypy 1.10+ + django-stubs (Django 6.0.x)` (e.g. `mypy 1.19.x` + `django-stubs 5.2.x`).
 - **Advisory `mypy` leg (temporary).** If this package does not yet typecheck
   clean in a consumer, the `mypy` leg runs `continue-on-error: true` and this
   line records that it is advisory. The `makemigrations --check` and `migrate`
@@ -129,7 +134,7 @@ Before pushing the tag (the irreversible step):
 - [ ] **CHANGELOG has a `[<version>] - <date>` entry** (renamed from
       `[Unreleased]`). This is mandatory.
 - [ ] Behaviour changes and breaking changes called out in that CHANGELOG entry.
-- [ ] Version bumped in `pyproject.toml` **and** `src/__MODULE__/__init__.py`,
+- [ ] Version bumped in `pyproject.toml` **and** `src/brickwork/__init__.py`,
       and they match.
 - [ ] CI Django pin matches the package's minimum, if the floor changed.
 - [ ] **Consumer smoke-test green** (`makemigrations --check`, `migrate`, and

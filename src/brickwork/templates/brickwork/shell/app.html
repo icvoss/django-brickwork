@@ -1,0 +1,84 @@
+{% extends "brickwork/shell/base.html" %}
+{% load i18n %}
+{% comment %}
+The app shell: sidebar + topbar + workspace (SHL-001/006/011). Named blocks are
+the versioned public contract (BR-BW-TPL-001). A consuming page extends this and
+fills {% block content %} (plus any topbar/nav/header blocks it needs).
+
+No-JS floor: the sidebar toggle and mobile drawer are native <details>/<summary>
+disclosures (SHL-005/015/016), so the shell is fully navigable with zero JS. A
+consumer that loads Alpine may progressively enhance these via a template
+override (BR-BW-TPL-002), never a required layer.
+
+Layout: the `layout` context var ("sidebar" default, or "topbar") selects which
+region is primary (SHL-001). Logical CSS properties throughout (BR-BW-TOK-005),
+so RTL is handled by the `dir` attribute alone.
+{% endcomment %}
+{% block shell_variant %}app{% endblock %}
+
+{% block shell %}
+<div class="bw-app" data-layout="{{ layout|default:'sidebar' }}">
+
+  {# --- Sidebar (primary nav container on desktop) --- #}
+  <aside class="bw-sidebar" aria-label="{% translate 'Primary' %}">
+    <div class="bw-sidebar__header">
+      {% block brand_logo %}{% endblock %}
+      {% block brand_wordmark %}{% endblock %}
+      {% block sidebar_toggle %}{% endblock %}
+    </div>
+    <nav class="bw-sidebar__nav" aria-label="{% translate 'Main navigation' %}">
+      {% block sidebar %}{% endblock %}
+    </nav>
+    <div class="bw-sidebar__footer">{% block sidebar_footer %}{% endblock %}</div>
+  </aside>
+
+  {# --- Main column: topbar + optional subnav/breadcrumbs + workspace --- #}
+  <div class="bw-app__main">
+
+    <header class="bw-topbar">
+      {# Mobile nav trigger: native <details> drawer, works with no JS (SHL-015/016). #}
+      <details class="bw-drawer">
+        <summary class="bw-drawer__trigger" aria-label="{% translate 'Open navigation menu' %}">
+          {% block mobile_nav_trigger %}{% endblock %}
+        </summary>
+        <nav class="bw-drawer__panel" aria-label="{% translate 'Navigation' %}">
+          {% block mobile_nav %}{% block sidebar_mobile %}{% endblock %}{% endblock %}
+        </nav>
+      </details>
+
+      {% block topbar %}
+        <div class="bw-topbar__search">{% block topbar_search %}{% endblock %}</div>
+        <div class="bw-topbar__spacer"></div>
+        <div class="bw-topbar__notifications">{% block topbar_notifications %}{% endblock %}</div>
+        <div class="bw-topbar__account">{% block topbar_account_menu %}{% endblock %}</div>
+      {% endblock %}
+    </header>
+
+    {% block subnav_region %}
+    <div class="bw-subnav">{% block subnav %}{% endblock %}</div>
+    {% endblock %}
+
+    {% block breadcrumbs_region %}
+    <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">{% block breadcrumbs %}{% endblock %}</nav>
+    {% endblock %}
+
+    <main id="bw-main" class="bw-workspace" tabindex="-1">
+      {% block page_header_region %}
+      <div class="bw-page-header-region">
+        {% block page_header %}{% endblock %}
+        <div class="bw-page-actions">{% block page_actions %}{% endblock %}</div>
+      </div>
+      {% endblock %}
+
+      <div class="bw-content">
+        {% block content %}{% endblock %}
+      </div>
+
+      {% block footer_region %}
+      <footer class="bw-footer">{% block footer %}{% endblock %}</footer>
+      {% endblock %}
+    </main>
+
+  </div>
+</div>
+{% endblock %}

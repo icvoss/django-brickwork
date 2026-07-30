@@ -4,7 +4,9 @@ __pycache__/
 *.egg-info/
 .eggs/
 build/
-dist/
+# Top-level Python build output only. Scoped with a leading slash so it does NOT
+# catch src/brickwork/static/brickwork/dist/ (the shipped compiled artefacts).
+/dist/
 .coverage
 .coverage.*
 htmlcov/
@@ -28,5 +30,12 @@ npm-debug.log*
 .idea/
 .vscode/
 
-# NOTE: src/saas_ui/static/saas_ui/dist/ IS committed and shipped (the
+# NOTE: src/brickwork/static/brickwork/dist/ IS committed and shipped (the
 # compiled CSS/JS/token artefacts are the package's product). Do not ignore it.
+# Style Dictionary token source lives in src/brickwork/tokens/source/ (also
+# committed); only the top-level Python /dist/ build output is ignored above.
+
+# Generated a11y fixtures + Playwright output
+a11y/fixtures/
+test-results/
+playwright-report/

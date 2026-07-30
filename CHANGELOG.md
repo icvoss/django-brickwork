@@ -8,9 +8,57 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-30
+
+First release: the Phase-0 vertical slice. Within the `0.x` grace window per the
+spec's versioning discipline, the contracts stay stable-in-intent but are not yet
+1.0-guaranteed (1.0 signals both v1 pilots have cut over).
+
 ### Added
-- Repository scaffold: importable Django app skeleton (`src/brickwork`),
-  framework-neutral token sub-module stub (`brickwork/tokens`), frontend build
-  stub (Vite + `@tailwindcss/vite` + Style Dictionary, stable-filename output),
-  smoke tests, and CI (Python green; frontend + accessibility/no-JS jobs
-  stubbed for Phase 0). No components yet.
+
+Phase 0: the v1 vertical slice. Proves the substrate end-to-end (115 Python
+tests + 9 axe/no-JS checks green, coverage 99.67%).
+
+- **Icon registry + `{% bw_icon %}`** (contract: token/template): a name -> SVG
+  registry (the public contract) seeded from a curated Lucide subset (ISC +
+  MIT-for-Feather, both in `NOTICE`). Injection-safe (name-referenced, never raw
+  `|safe`), a11y-enforced (decorative XOR label, ICO-007; icon-only button
+  requires an accessible name, ICO-008), loud on an unknown name (ICO-013),
+  RTL-flip for directional icons (ICO-014), size tokens (ICO-004).
+- **Token layer** (contract: token): DTCG source -> Style Dictionary ->
+  stable-named `tokens.css` (`--bw-*` on `:root` + `[data-theme="dark"]` +
+  `[data-density=*]`), a Tailwind `@theme inline` bridge, and a JS re-export.
+  oklch, dark authored not derived (BR-BW-TOK-002/003), four composable axes.
+- **App shell** (`shell/app.html`, `auth.html`, `centred.html`) with named
+  blocks and a working no-JS floor (BR-BW-HTMX-001): no `<script>` in the bare
+  shell, native `<details>` sidebar toggle + mobile drawer, a skip link, logical
+  CSS properties throughout for RTL.
+- **Navigation** (contract: navigation): `NavItem`/`NavContext` dataclasses (with
+  `badge`, `external_url`, and a section-header variant), a `resolver_match`-based
+  active-route resolver (never `path.startswith`), duplicate-key validation at
+  import, host-injected permission/feature/policy visibility, and a `safe_reverse`
+  that never 500s. Recursive `nav/_nav.html` via Django 6.0 `{% partialdef %}`.
+- **Components**: button (icon-only a11y, loading spinner), badge, alert, page
+  header, empty state (no-data/no-results), pagination, and a structure-only
+  `data_table` (server-side sort, stable per-row swap ids; not virtualisation).
+- **Forms + the 422 HTMX contract** (contract: interaction): an accessible field
+  renderer (`aria-invalid`/`aria-describedby` on the input), and the
+  `hx-target="this" hx-swap="outerHTML"` 422 validation swap, with a full-page
+  no-JS fallback that is itself a working page.
+- **Theme axes**: `resolve_theme_attributes` (settings defaults + a host
+  `theme_resolver`, optional per-tenant logo), exercised for dark mode + density.
+- **CI**: the load-bearing accessibility gate is now real (axe-core WCAG 2.2 AA
+  against the rendered pages in light AND dark, plus a no-JS floor suite and a
+  keyboard check), and the frontend build gate rebuilds + verifies the artefacts.
+
+### Notes
+- Flat `BRICKWORK_DEFAULT_*` settings (theme/density/dir + `NAV_FALLBACK`),
+  default theme `light`.
+- Interaction primitives (modal, toast, dropdown, combobox) are intentionally
+  NOT in this slice; they are consentics-only and land later, tagged
+  `[v1-single-consumer]`.
+
+### Changed
+- Scaffold reconciliation: `saas_ui` -> `brickwork` throughout (app config, template
+  and static paths), and the settings shape moved from a nested `BRICKWORK` dict
+  to the flat `BRICKWORK_DEFAULT_*` documented in the spec.

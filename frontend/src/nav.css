@@ -1,0 +1,98 @@
+/* Navigation styling. Active state uses a leading (inline-start) border plus a
+ * background tint (NAV-007), both from theme-aware tokens with a logical border
+ * so it flips correctly under RTL. Structure only; visibility/active state is
+ * computed server-side.
+ */
+
+.bw-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bw-nav__list--nested {
+  margin-inline-start: var(--bw-size-space-4);
+  margin-block-start: 2px;
+}
+
+.bw-nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  padding-block: var(--bw-density-row-padding-block);
+  padding-inline: var(--bw-density-row-padding-inline);
+  border-radius: var(--bw-size-radius-md);
+  color: var(--bw-color-fg);
+  text-decoration: none;
+  border-inline-start: 3px solid transparent;
+}
+
+.bw-nav__link:hover {
+  background: var(--bw-color-surface-sunken);
+}
+
+.bw-nav__link--active {
+  background: var(--bw-color-nav-item-active-bg);
+  color: var(--bw-color-nav-item-active-text);
+  border-inline-start-color: var(--bw-color-nav-item-active-border);
+  font-weight: 600;
+}
+
+/* An ancestor of the active leaf gets a lighter treatment (NAV-008). */
+.bw-nav__link--active-ancestor {
+  color: var(--bw-color-nav-item-active-text);
+}
+
+.bw-nav__link--disabled {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  padding-block: var(--bw-density-row-padding-block);
+  padding-inline: var(--bw-density-row-padding-inline);
+  color: var(--bw-color-fg-muted);
+  opacity: var(--bw-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.bw-nav__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bw-nav__badge {
+  flex-shrink: 0;
+  min-inline-size: 1.25rem;
+  padding-inline: var(--bw-size-space-1);
+  border-radius: var(--bw-size-radius-full);
+  background: var(--bw-color-surface-inverse);
+  color: var(--bw-color-fg-on-inverse);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+.bw-nav__external {
+  flex-shrink: 0;
+  color: var(--bw-color-fg-muted);
+}
+
+.bw-nav__section {
+  margin-block-start: var(--bw-density-stack-gap);
+}
+
+.bw-nav__section-label {
+  display: block;
+  padding-inline: var(--bw-density-row-padding-inline);
+  padding-block-end: var(--bw-size-space-1);
+  color: var(--bw-color-fg-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

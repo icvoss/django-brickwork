@@ -1,0 +1,26 @@
+{% load brickwork_icons i18n %}
+{% comment %}
+Empty state (STA-001/002). variant distinguishes "no data yet" (nothing ever
+created) from "no results" (a filter matched nothing), so the two are never
+identical: no_results offers a clear-filters action, no_data an onboarding one.
+The icon is decorative; the heading + body carry the meaning (both required, no
+package-supplied default copy, STA-003).
+
+Required context: heading, body. Optional: variant ("no_data" default or
+"no_results"), icon (registry name), action_href, action_label.
+{% endcomment %}
+<div class="bw-empty-state bw-empty-state--{{ variant|default:'no_data' }}">
+  {% if icon %}
+    {% bw_icon icon size="xl" decorative=True css_class="bw-empty-state__icon" %}
+  {% elif variant == "no_results" %}
+    {% bw_icon "search" size="xl" decorative=True css_class="bw-empty-state__icon" %}
+  {% else %}
+    {% bw_icon "folder" size="xl" decorative=True css_class="bw-empty-state__icon" %}
+  {% endif %}
+  <h2 class="bw-empty-state__heading">{{ heading }}</h2>
+  <p class="bw-empty-state__body">{{ body }}</p>
+  {% if action_href and action_label %}
+    <a class="bw-btn bw-btn--primary bw-btn--md" href="{{ action_href }}">{{ action_label }}</a>
+  {% endif %}
+  {% block empty_state_action %}{% endblock %}
+</div>

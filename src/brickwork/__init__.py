@@ -17,6 +17,4 @@ sub-module; a separate ``brickwork_tokens`` package is deferred until a
 non-Django consumer earns the split.
 """
 
-__version__ = "0.0.0"
-
-default_app_config = "brickwork.apps.SaasUiConfig"
+__version__ = "0.1.0"

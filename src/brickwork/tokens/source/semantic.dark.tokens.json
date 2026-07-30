@@ -1,0 +1,90 @@
+{
+  "color": {
+    "$description": "Semantic tier, DARK theme. AUTHORED dark values (BR-BW-TOK-002): each token's dark value is chosen deliberately for the dark surface, NEVER computed by inverting or filtering the light value. Same token names as semantic.light.tokens.json. Accent/status roles shift to lighter, slightly-desaturated ramp steps so they keep AA contrast on a dark surface rather than glowing.",
+    "$type": "color",
+    "surface": {
+      "$value": "{primitive.gray.950}"
+    },
+    "surface-sunken": {
+      "$value": "{primitive.gray.1000}"
+    },
+    "surface-raised": {
+      "$value": "{primitive.gray.900}"
+    },
+    "surface-inverse": {
+      "$value": "{primitive.gray.100}"
+    },
+    "fg": {
+      "$value": "{primitive.gray.50}"
+    },
+    "fg-muted": {
+      "$value": "{primitive.gray.400}"
+    },
+    "fg-on-accent": {
+      "$value": "{primitive.gray.950}"
+    },
+    "fg-on-inverse": {
+      "$value": "{primitive.gray.900}"
+    },
+    "border": {
+      "$value": "{primitive.gray.800}"
+    },
+    "border-strong": {
+      "$value": "{primitive.gray.700}"
+    },
+    "accent": {
+      "$value": "{primitive.blue.400}"
+    },
+    "accent-hover": {
+      "$value": "{primitive.blue.500}"
+    },
+    "accent-subtle": {
+      "$value": "{primitive.blue.950}"
+    },
+    "danger": {
+      "$value": "{primitive.red.500}"
+    },
+    "danger-subtle": {
+      "$value": "{primitive.red.950}"
+    },
+    "warning": {
+      "$value": "{primitive.amber.500}"
+    },
+    "warning-subtle": {
+      "$value": "{primitive.amber.950}"
+    },
+    "success": {
+      "$value": "{primitive.green.500}"
+    },
+    "success-subtle": {
+      "$value": "{primitive.green.950}"
+    },
+    "info": {
+      "$value": "{primitive.blue.400}"
+    },
+    "info-subtle": {
+      "$value": "{primitive.blue.950}"
+    },
+    "icon-muted": {
+      "$value": "{primitive.gray.500}"
+    },
+    "focus-ring": {
+      "$value": "{primitive.blue.400}"
+    },
+    "nav-item-active-bg": {
+      "$value": "{primitive.blue.950}"
+    },
+    "nav-item-active-text": {
+      "$value": "{primitive.blue.100}"
+    },
+    "nav-item-active-border": {
+      "$value": "{primitive.blue.400}"
+    },
+    "skeleton-bg": {
+      "$value": "{primitive.gray.800}"
+    },
+    "skeleton-shimmer": {
+      "$value": "{primitive.gray.700}"
+    }
+  }
+}

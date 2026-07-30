@@ -1,0 +1,27 @@
+{
+  "density": {
+    "$description": "Density axis: COMPACT. Tighter spacing and control heights for information-dense admin screens. Same token names as the comfortable/spacious files. Selected via [data-density='compact']. Colour tokens are unaffected (BR-BW-TOK-004).",
+    "$type": "dimension",
+    "control-height": {
+      "$value": "2rem"
+    },
+    "control-padding-inline": {
+      "$value": "0.5rem"
+    },
+    "row-padding-block": {
+      "$value": "0.375rem"
+    },
+    "row-padding-inline": {
+      "$value": "0.5rem"
+    },
+    "stack-gap": {
+      "$value": "0.625rem"
+    },
+    "sidebar-width": {
+      "$value": "13rem"
+    },
+    "sidebar-width-collapsed": {
+      "$value": "3.5rem"
+    }
+  }
+}

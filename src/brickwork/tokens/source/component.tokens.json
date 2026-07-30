@@ -1,0 +1,48 @@
+{
+  "icon": {
+    "$description": "Component tier: tokens named per-component, for the cases a component needs a value distinct from its semantic default (BR-BW-TOK-001, tier 3). Theme-agnostic (they reference semantic colour tokens, which already resolve per theme, or fixed sizes). Most components consume semantic tokens directly and need nothing here; this set is deliberately small.",
+    "size": {
+      "$type": "dimension",
+      "sm": {
+        "$value": "{size.icon.sm}"
+      },
+      "md": {
+        "$value": "{size.icon.md}"
+      },
+      "lg": {
+        "$value": "{size.icon.lg}"
+      },
+      "xl": {
+        "$value": "{size.icon.xl}"
+      }
+    },
+    "stroke-width": {
+      "$type": "dimension",
+      "$value": "2"
+    }
+  },
+  "button": {
+    "radius": {
+      "$type": "dimension",
+      "$value": "{size.radius.md}"
+    }
+  },
+  "disabled": {
+    "opacity": {
+      "$type": "number",
+      "$value": "0.5"
+    }
+  },
+  "content": {
+    "max-width": {
+      "$type": "dimension",
+      "$value": "none"
+    }
+  },
+  "topbar": {
+    "position": {
+      "$type": "other",
+      "$value": "sticky"
+    }
+  }
+}

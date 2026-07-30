@@ -1,0 +1,20 @@
+{% extends "brickwork/shell/app.html" %}
+{% load brickwork_nav brickwork_components %}
+
+{% block page_title %}Widgets{% endblock %}
+
+{% block sidebar %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
+{% block mobile_nav %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Widgets" description="Everything in the harness." %}
+{% endblock %}
+
+{% block page_actions %}
+  {% bw_button "New widget" href="/widgets/new/" icon="plus" variant="primary" %}
+{% endblock %}
+
+{% block content %}
+  {% include "brickwork/components/_data_table.html" with table_id="widgets-table" columns=table_columns rows=table_rows empty_heading="No widgets yet" empty_body="Create your first widget to get started." %}
+  {% include "brickwork/components/_pagination.html" %}
+{% endblock %}

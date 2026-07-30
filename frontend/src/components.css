@@ -1,0 +1,328 @@
+/* Component styling. Structure + theme-token colours + density-token spacing.
+ * Logical CSS properties throughout (RTL via `dir`). Nothing here needs JS.
+ */
+
+/* --- Buttons --------------------------------------------------------------- */
+
+.bw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bw-size-space-2);
+  padding-block: 0;
+  padding-inline: var(--bw-density-control-padding-inline);
+  block-size: var(--bw-density-control-height);
+  border: 1px solid transparent;
+  border-radius: var(--bw-button-radius);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+.bw-btn--sm {
+  block-size: 2rem;
+}
+.bw-btn--lg {
+  block-size: 3rem;
+}
+.bw-btn--primary {
+  background: var(--bw-color-accent);
+  color: var(--bw-color-fg-on-accent);
+}
+.bw-btn--primary:hover {
+  background: var(--bw-color-accent-hover);
+}
+.bw-btn--secondary {
+  background: var(--bw-color-surface);
+  color: var(--bw-color-fg);
+  border-color: var(--bw-color-border-strong);
+}
+.bw-btn--ghost {
+  background: transparent;
+  color: var(--bw-color-fg);
+}
+.bw-btn--ghost:hover {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-btn--danger {
+  background: var(--bw-color-danger);
+  color: var(--bw-color-fg-on-accent);
+}
+.bw-btn--icon-only {
+  inline-size: var(--bw-density-control-height);
+  padding-inline: 0;
+}
+.bw-btn:disabled,
+.bw-btn--disabled {
+  opacity: var(--bw-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.bw-spinner {
+  animation: bw-spin 0.7s linear infinite;
+}
+@keyframes bw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Badges ---------------------------------------------------------------- */
+
+.bw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-size-space-1);
+  padding-block: 2px;
+  padding-inline: var(--bw-size-space-2);
+  border-radius: var(--bw-size-radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg-muted);
+}
+.bw-badge--success {
+  background: var(--bw-color-success-subtle);
+  color: var(--bw-color-success);
+}
+.bw-badge--warning {
+  background: var(--bw-color-warning-subtle);
+  color: var(--bw-color-warning);
+}
+.bw-badge--danger {
+  background: var(--bw-color-danger-subtle);
+  color: var(--bw-color-danger);
+}
+.bw-badge--info {
+  background: var(--bw-color-info-subtle);
+  color: var(--bw-color-info);
+}
+
+/* --- Alerts ---------------------------------------------------------------- */
+
+.bw-alert {
+  display: flex;
+  gap: var(--bw-size-space-3);
+  padding: var(--bw-size-space-4);
+  border-radius: var(--bw-size-radius-md);
+  border: 1px solid var(--bw-color-border);
+  margin-block-end: var(--bw-density-stack-gap);
+}
+.bw-alert__title {
+  margin: 0;
+  font-weight: 600;
+}
+.bw-alert__message {
+  margin: 0;
+}
+.bw-alert--info {
+  background: var(--bw-color-info-subtle);
+  border-color: var(--bw-color-info);
+}
+.bw-alert--success {
+  background: var(--bw-color-success-subtle);
+  border-color: var(--bw-color-success);
+}
+.bw-alert--warning {
+  background: var(--bw-color-warning-subtle);
+  border-color: var(--bw-color-warning);
+}
+.bw-alert--error {
+  background: var(--bw-color-danger-subtle);
+  border-color: var(--bw-color-danger);
+}
+
+/* --- Form fields ----------------------------------------------------------- */
+
+.bw-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-size-space-1);
+  margin-block-end: var(--bw-density-stack-gap);
+}
+.bw-field__label {
+  font-weight: 500;
+}
+.bw-field__required {
+  color: var(--bw-color-danger);
+}
+.bw-input {
+  inline-size: 100%;
+  block-size: var(--bw-density-control-height);
+  padding-inline: var(--bw-density-control-padding-inline);
+  border: 1px solid var(--bw-color-border-strong);
+  border-radius: var(--bw-size-radius-md);
+  background: var(--bw-color-surface);
+  color: var(--bw-color-fg);
+  font: inherit;
+}
+.bw-input[readonly] {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-field--invalid .bw-input,
+.bw-input[aria-invalid="true"] {
+  border-color: var(--bw-color-danger);
+}
+.bw-field__help {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: 0.875rem;
+}
+.bw-field__errors:empty {
+  display: none;
+}
+.bw-field__error {
+  margin: 0;
+  color: var(--bw-color-danger);
+  font-size: 0.875rem;
+}
+.bw-form-errors {
+  padding: var(--bw-size-space-4);
+  margin-block-end: var(--bw-density-stack-gap);
+  border: 1px solid var(--bw-color-danger);
+  background: var(--bw-color-danger-subtle);
+  border-radius: var(--bw-size-radius-md);
+}
+.bw-form-errors__title {
+  margin: 0 0 var(--bw-size-space-2);
+  font-weight: 600;
+  color: var(--bw-color-danger);
+}
+
+/* --- Page header ----------------------------------------------------------- */
+
+.bw-page-header__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.bw-page-header__description {
+  margin: var(--bw-size-space-1) 0 0;
+  color: var(--bw-color-fg-muted);
+}
+
+/* --- Empty state ----------------------------------------------------------- */
+
+.bw-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--bw-size-space-3);
+  padding: var(--bw-size-space-12) var(--bw-size-space-4);
+}
+.bw-empty-state__icon {
+  color: var(--bw-color-icon-muted);
+}
+.bw-empty-state__heading {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.bw-empty-state__body {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  max-inline-size: 32rem;
+}
+
+/* --- Data table ------------------------------------------------------------ */
+
+.bw-data-table-wrap {
+  overflow-x: auto;
+}
+.bw-data-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+.bw-data-table__th {
+  text-align: start;
+  padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
+  border-block-end: 1px solid var(--bw-color-border-strong);
+  color: var(--bw-color-fg-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.bw-data-table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-size-space-1);
+  color: inherit;
+  text-decoration: none;
+}
+.bw-data-table__sort-idle {
+  opacity: 0.4;
+}
+.bw-data-table__td {
+  padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
+  border-block-end: 1px solid var(--bw-color-border);
+}
+.bw-data-table__row:hover {
+  background: var(--bw-color-surface-sunken);
+}
+
+/* --- Pagination ------------------------------------------------------------ */
+
+.bw-pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  margin-block-start: var(--bw-density-stack-gap);
+}
+.bw-pagination__link {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--bw-size-space-1);
+  border: 1px solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-md);
+  color: var(--bw-color-fg);
+}
+.bw-pagination__link--disabled {
+  opacity: var(--bw-disabled-opacity);
+  cursor: not-allowed;
+}
+.bw-pagination__status {
+  color: var(--bw-color-fg-muted);
+  font-size: 0.875rem;
+}
+
+/* --- Skeleton (loading, STA-004) ------------------------------------------- */
+
+.bw-skeleton {
+  background: var(--bw-color-skeleton-bg);
+  border-radius: var(--bw-size-radius-sm);
+  position: relative;
+  overflow: hidden;
+}
+.bw-skeleton--title {
+  block-size: 1.75rem;
+  inline-size: 40%;
+  margin-block-end: var(--bw-size-space-2);
+}
+.bw-skeleton--text {
+  block-size: 1rem;
+  inline-size: 60%;
+}
+.bw-skeleton--row {
+  block-size: 2.5rem;
+  margin-block-end: var(--bw-size-space-2);
+}
+.bw-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--bw-color-skeleton-shimmer), transparent);
+  transform: translateX(-100%);
+  animation: bw-shimmer 1.5s infinite;
+}
+@keyframes bw-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+/* reduced-motion: static pulse, no shimmer sweep (STA-005) */
+@media (prefers-reduced-motion: reduce) {
+  .bw-skeleton::after {
+    animation: none;
+    background: none;
+  }
+}

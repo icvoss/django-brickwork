@@ -1,0 +1,19 @@
+{% load brickwork_components %}
+{% comment %}
+The form section, and the hx-swap target for the 422 validation contract
+(BR-BW-HTMX-003): hx-target="this" hx-swap="outerHTML". When the same view
+re-renders this partial with errors and status 422, htmx swaps it in place; with
+no JS, the whole page redisplays this partial. Same markup either way.
+{% endcomment %}
+<form id="widget-form" class="bw-form" method="post"
+      hx-post="{{ request.path }}" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  {% include "brickwork/forms/_form_errors.html" %}
+  {% for field in form %}
+    {% include "brickwork/forms/_field.html" with field=field %}
+  {% endfor %}
+  <div class="bw-form__actions">
+    {% bw_button "Save" type="submit" variant="primary" icon="check" %}
+    {% bw_button "Cancel" href="/widgets/" variant="ghost" %}
+  </div>
+</form>
