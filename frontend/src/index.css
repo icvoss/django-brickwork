@@ -1,0 +1,67 @@
+/* brickwork component CSS entry: compiled by Vite (+ @tailwindcss/vite) into the
+ * stable-named static/brickwork/dist/brickwork.css.
+ *
+ * It pulls in the compiled design tokens and the Tailwind theme bridge, then the
+ * component styles brickwork ships. Consumers @import their own Tailwind entry
+ * separately; this file is brickwork's own styling layer.
+ *
+ * Phase 0: tokens + the base a11y/RTL primitives (skip link, focus ring, icon
+ * sizing, the directional-icon flip). Component styles are added inline with
+ * each component as it lands. Everything uses LOGICAL CSS properties so RTL is
+ * handled by the `dir` attribute alone (BR-BW-TOK-005), never a mirrored sheet.
+ */
+
+@import "../../src/brickwork/static/brickwork/dist/tokens.css";
+
+/* --- accessibility + RTL primitives (no component depends on JS for these) --- */
+
+/* Skip link: visually hidden until focused, then pinned to the top-inline-start.
+ * Every shell ships one (the audit found 0/5 apps had a skip link). */
+.bw-skip-link {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  transform: translateY(-100%);
+  padding: var(--bw-size-space-2) var(--bw-size-space-4);
+  background: var(--bw-color-surface);
+  color: var(--bw-color-accent);
+  border: 1px solid var(--bw-color-border);
+  border-start-start-radius: 0;
+  border-end-end-radius: var(--bw-size-radius-md);
+  z-index: 100;
+  transition: transform 0.15s ease;
+}
+.bw-skip-link:focus {
+  transform: translateY(0);
+}
+
+/* Icon defaults: currentColor inherit (ICO-005), directional flip under RTL
+ * (ICO-014). The size is set inline by {% bw_icon %} via the size token. */
+.bw-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+[dir="rtl"] .bw-icon-directional {
+  transform: scaleX(-1);
+}
+
+/* A single, consistent focus ring across every interactive control
+ * (A11Y region). Uses the focus-ring colour token, which is authored per theme. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--bw-color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Motion: respect prefers-reduced-motion unconditionally (MOT region). A
+ * consumer cannot re-enable animation for a user who has requested reduced
+ * motion; accessibility floors are never consumer-configurable. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

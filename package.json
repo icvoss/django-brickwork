@@ -2,10 +2,10 @@
   "name": "django-brickwork-frontend",
   "private": true,
   "type": "module",
-  "description": "Frontend build for the brickwork Django package. Compiles design tokens (Style Dictionary, from src/brickwork/tokens/source) and component CSS/JS (Vite + @tailwindcss/vite) into src/brickwork/static/brickwork/dist as STABLE, non-hashed filenames versioned by the Python package's own semver. Consumers reference these via plain {% static %}; django-vite is deliberately not required (build-tool research 2026-07-30). SCAFFOLD: scripts and config are stubs; the real pipeline lands in Phase 0 against the consumer apps.",
+  "description": "Frontend build for the brickwork Django package. Compiles design tokens (Style Dictionary, from src/brickwork/tokens/source) and component CSS/JS (Vite + @tailwindcss/vite) into src/brickwork/static/brickwork/dist as STABLE, non-hashed filenames versioned by the Python package's own semver. Consumers reference these via plain {% static %}; django-vite is deliberately not required (build-tool research 2026-07-30).",
   "scripts": {
-    "build:tokens": "echo 'Phase 0: style-dictionary build --config style-dictionary.config.js' && exit 0",
-    "build:assets": "echo 'Phase 0: vite build' && exit 0",
+    "build:tokens": "node build-tokens.mjs",
+    "build:assets": "vite build",
     "build": "npm run build:tokens && npm run build:assets"
   },
   "devDependencies": {

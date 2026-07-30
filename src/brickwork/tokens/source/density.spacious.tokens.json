@@ -1,0 +1,27 @@
+{
+  "density": {
+    "$description": "Density axis: SPACIOUS. Roomier spacing for lower-density, more relaxed screens. Same token names as the comfortable/compact files. Selected via [data-density='spacious']. Colour tokens are unaffected (BR-BW-TOK-004).",
+    "$type": "dimension",
+    "control-height": {
+      "$value": "3rem"
+    },
+    "control-padding-inline": {
+      "$value": "1rem"
+    },
+    "row-padding-block": {
+      "$value": "0.875rem"
+    },
+    "row-padding-inline": {
+      "$value": "1rem"
+    },
+    "stack-gap": {
+      "$value": "1.5rem"
+    },
+    "sidebar-width": {
+      "$value": "18rem"
+    },
+    "sidebar-width-collapsed": {
+      "$value": "4.5rem"
+    }
+  }
+}
