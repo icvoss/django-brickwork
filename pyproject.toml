@@ -91,7 +91,12 @@ brickwork = [
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"
-pythonpath = ["src", "tests"]
+# "." (repo root) so `tests.settings` resolves as a package; "src" for the
+# package. NOT "tests" itself: that would put tests/'s contents at top level and
+# shadow the `tests` package, breaking the `tests.settings` import (CI-caught).
+# The seams leg additionally needs `brickwork_testapp` importable; its CI step
+# and the a11y fixtures set PYTHONPATH=src:.:tests for that.
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 
 [tool.ruff]

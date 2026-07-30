@@ -66,19 +66,20 @@ jobs:
           # fail collection in CI while passing locally (the DRF-drift lesson).
           pip install -e ".[dev]"
       - name: Run tests (default settings leg)
-        # DJANGO_SETTINGS_MODULE (tests.settings) and pythonpath (src, tests) are
-        # set in [tool.pytest.ini_options] in pyproject.toml; do not duplicate or
-        # override them here (a divergent "settings" module name bit the scaffold).
-        # The integration suite is auto-skipped here (the testapp is not installed
-        # under the default leg); it runs under the seams leg below.
+        # DJANGO_SETTINGS_MODULE (tests.settings) and pythonpath (src, ".") are set
+        # in [tool.pytest.ini_options]; "." (repo root) is what makes tests.settings
+        # importable as a package. The integration suite is auto-skipped here (the
+        # testapp is not installed under the default leg); it runs in the seams leg.
         run: pytest tests/ -v --tb=short --color=yes --cov=brickwork --cov-report=term-missing
       - name: Run tests (settings_seams leg, testapp installed)
-        # The end-to-end integration tests need the brickwork_testapp installed,
-        # which only happens under settings_seams. Separate run so the seam tests
-        # get their own settings module (the separate-settings-seam-tests lesson).
+        # The integration tests need brickwork_testapp installed, which only happens
+        # under settings_seams. That settings module imports the testapp by its bare
+        # name, so tests/ must be on the path here (in addition to the pyproject
+        # "src"/"." entries), hence the explicit PYTHONPATH.
         run: pytest tests/test_integration.py -v --tb=short --color=yes --no-cov
         env:
           DJANGO_SETTINGS_MODULE: tests.settings_seams
+          PYTHONPATH: src:.:tests
 
   # ── Frontend build: tokens (Style Dictionary) + assets (Vite) ────────
   # Rebuilds the tokens + component bundle from source and asserts the committed
