@@ -8,7 +8,19 @@ versioning contract).
 
 ## [Unreleased]
 
-## [0.1.1] - 2026-07-30
+## [0.1.2] - 2026-07-30
+
+### Fixed
+- Template comments no longer render as visible text. Three shipped templates
+  (`shell/base.html`, `forms/_field.html` x2) used a multi-line `{# ... #}` inline
+  comment; Django's `{# #}` inline comment is single-line only, so a comment
+  spanning a newline is not stripped and renders literally to the page (the
+  skip-link note and the form-field aria/error notes appeared as visible text
+  above every field). Converted to `{% comment %}` blocks. Two regression tests
+  added: a render assertion that no comment text/markers leak, and a source-level
+  guard that scans every shipped template for the multi-line-`{# #}` anti-pattern
+  so the whole bug class cannot recur. Found live on the first deployed consumer
+  (demo.vendablyconnect.com).
 
 ### Fixed
 - `collectstatic` no longer fails for consumers using a `ManifestStaticFilesStorage`

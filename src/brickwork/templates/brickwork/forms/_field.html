@@ -19,8 +19,8 @@ Required context: field. Optional: readonly (bool).
     {{ field.label }}{% if field.field.required %} <span class="bw-field__required" aria-hidden="true">*</span>{% endif %}
   </label>
 
-  {# The widget, rendered with aria-invalid + aria-describedby ON THE INPUT (they
-     must sit on the control itself to be announced, not on a wrapper). #}
+  {% comment %}The widget, rendered with aria-invalid + aria-describedby ON THE
+  INPUT (they must sit on the control itself to be announced, not a wrapper).{% endcomment %}
   <div class="bw-field__control">
     {% bw_field_widget field readonly=readonly %}
   </div>
@@ -29,8 +29,9 @@ Required context: field. Optional: readonly (bool).
     <p class="bw-field__help" id="{{ help_id }}">{{ field.help_text }}</p>
   {% endif %}
 
-  {# Error container: id matches what aria-describedby references. role=alert so a
-     screen reader announces a newly-swapped-in error (the 422 re-render). #}
+  {% comment %}Error container: id matches what aria-describedby references.
+  role=alert so a screen reader announces a newly-swapped-in error (the 422
+  re-render).{% endcomment %}
   <div class="bw-field__errors" id="{{ error_id }}" role="alert">
     {% for error in errors %}
       <p class="bw-field__error">{{ error }}</p>

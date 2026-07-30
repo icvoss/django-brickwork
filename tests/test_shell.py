@@ -33,6 +33,39 @@ def test_shell_emits_no_script_tag(template: str) -> None:
 
 
 @pytest.mark.parametrize("template", SHELLS)
+def test_shell_leaks_no_template_comment_text(template: str) -> None:
+    # A multi-line {# ... #} inline comment is NOT stripped by Django (inline
+    # comments are single-line only), so it renders literally to the page. This
+    # shipped as a visible-comment bug in 0.1.1 (seen on demo.vendablyconnect.com).
+    # The rendered output must contain no comment markers and none of the known
+    # comment prose.
+    html = _render(template)
+    assert "{#" not in html and "#}" not in html, f"{template} leaked a {{# #}} comment marker"
+    for phrase in ("Skip link:", "first focusable element", "the audit found"):
+        assert phrase not in html, f"{template} leaked comment text: {phrase!r}"
+
+
+def test_no_shipped_template_uses_a_multiline_inline_comment() -> None:
+    # Source-level guard against the whole bug class: Django's {# #} inline comment
+    # is single-line only; a {# that spans to a later line is NOT stripped and
+    # renders literally. Every multi-line comment must use {% comment %} instead.
+    # This scans every shipped template so the bug cannot recur in one we do not
+    # have an explicit render test for.
+    import pathlib
+
+    templates_dir = pathlib.Path(__file__).resolve().parent.parent / "src" / "brickwork" / "templates"
+    offenders: list[str] = []
+    for path in templates_dir.rglob("*.html"):
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            # an opening {# with no closing #} on the same line = multi-line comment
+            if "{#" in line and "#}" not in line.split("{#", 1)[1]:
+                offenders.append(f"{path.relative_to(templates_dir)}:{lineno}")
+    assert not offenders, (
+        f"multi-line {{# #}} inline comments render literally; use {{% comment %}} instead. Offenders: {offenders}"
+    )
+
+
+@pytest.mark.parametrize("template", SHELLS)
 def test_shell_has_a_skip_link_to_main(template: str) -> None:
     html = _render(template)
     assert 'class="bw-skip-link"' in html
