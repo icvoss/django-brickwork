@@ -1,0 +1,39 @@
+{% load static i18n %}
+{% comment %}
+brickwork shell base. Every shell (app/auth/centred) extends this. It owns the
+document skeleton, the token/CSS asset links via plain {% static %} (stable
+filenames, no django-vite), and the theme/density/direction attributes on <html>.
+
+No-JS floor (BR-BW-HTMX-001): nothing here requires Alpine or htmx. The
+{% block head_js %} / {% block body_js %} blocks are where a JS-enabled consumer
+loads the host-owned Alpine + htmx singletons; a consumer that loads neither
+still gets a fully working document.
+
+The theme attributes come from a consuming project's context (typically via
+brickwork.services.tokens.resolve_theme_attributes in a context processor); they
+default to the documented BRICKWORK_DEFAULT_* here so the shell renders unbranded
+out of the box.
+{% endcomment %}<!doctype html>
+<html lang="{{ bw_lang|default:'en' }}"
+      dir="{{ bw_dir|default:'ltr' }}"
+      data-theme="{{ bw_theme|default:'light' }}"
+      data-density="{{ bw_density|default:'comfortable' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block page_title %}{{ bw_page_title|default:'' }}{% endblock %}</title>
+  {# Stable-named artefacts, referenced by plain {% static %} (no manifest). #}
+  <link rel="stylesheet" href="{% static 'brickwork/dist/brickwork.css' %}">
+  {% block head_extra %}{% endblock %}
+  {% block head_js %}{% endblock %}
+</head>
+<body class="bw-body bw-shell--{% block shell_variant %}base{% endblock %}">
+  {# Skip link: first focusable element, jumps to the main workspace. Every
+     shell ships one (the audit found 0/5 apps had a skip link). #}
+  <a class="bw-skip-link" href="#bw-main">{% block skip_link_label %}{% translate "Skip to main content" %}{% endblock %}</a>
+
+  {% block shell %}{% endblock %}
+
+  {% block body_js %}{% endblock %}
+</body>
+</html>

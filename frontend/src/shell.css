@@ -1,0 +1,172 @@
+/* brickwork shell layout: app / auth / centred. Structure only; colour comes
+ * from the semantic tokens (theme-aware) and spacing from the density tokens.
+ * Logical CSS properties throughout (BR-BW-TOK-005), so RTL is handled by the
+ * `dir` attribute alone, no mirrored stylesheet. Nothing here needs JavaScript
+ * (BR-BW-HTMX-001): the sidebar toggle and mobile drawer are native <details>.
+ */
+
+.bw-body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}
+
+/* --- App shell: sidebar + main column -------------------------------------- */
+
+.bw-app {
+  display: grid;
+  grid-template-columns: var(--bw-density-sidebar-width) 1fr;
+  min-height: 100vh;
+}
+
+.bw-sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--bw-color-surface);
+  border-inline-end: 1px solid var(--bw-color-border);
+  padding-block: var(--bw-density-stack-gap);
+  padding-inline: var(--bw-size-space-3);
+}
+
+.bw-sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  padding-inline: var(--bw-size-space-2);
+  padding-block-end: var(--bw-density-stack-gap);
+}
+
+.bw-sidebar__nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.bw-sidebar__footer {
+  padding-block-start: var(--bw-density-stack-gap);
+  border-block-start: 1px solid var(--bw-color-border);
+}
+
+.bw-app__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* let the workspace shrink rather than force overflow */
+}
+
+.bw-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-3);
+  padding-inline: var(--bw-density-row-padding-inline);
+  min-block-size: 3.5rem;
+  background: var(--bw-color-surface);
+  border-block-end: 1px solid var(--bw-color-border);
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 10;
+}
+
+.bw-topbar__spacer {
+  flex: 1 1 auto;
+}
+
+.bw-workspace {
+  flex: 1 1 auto;
+  padding: var(--bw-density-stack-gap) var(--bw-density-row-padding-inline);
+  outline: none; /* focus ring on the skip-link target is handled by :focus-visible */
+}
+
+.bw-content {
+  max-inline-size: var(--bw-content-max-width);
+}
+
+.bw-page-header-region {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--bw-size-space-4);
+  margin-block-end: var(--bw-density-stack-gap);
+}
+
+.bw-footer {
+  margin-block-start: var(--bw-density-stack-gap);
+  padding-block-start: var(--bw-size-space-4);
+  border-block-start: 1px solid var(--bw-color-border);
+  color: var(--bw-color-fg-muted);
+}
+
+.bw-subnav:empty,
+.bw-breadcrumbs:empty,
+.bw-footer:empty,
+.bw-page-actions:empty {
+  display: none; /* empty blocks render nothing, never a placeholder (SHL-006/20) */
+}
+
+/* --- Native <details> drawer for mobile nav (no JS, SHL-015/016) ----------- */
+
+.bw-drawer {
+  display: none; /* shown only at the mobile breakpoint */
+}
+.bw-drawer__trigger {
+  cursor: pointer;
+  list-style: none;
+}
+.bw-drawer__trigger::-webkit-details-marker {
+  display: none;
+}
+.bw-drawer__panel {
+  position: absolute;
+  inset-block-start: 3.5rem;
+  inset-inline-start: 0;
+  inline-size: min(20rem, 80vw);
+  background: var(--bw-color-surface);
+  border-inline-end: 1px solid var(--bw-color-border);
+  padding: var(--bw-density-stack-gap) var(--bw-size-space-3);
+  z-index: 20;
+}
+
+/* --- Auth + centred shells ------------------------------------------------- */
+
+.bw-auth,
+.bw-centred {
+  display: grid;
+  place-items: center;
+  min-block-size: 100vh;
+  padding: var(--bw-size-space-6);
+}
+
+.bw-auth__panel,
+.bw-centred__panel {
+  inline-size: min(28rem, 100%);
+  background: var(--bw-color-surface);
+  border: 1px solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-lg);
+  padding: var(--bw-size-space-8);
+  outline: none;
+}
+
+.bw-auth__header {
+  display: flex;
+  justify-content: center;
+  margin-block-end: var(--bw-density-stack-gap);
+}
+
+/* --- Responsive: collapse the sidebar into the mobile drawer at md --------- */
+
+@media (max-width: 48rem) {
+  .bw-app {
+    grid-template-columns: 1fr; /* sidebar out of flow, drawer takes over */
+  }
+  .bw-sidebar {
+    display: none;
+  }
+  .bw-drawer {
+    display: block;
+  }
+}

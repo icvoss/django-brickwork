@@ -1,0 +1,23 @@
+{% extends "brickwork/shell/base.html" %}
+{% comment %}
+The auth shell (SHL-011): a centred single-column layout for login / register /
+password-reset style pages. A consuming page extends this and fills
+{% block content %} with its form. Fully static (no JS required).
+{% endcomment %}
+{% block shell_variant %}auth{% endblock %}
+
+{% block shell %}
+<div class="bw-auth">
+  <main id="bw-main" class="bw-auth__panel" tabindex="-1">
+    <div class="bw-auth__header">
+      {% block brand_logo %}{% endblock %}
+      {% block brand_wordmark %}{% endblock %}
+    </div>
+    <div class="bw-auth__body">
+      {% block content %}{% endblock %}
+    </div>
+    <div class="bw-auth__footer">{% block footer %}{% endblock %}</div>
+  </main>
+  {% block auth_background %}{% endblock %}
+</div>
+{% endblock %}

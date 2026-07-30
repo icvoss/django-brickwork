@@ -34,30 +34,47 @@ def _iter_values(node: object):
                 yield from _iter_values(child)
 
 
-def _colour_values() -> list[str]:
+_ALIAS = re.compile(r"^\{[a-z0-9.-]+\}$")
+
+
+def _primitive_colour_values() -> list[str]:
+    """Raw colour literals from the primitive tier (where the oklch values live)."""
+    data = json.loads((_SOURCE / "primitive.tokens.json").read_text())
+    return list(_iter_values(data["primitive"]))
+
+
+def _semantic_colour_values() -> list[str]:
+    """Semantic colour values: each is either an oklch literal or a {primitive.*}
+    alias resolving to the primitive tier (the two-tier DTCG design)."""
     values: list[str] = []
-    for name in ("primitive", "semantic.light", "semantic.dark"):
+    for name in ("semantic.light", "semantic.dark"):
         data = json.loads((_SOURCE / f"{name}.tokens.json").read_text())
-        # colour files: primitive.primitive.*, semantic.color.*
-        for group_key in ("primitive", "color"):
-            group = data.get(group_key)
-            if group is not None:
-                values.extend(_iter_values(group))
+        values.extend(_iter_values(data["color"]))
     return values
 
 
 # --- BR-BW-TOK-003: colour tokens authored in oklch, never hex/hsl -----------
 
 
-def test_every_colour_source_value_is_oklch() -> None:
-    values = _colour_values()
-    assert values, "expected colour tokens in the source"
+def test_primitive_colour_literals_are_all_oklch() -> None:
+    values = _primitive_colour_values()
+    assert values, "expected colour tokens in the primitive tier"
     for v in values:
-        assert _OKLCH.match(v), f"colour value {v!r} is not oklch (BR-BW-TOK-003)"
+        assert _OKLCH.match(v), f"primitive colour {v!r} is not oklch (BR-BW-TOK-003)"
 
 
-def test_no_hex_or_hsl_in_colour_source() -> None:
-    for v in _colour_values():
+def test_semantic_colour_values_are_oklch_or_primitive_aliases() -> None:
+    # Semantics reference the primitive tier via DTCG {primitive.*} aliases (the
+    # intended two-tier design), or carry an oklch literal directly. Neither is
+    # ever hex/hsl. This asserts no semantic value smuggles in a non-oklch literal.
+    for v in _semantic_colour_values():
+        assert _OKLCH.match(v) or _ALIAS.match(v), (
+            f"semantic colour {v!r} is neither an oklch literal nor a {{primitive.*}} alias (BR-BW-TOK-003)"
+        )
+
+
+def test_no_hex_or_hsl_in_any_colour_source() -> None:
+    for v in _primitive_colour_values() + _semantic_colour_values():
         assert not _HEX.search(v), f"hex colour {v!r} found (BR-BW-TOK-003)"
         assert not _HSL.search(v), f"hsl colour {v!r} found (BR-BW-TOK-003)"
 
