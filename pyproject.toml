@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-brickwork"
-version = "0.1.0"
+version = "0.1.1"
 description = "Brand-agnostic, app-facing professional UI substrate for server-rendered Django (Tailwind 4, Alpine 3, HTMX 2). Accessible by construction; not a Django-admin skin."
 readme = "README.md"
 license = "MIT"

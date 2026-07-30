@@ -114,6 +114,24 @@ def test_stable_named_artefact_exists(filename: str) -> None:
     assert path.stat().st_size > 0, f"{filename} is empty"
 
 
+@pytest.mark.parametrize("filename", ["tokens.css", "tailwind-theme.css"])
+def test_no_static_reference_a_manifest_storage_would_fail_on(filename: str) -> None:
+    # Django/WhiteNoise ManifestStaticFilesStorage rewrites @import/url() targets by
+    # regex WITHOUT skipping comments, so a shipped CSS file must not contain any
+    # `@import "..."` or `url(...)` (even in a comment) that points at a file this
+    # package does not ship, or `collectstatic` fails for the consumer with a
+    # MissingFileError. This regression guards the icvlocal.com finding (0.1.0):
+    # a header comment example `@import "tailwindcss"` broke every consumer's
+    # collectstatic. data: URIs and SVG fragment refs (url(#...)) are fine.
+    css = (_DIST / filename).read_text()
+    assert '@import "' not in css and "@import '" not in css, (
+        f"{filename} contains an @import that ManifestStaticFilesStorage will try "
+        f"to resolve (even in a comment) and fail collectstatic on."
+    )
+    bad_urls = re.findall(r"url\((?!['\"]?(?:#|data:))[^)]+\)", css)
+    assert not bad_urls, f"{filename} has url() references a manifest storage would resolve: {bad_urls}"
+
+
 def test_tokens_css_has_the_theme_and_density_selectors() -> None:
     css = (_DIST / "tokens.css").read_text()
     for selector in (

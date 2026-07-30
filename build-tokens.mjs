@@ -143,9 +143,15 @@ async function main() {
   const themeVars = bridged
     .filter((t) => !seenBridge.has(t.name) && seenBridge.add(t.name))
     .map((t) => `  --${t.name}: var(--${t.name});`);
+  // NOTE: the header comment must NOT contain a literal `@import "..."` string.
+  // Django/WhiteNoise ManifestStaticFilesStorage rewrites @import/url() targets by
+  // regex WITHOUT skipping comments, so a commented example import is treated as a
+  // real reference and fails collectstatic with a MissingFileError (found by the
+  // icvlocal.com consumer, brickwork 0.1.0). Describe the import in prose instead.
   const tailwind =
     "/* GENERATED: Tailwind 4 @theme inline bridge for --bw-* semantic tokens.\n" +
-    " * @import this after `@import \"tailwindcss\"` in a consumer's entry CSS. */\n" +
+    " * Import this fragment in a consumer's entry CSS AFTER the Tailwind import\n" +
+    " * (the line that pulls in tailwindcss itself). Do not edit by hand. */\n" +
     "@theme inline {\n" +
     themeVars.join("\n") +
     "\n}\n";

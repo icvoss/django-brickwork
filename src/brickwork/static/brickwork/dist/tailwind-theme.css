@@ -1,5 +1,6 @@
 /* GENERATED: Tailwind 4 @theme inline bridge for --bw-* semantic tokens.
- * @import this after `@import "tailwindcss"` in a consumer's entry CSS. */
+ * Import this fragment in a consumer's entry CSS AFTER the Tailwind import
+ * (the line that pulls in tailwindcss itself). Do not edit by hand. */
 @theme inline {
   --bw-color-surface: var(--bw-color-surface);
   --bw-color-surface-sunken: var(--bw-color-surface-sunken);

@@ -8,7 +8,19 @@ versioning contract).
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-07-30
+## [0.1.1] - 2026-07-30
+
+### Fixed
+- `collectstatic` no longer fails for consumers using a `ManifestStaticFilesStorage`
+  (the standard production static storage, incl. WhiteNoise's compressed-manifest
+  variant). The generated `tailwind-theme.css` header comment contained an example
+  `@import "tailwindcss"`; Django/WhiteNoise rewrite `@import`/`url()` targets by
+  regex WITHOUT skipping comments, so it was treated as a real reference to a
+  non-existent `brickwork/dist/tailwindcss` and raised `MissingFileError`,
+  breaking every consumer's `collectstatic`. The comment is reworded to describe
+  the import in prose, and a regression test asserts no shipped CSS carries an
+  `@import "..."` or resolvable `url(...)`. Found by the first external consumer
+  (icvlocal.com) adopting 0.1.0.
 
 First release: the Phase-0 vertical slice. Within the `0.x` grace window per the
 spec's versioning discipline, the contracts stay stable-in-intent but are not yet
