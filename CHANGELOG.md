@@ -8,10 +8,16 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-30
+
+First release: the Phase-0 vertical slice. Within the `0.x` grace window per the
+spec's versioning discipline, the contracts stay stable-in-intent but are not yet
+1.0-guaranteed (1.0 signals both v1 pilots have cut over).
+
 ### Added
 
-Phase 0: the v1 vertical slice. Proves the substrate end-to-end (85 Python
-tests + 9 axe/no-JS checks green).
+Phase 0: the v1 vertical slice. Proves the substrate end-to-end (115 Python
+tests + 9 axe/no-JS checks green, coverage 99.67%).
 
 - **Icon registry + `{% bw_icon %}`** (contract: token/template): a name -> SVG
   registry (the public contract) seeded from a curated Lucide subset (ISC +
