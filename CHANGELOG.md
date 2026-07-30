@@ -8,7 +8,39 @@ versioning contract).
 
 ## [Unreleased]
 
-## [0.1.2] - 2026-07-30
+## [0.2.0] - 2026-07-30
+
+Adoption round: four findings from the agentpm pilot (the second, no-JS,
+object-scope-authorised consumer) resolved. All additive and backward-compatible.
+
+### Added
+- **Route-parameter-dependent nav URLs** (#5). `NavItem` gains
+  `url_kwargs_from_request(resolver_match) -> dict`, an optional callable that
+  derives reverse kwargs from the current request's route at render time and
+  merges them over the static `url_kwargs`. This lets a project-scoped item
+  (`projects/<slug>/documents/`) live in the sidebar even though `<slug>` is only
+  known per request. `{% bw_nav %}` is now `takes_context=True` and reads
+  `request.resolver_match` automatically. If the kwargs are not yet available, the
+  item follows `BRICKWORK_NAV_FALLBACK` like any unresolvable URL, never a 500.
+- **Typography tokens** (#7). New `--bw-font-family-{sans,display,mono}` plus a
+  `--bw-font-size-*` / `--bw-font-weight-*` / `--bw-font-line-height-*` scale. The
+  shell and page-header consume them, so an app rebrands its typeface token-first
+  (override `--bw-font-family-sans`) instead of reaching into brickwork's classes.
+  Default is a neutral system-font stack.
+- **`docs/BRANDING.md`** (#8): a token-first branding guide covering colour
+  bridging from a lean palette (which tokens are safe to collapse), the
+  typography tokens, and the four axes, including how to bridge a
+  `prefers-color-scheme` / Tailwind `dark:` app onto brickwork's `data-theme`
+  contract (which stays required so dark stays authored-not-derived,
+  BR-BW-TOK-002).
+
+### Changed
+- **`NavContext.permission_checker` is now optional** (#6), defaulting to
+  permissive (everything visible). An app that authorises per object/scope in the
+  view (RBAC, membership) no longer has to pass a stub `lambda _p: True`; it
+  relies on its own mandatory view-level enforcement (BR-BW-NAV-005: nav
+  visibility is display, never authorisation). Supplying a checker still works
+  exactly as before. `feature_checker` was already optional.
 
 ### Fixed
 - Template comments no longer render as visible text. Three shipped templates

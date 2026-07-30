@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
+    from django.urls import ResolverMatch
 
 
 @dataclass(frozen=True)
@@ -49,7 +50,19 @@ class NavItem:
     section header or an external link."""
 
     url_kwargs: dict = field(default_factory=dict)
-    """Keyword arguments passed to {% url %} when reversing ``url_name``."""
+    """Static keyword arguments passed when reversing ``url_name``, fixed at
+    nav-definition time."""
+
+    url_kwargs_from_request: Callable[[ResolverMatch | None], dict] | None = None
+    """An optional callable that derives reverse kwargs from the CURRENT request's
+    route at render time (NAV, route-parameter-dependent URLs). Given the active
+    ``request.resolver_match``, it returns a dict merged OVER ``url_kwargs``. This
+    lets a project-scoped item (e.g. ``projects/<slug>/documents/``) live in the
+    sidebar even though ``<slug>`` is only known per request, not at nav-assembly
+    time. Typical use: ``lambda rm: {"slug": rm.kwargs["slug"]} if rm and "slug"
+    in rm.kwargs else {}``. If it returns kwargs that do not satisfy the pattern
+    (e.g. no project selected yet), the item falls back to BRICKWORK_NAV_FALLBACK
+    like any unresolvable URL, never a 500 (BR-BW-NAV-003)."""
 
     external_url: str | None = None
     """An off-site URL (NAV-018). Mutually exclusive with ``url_name``: an
@@ -100,5 +113,11 @@ class NavContext:
     """
 
     request: HttpRequest
-    permission_checker: Callable[[str], bool]
+    permission_checker: Callable[[str], bool] = lambda _perm: True
     feature_checker: Callable[[str], bool] = lambda _flag: True
+    """``permission_checker`` and ``feature_checker`` both default to permissive
+    (everything visible). An app that gates access with Django model permissions
+    passes ``request.user.has_perm``; an app that authorises per object/scope in
+    the view layer (RBAC, membership) leaves them at the default and relies on its
+    own view-level enforcement, which is mandatory regardless (BR-BW-NAV-005: nav
+    visibility is display, never authorisation). Neither is required."""

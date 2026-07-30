@@ -45,7 +45,17 @@ class RenderedNavItem:
     children: tuple[RenderedNavItem, ...]
 
 
-def _prepare(item: NavItem, active: NavItem | None, fallback: str) -> RenderedNavItem | None:
+def _effective_kwargs(item: NavItem, resolver_match) -> dict:
+    """The reverse kwargs for an item: its static ``url_kwargs`` with any
+    request-derived kwargs (``url_kwargs_from_request``) merged over the top."""
+    kwargs = dict(item.url_kwargs)
+    if item.url_kwargs_from_request is not None:
+        derived = item.url_kwargs_from_request(resolver_match) or {}
+        kwargs.update(derived)
+    return kwargs
+
+
+def _prepare(item: NavItem, active: NavItem | None, fallback: str, resolver_match) -> RenderedNavItem | None:
     """Prepare one item for render, or None if it should be omitted entirely."""
     href: str | None = None
     is_disabled = False
@@ -56,15 +66,21 @@ def _prepare(item: NavItem, active: NavItem | None, fallback: str) -> RenderedNa
     elif is_external:
         href = item.external_url
     elif item.url_name is not None:
-        href = safe_reverse(item.url_name, item.url_kwargs)
+        href = safe_reverse(item.url_name, _effective_kwargs(item, resolver_match))
         if href is None:
             # BR-BW-NAV-003 / NAV-015: a bad url_name never 500s. Either drop the
             # item ("omit") or render it disabled ("disabled"), per the setting.
+            # A route-parameter item whose kwargs are not yet available (e.g. no
+            # project selected) resolves to None here and follows the same path.
             if fallback == "omit":
                 return None
             is_disabled = True
 
-    children = tuple(prepared for child in item.children if (prepared := _prepare(child, active, fallback)) is not None)
+    children = tuple(
+        prepared
+        for child in item.children
+        if (prepared := _prepare(child, active, fallback, resolver_match)) is not None
+    )
 
     # a section header with no surviving children renders nothing
     if item.section_header and not children:
@@ -85,10 +101,23 @@ def _prepare(item: NavItem, active: NavItem | None, fallback: str) -> RenderedNa
     )
 
 
-@register.inclusion_tag("brickwork/nav/_nav.html")
-def bw_nav(items: tuple[NavItem, ...], active: NavItem | None = None) -> dict:
+@register.inclusion_tag("brickwork/nav/_nav.html", takes_context=True)
+def bw_nav(
+    context,
+    items: tuple[NavItem, ...],
+    active: NavItem | None = None,
+    resolver_match=None,
+) -> dict:
     """Render the nav tree. ``items`` should already be visibility-filtered
-    (via visible_items in a context processor); ``active`` from resolve_active_item."""
+    (via visible_items in a context processor); ``active`` from resolve_active_item.
+
+    ``resolver_match`` drives route-parameter-dependent item URLs
+    (``NavItem.url_kwargs_from_request``); it defaults to the current request's
+    ``resolver_match`` from the template context, so a consumer rarely passes it
+    explicitly."""
+    if resolver_match is None:
+        request = context.get("request")
+        resolver_match = getattr(request, "resolver_match", None)
     fallback = get_setting("BRICKWORK_NAV_FALLBACK")
-    prepared = tuple(p for item in items if (p := _prepare(item, active, fallback)) is not None)
+    prepared = tuple(p for item in items if (p := _prepare(item, active, fallback, resolver_match)) is not None)
     return {"bw_nav_tree": prepared}

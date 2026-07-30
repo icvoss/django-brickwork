@@ -25,7 +25,7 @@ def _render_tree(tree) -> str:
 
 def test_external_link_prepared_with_external_flag() -> None:
     item = NavItem(key="docs", label="Docs", external_url="https://example.com")
-    prepared = _prepare(item, None, "omit")
+    prepared = _prepare(item, None, "omit", None)
     assert prepared.is_external is True
     assert prepared.href == "https://example.com"
 
@@ -37,7 +37,7 @@ def test_section_header_with_children_prepared() -> None:
         section_header=True,
         children=(NavItem(key="ext", label="Ext", external_url="https://x.test"),),
     )
-    prepared = _prepare(header, None, "omit")
+    prepared = _prepare(header, None, "omit", None)
     assert prepared.is_section_header is True
     assert len(prepared.children) == 1
 
@@ -51,30 +51,30 @@ def test_section_header_with_no_surviving_children_is_dropped() -> None:
         section_header=True,
         children=(NavItem(key="bad", label="Bad", url_name="does-not-exist"),),
     )
-    assert _prepare(header, None, "omit") is None
+    assert _prepare(header, None, "omit", None) is None
 
 
 def test_bad_url_omit_fallback_drops_item() -> None:
     item = NavItem(key="bad", label="Bad", url_name="does-not-exist")
-    assert _prepare(item, None, "omit") is None
+    assert _prepare(item, None, "omit", None) is None
 
 
 def test_bad_url_disabled_fallback_renders_disabled() -> None:
     item = NavItem(key="bad", label="Bad", url_name="does-not-exist")
-    prepared = _prepare(item, None, "disabled")
+    prepared = _prepare(item, None, "disabled", None)
     assert prepared is not None
     assert prepared.is_disabled is True
 
 
 def test_badge_is_carried_through() -> None:
     item = NavItem(key="inbox", label="Inbox", external_url="https://x.test", badge=12)
-    prepared = _prepare(item, None, "omit")
+    prepared = _prepare(item, None, "omit", None)
     assert prepared.badge == 12
 
 
 def test_active_item_is_flagged() -> None:
     active = NavItem(key="me", label="Me", external_url="https://x.test")
-    prepared = _prepare(active, active, "omit")
+    prepared = _prepare(active, active, "omit", None)
     assert prepared.is_active is True
 
 
@@ -113,6 +113,69 @@ def test_render_disabled_item_via_setting() -> None:
 
 
 def test_bw_nav_returns_prepared_tree_dict() -> None:
-    result = bw_nav(items=(NavItem(key="e", label="E", external_url="https://x.test"),))
+    # bw_nav is takes_context=True; pass a minimal context (no request).
+    result = bw_nav({}, items=(NavItem(key="e", label="E", external_url="https://x.test"),))
     assert "bw_nav_tree" in result
     assert isinstance(result["bw_nav_tree"][0], RenderedNavItem)
+
+
+# --- #5: route-parameter-dependent URLs -----------------------------------
+
+
+class _Match:
+    def __init__(self, kwargs):
+        self.kwargs = kwargs
+        self.view_name = "x"
+
+
+def test_effective_kwargs_merges_request_derived_over_static() -> None:
+    from brickwork.templatetags.brickwork_nav import _effective_kwargs
+
+    item = NavItem(
+        key="docs",
+        label="Docs",
+        url_name="proj:docs",
+        url_kwargs={"tab": "all"},
+        url_kwargs_from_request=lambda rm: {"slug": rm.kwargs["slug"]} if rm and "slug" in rm.kwargs else {},
+    )
+    # with a matching route, the slug is pulled from the current request
+    assert _effective_kwargs(item, _Match({"slug": "acme"})) == {"tab": "all", "slug": "acme"}
+    # with no slug in the route (nothing selected yet), only the static kwargs remain
+    assert _effective_kwargs(item, _Match({})) == {"tab": "all"}
+    assert _effective_kwargs(item, None) == {"tab": "all"}
+
+
+def test_route_param_item_reverses_with_the_current_slug(monkeypatch) -> None:
+    # a project-scoped item resolves against the CURRENT route's slug at render.
+    import brickwork.templatetags.brickwork_nav as navtag
+
+    captured = {}
+
+    def fake_reverse(url_name, kwargs=None):
+        captured["kwargs"] = kwargs
+        return f"/projects/{kwargs['slug']}/documents/"
+
+    monkeypatch.setattr(navtag, "safe_reverse", lambda name, kw: fake_reverse(name, kwargs=kw))
+    item = NavItem(
+        key="docs",
+        label="Docs",
+        url_name="proj:docs",
+        url_kwargs_from_request=lambda rm: {"slug": rm.kwargs["slug"]},
+    )
+    prepared = navtag._prepare(item, None, "omit", _Match({"slug": "acme"}))
+    assert prepared.href == "/projects/acme/documents/"
+    assert captured["kwargs"] == {"slug": "acme"}
+
+
+def test_route_param_item_omitted_when_kwargs_unavailable() -> None:
+    # no project selected -> the reverse fails -> the item follows NAV_FALLBACK.
+    item = NavItem(
+        key="docs",
+        label="Docs",
+        url_name="does-not-exist",
+        url_kwargs_from_request=lambda rm: {"slug": rm.kwargs["slug"]} if rm and "slug" in rm.kwargs else {},
+    )
+    # omit (default): a route-param item with no slug and an unresolvable name drops out
+    from brickwork.templatetags.brickwork_nav import _prepare
+
+    assert _prepare(item, None, "omit", _Match({})) is None
