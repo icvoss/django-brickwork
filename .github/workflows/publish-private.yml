@@ -1,4 +1,4 @@
-name: Publish __PACKAGE_NAME__ to the private index
+name: Publish django-brickwork to the private index
 
 # Canonical publish template for PRIVATE ICV package repos
 # (templates/repo/publish-private.yml). Public repos use publish.yml
@@ -41,7 +41,7 @@ env:
   FORCE_COLOR: "1"
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   PIP_NO_PYTHON_VERSION_WARNING: "1"
-  PACKAGE_NAME: __PACKAGE_NAME__
+  PACKAGE_NAME: django-brickwork
 
 permissions:
   contents: write
@@ -66,7 +66,7 @@ jobs:
             exit 1
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "release_title=__PACKAGE_NAME__ v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "release_title=django-brickwork v${VERSION}" >> "$GITHUB_OUTPUT"
           # A version is a pre-release if it is 0.x OR carries a PEP 440
           # pre-release / dev marker (rc, a, b, alpha, beta, dev). The old
           # startsWith('0.') check wrongly flagged 1.0.0rc1 as a full release.
@@ -99,24 +99,11 @@ jobs:
 
   # 2. Run the test suite before publishing
   test:
-    name: Test __PACKAGE_NAME__
+    name: Test django-brickwork
     runs-on: ubuntu-latest
     needs: resolve
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: icv_test
-          POSTGRES_PASSWORD: icv_test_password
-          POSTGRES_DB: __TEST_DB__
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+    # No Postgres service: brickwork ships no models and tests on SQLite.
 
     steps:
       - uses: actions/checkout@v6
@@ -148,7 +135,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "Django~=5.2.0"
+          pip install "Django~=6.0.0"
           pip install -e ".[dev]"
 
       # Publish smoke gate: run the DEFAULT leg only. Any leg that needs its
@@ -159,20 +146,16 @@ jobs:
       # deselects nothing (harmless). icv-commerce omitted this and its
       # v1.0.0rc1 publish gate collected locations/postgres tests it could not
       # satisfy.
+      # DJANGO_SETTINGS_MODULE (tests.settings) and pythonpath come from
+      # [tool.pytest.ini_options] in pyproject.toml; do not override them here.
+      # Default leg only (the seams/integration leg runs on the merged PR via
+      # ci.yml). brickwork has no postgres/locations markers to deselect.
       - name: Run tests
-        run: pytest tests/ -v --tb=short --color=yes -m "not locations_leg and not postgres"
-        env:
-          DJANGO_SETTINGS_MODULE: settings
-          PYTHONPATH: src:tests
-          POSTGRES_USER: icv_test
-          POSTGRES_PASSWORD: icv_test_password
-          POSTGRES_DB: __TEST_DB__
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: "5432"
+        run: pytest tests/ -v --tb=short --color=yes --no-cov --ignore=tests/test_integration.py
 
   # 3. Build wheel and sdist
   build:
-    name: Build __PACKAGE_NAME__
+    name: Build django-brickwork
     runs-on: ubuntu-latest
     needs: [resolve, test]
 
@@ -199,7 +182,7 @@ jobs:
       - name: Upload dist artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: dist-__PACKAGE_NAME__-${{ needs.resolve.outputs.version }}
+          name: dist-django-brickwork-${{ needs.resolve.outputs.version }}
           path: dist/
           if-no-files-found: error
 
@@ -207,7 +190,7 @@ jobs:
   # credentials come from the runner user's ~/.netrc, never from GitHub
   # secrets (see the header note).
   publish:
-    name: Publish __PACKAGE_NAME__ to pypi.icvoss.com
+    name: Publish django-brickwork to pypi.icvoss.com
     runs-on: [self-hosted, icv-vps]
     needs: [resolve, build]
     environment: private-pypi
@@ -222,7 +205,7 @@ jobs:
       - name: Download dist artifacts
         uses: actions/download-artifact@v8
         with:
-          name: dist-__PACKAGE_NAME__-${{ needs.resolve.outputs.version }}
+          name: dist-django-brickwork-${{ needs.resolve.outputs.version }}
           path: dist/
 
       - name: Publish to the private index (credentials from the runner netrc)
@@ -285,7 +268,7 @@ jobs:
       - name: Download dist artifacts
         uses: actions/download-artifact@v8
         with:
-          name: dist-__PACKAGE_NAME__-${{ needs.resolve.outputs.version }}
+          name: dist-django-brickwork-${{ needs.resolve.outputs.version }}
           path: dist/
 
       - name: Create GitHub Release
