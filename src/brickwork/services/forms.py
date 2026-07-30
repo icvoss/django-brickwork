@@ -47,3 +47,15 @@ def field_error_id(field: BoundField) -> str:
     convention (BR-BW-HTMX-003 / BR-BW-A11Y-002).
     """
     return f"{field.auto_id}_errors"
+
+
+def render_field_errors(field: BoundField) -> list[str]:
+    """Return a field's validation error messages as a list of plain strings.
+
+    The public helper named in 04-interfaces.md section 3. It gives a consuming
+    view or template the field's errors decoupled from the shipped ``_field.html``
+    markup, so a project that renders its own field chrome can still reuse
+    brickwork's error extraction (and the matching aria-describedby id via
+    ``field_error_id``). Returns an empty list for a field with no errors.
+    """
+    return [str(error) for error in field.errors]
