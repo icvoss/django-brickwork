@@ -1,0 +1,19 @@
+{% comment %}
+Page header: a title, optional description, and an actions slot. Used inside the
+shell's {% block page_header %}. loading=True swaps the title/description for a
+skeleton (STA-004), never a spinner.
+
+Required context: title. Optional: description, loading. The actions slot is
+filled by the caller wrapping this include, or via the shell's page_actions block.
+{% endcomment %}
+<header class="bw-page-header">
+  {% if loading %}
+    <div class="bw-skeleton bw-skeleton--title" aria-hidden="true"></div>
+    <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
+  {% else %}
+    <div class="bw-page-header__titles">
+      <h1 class="bw-page-header__title">{{ title }}</h1>
+      {% if description %}<p class="bw-page-header__description">{{ description }}</p>{% endif %}
+    </div>
+  {% endif %}
+</header>

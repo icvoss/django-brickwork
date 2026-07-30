@@ -1,0 +1,54 @@
+{% load i18n brickwork_icons %}
+{% comment %}
+Recursive nav render (NAV-016: one render shared by desktop sidebar + mobile
+drawer). Uses Django 6.0 {% partialdef %} for the recursive item partial;
+brickwork is the first umbrella package to use the 6.0 template partials, so
+there is no django-cotton / django-render-block here (BR-BW-TPL-003/004).
+
+Items arrive already prepared by {% bw_nav %} (URL resolved via safe_reverse,
+active/ancestor-active state and the disabled/external flags computed), so this
+template is pure presentation: no {% url %} that could 500 (BR-BW-NAV-003), no
+permission logic (visibility was filtered upstream).
+{% endcomment %}
+
+{% partialdef nav_item %}
+  {% comment %} `item` is a RenderedNavItem. {% endcomment %}
+  {% if item.is_section_header %}
+    <li class="bw-nav__section">
+      <span class="bw-nav__section-label">{{ item.label }}</span>
+      {% if item.children %}
+        <ul class="bw-nav__list">
+          {% for item in item.children %}{% partial nav_item %}{% endfor %}
+        </ul>
+      {% endif %}
+    </li>
+  {% else %}
+    <li class="bw-nav__item">
+      {% if item.is_disabled %}
+        <span class="bw-nav__link bw-nav__link--disabled" aria-disabled="true">
+          {% if item.icon %}{% bw_icon item.icon decorative=True css_class="bw-nav__icon" %}{% endif %}
+          <span class="bw-nav__label">{{ item.label }}</span>
+        </span>
+      {% else %}
+        <a class="bw-nav__link{% if item.is_active %} bw-nav__link--active{% endif %}{% if item.is_active_ancestor %} bw-nav__link--active-ancestor{% endif %}"
+           href="{{ item.href|default:'#' }}"
+           {% if item.is_active %}aria-current="page"{% endif %}
+           {% if item.is_external %}target="_blank" rel="noopener noreferrer"{% endif %}>
+          {% if item.icon %}{% bw_icon item.icon decorative=True css_class="bw-nav__icon" %}{% endif %}
+          <span class="bw-nav__label">{{ item.label }}</span>
+          {% if item.badge is not None %}<span class="bw-nav__badge">{{ item.badge }}</span>{% endif %}
+          {% if item.is_external %}{% bw_icon "external-link" size="sm" decorative=True css_class="bw-nav__external" %}{% endif %}
+        </a>
+      {% endif %}
+      {% if item.children %}
+        <ul class="bw-nav__list bw-nav__list--nested">
+          {% for item in item.children %}{% partial nav_item %}{% endfor %}
+        </ul>
+      {% endif %}
+    </li>
+  {% endif %}
+{% endpartialdef %}
+
+<ul class="bw-nav__list" role="list">
+  {% for item in bw_nav_tree %}{% partial nav_item %}{% endfor %}
+</ul>

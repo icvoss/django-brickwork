@@ -1,0 +1,39 @@
+{% load brickwork_icons i18n %}
+{% comment %}
+Pagination controls for a Django Page object. Renders nothing when there is only
+one page (STA-014: a one-page result shows no controls). Uses logical
+prev/next (chevron-back/-forward flip under RTL, ICO-014). Preserves the current
+querystring so sort/filter survive a page change.
+
+Required context: page_obj (a django.core.paginator.Page). Optional: querystring
+(the current GET params minus 'page', e.g. from request.GET).
+{% endcomment %}
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="bw-pagination" aria-label="{% translate 'Pagination' %}">
+  {% if page_obj.has_previous %}
+    <a class="bw-pagination__link" href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}"
+       aria-label="{% translate 'Previous page' %}" rel="prev">
+      {% bw_icon "chevron-back" size="sm" decorative=True %}
+    </a>
+  {% else %}
+    <span class="bw-pagination__link bw-pagination__link--disabled" aria-disabled="true">
+      {% bw_icon "chevron-back" size="sm" decorative=True %}
+    </span>
+  {% endif %}
+
+  <span class="bw-pagination__status">
+    {% blocktranslate with current=page_obj.number total=page_obj.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktranslate %}
+  </span>
+
+  {% if page_obj.has_next %}
+    <a class="bw-pagination__link" href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}"
+       aria-label="{% translate 'Next page' %}" rel="next">
+      {% bw_icon "chevron-forward" size="sm" decorative=True %}
+    </a>
+  {% else %}
+    <span class="bw-pagination__link bw-pagination__link--disabled" aria-disabled="true">
+      {% bw_icon "chevron-forward" size="sm" decorative=True %}
+    </span>
+  {% endif %}
+</nav>
+{% endif %}

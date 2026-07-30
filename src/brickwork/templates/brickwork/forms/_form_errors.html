@@ -1,0 +1,19 @@
+{% load i18n %}
+{% comment %}
+Non-field / catastrophic error summary. Rendered above the fields when a form has
+non_field_errors (e.g. a cross-field rule). role="alert" so it is announced; a
+heading anchors it for keyboard users. Field-level errors use forms/_field.html's
+inline pattern instead (BR-BW-HTMX-003), so this is only for form-scoped errors.
+
+Required context: form.
+{% endcomment %}
+{% if form.non_field_errors %}
+<div class="bw-form-errors" role="alert">
+  <p class="bw-form-errors__title">{% translate "There was a problem with your submission" %}</p>
+  <ul class="bw-form-errors__list">
+    {% for error in form.non_field_errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}

@@ -1,0 +1,25 @@
+{% load brickwork_icons %}{% spaceless %}
+{% comment %}
+Button or link-button. icon_only renders the icon alone with the aria_label as
+its accessible name (enforced non-empty by bw_button, ICO-008). loading mounts
+the spinner and marks aria-busy. Renders as <a> when href is set, else <button>.
+{% endcomment %}
+{% if href %}
+<a class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}{% if disabled %} bw-btn--disabled{% endif %}"
+   href="{{ href }}"
+   {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+   {% if disabled %}aria-disabled="true"{% endif %}>
+  {% if loading %}{% include "brickwork/components/_spinner.html" %}{% elif icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
+  {% if not icon_only %}<span class="bw-btn__label">{{ label }}</span>{% endif %}
+</a>
+{% else %}
+<button class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}"
+        type="{{ type }}"
+        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if loading %}aria-busy="true" disabled{% endif %}>
+  {% if loading %}{% include "brickwork/components/_spinner.html" %}{% elif icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
+  {% if not icon_only %}<span class="bw-btn__label">{{ label }}</span>{% endif %}
+</button>
+{% endif %}
+{% endspaceless %}

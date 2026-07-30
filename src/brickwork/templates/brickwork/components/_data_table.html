@@ -1,0 +1,55 @@
+{% load brickwork_icons i18n %}
+{% comment %}
+Data table: STRUCTURE ONLY (BR-BW-TPL-005, never virtualisation/AG-Grid). It
+renders columns with server-side sortable headers, rows with STABLE per-row ids
+(BR-BW-HTMX-005, so a consumer's hx-target can address a row), an empty state at
+exactly zero rows (STA-001), and a loading skeleton (STA-004). Sort/filter/
+paginate are server-driven: the view computes the order and passes the current
+sort; a header link carries the sort param, no client-side sorting.
+
+Required context:
+  columns: a list of dicts: {label, key, sortable(bool), sort_key(str)}
+  rows:    a list of dicts: {id, cells: [rendered strings], url(optional)}
+  table_id: the stable id for the table container (an hx-swap target).
+Optional:
+  loading (bool), current_sort (str, e.g. "name" or "-name"),
+  empty_heading, empty_body, querystring.
+{% endcomment %}
+<div id="{{ table_id|default:'bw-data-table' }}" class="bw-data-table-wrap">
+  {% if loading %}
+    <div class="bw-data-table__skeleton" aria-hidden="true">
+      {% for _ in "xxxxx" %}<div class="bw-skeleton bw-skeleton--row"></div>{% endfor %}
+    </div>
+  {% elif not rows %}
+    {% include "brickwork/components/_empty_state.html" with variant="no_data" heading=empty_heading|default:"" body=empty_body|default:"" %}
+  {% else %}
+    <table class="bw-data-table">
+      <thead>
+        <tr>
+          {% for col in columns %}
+            <th scope="col" class="bw-data-table__th{% if col.sortable %} bw-data-table__th--sortable{% endif %}"
+                {% if col.sortable and current_sort == col.sort_key %}aria-sort="ascending"{% elif col.sortable and current_sort == col.sort_key_desc %}aria-sort="descending"{% endif %}>
+              {% if col.sortable %}
+                <a class="bw-data-table__sort" href="?sort={{ col.next_sort }}{% if querystring %}&{{ querystring }}{% endif %}">
+                  {{ col.label }}
+                  {% if current_sort == col.sort_key %}{% bw_icon "arrow-up" size="sm" decorative=True %}{% elif current_sort == col.sort_key_desc %}{% bw_icon "arrow-down" size="sm" decorative=True %}{% else %}{% bw_icon "sort" size="sm" decorative=True css_class="bw-data-table__sort-idle" %}{% endif %}
+                </a>
+              {% else %}
+                {{ col.label }}
+              {% endif %}
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}" class="bw-data-table__row">
+            {% for cell in row.cells %}
+              <td class="bw-data-table__td">{{ cell }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>

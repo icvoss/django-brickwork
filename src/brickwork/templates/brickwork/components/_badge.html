@@ -1,0 +1,11 @@
+{% load brickwork_icons %}{% spaceless %}
+{% comment %}
+A small status/label badge (neutral information only, never error comms, STA-008).
+An optional leading icon is decorative by default (ICO-009): the badge text
+already conveys the status.
+{% endcomment %}
+<span class="bw-badge bw-badge--{{ variant }}">
+  {% if icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-badge__icon" %}{% endif %}
+  {{ label }}
+</span>
+{% endspaceless %}

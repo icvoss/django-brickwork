@@ -13,6 +13,8 @@
 
 @import "../../src/brickwork/static/brickwork/dist/tokens.css";
 @import "./shell.css";
+@import "./nav.css";
+@import "./components.css";
 
 /* --- accessibility + RTL primitives (no component depends on JS for these) --- */
 

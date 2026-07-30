@@ -1,0 +1,40 @@
+{% load i18n brickwork_forms %}
+{% comment %}
+Accessible field renderer (BR-BW-HTMX-003 / BR-BW-A11Y-002). Wires:
+- a real <label for> tied to the widget id,
+- aria-invalid="true" on an errored field,
+- aria-describedby linking the field to its help text and its error container,
+- the error container carrying the SAME id aria-describedby points at.
+
+`field` is a Django BoundField. `readonly` (STA-011) is distinct from the
+field's own `disabled`: a readonly field stays focusable/selectable, a disabled
+field is dimmed and out of the tab order. This renders the field widget via
+Django's own rendering; it does not reimplement widgets.
+
+Required context: field. Optional: readonly (bool).
+{% endcomment %}
+{% with errors=field.errors help_id=field.auto_id|add:"_help" error_id=field.auto_id|add:"_errors" %}
+<div class="bw-field{% if errors %} bw-field--invalid{% endif %}">
+  <label class="bw-field__label" for="{{ field.id_for_label }}">
+    {{ field.label }}{% if field.field.required %} <span class="bw-field__required" aria-hidden="true">*</span>{% endif %}
+  </label>
+
+  {# The widget, rendered with aria-invalid + aria-describedby ON THE INPUT (they
+     must sit on the control itself to be announced, not on a wrapper). #}
+  <div class="bw-field__control">
+    {% bw_field_widget field readonly=readonly %}
+  </div>
+
+  {% if field.help_text %}
+    <p class="bw-field__help" id="{{ help_id }}">{{ field.help_text }}</p>
+  {% endif %}
+
+  {# Error container: id matches what aria-describedby references. role=alert so a
+     screen reader announces a newly-swapped-in error (the 422 re-render). #}
+  <div class="bw-field__errors" id="{{ error_id }}" role="alert">
+    {% for error in errors %}
+      <p class="bw-field__error">{{ error }}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endwith %}
