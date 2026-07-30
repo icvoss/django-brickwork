@@ -1,4 +1,4 @@
-"""Django app configuration for saas_ui.
+"""Django app configuration for brickwork.
 
 The AppConfig.ready() hook is where navigation validation runs (duplicate-key
 detection raises at startup per BR-SUI-NAV-*), and where any system checks for
@@ -12,7 +12,7 @@ from django.apps import AppConfig
 
 
 class SaasUiConfig(AppConfig):
-    name = "saas_ui"
+    name = "brickwork"
     verbose_name = "SaaS UI substrate"
     default_auto_field = "django.db.models.BigAutoField"
 

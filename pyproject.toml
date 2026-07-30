@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "saas-ui"
+name = "django-brickwork"
 version = "0.0.0"
 description = "Brand-agnostic, app-facing professional UI substrate for server-rendered Django (Tailwind 4, Alpine 3, HTMX 2). Accessible by construction; not a Django-admin skin."
 readme = "README.md"
@@ -36,14 +36,14 @@ keywords = [
 #
 # Django is the ONLY hard runtime dependency. Deliberately NOT depended on
 # (build-tool research 2026-07-30, a library inherits every dep five times):
-#   - django-htmx: saas_ui's own need is one boolean (HX-Request header). It
+#   - django-htmx: brickwork's own need is one boolean (HX-Request header). It
 #     inlines that check and duck-types request.htmx when a consumer already
 #     runs django-htmx. Offered as the optional [htmx] extra, never forced.
-#   - django-vite: unnecessary. saas_ui ships STABLE (non-hashed) asset
+#   - django-vite: unnecessary. brickwork ships STABLE (non-hashed) asset
 #     filenames referenced by plain {% static %}; there is no Vite manifest to
 #     resolve. (Also stale: no Django 5.x/6.x support.)
 #   - django-tailwind / -cli: irrelevant. They manage a Tailwind build inside a
-#     live Django project; saas_ui compiles its CSS in its OWN repo (Vite +
+#     live Django project; brickwork compiles its CSS in its OWN repo (Vite +
 #     @tailwindcss/vite) and ships the precompiled artefact.
 # Tailwind/Alpine/HTMX are FRONTEND runtime (loaded via <link>/<script> against
 # the shipped static assets), not Python packages. @alpinejs/ui + @alpinejs/focus
@@ -53,15 +53,15 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/icvoss/saas-ui"
-Documentation = "https://github.com/icvoss/saas-ui"
-Changelog = "https://github.com/icvoss/saas-ui/blob/main/CHANGELOG.md"
-"Issue Tracker" = "https://github.com/icvoss/saas-ui/issues"
-"Source Code" = "https://github.com/icvoss/saas-ui"
+Homepage = "https://github.com/icvoss/django-brickwork"
+Documentation = "https://github.com/icvoss/django-brickwork"
+Changelog = "https://github.com/icvoss/django-brickwork/blob/main/CHANGELOG.md"
+"Issue Tracker" = "https://github.com/icvoss/django-brickwork/issues"
+"Source Code" = "https://github.com/icvoss/django-brickwork"
 
 [project.optional-dependencies]
-# Optional: consumers already running django-htmx get saas_ui's HTMX-aware
-# helpers using the richer request.htmx surface. saas_ui's core never imports
+# Optional: consumers already running django-htmx get brickwork's HTMX-aware
+# helpers using the richer request.htmx surface. brickwork's core never imports
 # it (it inlines the HX-Request header check + duck-types request.htmx), so
 # consumers without this extra are unaffected.
 htmx = ["django-htmx>=1.28"]
@@ -79,8 +79,8 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 # Ship templates, the compiled CSS/JS/token artefacts (built by the frontend
-# pipeline into static/saas_ui/dist), and the PEP 561 typed marker.
-saas_ui = [
+# pipeline into static/brickwork/dist), and the PEP 561 typed marker.
+brickwork = [
     "py.typed",
     "templates/**/*.html",
     "static/**/*",
@@ -101,7 +101,7 @@ select = ["E", "W", "F", "I", "B", "UP", "N", "SIM"]
 ignore = ["E501", "SIM105"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["saas_ui"]
+known-first-party = ["brickwork"]
 
 [tool.ruff.format]
 quote-style = "double"

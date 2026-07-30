@@ -1,7 +1,7 @@
 name: CI
 
 # Adapted from the canonical ICV template (templates/repo/ci.yml).
-# saas_ui specifics:
+# brickwork specifics:
 #   - Django 6.0 FLOOR (uses core template partials); matrix is 6.0 only, no 5.2.
 #   - SQLite tests (postgres service block deleted).
 #   - Consumer smoke-test job deleted (no tests/consumer/ harness yet; a pre-1.0
@@ -70,7 +70,7 @@ jobs:
 
   # ── STUB: frontend build (Phase 0) ───────────────────────────────────
   # Will run: npm ci && npm run build (Style Dictionary tokens + Vite assets),
-  # then assert the compiled artefacts land in src/saas_ui/static/saas_ui/dist
+  # then assert the compiled artefacts land in src/brickwork/static/brickwork/dist
   # with the expected STABLE filenames. Stubbed until the pipeline exists.
   frontend-build:
     name: Frontend build (STUB - Phase 0)
@@ -80,7 +80,7 @@ jobs:
       - name: Placeholder
         run: |
           echo "STUB: Phase 0 wires 'npm ci && npm run build' and asserts"
-          echo "stable-named artefacts in src/saas_ui/static/saas_ui/dist/."
+          echo "stable-named artefacts in src/brickwork/static/brickwork/dist/."
           exit 0
 
   # ── STUB: accessibility gate (Phase 0, load-bearing per spec) ─────────
