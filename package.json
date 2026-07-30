@@ -6,9 +6,13 @@
   "scripts": {
     "build:tokens": "node build-tokens.mjs",
     "build:assets": "vite build",
-    "build": "npm run build:tokens && npm run build:assets"
+    "build": "npm run build:tokens && npm run build:assets",
+    "a11y:fixtures": "DJANGO_SETTINGS_MODULE=tests.settings_seams PYTHONPATH=src:.:tests python a11y/generate_fixtures.py",
+    "a11y": "playwright test"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.0",
     "@tailwindcss/vite": "^4.0",
     "style-dictionary": "^4.0",
     "tailwindcss": "^4.0",

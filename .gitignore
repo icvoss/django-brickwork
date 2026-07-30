@@ -34,3 +34,8 @@ npm-debug.log*
 # compiled CSS/JS/token artefacts are the package's product). Do not ignore it.
 # Style Dictionary token source lives in src/brickwork/tokens/source/ (also
 # committed); only the top-level Python /dist/ build output is ignored above.
+
+# Generated a11y fixtures + Playwright output
+a11y/fixtures/
+test-results/
+playwright-report/
