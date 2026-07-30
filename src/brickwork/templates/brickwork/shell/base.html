@@ -28,8 +28,8 @@ out of the box.
   {% block head_js %}{% endblock %}
 </head>
 <body class="bw-body bw-shell--{% block shell_variant %}base{% endblock %}">
-  {# Skip link: first focusable element, jumps to the main workspace. Every
-     shell ships one (the audit found 0/5 apps had a skip link). #}
+  {% comment %}Skip link: first focusable element, jumps to the main workspace.
+  Every shell ships one (the audit found 0/5 apps had a skip link).{% endcomment %}
   <a class="bw-skip-link" href="#bw-main">{% block skip_link_label %}{% translate "Skip to main content" %}{% endblock %}</a>
 
   {% block shell %}{% endblock %}
