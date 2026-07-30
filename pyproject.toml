@@ -79,11 +79,14 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 # Ship templates, the compiled CSS/JS/token artefacts (built by the frontend
-# pipeline into static/brickwork/dist), and the PEP 561 typed marker.
+# pipeline into static/brickwork/dist), the vendored icon artwork the registry
+# loads at import, the DTCG token source, and the PEP 561 typed marker.
 brickwork = [
     "py.typed",
     "templates/**/*.html",
     "static/**/*",
+    "icons/vendor/**/*.svg",
+    "tokens/source/**/*.json",
 ]
 
 [tool.pytest.ini_options]
