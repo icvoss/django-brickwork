@@ -154,6 +154,29 @@ def test_tokens_css_uses_namespaced_bw_names_in_oklch() -> None:
     assert "#" not in css.split(":root")[1].split("}")[0], "hex leaked into :root colours"
 
 
+def test_typography_tokens_are_shipped() -> None:
+    # #7: a consumer must be able to rebrand typography token-first (the family
+    # trio + a size/weight/line-height scale), the same way it rebrands colour.
+    css = (_DIST / "tokens.css").read_text()
+    for token in (
+        "--bw-font-family-sans:",
+        "--bw-font-family-display:",
+        "--bw-font-family-mono:",
+        "--bw-font-size-md:",
+        "--bw-font-weight-bold:",
+        "--bw-font-line-height-normal:",
+    ):
+        assert token in css, f"missing typography token {token}"
+
+
+def test_shell_css_consumes_the_font_family_token() -> None:
+    # overriding --bw-font-family-sans must actually rebrand the shell, so the
+    # shipped component CSS has to reference the token, not a hardcoded stack.
+    css = (_DIST / "brickwork.css").read_text()
+    assert "var(--bw-font-family-sans)" in css
+    assert "var(--bw-font-family-display)" in css
+
+
 def test_dark_block_overrides_surface_to_a_dark_value() -> None:
     css = (_DIST / "tokens.css").read_text()
     dark_block = css.split('[data-theme="dark"]')[1].split("}")[0]

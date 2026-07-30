@@ -10,12 +10,11 @@
   min-height: 100vh;
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg);
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  /* Consume the font tokens so a consumer rebrands typography token-first
+     (override --bw-font-family-sans) rather than reaching into these classes. */
+  font-family: var(--bw-font-family-sans);
+  font-size: var(--bw-font-size-md);
+  line-height: var(--bw-font-line-height-normal);
 }
 
 /* --- App shell: sidebar + main column -------------------------------------- */

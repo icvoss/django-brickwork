@@ -29,6 +29,32 @@ def _ctx(*, perms=(), features=()):
     )
 
 
+# --- #6: permission_checker / feature_checker are optional (permissive default) ---
+
+
+def test_navcontext_permission_checker_is_optional() -> None:
+    # An object/scope-authorised app (RBAC, not model perms) constructs a context
+    # with neither checker and relies on its own view-level enforcement; brickwork
+    # defaults to "everything visible" (BR-BW-NAV-005: visibility is not auth).
+    ctx = NavContext(request=None)
+    nav = (
+        NavItem(key="a", label="A", url_name="a"),
+        NavItem(key="b", label="B", url_name="b", required_permissions=("some.perm",)),
+    )
+    visible = navigation.visible_items(nav, ctx)
+    # with the permissive default, a permission-gated item is still shown
+    assert {i.key for i in visible} == {"a", "b"}
+
+
+def test_navcontext_still_honours_a_supplied_permission_checker() -> None:
+    ctx = NavContext(request=None, permission_checker=lambda p: p == "yes.perm")
+    nav = (
+        NavItem(key="ok", label="OK", url_name="ok", required_permissions=("yes.perm",)),
+        NavItem(key="no", label="No", url_name="no", required_permissions=("nope",)),
+    )
+    assert {i.key for i in navigation.visible_items(nav, ctx)} == {"ok"}
+
+
 # --- BR-BW-NAV-002: duplicate keys raise at config time ---------------------
 
 

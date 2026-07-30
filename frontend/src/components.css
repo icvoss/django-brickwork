@@ -193,8 +193,12 @@
 
 .bw-page-header__title {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
+  /* the display font so a consumer can give headings a distinct typeface
+     (override --bw-font-family-display) without touching this class */
+  font-family: var(--bw-font-family-display);
+  font-size: var(--bw-font-size-xl);
+  font-weight: var(--bw-font-weight-bold);
+  line-height: var(--bw-font-line-height-tight);
 }
 .bw-page-header__description {
   margin: var(--bw-size-space-1) 0 0;

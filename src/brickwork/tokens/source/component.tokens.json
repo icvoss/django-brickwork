@@ -44,5 +44,41 @@
       "$type": "other",
       "$value": "sticky"
     }
+  },
+  "font": {
+    "$description": "Typography tokens (semver-public, brand-overridable). Theme-agnostic. A consuming app rebrands its typeface the same token-first way it rebrands colour, by overriding --bw-font-family-* rather than reaching into brickwork's own classes. The default stack is a neutral system-font stack so an unbranded install still looks intentional.",
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+      },
+      "display": {
+        "$value": "{font.family.sans}"
+      },
+      "mono": {
+        "$value": "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace"
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "xs": { "$value": "0.75rem" },
+      "sm": { "$value": "0.875rem" },
+      "md": { "$value": "1rem" },
+      "lg": { "$value": "1.125rem" },
+      "xl": { "$value": "1.5rem" },
+      "2xl": { "$value": "2rem" }
+    },
+    "weight": {
+      "$type": "number",
+      "normal": { "$value": "400" },
+      "medium": { "$value": "500" },
+      "semibold": { "$value": "600" },
+      "bold": { "$value": "700" }
+    },
+    "line-height": {
+      "$type": "number",
+      "tight": { "$value": "1.25" },
+      "normal": { "$value": "1.5" }
+    }
   }
 }
