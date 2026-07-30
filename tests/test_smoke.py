@@ -30,7 +30,12 @@ def test_tokens_submodule_is_django_free() -> None:
 
 
 def test_conf_defaults_resolve() -> None:
-    from brickwork.conf import ui_settings
+    # Flat BRICKWORK_* settings resolve to their documented defaults out of the
+    # box (04-interfaces.md section 2). No settings are configured in
+    # tests/settings.py, so these exercise the fall-through-to-default path.
+    from brickwork.conf import get_setting
 
-    assert ui_settings.get("theme", "default_mode") == "system"
-    assert ui_settings.get("theme", "default_direction") == "ltr"
+    assert get_setting("BRICKWORK_DEFAULT_THEME") == "light"
+    assert get_setting("BRICKWORK_DEFAULT_DENSITY") == "comfortable"
+    assert get_setting("BRICKWORK_DEFAULT_DIR") == "ltr"
+    assert get_setting("BRICKWORK_NAV_FALLBACK") == "omit"
