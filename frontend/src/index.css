@@ -16,6 +16,12 @@
 @import "./nav.css";
 @import "./components.css";
 
+/* Scoped box-sizing reset: the library must be correct without a consumer preflight. */
+[class^="bw-"],
+[class*=" bw-"] {
+  box-sizing: border-box;
+}
+
 /* --- accessibility + RTL primitives (no component depends on JS for these) --- */
 
 /* Skip link: visually hidden until focused, then pinned to the top-inline-start.

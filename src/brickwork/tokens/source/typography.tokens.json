@@ -13,7 +13,7 @@
       "family": { "$value": "var(--bw-font-family-display)" },
       "size": { "$value": "var(--bw-font-size-xl)" },
       "line-height": { "$value": "var(--bw-font-line-height-tight)" },
-      "weight": { "$value": "var(--bw-font-weight-bold)" },
+      "weight": { "$value": "var(--bw-font-weight-semibold)" },
       "tracking": { "$value": "var(--bw-font-tracking-tight)" }
     },
     "heading-lg": {

@@ -100,7 +100,7 @@
   --bw-button-radius: var(--bw-size-radius-md);
   --bw-menu-min-width: 12rem;
   --bw-disabled-opacity: 0.5;
-  --bw-content-max-width: none;
+  --bw-content-max-width: 72rem;
   --bw-topbar-position: sticky;
   --bw-drawer-width: min(20rem, 80vw);
   --bw-focus-ring-width: 2px;
@@ -153,7 +153,7 @@
   --bw-text-heading-xl-family: var(--bw-font-family-display);
   --bw-text-heading-xl-size: var(--bw-font-size-xl);
   --bw-text-heading-xl-line-height: var(--bw-font-line-height-tight);
-  --bw-text-heading-xl-weight: var(--bw-font-weight-bold);
+  --bw-text-heading-xl-weight: var(--bw-font-weight-semibold);
   --bw-text-heading-xl-tracking: var(--bw-font-tracking-tight);
   --bw-text-heading-lg-family: var(--bw-font-family-sans);
   --bw-text-heading-lg-size: var(--bw-font-size-lg);
@@ -223,12 +223,12 @@
   --bw-transition-transform: transform var(--bw-duration-normal) var(--bw-ease-in-out);
   --bw-transition-shadow: box-shadow var(--bw-duration-fast) var(--bw-ease-standard);
   --bw-color-surface: oklch(1 0 0);
-  --bw-color-surface-sunken: color-mix(in oklab, var(--bw-color-surface) 98.5%, black);
+  --bw-color-surface-sunken: color-mix(in oklab, var(--bw-color-surface) 96.5%, black);
   --bw-color-surface-raised: var(--bw-color-surface);
   --bw-color-surface-inverse: var(--bw-color-fg);
   --bw-color-surface-overlay: color-mix(in oklab, var(--bw-color-surface-inverse) 50%, transparent);
   --bw-color-fg: oklch(0.205 0.005 265);
-  --bw-color-fg-muted: color-mix(in oklab, var(--bw-color-fg) 56%, var(--bw-color-surface));
+  --bw-color-fg-muted: color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface));
   --bw-color-fg-subtle: color-mix(in oklab, var(--bw-color-fg) 37%, var(--bw-color-surface));
   --bw-color-fg-on-accent: oklch(1 0 0);
   --bw-color-fg-on-inverse: var(--bw-color-surface);
@@ -271,7 +271,7 @@
   --bw-color-nav-section-text: var(--bw-color-fg-muted);
   --bw-color-breadcrumb-current: var(--bw-color-fg);
   --bw-color-breadcrumb-separator: var(--bw-color-fg-subtle);
-  --bw-color-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 94%, black);
+  --bw-color-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black);
   --bw-color-skeleton-shimmer: color-mix(in oklab, var(--bw-color-skeleton-bg) 96%, black);
   --bw-state-hover-overlay: oklch(0 0 0 / 0.04);
   --bw-state-active-overlay: oklch(0 0 0 / 0.08);
@@ -297,12 +297,12 @@
 
 [data-theme="light"] {
   --bw-color-surface: oklch(1 0 0);
-  --bw-color-surface-sunken: color-mix(in oklab, var(--bw-color-surface) 98.5%, black);
+  --bw-color-surface-sunken: color-mix(in oklab, var(--bw-color-surface) 96.5%, black);
   --bw-color-surface-raised: var(--bw-color-surface);
   --bw-color-surface-inverse: var(--bw-color-fg);
   --bw-color-surface-overlay: color-mix(in oklab, var(--bw-color-surface-inverse) 50%, transparent);
   --bw-color-fg: oklch(0.205 0.005 265);
-  --bw-color-fg-muted: color-mix(in oklab, var(--bw-color-fg) 56%, var(--bw-color-surface));
+  --bw-color-fg-muted: color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface));
   --bw-color-fg-subtle: color-mix(in oklab, var(--bw-color-fg) 37%, var(--bw-color-surface));
   --bw-color-fg-on-accent: oklch(1 0 0);
   --bw-color-fg-on-inverse: var(--bw-color-surface);
@@ -345,7 +345,7 @@
   --bw-color-nav-section-text: var(--bw-color-fg-muted);
   --bw-color-breadcrumb-current: var(--bw-color-fg);
   --bw-color-breadcrumb-separator: var(--bw-color-fg-subtle);
-  --bw-color-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 94%, black);
+  --bw-color-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black);
   --bw-color-skeleton-shimmer: color-mix(in oklab, var(--bw-color-skeleton-bg) 96%, black);
   --bw-state-hover-overlay: oklch(0 0 0 / 0.04);
   --bw-state-active-overlay: oklch(0 0 0 / 0.08);
@@ -359,13 +359,13 @@
 }
 
 [data-theme="dark"] {
-  --bw-color-surface: oklch(0.145 0.004 265);
+  --bw-color-surface: oklch(0.18 0.005 265);
   --bw-color-surface-sunken: color-mix(in oklab, var(--bw-color-surface) 76%, black);
   --bw-color-surface-raised: color-mix(in oklab, var(--bw-color-surface) 93%, white);
   --bw-color-surface-inverse: var(--bw-color-fg);
   --bw-color-surface-overlay: oklch(0 0 0 / 0.6);
-  --bw-color-fg: oklch(0.985 0.001 265);
-  --bw-color-fg-muted: color-mix(in oklab, var(--bw-color-fg) 67%, var(--bw-color-surface));
+  --bw-color-fg: oklch(0.93 0.002 265);
+  --bw-color-fg-muted: color-mix(in oklab, var(--bw-color-fg) 72%, var(--bw-color-surface));
   --bw-color-fg-subtle: color-mix(in oklab, var(--bw-color-fg) 49%, var(--bw-color-surface));
   --bw-color-fg-on-accent: oklch(0.145 0.004 265);
   --bw-color-fg-on-inverse: var(--bw-color-surface);
@@ -374,27 +374,27 @@
   --bw-color-border-control: color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface));
   --bw-color-accent: oklch(0.707 0.165 254);
   --bw-color-accent-hover: color-mix(in oklab, var(--bw-color-accent) 88%, black);
-  --bw-color-accent-subtle: color-mix(in oklab, var(--bw-color-accent) 40%, black);
+  --bw-color-accent-subtle: color-mix(in oklab, var(--bw-color-accent) 30%, black);
   --bw-color-danger: oklch(0.637 0.208 25);
-  --bw-color-danger-subtle: color-mix(in oklab, var(--bw-color-danger) 41%, black);
+  --bw-color-danger-subtle: color-mix(in oklab, var(--bw-color-danger) 26%, black);
   --bw-color-danger-border: color-mix(in oklab, var(--bw-color-danger) 55%, black);
   --bw-color-danger-strong: color-mix(in oklab, var(--bw-color-danger) 96%, white);
   --bw-color-danger-fg: color-mix(in oklab, var(--bw-color-danger) 78%, white);
   --bw-color-danger-on-fg: oklch(0.145 0.004 265);
   --bw-color-warning: oklch(0.769 0.166 70);
-  --bw-color-warning-subtle: color-mix(in oklab, var(--bw-color-warning) 36%, black);
+  --bw-color-warning-subtle: color-mix(in oklab, var(--bw-color-warning) 22%, black);
   --bw-color-warning-border: color-mix(in oklab, var(--bw-color-warning) 55%, black);
   --bw-color-warning-strong: color-mix(in oklab, var(--bw-color-warning) 96%, white);
   --bw-color-warning-fg: color-mix(in oklab, var(--bw-color-warning) 78%, white);
   --bw-color-warning-on-fg: oklch(0.145 0.004 265);
   --bw-color-success: oklch(0.723 0.169 152);
-  --bw-color-success-subtle: color-mix(in oklab, var(--bw-color-success) 37%, black);
+  --bw-color-success-subtle: color-mix(in oklab, var(--bw-color-success) 23%, black);
   --bw-color-success-border: color-mix(in oklab, var(--bw-color-success) 55%, black);
   --bw-color-success-strong: color-mix(in oklab, var(--bw-color-success) 96%, white);
   --bw-color-success-fg: color-mix(in oklab, var(--bw-color-success) 78%, white);
   --bw-color-success-on-fg: oklch(0.145 0.004 265);
   --bw-color-info: oklch(0.72 0.11 220);
-  --bw-color-info-subtle: color-mix(in oklab, var(--bw-color-info) 42%, black);
+  --bw-color-info-subtle: color-mix(in oklab, var(--bw-color-info) 26%, black);
   --bw-color-info-border: color-mix(in oklab, var(--bw-color-info) 55%, black);
   --bw-color-info-strong: color-mix(in oklab, var(--bw-color-info) 96%, white);
   --bw-color-info-fg: color-mix(in oklab, var(--bw-color-info) 78%, white);
@@ -414,8 +414,8 @@
   --bw-state-active-overlay: oklch(1 0 0 / 0.12);
   --bw-state-selected-bg: var(--bw-color-accent-subtle);
   --bw-elevation-0: none;
-  --bw-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.3);
-  --bw-elevation-2: 0 1px 3px 0 oklch(0 0 0 / 0.36), 0 1px 2px -1px oklch(0 0 0 / 0.3);
+  --bw-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.03);
+  --bw-elevation-2: 0 1px 3px 0 oklch(0 0 0 / 0.36), 0 1px 2px -1px oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.04);
   --bw-elevation-3: 0 4px 6px -1px oklch(0 0 0 / 0.4), 0 2px 4px -2px oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.04);
   --bw-elevation-4: 0 10px 15px -3px oklch(0 0 0 / 0.45), 0 4px 6px -4px oklch(0 0 0 / 0.35), inset 0 1px 0 0 oklch(1 0 0 / 0.05);
   --bw-elevation-5: 0 20px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.4), inset 0 1px 0 0 oklch(1 0 0 / 0.06);

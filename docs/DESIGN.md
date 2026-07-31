@@ -113,6 +113,13 @@ the literal the expression computes (a permitted MINOR default-value change,
 section 11), so $value always documents the value the live expression
 resolves to.
 
+0.4.0 polish round: the sunken depth, muted ink, dark surface ladder, dark
+intent and accent tint volumes, heading-xl weight, content measure, and dark
+low-level elevation defaults were retuned per the synthesised four-critic
+design review under the owner directive "brickwork is the building blocks to
+build beautiful interfaces; our defaults should be beautiful"; every retuned
+constant re-baselined its $value per the paragraph above.
+
 ## 4. Colour
 
 ### 4.1 Surfaces
@@ -120,7 +127,7 @@ resolves to.
 | Token | LB/D | Light derivation | Dark derivation |
 |---|---|---|---|
 | `--bw-color-surface` | LB | authored | authored |
-| `--bw-color-surface-sunken` | D | `color-mix(in oklab, var(--bw-color-surface) 98.5%, black)` | `color-mix(in oklab, var(--bw-color-surface) 76%, black)` (dark sunken is darker than surface) |
+| `--bw-color-surface-sunken` | D | `color-mix(in oklab, var(--bw-color-surface) 96.5%, black)` (0.4.0: deepened from 98.5%, which was indistinguishable from white; lands on gray.100) | `color-mix(in oklab, var(--bw-color-surface) 76%, black)` (dark sunken is darker than surface) |
 | `--bw-color-surface-raised` | D | `var(--bw-color-surface)` (light differentiates via shadow) | `color-mix(in oklab, var(--bw-color-surface) 93%, white)` (dark differentiates via lightness) |
 | `--bw-color-surface-inverse` | D | `var(--bw-color-fg)` | `var(--bw-color-fg)` |
 | `--bw-color-surface-overlay` **[NEW]** | D (light) / authored (dark) | `color-mix(in oklab, var(--bw-color-surface-inverse) 50%, transparent)` | authored `oklch(0 0 0 / 0.6)`: a scrim is dark-over-content in both themes, and dark surface-inverse (`:= fg`) is near-white, so the derivation would yield a light wash |
@@ -133,7 +140,7 @@ var(--bw-color-surface-raised)`, both themes.
 | Token | LB/D | Light | Dark |
 |---|---|---|---|
 | `--bw-color-fg` | LB | authored | authored |
-| `--bw-color-fg-muted` | D | `color-mix(in oklab, var(--bw-color-fg) 56%, var(--bw-color-surface))` | same shape, 67% |
+| `--bw-color-fg-muted` | D | `color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface))` (0.4.0: raised from 56%; measures 5.82:1 on surface, 5.26:1 on the sunken canvas) | same shape, 72% (0.4.0: raised from 67% to companion the dimmed dark fg; 7.58:1 on surface, 6.68:1 on raised) |
 | `--bw-color-fg-subtle` **[NEW]** | D | `color-mix(in oklab, var(--bw-color-fg) 37%, var(--bw-color-surface))` | same shape, 49% |
 | `--bw-color-fg-on-accent` | authored | contrast pick, stays a literal; the one derived-looking token every brand must verify at 4.5:1 | authored |
 | `--bw-color-fg-on-inverse` | D | `var(--bw-color-surface)` | `var(--bw-color-surface)` |
@@ -150,7 +157,7 @@ overlaid element.
 |---|---|---|---|
 | `--bw-color-border` | LB | authored | authored |
 | `--bw-color-border-strong` | D | `color-mix(in oklab, var(--bw-color-border) 94%, black)` | **direction flips**: `color-mix(in oklab, var(--bw-color-border) 86%, white)` (a dark theme's emphasis border must get lighter) |
-| `--bw-color-border-control` **[NEW]** | D | `color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface))` (measured 3.23:1 on the default surface) | `color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface))` (measured 3.64:1) |
+| `--bw-color-border-control` **[NEW]** | D | `color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface))` (measured 3.23:1 on the default surface) | `color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface))` (measured 3.38:1 on the 0.4.0 graphite surface) |
 
 `border-control` exists because the divider border token stays deliberately
 light for calm chrome, while an input or control boundary is a visual cue
@@ -164,7 +171,7 @@ and similar controls take `border-control`; dividers and card outlines keep
 |---|---|---|---|
 | `--bw-color-accent` | LB | authored | authored |
 | `--bw-color-accent-hover` | D | `color-mix(in oklab, var(--bw-color-accent) 89%, black)` | `color-mix(in oklab, var(--bw-color-accent) 88%, black)` |
-| `--bw-color-accent-subtle` | D | `color-mix(in oklab, var(--bw-color-accent) 7%, var(--bw-color-surface))` | `color-mix(in oklab, var(--bw-color-accent) 40%, black)` |
+| `--bw-color-accent-subtle` | D | `color-mix(in oklab, var(--bw-color-accent) 7%, var(--bw-color-surface))` | `color-mix(in oklab, var(--bw-color-accent) 30%, black)` (0.4.0: lowered from 40% so selection recedes behind content) |
 | `--bw-color-focus-ring` | D | `var(--bw-color-accent)` | `var(--bw-color-accent)` |
 
 `accent-hover` is retained as the flat-colour fallback; transient hover
@@ -179,8 +186,8 @@ Six tiers per intent so an alert, badge, or toast never invents a value.
 | Token | Tier | LB/D | Light | Dark |
 |---|---|---|---|---|
 | `--bw-color-X` | base | LB (info: authored cyan default, `:= accent` is the documented 3-role collapse) | authored | authored |
-| `--bw-color-X-subtle` | tinted bg | D | `color-mix(in oklab, var(--bw-color-X) 7%, var(--bw-color-surface))` | `color-mix(in oklab, var(--bw-color-X) P%, black)` (danger 41%, success 37%, warning 36%, info 42%) |
-| `--bw-color-X-border` **[NEW]** | tinted border | D | `color-mix(in oklab, var(--bw-color-X) 30%, var(--bw-color-surface))` (the badge/alert border, replacing invented inline mixes) | `color-mix(in oklab, var(--bw-color-X) 55%, black)` (clears the black-mixed subtle tint by delta-L >= 0.08, verified 0.089-0.146) |
+| `--bw-color-X-subtle` | tinted bg | D | `color-mix(in oklab, var(--bw-color-X) 7%, var(--bw-color-surface))` | `color-mix(in oklab, var(--bw-color-X) P%, black)` (danger 26%, success 23%, warning 22%, info 26%; 0.4.0: lowered from 41/37/36/42 so the dark tints whisper like light; X-fg measures 7.22 to 10.77 on them) |
+| `--bw-color-X-border` **[NEW]** | tinted border | D | `color-mix(in oklab, var(--bw-color-X) 30%, var(--bw-color-surface))` (the badge/alert border, replacing invented inline mixes) | `color-mix(in oklab, var(--bw-color-X) 55%, black)` (clears the black-mixed subtle tint by delta-L >= 0.08, verified 0.184-0.254) |
 | `--bw-color-X-strong` **[NEW]** | border/emphasis | D | `color-mix(in oklab, var(--bw-color-X) 88%, black)` | **flips**: `color-mix(in oklab, var(--bw-color-X) 96%, white)` |
 | `--bw-color-X-fg` **[NEW]** | text on `X-subtle` | D | `color-mix(in oklab, var(--bw-color-X) P%, black)` (danger 88%, success 84%, warning 83%, info 85%), landing on the 700 ramp depth: the base itself fails AA on the subtle tint, the mix measures 5.84 / 4.70 / 4.67 / 5.17 | `color-mix(in oklab, var(--bw-color-X) 78%, white)` (lightness boost for AA on the dark tint) |
 | `--bw-color-X-on-fg` **[NEW]** | text on solid `X` | authored | `oklch(1 0 0)` for danger only (4.83, passes); near-black ink for warning, success, and info (white fails AA on the solid amber, green, and cyan bases: 3.19, 3.32, 3.83) | authored per hue, same rule (all four take near-black ink: the dark bases sit on the lighter 400/500 ramp steps, where white fails AA) |
@@ -241,7 +248,7 @@ containers; the 4 percent wash sinks it below AA (see 4.2).
 | `--bw-color-nav-section-text` **[NEW]** | D | `var(--bw-color-fg-muted)` | same |
 | `--bw-color-breadcrumb-current` **[NEW]** | D | `var(--bw-color-fg)` | same |
 | `--bw-color-breadcrumb-separator` **[NEW]** | D | `var(--bw-color-fg-subtle)` | same |
-| `--bw-color-skeleton-bg` | D | `color-mix(in oklab, var(--bw-color-surface-sunken) 94%, black)` (retuned from 98.2%, which was near-invisible at 1.05:1; lands on gray.200) | **direction flips**: `color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white)` |
+| `--bw-color-skeleton-bg` | D | `color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black)` (0.4.0: constant retuned 94% to 96% to hold the gray.200 landing, one step deeper than the deepened 96.5% sunken) | **direction flips**: `color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white)` |
 | `--bw-color-skeleton-shimmer` | D | `color-mix(in oklab, var(--bw-color-skeleton-bg) 96%, black)` | **direction flips**: `color-mix(in oklab, var(--bw-color-skeleton-bg) 86%, white)` |
 
 ## 5. Elevation
@@ -249,14 +256,16 @@ containers; the 4 percent wash sinks it below AA (see 4.2).
 Six levels, values adopted from Tailwind 4's `--shadow-*` ramp (industry
 consensus geometry), colours expressed in oklch, dark variants authored
 (shadows vanish on dark surfaces: higher alpha, plus a faint inset top
-highlight from level 3 to fake ambient light). Theme-variant: light values on
-`:root`, dark under `[data-theme="dark"]`.
+highlight at every level from 1 to fake ambient light; 0.4.0 extended the
+highlight from levels 3+ down to 1 and 2 at fainter alphas, so dark cards
+get depth instead of outlines only). Theme-variant: light values on `:root`,
+dark under `[data-theme="dark"]`.
 
 | Token | Light | Dark |
 |---|---|---|
 | `--bw-elevation-0` | `none` | `none` |
-| `--bw-elevation-1` | `0 1px 2px 0 oklch(0 0 0 / 0.05)` | `0 1px 2px 0 oklch(0 0 0 / 0.3)` |
-| `--bw-elevation-2` | `0 1px 3px 0 oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1)` | `0 1px 3px 0 oklch(0 0 0 / 0.36), 0 1px 2px -1px oklch(0 0 0 / 0.3)` |
+| `--bw-elevation-1` | `0 1px 2px 0 oklch(0 0 0 / 0.05)` | `0 1px 2px 0 oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.03)` |
+| `--bw-elevation-2` | `0 1px 3px 0 oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1)` | `0 1px 3px 0 oklch(0 0 0 / 0.36), 0 1px 2px -1px oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.04)` |
 | `--bw-elevation-3` | `0 4px 6px -1px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.1)` | `0 4px 6px -1px oklch(0 0 0 / 0.4), 0 2px 4px -2px oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.04)` |
 | `--bw-elevation-4` | `0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1)` | `0 10px 15px -3px oklch(0 0 0 / 0.45), 0 4px 6px -4px oklch(0 0 0 / 0.35), inset 0 1px 0 0 oklch(1 0 0 / 0.05)` |
 | `--bw-elevation-5` | `0 20px 25px -5px oklch(0 0 0 / 0.1), 0 8px 10px -6px oklch(0 0 0 / 0.1)` | `0 20px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.4), inset 0 1px 0 0 oklch(1 0 0 / 0.06)` |
@@ -288,9 +297,12 @@ scale. `-11` deliberately equals the touch-target minimum. No negative ramp
 Shipped: `sm 0.25rem, md 0.375rem, lg 0.5rem, full 9999px`.
 New: `none 0`, `xl 0.75rem`, `2xl 1rem` (Tailwind-aligned values).
 
-**Component map:** skeleton sm; button, input, nav link, alert, form-errors,
-badge-square md; card, auth/centred panel, filter bar lg; dropdown,
-account-menu panel, popover, toast, modal xl; badge, avatar, pill full. The
+**Component map:** skeleton sm; button, input, nav link, form-errors,
+badge-square md; card, auth/centred panel, filter bar, alert, dropdown,
+account-menu panel lg (0.4.0: alert up from md to join the stacked card
+family; dropdown and account-menu panel down from xl so the panel radius
+is concentric with its item radius); popover, toast, modal xl; badge,
+avatar, pill full. The
 card, modal, toast, popover, avatar, pill, and badge-square entries are
 forward-looking: those components are unshipped in 0.3.0 and each row lands
 with the component.
@@ -343,7 +355,7 @@ surfaces.
 | `--bw-drawer-width` **[NEW]** | `min(20rem, 80vw)` | formalises the drawer literal |
 | `--bw-menu-min-width` **[NEW]** | `12rem` | minimum width for dropdown-shaped panels; the account-menu literal becomes its consumer |
 | `--bw-icon-stroke-width` | `2` | shipped, previously undocumented; the stroke width for the icon set |
-| `--bw-content-max-width` | `none` | shipped, previously undocumented; a consumer caps the main content column by overriding it |
+| `--bw-content-max-width` | `72rem` | 0.4.0: was `none`; a default measure cap so bands stop degrading into full-bleed wires on wide monitors (invisible at 1280px); a consumer overrides it, including back to `none` |
 | `--bw-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar |
 
 The `--bw-size-icon-*` / `--bw-icon-size-*` duplication resolves in 0.4.0
@@ -420,7 +432,7 @@ consume roles, never raw scale steps, so nothing drifts out of rhythm.
 | Role | Family | Size | Leading | Weight | Tracking |
 |---|---|---|---|---|---|
 | `heading-2xl` | display | 2xl | tight | bold | tight |
-| `heading-xl` | display | xl | tight | bold | tight |
+| `heading-xl` | display | xl | tight | semibold (0.4.0: was bold; 600 at 24px is the product-chrome cut, 2xl keeps bold for true display use) | tight |
 | `heading-lg` | sans | lg | snug | semibold | normal |
 | `heading-md` | sans | md | snug | semibold | normal |
 | `heading-sm` | sans | sm | snug | semibold | normal |
@@ -435,15 +447,18 @@ consume roles, never raw scale steps, so nothing drifts out of rhythm.
 **Component map:** page-header title heading-xl (description body-md +
 fg-muted); empty-state heading heading-lg, body body-md + fg-muted +
 max-width-form; alert title heading-sm; form-errors title heading-sm; card
-title heading-md; table th label (td body-sm; definition-mode label column
+title heading-md; table th overline voice: xs semibold wide-tracked
+uppercase fg-muted (0.4.0: was label; the header band now reads as column
+apparatus, not a first data row; td body-sm; definition-mode label column
 body-sm + fg-subtle); field label label, help and errors caption; button
 label label; badge caption size at medium weight, tabular-nums; nav link
-body-md, nav section-label overline (uppercase at the component); breadcrumbs
-body-sm + fg-muted, current crumb breadcrumb-current; account-menu item
-body-md, secondary line caption; pagination status caption + fg-muted;
-dialog/modal title heading-sm. The card and dialog/modal entries are
-forward-looking: those components are unshipped in 0.3.0 and each row lands
-with the component.
+body-sm (0.4.0: was body-md; chrome sits a step below content), nav
+section-label overline (uppercase at the component); breadcrumbs body-sm +
+fg-muted, current crumb breadcrumb-current; account-menu item body-sm
+(0.4.0: was body-md, completing the 14px chrome scale), secondary line
+caption; pagination status caption + fg-muted; dialog/modal title
+heading-sm. The card and dialog/modal entries are forward-looking: those
+components are unshipped in 0.3.0 and each row lands with the component.
 
 ## 8. Motion
 

@@ -47,7 +47,8 @@
   "content": {
     "max-width": {
       "$type": "dimension",
-      "$value": "none"
+      "$value": "72rem",
+      "$description": "0.4.0 polish: was `none`. A default measure cap so content bands stop degrading into full-bleed wires on wide monitors; invisible at 1280px. A consumer overrides it (including back to `none`) to change the cap."
     }
   },
   "topbar": {

@@ -6,8 +6,9 @@
       "$value": "{primitive.gray.0}"
     },
     "surface-sunken": {
-      "$value": "{primitive.gray.50}",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface) 98.5%, black)" } }
+      "$value": "{primitive.gray.100}",
+      "$description": "0.4.0 polish: deepened from the 98.5% mix (gray.50), which was indistinguishable from the white chrome; the canvas now lands on gray.100 so cards, header bands and zebra stripes separate.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface) 96.5%, black)" } }
     },
     "surface-raised": {
       "$value": "{primitive.gray.0}",
@@ -25,8 +26,9 @@
       "$value": "{primitive.gray.900}"
     },
     "fg-muted": {
-      "$value": "{primitive.gray.500}",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-fg) 56%, var(--bw-color-surface))" } }
+      "$value": "oklch(0.507 0.003 265)",
+      "$description": "0.4.0 polish: raised from the 56% mix (gray.500, borderline AA) for comfortable secondary-text contrast; measures 5.82:1 on surface and 5.26:1 on the deeper sunken canvas. A literal: the resolved L sits between ramp steps.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface))" } }
     },
     "fg-subtle": {
       "$value": "{primitive.gray.400}",
@@ -191,7 +193,8 @@
       "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
     },
     "nav-section-text": {
-      "$value": "{primitive.gray.500}",
+      "$value": "oklch(0.507 0.003 265)",
+      "$description": "Follows fg-muted's resolved literal (0.4.0: the 62% mix).",
       "$extensions": { "bw": { "derived": "var(--bw-color-fg-muted)" } }
     },
     "breadcrumb-current": {
@@ -204,8 +207,8 @@
     },
     "skeleton-bg": {
       "$value": "{primitive.gray.200}",
-      "$description": "Retuned from the near-invisible 98.2% mix (1.05:1 against surface-sunken) to land on gray.200 (1.19:1), so the placeholder actually reads as one.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface-sunken) 94%, black)" } }
+      "$description": "One step deeper than the sunken canvas so the placeholder reads as one. 0.4.0 polish: constant retuned 94% to 96% to hold the gray.200 landing above the deeper 96.5% sunken.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black)" } }
     },
     "skeleton-shimmer": {
       "$value": "oklch(0.891 0.004 265)",
