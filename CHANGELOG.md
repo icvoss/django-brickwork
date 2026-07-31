@@ -8,6 +8,51 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-31
+
+The polish round. Owner directive on 0.3.0: "a lot tighter, but I am sure we
+can go much further." Four design lenses (chrome, typography, components,
+gestalt) critiqued the real rendered screenshots; the synthesis ships as
+value-only retunes: no token, class, or block renamed or removed, every
+changed text/border pair numerically re-verified for WCAG 2.2 AA in both
+themes, all 77 derivation baselines recomputed and green.
+
+### Changed
+
+- **Chrome**: the light shell is now a white frame on a perceptible sunken
+  canvas (light `surface-sunken` deepens to the gray-100 step, light
+  `fg-muted` rises to hold AA on it); the dark theme moves from a black void
+  to a graphite ladder (`surface` anchor lifts to oklch(0.18), `fg` softens
+  to 0.93, every dark derived baseline re-anchored, `border-control`
+  re-verified at 3.38:1); dark intent tints and `accent-subtle` calm down;
+  dark elevation 1 and 2 gain the inset top highlight; empty sidebar
+  header/footer regions are suppressed and the first nav row shares the
+  topbar centreline.
+- **Typography**: nav links and the account menu drop to the body-sm chrome
+  scale; `heading-xl` moves to semibold (heading-2xl stays bold); table
+  headers take the uppercase, tracked overline voice (definition-table keys
+  deliberately keep sentence case); a **content-typography floor** styles
+  unclassed h1-h6, p, ul and ol inside `.bw-content` onto the type roles via
+  zero-specificity `:where()` rules, so consumer-authored markup lands on
+  the hierarchy out of the box (any consumer CSS still wins).
+- **Components**: a scoped `box-sizing: border-box` reset for all `bw-`
+  classes (fixes the clipped full-width input; the library is now correct
+  without a consumer preflight); forms, fields and the error summary cap at
+  the 32rem measure with a proper actions row; field errors and the
+  required marker move to the text-duty `danger-fg` tier; the error summary
+  joins the tinted-border family with a styled list; primary and danger
+  buttons gain resting elevation and a pressed inset; ghost buttons recede
+  to muted ink; the nav badge becomes a quiet bordered chip; tables gain
+  tabular numerals, last-row border cleanup, hover-revealed sort carets and
+  a prose-capped definition card; alerts and menu panels join the radius-lg
+  card family; `--bw-content-max-width` defaults to 72rem with a centred
+  content column.
+
+### Deliberately declined
+
+- Topbar backdrop blur (the `--bw-backdrop-blur` name stays reserved) and an
+  accent-coloured nav badge; both recorded in the critique synthesis.
+
 ## [0.3.0] - 2026-07-31
 
 Beautiful by default (ADR-054 Phase a). The founding statement made real: a
