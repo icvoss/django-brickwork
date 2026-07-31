@@ -1,0 +1,44 @@
+{% load brickwork_icons i18n %}
+{% comment %}
+Account menu (#25): the profile/account dropdown that fills the shell's
+{% block topbar_account_menu %}. Built on native <details>/<summary> so it opens
+and closes with NO JavaScript (BR-BW-HTMX-001 no-JS floor), the same pattern the
+shell uses for its sidebar/drawer toggles. Structure only: the consumer supplies
+the trigger label and the item list; brickwork supplies the accessible,
+on-brand disclosure.
+
+Deliberately NO ARIA menu semantics: role="menu"/"menuitem" mandate arrow-key
+handling this no-JS component cannot provide. The panel is a labelled <nav>
+landmark of ordinary links, the correct pattern for a disclosure of navigation.
+
+Required context:
+  items: a list of dicts: {label, url, icon(optional), danger(optional bool)}.
+         Each becomes a link in the panel; ``danger=True`` styles a destructive
+         item (e.g. Sign out).
+Optional:
+  trigger_label (str, default "Account"): the accessible name of the toggle and
+         of the panel's nav landmark.
+  trigger_icon (str, a registry name, default "user").
+  align ("end" default | "start"): which edge the menu aligns to.
+  menu_open (bool, default False): render the disclosure initially open (also
+         used by the a11y fixtures so axe sees the open panel). Named
+         menu_open, not open, so an inherited page-context variable named
+         open can never toggle the disclosure by accident.
+{% endcomment %}
+{% translate "Account" as default_trigger_label %}
+<details class="bw-account-menu bw-account-menu--{{ align|default:'end' }}"{% if menu_open %} open{% endif %}>
+  <summary class="bw-account-menu__trigger">
+    {% bw_icon trigger_icon|default:"user" size="md" decorative=True %}
+    <span class="bw-account-menu__trigger-label">{{ trigger_label|default:default_trigger_label }}</span>
+    {% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-account-menu__caret" %}
+  </summary>
+  <nav class="bw-account-menu__panel" aria-label="{{ trigger_label|default:default_trigger_label }}">
+    {% for item in items %}
+      <a class="bw-account-menu__item{% if item.danger %} bw-account-menu__item--danger{% endif %}"
+         href="{{ item.url }}">
+        {% if item.icon %}{% bw_icon item.icon size="sm" decorative=True css_class="bw-account-menu__item-icon" %}{% endif %}
+        {{ item.label }}
+      </a>
+    {% endfor %}
+  </nav>
+</details>

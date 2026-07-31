@@ -17,10 +17,14 @@ Two shapes, selected by ``variant``:
              ``sort_key`` + the shared ``current_sort``, so a consumer does NOT
              compute ``sort_key_desc`` / ``next_sort`` (#23). Those two keys may
              still be passed to override the convention, but are optional.
-    rows:    a list of dicts: {id, cells: [rendered strings], url(optional)}
+    rows:    a list of dicts: {id, cells: [rendered strings], url(optional),
+             selected(optional bool)}
              A row with a ``url`` becomes a clickable row: its first cell is
              an anchor to ``url`` (the whole row is keyboard-reachable via that
              link), so a documented per-row link actually renders (#10).
+             A row with truthy ``selected`` carries the
+             ``bw-data-table__row--selected`` class (the selected-row styling
+             hook, e.g. the row a bulk action or detail pane refers to).
 - ``variant="definition"``: a key/value fact table for ONE entity (a detail
     screen's "facts about this thing", the <dl>-shaped case, #18). No column
     headers, no sorting.
@@ -97,7 +101,7 @@ Optional:
       </thead>
       <tbody>
         {% for row in rows %}
-          <tr id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}">
+          <tr id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}{% if row.selected %} bw-data-table__row--selected{% endif %}">
             {% for cell in row.cells %}
               <td class="bw-data-table__td">{% if row.url and forloop.first %}<a class="bw-data-table__row-link" href="{{ row.url }}">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
             {% endfor %}

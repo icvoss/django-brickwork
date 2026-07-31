@@ -38,12 +38,17 @@ def _walk(items: Iterable[NavItem]):
 
 
 def validate_nav_config(nav_items: Iterable[NavItem]) -> None:
-    """Raise NavConfigError on a duplicate ``key`` anywhere in the tree.
+    """Raise NavConfigError on an invalid nav tree.
 
     Called once at import time by the consuming project (BR-BW-NAV-002), so a
-    nav-collision bug fails loudly on startup, never silently keeps one entry and
-    never surfaces at request time. Keys must be unique across the WHOLE tree, not
-    just per level, since ``key`` is how a consumer's context targets an item.
+    nav-config bug fails loudly on startup, never silently keeps one entry and
+    never surfaces at request time. Two rules:
+
+    - ``key`` must be unique across the WHOLE tree, not just per level, since
+      ``key`` is how a consumer's context targets an item (BR-BW-NAV-002).
+    - ``active_url_names`` requires ``url_name``: only a LINK item participates
+      in active-route resolution, so widened names on a link-less item (e.g. a
+      section header) can never match and would otherwise be a silent no-op.
     """
     seen: set[str] = set()
     for item in _walk(nav_items):
@@ -53,6 +58,13 @@ def validate_nav_config(nav_items: Iterable[NavItem]) -> None:
                 f"the whole navigation tree (BR-BW-NAV-002)."
             )
         seen.add(item.key)
+        if item.active_url_names and item.url_name is None:
+            raise NavConfigError(
+                f"Nav item {item.key!r} declares active_url_names but has no "
+                f"url_name. Only a link item participates in active-route "
+                f"resolution, so these names could never match; move them onto "
+                f"the link item they widen."
+            )
 
 
 def _item_visible(item: NavItem, context: NavContext) -> bool:
@@ -103,11 +115,13 @@ def resolve_active_item(
 ) -> NavItem | None:
     """Return the deepest NavItem matching the current route, or None.
 
-    Matches ``resolver_match.view_name`` against each item's ``url_name``
-    (BR-BW-NAV-001), NEVER ``request.path.startswith(...)``. Returns the deepest
-    (leaf) match, so a specific child wins over an ancestor; the renderer marks
-    both the leaf and its ancestors active for styling (NAV-008), which it derives
-    by checking whether the active item is within a given item's subtree.
+    Matches ``resolver_match.view_name`` against each item's ``url_name`` and its
+    ``active_url_names`` (BR-BW-NAV-001, #20), NEVER ``request.path.startswith``.
+    A section stays active across its list and detail/sub views by listing the
+    secondary route names in ``active_url_names``. Returns the deepest (leaf)
+    match, so a specific child wins over an ancestor; the renderer marks both the
+    leaf and its ancestors active for styling (NAV-008), which it derives by
+    checking whether the active item is within a given item's subtree.
 
     ``resolver_match`` is None for an unresolved request (e.g. a 404), in which
     case nothing is active.
@@ -117,7 +131,8 @@ def resolve_active_item(
     view_name = resolver_match.view_name
     match: NavItem | None = None
     for item in _walk(nav_items):
-        if item.url_name is not None and item.url_name == view_name:
+        names = item.active_url_names
+        if item.url_name is not None and (item.url_name == view_name or view_name in names):
             match = item  # keep the last (deepest) match in depth-first order
     return match
 

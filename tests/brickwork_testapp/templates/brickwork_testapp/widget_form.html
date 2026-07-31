@@ -1,18 +1,14 @@
-{% extends "brickwork/shell/app.html" %}
-{% load brickwork_nav brickwork_components %}
+{% extends "brickwork_testapp/base.html" %}
 
 {% block page_title %}{% if object %}Edit widget{% else %}New widget{% endif %}{% endblock %}
-
-{% block sidebar %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
-{% block mobile_nav %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
 
 {% block page_header %}
   {% include "brickwork/components/_page_header.html" with title="Widget" %}
 {% endblock %}
 
 {% block content %}
-  {# The form section is the hx-target: an invalid HTMX POST responds 422 and
+  {% comment %} The form section is the hx-target: an invalid HTMX POST responds 422 and
      swaps THIS element's outerHTML (BR-BW-HTMX-003). A non-HTMX POST redisplays
-     the whole page with the same partial, a fully working no-JS path. #}
+     the whole page with the same partial, a fully working no-JS path. {% endcomment %}
   {% include "brickwork_testapp/_widget_form.html" %}
 {% endblock %}

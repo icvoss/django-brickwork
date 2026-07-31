@@ -1,0 +1,31 @@
+{
+  "duration": {
+    "$description": "Motion durations (DESIGN.md section 8.1). instant is 1ms, not 0, so transitionend still fires; shimmer and spin formalise the two hardcoded loop timings.",
+    "$type": "duration",
+    "instant": { "$value": "1ms" },
+    "fast": { "$value": "100ms" },
+    "normal": { "$value": "200ms" },
+    "moderate": { "$value": "250ms" },
+    "slow": { "$value": "400ms" },
+    "shimmer": { "$value": "1500ms" },
+    "spin": { "$value": "700ms" }
+  },
+  "ease": {
+    "$description": "Easing curves (DESIGN.md section 8.2): in for exits, out for entrances, in-out for moves, emphasised for energetic entrances.",
+    "$type": "cubicBezier",
+    "linear": { "$value": "linear" },
+    "standard": { "$value": "cubic-bezier(0.4, 0, 0.2, 1)" },
+    "in": { "$value": "cubic-bezier(0.4, 0, 1, 1)" },
+    "out": { "$value": "cubic-bezier(0, 0, 0.2, 1)" },
+    "in-out": { "$value": "cubic-bezier(0.4, 0, 0.2, 1)" },
+    "emphasised": { "$value": "cubic-bezier(0.2, 0, 0, 1)" }
+  },
+  "transition": {
+    "$description": "Composite transition shorthands (DESIGN.md section 8.3), each a var() reference bundle so duration/ease overrides cascade. Usage: transition: var(--bw-transition-colors); never transition: all.",
+    "$type": "other",
+    "colors": { "$value": "color var(--bw-duration-fast) var(--bw-ease-standard), background-color var(--bw-duration-fast) var(--bw-ease-standard), border-color var(--bw-duration-fast) var(--bw-ease-standard)" },
+    "opacity": { "$value": "opacity var(--bw-duration-fast) var(--bw-ease-standard)" },
+    "transform": { "$value": "transform var(--bw-duration-normal) var(--bw-ease-in-out)" },
+    "shadow": { "$value": "box-shadow var(--bw-duration-fast) var(--bw-ease-standard)" }
+  }
+}

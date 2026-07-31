@@ -1,90 +1,240 @@
 {
   "color": {
-    "$description": "Semantic tier, DARK theme. AUTHORED dark values (BR-BW-TOK-002): each token's dark value is chosen deliberately for the dark surface, NEVER computed by inverting or filtering the light value. Same token names as semantic.light.tokens.json. Accent/status roles shift to lighter, slightly-desaturated ramp steps so they keep AA contrast on a dark surface rather than glowing.",
+    "$description": "Semantic tier, DARK theme. AUTHORED dark values (BR-BW-TOK-002): each token's dark value is chosen deliberately for the dark surface, NEVER computed by inverting or filtering the light value. Same token names as semantic.light.tokens.json. Accent/status roles shift to lighter, slightly-desaturated ramp steps so they keep AA contrast on a dark surface rather than glowing. Derived tokens carry their live color-mix expression in $extensions.bw.derived with dark-tuned constants (and, for the strong/subtle tiers, a flipped mix direction); $value stays the resolved default and the regression baseline (docs/DESIGN.md section 3).",
     "$type": "color",
     "surface": {
       "$value": "{primitive.gray.950}"
     },
     "surface-sunken": {
-      "$value": "{primitive.gray.1000}"
+      "$value": "{primitive.gray.1000}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface) 76%, black)" } }
     },
     "surface-raised": {
-      "$value": "{primitive.gray.900}"
+      "$value": "{primitive.gray.900}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface) 93%, white)" } }
     },
     "surface-inverse": {
-      "$value": "{primitive.gray.100}"
+      "$value": "{primitive.gray.50}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg)" } }
+    },
+    "surface-overlay": {
+      "$value": "oklch(0 0 0 / 0.6)",
+      "$description": "Authored, not derived: a scrim is dark-over-content in both themes; deriving from surface-inverse (= fg, near-white in dark) would yield a light wash."
     },
     "fg": {
       "$value": "{primitive.gray.50}"
     },
     "fg-muted": {
-      "$value": "{primitive.gray.400}"
+      "$value": "{primitive.gray.400}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-fg) 67%, var(--bw-color-surface))" } }
+    },
+    "fg-subtle": {
+      "$value": "{primitive.gray.500}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-fg) 49%, var(--bw-color-surface))" } }
     },
     "fg-on-accent": {
       "$value": "{primitive.gray.950}"
     },
     "fg-on-inverse": {
-      "$value": "{primitive.gray.900}"
+      "$value": "{primitive.gray.950}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-surface)" } }
     },
     "border": {
       "$value": "{primitive.gray.800}"
     },
     "border-strong": {
-      "$value": "{primitive.gray.700}"
+      "$value": "{primitive.gray.700}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-border) 86%, white)" } }
+    },
+    "border-control": {
+      "$value": "oklch(0.523 0.003 265)",
+      "$description": "Input/control boundary. The divider border token stays subtle; controls need a WCAG 1.4.11 compliant boundary (measured 3.64:1 against the default dark surface).",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface))" } }
     },
     "accent": {
       "$value": "{primitive.blue.400}"
     },
     "accent-hover": {
-      "$value": "{primitive.blue.500}"
+      "$value": "oklch(0.622 0.145 254)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-accent) 88%, black)" } }
     },
     "accent-subtle": {
-      "$value": "{primitive.blue.950}"
+      "$value": "oklch(0.283 0.066 254)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-accent) 40%, black)" } }
     },
     "danger": {
       "$value": "{primitive.red.500}"
     },
     "danger-subtle": {
-      "$value": "{primitive.red.950}"
+      "$value": "{primitive.red.950}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-danger) 41%, black)" } }
+    },
+    "danger-border": {
+      "$value": "oklch(0.35 0.114 25)",
+      "$description": "Tinted badge/alert border for the danger intent; clears the black-mixed subtle tint by delta-L 0.089.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-danger) 55%, black)" } }
+    },
+    "danger-strong": {
+      "$value": "oklch(0.652 0.2 25)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-danger) 96%, white)" } }
+    },
+    "danger-fg": {
+      "$value": "oklch(0.717 0.162 25)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-danger) 78%, white)" } }
+    },
+    "danger-on-fg": {
+      "$value": "{primitive.gray.950}"
     },
     "warning": {
       "$value": "{primitive.amber.500}"
     },
     "warning-subtle": {
-      "$value": "{primitive.amber.950}"
+      "$value": "oklch(0.277 0.06 70)",
+      "$description": "Literal, not the amber.950 alias: black is hue-powerless in the mix, so the resolved hue stays the warning base's 70, not the ramp's 46.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-warning) 36%, black)" } }
+    },
+    "warning-border": {
+      "$value": "oklch(0.423 0.091 70)",
+      "$description": "Tinted badge/alert border for the warning intent; clears the black-mixed subtle tint by delta-L 0.146.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-warning) 55%, black)" } }
+    },
+    "warning-strong": {
+      "$value": "oklch(0.778 0.159 70)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-warning) 96%, white)" } }
+    },
+    "warning-fg": {
+      "$value": "oklch(0.82 0.129 70)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-warning) 78%, white)" } }
+    },
+    "warning-on-fg": {
+      "$value": "{primitive.gray.950}"
     },
     "success": {
       "$value": "{primitive.green.500}"
     },
     "success-subtle": {
-      "$value": "{primitive.green.950}"
+      "$value": "{primitive.green.950}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-success) 37%, black)" } }
+    },
+    "success-border": {
+      "$value": "oklch(0.398 0.093 152)",
+      "$description": "Tinted badge/alert border for the success intent; clears the black-mixed subtle tint by delta-L 0.130.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-success) 55%, black)" } }
+    },
+    "success-strong": {
+      "$value": "oklch(0.734 0.162 152)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-success) 96%, white)" } }
+    },
+    "success-fg": {
+      "$value": "oklch(0.784 0.132 152)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-success) 78%, white)" } }
+    },
+    "success-on-fg": {
+      "$value": "{primitive.gray.950}"
     },
     "info": {
       "$value": "{primitive.cyan.400}"
     },
     "info-subtle": {
-      "$value": "{primitive.cyan.950}"
+      "$value": "oklch(0.302 0.046 220)",
+      "$description": "Literal, not the cyan.950 alias: black is hue-powerless in the mix, so the resolved hue stays the info base's 220, not the ramp's 230.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-info) 42%, black)" } }
+    },
+    "info-border": {
+      "$value": "oklch(0.396 0.061 220)",
+      "$description": "Tinted badge/alert border for the info intent; clears the black-mixed subtle tint by delta-L 0.094.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-info) 55%, black)" } }
+    },
+    "info-strong": {
+      "$value": "oklch(0.731 0.106 220)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-info) 96%, white)" } }
+    },
+    "info-fg": {
+      "$value": "oklch(0.782 0.086 220)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-info) 78%, white)" } }
+    },
+    "info-on-fg": {
+      "$value": "{primitive.gray.950}"
     },
     "icon-muted": {
-      "$value": "{primitive.gray.500}"
+      "$value": "{primitive.gray.500}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
     },
     "focus-ring": {
-      "$value": "{primitive.blue.400}"
+      "$value": "{primitive.blue.400}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-accent)" } }
     },
     "nav-item-active-bg": {
-      "$value": "{primitive.blue.950}"
+      "$value": "oklch(0.283 0.066 254)",
+      "$extensions": { "bw": { "derived": "var(--bw-color-accent-subtle)" } }
     },
     "nav-item-active-text": {
-      "$value": "{primitive.blue.100}"
+      "$value": "{primitive.blue.100}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-accent) 25%, white)" } }
     },
     "nav-item-active-border": {
-      "$value": "{primitive.blue.400}"
+      "$value": "{primitive.blue.400}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-accent)" } }
+    },
+    "nav-item-disabled-text": {
+      "$value": "{primitive.gray.500}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
+    },
+    "nav-section-text": {
+      "$value": "{primitive.gray.400}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg-muted)" } }
+    },
+    "breadcrumb-current": {
+      "$value": "{primitive.gray.50}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg)" } }
+    },
+    "breadcrumb-separator": {
+      "$value": "{primitive.gray.500}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
     },
     "skeleton-bg": {
-      "$value": "{primitive.gray.800}"
+      "$value": "{primitive.gray.800}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white)" } }
     },
     "skeleton-shimmer": {
-      "$value": "{primitive.gray.700}"
+      "$value": "{primitive.gray.700}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-skeleton-bg) 86%, white)" } }
+    }
+  },
+  "state": {
+    "$description": "Interactive-state tokens, DARK theme (DESIGN.md section 4.6). Overlays flip to translucent white so transient feedback lightens the dark surface beneath. Same names as semantic.light.tokens.json.",
+    "$type": "color",
+    "hover-overlay": {
+      "$value": "oklch(1 0 0 / 0.06)"
+    },
+    "active-overlay": {
+      "$value": "oklch(1 0 0 / 0.12)"
+    },
+    "selected-bg": {
+      "$value": "oklch(0.283 0.066 254)",
+      "$extensions": { "bw": { "derived": "var(--bw-color-accent-subtle)" } }
+    }
+  },
+  "elevation": {
+    "$description": "Elevation ramp, DARK theme (DESIGN.md section 5). AUTHORED, not derived: shadows vanish on dark surfaces, so alpha rises and levels 3+ add a faint inset top highlight to fake ambient light. Same names as semantic.light.tokens.json.",
+    "$type": "other",
+    "0": {
+      "$value": "none"
+    },
+    "1": {
+      "$value": "0 1px 2px 0 oklch(0 0 0 / 0.3)"
+    },
+    "2": {
+      "$value": "0 1px 3px 0 oklch(0 0 0 / 0.36), 0 1px 2px -1px oklch(0 0 0 / 0.3)"
+    },
+    "3": {
+      "$value": "0 4px 6px -1px oklch(0 0 0 / 0.4), 0 2px 4px -2px oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.04)"
+    },
+    "4": {
+      "$value": "0 10px 15px -3px oklch(0 0 0 / 0.45), 0 4px 6px -4px oklch(0 0 0 / 0.35), inset 0 1px 0 0 oklch(1 0 0 / 0.05)"
+    },
+    "5": {
+      "$value": "0 20px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.4), inset 0 1px 0 0 oklch(1 0 0 / 0.06)"
     }
   }
 }

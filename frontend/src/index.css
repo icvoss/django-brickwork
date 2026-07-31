@@ -28,11 +28,12 @@
   padding: var(--bw-size-space-2) var(--bw-size-space-4);
   background: var(--bw-color-surface);
   color: var(--bw-color-accent);
-  border: 1px solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-start-start-radius: 0;
   border-end-end-radius: var(--bw-size-radius-md);
-  z-index: 100;
-  transition: transform 0.15s ease;
+  z-index: var(--bw-z-skip-link);
+  /* The reveal is an entrance, so ease-out per the DESIGN.md interaction map. */
+  transition: transform var(--bw-duration-fast) var(--bw-ease-out);
 }
 .bw-skip-link:focus {
   transform: translateY(0);
@@ -57,10 +58,12 @@
 }
 
 /* A single, consistent focus ring across every interactive control
- * (A11Y region). Uses the focus-ring colour token, which is authored per theme. */
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--bw-color-focus-ring);
-  outline-offset: 2px;
+ * (A11Y region). Uses the focus-ring colour token, which is authored per theme.
+ * Width, style, and offset are a11y-floor tokens (DESIGN.md 6.4): brand themes
+ * may recolour the ring but never thin or remove it. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--bw-focus-ring-width) var(--bw-focus-ring-style) var(--bw-color-focus-ring);
+  outline-offset: var(--bw-focus-ring-offset);
 }
 
 /* Motion: respect prefers-reduced-motion unconditionally (MOT region). A

@@ -1,0 +1,20 @@
+{% extends "brickwork/shell/app.html" %}
+{% load brickwork_icons brickwork_nav %}
+{% comment %}
+The testapp's shared page shell (consuming-project shape): fills the nav,
+breadcrumbs, and account-menu blocks once so every page, the integration suite,
+and the a11y fixture generator exercise them. breadcrumb_trail and
+account_menu_items come from the testapp context processor; account_menu_open
+is unset by default and passed by the fixture generator for the open-menu
+fixtures.
+{% endcomment %}
+
+{% block sidebar %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
+{% comment %} The visible drawer trigger is the decorative menu icon: the shell's summary
+   already carries the accessible name (aria-label), so no hidden text here. {% endcomment %}
+{% block mobile_nav_trigger %}{% bw_icon "menu" size="md" decorative=True %}{% endblock %}
+{% block mobile_nav %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
+
+{% block breadcrumbs %}{% include "brickwork/components/_breadcrumbs.html" with crumbs=breadcrumb_trail %}{% endblock %}
+
+{% block topbar_account_menu %}{% include "brickwork/components/_account_menu.html" with items=account_menu_items menu_open=account_menu_open %}{% endblock %}

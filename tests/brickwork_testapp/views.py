@@ -40,12 +40,26 @@ class WidgetListView(ListView):
         return qs
 
     def get_context_data(self, **kwargs):
+        from django.db.models import Count, Q
+
         ctx = super().get_context_data(**kwargs)
         ctx["table_columns"] = _COLUMNS
         ctx["current_sort"] = self.request.GET.get("sort", "")
         ctx["table_rows"] = [
             {"id": w.pk, "cells": [w.name, w.get_status_display()], "url": f"/widgets/{w.pk}/edit/"}
             for w in ctx["widgets"]
+        ]
+        # The definition-variant facts table on the list page (one aggregate,
+        # not three counts).
+        counts = Widget.objects.aggregate(
+            total=Count("pk"),
+            active=Count("pk", filter=Q(status="active")),
+            draft=Count("pk", filter=Q(status="draft")),
+        )
+        ctx["summary_facts"] = [
+            {"label": "Total widgets", "value": counts["total"]},
+            {"label": "Active", "value": counts["active"]},
+            {"label": "Draft", "value": counts["draft"]},
         ]
         return ctx
 

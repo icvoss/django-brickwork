@@ -8,6 +8,99 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-31
+
+Beautiful by default (ADR-054 Phase a). The founding statement made real: a
+developer who installs brickwork and writes no theme gets a genuinely designed
+dashboard, in light and dark. Additive and non-breaking: 168 tokens added,
+zero renamed or removed; every 0.2.4 name, class, block, and context variable
+keeps working. Default LOOK values change throughout (a MINOR under the
+value-change rule, gated by the axe WCAG 2.2 AA run in both themes).
+
+### Added
+
+- **The complete token vocabulary** (`docs/DESIGN.md` is the canonical
+  reference): a six-level elevation scale (`--bw-elevation-0..5`, light plus
+  authored dark with inset ambient highlights), state overlays
+  (`--bw-state-hover-overlay` / `-active-overlay` / `-selected-bg`), surface
+  additions (`surface-overlay` scrim, `fg-subtle`), six-tier intents
+  (`-border`, `-strong`, `-fg`, `-on-fg` join base and `-subtle` for
+  danger/success/warning/info), `border-control` (WCAG 1.4.11-compliant input
+  boundary), focus geometry (`--bw-focus-ring-width/-offset/-style`), a named
+  z-index scale (`--bw-z-*`), motion (`--bw-duration-*`, `--bw-ease-*`,
+  composite `--bw-transition-*`), twelve type roles
+  (`--bw-text-<role>-{family,size,line-height,weight,tracking}`), font-scale
+  extensions (2xs/3xs and 3xl/4xl/5xl, new line-heights and tracking), spacing
+  infill (px, 0-5, 1-5, 7, 9, 11, 16, 20, 24), radius none/xl/2xl, border
+  widths, control heights, touch-target minimum, max-widths, four density
+  tokens (topbar-height, section-gap, card-padding, page-gutter-inline), nav
+  and breadcrumb roles, and `--bw-menu-min-width`.
+- **Live derivation**: derived colour tokens are emitted as `color-mix(in
+  oklab, ...)` expressions over the load-bearing set, so a brand that authors
+  ~7 tokens (surface, fg, border, accent, danger, success, warning) gets the
+  whole family recoloured in-browser with no rebuild. Every derived token
+  remains individually overridable; a derivation-verification test recomputes
+  each expression against its `$value` baseline (L, C, alpha, and hue).
+  Mixes run in oklab deliberately: browsers give `oklch(1 0 0)` an explicit
+  hue of 0, so oklch-space mixing rotates tint hues toward 0.
+- **Breadcrumbs** (#25): `components/_breadcrumbs.html` fills the reserved
+  `breadcrumbs` block; last crumb always unlinked with `aria-current="page"`,
+  separators carry empty accessible text, renders nothing without crumbs.
+- **Account menu** (#25): `components/_account_menu.html` fills
+  `topbar_account_menu`; a native details/summary disclosure (no JS, no ARIA
+  menu roles by design), elevation-3 raised panel, fade-in-up entrance,
+  optional `menu_open` initial-open flag, danger item at AA on the raised
+  surface in both themes.
+- **Multi-view active state** (#20): `NavItem.active_url_names` widens active
+  matching to secondary view names (the link target stays `url_name`;
+  placed last in the field list so 0.2.4 positional construction is safe).
+  `validate_nav_config` rejects `active_url_names` without `url_name`.
+- **Selected rows**: `rows[].selected` adds `bw-data-table__row--selected`
+  consuming `--bw-state-selected-bg` (stacking: zebra, then selected, then
+  hover overlay).
+
+### Changed
+
+- **Every component consumes the vocabulary**: tables become elevation-1
+  cards with a sunken header band, zebra striping (even rows, records variant
+  only) and hover overlays; buttons gain pressed states, per-variant hovers,
+  and label-role typography; inputs gain the compliant boundary, hover/focus
+  border treatment, and disabled styling; alerts and badges use the intent
+  tier tokens (tinted borders, `-fg` text at AA on the tints); empty states,
+  page headers, form errors, pagination, skeletons, the filter bar, the auth
+  panels, the drawer, and the nav all adopt elevation, type roles, motion
+  tokens, and state overlays. Every hardcoded 1px/2px/3px, z-index,
+  box-shadow, duration, easing, font-size and weight literal is now a token.
+- **z-index values renumbered** onto the named scale: topbar 10 to 20
+  (sticky), drawer 20 to 30, skip link 100 to 60. A consumer who layered
+  custom chrome against the old literals should re-check stacking against
+  `--bw-z-*`.
+- **Focus ring** reaches `summary` elements (account-menu and drawer
+  triggers) and is fully tokenised; geometry is an accessibility floor, only
+  its colour is brand-tunable (at 3:1 minimum).
+- Font stacks completed additively (Noto Sans plus emoji fallbacks in sans,
+  Courier New in mono).
+
+### Fixed
+
+- Nav specificity defect: hovering the active item no longer replaces the
+  active tint (overlays now layer on top of it).
+- Disabled nav rows align with enabled rows (transparent marker border) and
+  no longer stack colour dimming with opacity.
+- Skeleton visibility on the sunken workspace background.
+- Reduced motion: the spinner freezes to `animation: none` and the
+  account-menu caret stops transitioning under `prefers-reduced-motion`.
+
+### Documentation
+
+- `docs/DESIGN.md`: the complete token reference (values, derivations,
+  component maps, semver rules). Records one deliberate correction to
+  ADR-054 section 3: custom-property fallback emission does not work as
+  described, so 0.3.0 ships color-mix only, no relative-colour syntax.
+- README status, BRANDING.md (the seven-token brand contract with a worked
+  light+dark example), frontend/README.md, tokens source README,
+  CONTRIBUTING.md and SECURITY.md placeholder fills, pilot adoption brief.
+
 ## [0.2.4] - 2026-07-31
 
 Pilot-driven ergonomics, correctness fixes, and a docs sweep, from the agentpm

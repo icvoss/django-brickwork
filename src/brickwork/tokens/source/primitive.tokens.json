@@ -63,27 +63,58 @@
     "$description": "Non-colour primitives (Open Props-derived). Spacing scale, radii, icon sizes, control heights. Density axis (semantic tier) selects between these; direction is handled by logical CSS properties, not a token (BR-BW-TOK-005).",
     "space": {
       "0": { "$value": "0" },
+      "px": { "$value": "1px" },
+      "0-5": { "$value": "0.125rem" },
       "1": { "$value": "0.25rem" },
+      "1-5": { "$value": "0.375rem" },
       "2": { "$value": "0.5rem" },
       "3": { "$value": "0.75rem" },
       "4": { "$value": "1rem" },
       "5": { "$value": "1.25rem" },
       "6": { "$value": "1.5rem" },
+      "7": { "$value": "1.75rem" },
       "8": { "$value": "2rem" },
+      "9": { "$value": "2.25rem" },
       "10": { "$value": "2.5rem" },
-      "12": { "$value": "3rem" }
+      "11": { "$value": "2.75rem" },
+      "12": { "$value": "3rem" },
+      "16": { "$value": "4rem" },
+      "20": { "$value": "5rem" },
+      "24": { "$value": "6rem" }
     },
     "radius": {
+      "none": { "$value": "0" },
       "sm": { "$value": "0.25rem" },
       "md": { "$value": "0.375rem" },
       "lg": { "$value": "0.5rem" },
+      "xl": { "$value": "0.75rem" },
+      "2xl": { "$value": "1rem" },
       "full": { "$value": "9999px" }
+    },
+    "border": {
+      "hairline": { "$value": "1px" },
+      "thick": { "$value": "2px" },
+      "nav-marker": { "$value": "3px" }
     },
     "icon": {
       "sm": { "$value": "1rem" },
       "md": { "$value": "1.25rem" },
       "lg": { "$value": "1.5rem" },
-      "xl": { "$value": "2rem" }
+      "xl": { "$value": "2rem" },
+      "2xl": { "$value": "2.5rem" }
+    },
+    "control-height": {
+      "sm": { "$value": "2rem" },
+      "md": { "$value": "var(--bw-density-control-height)" },
+      "lg": { "$value": "3rem" }
+    },
+    "touch-target-min": { "$value": "2.75rem" },
+    "max-width": {
+      "prose": { "$value": "65ch" },
+      "form": { "$value": "32rem" },
+      "modal-sm": { "$value": "28rem" },
+      "modal-md": { "$value": "32rem" },
+      "modal-lg": { "$value": "48rem" }
     }
   }
 }
