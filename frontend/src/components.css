@@ -531,7 +531,7 @@
   color: inherit;
 }
 .bw-account-menu__item--danger {
-  color: var(--bw-color-danger);
+  color: var(--bw-color-danger-fg);
 }
 /* reduced-motion: an explicit caret override on top of the global floor; a
  * half-rotated caret reads as broken (DESIGN.md 8.4). */

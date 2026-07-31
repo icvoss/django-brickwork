@@ -22,6 +22,13 @@ const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 for (const page of pages) {
   test(`axe WCAG 2.2 AA: ${page}`, async ({ page: pw }) => {
     await pw.goto(pathToFileURL(join(FIXTURES, page)).href);
+    // Settle CSS entrance animations (e.g. the account-menu panel's
+    // bw-fade-in-up, 200ms, which plays on load whenever a fixture renders
+    // the disclosure already open) before analyzing. Evaluating mid-animation
+    // samples transient opacity/position, which axe correctly, but
+    // misleadingly, reports as a steady-state contrast/target-size defect;
+    // the real, settled state is what WCAG governs.
+    await pw.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
     const results = await new AxeBuilder({ page: pw }).withTags(WCAG_TAGS).analyze();
     // Fail with the concrete violations so a regression is actionable.
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
