@@ -32,9 +32,12 @@ from brickwork.icons import get_icon, is_directional
 
 register = template.Library()
 
-# size arg -> the --bw-icon-size-* token the SVG's width/height resolves to
-# (ICO-004: sm 16 / md 20 / lg 24 / xl 32, aligned to context). The value is a
-# CSS var reference, so the actual px is token-driven and density/brand aware.
+# size arg -> the --bw-icon-size-* token the icon sizes to (ICO-004: sm/md/lg/xl,
+# aligned to context). Emitted as the --bw-icon-size CSS custom property (NOT an
+# SVG width/height attribute: geometry attributes do not accept var(), so an
+# attribute of var(--bw-icon-size-sm) is invalid and the icon renders at the
+# 300x150 SVG default). .bw-icon reads --bw-icon-size for its width/height, so
+# the actual size stays token-driven and density/brand aware.
 _SIZE_TOKENS: dict[str, str] = {
     "sm": "var(--bw-icon-size-sm)",
     "md": "var(--bw-icon-size-md)",
@@ -93,7 +96,7 @@ def bw_icon(
 
     svg = (
         f'<svg class="{classes}" '
-        f'width="{_SIZE_TOKENS[size]}" height="{_SIZE_TOKENS[size]}" '
+        f'style="--bw-icon-size: {_SIZE_TOKENS[size]}" '
         f'viewBox="0 0 24 24" fill="none" stroke="currentColor" '
         f'stroke-width="var(--bw-icon-stroke-width, 2)" '
         f'stroke-linecap="round" stroke-linejoin="round" '

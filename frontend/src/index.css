@@ -39,11 +39,18 @@
 }
 
 /* Icon defaults: currentColor inherit (ICO-005), directional flip under RTL
- * (ICO-014). The size is set inline by {% bw_icon %} via the size token. */
+ * (ICO-014). Size (ICO-004) is driven by the --bw-icon-size custom property,
+ * which {% bw_icon %} sets inline to a --bw-icon-size-{sm,md,lg,xl} token. It
+ * MUST be applied here as a CSS property, not as an SVG width/height attribute:
+ * SVG geometry attributes do not accept var(), so an attribute of
+ * var(--bw-icon-size-sm) is invalid and the icon falls back to the 300x150
+ * default. Logical properties keep it correct under RTL. */
 .bw-icon {
   display: inline-block;
   flex-shrink: 0;
   vertical-align: middle;
+  inline-size: var(--bw-icon-size, var(--bw-icon-size-md));
+  block-size: var(--bw-icon-size, var(--bw-icon-size-md));
 }
 [dir="rtl"] .bw-icon-directional {
   transform: scaleX(-1);

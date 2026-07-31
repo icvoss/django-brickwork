@@ -59,6 +59,10 @@
 }
 
 .bw-spinner {
+  /* Sized via --bw-icon-size (set inline to a size token), the same mechanism
+   * as .bw-icon: an SVG width/height attribute cannot take var() (issue #16). */
+  inline-size: var(--bw-icon-size, var(--bw-icon-size-sm));
+  block-size: var(--bw-icon-size, var(--bw-icon-size-sm));
   animation: bw-spin 0.7s linear infinite;
 }
 @keyframes bw-spin {
