@@ -20,7 +20,7 @@
   line-height: var(--bw-text-label-line-height);
   cursor: pointer;
   text-decoration: none;
-  transition: var(--bw-transition-colors);
+  transition: var(--bw-transition-colors), var(--bw-transition-shadow);
 }
 .bw-btn--sm {
   block-size: var(--bw-size-control-height-sm);
@@ -48,10 +48,13 @@
 }
 .bw-btn--ghost {
   background: transparent;
-  color: var(--bw-color-fg);
+  /* Muted at rest so the tertiary action never ties the primary on ink
+   * weight; steps up to full fg on hover. */
+  color: var(--bw-color-fg-muted);
 }
 .bw-btn--ghost:not(.bw-btn--disabled):hover {
   background-color: var(--bw-state-hover-overlay);
+  color: var(--bw-color-fg);
 }
 .bw-btn--danger {
   background: var(--bw-color-danger);
@@ -59,6 +62,17 @@
 }
 .bw-btn--danger:not(.bw-btn--disabled):hover {
   background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
+}
+/* Filled action buttons carry physical weight: resting elevation plus a faint
+ * top bevel; pressing swaps to an inset shadow so the button visibly sinks.
+ * Shadow-only change (no new animation), so the reduced-motion floor holds. */
+.bw-btn--primary:not(.bw-btn--disabled),
+.bw-btn--danger:not(.bw-btn--disabled) {
+  box-shadow: var(--bw-elevation-1), inset 0 1px 0 0 oklch(1 0 0 / 0.12);
+}
+.bw-btn--primary:not(.bw-btn--disabled):active,
+.bw-btn--danger:not(.bw-btn--disabled):active {
+  box-shadow: inset 0 1px 2px 0 oklch(0 0 0 / 0.2);
 }
 /* Pressed feedback for every variant: the active overlay layers on top of
  * whichever background resolved (DESIGN.md 4.6). Declared after the variant
@@ -149,7 +163,7 @@
   display: flex;
   gap: var(--bw-size-space-3);
   padding: var(--bw-size-space-4);
-  border-radius: var(--bw-size-radius-md);
+  border-radius: var(--bw-size-radius-lg); /* joins the card radius family */
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   margin-block-end: var(--bw-density-stack-gap);
 }
@@ -161,6 +175,8 @@
 }
 .bw-alert__message {
   margin: 0;
+  margin-block-start: var(--bw-size-space-1); /* air between title and message */
+  max-inline-size: var(--bw-size-max-width-prose);
   font-size: var(--bw-text-body-sm-size);
   font-weight: var(--bw-text-body-sm-weight);
   line-height: var(--bw-text-body-sm-line-height);
@@ -211,11 +227,24 @@
 
 /* --- Form fields ----------------------------------------------------------- */
 
+/* Forms hold the designed measure: the max-width-form token caps the field
+ * column so controls never stretch the full workspace (the form screens'
+ * strongest unstyled-scaffold signal). */
+.bw-form {
+  max-inline-size: var(--bw-size-max-width-form);
+}
+.bw-form__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-3);
+  margin-block-start: var(--bw-size-space-2);
+}
 .bw-field {
   display: flex;
   flex-direction: column;
   gap: var(--bw-size-space-1);
   margin-block-end: var(--bw-density-stack-gap);
+  max-inline-size: var(--bw-size-max-width-form);
 }
 .bw-field__label {
   font-size: var(--bw-text-label-size);
@@ -223,7 +252,8 @@
   line-height: var(--bw-text-label-line-height);
 }
 .bw-field__required {
-  color: var(--bw-color-danger);
+  /* danger-fg, not raw danger: the text-duty tier holds AA at caption size. */
+  color: var(--bw-color-danger-fg);
 }
 .bw-input {
   inline-size: 100%;
@@ -265,17 +295,23 @@
 }
 .bw-field__error {
   margin: 0;
-  color: var(--bw-color-danger);
+  /* danger-fg, not raw danger: the smallest text on the form carries the most
+   * important message, so it gets the text-duty danger tier (AA at 12px). */
+  color: var(--bw-color-danger-fg);
   font-size: var(--bw-text-caption-size);
   font-weight: var(--bw-text-caption-weight);
   line-height: var(--bw-text-caption-line-height);
 }
+/* The summary border is the decorative tint tier, matching .bw-alert--error
+ * (the tinted bg and danger-fg title identify the box; the invalid input keeps
+ * its full danger border for the 1.4.11 control boundary). */
 .bw-form-errors {
   padding: var(--bw-size-space-4);
   margin-block-end: var(--bw-density-stack-gap);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-danger);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-danger-border);
   background: var(--bw-color-danger-subtle);
-  border-radius: var(--bw-size-radius-md);
+  border-radius: var(--bw-size-radius-lg);
+  max-inline-size: var(--bw-size-max-width-form);
 }
 .bw-form-errors__title {
   margin: 0 0 var(--bw-size-space-2);
@@ -283,6 +319,18 @@
   font-weight: var(--bw-text-heading-sm-weight);
   line-height: var(--bw-text-heading-sm-line-height);
   color: var(--bw-color-danger-fg);
+}
+.bw-form-errors__list {
+  margin: 0;
+  padding-inline-start: var(--bw-size-space-5);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+.bw-form-errors__list li {
+  margin-block-end: var(--bw-size-space-0-5);
+}
+.bw-form-errors__list li::marker {
+  color: var(--bw-color-danger);
 }
 
 /* --- Page header ----------------------------------------------------------- */
@@ -359,15 +407,19 @@
   inline-size: 100%;
   border-collapse: collapse;
 }
+/* Column headers speak in the small tracked-uppercase voice so the sunken band
+ * reads as column apparatus, not a first data row. */
 .bw-data-table__th {
   text-align: start;
   padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
   background: var(--bw-color-surface-sunken);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border-strong);
   color: var(--bw-color-fg-muted);
-  font-size: var(--bw-text-label-size);
-  font-weight: var(--bw-text-label-weight);
+  font-size: var(--bw-font-size-xs);
+  font-weight: var(--bw-font-weight-semibold);
   line-height: var(--bw-text-label-line-height);
+  letter-spacing: var(--bw-font-tracking-wide);
+  text-transform: uppercase;
 }
 .bw-data-table__sort {
   display: inline-flex;
@@ -380,7 +432,16 @@
 .bw-data-table__sort:hover {
   color: var(--bw-color-accent);
 }
+/* Idle sort arrows are noise until pointed at: hidden at rest, revealed on
+ * hover and (for keyboard users) focus-visible; the affordance also stays in
+ * the accessible name. Opacity transition only, so the reduced-motion floor
+ * caps it globally. */
 .bw-data-table__sort-idle {
+  opacity: 0;
+  transition: var(--bw-transition-opacity);
+}
+.bw-data-table__sort:hover .bw-data-table__sort-idle,
+.bw-data-table__sort:focus-visible .bw-data-table__sort-idle {
   opacity: var(--bw-opacity-sort-idle);
 }
 .bw-data-table__td {
@@ -388,6 +449,12 @@
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);
+  font-variant-numeric: tabular-nums; /* numeric columns align digit-for-digit */
+}
+/* The last row's bottom hairline would double against the card's own border. */
+.bw-data-table__row:last-child > .bw-data-table__td,
+.bw-data-table__row:last-child > .bw-data-table__th--label {
+  border-block-end: 0;
 }
 /* Records-variant zebra + hover. Even rows stripe so row 1 stays on the plain
    surface next to the sunken header band. Hover is an overlay image so it
@@ -426,6 +493,16 @@
 .bw-data-table--definition {
   inline-size: 100%;
 }
+/* A key/value fact card hugs its facts rather than stretching the workspace.
+   Graceful no-op in engines without :has(). */
+.bw-data-table-wrap:has(.bw-data-table--definition) {
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+/* The value is the payload: muted-regular key against medium value gives the
+   quiet two-rank rhythm. */
+.bw-data-table--definition .bw-data-table__td {
+  font-weight: var(--bw-font-weight-medium);
+}
 .bw-data-table__th--label {
   inline-size: 1%;
   white-space: nowrap;
@@ -436,6 +513,11 @@
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);
+  /* Reset the column-header voice: this cell also carries __th, but it is a
+     row key, not chrome, so it keeps the plain body-sm treatment. */
+  font-weight: var(--bw-text-label-weight);
+  letter-spacing: var(--bw-font-tracking-normal);
+  text-transform: none;
 }
 
 /* --- Account menu (#25) ---------------------------------------------------- */
@@ -465,7 +547,7 @@
   background-color: var(--bw-state-hover-overlay);
 }
 .bw-account-menu__trigger-label {
-  font-size: var(--bw-text-body-md-size);
+  font-size: var(--bw-text-body-sm-size); /* chrome rhythm: matches nav + crumbs */
 }
 .bw-account-menu__caret {
   color: var(--bw-color-fg-muted);
@@ -481,7 +563,7 @@
   padding: var(--bw-size-space-1);
   background: var(--bw-color-surface-raised);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-xl);
+  border-radius: var(--bw-size-radius-lg); /* card radius family */
   box-shadow: var(--bw-elevation-3);
   z-index: var(--bw-z-dropdown);
 }
@@ -513,8 +595,8 @@
   color: var(--bw-color-fg);
   text-decoration: none;
   white-space: nowrap;
-  font-size: var(--bw-text-body-md-size);
-  line-height: var(--bw-text-body-md-line-height);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
   transition: var(--bw-transition-colors);
 }
 .bw-account-menu__item:hover {
@@ -530,8 +612,22 @@
 .bw-account-menu__item:hover .bw-account-menu__item-icon {
   color: inherit;
 }
+/* The destructive action is grouped apart: an 8px gap with a full-width
+ * hairline centred in it. The divider is a ::before positioned in the margin
+ * gap above the item (extended to the panel's inner edges via the negative
+ * inline inset), so the item's own hover pill keeps its shape. */
 .bw-account-menu__item--danger {
   color: var(--bw-color-danger-fg);
+  position: relative;
+  margin-block-start: var(--bw-size-space-2);
+}
+.bw-account-menu__item--danger::before {
+  content: "";
+  position: absolute;
+  inset-inline: calc(-1 * var(--bw-size-space-1));
+  inset-block-start: calc(-1 * var(--bw-size-space-1));
+  block-size: var(--bw-size-border-hairline);
+  background: var(--bw-color-border);
 }
 /* reduced-motion: an explicit caret override on top of the global floor; a
  * half-rotated caret reads as broken (DESIGN.md 8.4). */

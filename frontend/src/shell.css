@@ -30,7 +30,8 @@
   flex-direction: column;
   background: var(--bw-color-surface);
   border-inline-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  padding-block: var(--bw-density-stack-gap);
+  /* space-2 at the top puts the first nav row on the topbar's centreline. */
+  padding-block: var(--bw-size-space-2) var(--bw-density-stack-gap);
   padding-inline: var(--bw-size-space-3);
 }
 
@@ -83,6 +84,57 @@
 
 .bw-content {
   max-inline-size: var(--bw-content-max-width);
+  margin-inline: auto; /* centres the column when --bw-content-max-width is finite */
+}
+
+/* --- Content typography floor ---------------------------------------------- */
+
+/* Unclassed consumer markup inside .bw-content gets designed defaults instead
+ * of UA styles, so "our defaults are beautiful" holds for content, not just
+ * chrome. :not([class]) keeps every bw-* component out of scope; :where()
+ * keeps specificity at the bare .bw-content class so consumer CSS still wins.
+ * Roles are theme-aware tokens, so both themes resolve correctly. */
+.bw-content :where(h1:not([class])) {
+  font-family: var(--bw-text-heading-xl-family);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+  margin-block: 0 var(--bw-size-space-4);
+}
+.bw-content :where(h2:not([class])) {
+  font-family: var(--bw-text-heading-lg-family);
+  font-size: var(--bw-text-heading-lg-size);
+  font-weight: var(--bw-text-heading-lg-weight);
+  line-height: var(--bw-text-heading-lg-line-height);
+  letter-spacing: var(--bw-text-heading-lg-tracking);
+  margin-block: var(--bw-density-section-gap) var(--bw-size-space-3);
+}
+.bw-content :where(h3:not([class])) {
+  font-size: var(--bw-text-heading-md-size);
+  font-weight: var(--bw-text-heading-md-weight);
+  line-height: var(--bw-text-heading-md-line-height);
+  margin-block: var(--bw-size-space-6) var(--bw-size-space-2);
+}
+.bw-content :where(h4:not([class]), h5:not([class]), h6:not([class])) {
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+  margin-block: var(--bw-size-space-4) var(--bw-size-space-2);
+}
+.bw-content :where(p:not([class])) {
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+  margin-block: 0 var(--bw-size-space-3);
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+.bw-content :where(ul:not([class]), ol:not([class])) {
+  margin-block: 0 var(--bw-size-space-3);
+  padding-inline-start: var(--bw-size-space-5);
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+.bw-content :where(ul:not([class]), ol:not([class])) :where(li)::marker {
+  color: var(--bw-color-fg-subtle); /* decorative; adjacent text carries meaning */
 }
 
 .bw-page-header-region {
@@ -109,7 +161,9 @@
 .bw-subnav:empty,
 .bw-breadcrumbs:empty,
 .bw-footer:empty,
-.bw-page-actions:empty {
+.bw-page-actions:empty,
+.bw-sidebar__header:empty,
+.bw-sidebar__footer:empty {
   display: none; /* empty blocks render nothing, never a placeholder (SHL-006/20) */
 }
 
@@ -122,7 +176,13 @@
   /* Align the crumbs with the page title's gutter below and clear the topbar
      border above; the :empty rule keeps hidden breadcrumbs paddingless. */
   padding-inline: var(--bw-density-page-gutter-inline);
-  padding-block: var(--bw-size-space-3) 0;
+  padding-block: var(--bw-size-space-4) 0;
+}
+/* Crumbs are context for the title: when breadcrumbs render, tighten the
+   workspace's top padding so the crumbs bind to the title (16/8 rhythm), not
+   to the topbar. Graceful no-op in engines without :has(). */
+.bw-app__main:has(.bw-breadcrumbs:not(:empty)) .bw-workspace {
+  padding-block-start: var(--bw-size-space-2);
 }
 .bw-breadcrumbs__list {
   display: flex;
