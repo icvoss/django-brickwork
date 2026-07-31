@@ -60,10 +60,10 @@
       "$value": "{primitive.green.50}"
     },
     "info": {
-      "$value": "{primitive.blue.600}"
+      "$value": "{primitive.cyan.600}"
     },
     "info-subtle": {
-      "$value": "{primitive.blue.50}"
+      "$value": "{primitive.cyan.50}"
     },
     "icon-muted": {
       "$value": "{primitive.gray.400}"
