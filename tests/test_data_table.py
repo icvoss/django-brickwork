@@ -126,7 +126,7 @@ def test_unsorted_column_first_click_sorts_ascending() -> None:
     # consumer supplies ONLY sort_key; no sort_key_desc / next_sort needed
     out = _render(table_id="t", columns=_SORTABLE, rows=_ROWS)
     assert 'href="?sort=name"' in out
-    assert 'aria-sort' not in out  # nothing sorted yet
+    assert "aria-sort" not in out  # nothing sorted yet
 
 
 def test_ascending_column_toggles_to_descending() -> None:
