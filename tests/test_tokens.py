@@ -186,6 +186,25 @@ def test_dark_block_overrides_surface_to_a_dark_value() -> None:
     assert "--bw-density-" not in dark_block
 
 
+def test_info_and_accent_are_distinct_colours() -> None:
+    # #13: accent (brand) and info (status/notice) are distinct semantic roles;
+    # they must not resolve to the identical value, or a UI that uses both side by
+    # side (or colour-codes by role) can't tell them apart. Regression for the
+    # 0.2.0 collision where both mapped to the same blue primitive.
+    css = (_DIST / "tokens.css").read_text()
+
+    def _val(name: str) -> str:
+        # the :root value for a token
+        import re
+
+        m = re.search(rf"--{name}:\s*([^;]+);", css)
+        assert m, f"{name} not found in tokens.css"
+        return m.group(1).strip()
+
+    assert _val("bw-color-info") != _val("bw-color-accent"), "info must differ from accent"
+    assert _val("bw-color-info-subtle") != _val("bw-color-accent-subtle"), "info-subtle must differ from accent-subtle"
+
+
 def test_tailwind_bridge_is_theme_inline() -> None:
     tw = (_DIST / "tailwind-theme.css").read_text()
     assert "@theme inline" in tw

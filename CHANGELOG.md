@@ -8,6 +8,16 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-31
+
+### Fixed
+- `--bw-color-info*` no longer resolves to the same value as `--bw-color-accent*`
+  (#13). Both semantic roles mapped to the same blue primitive, so `info` (a
+  status/notice role) and `accent` (brand action) were byte-identical and
+  indistinguishable in any UI that used both. `info` now maps to its own cyan
+  primitive, giving it an independent hue. A regression test asserts the two roles
+  differ. Found by the icvlocal demo Wall, which colour-codes by role.
+
 ## [0.2.0] - 2026-07-30
 
 Adoption round: four findings from the agentpm pilot (the second, no-JS,

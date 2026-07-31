@@ -25,6 +25,11 @@
   --bw-primitive-blue-600: oklch(0.546 0.192 262);
   --bw-primitive-blue-700: oklch(0.488 0.181 264);
   --bw-primitive-blue-950: oklch(0.282 0.091 267);
+  --bw-primitive-cyan-50: oklch(0.98 0.02 210);
+  --bw-primitive-cyan-400: oklch(0.72 0.11 220);
+  --bw-primitive-cyan-600: oklch(0.6 0.11 225);
+  --bw-primitive-cyan-700: oklch(0.52 0.1 227);
+  --bw-primitive-cyan-950: oklch(0.3 0.06 230);
   --bw-primitive-red-50: oklch(0.971 0.013 18);
   --bw-primitive-red-100: oklch(0.936 0.032 18);
   --bw-primitive-red-500: oklch(0.637 0.208 25);
@@ -104,8 +109,8 @@
   --bw-color-warning-subtle: oklch(0.987 0.022 95);
   --bw-color-success: oklch(0.627 0.155 149);
   --bw-color-success-subtle: oklch(0.982 0.018 155);
-  --bw-color-info: oklch(0.546 0.192 262);
-  --bw-color-info-subtle: oklch(0.97 0.014 254);
+  --bw-color-info: oklch(0.6 0.11 225);
+  --bw-color-info-subtle: oklch(0.98 0.02 210);
   --bw-color-icon-muted: oklch(0.708 0.008 265);
   --bw-color-focus-ring: oklch(0.546 0.192 262);
   --bw-color-nav-item-active-bg: oklch(0.97 0.014 254);
@@ -142,8 +147,8 @@
   --bw-color-warning-subtle: oklch(0.987 0.022 95);
   --bw-color-success: oklch(0.627 0.155 149);
   --bw-color-success-subtle: oklch(0.982 0.018 155);
-  --bw-color-info: oklch(0.546 0.192 262);
-  --bw-color-info-subtle: oklch(0.97 0.014 254);
+  --bw-color-info: oklch(0.6 0.11 225);
+  --bw-color-info-subtle: oklch(0.98 0.02 210);
   --bw-color-icon-muted: oklch(0.708 0.008 265);
   --bw-color-focus-ring: oklch(0.546 0.192 262);
   --bw-color-nav-item-active-bg: oklch(0.97 0.014 254);
@@ -173,8 +178,8 @@
   --bw-color-warning-subtle: oklch(0.279 0.077 46);
   --bw-color-success: oklch(0.723 0.169 152);
   --bw-color-success-subtle: oklch(0.266 0.061 153);
-  --bw-color-info: oklch(0.707 0.165 254);
-  --bw-color-info-subtle: oklch(0.282 0.091 267);
+  --bw-color-info: oklch(0.72 0.11 220);
+  --bw-color-info-subtle: oklch(0.3 0.06 230);
   --bw-color-icon-muted: oklch(0.556 0.009 265);
   --bw-color-focus-ring: oklch(0.707 0.165 254);
   --bw-color-nav-item-active-bg: oklch(0.282 0.091 267);
