@@ -72,9 +72,7 @@ Optional:
         {% for row in rows %}
           <tr id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}">
             {% for cell in row.cells %}
-              <td class="bw-data-table__td">
-                {% if row.url and forloop.first %}<a class="bw-data-table__row-link" href="{{ row.url }}">{{ cell }}</a>{% else %}{{ cell }}{% endif %}
-              </td>
+              <td class="bw-data-table__td">{% if row.url and forloop.first %}<a class="bw-data-table__row-link" href="{{ row.url }}">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
             {% endfor %}
           </tr>
         {% endfor %}

@@ -9,10 +9,10 @@ forced via the setting).
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from django.template import Context, Template
 from django.test import override_settings
-
-from types import SimpleNamespace
 
 from brickwork.models import NavItem
 from brickwork.templatetags.brickwork_nav import (
