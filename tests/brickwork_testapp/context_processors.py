@@ -19,6 +19,8 @@ _ACCOUNT_MENU_ITEMS = [
 def _breadcrumb_trail(request):
     """A consuming-project-shaped trail: current page last, never linked."""
     view_name = getattr(request.resolver_match, "view_name", "")
+    if view_name == "testapp:dashboard":
+        return [{"label": "Home", "url": "/widgets/"}, {"label": "Dashboard"}]
     if view_name in {"testapp:widget-create", "testapp:widget-edit"}:
         return [
             {"label": "Home", "url": "/widgets/"},

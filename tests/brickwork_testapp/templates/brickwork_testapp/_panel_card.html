@@ -1,0 +1,14 @@
+{% extends "brickwork/components/_card.html" %}
+{% comment %}
+A generic titled text card: proves the card's region blocks against consumer
+content via the include-a-template-that-extends-the-card composition shape
+(_card.html's documented filler pattern: the filler owns the wrapper
+elements, using the bw-card__* styling hooks). panel_title / panel_body come
+from the include's with arguments.
+{% endcomment %}
+{% block card_header %}
+  <div class="bw-card__header">
+    <h2 class="bw-card__title">{{ panel_title }}</h2>
+  </div>
+{% endblock %}
+{% block card_body %}<p>{{ panel_body }}</p>{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+Detail pattern (04-interfaces.md section 4a, 0.5.0): page header + a
+definition-list card (the entity's own facts) + a section stack + an optional
+danger-zone region. A consuming page EXTENDS this template, never includes it.
+
+Blocks (semver-public, BR-BW-TPL-001):
+  page_header         as list.html.
+  detail_facts        default: a card wrapping _data_table.html with
+                      variant="definition" (the <dl>-shaped facts table, via
+                      patterns/_table_card.html), fed by rows from the page
+                      context.
+  detail_sections     default: empty. Stack additional cards here (related
+                      records, activity); the pattern supplies only the
+                      stacking container (bw-section-stack,
+                      --bw-density-section-gap between siblings), no fixed
+                      count or shape.
+  detail_danger_zone  default: empty. The destructive-actions region
+                      (archive, delete): fill it with your own distinctly
+                      bordered chrome, e.g. _alert.html's warning or error
+                      variant as the section's visual weight. Renders nothing
+                      when empty, never a fabricated placeholder warning
+                      (BR-BW-TPL-006).
+
+Required context: title, rows (the facts, in _data_table.html's definition
+shape: a list of {label, value} dicts). Optional: description. Supplying only
+title and rows renders a complete working page with detail_sections and
+detail_danger_zone absent from the output (AC-BW-076).
+{% endcomment %}
+
+{% block page_header %}{% include "brickwork/components/_page_header.html" %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+  {% block detail_facts %}{% include "brickwork/patterns/_table_card.html" with variant="definition" %}{% endblock %}
+  <div class="bw-section-stack">{% block detail_sections %}{% endblock %}</div>
+  {% block detail_danger_zone %}{% endblock %}
+</div>
+{% endblock %}

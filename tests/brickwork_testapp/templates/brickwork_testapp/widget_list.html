@@ -1,17 +1,27 @@
 {% extends "brickwork_testapp/base.html" %}
 {% load brickwork_components %}
+{% comment %}
+The widget list, rebuilt on patterns/list.html (0.5.0): the view supplies
+base_parent="brickwork/patterns/list.html", so the chain runs
+widget_list -> base (chrome) -> patterns/list.html -> shell/app.html. The
+pattern's page_header default is wired from the title/description context
+vars (no override here); filter_bar is filled with the real filter form; and
+list_body is overridden to keep the a11y fixtures' previous coverage (the
+titled alert, the badge legend, the definition-variant summary table) around
+the card-wrapped records table.
+{% endcomment %}
 
 {% block page_title %}Widgets{% endblock %}
-
-{% block page_header %}
-  {% include "brickwork/components/_page_header.html" with title="Widgets" description="Everything in the harness." %}
-{% endblock %}
 
 {% block page_actions %}
   {% bw_button "New widget" href="/widgets/new/" icon="plus" variant="primary" %}
 {% endblock %}
 
-{% block content %}
+{% block filter_bar %}
+  {% include "brickwork/components/_filter_bar.html" with fields=filter_form filter_bar_id="widget-filters" clear_href="/widgets/" %}
+{% endblock %}
+
+{% block list_body %}
   {% comment %} A titled banner alert so the a11y fixtures cover the loud page-level
      status surface with BOTH a title and a message, in both themes. {% endcomment %}
   {% bw_alert "Widget exports are paused while storage is upgraded. Existing widgets are unaffected." variant="warning" title="Planned maintenance" %}
@@ -25,8 +35,10 @@
     {% bw_badge "Deprecated" variant="danger" %}
   </p>
 
-  {% include "brickwork/components/_data_table.html" with table_id="widgets-table" columns=table_columns rows=table_rows empty_heading="No widgets yet" empty_body="Create your first widget to get started." %}
-  {% include "brickwork/components/_pagination.html" %}
+  {% comment %} block.super renders the pattern's OWN default table card (fed by the
+     rows/columns/table_id/empty_* context the view supplies), so the shipped
+     default is exercised end-to-end rather than re-implemented here. {% endcomment %}
+  {{ block.super }}
 
   {% comment %} The definition-variant facts table (the row-header, one-entity shape) so
      the a11y fixtures cover it alongside the records table. {% endcomment %}

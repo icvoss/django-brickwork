@@ -8,6 +8,42 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-31
+
+The pages release: the blocks include the rooms, not just the bricks
+(spec: umbrella docs/specs/django-brickwork, merged as PR #115). Additive;
+nothing renamed or removed.
+
+### Added
+
+- **Card** (`components/_card.html`): five semver-public regions
+  (`card_header`/`card_title`/`card_actions`/`card_body`/`card_footer`),
+  elevation-1 resting, `interactive`/`href` variant raising to elevation-2 on
+  the raised surface (no transform), `bordered` flat variant, density-aware
+  padding with `padding="sm|md|lg"` modifiers. An unfilled region emits no
+  markup.
+- **Stat tile** (`components/_stat.html`): label (overline voice), value on
+  the new `--bw-stat-tile-value-size` token with tabular numerals, optional
+  `trend`/`trend_label`/`icon`/`href`/`loading`/`size`. A trend ALWAYS
+  renders a directional glyph plus a visually-hidden text fallback, so
+  direction never rides on colour alone, even past a direction-less
+  `trend_label` (BR-BW-TPL-007).
+- **Page patterns** (`patterns/list.html`, `detail.html`, `dashboard.html`):
+  extend-only compositions of the existing components with minimal
+  semver-public block contracts; each renders a complete page with only its
+  required context (BR-BW-TPL-006). Internal `patterns/_table_card.html`
+  glue provides the card-wrapped table defaults.
+- **Nav slot** (#21): `sidebar_switcher` and `mobile_nav_switcher` blocks in
+  `shell/app.html`, empty by default, seated in a styled
+  `bw-sidebar__switcher` container; brickwork ships the slot, never the
+  switcher (BR-BW-NAV-007).
+- Pattern scaffolding CSS: `bw-stat-grid` (responsive stat row),
+  `bw-section-stack`, and a `bw-visually-hidden` utility.
+- A scoped test suite for AC-BW-070..078; the seams testapp list page now
+  extends the list pattern, a new dashboard page extends the dashboard
+  pattern, and the axe gate covers both composed pattern pages in light and
+  dark.
+
 ## [0.4.0] - 2026-07-31
 
 The polish round. Owner directive on 0.3.0: "a lot tighter, but I am sure we

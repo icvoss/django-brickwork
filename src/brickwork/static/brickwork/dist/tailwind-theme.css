@@ -113,6 +113,7 @@
   --bw-icon-stroke-width: var(--bw-icon-stroke-width);
   --bw-button-radius: var(--bw-button-radius);
   --bw-menu-min-width: var(--bw-menu-min-width);
+  --bw-stat-tile-value-size: var(--bw-stat-tile-value-size);
   --bw-disabled-opacity: var(--bw-disabled-opacity);
   --bw-content-max-width: var(--bw-content-max-width);
   --bw-topbar-position: var(--bw-topbar-position);

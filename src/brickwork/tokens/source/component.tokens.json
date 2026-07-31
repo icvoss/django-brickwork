@@ -38,6 +38,13 @@
       "$description": "Minimum width for dropdown-shaped panels (the account-menu panel is the first consumer)."
     }
   },
+  "stat-tile": {
+    "value-size": {
+      "$type": "dimension",
+      "$value": "var(--bw-font-size-3xl)",
+      "$description": "Stat tile numeral size (VIZ-001, AC-BW-075); a live var() reference so the font scale cascades, and the size modifiers re-point it per tile."
+    }
+  },
   "disabled": {
     "opacity": {
       "$type": "number",

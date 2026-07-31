@@ -70,6 +70,25 @@ test.describe("no-JS floor", () => {
       await page.locator("summary.bw-account-menu__trigger").click();
       await expect(menu).toHaveAttribute("open");
       await expect(page.locator("nav.bw-account-menu__panel")).toBeVisible();
+      // the consumer's own property switcher in the nav slot (#21, AC-BW-078)
+      // is a native <details> too: it opens with JS disabled
+      const switcher = page.locator("aside.bw-sidebar details.bw-sidebar__switcher-trigger");
+      await expect(switcher).toHaveCount(1);
+      await switcher.locator("summary").click();
+      await expect(switcher).toHaveAttribute("open");
+      // the filter bar is a plain GET form (TBL-003 no-JS floor)
+      await expect(page.locator("form.bw-filter-bar")).toHaveAttribute("method", "get");
+    });
+
+    test(`dashboard pattern renders server-side with JS disabled (${theme})`, async ({ page }) => {
+      await page.goto(pathToFileURL(join(FIXTURES, `dashboard-${theme}.html`)).href);
+      // three stat tiles, rendered entirely server-side
+      await expect(page.locator(".bw-stat")).toHaveCount(3);
+      // a delta's directional meaning is glyph + text, never colour alone
+      // (BR-BW-TPL-007): the trend text labels are present in the DOM
+      await expect(page.getByText("One more than last week")).toHaveCount(1);
+      // the recent-activity table rendered its rows server-side
+      await expect(page.locator("#activity-table table.bw-data-table tbody tr")).toHaveCount(2);
     });
 
     test(`form errors are present and wired with JS disabled (${theme})`, async ({ page }) => {

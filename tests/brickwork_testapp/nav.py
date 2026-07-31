@@ -6,6 +6,7 @@ from brickwork.models import NavItem
 from brickwork.services.navigation import validate_nav_config
 
 MAIN_NAV = (
+    NavItem(key="dashboard", label="Dashboard", url_name="testapp:dashboard", icon="home"),
     NavItem(key="widgets", label="Widgets", url_name="testapp:widget-list", icon="folder"),
     NavItem(
         key="admin-section",

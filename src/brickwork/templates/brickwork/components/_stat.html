@@ -1,0 +1,48 @@
+{% load brickwork_icons i18n %}
+{% comment %}
+Stat (VIZ-001/002/017): the KPI tile. Structural, consumed via {% include %}.
+Stacks an overline label, a tabular-numeral value (font-variant-numeric:
+tabular-nums via bw-stat__value, so a column of tiles never jitters as digits
+change width; AC-BW-075) and an optional trend caption.
+
+Trend accessibility (BR-BW-TPL-007, AC-BW-073/074): whenever ``trend`` is set
+the template ALWAYS renders a directional glyph (arrow-up / arrow-down /
+minus, decorative) PLUS a visually hidden text fallback ("increased" /
+"decreased" / "unchanged"), so the direction never rides on colour alone by
+construction, even when the caller supplies no ``trend_label``.
+``trend_label``, when given, refines the accessible text (e.g. "12% up on
+last month") and renders visibly beside the glyph. Colour (success or danger
+ink on the trend row) is reinforcement only, never the sole signal.
+
+Required context:
+  label: the metric's name (rendered in the overline voice).
+  value: the metric's value, pre-formatted by the caller (tabular numerals).
+Optional:
+  trend ("up" | "down" | "flat"): the direction of change (VIZ-002). Any
+        other value takes the flat treatment.
+  trend_label (str): the visible delta text beside the glyph.
+  icon (registry name): a leading flat glyph for the tile (VIZ-018).
+  href: wraps the tile in an anchor (VIZ-024) which takes the interactive
+        card's shadow raise. Omitted renders a plain non-interactive <div>,
+        never a clickable-looking tile with no destination.
+  loading (bool): renders skeleton rows instead of the content (STA-004).
+  size ("sm" | "md" | "lg", default "md"): emitted as bw-stat--<value> only
+        when supplied (VIZ-027).
+{% endcomment %}
+{% if href %}<a class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}">{% endif %}
+  {% if loading %}
+    <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
+    <div class="bw-skeleton bw-skeleton--title" aria-hidden="true"></div>
+  {% else %}
+    {% if icon %}{% bw_icon icon size="md" decorative=True css_class="bw-stat__icon" %}{% endif %}
+    <span class="bw-stat__label">{{ label }}</span>
+    <span class="bw-stat__value">{{ value }}</span>
+    {% if trend %}
+      <span class="bw-stat__trend bw-stat__trend--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}">
+        {% if trend == "up" %}{% bw_icon "arrow-up" size="sm" decorative=True %}{% elif trend == "down" %}{% bw_icon "arrow-down" size="sm" decorative=True %}{% else %}{% bw_icon "minus" size="sm" decorative=True %}{% endif %}
+        <span class="bw-visually-hidden">{% if trend == "up" %}{% translate "increased" %}{% elif trend == "down" %}{% translate "decreased" %}{% else %}{% translate "unchanged" %}{% endif %}</span>
+        {% if trend_label %}<span>{{ trend_label }}</span>{% endif %}
+      </span>
+    {% endif %}
+  {% endif %}
+{% if href %}</a>{% else %}</div>{% endif %}

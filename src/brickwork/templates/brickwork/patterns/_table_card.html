@@ -1,0 +1,12 @@
+{% extends "brickwork/components/_card.html" %}
+{% comment %}
+Internal glue for the 0.5.0 patterns: a card whose body is a data table. An
+{% include %} cannot fill another template's blocks, so the patterns include
+THIS template, which extends _card.html and fills card_body with
+_data_table.html; the page context (rows, columns, table_id, variant,
+current_sort, querystring, empty_heading, empty_body, loading) passes
+straight through to the table. Not itself a pattern: it defines no new named
+blocks. A consumer composes its own card fillers the same way (see
+_card.html's header comment).
+{% endcomment %}
+{% block card_body %}{% include "brickwork/components/_data_table.html" %}{% endblock %}

@@ -43,6 +43,20 @@
   padding-block-end: var(--bw-density-stack-gap);
 }
 
+/* The nav slot (brickwork#21, BR-BW-NAV-007): a quiet, positioned seat for a
+   consumer-authored switcher above the nav list, shared by the sidebar and
+   the mobile drawer (one class, both containers, mirroring the nav's own one
+   render). Structure and spacing only, never switcher behaviour; the gap to
+   the nav below is the density section gap so a consumer never guesses it.
+   Inline padding matches the sidebar header's inset so slot content aligns
+   with the rows above and below. */
+.bw-sidebar__switcher {
+  padding-inline: var(--bw-size-space-2);
+  padding-block: var(--bw-size-space-2);
+  margin-block-end: var(--bw-density-section-gap);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
 .bw-sidebar__nav {
   flex: 1 1 auto;
   overflow-y: auto;
@@ -145,6 +159,33 @@
   margin-block-end: var(--bw-density-section-gap);
 }
 
+/* --- Page patterns (0.5.0): composition scaffolding only -------------------- */
+
+/* The dashboard stat row (patterns/dashboard.html): a responsive auto-fit
+   grid the consumer drops _stat.html includes into, section-gap-spaced per
+   the pattern contract (04-interfaces.md 4a). 14rem is the structural floor
+   below which a tabular-numeral tile stops reading as a tile; min() keeps a
+   single column on viewports narrower than one tile. */
+.bw-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+  gap: var(--bw-density-section-gap);
+}
+
+/* The detail section stack (patterns/detail.html): section-gap between
+   sibling cards, no other opinion (the pattern imposes no count or shape). */
+.bw-section-stack {
+  display: grid;
+  gap: var(--bw-density-section-gap);
+}
+
+/* An unfilled pattern region renders nothing, never empty chrome or a stray
+   gap (BR-BW-TPL-006). */
+.bw-stat-grid:empty,
+.bw-section-stack:empty {
+  display: none;
+}
+
 .bw-footer {
   margin-block-start: var(--bw-density-section-gap);
   padding-block-start: var(--bw-size-space-4);
@@ -163,8 +204,9 @@
 .bw-footer:empty,
 .bw-page-actions:empty,
 .bw-sidebar__header:empty,
-.bw-sidebar__footer:empty {
-  display: none; /* empty blocks render nothing, never a placeholder (SHL-006/20) */
+.bw-sidebar__footer:empty,
+.bw-sidebar__switcher:empty {
+  display: none; /* empty blocks render nothing, never a placeholder (SHL-006/20, AC-BW-078) */
 }
 
 /* Breadcrumbs list (#25): the <ol> inside the shell's labelled bw-breadcrumbs

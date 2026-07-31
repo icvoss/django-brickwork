@@ -1,0 +1,39 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+List pattern (04-interfaces.md section 4a, 0.5.0): page header + optional
+filter bar + a table card + pagination, the standard index page shape. A
+consuming page EXTENDS this template, never includes it; the pattern itself
+extends shell/app.html, so every shell block (page_actions, breadcrumbs,
+sidebar and so on) stays available to the extending page.
+
+Blocks (semver-public, BR-BW-TPL-001):
+  page_header      default: _page_header.html wired from title/description.
+                   Override to replace the header; fill the shell's
+                   page_actions block to add actions beside it.
+  filter_bar       default: empty. Include _filter_bar.html here; an empty
+                   region renders nothing (BR-BW-TPL-006). The filter bar's
+                   own no-JS floor (TBL-003) is unaffected by the pattern.
+  list_body        default: a card wrapping _data_table.html (via
+                   patterns/_table_card.html), fed by rows/columns/table_id/
+                   current_sort/querystring from the page context. Override
+                   the whole block for a non-table body (e.g. a card grid)
+                   while keeping the header/filter/pagination scaffolding.
+  list_pagination  default: _pagination.html wired from page_obj; renders
+                   nothing at one page (STA-014) or when page_obj is absent.
+
+Required context: title. Optional: description, rows, columns, page_obj,
+plus everything _data_table.html and _pagination.html themselves accept,
+passed through. Supplying only title renders a complete working page: an
+empty filter region, an empty-state table card (STA-001, via the table's own
+empty handling) and no pagination controls (AC-BW-076).
+{% endcomment %}
+
+{% block page_header %}{% include "brickwork/components/_page_header.html" %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+  {% block filter_bar %}{% endblock %}
+  {% block list_body %}{% include "brickwork/patterns/_table_card.html" %}{% endblock %}
+  {% block list_pagination %}{% include "brickwork/components/_pagination.html" %}{% endblock %}
+</div>
+{% endblock %}
