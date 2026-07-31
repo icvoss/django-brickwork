@@ -7,8 +7,8 @@
 {% endblock %}
 
 {% block content %}
-  {# The form section is the hx-target: an invalid HTMX POST responds 422 and
+  {% comment %} The form section is the hx-target: an invalid HTMX POST responds 422 and
      swaps THIS element's outerHTML (BR-BW-HTMX-003). A non-HTMX POST redisplays
-     the whole page with the same partial, a fully working no-JS path. #}
+     the whole page with the same partial, a fully working no-JS path. {% endcomment %}
   {% include "brickwork_testapp/_widget_form.html" %}
 {% endblock %}

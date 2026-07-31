@@ -60,9 +60,17 @@ Derived tokens are live CSS expressions over the load-bearing set, so a brand
 (or runtime tenant override) that sets `--bw-color-accent` recolours the whole
 derived family in-browser with no rebuild.
 
-- **`color-mix(in oklch, ...)` is the primary mechanism** (Baseline Widely
-  Available since Nov 2025; shipped with no fallback). Every tint, shade, and
-  mix below uses it.
+- **`color-mix(in oklab, ...)` is the primary mechanism** (color-mix is
+  Baseline Widely Available since Nov 2025; shipped with no fallback). Every
+  tint, shade, and mix below uses it. The mix space is OKLAB, not oklch,
+  deliberately: browsers give `oklch(1 0 0)` an explicit hue of 0 rather than
+  a powerless one, so an oklch-space mix interpolates the hue ANGLE toward 0
+  and rotates every tint (amber 58 renders at hue 4, i.e. pink). Oklab is
+  rectangular: an achromatic partner (black, white, transparent, a chroma-0
+  surface) scales chroma and preserves the source hue exactly, and for
+  black/white shades the result is identical to the ideal oklch shade.
+  Authored token VALUES stay oklch throughout (BR-BW-TOK-003 is about
+  authoring notation, not the mix space).
 - **Relative colour `oklch(from ...)` is avoided in 0.3.0.** ADR-054 §3
   proposed dual declarations (literal fallback, then live expression, last
   valid wins). That mechanism does not work for custom properties: any token
@@ -112,10 +120,10 @@ resolves to.
 | Token | LB/D | Light derivation | Dark derivation |
 |---|---|---|---|
 | `--bw-color-surface` | LB | authored | authored |
-| `--bw-color-surface-sunken` | D | `color-mix(in oklch, var(--bw-color-surface) 98.5%, black)` | `color-mix(in oklch, var(--bw-color-surface) 76%, black)` (dark sunken is darker than surface) |
-| `--bw-color-surface-raised` | D | `var(--bw-color-surface)` (light differentiates via shadow) | `color-mix(in oklch, var(--bw-color-surface) 93%, white)` (dark differentiates via lightness) |
+| `--bw-color-surface-sunken` | D | `color-mix(in oklab, var(--bw-color-surface) 98.5%, black)` | `color-mix(in oklab, var(--bw-color-surface) 76%, black)` (dark sunken is darker than surface) |
+| `--bw-color-surface-raised` | D | `var(--bw-color-surface)` (light differentiates via shadow) | `color-mix(in oklab, var(--bw-color-surface) 93%, white)` (dark differentiates via lightness) |
 | `--bw-color-surface-inverse` | D | `var(--bw-color-fg)` | `var(--bw-color-fg)` |
-| `--bw-color-surface-overlay` **[NEW]** | D (light) / authored (dark) | `color-mix(in oklch, var(--bw-color-surface-inverse) 50%, transparent)` | authored `oklch(0 0 0 / 0.6)`: a scrim is dark-over-content in both themes, and dark surface-inverse (`:= fg`) is near-white, so the derivation would yield a light wash |
+| `--bw-color-surface-overlay` **[NEW]** | D (light) / authored (dark) | `color-mix(in oklab, var(--bw-color-surface-inverse) 50%, transparent)` | authored `oklch(0 0 0 / 0.6)`: a scrim is dark-over-content in both themes, and dark surface-inverse (`:= fg`) is near-white, so the derivation would yield a light wash |
 
 Rule: any component at elevation 2+ uses `background:
 var(--bw-color-surface-raised)`, both themes.
@@ -125,8 +133,8 @@ var(--bw-color-surface-raised)`, both themes.
 | Token | LB/D | Light | Dark |
 |---|---|---|---|
 | `--bw-color-fg` | LB | authored | authored |
-| `--bw-color-fg-muted` | D | `color-mix(in oklch, var(--bw-color-fg) 56%, var(--bw-color-surface))` | same shape, 67% |
-| `--bw-color-fg-subtle` **[NEW]** | D | `color-mix(in oklch, var(--bw-color-fg) 37%, var(--bw-color-surface))` | same shape, 49% |
+| `--bw-color-fg-muted` | D | `color-mix(in oklab, var(--bw-color-fg) 56%, var(--bw-color-surface))` | same shape, 67% |
+| `--bw-color-fg-subtle` **[NEW]** | D | `color-mix(in oklab, var(--bw-color-fg) 37%, var(--bw-color-surface))` | same shape, 49% |
 | `--bw-color-fg-on-accent` | authored | contrast pick, stays a literal; the one derived-looking token every brand must verify at 4.5:1 | authored |
 | `--bw-color-fg-on-inverse` | D | `var(--bw-color-surface)` | `var(--bw-color-surface)` |
 | `--bw-color-icon-muted` | D | `var(--bw-color-fg-subtle)` | `var(--bw-color-fg-subtle)` |
@@ -141,8 +149,8 @@ overlaid element.
 | Token | LB/D | Light | Dark |
 |---|---|---|---|
 | `--bw-color-border` | LB | authored | authored |
-| `--bw-color-border-strong` | D | `color-mix(in oklch, var(--bw-color-border) 94%, black)` | **direction flips**: `color-mix(in oklch, var(--bw-color-border) 86%, white)` (a dark theme's emphasis border must get lighter) |
-| `--bw-color-border-control` **[NEW]** | D | `color-mix(in oklch, var(--bw-color-fg) 44%, var(--bw-color-surface))` (measured 3.23:1 on the default surface) | `color-mix(in oklch, var(--bw-color-fg) 45%, var(--bw-color-surface))` (measured 3.64:1) |
+| `--bw-color-border-strong` | D | `color-mix(in oklab, var(--bw-color-border) 94%, black)` | **direction flips**: `color-mix(in oklab, var(--bw-color-border) 86%, white)` (a dark theme's emphasis border must get lighter) |
+| `--bw-color-border-control` **[NEW]** | D | `color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface))` (measured 3.23:1 on the default surface) | `color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface))` (measured 3.64:1) |
 
 `border-control` exists because the divider border token stays deliberately
 light for calm chrome, while an input or control boundary is a visual cue
@@ -155,8 +163,8 @@ and similar controls take `border-control`; dividers and card outlines keep
 | Token | LB/D | Light | Dark |
 |---|---|---|---|
 | `--bw-color-accent` | LB | authored | authored |
-| `--bw-color-accent-hover` | D | `color-mix(in oklch, var(--bw-color-accent) 89%, black)` | `color-mix(in oklch, var(--bw-color-accent) 88%, black)` |
-| `--bw-color-accent-subtle` | D | `color-mix(in oklch, var(--bw-color-accent) 7%, var(--bw-color-surface))` | `color-mix(in oklch, var(--bw-color-accent) 40%, black)` |
+| `--bw-color-accent-hover` | D | `color-mix(in oklab, var(--bw-color-accent) 89%, black)` | `color-mix(in oklab, var(--bw-color-accent) 88%, black)` |
+| `--bw-color-accent-subtle` | D | `color-mix(in oklab, var(--bw-color-accent) 7%, var(--bw-color-surface))` | `color-mix(in oklab, var(--bw-color-accent) 40%, black)` |
 | `--bw-color-focus-ring` | D | `var(--bw-color-accent)` | `var(--bw-color-accent)` |
 
 `accent-hover` is retained as the flat-colour fallback; transient hover
@@ -171,10 +179,10 @@ Six tiers per intent so an alert, badge, or toast never invents a value.
 | Token | Tier | LB/D | Light | Dark |
 |---|---|---|---|---|
 | `--bw-color-X` | base | LB (info: authored cyan default, `:= accent` is the documented 3-role collapse) | authored | authored |
-| `--bw-color-X-subtle` | tinted bg | D | `color-mix(in oklch, var(--bw-color-X) 7%, var(--bw-color-surface))` | `color-mix(in oklch, var(--bw-color-X) P%, black)` (danger 41%, success 37%, warning 36%, info 42%) |
-| `--bw-color-X-border` **[NEW]** | tinted border | D | `color-mix(in oklch, var(--bw-color-X) 30%, var(--bw-color-surface))` (the badge/alert border, replacing invented inline mixes) | `color-mix(in oklch, var(--bw-color-X) 55%, black)` (clears the black-mixed subtle tint by delta-L >= 0.08, verified 0.089-0.146) |
-| `--bw-color-X-strong` **[NEW]** | border/emphasis | D | `color-mix(in oklch, var(--bw-color-X) 88%, black)` | **flips**: `color-mix(in oklch, var(--bw-color-X) 96%, white)` |
-| `--bw-color-X-fg` **[NEW]** | text on `X-subtle` | D | `color-mix(in oklch, var(--bw-color-X) P%, black)` (danger 88%, success 84%, warning 83%, info 85%), landing on the 700 ramp depth: the base itself fails AA on the subtle tint, the mix measures 5.84 / 4.70 / 4.67 / 5.17 | `color-mix(in oklch, var(--bw-color-X) 78%, white)` (lightness boost for AA on the dark tint) |
+| `--bw-color-X-subtle` | tinted bg | D | `color-mix(in oklab, var(--bw-color-X) 7%, var(--bw-color-surface))` | `color-mix(in oklab, var(--bw-color-X) P%, black)` (danger 41%, success 37%, warning 36%, info 42%) |
+| `--bw-color-X-border` **[NEW]** | tinted border | D | `color-mix(in oklab, var(--bw-color-X) 30%, var(--bw-color-surface))` (the badge/alert border, replacing invented inline mixes) | `color-mix(in oklab, var(--bw-color-X) 55%, black)` (clears the black-mixed subtle tint by delta-L >= 0.08, verified 0.089-0.146) |
+| `--bw-color-X-strong` **[NEW]** | border/emphasis | D | `color-mix(in oklab, var(--bw-color-X) 88%, black)` | **flips**: `color-mix(in oklab, var(--bw-color-X) 96%, white)` |
+| `--bw-color-X-fg` **[NEW]** | text on `X-subtle` | D | `color-mix(in oklab, var(--bw-color-X) P%, black)` (danger 88%, success 84%, warning 83%, info 85%), landing on the 700 ramp depth: the base itself fails AA on the subtle tint, the mix measures 5.84 / 4.70 / 4.67 / 5.17 | `color-mix(in oklab, var(--bw-color-X) 78%, white)` (lightness boost for AA on the dark tint) |
 | `--bw-color-X-on-fg` **[NEW]** | text on solid `X` | authored | `oklch(1 0 0)` for danger only (4.83, passes); near-black ink for warning, success, and info (white fails AA on the solid amber, green, and cyan bases: 3.19, 3.32, 3.83) | authored per hue, same rule (all four take near-black ink: the dark bases sit on the lighter 400/500 ramp steps, where white fails AA) |
 
 The dark `subtle` tier (accent included) mixes toward **black**, not the
@@ -227,14 +235,14 @@ containers; the 4 percent wash sinks it below AA (see 4.2).
 | Token | LB/D | Light | Dark |
 |---|---|---|---|
 | `--bw-color-nav-item-active-bg` | D | `var(--bw-color-accent-subtle)` | same |
-| `--bw-color-nav-item-active-text` | D | `var(--bw-color-accent-hover)` | **branches**: `color-mix(in oklch, var(--bw-color-accent) 25%, white)` (a high-lightness accent step; the light-mode borrow of accent-hover fails contrast on the dark tint) |
+| `--bw-color-nav-item-active-text` | D | `var(--bw-color-accent-hover)` | **branches**: `color-mix(in oklab, var(--bw-color-accent) 25%, white)` (a high-lightness accent step; the light-mode borrow of accent-hover fails contrast on the dark tint) |
 | `--bw-color-nav-item-active-border` | D | `var(--bw-color-accent)` | same |
 | `--bw-color-nav-item-disabled-text` **[NEW]** | D | `var(--bw-color-fg-subtle)` | same |
 | `--bw-color-nav-section-text` **[NEW]** | D | `var(--bw-color-fg-muted)` | same |
 | `--bw-color-breadcrumb-current` **[NEW]** | D | `var(--bw-color-fg)` | same |
 | `--bw-color-breadcrumb-separator` **[NEW]** | D | `var(--bw-color-fg-subtle)` | same |
-| `--bw-color-skeleton-bg` | D | `color-mix(in oklch, var(--bw-color-surface-sunken) 94%, black)` (retuned from 98.2%, which was near-invisible at 1.05:1; lands on gray.200) | **direction flips**: `color-mix(in oklch, var(--bw-color-surface-sunken) 82%, white)` |
-| `--bw-color-skeleton-shimmer` | D | `color-mix(in oklch, var(--bw-color-skeleton-bg) 96%, black)` | **direction flips**: `color-mix(in oklch, var(--bw-color-skeleton-bg) 86%, white)` |
+| `--bw-color-skeleton-bg` | D | `color-mix(in oklab, var(--bw-color-surface-sunken) 94%, black)` (retuned from 98.2%, which was near-invisible at 1.05:1; lands on gray.200) | **direction flips**: `color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white)` |
+| `--bw-color-skeleton-shimmer` | D | `color-mix(in oklab, var(--bw-color-skeleton-bg) 96%, black)` | **direction flips**: `color-mix(in oklab, var(--bw-color-skeleton-bg) 86%, white)` |
 
 ## 5. Elevation
 

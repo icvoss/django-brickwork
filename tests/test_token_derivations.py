@@ -2,14 +2,16 @@
 
 Every derived token carries a live CSS expression in $extensions.bw.derived and
 keeps its resolved default as $value. These tests recompute each expression by
-linear interpolation in oklch (the model color-mix() uses) and assert the result
-stays within a small tolerance of the $value baseline, guarding both the tuned
-percentage constants and future default-value edits. Hue IS asserted whenever
-the computed chroma is perceptible (>= 0.02): an achromatic mix partner (black,
-white, transparent, or a chroma-0 token) is hue-powerless per CSS Color 4, so
-the resolved hue equals the source token's hue, and a $value baseline carrying
-a ramp-step hue instead of the true resolved hue is dishonest (DESIGN.md
-section 3).
+linear interpolation and assert the result stays within a small tolerance of
+the $value baseline, guarding both the tuned percentage constants and future
+default-value edits. The mixes run in OKLAB (rectangular, no hue-angle
+interpolation): browsers give oklch(1 0 0) an explicit hue of 0, so an oklch
+mix rotates every tint's hue toward 0 (amber 58 lands at 4, pink); in oklab an
+achromatic partner (black, white, transparent, a chroma-0 token) scales chroma
+and preserves the source hue exactly, which is the model implemented here. Hue
+IS asserted whenever the computed chroma is perceptible (>= 0.02): a $value
+baseline carrying a ramp-step hue instead of the true resolved hue is
+dishonest (DESIGN.md section 3).
 
 A second guard asserts the shipped component CSS only references token names the
 build actually emits, so a rename or a missed source addition cannot ship a
@@ -29,7 +31,7 @@ _SOURCE = _ROOT / "src" / "brickwork" / "tokens" / "source"
 _DIST = _ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist"
 _FRONTEND = _ROOT / "frontend" / "src"
 
-# Tolerances for the linear-oklch recomputation against the $value baseline.
+# Tolerances for the linear oklab-model recomputation against the baseline.
 _TOL_L = 0.015
 _TOL_C = 0.02
 _TOL_ALPHA = 0.01
@@ -43,7 +45,7 @@ _ALIAS = re.compile(r"^\{([a-z0-9.-]+)\}$")
 # The full derivation grammar (DESIGN.md section 3): a single color-mix over a
 # --bw-color-* reference with an achromatic or token partner, or a plain alias.
 _MIX = re.compile(
-    r"^color-mix\(in oklch, var\((--bw-color-[a-z0-9-]+)\) (\d+(?:\.\d+)?)%, "
+    r"^color-mix\(in oklab, var\((--bw-color-[a-z0-9-]+)\) (\d+(?:\.\d+)?)%, "
     r"(black|white|transparent|var\(--bw-color-[a-z0-9-]+\))\)$"
 )
 _VAR = re.compile(r"^var\((--bw-color-[a-z0-9-]+)\)$")

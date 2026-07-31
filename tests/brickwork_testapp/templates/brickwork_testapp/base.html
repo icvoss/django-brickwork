@@ -10,8 +10,8 @@ fixtures.
 {% endcomment %}
 
 {% block sidebar %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
-{# The visible drawer trigger is the decorative menu icon: the shell's summary
-   already carries the accessible name (aria-label), so no hidden text here. #}
+{% comment %} The visible drawer trigger is the decorative menu icon: the shell's summary
+   already carries the accessible name (aria-label), so no hidden text here. {% endcomment %}
 {% block mobile_nav_trigger %}{% bw_icon "menu" size="md" decorative=True %}{% endblock %}
 {% block mobile_nav %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
 
