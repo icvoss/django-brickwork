@@ -14,6 +14,9 @@
       },
       "xl": {
         "$value": "{size.icon.xl}"
+      },
+      "2xl": {
+        "$value": "{size.icon.2xl}"
       }
     },
     "stroke-width": {
@@ -45,28 +48,72 @@
       "$value": "sticky"
     }
   },
+  "drawer": {
+    "width": {
+      "$type": "dimension",
+      "$value": "min(20rem, 80vw)"
+    }
+  },
+  "focus": {
+    "$description": "Focus-ring geometry (DESIGN.md section 6.4). An accessibility floor: not brand-tunable except via --bw-color-focus-ring.",
+    "ring-width": {
+      "$type": "dimension",
+      "$value": "2px"
+    },
+    "ring-offset": {
+      "$type": "dimension",
+      "$value": "2px"
+    },
+    "ring-style": {
+      "$type": "other",
+      "$value": "solid"
+    }
+  },
+  "z": {
+    "$description": "Stacking scale (DESIGN.md section 6.5). Chrome sits below overlay surfaces; dropdown content that opens inside the sticky topbar must not fight it.",
+    "$type": "number",
+    "base": { "$value": "0" },
+    "dropdown": { "$value": "10" },
+    "sticky": { "$value": "20" },
+    "drawer": { "$value": "30" },
+    "overlay": { "$value": "40" },
+    "modal": { "$value": "50" },
+    "skip-link": { "$value": "60" },
+    "toast": { "$value": "70" },
+    "tooltip": { "$value": "80" }
+  },
+  "opacity": {
+    "$type": "number",
+    "muted": { "$value": "0.7" },
+    "sort-idle": { "$value": "0.4" }
+  },
   "font": {
     "$description": "Typography tokens (semver-public, brand-overridable). Theme-agnostic. A consuming app rebrands its typeface the same token-first way it rebrands colour, by overriding --bw-font-family-* rather than reaching into brickwork's own classes. The default stack is a neutral system-font stack so an unbranded install still looks intentional.",
     "family": {
       "$type": "fontFamily",
       "sans": {
-        "$value": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+        "$value": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'"
       },
       "display": {
         "$value": "{font.family.sans}"
       },
       "mono": {
-        "$value": "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace"
+        "$value": "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace"
       }
     },
     "size": {
       "$type": "dimension",
+      "3xs": { "$value": "0.625rem" },
+      "2xs": { "$value": "0.6875rem" },
       "xs": { "$value": "0.75rem" },
       "sm": { "$value": "0.875rem" },
       "md": { "$value": "1rem" },
       "lg": { "$value": "1.125rem" },
       "xl": { "$value": "1.5rem" },
-      "2xl": { "$value": "2rem" }
+      "2xl": { "$value": "2rem" },
+      "3xl": { "$value": "2.5rem" },
+      "4xl": { "$value": "3rem" },
+      "5xl": { "$value": "3.75rem" }
     },
     "weight": {
       "$type": "number",
@@ -77,8 +124,19 @@
     },
     "line-height": {
       "$type": "number",
+      "none": { "$value": "1" },
       "tight": { "$value": "1.25" },
-      "normal": { "$value": "1.5" }
+      "snug": { "$value": "1.375" },
+      "normal": { "$value": "1.5" },
+      "relaxed": { "$value": "1.625" },
+      "loose": { "$value": "2" }
+    },
+    "tracking": {
+      "$type": "dimension",
+      "tight": { "$value": "-0.025em" },
+      "normal": { "$value": "0em" },
+      "wide": { "$value": "0.025em" },
+      "wider": { "$value": "0.05em" }
     }
   }
 }

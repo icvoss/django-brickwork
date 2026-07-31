@@ -12,18 +12,24 @@
   padding-block: 0;
   padding-inline: var(--bw-density-control-padding-inline);
   block-size: var(--bw-density-control-height);
-  border: 1px solid transparent;
+  border: var(--bw-size-border-hairline) solid transparent;
   border-radius: var(--bw-button-radius);
   font: inherit;
-  font-weight: 500;
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  line-height: var(--bw-text-label-line-height);
   cursor: pointer;
   text-decoration: none;
+  transition: var(--bw-transition-colors);
 }
 .bw-btn--sm {
-  block-size: 2rem;
+  block-size: var(--bw-size-control-height-sm);
+  padding-inline: var(--bw-size-space-2);
+  font-size: var(--bw-font-size-sm);
 }
 .bw-btn--lg {
-  block-size: 3rem;
+  block-size: var(--bw-size-control-height-lg);
+  padding-inline: var(--bw-size-space-4);
 }
 .bw-btn--primary {
   background: var(--bw-color-accent);
@@ -35,18 +41,31 @@
 .bw-btn--secondary {
   background: var(--bw-color-surface);
   color: var(--bw-color-fg);
+  border-color: var(--bw-color-border);
+}
+.bw-btn--secondary:hover {
   border-color: var(--bw-color-border-strong);
+  background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
 }
 .bw-btn--ghost {
   background: transparent;
   color: var(--bw-color-fg);
 }
 .bw-btn--ghost:hover {
-  background: var(--bw-color-surface-sunken);
+  background-color: var(--bw-state-hover-overlay);
 }
 .bw-btn--danger {
   background: var(--bw-color-danger);
   color: var(--bw-color-fg-on-accent);
+}
+.bw-btn--danger:hover {
+  background-color: var(--bw-color-danger-strong);
+}
+/* Pressed feedback for every variant: the active overlay layers on top of
+ * whichever background resolved (DESIGN.md 4.6). Declared after the variant
+ * hovers so it wins the background-image cascade. */
+.bw-btn:active {
+  background-image: linear-gradient(var(--bw-state-active-overlay), var(--bw-state-active-overlay));
 }
 .bw-btn--icon-only {
   inline-size: var(--bw-density-control-height);
@@ -63,11 +82,18 @@
    * as .bw-icon: an SVG width/height attribute cannot take var() (issue #16). */
   inline-size: var(--bw-icon-size, var(--bw-icon-size-sm));
   block-size: var(--bw-icon-size, var(--bw-icon-size-sm));
-  animation: bw-spin 0.7s linear infinite;
+  animation: bw-spin var(--bw-duration-spin) var(--bw-ease-linear) infinite;
 }
 @keyframes bw-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+/* reduced-motion: a frozen spinner is calmer than a stuck one; meaning is
+ * carried by text/aria, not the motion. */
+@media (prefers-reduced-motion: reduce) {
+  .bw-spinner {
+    animation: none;
   }
 }
 
@@ -77,29 +103,37 @@
   display: inline-flex;
   align-items: center;
   gap: var(--bw-size-space-1);
-  padding-block: 2px;
+  padding-block: var(--bw-size-space-0-5);
   padding-inline: var(--bw-size-space-2);
+  /* transparent hairline so intent variants (tinted borders) keep the same
+     geometry as the neutral badge */
+  border: var(--bw-size-border-hairline) solid transparent;
   border-radius: var(--bw-size-radius-full);
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  font-variant-numeric: tabular-nums;
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg-muted);
 }
 .bw-badge--success {
   background: var(--bw-color-success-subtle);
-  color: var(--bw-color-success);
+  color: var(--bw-color-success-fg);
+  border-color: color-mix(in oklch, var(--bw-color-success) 25%, var(--bw-color-surface));
 }
 .bw-badge--warning {
   background: var(--bw-color-warning-subtle);
-  color: var(--bw-color-warning);
+  color: var(--bw-color-warning-fg);
+  border-color: color-mix(in oklch, var(--bw-color-warning) 25%, var(--bw-color-surface));
 }
 .bw-badge--danger {
   background: var(--bw-color-danger-subtle);
-  color: var(--bw-color-danger);
+  color: var(--bw-color-danger-fg);
+  border-color: color-mix(in oklch, var(--bw-color-danger) 25%, var(--bw-color-surface));
 }
 .bw-badge--info {
   background: var(--bw-color-info-subtle);
-  color: var(--bw-color-info);
+  color: var(--bw-color-info-fg);
+  border-color: color-mix(in oklch, var(--bw-color-info) 25%, var(--bw-color-surface));
 }
 
 /* --- Alerts ---------------------------------------------------------------- */
@@ -109,31 +143,63 @@
   gap: var(--bw-size-space-3);
   padding: var(--bw-size-space-4);
   border-radius: var(--bw-size-radius-md);
-  border: 1px solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   margin-block-end: var(--bw-density-stack-gap);
 }
 .bw-alert__title {
   margin: 0;
-  font-weight: 600;
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
 }
 .bw-alert__message {
   margin: 0;
+  font-size: var(--bw-text-body-sm-size);
+  font-weight: var(--bw-text-body-sm-weight);
+  line-height: var(--bw-text-body-sm-line-height);
 }
+/* Variant borders mix toward the surface (softer than the full-strength
+ * intent colour); icon carries the intent, title accents via X-fg (AA on the
+ * subtle tint in both themes, DESIGN.md 4.5). */
 .bw-alert--info {
   background: var(--bw-color-info-subtle);
-  border-color: var(--bw-color-info);
+  border-color: color-mix(in oklch, var(--bw-color-info) 30%, var(--bw-color-surface));
+}
+.bw-alert--info .bw-alert__icon {
+  color: var(--bw-color-info);
+}
+.bw-alert--info .bw-alert__title {
+  color: var(--bw-color-info-fg);
 }
 .bw-alert--success {
   background: var(--bw-color-success-subtle);
-  border-color: var(--bw-color-success);
+  border-color: color-mix(in oklch, var(--bw-color-success) 30%, var(--bw-color-surface));
+}
+.bw-alert--success .bw-alert__icon {
+  color: var(--bw-color-success);
+}
+.bw-alert--success .bw-alert__title {
+  color: var(--bw-color-success-fg);
 }
 .bw-alert--warning {
   background: var(--bw-color-warning-subtle);
-  border-color: var(--bw-color-warning);
+  border-color: color-mix(in oklch, var(--bw-color-warning) 30%, var(--bw-color-surface));
+}
+.bw-alert--warning .bw-alert__icon {
+  color: var(--bw-color-warning);
+}
+.bw-alert--warning .bw-alert__title {
+  color: var(--bw-color-warning-fg);
 }
 .bw-alert--error {
   background: var(--bw-color-danger-subtle);
-  border-color: var(--bw-color-danger);
+  border-color: color-mix(in oklch, var(--bw-color-danger) 30%, var(--bw-color-surface));
+}
+.bw-alert--error .bw-alert__icon {
+  color: var(--bw-color-danger);
+}
+.bw-alert--error .bw-alert__title {
+  color: var(--bw-color-danger-fg);
 }
 
 /* --- Form fields ----------------------------------------------------------- */
@@ -145,7 +211,9 @@
   margin-block-end: var(--bw-density-stack-gap);
 }
 .bw-field__label {
-  font-weight: 500;
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  line-height: var(--bw-text-label-line-height);
 }
 .bw-field__required {
   color: var(--bw-color-danger);
@@ -154,14 +222,28 @@
   inline-size: 100%;
   block-size: var(--bw-density-control-height);
   padding-inline: var(--bw-density-control-padding-inline);
-  border: 1px solid var(--bw-color-border-strong);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-radius: var(--bw-size-radius-md);
   background: var(--bw-color-surface);
   color: var(--bw-color-fg);
   font: inherit;
+  transition: var(--bw-transition-colors);
+}
+.bw-input:hover {
+  border-color: var(--bw-color-border-strong);
+}
+/* The focus ring itself comes from the global :focus-visible rule; the border
+ * joining it is component-local. Invalid rules are declared later so the
+ * danger border persists while an invalid input is hovered or focused. */
+.bw-input:focus-visible {
+  border-color: var(--bw-color-accent);
 }
 .bw-input[readonly] {
   background: var(--bw-color-surface-sunken);
+}
+.bw-input:disabled {
+  opacity: var(--bw-disabled-opacity);
+  cursor: not-allowed;
 }
 .bw-field--invalid .bw-input,
 .bw-input[aria-invalid="true"] {
@@ -170,7 +252,9 @@
 .bw-field__help {
   margin: 0;
   color: var(--bw-color-fg-muted);
-  font-size: 0.875rem;
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
 }
 .bw-field__errors:empty {
   display: none;
@@ -178,18 +262,22 @@
 .bw-field__error {
   margin: 0;
   color: var(--bw-color-danger);
-  font-size: 0.875rem;
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
 }
 .bw-form-errors {
   padding: var(--bw-size-space-4);
   margin-block-end: var(--bw-density-stack-gap);
-  border: 1px solid var(--bw-color-danger);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-danger);
   background: var(--bw-color-danger-subtle);
   border-radius: var(--bw-size-radius-md);
 }
 .bw-form-errors__title {
   margin: 0 0 var(--bw-size-space-2);
-  font-weight: 600;
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
   color: var(--bw-color-danger);
 }
 
@@ -197,16 +285,22 @@
 
 .bw-page-header__title {
   margin: 0;
-  /* the display font so a consumer can give headings a distinct typeface
-     (override --bw-font-family-display) without touching this class */
-  font-family: var(--bw-font-family-display);
-  font-size: var(--bw-font-size-xl);
-  font-weight: var(--bw-font-weight-bold);
-  line-height: var(--bw-font-line-height-tight);
+  /* heading-xl role: its family token resolves to the display font, so a
+     consumer can give headings a distinct typeface (override
+     --bw-font-family-display) without touching this class */
+  font-family: var(--bw-text-heading-xl-family);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
 }
 .bw-page-header__description {
   margin: var(--bw-size-space-1) 0 0;
   color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-md-size);
+  font-weight: var(--bw-text-body-md-weight);
+  line-height: var(--bw-text-body-md-line-height);
+  max-inline-size: var(--bw-size-max-width-prose);
 }
 
 /* --- Empty state ----------------------------------------------------------- */
@@ -217,26 +311,45 @@
   align-items: center;
   text-align: center;
   gap: var(--bw-size-space-3);
-  padding: var(--bw-size-space-12) var(--bw-size-space-4);
+  padding-block: var(--bw-size-space-16);
+  padding-inline: var(--bw-size-space-4);
 }
 .bw-empty-state__icon {
   color: var(--bw-color-icon-muted);
 }
+/* Hero sizing: the template emits an inline --bw-icon-size, which only feeds
+ * the .bw-icon declaration; the compound selector outranks .bw-icon so the
+ * 2xl size wins here. */
+.bw-icon.bw-empty-state__icon {
+  inline-size: var(--bw-icon-size-2xl);
+  block-size: var(--bw-icon-size-2xl);
+}
 .bw-empty-state__heading {
   margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: var(--bw-text-heading-lg-size);
+  font-weight: var(--bw-text-heading-lg-weight);
+  line-height: var(--bw-text-heading-lg-line-height);
 }
 .bw-empty-state__body {
   margin: 0;
   color: var(--bw-color-fg-muted);
-  max-inline-size: 32rem;
+  font-size: var(--bw-text-body-md-size);
+  font-weight: var(--bw-text-body-md-weight);
+  line-height: var(--bw-text-body-md-line-height);
+  max-inline-size: var(--bw-size-max-width-form);
 }
 
 /* --- Data table ------------------------------------------------------------ */
 
+/* The wrap is a card. overflow-x: auto both scrolls wide tables and clips the
+   painted content to the radius (a scroll container clips to its padding box),
+   so no extra overflow property is needed. */
 .bw-data-table-wrap {
   overflow-x: auto;
+  background: var(--bw-color-surface);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-lg);
+  box-shadow: var(--bw-elevation-1);
 }
 .bw-data-table {
   inline-size: 100%;
@@ -245,10 +358,12 @@
 .bw-data-table__th {
   text-align: start;
   padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
-  border-block-end: 1px solid var(--bw-color-border-strong);
+  background: var(--bw-color-surface-sunken);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border-strong);
   color: var(--bw-color-fg-muted);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  line-height: var(--bw-text-label-line-height);
 }
 .bw-data-table__sort {
   display: inline-flex;
@@ -256,21 +371,32 @@
   gap: var(--bw-size-space-1);
   color: inherit;
   text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+.bw-data-table__sort:hover {
+  color: var(--bw-color-accent);
 }
 .bw-data-table__sort-idle {
-  opacity: 0.4;
+  opacity: var(--bw-opacity-sort-idle);
 }
 .bw-data-table__td {
   padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
-  border-block-end: 1px solid var(--bw-color-border);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  font-size: var(--bw-text-body-sm-size);
 }
-.bw-data-table__row:hover {
-  background: var(--bw-color-surface-sunken);
+/* Records-variant zebra + hover. Hover is an overlay image so it composes with
+   the stripe rather than replacing it (DESIGN.md 4.6 stacking order). The
+   definition variant stays plain: key/value reads better without stripes. */
+.bw-data-table:not(.bw-data-table--definition) .bw-data-table__row:nth-child(odd) {
+  background-color: var(--bw-color-surface-sunken);
+}
+.bw-data-table:not(.bw-data-table--definition) .bw-data-table__row:hover {
+  background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
 }
 
 /* A clickable record row (row.url, #10): the row-link fills its cell and
    inherits colour, so the whole first cell is the target and the row reads as
-   actionable. The hover already comes from .bw-data-table__row:hover. */
+   actionable. The hover already comes from the records-variant row hover. */
 .bw-data-table__row-link {
   display: block;
   color: inherit;
@@ -281,17 +407,20 @@
 }
 
 /* Definition-list mode (#18): a key/value fact table for one entity. The label
-   is a row header; give it the muted, semibold treatment of a column header and
-   a stable width so values line up. Not scrollable chrome, just a fact list. */
+   is a row header; give it the subtle body-sm treatment (no header background,
+   the column is a key, not chrome) and a stable width so values line up. */
 .bw-data-table--definition {
   inline-size: auto;
 }
 .bw-data-table__th--label {
   inline-size: 1%;
   white-space: nowrap;
-  border-block-end: 1px solid var(--bw-color-border);
+  background: transparent;
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
   padding-inline-end: var(--bw-size-space-6);
   vertical-align: baseline;
+  color: var(--bw-color-fg-subtle);
+  font-size: var(--bw-text-body-sm-size);
 }
 
 /* --- Account menu (#25) ---------------------------------------------------- */
@@ -311,15 +440,20 @@
   cursor: pointer;
   color: var(--bw-color-fg);
   list-style: none; /* hide the default disclosure triangle */
+  transition: var(--bw-transition-colors);
 }
 .bw-account-menu__trigger::-webkit-details-marker {
   display: none;
 }
 .bw-account-menu__trigger:hover {
-  background: var(--bw-color-surface-sunken);
+  background-color: var(--bw-state-hover-overlay);
+}
+.bw-account-menu__trigger-label {
+  font-size: var(--bw-text-body-md-size);
 }
 .bw-account-menu__caret {
   color: var(--bw-color-fg-muted);
+  transition: var(--bw-transition-transform);
 }
 .bw-account-menu[open] .bw-account-menu__caret {
   transform: rotate(180deg);
@@ -330,10 +464,23 @@
   min-inline-size: 12rem;
   padding: var(--bw-size-space-1);
   background: var(--bw-color-surface-raised);
-  border: 1px solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-md);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
-  z-index: 20;
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-xl);
+  box-shadow: var(--bw-elevation-3);
+  z-index: var(--bw-z-dropdown);
+}
+.bw-account-menu[open] .bw-account-menu__panel {
+  animation: bw-fade-in-up var(--bw-duration-normal) var(--bw-ease-out);
+}
+@keyframes bw-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .bw-account-menu--end .bw-account-menu__panel {
   inset-inline-end: 0;
@@ -350,12 +497,26 @@
   color: var(--bw-color-fg);
   text-decoration: none;
   white-space: nowrap;
+  transition: var(--bw-transition-colors);
 }
 .bw-account-menu__item:hover {
-  background: var(--bw-color-surface-sunken);
+  background-color: var(--bw-state-hover-overlay);
+}
+.bw-account-menu__item-icon {
+  color: var(--bw-color-icon-muted);
+}
+.bw-account-menu__item:hover .bw-account-menu__item-icon {
+  color: inherit;
 }
 .bw-account-menu__item--danger {
   color: var(--bw-color-danger);
+}
+/* reduced-motion: an explicit caret override on top of the global floor; a
+ * half-rotated caret reads as broken (DESIGN.md 8.4). */
+@media (prefers-reduced-motion: reduce) {
+  .bw-account-menu__caret {
+    transition: none;
+  }
 }
 
 /* --- Filter bar (#15) ------------------------------------------------------ */
@@ -368,6 +529,9 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--bw-size-space-3);
+  padding: var(--bw-density-card-padding);
+  background: var(--bw-color-surface-sunken);
+  border-radius: var(--bw-size-radius-lg);
   margin-block-end: var(--bw-density-stack-gap);
 }
 .bw-filter-bar__fields {
@@ -394,10 +558,19 @@
 .bw-pagination__link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-block-size: var(--bw-size-touch-target-min);
   padding: var(--bw-size-space-1);
-  border: 1px solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-radius: var(--bw-size-radius-md);
   color: var(--bw-color-fg);
+  transition: var(--bw-transition-colors);
+}
+.bw-pagination__link:not(.bw-pagination__link--disabled):hover {
+  background-color: var(--bw-state-hover-overlay);
+}
+.bw-pagination__link:not(.bw-pagination__link--disabled):active {
+  background-color: var(--bw-state-active-overlay);
 }
 .bw-pagination__link--disabled {
   opacity: var(--bw-disabled-opacity);
@@ -405,7 +578,9 @@
 }
 .bw-pagination__status {
   color: var(--bw-color-fg-muted);
-  font-size: 0.875rem;
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
 }
 
 /* --- Skeleton (loading, STA-004) ------------------------------------------- */
@@ -417,16 +592,16 @@
   overflow: hidden;
 }
 .bw-skeleton--title {
-  block-size: 1.75rem;
+  block-size: var(--bw-font-size-2xl);
   inline-size: 40%;
   margin-block-end: var(--bw-size-space-2);
 }
 .bw-skeleton--text {
-  block-size: 1rem;
+  block-size: var(--bw-font-size-md);
   inline-size: 60%;
 }
 .bw-skeleton--row {
-  block-size: 2.5rem;
+  block-size: var(--bw-density-control-height);
   margin-block-end: var(--bw-size-space-2);
 }
 .bw-skeleton::after {
@@ -435,7 +610,7 @@
   inset: 0;
   background: linear-gradient(90deg, transparent, var(--bw-color-skeleton-shimmer), transparent);
   transform: translateX(-100%);
-  animation: bw-shimmer 1.5s infinite;
+  animation: bw-shimmer var(--bw-duration-shimmer) var(--bw-ease-linear) infinite;
 }
 @keyframes bw-shimmer {
   100% {

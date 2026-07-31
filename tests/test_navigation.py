@@ -120,6 +120,79 @@ def test_resolve_active_finds_a_child_and_parent_is_ancestor() -> None:
     assert navigation.is_ancestor_of_active(child, active) is True
 
 
+# --- #20: active_url_names widens active-matching ----------------------------
+
+
+def test_active_url_names_secondary_view_name_matches() -> None:
+    # A section item is "current" on its detail/sub views too: the Team item
+    # links to tenants:members but lights up on tenants:member-invite as well.
+    nav = (
+        NavItem(
+            key="team",
+            label="Team",
+            url_name="tenants:members",
+            active_url_names=("tenants:member-invite",),
+        ),
+    )
+    active = navigation.resolve_active_item(nav, _FakeMatch("tenants:member-invite"))
+    assert active is not None
+    assert active.key == "team"
+
+
+def test_active_url_names_primary_url_name_still_matches() -> None:
+    nav = (
+        NavItem(
+            key="team",
+            label="Team",
+            url_name="tenants:members",
+            active_url_names=("tenants:member-invite",),
+        ),
+    )
+    active = navigation.resolve_active_item(nav, _FakeMatch("tenants:members"))
+    assert active is not None
+    assert active.key == "team"
+
+
+def test_active_url_names_without_url_name_never_matches() -> None:
+    # Only a LINK item participates in active-route resolution: an item with no
+    # url_name (a section header) never becomes active via active_url_names.
+    nav = (
+        NavItem(
+            key="grp",
+            label="Group",
+            section_header=True,
+            active_url_names=("tenants:members",),
+        ),
+    )
+    assert navigation.resolve_active_item(nav, _FakeMatch("tenants:members")) is None
+
+
+def test_active_url_names_deepest_match_still_wins() -> None:
+    # When a child's url_name equals a parent's active_url_names entry, the
+    # child (the deepest match) takes the active state, not the widened parent.
+    child = NavItem(key="invite", label="Invite", url_name="tenants:member-invite")
+    parent = NavItem(
+        key="team",
+        label="Team",
+        url_name="tenants:members",
+        active_url_names=("tenants:member-invite",),
+        children=(child,),
+    )
+    active = navigation.resolve_active_item((parent,), _FakeMatch("tenants:member-invite"))
+    assert active is not None
+    assert active.key == "invite"
+
+
+def test_navitem_positional_construction_keeps_the_0_2_4_field_order() -> None:
+    # active_url_names sits at the END of the dataclass so a 0.2.4 call site
+    # constructing positionally (key, label, url_name, url_kwargs, ...) still
+    # lands every argument on the field it targeted.
+    item = NavItem("team", "Team", "tenants:members", {"pk": 1})
+    assert item.url_name == "tenants:members"
+    assert item.url_kwargs == {"pk": 1}
+    assert item.active_url_names == ()
+
+
 # --- BR-BW-NAV-004/005: visibility via host callables, empty groups drop -----
 
 

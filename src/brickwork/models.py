@@ -49,16 +49,6 @@ class NavItem:
     string, so the active-route resolver can use resolver_match). ``None`` for a
     section header or an external link."""
 
-    active_url_names: tuple[str, ...] = ()
-    """Additional URL names for which this item is the active section, beyond its
-    own ``url_name`` (#20). A real section is "current" for its list view AND its
-    detail/sub views: e.g. a Team item links to ``tenants:members`` but should
-    stay active on ``tenants:member-invite`` too. List those secondary route
-    names here. ``url_name`` remains the single LINK target; active-matching
-    widens to ``url_name`` plus every name in this tuple. Does not affect
-    reversal, only which route lights the item up (BR-BW-NAV-001, still
-    resolver_match-based, never path.startswith)."""
-
     url_kwargs: dict = field(default_factory=dict)
     """Static keyword arguments passed when reversing ``url_name``, fixed at
     nav-definition time."""
@@ -131,6 +121,18 @@ class NavItem:
     """An optional host predicate for visibility that does not fit the
     permission/feature shape. Evaluated last, after permission and feature checks
     pass; returning False hides the item regardless."""
+
+    # Kept LAST deliberately: this field arrived after 0.2.4, and appending it
+    # preserves the shipped positional field order for existing call sites.
+    active_url_names: tuple[str, ...] = ()
+    """Additional URL names for which this item is the active section, beyond its
+    own ``url_name`` (#20). A real section is "current" for its list view AND its
+    detail/sub views: e.g. a Team item links to ``tenants:members`` but should
+    stay active on ``tenants:member-invite`` too. List those secondary route
+    names here. ``url_name`` remains the single LINK target; active-matching
+    widens to ``url_name`` plus every name in this tuple. Does not affect
+    reversal, only which route lights the item up (BR-BW-NAV-001, still
+    resolver_match-based, never path.startswith)."""
 
 
 @dataclass(frozen=True)

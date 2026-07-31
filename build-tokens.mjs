@@ -66,6 +66,11 @@ async function buildLayer(sourceGlobs) {
           captured = dictionary.allTokens.map((t) => ({
             name: t.name,
             value: t.$value ?? t.value,
+            // Live derivation expression (DESIGN.md section 3): when present it is
+            // emitted as the CSS value instead of the resolved $value, so a brand
+            // override of a load-bearing token recolours the family in-browser.
+            // $value stays the resolved-default regression baseline.
+            derived: t.$extensions?.bw?.derived,
           }));
           return "";
         },
@@ -77,7 +82,9 @@ async function buildLayer(sourceGlobs) {
 }
 
 function cssBlock(selector, tokens, { indent = "  " } = {}) {
-  const lines = tokens.map((t) => `${indent}--${t.name}: ${t.value};`);
+  // A derived token emits its live expression as the single declaration (no
+  // fallback line: color-mix is Baseline Widely Available, DESIGN.md section 3).
+  const lines = tokens.map((t) => `${indent}--${t.name}: ${t.derived ?? t.value};`);
   return `${selector} {\n${lines.join("\n")}\n}`;
 }
 
@@ -90,6 +97,8 @@ async function main() {
   const base = await buildLayer([
     `${SRC}/primitive.tokens.json`,
     `${SRC}/component.tokens.json`,
+    `${SRC}/typography.tokens.json`,
+    `${SRC}/motion.tokens.json`,
   ]);
   const light = await buildLayer([
     `${SRC}/primitive.tokens.json`,
@@ -105,10 +114,13 @@ async function main() {
   }
 
   // Semantic tokens only (drop the primitive.* names) for the theme blocks, so
-  // switching data-theme flips only the COLOUR roles, not the raw ramp or the
-  // sizing/density scales. The theme layers are built by merging the primitive
-  // file (so references resolve), so filter to just --bw-color-* here.
-  const colourOnly = (tokens) => tokens.filter((t) => t.name.startsWith("bw-color-"));
+  // switching data-theme flips only the theme-variant roles (colour, state
+  // overlays, elevation), not the raw ramp or the sizing/density scales. The
+  // theme layers are built by merging the primitive file (so references
+  // resolve), so filter to the theme-variant name families here.
+  const themePrefixes = ["bw-color-", "bw-state-", "bw-elevation-"];
+  const themeOnly = (tokens) =>
+    tokens.filter((t) => themePrefixes.some((p) => t.name.startsWith(p)));
   // Component + sizing tokens for :root: everything the base layer produces that
   // is NOT a raw primitive ramp value (those stay available but are not the
   // consumer contract). Semantic colours come from colourOnly(light) separately.
@@ -123,12 +135,12 @@ async function main() {
   // :root carries the base (primitives + component + sizing + light colours +
   // the default comfortable density). data-theme flips only colours;
   // data-density flips only the density scale.
-  const rootTokens = [...base, ...colourOnly(light), ...densities.comfortable];
+  const rootTokens = [...base, ...themeOnly(light), ...densities.comfortable];
   const cssParts = [
     header,
     cssBlock(":root", rootTokens),
-    cssBlock('[data-theme="light"]', colourOnly(light)),
-    cssBlock('[data-theme="dark"]', colourOnly(dark)),
+    cssBlock('[data-theme="light"]', themeOnly(light)),
+    cssBlock('[data-theme="dark"]', themeOnly(dark)),
     cssBlock('[data-density="comfortable"]', densities.comfortable),
     cssBlock('[data-density="compact"]', densities.compact),
     cssBlock('[data-density="spacious"]', densities.spacious),
@@ -138,7 +150,7 @@ async function main() {
   // Tailwind @theme inline bridge: map the semantic --bw-color-* tokens plus the
   // component/sizing tokens to short Tailwind utility names. Only the semantic
   // and component tiers are bridged (raw primitives are not consumer utilities).
-  const bridged = [...colourOnly(light), ...nonPrimitive(base), ...densities.comfortable];
+  const bridged = [...themeOnly(light), ...nonPrimitive(base), ...densities.comfortable];
   const seenBridge = new Set();
   const themeVars = bridged
     .filter((t) => !seenBridge.has(t.name) && seenBridge.add(t.name))
@@ -170,7 +182,7 @@ async function main() {
 
   console.log(
     `tokens built: ${rootTokens.length} root vars, ` +
-      `${colourOnly(dark).length} dark colour overrides, 3 densities -> ${DIST}`,
+      `${themeOnly(dark).length} dark theme overrides, 3 densities -> ${DIST}`,
   );
 }
 

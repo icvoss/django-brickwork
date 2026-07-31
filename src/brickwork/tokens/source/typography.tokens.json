@@ -1,0 +1,90 @@
+{
+  "text": {
+    "$description": "Type roles (DESIGN.md section 7.4): each role bundles family, size, line-height, weight and tracking. Every value is a literal var() reference into the --bw-font-* scales, so a brand override of a scale step cascades through every role that uses it. Components consume roles, never raw scale steps.",
+    "$type": "other",
+    "heading-2xl": {
+      "family": { "$value": "var(--bw-font-family-display)" },
+      "size": { "$value": "var(--bw-font-size-2xl)" },
+      "line-height": { "$value": "var(--bw-font-line-height-tight)" },
+      "weight": { "$value": "var(--bw-font-weight-bold)" },
+      "tracking": { "$value": "var(--bw-font-tracking-tight)" }
+    },
+    "heading-xl": {
+      "family": { "$value": "var(--bw-font-family-display)" },
+      "size": { "$value": "var(--bw-font-size-xl)" },
+      "line-height": { "$value": "var(--bw-font-line-height-tight)" },
+      "weight": { "$value": "var(--bw-font-weight-bold)" },
+      "tracking": { "$value": "var(--bw-font-tracking-tight)" }
+    },
+    "heading-lg": {
+      "family": { "$value": "var(--bw-font-family-sans)" },
+      "size": { "$value": "var(--bw-font-size-lg)" },
+      "line-height": { "$value": "var(--bw-font-line-height-snug)" },
+      "weight": { "$value": "var(--bw-font-weight-semibold)" },
+      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+    },
+    "heading-md": {
+      "family": { "$value": "var(--bw-font-family-sans)" },
+      "size": { "$value": "var(--bw-font-size-md)" },
+      "line-height": { "$value": "var(--bw-font-line-height-snug)" },
+      "weight": { "$value": "var(--bw-font-weight-semibold)" },
+      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+    },
+    "heading-sm": {
+      "family": { "$value": "var(--bw-font-family-sans)" },
+      "size": { "$value": "var(--bw-font-size-sm)" },
+      "line-height": { "$value": "var(--bw-font-line-height-snug)" },
+      "weight": { "$value": "var(--bw-font-weight-semibold)" },
+      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+    },
+    "body-lg": {
+      "family": { "$value": "var(--bw-font-family-sans)" },
+      "size": { "$value": "var(--bw-font-size-lg)" },
+      "line-height": { "$value": "var(--bw-font-line-height-relaxed)" },
+      "weight": { "$value": "var(--bw-font-weight-normal)" },
+      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+    },
+    "body-md": {
+      "family": { "$value": "var(--bw-font-family-sans)" },
+      "size": { "$value": "var(--bw-font-size-md)" },
+      "line-height": { "$value": "var(--bw-font-line-height-normal)" },
+      "weight": { "$value": "var(--bw-font-weight-normal)" },
+      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+    },
+    "body-sm": {
+      "family": { "$value": "var(--bw-font-family-sans)" },
+      "size": { "$value": "var(--bw-font-size-sm)" },
+      "line-height": { "$value": "var(--bw-font-line-height-normal)" },
+      "weight": { "$value": "var(--bw-font-weight-normal)" },
+      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+    },
+    "label": {
+      "family": { "$value": "var(--bw-font-family-sans)" },
+      "size": { "$value": "var(--bw-font-size-sm)" },
+      "line-height": { "$value": "var(--bw-font-line-height-none)" },
+      "weight": { "$value": "var(--bw-font-weight-medium)" },
+      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+    },
+    "caption": {
+      "family": { "$value": "var(--bw-font-family-sans)" },
+      "size": { "$value": "var(--bw-font-size-xs)" },
+      "line-height": { "$value": "var(--bw-font-line-height-normal)" },
+      "weight": { "$value": "var(--bw-font-weight-normal)" },
+      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+    },
+    "overline": {
+      "family": { "$value": "var(--bw-font-family-sans)" },
+      "size": { "$value": "var(--bw-font-size-2xs)" },
+      "line-height": { "$value": "var(--bw-font-line-height-none)" },
+      "weight": { "$value": "var(--bw-font-weight-semibold)" },
+      "tracking": { "$value": "var(--bw-font-tracking-wider)" }
+    },
+    "code": {
+      "family": { "$value": "var(--bw-font-family-mono)" },
+      "size": { "$value": "var(--bw-font-size-sm)" },
+      "line-height": { "$value": "var(--bw-font-line-height-normal)" },
+      "weight": { "$value": "var(--bw-font-weight-normal)" },
+      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+    }
+  }
+}

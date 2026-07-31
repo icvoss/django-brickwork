@@ -93,6 +93,30 @@ def test_valid_post_creates_and_redirects(client: Client) -> None:
     assert Widget.objects.filter(name="Gamma").exists()
 
 
+# --- breadcrumbs + account menu render through the shell --------------------
+
+
+def test_breadcrumbs_render_with_the_current_page_unlinked(client: Client, widgets) -> None:
+    html = client.get("/widgets/").content.decode()
+    assert '<ol class="bw-breadcrumbs__list">' in html
+    assert '<span class="bw-breadcrumbs__current" aria-current="page">Widgets</span>' in html
+
+
+def test_form_page_breadcrumb_trail_links_intermediates(client: Client) -> None:
+    html = client.get("/widgets/new/").content.decode()
+    assert '<a class="bw-breadcrumbs__link" href="/widgets/">Widgets</a>' in html
+    assert '<span class="bw-breadcrumbs__current" aria-current="page">Widget</span>' in html
+
+
+def test_account_menu_renders_without_aria_menu_semantics(client: Client, widgets) -> None:
+    html = client.get("/widgets/").content.decode()
+    assert "bw-account-menu__trigger-label" in html
+    assert "bw-account-menu__item--danger" in html  # the Sign out item
+    # a details/summary disclosure of links, never an ARIA menu
+    assert 'role="menu"' not in html
+    assert 'role="menuitem"' not in html
+
+
 # --- server-side sort (data_table structure only) --------------------------
 
 

@@ -1,90 +1,213 @@
 {
   "color": {
-    "$description": "Semantic tier, LIGHT theme. Role-named tokens (surface, fg, border, accent, status) that ARE the public contract (BR-BW-TOK-001): names are stable, values are brand-overridable. This file holds the authored light values; semantic.dark.tokens.json holds the authored dark values (BR-BW-TOK-002: dark is authored, never derived from light). Both files define the SAME token names.",
+    "$description": "Semantic tier, LIGHT theme. Role-named tokens (surface, fg, border, accent, status) that ARE the public contract (BR-BW-TOK-001): names are stable, values are brand-overridable. This file holds the authored light values; semantic.dark.tokens.json holds the authored dark values (BR-BW-TOK-002: dark is authored, never derived from light). Both files define the SAME token names. Derived tokens carry their live color-mix expression in $extensions.bw.derived (emitted as the CSS value); $value stays the resolved default and the regression baseline (docs/DESIGN.md section 3).",
     "$type": "color",
     "surface": {
       "$value": "{primitive.gray.0}"
     },
     "surface-sunken": {
-      "$value": "{primitive.gray.50}"
+      "$value": "{primitive.gray.50}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-surface) 98.5%, black)" } }
     },
     "surface-raised": {
-      "$value": "{primitive.gray.0}"
+      "$value": "{primitive.gray.0}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-surface)" } }
     },
     "surface-inverse": {
-      "$value": "{primitive.gray.900}"
+      "$value": "{primitive.gray.900}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg)" } }
+    },
+    "surface-overlay": {
+      "$value": "oklch(0.205 0.005 265 / 0.5)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-surface-inverse) 50%, transparent)" } }
     },
     "fg": {
       "$value": "{primitive.gray.900}"
     },
     "fg-muted": {
-      "$value": "{primitive.gray.500}"
+      "$value": "{primitive.gray.500}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-fg) 56%, var(--bw-color-surface))" } }
+    },
+    "fg-subtle": {
+      "$value": "{primitive.gray.400}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-fg) 37%, var(--bw-color-surface))" } }
     },
     "fg-on-accent": {
       "$value": "{primitive.gray.0}"
     },
     "fg-on-inverse": {
-      "$value": "{primitive.gray.50}"
+      "$value": "{primitive.gray.0}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-surface)" } }
     },
     "border": {
       "$value": "{primitive.gray.200}"
     },
     "border-strong": {
-      "$value": "{primitive.gray.300}"
+      "$value": "{primitive.gray.300}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-border) 94%, black)" } }
     },
     "accent": {
       "$value": "{primitive.blue.600}"
     },
     "accent-hover": {
-      "$value": "{primitive.blue.700}"
+      "$value": "{primitive.blue.700}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-accent) 89%, black)" } }
     },
     "accent-subtle": {
-      "$value": "{primitive.blue.50}"
+      "$value": "{primitive.blue.50}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-accent) 7%, var(--bw-color-surface))" } }
     },
     "danger": {
       "$value": "{primitive.red.600}"
     },
     "danger-subtle": {
-      "$value": "{primitive.red.50}"
+      "$value": "{primitive.red.50}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-danger) 7%, var(--bw-color-surface))" } }
+    },
+    "danger-strong": {
+      "$value": "oklch(0.508 0.189 27)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-danger) 88%, black)" } }
+    },
+    "danger-fg": {
+      "$value": "{primitive.red.600}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-danger)" } }
+    },
+    "danger-on-fg": {
+      "$value": "{primitive.gray.0}"
     },
     "warning": {
       "$value": "{primitive.amber.600}"
     },
     "warning-subtle": {
-      "$value": "{primitive.amber.50}"
+      "$value": "{primitive.amber.50}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-warning) 7%, var(--bw-color-surface))" } }
+    },
+    "warning-strong": {
+      "$value": "oklch(0.586 0.143 58)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-warning) 88%, black)" } }
+    },
+    "warning-fg": {
+      "$value": "{primitive.amber.600}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-warning)" } }
+    },
+    "warning-on-fg": {
+      "$value": "{primitive.gray.950}"
     },
     "success": {
       "$value": "{primitive.green.600}"
     },
     "success-subtle": {
-      "$value": "{primitive.green.50}"
+      "$value": "{primitive.green.50}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-success) 7%, var(--bw-color-surface))" } }
+    },
+    "success-strong": {
+      "$value": "oklch(0.552 0.136 149)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-success) 88%, black)" } }
+    },
+    "success-fg": {
+      "$value": "{primitive.green.600}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-success)" } }
+    },
+    "success-on-fg": {
+      "$value": "{primitive.gray.0}"
     },
     "info": {
       "$value": "{primitive.cyan.600}"
     },
     "info-subtle": {
-      "$value": "{primitive.cyan.50}"
+      "$value": "{primitive.cyan.50}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-info) 7%, var(--bw-color-surface))" } }
+    },
+    "info-strong": {
+      "$value": "oklch(0.528 0.097 225)",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-info) 88%, black)" } }
+    },
+    "info-fg": {
+      "$value": "{primitive.cyan.600}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-info)" } }
+    },
+    "info-on-fg": {
+      "$value": "{primitive.gray.0}"
     },
     "icon-muted": {
-      "$value": "{primitive.gray.400}"
+      "$value": "{primitive.gray.400}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
     },
     "focus-ring": {
-      "$value": "{primitive.blue.600}"
+      "$value": "{primitive.blue.600}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-accent)" } }
     },
     "nav-item-active-bg": {
-      "$value": "{primitive.blue.50}"
+      "$value": "{primitive.blue.50}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-accent-subtle)" } }
     },
     "nav-item-active-text": {
-      "$value": "{primitive.blue.700}"
+      "$value": "{primitive.blue.700}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-accent-hover)" } }
     },
     "nav-item-active-border": {
-      "$value": "{primitive.blue.600}"
+      "$value": "{primitive.blue.600}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-accent)" } }
+    },
+    "nav-item-disabled-text": {
+      "$value": "{primitive.gray.400}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
+    },
+    "nav-section-text": {
+      "$value": "{primitive.gray.500}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg-muted)" } }
+    },
+    "breadcrumb-current": {
+      "$value": "{primitive.gray.900}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg)" } }
+    },
+    "breadcrumb-separator": {
+      "$value": "{primitive.gray.400}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
     },
     "skeleton-bg": {
-      "$value": "{primitive.gray.100}"
+      "$value": "{primitive.gray.100}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-surface-sunken) 98.2%, black)" } }
     },
     "skeleton-shimmer": {
-      "$value": "{primitive.gray.200}"
+      "$value": "{primitive.gray.200}",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-skeleton-bg) 96%, black)" } }
+    }
+  },
+  "state": {
+    "$description": "Interactive-state tokens, LIGHT theme (DESIGN.md section 4.6). Transient feedback is a translucent overlay laid over whatever surface is beneath; persistent selection is a dedicated token. Theme-variant like color.*: same names in semantic.dark.tokens.json.",
+    "$type": "color",
+    "hover-overlay": {
+      "$value": "oklch(0 0 0 / 0.04)"
+    },
+    "active-overlay": {
+      "$value": "oklch(0 0 0 / 0.08)"
+    },
+    "selected-bg": {
+      "$value": "{primitive.blue.50}",
+      "$extensions": { "bw": { "derived": "var(--bw-color-accent-subtle)" } }
+    }
+  },
+  "elevation": {
+    "$description": "Elevation ramp, LIGHT theme (DESIGN.md section 5). Geometry adopted from Tailwind 4's shadow ramp, colours in oklch. Theme-variant: dark values are authored in semantic.dark.tokens.json (higher alpha plus an inset top highlight from level 3).",
+    "$type": "other",
+    "0": {
+      "$value": "none"
+    },
+    "1": {
+      "$value": "0 1px 2px 0 oklch(0 0 0 / 0.05)"
+    },
+    "2": {
+      "$value": "0 1px 3px 0 oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1)"
+    },
+    "3": {
+      "$value": "0 4px 6px -1px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.1)"
+    },
+    "4": {
+      "$value": "0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1)"
+    },
+    "5": {
+      "$value": "0 20px 25px -5px oklch(0 0 0 / 0.1), 0 8px 10px -6px oklch(0 0 0 / 0.1)"
     }
   }
 }

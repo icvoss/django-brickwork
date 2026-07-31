@@ -1,10 +1,7 @@
-{% extends "brickwork/shell/app.html" %}
-{% load brickwork_nav brickwork_components %}
+{% extends "brickwork_testapp/base.html" %}
+{% load brickwork_components %}
 
 {% block page_title %}Widgets{% endblock %}
-
-{% block sidebar %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
-{% block mobile_nav %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
 
 {% block page_header %}
   {% include "brickwork/components/_page_header.html" with title="Widgets" description="Everything in the harness." %}

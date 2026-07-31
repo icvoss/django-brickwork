@@ -10,12 +10,12 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--bw-size-space-0-5);
 }
 
 .bw-nav__list--nested {
   margin-inline-start: var(--bw-size-space-4);
-  margin-block-start: 2px;
+  margin-block-start: var(--bw-size-space-0-5);
 }
 
 .bw-nav__link {
@@ -27,23 +27,53 @@
   border-radius: var(--bw-size-radius-md);
   color: var(--bw-color-fg);
   text-decoration: none;
-  border-inline-start: 3px solid transparent;
+  border-inline-start: var(--bw-size-border-nav-marker) solid transparent;
+  transition: var(--bw-transition-colors);
 }
 
+/* Transparent resting background, so the transient overlays apply directly as
+ * background-color; the active item instead layers them via background-image
+ * so the persistent tint composes rather than being replaced.
+ */
 .bw-nav__link:hover {
-  background: var(--bw-color-surface-sunken);
+  background-color: var(--bw-state-hover-overlay);
+}
+
+.bw-nav__link:active {
+  background-color: var(--bw-state-active-overlay);
 }
 
 .bw-nav__link--active {
-  background: var(--bw-color-nav-item-active-bg);
+  background-color: var(--bw-color-nav-item-active-bg);
   color: var(--bw-color-nav-item-active-text);
   border-inline-start-color: var(--bw-color-nav-item-active-border);
-  font-weight: 600;
+  font-weight: var(--bw-font-weight-semibold);
+}
+
+/* Re-assert background-color: the plain :hover/:active rules outrank
+ * .bw-nav__link--active alone, and the tint must not vanish under the faint
+ * overlay.
+ */
+.bw-nav__link--active:hover {
+  background-color: var(--bw-color-nav-item-active-bg);
+  background-image: linear-gradient(
+    var(--bw-state-hover-overlay),
+    var(--bw-state-hover-overlay)
+  );
+}
+
+.bw-nav__link--active:active {
+  background-color: var(--bw-color-nav-item-active-bg);
+  background-image: linear-gradient(
+    var(--bw-state-active-overlay),
+    var(--bw-state-active-overlay)
+  );
 }
 
 /* An ancestor of the active leaf gets a lighter treatment (NAV-008). */
 .bw-nav__link--active-ancestor {
   color: var(--bw-color-nav-item-active-text);
+  font-weight: var(--bw-font-weight-medium);
 }
 
 .bw-nav__link--disabled {
@@ -52,9 +82,12 @@
   gap: var(--bw-size-space-2);
   padding-block: var(--bw-density-row-padding-block);
   padding-inline: var(--bw-density-row-padding-inline);
-  color: var(--bw-color-fg-muted);
+  border-radius: var(--bw-size-radius-md);
+  color: var(--bw-color-nav-item-disabled-text);
   opacity: var(--bw-disabled-opacity);
   cursor: not-allowed;
+  /* Transparent marker matches the enabled link's so rows stay aligned. */
+  border-inline-start: var(--bw-size-border-nav-marker) solid transparent;
 }
 
 .bw-nav__label {
@@ -68,31 +101,47 @@
 .bw-nav__badge {
   flex-shrink: 0;
   min-inline-size: 1.25rem;
+  padding-block: var(--bw-size-space-0-5);
   padding-inline: var(--bw-size-space-1);
   border-radius: var(--bw-size-radius-full);
   background: var(--bw-color-surface-inverse);
   color: var(--bw-color-fg-on-inverse);
-  font-size: 0.75rem;
-  line-height: 1.25rem;
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--bw-font-line-height-none);
   text-align: center;
 }
 
 .bw-nav__external {
   flex-shrink: 0;
   color: var(--bw-color-fg-muted);
+  transition: var(--bw-transition-colors);
+}
+
+/* The icon follows the row's hover/active colour so it reads as part of the
+ * row rather than a detached glyph.
+ */
+.bw-nav__link:hover .bw-nav__external,
+.bw-nav__link--active .bw-nav__external {
+  color: inherit;
 }
 
 .bw-nav__section {
   margin-block-start: var(--bw-density-stack-gap);
 }
 
+/* Section labels adopt the overline type role (uppercase applied here at the
+ * component, per the role contract).
+ */
 .bw-nav__section-label {
   display: block;
   padding-inline: var(--bw-density-row-padding-inline);
   padding-block-end: var(--bw-size-space-1);
-  color: var(--bw-color-fg-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
+  color: var(--bw-color-nav-section-text);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  line-height: var(--bw-text-overline-line-height);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--bw-text-overline-tracking);
 }

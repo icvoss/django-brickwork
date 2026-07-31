@@ -22,6 +22,18 @@
     },
     "sidebar-width-collapsed": {
       "$value": "4.5rem"
+    },
+    "topbar-height": {
+      "$value": "4rem"
+    },
+    "section-gap": {
+      "$value": "3rem"
+    },
+    "card-padding": {
+      "$value": "1.5rem"
+    },
+    "page-gutter-inline": {
+      "$value": "2rem"
     }
   }
 }

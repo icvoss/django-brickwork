@@ -45,11 +45,16 @@ def _primitive_colour_values() -> list[str]:
 
 def _semantic_colour_values() -> list[str]:
     """Semantic colour values: each is either an oklch literal or a {primitive.*}
-    alias resolving to the primitive tier (the two-tier DTCG design)."""
+    alias resolving to the primitive tier (the two-tier DTCG design). Includes the
+    state overlays (colours with alpha); excludes elevation (shadow strings, not
+    colour values). Only $value is scanned: the $extensions.bw.derived expressions
+    are deliberately color-mix()/var() strings, not oklch literals (DESIGN.md
+    section 3), and are verified separately in test_token_derivations.py."""
     values: list[str] = []
     for name in ("semantic.light", "semantic.dark"):
         data = json.loads((_SOURCE / f"{name}.tokens.json").read_text())
         values.extend(_iter_values(data["color"]))
+        values.extend(_iter_values(data["state"]))
     return values
 
 
@@ -82,13 +87,14 @@ def test_no_hex_or_hsl_in_any_colour_source() -> None:
 # --- BR-BW-TOK-002: every semantic colour has an AUTHORED dark value ---------
 
 
-def test_light_and_dark_define_the_same_semantic_names() -> None:
-    light = json.loads((_SOURCE / "semantic.light.tokens.json").read_text())["color"]
-    dark = json.loads((_SOURCE / "semantic.dark.tokens.json").read_text())["color"]
+@pytest.mark.parametrize("group", ["color", "state", "elevation"])
+def test_light_and_dark_define_the_same_semantic_names(group: str) -> None:
+    light = json.loads((_SOURCE / "semantic.light.tokens.json").read_text())[group]
+    dark = json.loads((_SOURCE / "semantic.dark.tokens.json").read_text())[group]
     light_names = {k for k in light if not k.startswith("$")}
     dark_names = {k for k in dark if not k.startswith("$")}
     assert light_names == dark_names, (
-        f"light and dark must define the SAME semantic colour names (BR-BW-TOK-002); differ: {light_names ^ dark_names}"
+        f"light and dark must define the SAME {group} token names (BR-BW-TOK-002); differ: {light_names ^ dark_names}"
     )
 
 
@@ -180,10 +186,16 @@ def test_shell_css_consumes_the_font_family_token() -> None:
 def test_dark_block_overrides_surface_to_a_dark_value() -> None:
     css = (_DIST / "tokens.css").read_text()
     dark_block = css.split('[data-theme="dark"]')[1].split("}")[0]
-    # the dark block must set surface, and only colour tokens (no size/density)
+    # the dark block must set surface, and only theme-variant tokens: colour,
+    # state overlays, and elevation (never the size/density scales)
     assert "--bw-color-surface:" in dark_block
-    assert "--bw-size-" not in dark_block
-    assert "--bw-density-" not in dark_block
+    for line in dark_block.splitlines():
+        line = line.strip()
+        if not line.startswith("--bw-"):
+            continue
+        assert line.startswith(("--bw-color-", "--bw-state-", "--bw-elevation-")), (
+            f"non-theme token leaked into the dark block: {line}"
+        )
 
 
 def test_info_and_accent_are_distinct_colours() -> None:

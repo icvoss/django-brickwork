@@ -63,7 +63,7 @@ def _base_context(request, theme: str):
     }
 
 
-def render_list(theme: str) -> str:
+def render_list(theme: str, *, menu_open: bool = False) -> str:
     from django.urls import resolve
 
     rf = RequestFactory()
@@ -79,6 +79,10 @@ def render_list(theme: str) -> str:
     ]
     ctx = _base_context(request, theme)
     ctx.update({"table_columns": columns, "table_rows": rows, "current_sort": ""})
+    if menu_open:
+        # render the account-menu disclosure initially open so axe examines the
+        # open panel (colour contrast, landmark labelling) in this theme
+        ctx["account_menu_open"] = True
     return _inline_css(render_to_string("brickwork_testapp/widget_list.html", ctx, request=request))
 
 
@@ -101,9 +105,10 @@ def main() -> None:
     written = []
     for theme in ("light", "dark"):
         (OUT / f"list-{theme}.html").write_text(render_list(theme))
+        (OUT / f"list-menu-open-{theme}.html").write_text(render_list(theme, menu_open=True))
         (OUT / f"form-{theme}.html").write_text(render_form(theme, with_errors=False))
         (OUT / f"form-errors-{theme}.html").write_text(render_form(theme, with_errors=True))
-        written += [f"list-{theme}", f"form-{theme}", f"form-errors-{theme}"]
+        written += [f"list-{theme}", f"list-menu-open-{theme}", f"form-{theme}", f"form-errors-{theme}"]
     print("fixtures written:", ", ".join(written))
 
 
