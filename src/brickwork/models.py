@@ -53,6 +53,25 @@ class NavItem:
     """Static keyword arguments passed when reversing ``url_name``, fixed at
     nav-definition time."""
 
+    kwarg_name: str | tuple[str, str] | None = None
+    """The declarative common case of ``url_kwargs_from_request`` (NAV, #19): copy
+    ONE route parameter from the active route into this item's reverse kwargs.
+
+    - ``kwarg_name="slug"``: take ``resolver_match.kwargs["slug"]`` from the
+      current route and pass it to the reverse under the SAME name ``slug``.
+    - ``kwarg_name=("project_slug", "slug")``: read it under the SOURCE name the
+      active route uses (``project_slug``) and pass it to the reverse under the
+      TARGET name this item's URL expects (``slug``). This covers the frequent
+      case where one app names the same conceptual parameter differently across
+      routes, without hand-writing a fallback callable.
+
+    Resolved at render time and merged into the reverse kwargs alongside
+    ``url_kwargs`` / ``url_kwargs_from_request``. If the source kwarg is absent
+    from the current route (e.g. no project selected yet), it contributes
+    nothing and the item follows BRICKWORK_NAV_FALLBACK like any unresolvable
+    URL, never a 500 (BR-BW-NAV-003). For anything more complex than a single
+    parameter copy/rename, use ``url_kwargs_from_request``."""
+
     url_kwargs_from_request: Callable[[ResolverMatch | None], dict] | None = None
     """An optional callable that derives reverse kwargs from the CURRENT request's
     route at render time (NAV, route-parameter-dependent URLs). Given the active
@@ -60,7 +79,9 @@ class NavItem:
     lets a project-scoped item (e.g. ``projects/<slug>/documents/``) live in the
     sidebar even though ``<slug>`` is only known per request, not at nav-assembly
     time. Typical use: ``lambda rm: {"slug": rm.kwargs["slug"]} if rm and "slug"
-    in rm.kwargs else {}``. If it returns kwargs that do not satisfy the pattern
+    in rm.kwargs else {}``. For the single-parameter common case prefer the
+    declarative ``kwarg_name`` above. When both are set, ``url_kwargs_from_request``
+    is applied last (it wins). If it returns kwargs that do not satisfy the pattern
     (e.g. no project selected yet), the item falls back to BRICKWORK_NAV_FALLBACK
     like any unresolvable URL, never a 500 (BR-BW-NAV-003)."""
 

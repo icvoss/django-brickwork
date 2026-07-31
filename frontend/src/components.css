@@ -268,6 +268,57 @@
   background: var(--bw-color-surface-sunken);
 }
 
+/* A clickable record row (row.url, #10): the row-link fills its cell and
+   inherits colour, so the whole first cell is the target and the row reads as
+   actionable. The hover already comes from .bw-data-table__row:hover. */
+.bw-data-table__row-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.bw-data-table__row-link:hover {
+  text-decoration: underline;
+}
+
+/* Definition-list mode (#18): a key/value fact table for one entity. The label
+   is a row header; give it the muted, semibold treatment of a column header and
+   a stable width so values line up. Not scrollable chrome, just a fact list. */
+.bw-data-table--definition {
+  inline-size: auto;
+}
+.bw-data-table__th--label {
+  inline-size: 1%;
+  white-space: nowrap;
+  border-block-end: 1px solid var(--bw-color-border);
+  padding-inline-end: var(--bw-size-space-6);
+  vertical-align: baseline;
+}
+
+/* --- Filter bar (#15) ------------------------------------------------------ */
+
+/* An inline bar of filter fields above a list/table. Fields wrap on a narrow
+   viewport; the actions stay together at the end. Token-only, RTL via logical
+   properties and flex. */
+.bw-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--bw-size-space-3);
+  margin-block-end: var(--bw-density-stack-gap);
+}
+.bw-filter-bar__fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--bw-size-space-3);
+  flex: 1 1 auto;
+}
+.bw-filter-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+}
+
 /* --- Pagination ------------------------------------------------------------ */
 
 .bw-pagination {

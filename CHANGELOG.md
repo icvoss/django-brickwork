@@ -8,6 +8,42 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-07-31
+
+Pilot-driven ergonomics and a docs/accuracy sweep, from the agentpm breadth
+round plus the icvlocal demo. No breaking changes; all additions are optional.
+
+### Added
+
+- **`_filter_bar.html` component** (#15). A structure-only inline bar of
+  consumer-supplied filter fields above a list/table: each field renders
+  through `forms/_field.html`, with a documented `hx-get`/`hx-target` swap
+  contract for progressive enhancement and a no-JS `<form method="get">` floor.
+  No new JavaScript.
+- **`_data_table.html` definition-list mode** (#18). `variant="definition"`
+  renders a key/value fact table for one entity (a detail screen's "facts about
+  this thing", the `<dl>`-shaped case) from `rows=[{label, value}]`, with the
+  label as a proper `<th scope="row">` and the same token styling as the
+  columnar table. The default `variant="records"` is unchanged.
+- **`_data_table.html` clickable rows** (#10). A record row with a `url` now
+  renders its first cell as a link to that URL (the documented `rows[].url` key
+  previously did nothing). A linked row gets the `bw-data-table__row--linked`
+  class.
+- **`NavItem.kwarg_name`** (#19). The declarative common case of
+  `url_kwargs_from_request`: copy one route parameter from the active route into
+  an item's reverse kwargs. `kwarg_name="slug"` copies same-named;
+  `kwarg_name=("project_slug", "slug")` reads the source name the route uses and
+  reverses under the target name the item's URL expects, so an app that names
+  the same parameter differently across routes no longer hand-writes a fallback
+  callable. `url_kwargs_from_request` stays for genuinely complex cases and wins
+  when both are set.
+
+### Documentation
+
+- README gains a **Usage** section documenting the tag-vs-`{% include %}`
+  distinction (which components are `{% bw_* %}` tags vs structural includes) and
+  the `{% bw_icon %}` decorative/label requirement (#11).
+
 ## [0.2.2] - 2026-07-31
 
 ### Fixed

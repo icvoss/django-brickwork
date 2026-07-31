@@ -1,0 +1,44 @@
+{% load i18n %}
+{% comment %}
+Filter bar (TBL-003, #15): STRUCTURE ONLY, like _data_table.html. An inline bar
+of consumer-supplied form fields (search box, status select, etc.) that filters a
+list/table. Each field is rendered through the accessible forms/_field.html
+renderer, so a filter input gets the same label/aria treatment as any form field.
+
+No-JS floor (BR-BW-HTMX-001): it is a plain ``<form method="get">``, so it works
+with Alpine and htmx absent - the browser navigates to the querystring on submit.
+When htmx IS present, the documented swap contract progressively enhances it: the
+consumer passes ``hx_get`` (the endpoint) and ``hx_target`` (the element to swap,
+typically the data_table's ``table_id`` container), and htmx swaps that target in
+place instead of a full navigation. brickwork adds NO JS of its own here.
+
+Required context:
+  fields: an iterable of bound form fields (e.g. ``my_filter_form``); each is
+          rendered via forms/_field.html.
+Optional:
+  action (str, the GET action/URL; default "" = same URL),
+  hx_get (str, the htmx endpoint - when set, hx-get/hx-target/hx-trigger are
+          emitted for progressive enhancement),
+  hx_target (str, a CSS selector for the swap target, e.g. "#gadgets"),
+  submit_label (str, default "Filter"), clear_href (str, when set a "Clear"
+  link is rendered to reset the filters), clear_label (str, default "Clear"),
+  filter_bar_id (str, the id for the <form> element).
+{% endcomment %}
+<form class="bw-filter-bar"
+      {% if filter_bar_id %}id="{{ filter_bar_id }}"{% endif %}
+      method="get" action="{{ action|default:'' }}"
+      {% if hx_get %}hx-get="{{ hx_get }}"{% if hx_target %} hx-target="{{ hx_target }}"{% endif %} hx-trigger="submit"{% endif %}>
+  <div class="bw-filter-bar__fields">
+    {% for field in fields %}
+      {% include "brickwork/forms/_field.html" with field=field %}
+    {% endfor %}
+  </div>
+  <div class="bw-filter-bar__actions">
+    {% translate "Filter" as default_submit_label %}
+    <button type="submit" class="bw-btn bw-btn--primary bw-btn--md">{{ submit_label|default:default_submit_label }}</button>
+    {% if clear_href %}
+      {% translate "Clear" as default_clear_label %}
+      <a class="bw-btn bw-btn--ghost bw-btn--md" href="{{ clear_href }}">{{ clear_label|default:default_clear_label }}</a>
+    {% endif %}
+  </div>
+</form>

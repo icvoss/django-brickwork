@@ -47,6 +47,55 @@ brickwork's public API is five versioned contracts (see the spec): **token**,
 (Alpine)**. Template block names, HTMX target IDs, Alpine component names,
 event names and token names are semver-governed.
 
+## Usage
+
+### Tags vs includes
+
+Some components are consumed as **template tags**, others via `{% include %}`.
+This is deliberate: a component that carries logic (variant validation, a11y
+enforcement, icon resolution) ships as a tag so that logic is not duplicated at
+every call site; a purely structural component is an include the consumer fills
+with context.
+
+- **Tags** (load the library first): `{% bw_icon %}`, `{% bw_button %}`,
+  `{% bw_badge %}`, `{% bw_alert %}`, `{% bw_nav %}`, `{% bw_field_widget %}`.
+
+  ```django
+  {% load brickwork_components brickwork_icons brickwork_nav %}
+  {% bw_button label="Save" variant="primary" %}
+  {% bw_badge label="New" variant="info" %}
+  ```
+
+  The `_button.html` / `_badge.html` / `_alert.html` template files exist but are
+  the tags' own render targets, **not** a consumer-facing `{% include %}` API.
+  Call the tag, not the partial.
+
+- **Includes** (structure you fill with context): `_page_header.html`,
+  `_data_table.html`, `_pagination.html`, `_empty_state.html`,
+  `_filter_bar.html`, `_spinner.html`, and the form partials `forms/_field.html`
+  / `forms/_form_errors.html`.
+
+  ```django
+  {% include "brickwork/components/_data_table.html" with table_id="gadgets" columns=columns rows=rows %}
+  ```
+
+### Icons: decorative or labelled, always
+
+`{% bw_icon %}` **requires** exactly one of `decorative=True` or `label="..."`,
+and raises `TemplateSyntaxError` if given neither or both. This is intentional
+(ICO-007, WCAG 4.1.2): an icon is either purely presentational (aria-hidden) or
+carries meaning (an accessible name), never ambiguous.
+
+```django
+{% bw_icon "search" decorative=True %}          {# beside a visible label #}
+{% bw_icon "trash" label="Delete item" %}       {# standalone, meaningful #}
+```
+
+You rarely call `bw_icon` directly for the icon *inside* a `bw_button` or
+`bw_nav` item: those tags take an `icon="..."` argument and handle the a11y
+pairing for you. Reach for `bw_icon` directly only for a standalone icon in your
+own markup, where this rule applies.
+
 ## Development
 
 Python package:
