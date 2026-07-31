@@ -8,10 +8,34 @@ versioning contract).
 
 ## [Unreleased]
 
-## [0.2.3] - 2026-07-31
+## [0.2.4] - 2026-07-31
 
-Pilot-driven ergonomics and a docs/accuracy sweep, from the agentpm breadth
-round plus the icvlocal demo. No breaking changes; all additions are optional.
+Pilot-driven ergonomics, correctness fixes, and a docs sweep, from the agentpm
+and consentics breadth rounds plus the icvlocal demo. No breaking changes; all
+additions are optional and the sort-key change is back-compatible.
+
+### Fixed
+
+- **Theme wiring: the shell is no longer silently unstyled** (#22). The shell
+  reads `bw_theme` / `bw_density` / `bw_dir` / `bw_lang`, but
+  `resolve_theme_attributes` returns `theme` / `density` / `dir` and no language,
+  so a consumer dropping the service output straight into context got an
+  unstyled shell with no error. Ships a ready-made context processor
+  `brickwork.context_processors.theme` that maps the service output onto the
+  `bw_*` names and adds `bw_lang` (from the active language); add it to
+  `TEMPLATES[...]["OPTIONS"]["context_processors"]` and the shell is wired with
+  no hand mapping. An optional `BRICKWORK_THEME_RESOLVER` setting (dotted path)
+  supplies per-user/per-tenant theming.
+- **`_data_table.html` sortable columns need only `sort_key` now** (#23). Sorting
+  previously required the undocumented `sort_key_desc` and `next_sort` column
+  keys; without them a header rendered but did not sort, silently. The template
+  now derives the descending key (`-<sort_key>`) and the next-click toggle from
+  `sort_key` plus the shared `current_sort`, so a consumer supplies only those
+  two. Passing an explicit `sort_key_desc` / `next_sort` still overrides the
+  convention (back-compatible).
+- **`tokens/__init__.py` docstring named the Tailwind bridge `theme.css`** (#26);
+  the shipped file is `tailwind-theme.css`. A consumer copying the path got a
+  404. One-line docstring correction.
 
 ### Added
 

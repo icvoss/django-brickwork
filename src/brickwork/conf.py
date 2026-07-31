@@ -32,6 +32,10 @@ _SETTINGS: Final[dict[str, tuple[Any, tuple[Any, ...] | None]]] = {
     "BRICKWORK_DEFAULT_DENSITY": ("comfortable", ("compact", "comfortable", "spacious")),
     "BRICKWORK_DEFAULT_DIR": ("ltr", ("ltr", "rtl")),
     "BRICKWORK_NAV_FALLBACK": ("omit", ("omit", "disabled")),
+    # Optional dotted path to a Callable[[HttpRequest], ThemeAttributes] used by
+    # the brickwork.context_processors.theme processor for per-user/per-tenant
+    # theming. None (default) = no resolver, defaults-only theming. Free-form.
+    "BRICKWORK_THEME_RESOLVER": (None, None),
 }
 
 

@@ -115,3 +115,41 @@ def test_loading_shows_skeleton() -> None:
     out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS, loading=True)
     assert "bw-data-table__skeleton" in out
     assert "bw-skeleton--row" in out
+
+
+# --- derived sort toggle from sort_key + current_sort only (#23) ----------
+
+_SORTABLE = [{"label": "Name", "sortable": True, "sort_key": "name"}]
+
+
+def test_unsorted_column_first_click_sorts_ascending() -> None:
+    # consumer supplies ONLY sort_key; no sort_key_desc / next_sort needed
+    out = _render(table_id="t", columns=_SORTABLE, rows=_ROWS)
+    assert 'href="?sort=name"' in out
+    assert 'aria-sort' not in out  # nothing sorted yet
+
+
+def test_ascending_column_toggles_to_descending() -> None:
+    out = _render(table_id="t", columns=_SORTABLE, rows=_ROWS, current_sort="name")
+    assert 'aria-sort="ascending"' in out
+    # the next click must go to the DESCENDING key, derived as -name
+    assert 'href="?sort=-name"' in out
+
+
+def test_descending_column_toggles_to_ascending() -> None:
+    out = _render(table_id="t", columns=_SORTABLE, rows=_ROWS, current_sort="-name")
+    assert 'aria-sort="descending"' in out
+    # the next click returns to ascending
+    assert 'href="?sort=name"' in out
+
+
+def test_querystring_is_threaded_through_the_sort_link() -> None:
+    out = _render(table_id="t", columns=_SORTABLE, rows=_ROWS, querystring="status=active")
+    assert 'href="?sort=name&status=active"' in out
+
+
+def test_explicit_next_sort_still_overrides_when_unsorted() -> None:
+    # back-compat: a consumer may still pin the first-click target
+    cols = [{"label": "Name", "sortable": True, "sort_key": "name", "next_sort": "-name"}]
+    out = _render(table_id="t", columns=cols, rows=_ROWS)
+    assert 'href="?sort=-name"' in out

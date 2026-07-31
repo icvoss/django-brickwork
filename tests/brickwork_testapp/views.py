@@ -16,23 +16,13 @@ from brickwork.services.forms import is_htmx_validation_request
 from .forms import WidgetForm
 from .models import Widget
 
+# The minimal sortable-column contract (#23): only label + sortable + sort_key.
+# The template derives the descending key and the next-click toggle from
+# sort_key + the shared current_sort, so a consumer no longer computes
+# sort_key_desc / next_sort by hand.
 _COLUMNS = [
-    {
-        "label": "Name",
-        "key": "name",
-        "sortable": True,
-        "sort_key": "name",
-        "sort_key_desc": "-name",
-        "next_sort": "-name",
-    },
-    {
-        "label": "Status",
-        "key": "status",
-        "sortable": True,
-        "sort_key": "status",
-        "sort_key_desc": "-status",
-        "next_sort": "status",
-    },
+    {"label": "Name", "sortable": True, "sort_key": "name"},
+    {"label": "Status", "sortable": True, "sort_key": "status"},
 ]
 
 

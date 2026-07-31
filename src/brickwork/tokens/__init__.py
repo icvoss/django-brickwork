@@ -5,7 +5,7 @@ source (``source/``) that Style Dictionary compiles, via the frontend
 pipeline, into the shipped artefacts:
 
   - ``static/brickwork/dist/tokens.css``    (CSS custom properties, all four axes)
-  - ``static/brickwork/dist/theme.css``     (the @theme inline Tailwind bridge)
+  - ``static/brickwork/dist/tailwind-theme.css``  (the @theme inline Tailwind bridge)
   - ``static/brickwork/dist/tokens.js``     (JS re-export for a Vite consumer)
 
 Keeping this module import-free of Django is the discipline that lets it later
