@@ -47,6 +47,13 @@ def test_button_loading_marks_busy_and_disabled() -> None:
     out = _render('{% bw_button "Save" loading=True %}')
     assert 'aria-busy="true"' in out
     assert "bw-spinner" in out
+    # ICO-004/issue #16: the spinner sizes via the --bw-icon-size CSS custom
+    # property (which .bw-spinner reads for inline-size/block-size), never as
+    # an SVG width/height attribute (var() is invalid there and silently
+    # falls back to the 300x150 SVG default).
+    assert "--bw-icon-size: var(--bw-icon-size-sm)" in out
+    assert ' width="var(' not in out
+    assert ' height="var(' not in out
 
 
 @pytest.mark.parametrize("variant", ["primary", "secondary", "ghost", "danger"])

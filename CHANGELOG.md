@@ -8,6 +8,20 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-07-31
+
+### Fixed
+- `{% bw_icon %}` and the loading spinner are now actually sized by their size
+  token (#16). Both put the `--bw-icon-size-*` token into the SVG's `width` and
+  `height` **attributes**, but SVG geometry attributes do not accept CSS
+  `var()`, so the value was invalid and dropped: every icon fell back to the
+  300x150 SVG default and `size="sm|md|lg|xl"` (ICO-004) had no visible effect.
+  The size is now applied as the `--bw-icon-size` CSS custom property (set inline
+  on the SVG), which `.bw-icon` / `.bw-spinner` read for their `inline-size` /
+  `block-size`. The size stays token-driven (density and brand aware) and RTL
+  correct via logical properties. Tests assert the token is applied as the custom
+  property and that no `width="var("` / `height="var("` attribute is emitted.
+
 ## [0.2.1] - 2026-07-31
 
 ### Fixed
