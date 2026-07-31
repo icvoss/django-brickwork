@@ -107,6 +107,42 @@
   display: none; /* empty blocks render nothing, never a placeholder (SHL-006/20) */
 }
 
+/* Breadcrumbs list (#25): the <ol> inside the shell's labelled bw-breadcrumbs
+   <nav>. A "/" separator is drawn before every item except the first, via a
+   pseudo-element so it is not read by a screen reader. Logical properties for
+   RTL. */
+.bw-breadcrumbs__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--bw-font-size-sm);
+}
+.bw-breadcrumbs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+}
+.bw-breadcrumbs__item + .bw-breadcrumbs__item::before {
+  content: "/";
+  color: var(--bw-color-fg-muted);
+}
+.bw-breadcrumbs__link {
+  color: var(--bw-color-fg-muted);
+  text-decoration: none;
+}
+.bw-breadcrumbs__link:hover {
+  color: var(--bw-color-accent);
+  text-decoration: underline;
+}
+.bw-breadcrumbs__current {
+  color: var(--bw-color-fg);
+  font-weight: var(--bw-font-weight-medium);
+}
+
 /* --- Native <details> drawer for mobile nav (no JS, SHL-015/016) ----------- */
 
 .bw-drawer {

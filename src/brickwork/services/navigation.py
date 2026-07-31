@@ -103,11 +103,13 @@ def resolve_active_item(
 ) -> NavItem | None:
     """Return the deepest NavItem matching the current route, or None.
 
-    Matches ``resolver_match.view_name`` against each item's ``url_name``
-    (BR-BW-NAV-001), NEVER ``request.path.startswith(...)``. Returns the deepest
-    (leaf) match, so a specific child wins over an ancestor; the renderer marks
-    both the leaf and its ancestors active for styling (NAV-008), which it derives
-    by checking whether the active item is within a given item's subtree.
+    Matches ``resolver_match.view_name`` against each item's ``url_name`` and its
+    ``active_url_names`` (BR-BW-NAV-001, #20), NEVER ``request.path.startswith``.
+    A section stays active across its list and detail/sub views by listing the
+    secondary route names in ``active_url_names``. Returns the deepest (leaf)
+    match, so a specific child wins over an ancestor; the renderer marks both the
+    leaf and its ancestors active for styling (NAV-008), which it derives by
+    checking whether the active item is within a given item's subtree.
 
     ``resolver_match`` is None for an unresolved request (e.g. a 404), in which
     case nothing is active.
@@ -117,7 +119,8 @@ def resolve_active_item(
     view_name = resolver_match.view_name
     match: NavItem | None = None
     for item in _walk(nav_items):
-        if item.url_name is not None and item.url_name == view_name:
+        names = item.active_url_names
+        if item.url_name is not None and (item.url_name == view_name or view_name in names):
             match = item  # keep the last (deepest) match in depth-first order
     return match
 

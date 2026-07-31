@@ -294,6 +294,70 @@
   vertical-align: baseline;
 }
 
+/* --- Account menu (#25) ---------------------------------------------------- */
+
+/* A native <details>/<summary> dropdown (no JS, no-JS floor). The panel is
+   absolutely positioned under the trigger; open state is the browser's own. */
+.bw-account-menu {
+  position: relative;
+  display: inline-block;
+}
+.bw-account-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  padding: var(--bw-size-space-1) var(--bw-size-space-2);
+  border-radius: var(--bw-size-radius-md);
+  cursor: pointer;
+  color: var(--bw-color-fg);
+  list-style: none; /* hide the default disclosure triangle */
+}
+.bw-account-menu__trigger::-webkit-details-marker {
+  display: none;
+}
+.bw-account-menu__trigger:hover {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-account-menu__caret {
+  color: var(--bw-color-fg-muted);
+}
+.bw-account-menu[open] .bw-account-menu__caret {
+  transform: rotate(180deg);
+}
+.bw-account-menu__panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--bw-size-space-1));
+  min-inline-size: 12rem;
+  padding: var(--bw-size-space-1);
+  background: var(--bw-color-surface-raised);
+  border: 1px solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-md);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
+  z-index: 20;
+}
+.bw-account-menu--end .bw-account-menu__panel {
+  inset-inline-end: 0;
+}
+.bw-account-menu--start .bw-account-menu__panel {
+  inset-inline-start: 0;
+}
+.bw-account-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  padding: var(--bw-size-space-2) var(--bw-size-space-3);
+  border-radius: var(--bw-size-radius-sm);
+  color: var(--bw-color-fg);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.bw-account-menu__item:hover {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-account-menu__item--danger {
+  color: var(--bw-color-danger);
+}
+
 /* --- Filter bar (#15) ------------------------------------------------------ */
 
 /* An inline bar of filter fields above a list/table. Fields wrap on a narrow
