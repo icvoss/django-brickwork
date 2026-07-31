@@ -46,6 +46,11 @@
       "$value": "{primitive.gray.300}",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-border) 94%, black)" } }
     },
+    "border-control": {
+      "$value": "oklch(0.65 0.002 265)",
+      "$description": "Input/control boundary. The divider border token stays light for calm chrome; controls need a WCAG 1.4.11 compliant boundary (measured 3.23:1 against the default light surface).",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-fg) 44%, var(--bw-color-surface))" } }
+    },
     "accent": {
       "$value": "{primitive.blue.600}"
     },
@@ -54,23 +59,31 @@
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-accent) 89%, black)" } }
     },
     "accent-subtle": {
-      "$value": "{primitive.blue.50}",
+      "$value": "oklch(0.968 0.013 262)",
+      "$description": "Literal, not the blue.50 alias: the achromatic light surface is hue-powerless in the mix, so the resolved hue stays the accent's 262, not the ramp's 254.",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-accent) 7%, var(--bw-color-surface))" } }
     },
     "danger": {
       "$value": "{primitive.red.600}"
     },
     "danger-subtle": {
-      "$value": "{primitive.red.50}",
+      "$value": "oklch(0.97 0.015 27)",
+      "$description": "Literal, not the red.50 alias: the achromatic surface is hue-powerless, so the resolved hue stays the danger base's 27, not the ramp's 18.",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-danger) 7%, var(--bw-color-surface))" } }
+    },
+    "danger-border": {
+      "$value": "oklch(0.873 0.065 27)",
+      "$description": "Tinted badge/alert border for the danger intent.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-danger) 30%, var(--bw-color-surface))" } }
     },
     "danger-strong": {
       "$value": "oklch(0.508 0.189 27)",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-danger) 88%, black)" } }
     },
     "danger-fg": {
-      "$value": "{primitive.red.600}",
-      "$extensions": { "bw": { "derived": "var(--bw-color-danger)" } }
+      "$value": "{primitive.red.700}",
+      "$description": "Text on danger-subtle. Mixed toward black to land on the 700 ramp step: the 600 base fails AA on the subtle tint (4.41); this lands at 5.84.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-danger) 88%, black)" } }
     },
     "danger-on-fg": {
       "$value": "{primitive.gray.0}"
@@ -79,16 +92,23 @@
       "$value": "{primitive.amber.600}"
     },
     "warning-subtle": {
-      "$value": "{primitive.amber.50}",
+      "$value": "oklch(0.977 0.011 58)",
+      "$description": "Literal, not the amber.50 alias: the achromatic surface is hue-powerless, so the resolved hue stays the warning base's 58, not the ramp's 95.",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-warning) 7%, var(--bw-color-surface))" } }
+    },
+    "warning-border": {
+      "$value": "oklch(0.9 0.049 58)",
+      "$description": "Tinted badge/alert border for the warning intent.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-warning) 30%, var(--bw-color-surface))" } }
     },
     "warning-strong": {
       "$value": "oklch(0.586 0.143 58)",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-warning) 88%, black)" } }
     },
     "warning-fg": {
-      "$value": "{primitive.amber.600}",
-      "$extensions": { "bw": { "derived": "var(--bw-color-warning)" } }
+      "$value": "oklch(0.553 0.135 58)",
+      "$description": "Text on warning-subtle. Mixed toward black to land on the 700 ramp depth: the 600 base fails AA on the subtle tint (2.97); this lands at 4.67. A literal, not the amber.700 alias, because the amber ramp drifts toward hue 49 as it darkens while the black mix preserves the base's 58.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-warning) 83%, black)" } }
     },
     "warning-on-fg": {
       "$value": "{primitive.gray.950}"
@@ -97,37 +117,53 @@
       "$value": "{primitive.green.600}"
     },
     "success-subtle": {
-      "$value": "{primitive.green.50}",
+      "$value": "oklch(0.974 0.011 149)",
+      "$description": "Literal, not the green.50 alias: the achromatic surface is hue-powerless, so the resolved hue stays the success base's 149, not the ramp's 155.",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-success) 7%, var(--bw-color-surface))" } }
+    },
+    "success-border": {
+      "$value": "oklch(0.888 0.046 149)",
+      "$description": "Tinted badge/alert border for the success intent.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-success) 30%, var(--bw-color-surface))" } }
     },
     "success-strong": {
       "$value": "oklch(0.552 0.136 149)",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-success) 88%, black)" } }
     },
     "success-fg": {
-      "$value": "{primitive.green.600}",
-      "$extensions": { "bw": { "derived": "var(--bw-color-success)" } }
+      "$value": "{primitive.green.700}",
+      "$description": "Text on success-subtle. Mixed toward black to land on the 700 ramp step: the 600 base fails AA on the subtle tint (3.09); this lands at 4.70.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-success) 84%, black)" } }
     },
     "success-on-fg": {
-      "$value": "{primitive.gray.0}"
+      "$value": "{primitive.gray.950}",
+      "$description": "Near-black ink, the same treatment as warning: white on the solid green base fails AA (3.32); this ink measures 5.97."
     },
     "info": {
       "$value": "{primitive.cyan.600}"
     },
     "info-subtle": {
-      "$value": "{primitive.cyan.50}",
+      "$value": "oklch(0.972 0.008 225)",
+      "$description": "Literal, not the cyan.50 alias: the achromatic surface is hue-powerless, so the resolved hue stays the info base's 225, not the ramp's 210.",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-info) 7%, var(--bw-color-surface))" } }
+    },
+    "info-border": {
+      "$value": "oklch(0.88 0.033 225)",
+      "$description": "Tinted badge/alert border for the info intent.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-info) 30%, var(--bw-color-surface))" } }
     },
     "info-strong": {
       "$value": "oklch(0.528 0.097 225)",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-info) 88%, black)" } }
     },
     "info-fg": {
-      "$value": "{primitive.cyan.600}",
-      "$extensions": { "bw": { "derived": "var(--bw-color-info)" } }
+      "$value": "{primitive.cyan.700}",
+      "$description": "Text on info-subtle. Mixed toward black to land on the 700 ramp step: the 600 base fails AA on the subtle tint (3.54); this lands at 5.17.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-info) 85%, black)" } }
     },
     "info-on-fg": {
-      "$value": "{primitive.gray.0}"
+      "$value": "{primitive.gray.950}",
+      "$description": "Near-black ink, the same treatment as warning: white on the solid cyan base fails AA (3.83); this ink measures 5.17."
     },
     "icon-muted": {
       "$value": "{primitive.gray.400}",
@@ -138,7 +174,8 @@
       "$extensions": { "bw": { "derived": "var(--bw-color-accent)" } }
     },
     "nav-item-active-bg": {
-      "$value": "{primitive.blue.50}",
+      "$value": "oklch(0.968 0.013 262)",
+      "$description": "Follows accent-subtle's resolved literal (hue 262, not the blue.50 ramp's 254).",
       "$extensions": { "bw": { "derived": "var(--bw-color-accent-subtle)" } }
     },
     "nav-item-active-text": {
@@ -166,11 +203,12 @@
       "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
     },
     "skeleton-bg": {
-      "$value": "{primitive.gray.100}",
-      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-surface-sunken) 98.2%, black)" } }
+      "$value": "{primitive.gray.200}",
+      "$description": "Retuned from the near-invisible 98.2% mix (1.05:1 against surface-sunken) to land on gray.200 (1.19:1), so the placeholder actually reads as one.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-surface-sunken) 94%, black)" } }
     },
     "skeleton-shimmer": {
-      "$value": "{primitive.gray.200}",
+      "$value": "oklch(0.891 0.004 265)",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-skeleton-bg) 96%, black)" } }
     }
   },
@@ -184,7 +222,8 @@
       "$value": "oklch(0 0 0 / 0.08)"
     },
     "selected-bg": {
-      "$value": "{primitive.blue.50}",
+      "$value": "oklch(0.968 0.013 262)",
+      "$description": "Follows accent-subtle's resolved literal (hue 262, not the blue.50 ramp's 254).",
       "$extensions": { "bw": { "derived": "var(--bw-color-accent-subtle)" } }
     }
   },

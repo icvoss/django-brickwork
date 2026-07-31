@@ -61,7 +61,7 @@
  * (A11Y region). Uses the focus-ring colour token, which is authored per theme.
  * Width, style, and offset are a11y-floor tokens (DESIGN.md 6.4): brand themes
  * may recolour the ring but never thin or remove it. */
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: var(--bw-focus-ring-width) var(--bw-focus-ring-style) var(--bw-color-focus-ring);
   outline-offset: var(--bw-focus-ring-offset);
 }

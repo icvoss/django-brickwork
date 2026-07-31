@@ -1,4 +1,4 @@
-# Contributing to __PACKAGE_NAME__
+# Contributing to django-brickwork
 
 Practical guide for contributors working on this package.
 
@@ -6,19 +6,20 @@ Practical guide for contributors working on this package.
 
 ## Prerequisites
 
-- Python 3.11 or later
+- Python 3.12 or later
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
-- Django 5.0 or later (installed as part of the dev setup)
+- Django 6.0 or later (installed as part of the dev setup)
 - No database server is required: the test suite uses SQLite
-  (adjust this line if the package tests against PostgreSQL)
+- Node (npm) only if you rebuild the shipped static assets; see
+  `frontend/README.md`
 
 ---
 
 ## Local Development Setup
 
 ```bash
-git clone https://github.com/icvoss/__PACKAGE_NAME__.git
-cd __PACKAGE_NAME__
+git clone https://github.com/icvoss/django-brickwork.git
+cd django-brickwork
 
 # Create a virtual environment
 python -m venv .venv
@@ -57,7 +58,7 @@ configured in `pyproject.toml`.
 |---------|-------|
 | Line length | 120 |
 | Quote style | Double |
-| Target Python | 3.11 |
+| Target Python | 3.12 |
 
 ```bash
 # Check for lint errors
@@ -77,8 +78,10 @@ CI will fail if either check reports errors. Run both before pushing.
 ## Repository Structure
 
 ```
-__PACKAGE_NAME__/
-    src/__MODULE__/     # importable package
+django-brickwork/
+    src/brickwork/      # importable package
+    frontend/           # in-repo build for the shipped static assets
+    a11y/               # Playwright + axe-core accessibility gate
     tests/
         settings.py     # Django settings for the test suite
         conftest.py
@@ -123,7 +126,7 @@ before merging. Prefer small, focused commits over large ones.
 See [RELEASING.md](RELEASING.md) for the full release process. The short
 version:
 
-1. Bump the version in `pyproject.toml` and `src/__MODULE__/__init__.py`.
+1. Bump the version in `pyproject.toml` and `src/brickwork/__init__.py`.
 2. Update `CHANGELOG.md`: rename `[Unreleased]` to `[<version>] - <YYYY-MM-DD>`.
 3. Open a PR, get it reviewed, and merge to `main`.
 4. Tag the merged commit and push the tag:

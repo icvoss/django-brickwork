@@ -4,9 +4,9 @@
 
 | Version | Supported |
 |---------|-----------|
-| __SERIES__ | Yes       |
+| 0.3.x   | Yes       |
 
-Only the latest release in the `__SERIES__` series receives security fixes.
+Only the latest release in the `0.3.x` series receives security fixes.
 
 ## Reporting a Vulnerability
 
@@ -16,7 +16,7 @@ Report vulnerabilities by email to **itsonlyme@nigelcopley.com**. Include:
 
 - A description of the vulnerability and its potential impact.
 - Steps to reproduce or a minimal proof-of-concept.
-- The __PACKAGE__ version you tested against.
+- The django-brickwork version you tested against.
 - Any suggested remediation if you have one.
 
 You will receive an acknowledgement within **3 business days**. We aim to
@@ -24,7 +24,7 @@ provide an initial assessment within **7 days** of receipt.
 
 ## Disclosure Policy
 
-__PACKAGE__ follows **coordinated disclosure** with a **90-day embargo**
+django-brickwork follows **coordinated disclosure** with a **90-day embargo**
 period:
 
 1. Vulnerability is reported privately to the maintainers.

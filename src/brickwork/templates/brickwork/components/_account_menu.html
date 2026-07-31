@@ -20,11 +20,13 @@ Optional:
          of the panel's nav landmark.
   trigger_icon (str, a registry name, default "user").
   align ("end" default | "start"): which edge the menu aligns to.
-  open (bool, default False): render the disclosure initially open (also used by
-         the a11y fixtures so axe sees the open panel).
+  menu_open (bool, default False): render the disclosure initially open (also
+         used by the a11y fixtures so axe sees the open panel). Named
+         menu_open, not open, so an inherited page-context variable named
+         open can never toggle the disclosure by accident.
 {% endcomment %}
 {% translate "Account" as default_trigger_label %}
-<details class="bw-account-menu bw-account-menu--{{ align|default:'end' }}"{% if open %} open{% endif %}>
+<details class="bw-account-menu bw-account-menu--{{ align|default:'end' }}"{% if menu_open %} open{% endif %}>
   <summary class="bw-account-menu__trigger">
     {% bw_icon trigger_icon|default:"user" size="md" decorative=True %}
     <span class="bw-account-menu__trigger-label">{{ trigger_label|default:default_trigger_label }}</span>

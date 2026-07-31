@@ -49,8 +49,9 @@ test.describe("no-JS floor", () => {
       await expect(page.locator("a.bw-nav__link").first()).toBeVisible();
       // the mobile drawer is a native <details> (works with no JS)
       await expect(page.locator("details.bw-drawer")).toHaveCount(1);
-      // the data table rendered rows server-side
-      await expect(page.locator("table.bw-data-table tbody tr")).toHaveCount(2);
+      // the records data table rendered rows server-side (scoped to its wrap:
+      // the page also carries the definition-variant facts table)
+      await expect(page.locator("#widgets-table table.bw-data-table tbody tr")).toHaveCount(2);
       // breadcrumbs render server-side with the current page marked
       await expect(page.locator("ol.bw-breadcrumbs__list li").first()).toBeVisible();
       await expect(page.locator('.bw-breadcrumbs__current[aria-current="page"]')).toBeVisible();
@@ -60,7 +61,7 @@ test.describe("no-JS floor", () => {
       await expect(menu).toHaveCount(1);
       await expect(page.locator("nav.bw-account-menu__panel")).toBeHidden();
       await page.locator("summary.bw-account-menu__trigger").click();
-      await expect(menu).toHaveAttribute("open", "");
+      await expect(menu).toHaveAttribute("open");
       await expect(page.locator("nav.bw-account-menu__panel")).toBeVisible();
     });
 

@@ -3,8 +3,11 @@
 brickwork's whole point is that you rebrand it by overriding `--bw-*` tokens, not
 by reaching into its component classes. This guide covers how to bridge a real
 brand onto the token layer: colour, typography, and the four axes (theme,
-density, direction). It answers the friction a lean brand hits when its palette
-is smaller than brickwork's vocabulary.
+density, direction). Since 0.3.0, base-theme (the beautiful default values every
+brand inherits from) derives its fine colour tokens live from a small
+load-bearing set, so a brand is a handful of authored values, not a full
+palette. [DESIGN.md](DESIGN.md) is the authoritative token reference (every
+name, default value, and derivation rule); this guide covers the how.
 
 ## The mechanism: override tokens, don't touch classes
 
@@ -22,6 +25,58 @@ tiers (`--bw-color-*`, `--bw-font-*`), never the primitives.
 }
 ```
 
+Because the derived tokens are live `color-mix()` expressions over the
+load-bearing set, overriding `--bw-color-accent` alone recolours the whole
+accent family (hover, subtle tint, focus ring, nav active state) in the
+browser, with no rebuild.
+
+## The load-bearing minimum: seven tokens make a brand
+
+base-theme derives everything else from seven load-bearing colour tokens per
+theme (DESIGN.md section 2 is the authoritative list):
+
+1. `--bw-color-surface` (the paper)
+2. `--bw-color-fg` (the ink)
+3. `--bw-color-border`
+4. `--bw-color-accent`
+5. `--bw-color-danger`
+6. `--bw-color-success`
+7. `--bw-color-warning`
+
+Plus, conditionally, `--bw-color-surface-inverse` when your ink is not the
+inverse surface (it defaults to `fg`). Two more are authored rather than
+derived where a formula cannot make the call for you: `--bw-color-fg-on-accent`
+(verify at 4.5:1) and, for a three-role brand,
+`--bw-color-info: var(--bw-color-accent)` collapses info onto the accent in one
+line (base-theme ships a distinct cyan by default).
+
+A complete light plus dark brand is about fourteen lines:
+
+```css
+/* your brand.css, loaded after brickwork's tokens.css */
+:root {
+  --bw-color-surface: oklch(0.99 0.003 90);
+  --bw-color-fg:      oklch(0.24 0.02 270);
+  --bw-color-border:  oklch(0.90 0.008 270);
+  --bw-color-accent:  oklch(0.55 0.20 265);
+  --bw-color-danger:  oklch(0.55 0.19 25);
+  --bw-color-success: oklch(0.56 0.14 150);
+  --bw-color-warning: oklch(0.68 0.15 75);
+}
+[data-theme="dark"] {
+  --bw-color-surface: oklch(0.22 0.015 270);
+  --bw-color-fg:      oklch(0.93 0.01 90);
+  --bw-color-border:  oklch(0.34 0.015 270);
+  --bw-color-accent:  oklch(0.68 0.17 265);
+  --bw-color-danger:  oklch(0.65 0.18 25);
+  --bw-color-success: oklch(0.66 0.13 150);
+  --bw-color-warning: oklch(0.72 0.14 80);
+}
+```
+
+That is the whole brand: base-theme derives the hover shades, subtle tints,
+muted foregrounds, status tiers, and component roles from these values.
+
 ## Typography (the `--bw-font-*` tokens)
 
 The shell and components consume `--bw-font-family-sans` (body) and
@@ -31,29 +86,41 @@ the family tokens to give brickwork your typeface without touching `.bw-body` or
 `.bw-page-header__title`. The default is a neutral system-font stack so an
 unbranded install still looks intentional.
 
-## Colour: bridging a lean palette onto the full vocabulary
+## Colour: what base-theme now derives for you
 
 brickwork's semantic vocabulary is intentionally richer than a minimal brand
-(it has a four-step surface scale and dedicated status hues). If your brand is
-leaner, collapse deliberately:
+(a surface scale, five tiers per status hue, state overlays). Before 0.3.0 a
+lean brand had to hand-tune all of it; base-theme now derives it from the
+load-bearing set:
 
-| brickwork token | if your brand has no equivalent |
+| brickwork tokens | how base-theme derives them |
 |---|---|
-| `--bw-color-surface` / `-sunken` / `-raised` | map `surface` to your paper; set `sunken` a touch darker and `raised` a touch lighter (even 2-3% L in oklch reads as depth). Collapsing all three to one flat value is legible but loses the elevation cues the components rely on. |
-| `--bw-color-surface-inverse` | your ink/darkest, used for inverted chips/badges. |
-| `--bw-color-warning` / `-info` | if you have only one "attention" hue, point both at it, but prefer distinct hues: warning and info carry different meaning and colour is the fastest signal. |
-| `--bw-color-danger` / `-success` | almost every brand has a red and a green intent even if not in the logo palette; author them rather than reusing the brand accent, so destructive/positive actions read correctly. |
+| the surface scale (`-sunken` / `-raised` / `-overlay`) | derived from `surface`: sunken mixes a touch darker, raised differentiates by shadow in light and by lightness in dark, overlay is a scrim over content. The depth cues the components rely on come for free. |
+| `--bw-color-surface-inverse` | defaults to `var(--bw-color-fg)` (your ink), used for inverted chips/badges. Author it only when your ink is not the inverse surface. |
+| the muted foregrounds (`-fg-muted`, `-fg-subtle`, `-icon-muted`) | mixed from `fg` toward `surface`, with theme-tuned constants. |
+| the accent family (`-accent-hover`, `-accent-subtle`, `-focus-ring`) | shaded and tinted from `accent`. |
+| the status tiers (`X-subtle`, `X-strong`, `X-fg` for danger/success/warning/info) | derived per intent hue, so an alert, badge, or toast never invents a value. |
 
-Rule of thumb: it is fine to collapse tokens that are shades of the same idea
-(the surface scale); avoid collapsing tokens that carry distinct *meaning* (the
-status hues), because the components use them as semantic signals, not decoration.
+Hand-tuning any of these is now the override path, not the primary path: every
+derived token remains individually overridable, and a flat value you set wins
+over the derivation (it is plain CSS cascade). The full derivation table, with
+the exact `color-mix()` constants per theme, is DESIGN.md section 4.
+
+Rule of thumb: let tokens that are shades of the same idea derive (the surface
+scale, the tint tiers); avoid collapsing tokens that carry distinct *meaning*
+(the status hues), because the components use them as semantic signals, not
+decoration. Almost every brand has a red and a green intent even if not in the
+logo palette; author them rather than reusing the accent, so destructive and
+positive actions read correctly.
 
 ## The four axes
 
 - **Theme (`data-theme="light|dark"`)** is the required dark-mode mechanism, and
-  it is deliberate. brickwork's dark values are *authored, not derived*
-  (BR-BW-TOK-002): every semantic colour has an explicit dark value, so dark mode
-  is a designed surface, not an inverted one. That authored-per-brand model, and
+  it is deliberate. brickwork's *load-bearing* dark values are authored, not
+  derived (BR-BW-TOK-002): dark is never computed from light, so dark mode is a
+  designed surface, not an inverted one. Within a theme, the fine tokens derive
+  from that theme's load-bearing set with dark-tuned constants, and a brand may
+  override any of them, derived or authored. That authored-per-brand model, and
   the way theme composes independently with density and direction, needs an
   attribute the CSS can switch on; a `prefers-color-scheme`-only approach cannot
   express an authored dark palette that also composes with the other axes.
@@ -90,4 +157,6 @@ status hues), because the components use them as semantic signals, not decoratio
 
 Author your overrides in your own stylesheet or, if you run a build, in a DTCG
 override file merged into brickwork's token source. Either way you target
-brickwork's own token names, never Radix/Open Props scale numbers (BR-BW-TOK-006).
+brickwork's own token names, never Radix/Open Props scale numbers
+(BR-BW-TOK-006). [DESIGN.md](DESIGN.md) is the authoritative list of those
+names; do not enumerate from memory.

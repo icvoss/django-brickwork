@@ -25,7 +25,6 @@
 .bw-btn--sm {
   block-size: var(--bw-size-control-height-sm);
   padding-inline: var(--bw-size-space-2);
-  font-size: var(--bw-font-size-sm);
 }
 .bw-btn--lg {
   block-size: var(--bw-size-control-height-lg);
@@ -35,7 +34,7 @@
   background: var(--bw-color-accent);
   color: var(--bw-color-fg-on-accent);
 }
-.bw-btn--primary:hover {
+.bw-btn--primary:not(.bw-btn--disabled):hover {
   background: var(--bw-color-accent-hover);
 }
 .bw-btn--secondary {
@@ -43,7 +42,7 @@
   color: var(--bw-color-fg);
   border-color: var(--bw-color-border);
 }
-.bw-btn--secondary:hover {
+.bw-btn--secondary:not(.bw-btn--disabled):hover {
   border-color: var(--bw-color-border-strong);
   background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
 }
@@ -51,21 +50,29 @@
   background: transparent;
   color: var(--bw-color-fg);
 }
-.bw-btn--ghost:hover {
+.bw-btn--ghost:not(.bw-btn--disabled):hover {
   background-color: var(--bw-state-hover-overlay);
 }
 .bw-btn--danger {
   background: var(--bw-color-danger);
   color: var(--bw-color-fg-on-accent);
 }
-.bw-btn--danger:hover {
-  background-color: var(--bw-color-danger-strong);
+.bw-btn--danger:not(.bw-btn--disabled):hover {
+  background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
 }
 /* Pressed feedback for every variant: the active overlay layers on top of
  * whichever background resolved (DESIGN.md 4.6). Declared after the variant
- * hovers so it wins the background-image cascade. */
-.bw-btn:active {
+ * hovers so it wins the background-image cascade; instant so the press reads
+ * immediately. Ghost is excluded (its states are solid overlay fills, so a
+ * stacked image would double the tint) and gets its own solid active fill. */
+.bw-btn:not(.bw-btn--disabled):not(.bw-btn--ghost):active {
   background-image: linear-gradient(var(--bw-state-active-overlay), var(--bw-state-active-overlay));
+  transition-duration: var(--bw-duration-instant);
+}
+.bw-btn--ghost:not(.bw-btn--disabled):active {
+  background-color: var(--bw-state-active-overlay);
+  background-image: none;
+  transition-duration: var(--bw-duration-instant);
 }
 .bw-btn--icon-only {
   inline-size: var(--bw-density-control-height);
@@ -118,22 +125,22 @@
 .bw-badge--success {
   background: var(--bw-color-success-subtle);
   color: var(--bw-color-success-fg);
-  border-color: color-mix(in oklch, var(--bw-color-success) 25%, var(--bw-color-surface));
+  border-color: var(--bw-color-success-border);
 }
 .bw-badge--warning {
   background: var(--bw-color-warning-subtle);
   color: var(--bw-color-warning-fg);
-  border-color: color-mix(in oklch, var(--bw-color-warning) 25%, var(--bw-color-surface));
+  border-color: var(--bw-color-warning-border);
 }
 .bw-badge--danger {
   background: var(--bw-color-danger-subtle);
   color: var(--bw-color-danger-fg);
-  border-color: color-mix(in oklch, var(--bw-color-danger) 25%, var(--bw-color-surface));
+  border-color: var(--bw-color-danger-border);
 }
 .bw-badge--info {
   background: var(--bw-color-info-subtle);
   color: var(--bw-color-info-fg);
-  border-color: color-mix(in oklch, var(--bw-color-info) 25%, var(--bw-color-surface));
+  border-color: var(--bw-color-info-border);
 }
 
 /* --- Alerts ---------------------------------------------------------------- */
@@ -158,12 +165,12 @@
   font-weight: var(--bw-text-body-sm-weight);
   line-height: var(--bw-text-body-sm-line-height);
 }
-/* Variant borders mix toward the surface (softer than the full-strength
- * intent colour); icon carries the intent, title accents via X-fg (AA on the
- * subtle tint in both themes, DESIGN.md 4.5). */
+/* Variant borders use the per-intent tint-border tokens (decorative tint,
+ * softer than the full-strength intent colour and not relied on for
+ * contrast); icon carries the intent, title accents via X-fg (DESIGN.md 4.5). */
 .bw-alert--info {
   background: var(--bw-color-info-subtle);
-  border-color: color-mix(in oklch, var(--bw-color-info) 30%, var(--bw-color-surface));
+  border-color: var(--bw-color-info-border);
 }
 .bw-alert--info .bw-alert__icon {
   color: var(--bw-color-info);
@@ -173,7 +180,7 @@
 }
 .bw-alert--success {
   background: var(--bw-color-success-subtle);
-  border-color: color-mix(in oklch, var(--bw-color-success) 30%, var(--bw-color-surface));
+  border-color: var(--bw-color-success-border);
 }
 .bw-alert--success .bw-alert__icon {
   color: var(--bw-color-success);
@@ -183,7 +190,7 @@
 }
 .bw-alert--warning {
   background: var(--bw-color-warning-subtle);
-  border-color: color-mix(in oklch, var(--bw-color-warning) 30%, var(--bw-color-surface));
+  border-color: var(--bw-color-warning-border);
 }
 .bw-alert--warning .bw-alert__icon {
   color: var(--bw-color-warning);
@@ -193,7 +200,7 @@
 }
 .bw-alert--error {
   background: var(--bw-color-danger-subtle);
-  border-color: color-mix(in oklch, var(--bw-color-danger) 30%, var(--bw-color-surface));
+  border-color: var(--bw-color-danger-border);
 }
 .bw-alert--error .bw-alert__icon {
   color: var(--bw-color-danger);
@@ -222,19 +229,16 @@
   inline-size: 100%;
   block-size: var(--bw-density-control-height);
   padding-inline: var(--bw-density-control-padding-inline);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
   border-radius: var(--bw-size-radius-md);
   background: var(--bw-color-surface);
   color: var(--bw-color-fg);
   font: inherit;
   transition: var(--bw-transition-colors);
 }
-.bw-input:hover {
-  border-color: var(--bw-color-border-strong);
-}
 /* The focus ring itself comes from the global :focus-visible rule; the border
  * joining it is component-local. Invalid rules are declared later so the
- * danger border persists while an invalid input is hovered or focused. */
+ * danger border persists while an invalid input is focused. */
 .bw-input:focus-visible {
   border-color: var(--bw-color-accent);
 }
@@ -278,7 +282,7 @@
   font-size: var(--bw-text-heading-sm-size);
   font-weight: var(--bw-text-heading-sm-weight);
   line-height: var(--bw-text-heading-sm-line-height);
-  color: var(--bw-color-danger);
+  color: var(--bw-color-danger-fg);
 }
 
 /* --- Page header ----------------------------------------------------------- */
@@ -383,12 +387,21 @@
   padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
   font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
 }
-/* Records-variant zebra + hover. Hover is an overlay image so it composes with
-   the stripe rather than replacing it (DESIGN.md 4.6 stacking order). The
-   definition variant stays plain: key/value reads better without stripes. */
-.bw-data-table:not(.bw-data-table--definition) .bw-data-table__row:nth-child(odd) {
+/* Records-variant zebra + hover. Even rows stripe so row 1 stays on the plain
+   surface next to the sunken header band. Hover is an overlay image so it
+   composes with the stripe rather than replacing it (DESIGN.md 4.6 stacking
+   order). The definition variant stays plain: key/value reads better without
+   stripes. */
+.bw-data-table:not(.bw-data-table--definition) .bw-data-table__row:nth-child(even) {
   background-color: var(--bw-color-surface-sunken);
+}
+/* Selected row (records rows carry the hook): equal specificity to the zebra
+   rule, later in source order, so selection beats the stripe; hover still
+   layers its overlay image on top. */
+.bw-data-table:not(.bw-data-table--definition) .bw-data-table__row.bw-data-table__row--selected {
+  background-color: var(--bw-state-selected-bg);
 }
 .bw-data-table:not(.bw-data-table--definition) .bw-data-table__row:hover {
   background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
@@ -407,10 +420,11 @@
 }
 
 /* Definition-list mode (#18): a key/value fact table for one entity. The label
-   is a row header; give it the subtle body-sm treatment (no header background,
-   the column is a key, not chrome) and a stable width so values line up. */
+   is a row header; give it the muted body-sm treatment (no header background,
+   the column is a key, not chrome). The table fills its card; the 1% nowrap
+   label column keeps the key column tight so values line up. */
 .bw-data-table--definition {
-  inline-size: auto;
+  inline-size: 100%;
 }
 .bw-data-table__th--label {
   inline-size: 1%;
@@ -419,8 +433,9 @@
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
   padding-inline-end: var(--bw-size-space-6);
   vertical-align: baseline;
-  color: var(--bw-color-fg-subtle);
+  color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
 }
 
 /* --- Account menu (#25) ---------------------------------------------------- */
@@ -435,6 +450,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--bw-size-space-2);
+  min-block-size: var(--bw-size-touch-target-min);
   padding: var(--bw-size-space-1) var(--bw-size-space-2);
   border-radius: var(--bw-size-radius-md);
   cursor: pointer;
@@ -461,7 +477,7 @@
 .bw-account-menu__panel {
   position: absolute;
   inset-block-start: calc(100% + var(--bw-size-space-1));
-  min-inline-size: 12rem;
+  min-inline-size: var(--bw-menu-min-width);
   padding: var(--bw-size-space-1);
   background: var(--bw-color-surface-raised);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
@@ -493,14 +509,20 @@
   align-items: center;
   gap: var(--bw-size-space-2);
   padding: var(--bw-size-space-2) var(--bw-size-space-3);
-  border-radius: var(--bw-size-radius-sm);
+  border-radius: var(--bw-size-radius-md);
   color: var(--bw-color-fg);
   text-decoration: none;
   white-space: nowrap;
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
   transition: var(--bw-transition-colors);
 }
 .bw-account-menu__item:hover {
   background-color: var(--bw-state-hover-overlay);
+}
+.bw-account-menu__item:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
 }
 .bw-account-menu__item-icon {
   color: var(--bw-color-icon-muted);
@@ -523,15 +545,19 @@
 
 /* An inline bar of filter fields above a list/table. Fields wrap on a narrow
    viewport; the actions stay together at the end. Token-only, RTL via logical
-   properties and flex. */
+   properties and flex. Styled as the table card's control deck (surface +
+   hairline + elevation-1): sunken-on-sunken would vanish against the page
+   background. */
 .bw-filter-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--bw-size-space-3);
   padding: var(--bw-density-card-padding);
-  background: var(--bw-color-surface-sunken);
+  background: var(--bw-color-surface);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-radius: var(--bw-size-radius-lg);
+  box-shadow: var(--bw-elevation-1);
   margin-block-end: var(--bw-density-stack-gap);
 }
 .bw-filter-bar__fields {
@@ -560,6 +586,7 @@
   align-items: center;
   justify-content: center;
   min-block-size: var(--bw-size-touch-target-min);
+  min-inline-size: var(--bw-size-touch-target-min);
   padding: var(--bw-size-space-1);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-radius: var(--bw-size-radius-md);
@@ -571,6 +598,7 @@
 }
 .bw-pagination__link:not(.bw-pagination__link--disabled):active {
   background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
 }
 .bw-pagination__link--disabled {
   opacity: var(--bw-disabled-opacity);

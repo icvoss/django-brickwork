@@ -62,11 +62,11 @@
   display: flex;
   align-items: center;
   gap: var(--bw-size-space-3);
-  padding-inline: var(--bw-density-row-padding-inline);
+  padding-inline: var(--bw-density-page-gutter-inline);
   min-block-size: var(--bw-density-topbar-height);
   background: var(--bw-color-surface);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  position: sticky;
+  position: var(--bw-topbar-position);
   inset-block-start: 0;
   z-index: var(--bw-z-sticky);
 }
@@ -115,8 +115,15 @@
 
 /* Breadcrumbs list (#25): the <ol> inside the shell's labelled bw-breadcrumbs
    <nav>. A "/" separator is drawn before every item except the first, via a
-   pseudo-element so it is not read by a screen reader. Logical properties for
-   RTL. */
+   pseudo-element. Pseudo-element content IS read by some screen readers, so the
+   alternative-text form (content: "/" / "") gives it an empty accessible name.
+   Logical properties for RTL. */
+.bw-breadcrumbs {
+  /* Align the crumbs with the page title's gutter below and clear the topbar
+     border above; the :empty rule keeps hidden breadcrumbs paddingless. */
+  padding-inline: var(--bw-density-page-gutter-inline);
+  padding-block: var(--bw-size-space-3) 0;
+}
 .bw-breadcrumbs__list {
   display: flex;
   flex-wrap: wrap;
@@ -134,7 +141,7 @@
   gap: var(--bw-size-space-2);
 }
 .bw-breadcrumbs__item + .bw-breadcrumbs__item::before {
-  content: "/";
+  content: "/" / "";
   color: var(--bw-color-breadcrumb-separator);
 }
 .bw-breadcrumbs__link {
@@ -160,6 +167,13 @@
   display: none; /* shown only at the mobile breakpoint */
 }
 .bw-drawer__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--bw-size-space-2);
+  border-radius: var(--bw-size-radius-md);
+  min-block-size: var(--bw-size-touch-target-min);
+  min-inline-size: var(--bw-size-touch-target-min);
   cursor: pointer;
   list-style: none;
   transition: var(--bw-transition-colors);

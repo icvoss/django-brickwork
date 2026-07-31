@@ -4,9 +4,12 @@ Every derived token carries a live CSS expression in $extensions.bw.derived and
 keeps its resolved default as $value. These tests recompute each expression by
 linear interpolation in oklch (the model color-mix() uses) and assert the result
 stays within a small tolerance of the $value baseline, guarding both the tuned
-percentage constants and future default-value edits. Hue is deliberately not
-asserted: every mix partner here is achromatic or same-hue, so hue arithmetic
-carries no signal (DESIGN.md section 3).
+percentage constants and future default-value edits. Hue IS asserted whenever
+the computed chroma is perceptible (>= 0.02): an achromatic mix partner (black,
+white, transparent, or a chroma-0 token) is hue-powerless per CSS Color 4, so
+the resolved hue equals the source token's hue, and a $value baseline carrying
+a ramp-step hue instead of the true resolved hue is dishonest (DESIGN.md
+section 3).
 
 A second guard asserts the shipped component CSS only references token names the
 build actually emits, so a rename or a missed source addition cannot ship a
@@ -30,6 +33,10 @@ _FRONTEND = _ROOT / "frontend" / "src"
 _TOL_L = 0.015
 _TOL_C = 0.02
 _TOL_ALPHA = 0.01
+# Hue honesty: asserted only when the computed chroma is perceptible; below the
+# floor the hue is visually powerless and ramp-step baselines are harmless.
+_TOL_H = 4.0
+_HUE_CHROMA_FLOOR = 0.02
 
 _OKLCH = re.compile(r"^oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*(?:/\s*([\d.]+)\s*)?\)$")
 _ALIAS = re.compile(r"^\{([a-z0-9.-]+)\}$")
@@ -91,43 +98,61 @@ def _themes() -> list[_Theme]:
     return [_Theme("light"), _Theme("dark")]
 
 
-def _evaluate(theme: _Theme, expression: str) -> tuple[float, float, float]:
-    """Linear oklch interpolation of a derived expression: (L, C, alpha).
+def _hue_distance(h1: float, h2: float) -> float:
+    """Circular distance between two hue angles in degrees."""
+    d = abs(h1 - h2) % 360.0
+    return min(d, 360.0 - d)
+
+
+def _evaluate(theme: _Theme, expression: str) -> tuple[float, float, float, float]:
+    """Linear oklch interpolation of a derived expression: (L, C, H, alpha).
 
     Baseline $values (never other derived expressions) resolve the var()
     references, so each token's tolerance is checked independently rather than
-    compounding down a chain.
+    compounding down a chain. Hue follows CSS Color 4 interpolation: a
+    chroma-0 side is hue-powerless (treated as missing), so black, white,
+    transparent, and achromatic token partners pass the source hue through;
+    two chromatic sides interpolate along the shorter arc.
     """
     var_match = _VAR.match(expression)
     if var_match:
-        lightness, chroma, _hue, alpha = theme.components(var_match.group(1))
-        return (lightness, chroma, alpha)
+        lightness, chroma, hue, alpha = theme.components(var_match.group(1))
+        return (lightness, chroma, hue, alpha)
     mix_match = _MIX.match(expression)
     assert mix_match, (
         f"[{theme.name}] derived expression does not match the DESIGN.md section 3 grammar: {expression!r}"
     )
     base_name, percent, partner = mix_match.groups()
     p = float(percent) / 100.0
-    l1, c1, _h1, a1 = theme.components(base_name)
+    l1, c1, h1, a1 = theme.components(base_name)
     if partner == "transparent":
         # Premultiplied-alpha interpolation: the transparent side contributes no
         # colour, so the components pass through and only alpha scales.
-        return (l1, c1, p * a1)
+        return (l1, c1, h1, p * a1)
     if partner == "black":
-        l2, c2, a2 = 0.0, 0.0, 1.0
+        l2, c2, h2, a2 = 0.0, 0.0, None, 1.0
     elif partner == "white":
-        l2, c2, a2 = 1.0, 0.0, 1.0
+        l2, c2, h2, a2 = 1.0, 0.0, None, 1.0
     else:
-        l2, c2, _h2, a2 = theme.components(partner[len("var(") : -1])
-    return (p * l1 + (1 - p) * l2, p * c1 + (1 - p) * c2, p * a1 + (1 - p) * a2)
+        l2, c2, h2, a2 = theme.components(partner[len("var(") : -1])
+        if c2 == 0.0:
+            h2 = None  # achromatic token partner: hue powerless
+    if h2 is None:
+        hue = h1
+    elif c1 == 0.0:
+        hue = h2
+    else:
+        delta = ((h2 - h1 + 180.0) % 360.0) - 180.0
+        hue = (h1 + (1 - p) * delta) % 360.0
+    return (p * l1 + (1 - p) * l2, p * c1 + (1 - p) * c2, hue, p * a1 + (1 - p) * a2)
 
 
 @pytest.mark.parametrize("theme", _themes(), ids=lambda t: t.name)
 def test_every_derived_expression_reproduces_its_baseline(theme: _Theme) -> None:
     assert theme.derived, f"expected derived tokens in semantic.{theme.name}"
     for css_name, expression in theme.derived.items():
-        lightness, chroma, alpha = _evaluate(theme, expression)
-        base_l, base_c, _base_h, base_a = theme.components(css_name)
+        lightness, chroma, hue, alpha = _evaluate(theme, expression)
+        base_l, base_c, base_h, base_a = theme.components(css_name)
         assert abs(lightness - base_l) <= _TOL_L, (
             f"[{theme.name}] {css_name}: derived L {lightness:.4f} vs baseline "
             f"{base_l:.4f} (tolerance {_TOL_L}); expression {expression!r}"
@@ -140,6 +165,13 @@ def test_every_derived_expression_reproduces_its_baseline(theme: _Theme) -> None
             f"[{theme.name}] {css_name}: derived alpha {alpha:.4f} vs baseline "
             f"{base_a:.4f} (tolerance {_TOL_ALPHA}); expression {expression!r}"
         )
+        if chroma >= _HUE_CHROMA_FLOOR:
+            assert _hue_distance(hue, base_h) <= _TOL_H, (
+                f"[{theme.name}] {css_name}: derived hue {hue:.1f} vs baseline "
+                f"{base_h:.1f} (tolerance {_TOL_H} degrees at chroma >= "
+                f"{_HUE_CHROMA_FLOOR}); the $value baseline must carry the true "
+                f"resolved hue; expression {expression!r}"
+            )
 
 
 def test_derived_expressions_contain_no_dtcg_braces() -> None:

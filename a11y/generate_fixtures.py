@@ -70,15 +70,31 @@ def render_list(theme: str, *, menu_open: bool = False) -> str:
     request = rf.get("/widgets/")
     request.resolver_match = resolve("/widgets/")
     rows = [
-        {"id": 1, "cells": ["Alpha", "Active"], "url": "/widgets/1/edit/"},
+        # row 1 is selected so the axe gate covers the selected-row treatment
+        # (bw-data-table__row--selected) in both themes
+        {"id": 1, "cells": ["Alpha", "Active"], "url": "/widgets/1/edit/", "selected": True},
         {"id": 2, "cells": ["Beta", "Draft"], "url": "/widgets/2/edit/"},
     ]
     columns = [
         {"label": "Name", "sortable": True, "sort_key": "name", "sort_key_desc": "-name", "next_sort": "-name"},
         {"label": "Status", "sortable": True, "sort_key": "status", "sort_key_desc": "-status", "next_sort": "status"},
     ]
+    # the definition-variant facts table on the list page (matches the view's
+    # summary_facts shape)
+    summary_facts = [
+        {"label": "Total widgets", "value": "2"},
+        {"label": "Active", "value": "1"},
+        {"label": "Draft", "value": "1"},
+    ]
     ctx = _base_context(request, theme)
-    ctx.update({"table_columns": columns, "table_rows": rows, "current_sort": ""})
+    ctx.update(
+        {
+            "table_columns": columns,
+            "table_rows": rows,
+            "current_sort": "",
+            "summary_facts": summary_facts,
+        }
+    )
     if menu_open:
         # render the account-menu disclosure initially open so axe examines the
         # open panel (colour contrast, landmark labelling) in this theme
@@ -93,7 +109,10 @@ def render_form(theme: str, *, with_errors: bool) -> str:
     rf = RequestFactory()
     request = rf.get("/widgets/new/")
     request.resolver_match = resolve("/widgets/new/")
-    form = WidgetForm(data={"name": "invalid", "status": "draft"}) if with_errors else WidgetForm()
+    # name="invalid" + status="archived" triggers BOTH a field error (inline,
+    # aria-describedby wired) and the non-field form-errors block, so the axe
+    # gate sees both error surfaces in both themes.
+    form = WidgetForm(data={"name": "invalid", "status": "archived"}) if with_errors else WidgetForm()
     if with_errors:
         form.is_valid()  # populate errors
     ctx = _base_context(request, theme)

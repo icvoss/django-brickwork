@@ -27,7 +27,15 @@
   "button": {
     "radius": {
       "$type": "dimension",
-      "$value": "{size.radius.md}"
+      "$value": "{size.radius.md}",
+      "$extensions": { "bw": { "derived": "var(--bw-size-radius-md)" } }
+    }
+  },
+  "menu": {
+    "min-width": {
+      "$type": "dimension",
+      "$value": "12rem",
+      "$description": "Minimum width for dropdown-shaped panels (the account-menu panel is the first consumer)."
     }
   },
   "disabled": {
@@ -95,7 +103,8 @@
         "$value": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'"
       },
       "display": {
-        "$value": "{font.family.sans}"
+        "$value": "{font.family.sans}",
+        "$extensions": { "bw": { "derived": "var(--bw-font-family-sans)" } }
       },
       "mono": {
         "$value": "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace"

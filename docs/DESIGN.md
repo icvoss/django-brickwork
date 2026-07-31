@@ -79,7 +79,13 @@ derived family in-browser with no rebuild.
   value in `tokens.css`. A verification test recomputes each `color-mix()`
   linearly in oklch and asserts the result stays within a small tolerance of
   the `$value` baseline (guarding both the formula constants and future
-  default-value edits).
+  default-value edits). Hue is included: an achromatic mix partner (black,
+  white, transparent, or a chroma-0 surface) is hue-powerless per CSS Color
+  4, so the resolved hue equals the source token's hue, and every `$value`
+  baseline carries that true resolved hue (asserted within 4 degrees
+  wherever the computed chroma is perceptible, >= 0.02). Where a ramp step's
+  hue drifts from the resolved hue, the baseline is a literal, not the ramp
+  alias.
 - **Every derived token remains individually overridable.** Derivation is
   base-theme's default, never a lock: a brand may set any derived name to a
   flat value and the cascade wins.
@@ -125,12 +131,24 @@ var(--bw-color-surface-raised)`, both themes.
 | `--bw-color-fg-on-inverse` | D | `var(--bw-color-surface)` | `var(--bw-color-surface)` |
 | `--bw-color-icon-muted` | D | `var(--bw-color-fg-subtle)` | `var(--bw-color-fg-subtle)` |
 
+Contrast note: `fg-muted` text must not sit inside hover-overlaid containers.
+The 4 percent hover wash (4.6) sinks muted text below AA; muted copy inside a
+hoverable row or item either steps up to `fg` on hover or lives outside the
+overlaid element.
+
 ### 4.3 Borders
 
 | Token | LB/D | Light | Dark |
 |---|---|---|---|
 | `--bw-color-border` | LB | authored | authored |
 | `--bw-color-border-strong` | D | `color-mix(in oklch, var(--bw-color-border) 94%, black)` | **direction flips**: `color-mix(in oklch, var(--bw-color-border) 86%, white)` (a dark theme's emphasis border must get lighter) |
+| `--bw-color-border-control` **[NEW]** | D | `color-mix(in oklch, var(--bw-color-fg) 44%, var(--bw-color-surface))` (measured 3.23:1 on the default surface) | `color-mix(in oklch, var(--bw-color-fg) 45%, var(--bw-color-surface))` (measured 3.64:1) |
+
+`border-control` exists because the divider border token stays deliberately
+light for calm chrome, while an input or control boundary is a visual cue
+WCAG 1.4.11 requires at 3:1 against the adjacent surface. Inputs, selects,
+and similar controls take `border-control`; dividers and card outlines keep
+`border`.
 
 ### 4.4 Accent
 
@@ -147,16 +165,17 @@ brand whose hover is "a brightness shift" authors zero hover tokens.
 
 ### 4.5 Intents (danger / success / warning / info)
 
-Five tiers per intent so an alert, badge, or toast never invents a value.
+Six tiers per intent so an alert, badge, or toast never invents a value.
 `X` ranges over `danger`, `success`, `warning`, `info`.
 
 | Token | Tier | LB/D | Light | Dark |
 |---|---|---|---|---|
 | `--bw-color-X` | base | LB (info: authored cyan default, `:= accent` is the documented 3-role collapse) | authored | authored |
 | `--bw-color-X-subtle` | tinted bg | D | `color-mix(in oklch, var(--bw-color-X) 7%, var(--bw-color-surface))` | `color-mix(in oklch, var(--bw-color-X) P%, black)` (danger 41%, success 37%, warning 36%, info 42%) |
+| `--bw-color-X-border` **[NEW]** | tinted border | D | `color-mix(in oklch, var(--bw-color-X) 30%, var(--bw-color-surface))` (the badge/alert border, replacing invented inline mixes) | `color-mix(in oklch, var(--bw-color-X) 55%, black)` (clears the black-mixed subtle tint by delta-L >= 0.08, verified 0.089-0.146) |
 | `--bw-color-X-strong` **[NEW]** | border/emphasis | D | `color-mix(in oklch, var(--bw-color-X) 88%, black)` | **flips**: `color-mix(in oklch, var(--bw-color-X) 96%, white)` |
-| `--bw-color-X-fg` **[NEW]** | text on `X-subtle` | D | `var(--bw-color-X)` | `color-mix(in oklch, var(--bw-color-X) 78%, white)` (lightness boost for AA on the dark tint) |
-| `--bw-color-X-on-fg` **[NEW]** | text on solid `X` | authored | `oklch(1 0 0)` for danger/success/info; near-black ink for warning (white on amber fails AA) | authored per hue, same rule (all four take near-black ink: the dark bases sit on the lighter 400/500 ramp steps, where white fails AA) |
+| `--bw-color-X-fg` **[NEW]** | text on `X-subtle` | D | `color-mix(in oklch, var(--bw-color-X) P%, black)` (danger 88%, success 84%, warning 83%, info 85%), landing on the 700 ramp depth: the base itself fails AA on the subtle tint, the mix measures 5.84 / 4.70 / 4.67 / 5.17 | `color-mix(in oklch, var(--bw-color-X) 78%, white)` (lightness boost for AA on the dark tint) |
+| `--bw-color-X-on-fg` **[NEW]** | text on solid `X` | authored | `oklch(1 0 0)` for danger only (4.83, passes); near-black ink for warning, success, and info (white fails AA on the solid amber, green, and cyan bases: 3.19, 3.32, 3.83) | authored per hue, same rule (all four take near-black ink: the dark bases sit on the lighter 400/500 ramp steps, where white fails AA) |
 
 The dark `subtle` tier (accent included) mixes toward **black**, not the
 surface, a correction from the draft: the authored 950-ramp tints carry far
@@ -165,6 +184,13 @@ more chroma than a mix with the near-achromatic dark surface can reach
 is not chroma-free its 265 hue would dominate the interpolated hue, dragging
 a danger tint toward violet. Mixing toward black preserves the intent hue
 (black's hue is powerless) and reaches the authored depth.
+
+**Branding note:** the account-menu's destructive item renders `danger-fg`
+text on `surface-raised` in dark. The default pair passes AA comfortably,
+but a brand whose dark `danger` is darker than about L 0.62 pushes the
+derived `danger-fg` (78% toward white) below AA on the raised surface; such
+a brand must re-verify the account-menu danger-on-raised pair and, if
+needed, author `--bw-color-danger-fg` directly.
 
 ### 4.6 Interactive state
 
@@ -188,8 +214,13 @@ so hover composes with, rather than replaces, the underlying state.
 **Stacking order (normative for data_table and lists):** zebra stripe
 (`surface-sunken` on odd rows) → selected (`--bw-state-selected-bg` replaces
 the stripe) → hover overlay (always layers last, on top of whichever
-background resolved). Disabled remains `opacity: var(--bw-disabled-opacity)`,
-never a colour token.
+background resolved). Disabled: opacity remains the mechanism
+(`opacity: var(--bw-disabled-opacity)`), with the nav item as the one
+documented exception, re-coloured via `--bw-color-nav-item-disabled-text`
+instead (no opacity stacking).
+
+**Contrast note:** `fg-muted` text must not sit inside hover-overlaid
+containers; the 4 percent wash sinks it below AA (see 4.2).
 
 ### 4.7 Component roles (flat names in 0.3.0; component tier in 0.4.0)
 
@@ -202,7 +233,7 @@ never a colour token.
 | `--bw-color-nav-section-text` **[NEW]** | D | `var(--bw-color-fg-muted)` | same |
 | `--bw-color-breadcrumb-current` **[NEW]** | D | `var(--bw-color-fg)` | same |
 | `--bw-color-breadcrumb-separator` **[NEW]** | D | `var(--bw-color-fg-subtle)` | same |
-| `--bw-color-skeleton-bg` | D | `color-mix(in oklch, var(--bw-color-surface-sunken) 98.2%, black)` | **direction flips**: `color-mix(in oklch, var(--bw-color-surface-sunken) 82%, white)` |
+| `--bw-color-skeleton-bg` | D | `color-mix(in oklch, var(--bw-color-surface-sunken) 94%, black)` (retuned from 98.2%, which was near-invisible at 1.05:1; lands on gray.200) | **direction flips**: `color-mix(in oklch, var(--bw-color-surface-sunken) 82%, white)` |
 | `--bw-color-skeleton-shimmer` | D | `color-mix(in oklch, var(--bw-color-skeleton-bg) 96%, black)` | **direction flips**: `color-mix(in oklch, var(--bw-color-skeleton-bg) 86%, white)` |
 
 ## 5. Elevation
@@ -226,7 +257,9 @@ highlight from level 3 to fake ambient light). Theme-variant: light values on
 resting = 1 (auth and centred panels: 2, they sit alone on a sunken page);
 interactive card hover = 2; dropdown, popover, account-menu panel = 3 (the
 fix for the hardcoded `0 4px 12px` literal); mobile drawer panel and modal
-= 4; toast = 5; topbar = border-only by default (a brand may add 2).
+= 4; toast = 5; topbar = border-only by default (a brand may add 2). The
+card, modal, toast, and popover entries are forward-looking: those
+components are unshipped in 0.3.0 and each row lands with the component.
 
 ## 6. Spacing, radius, borders, z-index, sizing
 
@@ -249,7 +282,10 @@ New: `none 0`, `xl 0.75rem`, `2xl 1rem` (Tailwind-aligned values).
 
 **Component map:** skeleton sm; button, input, nav link, alert, form-errors,
 badge-square md; card, auth/centred panel, filter bar lg; dropdown,
-account-menu panel, popover, toast, modal xl; badge, avatar, pill full.
+account-menu panel, popover, toast, modal xl; badge, avatar, pill full. The
+card, modal, toast, popover, avatar, pill, and badge-square entries are
+forward-looking: those components are unshipped in 0.3.0 and each row lands
+with the component.
 
 ### 6.3 Border widths
 
@@ -297,6 +333,10 @@ surfaces.
 | `--bw-size-max-width-modal-md` **[NEW]** | `32rem` | |
 | `--bw-size-max-width-modal-lg` **[NEW]** | `48rem` | |
 | `--bw-drawer-width` **[NEW]** | `min(20rem, 80vw)` | formalises the drawer literal |
+| `--bw-menu-min-width` **[NEW]** | `12rem` | minimum width for dropdown-shaped panels; the account-menu literal becomes its consumer |
+| `--bw-icon-stroke-width` | `2` | shipped, previously undocumented; the stroke width for the icon set |
+| `--bw-content-max-width` | `none` | shipped, previously undocumented; a consumer caps the main content column by overriding it |
+| `--bw-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar |
 
 The `--bw-size-icon-*` / `--bw-icon-size-*` duplication resolves in 0.4.0
 (keep `--bw-icon-size-*`); 0.3.0 adds `2xl` under both names for parity.
@@ -393,7 +433,9 @@ label label; badge caption size at medium weight, tabular-nums; nav link
 body-md, nav section-label overline (uppercase at the component); breadcrumbs
 body-sm + fg-muted, current crumb breadcrumb-current; account-menu item
 body-md, secondary line caption; pagination status caption + fg-muted;
-dialog/modal title heading-sm.
+dialog/modal title heading-sm. The card and dialog/modal entries are
+forward-looking: those components are unshipped in 0.3.0 and each row lands
+with the component.
 
 ## 8. Motion
 

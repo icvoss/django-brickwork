@@ -57,3 +57,10 @@ def test_semantic_ordered_list_structure() -> None:
     html = _render([{"label": "Home", "url": "/"}, {"label": "Now"}])
     assert '<ol class="bw-breadcrumbs__list">' in html
     assert html.count('<li class="bw-breadcrumbs__item">') == 2
+
+
+def test_no_crumbs_renders_nothing() -> None:
+    # An empty or absent crumbs list renders NO <ol> at all, so the shell's
+    # :empty suppression collapses the breadcrumbs region.
+    assert "<ol" not in _render([])
+    assert "<ol" not in render_to_string("brickwork/components/_breadcrumbs.html", {})

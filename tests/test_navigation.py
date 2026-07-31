@@ -91,6 +91,34 @@ def test_validate_nav_config_accepts_unique_keys() -> None:
     navigation.validate_nav_config(nav)  # must not raise
 
 
+def test_validate_nav_config_rejects_active_url_names_without_url_name() -> None:
+    # active_url_names on a link-less item can never match (only a LINK item
+    # participates in active-route resolution), so the config-time validator
+    # rejects it instead of leaving a silent no-op.
+    nav = (
+        NavItem(
+            key="grp",
+            label="Group",
+            section_header=True,
+            active_url_names=("tenants:members",),
+        ),
+    )
+    with pytest.raises(NavConfigError):
+        navigation.validate_nav_config(nav)
+
+
+def test_validate_nav_config_accepts_active_url_names_with_url_name() -> None:
+    nav = (
+        NavItem(
+            key="team",
+            label="Team",
+            url_name="tenants:members",
+            active_url_names=("tenants:member-invite",),
+        ),
+    )
+    navigation.validate_nav_config(nav)  # must not raise
+
+
 # --- BR-BW-NAV-001 / NAV-008: active via resolver_match, tree walk ----------
 
 

@@ -41,6 +41,7 @@
 
 .bw-nav__link:active {
   background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
 }
 
 .bw-nav__link--active {
@@ -68,6 +69,7 @@
     var(--bw-state-active-overlay),
     var(--bw-state-active-overlay)
   );
+  transition-duration: var(--bw-duration-instant);
 }
 
 /* An ancestor of the active leaf gets a lighter treatment (NAV-008). */
@@ -83,8 +85,9 @@
   padding-block: var(--bw-density-row-padding-block);
   padding-inline: var(--bw-density-row-padding-inline);
   border-radius: var(--bw-size-radius-md);
+  /* Colour token alone dims the row (the documented nav exception); adding
+     the disabled-opacity as well double-dims to roughly 1.9:1 contrast. */
   color: var(--bw-color-nav-item-disabled-text);
-  opacity: var(--bw-disabled-opacity);
   cursor: not-allowed;
   /* Transparent marker matches the enabled link's so rows stay aligned. */
   border-inline-start: var(--bw-size-border-nav-marker) solid transparent;
@@ -100,7 +103,7 @@
 
 .bw-nav__badge {
   flex-shrink: 0;
-  min-inline-size: 1.25rem;
+  min-inline-size: var(--bw-size-space-5);
   padding-block: var(--bw-size-space-0-5);
   padding-inline: var(--bw-size-space-1);
   border-radius: var(--bw-size-radius-full);

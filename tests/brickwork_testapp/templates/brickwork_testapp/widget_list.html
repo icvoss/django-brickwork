@@ -12,6 +12,24 @@
 {% endblock %}
 
 {% block content %}
+  {# A titled banner alert so the a11y fixtures cover the loud page-level
+     status surface with BOTH a title and a message, in both themes. #}
+  {% bw_alert "Widget exports are paused while storage is upgraded. Existing widgets are unaffected." variant="warning" title="Planned maintenance" %}
+
+  {# The widget lifecycle legend: all four intent badges, so the axe gate sees
+     every badge tint pair against both theme backgrounds. #}
+  <p class="widget-status-legend">
+    {% bw_badge "Active" variant="success" icon="check" %}
+    {% bw_badge "Draft" variant="info" %}
+    {% bw_badge "Archived" variant="warning" %}
+    {% bw_badge "Deprecated" variant="danger" %}
+  </p>
+
   {% include "brickwork/components/_data_table.html" with table_id="widgets-table" columns=table_columns rows=table_rows empty_heading="No widgets yet" empty_body="Create your first widget to get started." %}
   {% include "brickwork/components/_pagination.html" %}
+
+  {# The definition-variant facts table (the row-header, one-entity shape) so
+     the a11y fixtures cover it alongside the records table. #}
+  <h2>Workspace summary</h2>
+  {% include "brickwork/components/_data_table.html" with table_id="workspace-facts" variant="definition" rows=summary_facts empty_heading="No summary yet" empty_body="Create a widget to populate the workspace summary." %}
 {% endblock %}

@@ -9,8 +9,11 @@ Required context:
   crumbs: a list of dicts: {label, url(optional)}. The final crumb is the current
           page; give it no url (or it is rendered unlinked regardless, as the
           current page is never a link). Intermediate crumbs with a url are
-          links; without one they render as plain text.
+          links; without one they render as plain text. When crumbs is empty or
+          absent, NOTHING renders (no <ol>), so the shell's :empty suppression
+          collapses the breadcrumbs region.
 {% endcomment %}
+{% if crumbs %}
 <ol class="bw-breadcrumbs__list">
   {% for crumb in crumbs %}
     <li class="bw-breadcrumbs__item">
@@ -24,3 +27,4 @@ Required context:
     </li>
   {% endfor %}
 </ol>
+{% endif %}

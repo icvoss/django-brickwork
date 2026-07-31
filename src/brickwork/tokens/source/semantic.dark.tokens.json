@@ -46,6 +46,11 @@
       "$value": "{primitive.gray.700}",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-border) 86%, white)" } }
     },
+    "border-control": {
+      "$value": "oklch(0.523 0.003 265)",
+      "$description": "Input/control boundary. The divider border token stays subtle; controls need a WCAG 1.4.11 compliant boundary (measured 3.64:1 against the default dark surface).",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-fg) 45%, var(--bw-color-surface))" } }
+    },
     "accent": {
       "$value": "{primitive.blue.400}"
     },
@@ -64,6 +69,11 @@
       "$value": "{primitive.red.950}",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-danger) 41%, black)" } }
     },
+    "danger-border": {
+      "$value": "oklch(0.35 0.114 25)",
+      "$description": "Tinted badge/alert border for the danger intent; clears the black-mixed subtle tint by delta-L 0.089.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-danger) 55%, black)" } }
+    },
     "danger-strong": {
       "$value": "oklch(0.652 0.2 25)",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-danger) 96%, white)" } }
@@ -79,8 +89,14 @@
       "$value": "{primitive.amber.500}"
     },
     "warning-subtle": {
-      "$value": "{primitive.amber.950}",
+      "$value": "oklch(0.277 0.06 70)",
+      "$description": "Literal, not the amber.950 alias: black is hue-powerless in the mix, so the resolved hue stays the warning base's 70, not the ramp's 46.",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-warning) 36%, black)" } }
+    },
+    "warning-border": {
+      "$value": "oklch(0.423 0.091 70)",
+      "$description": "Tinted badge/alert border for the warning intent; clears the black-mixed subtle tint by delta-L 0.146.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-warning) 55%, black)" } }
     },
     "warning-strong": {
       "$value": "oklch(0.778 0.159 70)",
@@ -100,6 +116,11 @@
       "$value": "{primitive.green.950}",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-success) 37%, black)" } }
     },
+    "success-border": {
+      "$value": "oklch(0.398 0.093 152)",
+      "$description": "Tinted badge/alert border for the success intent; clears the black-mixed subtle tint by delta-L 0.130.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-success) 55%, black)" } }
+    },
     "success-strong": {
       "$value": "oklch(0.734 0.162 152)",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-success) 96%, white)" } }
@@ -115,8 +136,14 @@
       "$value": "{primitive.cyan.400}"
     },
     "info-subtle": {
-      "$value": "{primitive.cyan.950}",
+      "$value": "oklch(0.302 0.046 220)",
+      "$description": "Literal, not the cyan.950 alias: black is hue-powerless in the mix, so the resolved hue stays the info base's 220, not the ramp's 230.",
       "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-info) 42%, black)" } }
+    },
+    "info-border": {
+      "$value": "oklch(0.396 0.061 220)",
+      "$description": "Tinted badge/alert border for the info intent; clears the black-mixed subtle tint by delta-L 0.094.",
+      "$extensions": { "bw": { "derived": "color-mix(in oklch, var(--bw-color-info) 55%, black)" } }
     },
     "info-strong": {
       "$value": "oklch(0.731 0.106 220)",

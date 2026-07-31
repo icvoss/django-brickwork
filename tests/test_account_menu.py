@@ -46,15 +46,21 @@ def test_align_variant_class() -> None:
     assert "bw-account-menu--start" in _render(align="start")
 
 
-def test_open_flag_renders_the_open_attribute() -> None:
-    assert " open" in _details_tag(_render(open=True))
+def test_menu_open_flag_renders_the_open_attribute() -> None:
+    assert " open" in _details_tag(_render(menu_open=True))
     assert " open" not in _details_tag(_render())
+
+
+def test_inherited_open_variable_does_not_toggle_the_disclosure() -> None:
+    # The flag is menu_open, NOT open: a page context that happens to carry a
+    # truthy "open" (a common name) must never pop the account menu open.
+    assert " open" not in _details_tag(_render(open=True))
 
 
 def test_no_aria_menu_semantics_anywhere() -> None:
     # A details/summary disclosure of links must NOT claim menu semantics:
     # role="menu"/"menuitem" promise arrow-key handling no-JS markup cannot keep.
-    html = _render(open=True)
+    html = _render(menu_open=True)
     assert 'role="menu"' not in html
     assert 'role="menuitem"' not in html
 

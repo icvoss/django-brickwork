@@ -58,6 +58,16 @@ def _semantic_colour_values() -> list[str]:
     return values
 
 
+def _elevation_values() -> list[str]:
+    """Elevation shadow strings, both themes. Not oklch literals themselves, but
+    they carry embedded colours, so the hex/hsl ban still applies to them."""
+    values: list[str] = []
+    for name in ("semantic.light", "semantic.dark"):
+        data = json.loads((_SOURCE / f"{name}.tokens.json").read_text())
+        values.extend(_iter_values(data["elevation"]))
+    return values
+
+
 # --- BR-BW-TOK-003: colour tokens authored in oklch, never hex/hsl -----------
 
 
@@ -79,7 +89,9 @@ def test_semantic_colour_values_are_oklch_or_primitive_aliases() -> None:
 
 
 def test_no_hex_or_hsl_in_any_colour_source() -> None:
-    for v in _primitive_colour_values() + _semantic_colour_values():
+    # Elevation values are colour-bearing shadow strings, so they are scanned
+    # here too, even though they are exempt from the oklch-literal shape check.
+    for v in _primitive_colour_values() + _semantic_colour_values() + _elevation_values():
         assert not _HEX.search(v), f"hex colour {v!r} found (BR-BW-TOK-003)"
         assert not _HSL.search(v), f"hsl colour {v!r} found (BR-BW-TOK-003)"
 

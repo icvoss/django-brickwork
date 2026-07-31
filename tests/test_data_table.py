@@ -41,6 +41,18 @@ def test_row_without_url_renders_no_link() -> None:
     assert "bw-data-table__row--linked" not in out
 
 
+def test_selected_row_carries_the_selected_class() -> None:
+    rows = [
+        {"id": 1, "cells": ["Widget", "Active"], "selected": True},
+        {"id": 2, "cells": ["Gizmo", "Draft"]},
+    ]
+    out = _render(table_id="gadgets", columns=_COLUMNS, rows=rows)
+    # only the selected row gets the modifier
+    assert out.count("bw-data-table__row--selected") == 1
+    selected_row = out[out.index('id="gadgets-row-1"') : out.index('id="gadgets-row-2"')]
+    assert "bw-data-table__row--selected" in selected_row
+
+
 # --- clickable rows (#10) --------------------------------------------------
 
 
