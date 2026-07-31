@@ -99,6 +99,7 @@
   --bw-icon-stroke-width: 2;
   --bw-button-radius: var(--bw-size-radius-md);
   --bw-menu-min-width: 12rem;
+  --bw-stat-tile-value-size: var(--bw-font-size-3xl);
   --bw-disabled-opacity: 0.5;
   --bw-content-max-width: 72rem;
   --bw-topbar-position: sticky;

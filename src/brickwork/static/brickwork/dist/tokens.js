@@ -212,6 +212,7 @@ export const tokens = Object.freeze({
   "size_space_9": "var(--bw-size-space-9)",
   "size_space_px": "var(--bw-size-space-px)",
   "size_touch_target_min": "var(--bw-size-touch-target-min)",
+  "stat_tile_value_size": "var(--bw-stat-tile-value-size)",
   "state_active_overlay": "var(--bw-state-active-overlay)",
   "state_hover_overlay": "var(--bw-state-hover-overlay)",
   "state_selected_bg": "var(--bw-state-selected-bg)",

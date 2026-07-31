@@ -5,6 +5,18 @@ from django import forms
 from .models import Widget
 
 
+class WidgetFilterForm(forms.Form):
+    """The list page's filter-bar fields, rendered through _filter_bar.html
+    (each through the accessible forms/_field.html renderer)."""
+
+    q = forms.CharField(required=False, label="Search")
+    status = forms.ChoiceField(
+        required=False,
+        label="Status",
+        choices=[("", "All statuses"), ("draft", "Draft"), ("active", "Active"), ("archived", "Archived")],
+    )
+
+
 class WidgetForm(forms.ModelForm):
     class Meta:
         model = Widget

@@ -7,6 +7,7 @@ from . import views
 app_name = "testapp"
 
 urlpatterns = [
+    path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
     path("widgets/", views.WidgetListView.as_view(), name="widget-list"),
     path("widgets/new/", views.WidgetCreateView.as_view(), name="widget-create"),
     path("widgets/<int:pk>/edit/", views.WidgetUpdateView.as_view(), name="widget-edit"),

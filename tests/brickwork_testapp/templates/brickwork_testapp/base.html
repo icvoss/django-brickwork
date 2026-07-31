@@ -1,13 +1,22 @@
-{% extends "brickwork/shell/app.html" %}
+{% extends base_parent|default:"brickwork/shell/app.html" %}
 {% load brickwork_icons brickwork_nav %}
 {% comment %}
 The testapp's shared page shell (consuming-project shape): fills the nav,
-breadcrumbs, and account-menu blocks once so every page, the integration suite,
-and the a11y fixture generator exercise them. breadcrumb_trail and
+breadcrumbs, account-menu, and nav-slot blocks once so every page, the
+integration suite, and the a11y fixture generator exercise them. The parent is
+variable so a page can route through a shipped pattern (the view supplies
+base_parent="brickwork/patterns/list.html" or ".../dashboard.html") while this
+stays the single chrome home; with no base_parent the chain falls back to
+shell/app.html directly (the form pages). breadcrumb_trail and
 account_menu_items come from the testapp context processor; account_menu_open
 is unset by default and passed by the fixture generator for the open-menu
 fixtures.
 {% endcomment %}
+
+{% comment %} The nav slot (brickwork#21, BR-BW-NAV-007): the switcher is the testapp's
+   OWN details/summary fragment, filled into both containers per NAV-016. {% endcomment %}
+{% block sidebar_switcher %}{% include "brickwork_testapp/_property_switcher.html" %}{% endblock %}
+{% block mobile_nav_switcher %}{% include "brickwork_testapp/_property_switcher.html" %}{% endblock %}
 
 {% block sidebar %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
 {% comment %} The visible drawer trigger is the decorative menu icon: the shell's summary

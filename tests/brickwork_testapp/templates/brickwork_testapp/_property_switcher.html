@@ -1,0 +1,17 @@
+{% load i18n %}
+{% comment %}
+The consumer-owned property switcher for the nav slot (spec 04 worked example
+5d, brickwork#21). A native <details>/<summary> disclosure, the same no-JS
+pattern _account_menu.html establishes: brickwork ships only the
+sidebar_switcher / mobile_nav_switcher seams and the styled container; this
+fragment, its item list, and its behaviour are entirely the testapp's own
+(BR-BW-NAV-007). The property list is fixed harness data.
+{% endcomment %}
+<details class="bw-sidebar__switcher-trigger">
+  <summary>Acme Ltd</summary>
+  <nav aria-label="{% translate 'Switch property' %}">
+    <a href="/widgets/?property=acme">Acme Ltd</a>
+    <a href="/widgets/?property=globex">Globex plc</a>
+    <a href="/widgets/new/">{% translate "Add a property" %}</a>
+  </nav>
+</details>

@@ -354,6 +354,7 @@ surfaces.
 | `--bw-size-max-width-modal-lg` **[NEW]** | `48rem` | |
 | `--bw-drawer-width` **[NEW]** | `min(20rem, 80vw)` | formalises the drawer literal |
 | `--bw-menu-min-width` **[NEW]** | `12rem` | minimum width for dropdown-shaped panels; the account-menu literal becomes its consumer |
+| `--bw-stat-tile-value-size` **[NEW 0.5.0]** | `var(--bw-font-size-3xl)` | stat tile numeral size (VIZ-001); a live reference so the font scale cascades, and the `size` modifiers re-point it per tile |
 | `--bw-icon-stroke-width` | `2` | shipped, previously undocumented; the stroke width for the icon set |
 | `--bw-content-max-width` | `72rem` | 0.4.0: was `none`; a default measure cap so bands stop degrading into full-bleed wires on wide monitors (invisible at 1280px); a consumer overrides it, including back to `none` |
 | `--bw-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar |

@@ -1,0 +1,39 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+Dashboard pattern (04-interfaces.md section 4a, 0.5.0): stat row + content
+grid + a recent-activity table region. A consuming page EXTENDS this
+template, never includes it.
+
+Blocks (semver-public, BR-BW-TPL-001):
+  page_header         as list.html.
+  dashboard_stats     default: empty. Fill with one or more
+                      {% include "brickwork/components/_stat.html" %} tiles;
+                      the pattern supplies only the row container
+                      (bw-stat-grid, a responsive --bw-density-section-gap
+                      grid, per VIZ-011's shared-grid composition rule). The
+                      tile count and columns are consumer-composed. Renders
+                      nothing when empty.
+  dashboard_content   default: empty. The general-purpose content region for
+                      any other component composition (cards, charts); the
+                      consumer brings its own grid markup. Renders nothing
+                      when empty.
+  dashboard_activity  default: a card wrapping _data_table.html (via
+                      patterns/_table_card.html), fed from the page context;
+                      the same override discipline as list.html's list_body.
+
+Required context: none (every region empties gracefully; AC-BW-076).
+Optional: title, description, plus whatever context the consumer's own stat
+and data-table includes need. Omitting title entirely is a template-authoring
+gap in _page_header.html's own required-title contract, not a
+pattern-specific failure mode.
+{% endcomment %}
+
+{% block page_header %}{% include "brickwork/components/_page_header.html" %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+  <div class="bw-stat-grid">{% block dashboard_stats %}{% endblock %}</div>
+  {% block dashboard_content %}{% endblock %}
+  {% block dashboard_activity %}{% include "brickwork/patterns/_table_card.html" %}{% endblock %}
+</div>
+{% endblock %}

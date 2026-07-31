@@ -1,0 +1,57 @@
+{% comment %}
+Card (CMP-014 to CMP-017): the elevated composition surface. Structural, so it
+is consumed via {% include %} (like _page_header.html and _data_table.html).
+Its five named regions are blocks, all empty by default: an unfilled region
+emits NO markup at all (matching _alert.html's {% block alert_body %}
+convention), so a card with nothing filled renders a bare elevated surface
+(resting --bw-elevation-1, radius-lg, density-aware padding; AC-BW-070).
+
+Blocks (semver-public, BR-BW-TPL-001), in document order:
+  card_header, card_title, card_actions, card_body, card_footer.
+
+Filling blocks from an include call site: {% include %} cannot fill a block,
+so a caller that needs a region writes a small template that EXTENDS this one
+and includes THAT (the mechanism patterns/_table_card.html uses):
+
+    {% extends "brickwork/components/_card.html" %}
+    {% block card_header %}
+      <div class="bw-card__header">
+        <h2 class="bw-card__title">{% translate "Members" %}</h2>
+        <div class="bw-card__actions">{% bw_button label="Add" variant="secondary" size="sm" %}</div>
+      </div>
+    {% endblock %}
+    {% block card_body %}...{% endblock %}
+    {% block card_footer %}<div class="bw-card__footer">...</div>{% endblock %}
+
+The region classes (bw-card__header/__title/__actions/__body/__footer) are the
+styling hooks for that filler markup: the header row is a flex row with the
+title (heading-md voice) at the inline start and the actions cluster at the
+end; the footer is a quiet caption band under a hairline. The filler owns the
+wrapper element, so an unfilled region never leaves empty chrome behind.
+
+Required context: none. Optional:
+  interactive (bool, default False): rests at --bw-elevation-1 and raises to
+      --bw-elevation-2 on hover/focus-within, shadow only, never a transform
+      (MOT-010, AC-BW-071).
+  href: when set the WHOLE card is a clickable anchor (CMP-017) and the
+      interactive treatment always applies (a clickable card is
+      definitionally hoverable, so bw-card--interactive is emitted
+      regardless of the interactive flag).
+  bordered (bool, default False, CMP-015): the hairline alone carries the
+      boundary (elevation-0), for a flat-design context.
+  padding ("sm"|"md"|"lg", default "md"): emitted as bw-card--padding-<value>
+      only when supplied, composing with (never overriding) the density
+      axis's --bw-density-card-padding (AC-BW-072).
+
+The root element opens and closes in matching {% if href %} branches (an <a>
+for a linked card, a <div> otherwise) because a named block may appear only
+once per template, so the regions cannot be duplicated across two branches
+the way _button.html duplicates its label.
+{% endcomment %}
+{% if href %}<a class="bw-card bw-card--interactive{% if bordered %} bw-card--bordered{% endif %}{% if padding %} bw-card--padding-{{ padding }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-card{% if interactive %} bw-card--interactive{% endif %}{% if bordered %} bw-card--bordered{% endif %}{% if padding %} bw-card--padding-{{ padding }}{% endif %}">{% endif %}
+{% block card_header %}{% endblock %}
+{% block card_title %}{% endblock %}
+{% block card_actions %}{% endblock %}
+{% block card_body %}{% endblock %}
+{% block card_footer %}{% endblock %}
+{% if href %}</a>{% else %}</div>{% endif %}
