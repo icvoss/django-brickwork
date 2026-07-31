@@ -45,10 +45,25 @@ class RenderedNavItem:
     children: tuple[RenderedNavItem, ...]
 
 
+def _kwarg_name_pair(kwarg_name: str | tuple[str, str]) -> tuple[str, str]:
+    """Normalise a ``kwarg_name`` to a (source, target) pair. A bare string means
+    the source and target names are the same."""
+    if isinstance(kwarg_name, tuple):
+        return kwarg_name
+    return (kwarg_name, kwarg_name)
+
+
 def _effective_kwargs(item: NavItem, resolver_match) -> dict:
-    """The reverse kwargs for an item: its static ``url_kwargs`` with any
-    request-derived kwargs (``url_kwargs_from_request``) merged over the top."""
+    """The reverse kwargs for an item, merged in precedence order: static
+    ``url_kwargs``, then the declarative ``kwarg_name`` copy (#19), then the
+    ``url_kwargs_from_request`` callable (which wins for genuinely complex cases).
+    """
     kwargs = dict(item.url_kwargs)
+    if item.kwarg_name is not None and resolver_match is not None:
+        source, target = _kwarg_name_pair(item.kwarg_name)
+        route_kwargs = getattr(resolver_match, "kwargs", None) or {}
+        if source in route_kwargs:
+            kwargs[target] = route_kwargs[source]
     if item.url_kwargs_from_request is not None:
         derived = item.url_kwargs_from_request(resolver_match) or {}
         kwargs.update(derived)

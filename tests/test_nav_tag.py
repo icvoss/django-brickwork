@@ -9,11 +9,18 @@ forced via the setting).
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from django.template import Context, Template
 from django.test import override_settings
 
 from brickwork.models import NavItem
-from brickwork.templatetags.brickwork_nav import RenderedNavItem, _prepare, bw_nav
+from brickwork.templatetags.brickwork_nav import (
+    RenderedNavItem,
+    _effective_kwargs,
+    _prepare,
+    bw_nav,
+)
 
 
 def _render_tree(tree) -> str:
@@ -76,6 +83,55 @@ def test_active_item_is_flagged() -> None:
     active = NavItem(key="me", label="Me", external_url="https://x.test")
     prepared = _prepare(active, active, "omit", None)
     assert prepared.is_active is True
+
+
+# --- kwarg_name declarative route-param copy (#19) ------------------------
+
+
+def _rm(**kwargs):
+    """A stand-in resolver_match carrying only the kwargs we assert on."""
+    return SimpleNamespace(kwargs=kwargs)
+
+
+def test_kwarg_name_same_name_copies_route_param() -> None:
+    item = NavItem(key="proj", label="Project", url_name="x", kwarg_name="slug")
+    assert _effective_kwargs(item, _rm(slug="acme")) == {"slug": "acme"}
+
+
+def test_kwarg_name_rename_reads_source_writes_target() -> None:
+    # the route names it project_slug; the item's URL expects slug
+    item = NavItem(key="proj", label="Project", url_name="x", kwarg_name=("project_slug", "slug"))
+    assert _effective_kwargs(item, _rm(project_slug="acme")) == {"slug": "acme"}
+
+
+def test_kwarg_name_absent_source_contributes_nothing() -> None:
+    # no project selected yet: the source kwarg is not on the route
+    item = NavItem(key="proj", label="Project", url_name="x", kwarg_name="slug")
+    assert _effective_kwargs(item, _rm()) == {}
+    assert _effective_kwargs(item, None) == {}
+
+
+def test_kwarg_name_merges_with_static_url_kwargs() -> None:
+    item = NavItem(
+        key="proj",
+        label="Project",
+        url_name="x",
+        url_kwargs={"tab": "overview"},
+        kwarg_name="slug",
+    )
+    assert _effective_kwargs(item, _rm(slug="acme")) == {"tab": "overview", "slug": "acme"}
+
+
+def test_url_kwargs_from_request_wins_over_kwarg_name() -> None:
+    # both set: the callable is applied last and overrides
+    item = NavItem(
+        key="proj",
+        label="Project",
+        url_name="x",
+        kwarg_name="slug",
+        url_kwargs_from_request=lambda rm: {"slug": "override"},
+    )
+    assert _effective_kwargs(item, _rm(slug="fromroute")) == {"slug": "override"}
 
 
 # --- render output --------------------------------------------------------

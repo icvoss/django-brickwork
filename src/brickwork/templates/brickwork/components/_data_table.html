@@ -7,13 +7,35 @@ exactly zero rows (STA-001), and a loading skeleton (STA-004). Sort/filter/
 paginate are server-driven: the view computes the order and passes the current
 sort; a header link carries the sort param, no client-side sorting.
 
+Two shapes, selected by ``variant``:
+
+- ``variant="records"`` (default): a columnar table of same-shaped records.
+    columns: a list of dicts: {label, sortable(bool), sort_key(str)}. For a
+             SORTABLE column supply ``sortable=True`` and ``sort_key`` (the base
+             ascending order key, e.g. "name"); the template derives the
+             descending key ("-name") and the next-click toggle itself from
+             ``sort_key`` + the shared ``current_sort``, so a consumer does NOT
+             compute ``sort_key_desc`` / ``next_sort`` (#23). Those two keys may
+             still be passed to override the convention, but are optional.
+    rows:    a list of dicts: {id, cells: [rendered strings], url(optional)}
+             A row with a ``url`` becomes a clickable row: its first cell is
+             an anchor to ``url`` (the whole row is keyboard-reachable via that
+             link), so a documented per-row link actually renders (#10).
+- ``variant="definition"``: a key/value fact table for ONE entity (a detail
+    screen's "facts about this thing", the <dl>-shaped case, #18). No column
+    headers, no sorting.
+    rows: a list of dicts: {label, value} (each row is one fact). ``columns``
+          is ignored. The label is a row header (``<th scope="row">``), so the
+          table is semantically a definition table, not a fake two-column grid.
+
 Required context:
-  columns: a list of dicts: {label, key, sortable(bool), sort_key(str)}
-  rows:    a list of dicts: {id, cells: [rendered strings], url(optional)}
   table_id: the stable id for the table container (an hx-swap target).
+  rows:     as above, by variant.
+  columns:  required for ``records``, ignored for ``definition``.
 Optional:
-  loading (bool), current_sort (str, e.g. "name" or "-name"),
-  empty_heading, empty_body, querystring.
+  variant ("records" default | "definition"), loading (bool),
+  current_sort (str, e.g. "name" or "-name"), empty_heading, empty_body,
+  querystring.
 {% endcomment %}
 <div id="{{ table_id|default:'bw-data-table' }}" class="bw-data-table-wrap">
   {% if loading %}
@@ -22,18 +44,50 @@ Optional:
     </div>
   {% elif not rows %}
     {% include "brickwork/components/_empty_state.html" with variant="no_data" heading=empty_heading|default:"" body=empty_body|default:"" %}
+  {% elif variant == "definition" %}
+    <table class="bw-data-table bw-data-table--definition">
+      <tbody>
+        {% for row in rows %}
+          <tr class="bw-data-table__row">
+            <th scope="row" class="bw-data-table__th bw-data-table__th--label">{{ row.label }}</th>
+            <td class="bw-data-table__td">{{ row.value }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   {% else %}
     <table class="bw-data-table">
       <thead>
         <tr>
           {% for col in columns %}
+            {% comment %}
+            #23: the consumer supplies only ``sort_key`` and the shared
+            ``current_sort``. The descending key and the next-click toggle are
+            derived here: desc is ``-<sort_key>`` (Django ordering convention);
+            the header link toggles asc->desc when this column is the current
+            ascending sort, else lands on ascending. A consumer MAY still pass an
+            explicit ``sort_key_desc`` / ``next_sort`` to override the convention
+            (back-compatible), but neither is required any more.
+            {% endcomment %}
             <th scope="col" class="bw-data-table__th{% if col.sortable %} bw-data-table__th--sortable{% endif %}"
-                {% if col.sortable and current_sort == col.sort_key %}aria-sort="ascending"{% elif col.sortable and current_sort == col.sort_key_desc %}aria-sort="descending"{% endif %}>
+                {% if col.sortable and current_sort == col.sort_key %}aria-sort="ascending"{% elif col.sortable and current_sort|slice:"1:" == col.sort_key and current_sort|slice:":1" == "-" %}aria-sort="descending"{% endif %}>
               {% if col.sortable %}
-                <a class="bw-data-table__sort" href="?sort={{ col.next_sort }}{% if querystring %}&{{ querystring }}{% endif %}">
-                  {{ col.label }}
-                  {% if current_sort == col.sort_key %}{% bw_icon "arrow-up" size="sm" decorative=True %}{% elif current_sort == col.sort_key_desc %}{% bw_icon "arrow-down" size="sm" decorative=True %}{% else %}{% bw_icon "sort" size="sm" decorative=True css_class="bw-data-table__sort-idle" %}{% endif %}
-                </a>
+                {% if current_sort == col.sort_key %}
+                  {# currently ascending on this column -> next click sorts descending #}
+                  <a class="bw-data-table__sort" href="?sort=-{{ col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}">
+                    {{ col.label }}{% bw_icon "arrow-up" size="sm" decorative=True %}
+                  </a>
+                {% elif current_sort|slice:"1:" == col.sort_key and current_sort|slice:":1" == "-" %}
+                  {# currently descending -> next click sorts ascending #}
+                  <a class="bw-data-table__sort" href="?sort={{ col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}">
+                    {{ col.label }}{% bw_icon "arrow-down" size="sm" decorative=True %}
+                  </a>
+                {% else %}
+                  {# not the current sort -> first click sorts ascending #}
+                  <a class="bw-data-table__sort" href="?sort={{ col.next_sort|default:col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}">
+                    {{ col.label }}{% bw_icon "sort" size="sm" decorative=True css_class="bw-data-table__sort-idle" %}
+                  </a>
+                {% endif %}
               {% else %}
                 {{ col.label }}
               {% endif %}
@@ -43,9 +97,9 @@ Optional:
       </thead>
       <tbody>
         {% for row in rows %}
-          <tr id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}" class="bw-data-table__row">
+          <tr id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}">
             {% for cell in row.cells %}
-              <td class="bw-data-table__td">{{ cell }}</td>
+              <td class="bw-data-table__td">{% if row.url and forloop.first %}<a class="bw-data-table__row-link" href="{{ row.url }}">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
             {% endfor %}
           </tr>
         {% endfor %}
