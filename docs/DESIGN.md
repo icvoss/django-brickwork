@@ -275,8 +275,8 @@ resting = 1 (auth and centred panels: 2, they sit alone on a sunken page);
 interactive card hover = 2; dropdown, popover, account-menu panel = 3 (the
 fix for the hardcoded `0 4px 12px` literal); mobile drawer panel and modal
 = 4; toast = 5; topbar = border-only by default (a brand may add 2). The
-card, modal, toast, and popover entries are forward-looking: those
-components are unshipped in 0.3.0 and each row lands with the component.
+modal, toast, and popover entries are forward-looking (each row lands
+with its component); the card row shipped in 0.5.0 (_card.html).
 
 ## 6. Spacing, radius, borders, z-index, sizing
 
@@ -304,8 +304,8 @@ family; dropdown and account-menu panel down from xl so the panel radius
 is concentric with its item radius); popover, toast, modal xl; badge,
 avatar, pill full. The
 card, modal, toast, popover, avatar, pill, and badge-square entries are
-forward-looking: those components are unshipped in 0.3.0 and each row lands
-with the component.
+forward-looking (each lands with its component); the card row shipped in
+0.5.0.
 
 ### 6.3 Border widths
 
@@ -458,8 +458,8 @@ section-label overline (uppercase at the component); breadcrumbs body-sm +
 fg-muted, current crumb breadcrumb-current; account-menu item body-sm
 (0.4.0: was body-md, completing the 14px chrome scale), secondary line
 caption; pagination status caption + fg-muted; dialog/modal title
-heading-sm. The card and dialog/modal entries are forward-looking: those
-components are unshipped in 0.3.0 and each row lands with the component.
+heading-sm. The dialog/modal entry is forward-looking (it lands with the
+component); the card-title row shipped in 0.5.0 (_card.html, heading-md).
 
 ## 8. Motion
 
