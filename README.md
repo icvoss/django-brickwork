@@ -32,7 +32,14 @@ presentation and interaction conventions.
 - [docs/DESIGN.md](docs/DESIGN.md): the canonical token reference; every
   `--bw-*` name, default value, and derivation rule.
 - [docs/BRANDING.md](docs/BRANDING.md): how a consuming app brands brickwork
-  (the load-bearing token minimum, dark mode, the four axes).
+  (the load-bearing token minimum, dark mode, the four axes, the fg-on-accent
+  contrast trap, and dynamic per-tenant / per-user theming recipes).
+- [docs/INTEGRATION.md](docs/INTEGRATION.md): the greenfield integration
+  cookbook, the seams a consuming app wires end to end (settings and static, nav
+  config, context processor, a worked HTMX 422 form, the chrome/body boundary).
+- [docs/ADOPTION.md](docs/ADOPTION.md): the strangle guide for migrating an
+  existing app onto brickwork cluster by cluster (multi-host, asset coexistence,
+  the htmx floor).
 - [frontend/README.md](frontend/README.md): the in-repo build that compiles
   the shipped static assets.
 
@@ -55,6 +62,17 @@ imposed on consumers. Consumers provide their own Alpine 3 +
 `@alpinejs/focus` (and optionally htmx 2) via their own frontend build; brickwork
 registers behaviour onto the host Alpine instance and never calls
 `Alpine.start()`.
+
+### htmx floor: htmx >= 2.0
+
+brickwork's interaction contracts (the HTMX 422 form-swap loop, toast delivery
+via `hx-swap-oob`, modal dismissal via the `HX-Trigger: bw:modal:close` response
+header, combobox server filtering) are built and CI-gated on **htmx >= 2.0**
+only. htmx 1.9 is out of contract (BR-BW-HTMX-010): htmx 2 changed default
+response handling in ways the 422 loop relies on, and the interaction suites only
+ever exercise htmx 2. A brownfield app on htmx 1.9 should upgrade htmx to 2.x as a
+prerequisite before adopting brickwork's interaction primitives; see
+[docs/ADOPTION.md](docs/ADOPTION.md).
 
 ## Contracts
 
