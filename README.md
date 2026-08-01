@@ -51,7 +51,7 @@ INSTALLED_APPS = [
 
 The compiled CSS and JS ship inside the package and are referenced with plain
 `{% static %}`; no build-tool dependency (django-vite / django-tailwind) is
-imposed on consumers. Consumers provide their own Alpine 3 + `@alpinejs/ui` +
+imposed on consumers. Consumers provide their own Alpine 3 +
 `@alpinejs/focus` (and optionally htmx 2) via their own frontend build; brickwork
 registers behaviour onto the host Alpine instance and never calls
 `Alpine.start()`.
