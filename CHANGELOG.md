@@ -37,6 +37,23 @@ versioning contract).
   (brickwork#48); htmx 1.9 is out of contract. Documentation index links the new
   integration and adoption guides.
 
+### Fixed
+
+- **The list pattern now owns the sort/pagination querystring split**
+  (brickwork#41). Previously `patterns/list.html` fed a single `querystring`
+  context var to both the sortable table headers and the pagination links, so a
+  consumer could satisfy only one: page links duplicated the sort param or sort
+  links dropped the page. Now, when `request` is in context (the view / pattern
+  path, via the shipped context processor), each link builds its own href from
+  the live GET params with Django's built-in `{% querystring %}` tag: a sort
+  click overrides `sort` and drops `page` (a re-sort resets to page one), a page
+  click overrides `page` and preserves `sort` and filters. Consumers no longer
+  hand-split `querystring` / `pagination_querystring`. Backwards compatible: the
+  `querystring` context var remains the documented fallback for components
+  rendered standalone with no request, and that path is byte-identical to 0.10.0.
+  Django 6.0 floor already guarantees the tag. Touches `_data_table.html`,
+  `_pagination.html`, and the `patterns/list.html` docstring.
+
 ## [0.10.0] - 2026-08-01
 
 The structural close of the interaction-set programme: consumer Tailwind
@@ -77,6 +94,8 @@ shell configuration rather than a template override.
   identity map: `--bw-*` is not a Tailwind utility namespace, so the
   fragment generated no utilities and no inheritance. It had shipped
   that way since the fragment first appeared.
+
+## [0.9.0] - 2026-08-01
 
 Interactions II: the second tranche of the interaction set (spec
 04-interfaces section 4b as amended by umbrella PR #119). Server-driven
@@ -134,6 +153,8 @@ exist under JS.
   attribute (the combobox floor/enhanced split and toast collapse rely
   on it).
 
+## [0.8.0] - 2026-08-01
+
 Interactions I: the first tranche of the interactive component library on
 the token substrate (spec 04-interfaces section 4b). Progressive
 enhancement throughout: the no-JS floor IS the base markup and Alpine
@@ -185,6 +206,8 @@ the test harness.
   active visual on either that class (the no-JS floor) or
   `data-bw-active` (the JS-owned marker), and only the marker was being
   toggled.
+
+## [0.7.0] - 2026-08-01
 
 The craft round. Owner bar: next to Radix, the components still read as
 mechanically generated; token identity alone does not fix control-level
