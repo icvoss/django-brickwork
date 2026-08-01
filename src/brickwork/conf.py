@@ -31,6 +31,13 @@ _SETTINGS: Final[dict[str, tuple[Any, tuple[Any, ...] | None]]] = {
     "BRICKWORK_DEFAULT_THEME": ("light", ("light", "dark")),
     "BRICKWORK_DEFAULT_DENSITY": ("comfortable", ("compact", "comfortable", "spacious")),
     "BRICKWORK_DEFAULT_DIR": ("ltr", ("ltr", "rtl")),
+    # Optional brand slug rendered as data-bw-brand on the shell root <html>
+    # when no theme_resolver supplies one (0.10.0 brand hook, 03-services.md).
+    # "" (default) = no attribute, output byte-identical to pre-0.10.0.
+    # Free-form here; the attribute-safe slug shape ([A-Za-z][A-Za-z0-9_-]*)
+    # is enforced at resolve time in
+    # brickwork.services.tokens.resolve_theme_attributes.
+    "BRICKWORK_DEFAULT_BRAND": ("", None),
     "BRICKWORK_NAV_FALLBACK": ("omit", ("omit", "disabled")),
     # Optional dotted path to a Callable[[HttpRequest], ThemeAttributes] used by
     # the brickwork.context_processors.theme processor for per-user/per-tenant

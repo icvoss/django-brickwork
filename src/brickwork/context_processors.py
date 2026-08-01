@@ -2,9 +2,9 @@
 
 The shell (``brickwork/shell/base.html``) reads the ``<html>`` axis attributes
 from the context variables ``bw_theme`` / ``bw_density`` / ``bw_dir`` /
-``bw_lang`` / ``bw_page_title``. ``resolve_theme_attributes`` returns the
-service-shaped dict ``{theme, density, dir}`` (plus an optional ``logo``), which
-does NOT match those names and carries no language. A consumer that drops the
+``bw_lang`` / ``bw_brand`` / ``bw_page_title``. ``resolve_theme_attributes``
+returns the service-shaped dict ``{theme, density, dir, brand}`` (plus an
+optional ``logo``), which does NOT match those names and carries no language. A consumer that drops the
 service output straight into context therefore gets a silently unstyled shell
 (brickwork#22).
 
@@ -43,8 +43,10 @@ def theme(request: HttpRequest) -> dict:
 
     Returns ``bw_theme`` / ``bw_density`` / ``bw_dir`` (from
     ``resolve_theme_attributes``, honouring a ``BRICKWORK_THEME_RESOLVER`` if
-    set), ``bw_lang`` (the active language), and ``bw_logo`` when the resolver
-    supplied one. Does NOT set ``bw_page_title`` (view-owned).
+    set), ``bw_lang`` (the active language), ``bw_logo`` when the resolver
+    supplied one, and ``bw_brand`` when the resolved brand is non-empty
+    (0.10.0: rendered as ``data-bw-brand`` on the shell root <html>). Does NOT
+    set ``bw_page_title`` (view-owned).
     """
     resolver_path = get_setting("BRICKWORK_THEME_RESOLVER")
     theme_resolver = import_string(resolver_path) if resolver_path else None
@@ -59,4 +61,6 @@ def theme(request: HttpRequest) -> dict:
     }
     if attrs.get("logo"):
         context["bw_logo"] = attrs["logo"]
+    if attrs.get("brand"):
+        context["bw_brand"] = attrs["brand"]
     return context
