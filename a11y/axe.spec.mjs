@@ -100,6 +100,13 @@ test.describe("no-JS floor", () => {
       // the referenced error container exists and carries the message
       const errorId = describedBy.split(" ").find((id) => id.endsWith("_errors"));
       await expect(page.locator(`#${errorId}`)).toContainText("not allowed");
+      // the drawn checkbox (bw-checkbox) is present and natively toggleable:
+      // a real <input type="checkbox"> changes state without any scripting
+      const checkbox = page.locator('input[type="checkbox"].bw-checkbox');
+      await expect(checkbox).toHaveCount(1);
+      await expect(checkbox).not.toBeChecked();
+      await checkbox.check();
+      await expect(checkbox).toBeChecked();
     });
   }
 });

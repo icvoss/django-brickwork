@@ -18,6 +18,15 @@ class WidgetFilterForm(forms.Form):
 
 
 class WidgetForm(forms.ModelForm):
+    # A declared (non-model) boolean so the a11y fixtures exercise the drawn
+    # checkbox control (bw-checkbox) through the accessible field renderer;
+    # help_text wires aria-describedby onto the checkbox input too.
+    flagged = forms.BooleanField(
+        required=False,
+        label="Flagged",
+        help_text="Mark this widget for review.",
+    )
+
     class Meta:
         model = Widget
         fields = ["name", "status"]
