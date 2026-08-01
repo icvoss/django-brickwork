@@ -55,6 +55,12 @@ the test harness.
   dismissal invoked from an inline Alpine expression on a descendant
   (the `close_url` anchor) mutated `data-bw-open` on that descendant
   instead of the root, leaving the modal visually stuck open.
+- `bwTabs` strips the server-rendered `bw-tabs__tab--active` class at
+  init alongside `aria-current`; previously the server-selected tab kept
+  its active underline permanently because the stylesheet keys the
+  active visual on either that class (the no-JS floor) or
+  `data-bw-active` (the JS-owned marker), and only the marker was being
+  toggled.
 
 The craft round. Owner bar: next to Radix, the components still read as
 mechanically generated; token identity alone does not fix control-level

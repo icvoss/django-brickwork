@@ -83,6 +83,23 @@ async function openModal(page) {
   await expect(page.locator("#confirm-reset")).toHaveAttribute("data-bw-open", "");
 }
 
+// x-trap engages the background's inert state asynchronously, after
+// TRAP_ENGAGE_GUARD_MS (modal.js). On a slow CI runner a Tab press issued
+// before that point lands before the trap is actually active, so focus can
+// legitimately leave the panel: wait for the deterministic engagement
+// signal rather than a fixed timeout. The `.inert` x-trap modifier is
+// @alpinejs/focus's own naming; its setInert() (node_modules/@alpinejs/
+// focus/src/index.js) crawls UP from the panel marking sibling elements
+// aria-hidden="true" at each ancestor level, not the native [inert]
+// attribute. The scrim (the panel's immediate sibling) already carries a
+// static aria-hidden="true" at rest, so it cannot be the signal; the skip
+// link (shell/base.html), a body-level sibling of #bw-modal-root, only
+// gains aria-hidden once the crawl reaches that level, i.e. once the trap
+// has actually engaged.
+async function waitForTrapEngaged(page) {
+  await page.waitForFunction(() => document.querySelector(".bw-skip-link")?.getAttribute("aria-hidden") === "true");
+}
+
 async function settleAnimations(page) {
   await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
 }
@@ -299,6 +316,18 @@ test.describe("tabs keyboard", () => {
     await expect(page.locator("#bw-tab-itx-overview")).toHaveAttribute("aria-selected", "true");
   });
 
+  test("init strips the server-rendered active class; activation moves data-bw-active, not the class", async ({ page }) => {
+    // the CSS keys the active visual on :is(.bw-tabs__tab--active, [data-bw-active]);
+    // init() must remove the no-JS class alongside aria-current, or the
+    // server-selected tab keeps its underline forever under JS.
+    await expect(page.locator(".bw-tabs__tab--active")).toHaveCount(0);
+    await page.locator("#bw-tab-itx-details").click();
+    await expect(page.locator("#bw-tab-itx-overview")).not.toHaveClass(/bw-tabs__tab--active/);
+    await expect(page.locator("#bw-tab-itx-overview")).not.toHaveAttribute("data-bw-active", "");
+    await expect(page.locator("#bw-tab-itx-details")).not.toHaveClass(/bw-tabs__tab--active/);
+    await expect(page.locator("#bw-tab-itx-details")).toHaveAttribute("data-bw-active", "");
+  });
+
   test("arrows move focus without activating; Enter activates (MANUAL)", async ({ page }) => {
     await page.locator("#bw-tab-itx-overview").focus();
     await page.keyboard.press("ArrowRight");
@@ -346,6 +375,9 @@ test.describe("modal keyboard", () => {
     await openModal(page);
     // focus lands on [data-bw-autofocus]
     await page.waitForFunction(() => document.activeElement?.id === "confirm-reset-input");
+    // the trap engages asynchronously (TRAP_ENGAGE_GUARD_MS); wait for the
+    // background to go inert before relying on the trap to contain Tab
+    await waitForTrapEngaged(page);
     // the trap never lets focus reach the page behind, in either direction
     for (let i = 0; i < 10; i += 1) {
       await page.keyboard.press("Tab");

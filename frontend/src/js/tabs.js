@@ -82,8 +82,10 @@ export default function tabs(config = {}) {
         if (!el.id) el.id = `bw-tab-${this.id}-${key}`;
         el.setAttribute("aria-controls", this._panelId(el));
         // aria-selected carries the state under tab semantics; the server's
-        // no-JS aria-current="page" marker would go stale client-side.
+        // no-JS markers (aria-current="page" and the --active class) would
+        // go stale client-side, where data-bw-active takes over the visual.
         el.removeAttribute("aria-current");
+        el.classList.remove("bw-tabs__tab--active");
         el.addEventListener("click", (event) => {
           event.preventDefault(); // the href stays the no-JS floor
           this.select(key);
