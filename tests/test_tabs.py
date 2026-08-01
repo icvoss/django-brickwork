@@ -179,11 +179,14 @@ def test_inactive_panel_is_hidden() -> None:
     assert "hidden" in html
 
 
-def test_lazy_url_wires_the_revealed_htmx_swap() -> None:
-    # CBH-014: content loads when the panel first becomes visible.
+def test_lazy_url_wires_the_intersect_once_htmx_swap() -> None:
+    # CBH-014: content loads when the panel first becomes visible. intersect
+    # once (not revealed) fires on the same IntersectionObserver primitive
+    # regardless of how visibility changed, including bwTabs flipping the
+    # hidden property directly via JS on selection.
     html = _render_panel(lazy_url="/interactions/panels/activity/")
     assert 'hx-get="/interactions/panels/activity/"' in html
-    assert 'hx-trigger="revealed"' in html
+    assert 'hx-trigger="intersect once"' in html
     assert 'hx-target="this"' in html
     assert "hx-get" not in _render_panel()
 

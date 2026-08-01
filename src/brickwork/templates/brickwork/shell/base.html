@@ -35,10 +35,12 @@ out of the box.
   {% block shell %}{% endblock %}
 
   {% block body_js %}{% endblock %}
-{# htmx modal target (BR-BW-HTMX-005): a stable swap root for server-rendered
-   modal fragments; zero-footprint when empty (display: contents) so an OOB
-   or targeted swap never shifts layout (BR-BW-HTMX-009). Shipped with the
-   0.8.0 interaction tranche alongside _modal.html. #}
+{% comment %}
+htmx modal target (BR-BW-HTMX-005): a stable swap root for server-rendered
+modal fragments; zero-footprint when empty (display: contents) so an OOB
+or targeted swap never shifts layout (BR-BW-HTMX-009). Shipped with the
+0.8.0 interaction tranche alongside _modal.html.
+{% endcomment %}
 <div id="bw-modal-root"></div>
 </body>
 </html>

@@ -269,10 +269,10 @@ def test_lazy_tab_is_server_rendered_when_it_is_the_active_tab(client: Client) -
     assert "Priya restocked Alpha" in html
 
 
-def test_lazy_tab_carries_the_revealed_swap_when_inactive(client: Client) -> None:
+def test_lazy_tab_carries_the_intersect_once_swap_when_inactive(client: Client) -> None:
     html = client.get("/interactions/").content.decode()
     assert 'hx-get="/interactions/panels/activity/"' in html
-    assert 'hx-trigger="revealed"' in html
+    assert 'hx-trigger="intersect once"' in html
     assert 'hx-target="this"' in html
     # the skeleton placeholder reserves the swap's space (BR-BW-HTMX-009)
     assert "bw-skeleton" in html

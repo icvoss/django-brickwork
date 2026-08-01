@@ -76,6 +76,7 @@ export default function modal(config = {}) {
     id: config.id ?? "",
     backdropDismiss: config.backdropDismiss !== false,
 
+    _root: null,
     _invoker: null,
     _onWindowKeydown: null,
     _onServerClose: null,
@@ -83,7 +84,15 @@ export default function modal(config = {}) {
     _pendingClose: null,
 
     init() {
+      // Captured once and reused everywhere below instead of re-reading
+      // this.$el at call time: Alpine's inline x-on expressions (the
+      // close_url anchor's x-on:click.prevent="close('close-button')")
+      // evaluate with $el scoped to the element the directive is WRITTEN
+      // ON, not the component root, so a call arriving through that path
+      // would otherwise flip isOpen on the root's reactive state while
+      // mutating data-bw-open on the anchor instead (BR-BW-JS-007).
       const root = this.$el;
+      this._root = root;
       if (!this.id) this.id = root.id || "bw-modal";
 
       // [data-bw-autofocus] maps onto the wrapped trap's initial focus:
@@ -149,17 +158,17 @@ export default function modal(config = {}) {
       // htmx path this is the triggering anchor (htmx leaves focus there).
       const active = document.activeElement;
       this._invoker =
-        active && active !== document.body && !this.$el.contains(active)
+        active && active !== document.body && !this._root.contains(active)
           ? active
           : this._invoker;
       this.isOpen = true;
-      this.$el.setAttribute("data-bw-open", "");
-      dispatch(this.$el, "bw:modal:open", { id: this.id });
+      this._root.setAttribute("data-bw-open", "");
+      dispatch(this._root, "bw:modal:open", { id: this.id });
       // x-trap moves focus to the first focusable element; an explicit
       // [data-bw-autofocus] wins when present (04-interfaces).
       this.$nextTick(() => {
         requestAnimationFrame(() => {
-          const preferred = this.$el.querySelector("[data-bw-autofocus]");
+          const preferred = this._root.querySelector("[data-bw-autofocus]");
           if (preferred && this.isOpen) preferred.focus();
         });
       });
@@ -183,8 +192,8 @@ export default function modal(config = {}) {
     _close(reason) {
       if (!this.isOpen) return;
       this.isOpen = false;
-      this.$el.removeAttribute("data-bw-open");
-      dispatch(this.$el, "bw:modal:close", { id: this.id, reason });
+      this._root.removeAttribute("data-bw-open");
+      dispatch(this._root, "bw:modal:close", { id: this.id, reason });
       // Focus returns to the invoker on EVERY dismissal route. x-trap also
       // restores its own captured element on deactivation; this explicit
       // restore guarantees the contract even when the trap never engaged

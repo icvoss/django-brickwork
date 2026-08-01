@@ -179,6 +179,11 @@ test.describe("no-JS floors", () => {
     test(`dropdown danger action reaches the confirm page as a plain link (${theme})`, async ({ page }) => {
       await page.goto(fx(`interactions-${theme}.html`));
       await ddTrigger(page).click();
+      // the panel's open entrance (bw-fade-in-up) is still animating its
+      // position right after the trigger click; wait for it to settle so
+      // the anchor's post-click navigation isn't racing Playwright's
+      // actionability re-check against a still-moving bounding box.
+      await settleAnimations(page);
       await page.locator("[data-bw-dropdown-item]", { hasText: "Reset demo data" }).click();
       await expect(page).toHaveURL(new RegExp(`interactions-modal-page-${theme}\\.html`));
     });
@@ -199,7 +204,7 @@ test.describe("dropdown keyboard", () => {
       ["Enter", "New widget"],
       [" ", "New widget"],
       ["ArrowDown", "New widget"],
-      ["ArrowUp", "Delete demo data"],
+      ["ArrowUp", "Reset demo data"],
     ]) {
       await trigger.focus();
       await page.keyboard.press(key === " " ? "Space" : key);
@@ -220,15 +225,15 @@ test.describe("dropdown keyboard", () => {
     await page.keyboard.press("ArrowDown");
     expect(await activeText(page)).toContain("Draft widgets");
     await page.keyboard.press("ArrowDown");
-    expect(await activeText(page)).toContain("Delete demo data");
+    expect(await activeText(page)).toContain("Reset demo data");
     await page.keyboard.press("ArrowDown"); // wraps
     expect(await activeText(page)).toContain("New widget");
     await page.keyboard.press("ArrowUp"); // wraps back
-    expect(await activeText(page)).toContain("Delete demo data");
+    expect(await activeText(page)).toContain("Reset demo data");
     await page.keyboard.press("Home");
     expect(await activeText(page)).toContain("New widget");
     await page.keyboard.press("End");
-    expect(await activeText(page)).toContain("Delete demo data");
+    expect(await activeText(page)).toContain("Reset demo data");
     // the items are reached by arrows, never by Tab: they sit outside the
     // tab order while the menu is open (menuitem tabindex -1)
     await expect(page.locator('[data-bw-dropdown-item][role="menuitem"]').first()).toHaveAttribute("tabindex", "-1");
@@ -239,8 +244,11 @@ test.describe("dropdown keyboard", () => {
     await page.keyboard.press("Enter");
     await page.keyboard.press("d");
     expect(await activeText(page)).toContain("Draft widgets");
+    // "Draft widgets" is the only item starting with "d"; a repeated same
+    // character cycles through matches (APG typeahead), so it lands back
+    // on itself rather than advancing to an item that does not match.
     await page.keyboard.press("d");
-    expect(await activeText(page)).toContain("Delete demo data");
+    expect(await activeText(page)).toContain("Draft widgets");
   });
 
   test("Escape, outside click, and Tab all dismiss; focus returns to the trigger", async ({ page }) => {
@@ -446,6 +454,15 @@ for (const theme of THEMES) {
 
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
+
+  // The reducedMotion context option alone does not reliably reach a
+  // file:// document's matchMedia/CSS evaluation in this Chromium build;
+  // an explicit emulateMedia call (issued before navigation, same as the
+  // context option would apply) is needed for the media query to actually
+  // engage on these fixtures.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+  });
 
   const neutralised = (styles) => {
     // the global floor: animation-duration/transition-duration forced to

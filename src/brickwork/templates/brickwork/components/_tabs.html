@@ -76,9 +76,14 @@ Context:
   content: pre-rendered panel HTML (mark it safe at the call site) or a
       consumer include's output.
   lazy_url (optional, CBH-014): with lazy_load tabs the panel carries
-      hx-get="<lazy_url>" hx-trigger="revealed" hx-target="this", so
-      content loads when the panel first becomes visible. Supply skeleton
-      content so the swap reserves its space (BR-BW-HTMX-009).
+      hx-get="<lazy_url>" hx-trigger="intersect once" hx-target="this", so
+      content loads when the panel first becomes visible. htmx's
+      revealed event is scroll-driven (an IntersectionObserver armed on
+      scroll containers) and does not reliably fire when bwTabs flips the
+      hidden property directly via JS on selection; intersect once fires
+      on the same underlying IntersectionObserver primitive regardless of
+      how visibility changed. Supply skeleton content so the swap reserves
+      its space (BR-BW-HTMX-009).
 {% endcomment %}
 {% partialdef tab_panel %}
 <div class="bw-tabs__panel"
@@ -87,7 +92,7 @@ Context:
      aria-labelledby="bw-tab-{{ tabs_id }}-{{ key }}"
      tabindex="0"
      {% if key != active %}hidden{% endif %}
-     {% if lazy_url %}hx-get="{{ lazy_url }}" hx-trigger="revealed" hx-target="this"{% endif %}>
+     {% if lazy_url %}hx-get="{{ lazy_url }}" hx-trigger="intersect once" hx-target="this"{% endif %}>
   {{ content }}
 </div>
 {% endpartialdef %}

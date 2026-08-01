@@ -342,6 +342,6 @@ class InteractionConfirmView(TemplateView):
 
 class LazyActivityPanelView(TemplateView):
     """The lazy tab panel endpoint: returns the panel content partial only
-    (the hx-get="... " hx-trigger="revealed" hx-target="this" swap, CBH-014)."""
+    (the hx-get="... " hx-trigger="intersect once" hx-target="this" swap, CBH-014)."""
 
     template_name = "brickwork_testapp/_activity_panel.html"
