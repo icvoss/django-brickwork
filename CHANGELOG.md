@@ -8,6 +8,36 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-01
+
+The topbar layout release: CSS for the shell's existing `layout` ARG
+(the-wall SHL-001, CORE). Additive and CSS-only; nothing renamed or removed,
+no template restructuring: both layouts share one DOM.
+
+### Added
+
+- **Topbar-primary layout styling** for `shell/app.html`'s existing
+  `layout="topbar"` ARG (previously the attribute rendered with no styling
+  behind it). Under `[data-layout="topbar"]` the app becomes a single column:
+  the sidebar restyles into a full-width horizontal nav band directly under
+  the sticky topbar (hairline below instead of at the inline end, background
+  unchanged), the top-level nav list flows as a wrapping inline row, links
+  keep their radius/hover/active treatment with the 3px active marker moved
+  from the leading edge to the bottom edge (same token), section labels
+  render inline as overline separators, and the switcher slot sits inline at
+  the row start with its hairline rotated to the trailing edge. Nested nav
+  lists stay vertically stacked inside their parent item (no dropdown JS on
+  the no-JS floor; a documented limitation). Below the `md` breakpoint the
+  band hides exactly as the sidebar column does and the mobile drawer takes
+  over, unchanged, in either shape. Every new rule is scoped under the
+  attribute, so the sidebar layout's defaults are untouched.
+- a11y gate: `list-topbar-light`/`list-topbar-dark` fixtures render the real
+  list page in the topbar layout, so the axe (WCAG 2.2 AA) suite covers the
+  band, the bottom active marker, the inline section labels, and the inline
+  switcher slot in both themes.
+- testapp: a `?layout=` context passthrough (validated to
+  `sidebar`/`topbar`) so every harness page can render either shell shape.
+
 ## [0.5.0] - 2026-07-31
 
 The pages release: the blocks include the rooms, not just the bricks

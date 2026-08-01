@@ -53,7 +53,7 @@ def _nav_context(request):
     return items, active
 
 
-def _base_context(request, theme: str):
+def _base_context(request, theme: str, *, layout: str = "sidebar"):
     items, active = _nav_context(request)
     return {
         "request": request,
@@ -62,10 +62,12 @@ def _base_context(request, theme: str):
         "bw_theme": theme,
         "bw_density": "comfortable",
         "bw_dir": "ltr",
+        # the shell's SHL-001 layout ARG ("sidebar" default, or "topbar")
+        "layout": layout,
     }
 
 
-def render_list(theme: str, *, menu_open: bool = False) -> str:
+def render_list(theme: str, *, menu_open: bool = False, layout: str = "sidebar") -> str:
     from brickwork_testapp.forms import WidgetFilterForm
     from django.urls import resolve
 
@@ -89,7 +91,7 @@ def render_list(theme: str, *, menu_open: bool = False) -> str:
         {"label": "Active", "value": "1"},
         {"label": "Draft", "value": "1"},
     ]
-    ctx = _base_context(request, theme)
+    ctx = _base_context(request, theme, layout=layout)
     ctx.update(
         {
             # route through patterns/list.html, exactly as the view does, so
@@ -174,12 +176,17 @@ def main() -> None:
     for theme in ("light", "dark"):
         (OUT / f"list-{theme}.html").write_text(render_list(theme))
         (OUT / f"list-menu-open-{theme}.html").write_text(render_list(theme, menu_open=True))
+        # the topbar-primary layout (SHL-001, 0.6.0): the same list page with
+        # the nav restyled as a horizontal band, so the axe gate covers the
+        # bottom active marker, inline section labels, and inline switcher slot
+        (OUT / f"list-topbar-{theme}.html").write_text(render_list(theme, layout="topbar"))
         (OUT / f"dashboard-{theme}.html").write_text(render_dashboard(theme))
         (OUT / f"form-{theme}.html").write_text(render_form(theme, with_errors=False))
         (OUT / f"form-errors-{theme}.html").write_text(render_form(theme, with_errors=True))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
+            f"list-topbar-{theme}",
             f"dashboard-{theme}",
             f"form-{theme}",
             f"form-errors-{theme}",

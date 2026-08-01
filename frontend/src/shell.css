@@ -325,6 +325,77 @@
   margin-block-end: var(--bw-density-stack-gap);
 }
 
+/* --- Topbar-primary layout (SHL-001): [data-layout="topbar"] ---------------- */
+
+/* Same DOM as the sidebar layout, restyled: the aside becomes a full-width
+ * horizontal nav band directly under the topbar. `.bw-app__main` dissolves
+ * (display: contents) so the topbar, the band, and the workspace order as
+ * siblings in one column; `order: -1` seats the topbar first while everything
+ * else keeps document order (band, subnav, breadcrumbs, workspace). Every rule
+ * here is scoped under the attribute, so no sidebar-layout default changes.
+ *
+ * Reading-order note (A11Y-015): the shared DOM keeps the primary nav before
+ * the topbar in reading/tab order in BOTH layouts; here the topbar is lifted
+ * visually above the band, so visual order and DOM order differ by that one
+ * adjacent swap. This is the deliberate cost of one DOM for two shapes (no
+ * template fork); the skip link remains the first tab stop either way.
+ */
+
+.bw-app[data-layout="topbar"] {
+  display: flex; /* flex column absorbs the optional subnav/breadcrumbs rows */
+  flex-direction: column;
+}
+
+[data-layout="topbar"] .bw-app__main {
+  display: contents;
+}
+
+[data-layout="topbar"] .bw-topbar {
+  order: -1;
+}
+
+/* The band: full width, hairline below instead of at the inline end,
+ * background unchanged. No z-index of its own: the sticky topbar's
+ * --bw-z-sticky already paints above the static band on scroll. */
+[data-layout="topbar"] .bw-sidebar {
+  flex-direction: row;
+  align-items: center;
+  border-inline-end: none;
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  padding-block: 0; /* vertical rhythm comes from the nav row's own padding */
+  padding-inline: var(--bw-density-page-gutter-inline);
+}
+
+[data-layout="topbar"] .bw-sidebar__header {
+  padding-block-end: 0;
+}
+
+/* The switcher slot sits inline at the row start: auto width, the hairline
+ * rotates from below (block-end) to the trailing edge (inline-end), and the
+ * gap to the nav stays the density section gap, rotated to the inline axis
+ * so a consumer still never guesses it. */
+[data-layout="topbar"] .bw-sidebar > .bw-sidebar__switcher {
+  flex: 0 0 auto;
+  margin-block-end: 0;
+  margin-inline-end: var(--bw-density-section-gap);
+  border-block-end: none;
+  border-inline-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+/* The band never scrolls internally; the wrapping nav row grows it instead. */
+[data-layout="topbar"] .bw-sidebar__nav {
+  overflow-y: visible;
+}
+
+/* Footer content seats at the row end, its divider rotated to match. */
+[data-layout="topbar"] .bw-sidebar__footer {
+  margin-inline-start: auto;
+  padding-block-start: 0;
+  padding-inline-start: var(--bw-density-stack-gap);
+  border-block-start: none;
+  border-inline-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
 /* --- Responsive: collapse the sidebar into the mobile drawer at md --------- */
 
 @media (max-width: 48rem) { /* = md breakpoint (var() is invalid in media queries) */
@@ -332,6 +403,9 @@
     grid-template-columns: 1fr; /* sidebar out of flow, drawer takes over */
   }
   .bw-sidebar {
+    /* Covers BOTH layouts: the topbar band's rules never set display, so the
+       band hides below md exactly as the sidebar column does and the drawer
+       takes over in either shape. */
     display: none;
   }
   .bw-drawer {

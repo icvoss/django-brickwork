@@ -151,3 +151,20 @@ def test_layout_arg_selects_sidebar_vs_topbar(  # SHL-001
     topbar = _render("brickwork/shell/app.html", layout="topbar")
     assert 'data-layout="sidebar"' in sidebar
     assert 'data-layout="topbar"' in topbar
+
+
+def test_layout_defaults_to_sidebar_when_unset() -> None:  # SHL-001
+    html = _render("brickwork/shell/app.html")
+    assert 'data-layout="sidebar"' in html
+
+
+def test_layout_context_renders_through_an_extending_page() -> None:  # SHL-001
+    # The layout ARG is a plain context var, so it must flow through a
+    # consuming page's {% extends %} chain to the shell's data-layout hook
+    # (the CSS-only topbar restyle keys off that attribute, 0.6.0).
+    from django.template import Context, Template
+
+    child = Template("{% extends 'brickwork/shell/app.html' %}{% block content %}<p id='probe'>x</p>{% endblock %}")
+    html = child.render(Context({"layout": "topbar"}))
+    assert 'data-layout="topbar"' in html
+    assert "<p id='probe'>x</p>" in html

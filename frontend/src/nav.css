@@ -157,3 +157,58 @@
   text-transform: uppercase;
   letter-spacing: var(--bw-text-overline-tracking);
 }
+
+/* --- Topbar-primary layout (SHL-001): the nav as a horizontal band ---------- */
+
+/* Scoped to .bw-sidebar inside [data-layout="topbar"] so the SAME nav render
+ * inside the mobile drawer keeps its vertical column (NAV-016: one DOM, two
+ * shapes). Every rule below is additive to the sidebar defaults above.
+ */
+
+/* The top-level list flows as a wrapping inline row; a section's own list
+ * joins the row so its items sit beside its label. */
+[data-layout="topbar"] .bw-sidebar__nav > .bw-nav__list,
+[data-layout="topbar"] .bw-sidebar .bw-nav__section > .bw-nav__list {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-size-space-1);
+}
+
+[data-layout="topbar"] .bw-sidebar__nav > .bw-nav__list {
+  padding-block: var(--bw-density-row-padding-block);
+}
+
+/* Nested lists (.bw-nav__list--nested) deliberately keep their vertical stack
+ * inside the parent item: there is no dropdown JS on the no-JS floor
+ * (BR-BW-HTMX-001), so a nested group simply flows in the wrap as a taller
+ * item. Known limitation of the horizontal band; a consumer wanting true
+ * dropdown submenus layers them via progressive enhancement (BR-BW-TPL-002).
+ */
+
+/* Links keep their radius/hover/active treatment; the 3px active marker moves
+ * from the leading (inline-start) edge to the bottom (block-end) edge, where
+ * it reads correctly in a horizontal bar. Same marker width token; the
+ * transparent resting border keeps rows aligned exactly as in the sidebar.
+ * .bw-nav__link--disabled carries .bw-nav__link too, so both are covered. */
+[data-layout="topbar"] .bw-sidebar .bw-nav__link {
+  border-inline-start: none;
+  border-block-end: var(--bw-size-border-nav-marker) solid transparent;
+}
+
+[data-layout="topbar"] .bw-sidebar .bw-nav__link--active {
+  border-block-end-color: var(--bw-color-nav-item-active-border);
+}
+
+/* Sections sit inline in the row; their labels become overline separators. */
+[data-layout="topbar"] .bw-sidebar .bw-nav__section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-block-start: 0;
+}
+
+[data-layout="topbar"] .bw-sidebar .bw-nav__section-label {
+  padding-block-end: 0;
+  margin-inline: var(--bw-size-space-2);
+}
