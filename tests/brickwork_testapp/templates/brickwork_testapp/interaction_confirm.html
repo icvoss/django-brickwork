@@ -1,0 +1,14 @@
+{% extends "brickwork_testapp/base.html" %}
+{% comment %}
+The modal's no-JS floor (BR-BW-HTMX-006, AC-BW-086): the same consumer modal
+partial rendered inside a full page through the shell. With no JavaScript the
+chrome is an in-flow, visible panel (nothing rests display:none), the form is
+a real POST, and the close control is a real anchor back to the interactions
+page (close_url). The modal is then simply a page, which is the floor.
+{% endcomment %}
+
+{% block page_title %}Reset demo data{% endblock %}
+
+{% block content %}
+  {% include "brickwork_testapp/_confirm_modal.html" %}
+{% endblock %}

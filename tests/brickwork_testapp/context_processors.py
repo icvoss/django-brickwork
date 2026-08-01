@@ -21,6 +21,8 @@ def _breadcrumb_trail(request):
     view_name = getattr(request.resolver_match, "view_name", "")
     if view_name == "testapp:dashboard":
         return [{"label": "Home", "url": "/widgets/"}, {"label": "Dashboard"}]
+    if view_name in {"testapp:interactions", "testapp:interaction-confirm"}:
+        return [{"label": "Home", "url": "/widgets/"}, {"label": "Interactions"}]
     if view_name in {"testapp:widget-create", "testapp:widget-edit"}:
         return [
             {"label": "Home", "url": "/widgets/"},

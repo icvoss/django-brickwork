@@ -1094,6 +1094,529 @@ a.bw-stat:hover {
   border: 0;
 }
 
+/* --- Disclosure (0.8.0 interaction set, CBH-016/017, CMP-026/027) ------------ */
+
+/* Native <details>/<summary>: the no-JS floor holds by construction
+ * (BR-BW-HTMX-001) and no Alpine component registers. Expected markup:
+ *
+ *   <details class="bw-disclosure bw-disclosure--divided" [name] [open]>
+ *     <summary class="bw-disclosure__trigger">
+ *       <span class="bw-disclosure__label">...</span>
+ *       [<span class="bw-disclosure__meta">...</span>]
+ *       <svg class="bw-icon bw-disclosure__caret">...</svg>
+ *     </summary>
+ *     <div class="bw-disclosure__panel">
+ *       <div class="bw-disclosure__panel-inner">...</div>
+ *     </div>
+ *   </details>
+ *
+ * The panel/panel-inner pair is load-bearing: the expand animation is the
+ * grid-template-rows 0fr -> 1fr technique (MOT-008, no JS height measure),
+ * which needs exactly one track child carrying min-block-size: 0 and
+ * overflow: hidden. Close is the browser's own instant hide (native
+ * behaviour; the exit needs no choreography of its own). */
+.bw-disclosure--bordered {
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-lg);
+}
+.bw-disclosure--divided {
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+/* The trigger takes the drawn-control physics (hover overlay, radius-md,
+ * fast colour transition), the same row treatment as the account-menu
+ * trigger; radius-md stays concentric inside the bordered style's lg. */
+.bw-disclosure__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  min-block-size: var(--bw-size-touch-target-min);
+  padding-block: var(--bw-density-row-padding-block);
+  padding-inline: var(--bw-density-row-padding-inline);
+  border-radius: var(--bw-size-radius-md);
+  cursor: pointer;
+  color: var(--bw-color-fg);
+  list-style: none; /* hide the default disclosure triangle; the caret glyph is the affordance */
+  transition: var(--bw-transition-colors);
+}
+.bw-disclosure__trigger::-webkit-details-marker {
+  display: none;
+}
+.bw-disclosure__trigger:hover {
+  background-color: var(--bw-state-hover-overlay);
+}
+.bw-disclosure__trigger:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
+}
+/* Label speaks in the label role: an interactive control, not body copy. */
+.bw-disclosure__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  line-height: var(--bw-text-label-line-height);
+}
+/* Inline-end meta (an icon or badge, CMP-027). Muted at rest; steps up to
+ * the row ink on hover because muted text must never sit dimmed inside a
+ * hover-overlaid container (DESIGN.md 4.2 contrast note). */
+.bw-disclosure__meta {
+  flex-shrink: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+  transition: var(--bw-transition-colors);
+}
+.bw-disclosure__trigger:hover .bw-disclosure__meta {
+  color: var(--bw-color-fg);
+}
+/* Caret rotation rides the shared transform transition (DESIGN.md 8.3
+ * interaction map: disclosure and caret rotate normal); decorative glyph,
+ * no AA duty. */
+.bw-disclosure__caret {
+  flex-shrink: 0;
+  color: var(--bw-color-fg-muted);
+  transition: var(--bw-transition-transform);
+}
+.bw-disclosure[open] .bw-disclosure__caret {
+  transform: rotate(180deg);
+}
+/* The 0fr -> 1fr expand (MOT-008). At rest inside an open details the panel
+ * is a one-track grid; opening replays the track growing from nothing at
+ * normal/standard. Reduced motion: the global floor caps the keyframe to
+ * an instant state change, never a frozen mid-height. */
+.bw-disclosure__panel {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.bw-disclosure[open] .bw-disclosure__panel {
+  animation: bw-disclosure-expand var(--bw-duration-normal) var(--bw-ease-standard);
+}
+@keyframes bw-disclosure-expand {
+  from {
+    grid-template-rows: 0fr;
+  }
+  to {
+    grid-template-rows: 1fr;
+  }
+}
+.bw-disclosure__panel-inner {
+  min-block-size: 0;
+  overflow: hidden;
+  padding-block: var(--bw-size-space-1) var(--bw-size-space-3);
+  /* Content aligns under the trigger label, inside the same row inset. */
+  padding-inline: var(--bw-density-row-padding-inline);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+
+/* --- Dropdown menu (0.8.0 interaction set, CBH-006/007/008) ------------------ */
+
+/* The account-menu recipe generalised: the no-JS floor is a native
+ * <details> disclosure of plain links (no ARIA menu roles until bwDropdown
+ * upgrades the markup at init, BR-BW-HTMX-006). Expected markup:
+ *
+ *   <details class="bw-dropdown [bw-dropdown--end]">
+ *     <summary class="bw-dropdown__trigger bw-btn bw-btn--secondary">
+ *       label <svg class="bw-icon bw-dropdown__caret">...</svg>
+ *     </summary>
+ *     <div class="bw-dropdown__panel">
+ *       <a class="bw-dropdown__item">
+ *         [<svg class="bw-icon bw-dropdown__item-icon">...</svg>] label
+ *       </a>
+ *       <div class="bw-dropdown__divider"></div>
+ *       <a class="bw-dropdown__item bw-dropdown__item--danger">...</a>
+ *     </div>
+ *   </details>
+ *
+ * Open/close state is carried by the details [open] attribute on BOTH legs
+ * (bwDropdown syncs details.open alongside its own [data-bw-open] root
+ * hook), so one entrance rule serves the floor and the enhanced mode.
+ * Close is an instant state removal on both legs: the JS lane is
+ * state-driven and never sequences animation (motion is CSS-owned), and a
+ * native details hides its content the moment [open] goes, so the 04
+ * exit choreography (fade at fast/in) has no element left to animate;
+ * recorded as a deviation in the lane report. */
+.bw-dropdown {
+  position: relative;
+  display: inline-block;
+}
+/* The trigger is bw_button chrome on a summary; only the summary-specific
+ * resets live here (the disclosure marker goes, the caret glyph and
+ * aria-expanded carry the affordance instead). */
+.bw-dropdown__trigger {
+  cursor: pointer;
+  list-style: none;
+}
+.bw-dropdown__trigger::-webkit-details-marker {
+  display: none;
+}
+.bw-dropdown__caret {
+  color: var(--bw-color-fg-muted);
+  transition: var(--bw-transition-transform);
+}
+.bw-dropdown[open] .bw-dropdown__caret {
+  transform: rotate(180deg);
+}
+/* Dropdown-shaped panel per the DESIGN.md reserved rows: surface-raised,
+ * elevation-3 at z-dropdown, radius-lg (concentric with the item radius),
+ * the menu min-width token, and the light-theme top-light the card family
+ * shares (dark reset at the end of this file). Entrance is bw-fade-in-up
+ * at normal/out (04-interfaces 4b). */
+.bw-dropdown__panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--bw-size-space-1));
+  inset-inline-start: 0;
+  min-inline-size: var(--bw-menu-min-width);
+  padding: var(--bw-size-space-1);
+  background: var(--bw-color-surface-raised);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-lg);
+  box-shadow: var(--bw-elevation-3), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  z-index: var(--bw-z-dropdown);
+}
+.bw-dropdown[open] .bw-dropdown__panel {
+  animation: bw-fade-in-up var(--bw-duration-normal) var(--bw-ease-out);
+}
+.bw-dropdown--end .bw-dropdown__panel {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+/* Menu items: body-sm rows, hover overlay, instant pressed, muted icons
+ * inheriting the row ink on hover (the account-menu physics verbatim). */
+.bw-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  padding: var(--bw-size-space-2) var(--bw-size-space-3);
+  border-radius: var(--bw-size-radius-md);
+  color: var(--bw-color-fg);
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+  transition: var(--bw-transition-colors);
+}
+.bw-dropdown__item:hover {
+  background-color: var(--bw-state-hover-overlay);
+}
+.bw-dropdown__item:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
+}
+.bw-dropdown__item-icon {
+  color: var(--bw-color-icon-muted);
+}
+.bw-dropdown__item:hover .bw-dropdown__item-icon {
+  color: inherit;
+}
+/* Danger intent takes the text-duty danger tier on the raised surface, the
+ * verified account-menu pairing (DESIGN.md 4.5 branding note). */
+.bw-dropdown__item--danger {
+  color: var(--bw-color-danger-fg);
+}
+/* An explicit divider item: a full-width hairline extended to the panel's
+ * inner edges (the panel padding is space-1), breathing space either side. */
+.bw-dropdown__divider {
+  block-size: var(--bw-size-border-hairline);
+  margin-block: var(--bw-size-space-1);
+  margin-inline: calc(-1 * var(--bw-size-space-1));
+  background: var(--bw-color-border);
+  border: 0;
+}
+
+/* --- Tabs (0.8.0 interaction set, CBH-013/014/015, CMP-024/025) -------------- */
+
+/* The tag renders the tablist only; panels are consumer markup wrapped in
+ * the shipped tab_panel partial. Markup (per _tabs.html; tab roles and
+ * roving tabindex arrive only when bwTabs upgrades at init):
+ *
+ *   <div class="bw-tabs bw-tabs--underline|--pill">
+ *     <nav class="bw-tabs__list">
+ *       <a class="bw-tabs__tab [bw-tabs__tab--active]" href="?tab=key">
+ *         <span class="bw-tabs__label">label</span>
+ *         [<span class="bw-tabs__badge">3</span>]
+ *       </a>
+ *     </nav>
+ *   </div>
+ *   <div class="bw-tabs__panel" id="bw-tabpanel-<id>-<key>">...</div>
+ *
+ * No-JS floor: each tab is a real anchor and the server renders the active
+ * panel full-page (BR-BW-HTMX-006); roving tabindex is JS-only and needs no
+ * CSS beyond the global :focus-visible ring. The underline style is the
+ * default rendering of the base classes; --underline itself adds nothing. */
+.bw-tabs__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-size-space-1);
+  /* The hairline rail the active marker sits on (underline style). */
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+/* Tabs speak in the label role: chrome one step below content, matching the
+ * nav band. Weight stays medium in the active state deliberately, so a tab
+ * never changes width as selection moves (no layout jitter, BR-BW-HTMX-009
+ * in spirit). font/background/border resets keep the rule correct whether
+ * the template renders an anchor (the floor) or a button. */
+.bw-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  min-block-size: var(--bw-size-touch-target-min);
+  padding-block: var(--bw-density-row-padding-block);
+  padding-inline: var(--bw-size-space-3);
+  background: transparent;
+  border: 0;
+  /* The marker slot: transparent at rest so rows never shift on selection;
+   * the negative block-end margin seats the marker ON the rail. The 04
+   * contract binds the marker to border-thick in accent (the nav band
+   * marker recipe at the tab scale). */
+  border-block-end: var(--bw-size-border-thick) solid transparent;
+  margin-block-end: calc(-1 * var(--bw-size-border-hairline));
+  color: var(--bw-color-fg-muted);
+  font: inherit;
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  line-height: var(--bw-text-label-line-height);
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+.bw-tabs__tab:hover {
+  color: var(--bw-color-fg);
+}
+.bw-tabs__tab:active {
+  transition-duration: var(--bw-duration-instant);
+}
+/* Active tab: the nav band recipe (accent-duty text tier + accent marker).
+ * Two equivalent state carriers, one rule: the server-rendered floor marks
+ * the active anchor with the --active class; bwTabs marks its JS-selected
+ * tab with [data-bw-active] as selection moves (the class is the floor's,
+ * the attribute the enhancement's). The :hover restatement outranks the
+ * plain hover rule so the active tab never dims back to fg on
+ * pointer-over. */
+.bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]),
+.bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]):hover {
+  color: var(--bw-color-nav-item-active-text);
+  border-block-end-color: var(--bw-color-nav-item-active-border);
+}
+/* Badge count: the nav badge's quiet bordered chip. */
+.bw-tabs__badge {
+  flex-shrink: 0;
+  min-inline-size: var(--bw-size-space-5);
+  padding-block: var(--bw-size-space-0-5);
+  padding-inline: var(--bw-size-space-1);
+  border-radius: var(--bw-size-radius-full);
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--bw-font-line-height-none);
+  text-align: center;
+}
+/* Pill style (CMP-024): no rail, no marker; selection is a selected-bg fill
+ * at radius-full. Hover/pressed take the overlay physics because a pill is
+ * a shape, not a rail position. The active pill's hover layers the overlay
+ * over the persistent fill (DESIGN.md 4.6 stacking). */
+.bw-tabs--pill .bw-tabs__list {
+  border-block-end: 0;
+}
+.bw-tabs--pill .bw-tabs__tab {
+  border-block-end: 0;
+  margin-block-end: 0;
+  border-radius: var(--bw-size-radius-full);
+}
+.bw-tabs--pill .bw-tabs__tab:hover {
+  background-color: var(--bw-state-hover-overlay);
+}
+.bw-tabs--pill .bw-tabs__tab:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
+}
+.bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]),
+.bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]):hover {
+  background-color: var(--bw-state-selected-bg);
+  color: var(--bw-color-nav-item-active-text);
+}
+.bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]):hover {
+  background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
+}
+/* Panel spacing: the stack gap between the tablist and the panel. */
+.bw-tabs__panel {
+  margin-block-start: var(--bw-density-stack-gap);
+}
+
+/* --- Modal dialog (0.8.0 interaction set, CBH-001..005, CMP-020/021) --------- */
+
+/* Consumed by extending _modal.html; two render paths, one partial
+ * (BR-BW-HTMX-001). Markup (per _modal.html):
+ *
+ *   <div class="bw-modal bw-modal--sm|--md|--lg|--full">
+ *     <div class="bw-modal__scrim" aria-hidden="true"></div>
+ *     <div role="dialog" class="bw-modal__panel">
+ *       <header class="bw-modal__header">
+ *         <h2 class="bw-modal__title">...</h2>
+ *         <button class="bw-modal__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only">...</button>
+ *       </header>
+ *       <div class="bw-modal__body">...</div>
+ *       [<footer class="bw-modal__footer">...</footer>]  (consumer-authored block)
+ *     </div>
+ *   </div>
+ *
+ * State model (the load-bearing part): AT REST this markup is the no-JS
+ * floor, an ordinary in-flow panel on a full page, so nothing here hides
+ * content or paints a scrim without JavaScript. The overlay physics apply
+ * only under the JS-set open state, carried by two equivalent signals:
+ * the .bw-modal--open class (the template's Alpine binding) and the
+ * [data-bw-open] attribute (set by bwModal). Close is an instant
+ * state removal (the JS lane never sequences animation), so the 04 exit
+ * choreography (fast/in) is not wired; recorded in the lane report.
+ * Body scroll locking is x-trap's noscroll modifier, not a CSS hook. */
+
+/* Inside the stable #bw-modal-root swap container a modal exists only to
+ * be opened (bwModal opens it on insertion); a closed one there is either
+ * pre-init or post-dismissal chrome and must not render as an in-flow
+ * panel at the end of the page. Anywhere else a closed modal IS the
+ * floor page's visible panel, so this rule scopes to the root only. */
+#bw-modal-root .bw-modal:not(.bw-modal--open):not([data-bw-open]) {
+  display: none;
+}
+/* The resting (floor) panel: the alone-on-a-page altitude of the auth and
+ * centred panels (elevation-2), raised surface, the modal radius row.
+ * Flex column so the header and footer hold still while the body scrolls
+ * (CMP-021) in both states. */
+.bw-modal__panel {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  max-inline-size: var(--bw-size-max-width-modal-md);
+  margin-inline: auto;
+  background: var(--bw-color-surface-raised);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-xl);
+  box-shadow: var(--bw-elevation-2);
+}
+/* The open state: a fixed, centred overlay layer at z-modal. */
+.bw-modal:is(.bw-modal--open, [data-bw-open]) {
+  position: fixed;
+  inset: 0;
+  z-index: var(--bw-z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--bw-size-space-6);
+}
+/* The scrim exists only while open: the authored dark-over-content overlay
+ * colour in both themes, at the overlay layer beneath the panel. Enter
+ * fades at normal/out; a reduced-motion frozen scrim is fine (opacity
+ * only, no misleading mid-state). At rest it is an unstyled, empty,
+ * aria-hidden div with no box of its own. */
+.bw-modal:is(.bw-modal--open, [data-bw-open]) .bw-modal__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--bw-z-overlay);
+  background: var(--bw-color-surface-overlay);
+  animation: bw-fade-in var(--bw-duration-normal) var(--bw-ease-out);
+}
+@keyframes bw-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+/* The open panel rises to the reserved elevation-4 modal row and gains the
+ * card family's light-theme top-light (dark reset at the end of this
+ * file). Entrance is the fade-in-up rise plus the 96% -> 100% scale at
+ * normal/out (MOT-005); the rise distance is the space-1 token, the same
+ * 4px as bw-fade-in-up. */
+.bw-modal:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
+  position: relative;
+  z-index: var(--bw-z-modal);
+  max-block-size: 100%;
+  box-shadow: var(--bw-elevation-4), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  animation: bw-modal-in var(--bw-duration-normal) var(--bw-ease-out);
+}
+@keyframes bw-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--bw-size-space-1))) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Size modifiers (CMP-020): sm/lg re-point the max-width token (the floor
+ * panel honours them too); full is full-viewport, gutterless, radius
+ * squared off, and only means anything as an overlay. */
+.bw-modal--sm .bw-modal__panel {
+  max-inline-size: var(--bw-size-max-width-modal-sm);
+}
+.bw-modal--lg .bw-modal__panel {
+  max-inline-size: var(--bw-size-max-width-modal-lg);
+}
+.bw-modal--full:is(.bw-modal--open, [data-bw-open]) {
+  padding: 0;
+}
+.bw-modal--full:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
+  max-inline-size: none;
+  block-size: 100%;
+  border-radius: var(--bw-size-radius-none);
+}
+/* Sticky header: title plus the always-present close control (BR-BW-JS-007),
+ * divided from the scrolling body by a hairline. Density card padding scales
+ * the chrome with the density axis. */
+.bw-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--bw-size-space-3);
+  padding: var(--bw-density-card-padding);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+/* Dialog titles speak in the heading-sm role (DESIGN.md 7.4 dialog row). */
+.bw-modal__title {
+  margin: 0;
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+.bw-modal__close {
+  flex-shrink: 0;
+}
+/* The body is the one scrolling region (min-block-size 0 lets the flex
+ * column actually shrink it); thin border-toned scrollbar per the house
+ * scroll chrome. */
+.bw-modal__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  padding: var(--bw-density-card-padding);
+  scrollbar-width: thin;
+  scrollbar-color: var(--bw-color-border) transparent;
+}
+/* Footer: the form actions recipe (flex row, space-3 gap) seated at the
+ * inline end, the dialog convention, under its own hairline. Empty footers
+ * render nothing at the template, so no :empty rule is needed. */
+.bw-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--bw-size-space-3);
+  padding: var(--bw-density-card-padding);
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+/* reduced-motion (interaction set): explicit caret overrides on top of the
+ * global floor; a half-rotated caret reads as broken (DESIGN.md 8.4). The
+ * entrance/exit keyframes need no explicit override: the global floor
+ * collapses them to an instant state change, and neither a scrim nor a
+ * settled panel misleads when frozen. */
+@media (prefers-reduced-motion: reduce) {
+  .bw-dropdown__caret,
+  .bw-disclosure__caret {
+    transition: none;
+  }
+}
+
 /* --- Dark-theme resets for the light-only top-light (0.7.0 craft) ----------- */
 
 /* The card family's inset top-light is a LIGHT-theme treatment (white sheen on
@@ -1113,6 +1636,10 @@ a.bw-stat:hover {
 [data-theme="dark"] .bw-card--interactive:focus-within {
   box-shadow: var(--bw-elevation-2);
 }
-[data-theme="dark"] .bw-account-menu__panel {
+[data-theme="dark"] .bw-account-menu__panel,
+[data-theme="dark"] .bw-dropdown__panel {
   box-shadow: var(--bw-elevation-3);
+}
+[data-theme="dark"] .bw-modal:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
+  box-shadow: var(--bw-elevation-4);
 }

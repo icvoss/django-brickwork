@@ -26,6 +26,15 @@
   background-color: color-mix(in oklab, var(--bw-color-accent) 22%, transparent);
 }
 
+/* The stable modal swap target (BR-BW-HTMX-005): an empty container the
+ * shell ships for the htmx path's hx-target="#bw-modal-root". display:
+ * contents keeps it zero-footprint whether empty or holding the
+ * fixed-position modal, so an insertion never reflows the page
+ * (BR-BW-HTMX-009). */
+#bw-modal-root {
+  display: contents;
+}
+
 /* --- App shell: sidebar + main column -------------------------------------- */
 
 .bw-app {

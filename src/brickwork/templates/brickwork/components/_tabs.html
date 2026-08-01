@@ -1,0 +1,98 @@
+{% comment %}
+Tabs (04-interfaces section 4b, 0.8.0). PRIVATE render target of the
+{% bw_tabs %} tag (templatetags/brickwork_interactions.py): never
+{% include %} this file's top level directly; the tag validates the tab set
+(duplicate key raises, mirroring BR-BW-NAV-002) and ships tabs here already
+shaped as RenderedTab values. The tag renders the TABLIST ONLY; panels are
+consumer markup wrapped in the tab_panel partial below.
+
+Progressive enhancement (BR-BW-HTMX-006): the markup below IS the no-JS
+floor: each tab is a real anchor to its url (default ?tab=<key> on the
+current path), the server selects the active tab (the tag's active
+argument), and switching tabs is an ordinary navigation (CBH-015 "degrades
+to anchor links no-JS", AC-BW-085). Deliberately NO role="tablist"/"tab"
+and NO roving tabindex in the shipped markup: role="tab" plus
+tabindex="-1" would make every non-active tab keyboard-unreachable on a
+page with no JavaScript, promising arrow-key handling that is not running
+(the _dropdown.html doctrine). The bwTabs Alpine component (semver-public,
+BR-BW-JS-004) upgrades this exact markup at init: role="tablist" on the
+list, role="tab" + aria-selected + aria-controls on each anchor, roving
+tabindex (active tab 0, rest -1), and the APG Tabs keyboard map:
+ArrowRight/ArrowLeft move focus wrapping (mirrored under dir="rtl"),
+Home/End jump to first/last, activation is MANUAL (Enter/Space activates
+the focused tab; owner ruling, interaction-set programme), and Tab from
+the active tab moves into the active panel (CBH-015). Under JS, url_sync
+uses history.replaceState against the same ?tab=<key> URLs, so the JS and
+no-JS states share one URL scheme (CBH-013). Emits bw:tabs:change (detail
+{ id, key }), an optional convention per BR-BW-HTMX-004.
+
+The data-bw-tab* attributes are bwTabs' internal upgrade hooks, not
+consumer contract surface. The x-data argument object is the wiring point
+for the tag's behaviour arguments.
+
+Panels: consumer markup follows the stable id convention
+bw-tabpanel-<id>-<key> (BR-BW-HTMX-005), supplied by wrapping each panel
+in the tab_panel partial below, e.g.
+
+    {% include "brickwork/components/_tabs.html#tab_panel" with tabs_id="settings" key="profile" active=active_tab content=profile_panel %}
+
+Tokens and motion (CSS lane): labels use the label type role; the active
+marker is --bw-size-border-thick in --bw-color-accent (underline style) or
+a --bw-state-selected-bg fill at --bw-size-radius-full (pill style);
+indicator movement animates translateX at
+--bw-duration-fast/--bw-ease-standard (MOT-013) under the reduced-motion
+floor (BR-BW-TOK-009). No elevation, no z-index: in-flow chrome.
+{% endcomment %}
+<div class="bw-tabs bw-tabs--{{ style }}"
+     x-data="bwTabs({ id: '{{ id|escapejs }}', active: '{{ active|escapejs }}', urlSync: {{ url_sync|yesno:'true,false' }}, lazyLoad: {{ lazy_load|yesno:'true,false' }} })">
+  <nav class="bw-tabs__list" data-bw-tablist>
+    {% for tab in tabs %}
+      <a class="bw-tabs__tab{% if tab.is_active %} bw-tabs__tab--active{% endif %}"
+         id="{{ tab.tab_id }}"
+         href="{{ tab.url }}"
+         {% if tab.is_active %}aria-current="page"{% endif %}
+         data-bw-tab-key="{{ tab.key }}"
+         data-bw-tab-panel-id="{{ tab.panel_id }}">
+        <span class="bw-tabs__label">{{ tab.label }}</span>
+        {% if tab.badge is not None %}<span class="bw-tabs__badge">{{ tab.badge }}</span>{% endif %}
+      </a>
+    {% endfor %}
+  </nav>
+</div>
+
+{% comment %}
+tab_panel (semver-public partial, BR-BW-TPL-001): wraps ONE consumer panel
+so a consumer never hand-authors the tabpanel wiring. role="tabpanel" is
+safe in the static floor (unlike role="tab" it has no required parent and
+demands no key handling); aria-labelledby pairs it with the tab anchor's
+id and tabindex="0" makes a panel with no focusable content reachable
+after the tablist. Non-active panels carry hidden (the ACTIVE panel is
+always visible with JS absent); bwTabs toggles hidden on selection.
+
+Context:
+  tabs_id (required): the same id passed to {% bw_tabs %}.
+  key (required): this panel's tab key.
+  active (required): the server-selected active key (the view owns it).
+  content: pre-rendered panel HTML (mark it safe at the call site) or a
+      consumer include's output.
+  lazy_url (optional, CBH-014): with lazy_load tabs the panel carries
+      hx-get="<lazy_url>" hx-trigger="intersect once" hx-target="this", so
+      content loads when the panel first becomes visible. htmx's
+      revealed event is scroll-driven (an IntersectionObserver armed on
+      scroll containers) and does not reliably fire when bwTabs flips the
+      hidden property directly via JS on selection; intersect once fires
+      on the same underlying IntersectionObserver primitive regardless of
+      how visibility changed. Supply skeleton content so the swap reserves
+      its space (BR-BW-HTMX-009).
+{% endcomment %}
+{% partialdef tab_panel %}
+<div class="bw-tabs__panel"
+     id="bw-tabpanel-{{ tabs_id }}-{{ key }}"
+     role="tabpanel"
+     aria-labelledby="bw-tab-{{ tabs_id }}-{{ key }}"
+     tabindex="0"
+     {% if key != active %}hidden{% endif %}
+     {% if lazy_url %}hx-get="{{ lazy_url }}" hx-trigger="intersect once" hx-target="this"{% endif %}>
+  {{ content }}
+</div>
+{% endpartialdef %}

@@ -8,7 +8,59 @@ versioning contract).
 
 ## [Unreleased]
 
-## [0.7.0] - 2026-08-01
+## [0.8.0] - 2026-08-01
+
+Interactions I: the first tranche of the interactive component library on
+the token substrate (spec 04-interfaces section 4b). Progressive
+enhancement throughout: the no-JS floor IS the base markup and Alpine
+upgrades ARIA at init. Alpine.js, @alpinejs/focus and htmx are host-owned
+peers this package never bundles; they appear only as devDependencies for
+the test harness.
+
+### Added
+
+- **JS bootstrap**: `brickwork/dist/brickwork.js` ships as an ES module
+  exporting `registerBrickworkComponents(Alpine)`, which registers the
+  semver-public Alpine components `bwDropdown`, `bwTabs` and `bwModal` on
+  a host-owned Alpine instance (never calls `Alpine.start()`). Components
+  dispatch namespaced events: `bw:dropdown:open/close`, `bw:tabs:change`,
+  `bw:modal:open/close`.
+- **Disclosure** (`components/_disclosure.html`): grouped exclusive
+  disclosure on native `details name=`, zero JavaScript.
+- **Dropdown** (`{% bw_dropdown %}`, `brickwork_interactions` tag
+  library): APG menu-button keyboard map (arrows, Home/End, typeahead,
+  Escape), ARIA upgraded at init; the no-JS floor is a plain link list.
+- **Tabs** (`{% bw_tabs %}`): roving tabindex with MANUAL activation,
+  optional `url_sync` via `history.replaceState`, optional `lazy_load`
+  panels (`hx-get` + `hx-trigger="intersect once"` with skeleton content
+  reserving the swap space); the no-JS floor is real links with the
+  server-selected panel rendered.
+- **Modal** (`components/_modal.html`, extend-consumed with
+  `modal_title`/`modal_body`/`modal_footer` blocks): focus trap via
+  wrapped `x-trap.inert.noscroll`, focus returned to the invoker on every
+  dismissal route, `[data-bw-autofocus]` initial-focus hook, scrim and
+  Escape dismissal. Server-rendered fragments swapped into the new
+  `#bw-modal-root` (shell base, `display: contents`, zero footprint)
+  auto-open, and a server `HX-Trigger: bw:modal:close` header dismisses
+  from the response side.
+- **CSS**: dropdown, tabs, modal and disclosure component sections in the
+  shipped stylesheet, drawn entirely from existing tokens (elevation,
+  z-index ladder, motion, focus, state overlays).
+- **Test harness**: Playwright interactions suite (keyboard maps, focus
+  routes, htmx swap paths, layout-shift guard) alongside the axe runs.
+
+### Fixed
+
+- `bwModal` captures its component root once at init; previously a
+  dismissal invoked from an inline Alpine expression on a descendant
+  (the `close_url` anchor) mutated `data-bw-open` on that descendant
+  instead of the root, leaving the modal visually stuck open.
+- `bwTabs` strips the server-rendered `bw-tabs__tab--active` class at
+  init alongside `aria-current`; previously the server-selected tab kept
+  its active underline permanently because the stylesheet keys the
+  active visual on either that class (the no-JS floor) or
+  `data-bw-active` (the JS-owned marker), and only the marker was being
+  toggled.
 
 The craft round. Owner bar: next to Radix, the components still read as
 mechanically generated; token identity alone does not fix control-level

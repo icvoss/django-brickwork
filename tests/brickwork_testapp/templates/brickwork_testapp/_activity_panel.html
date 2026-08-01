@@ -1,0 +1,22 @@
+{% comment %}
+The lazy tab panel's content: served whole by LazyActivityPanelView for the
+hx-get="..." hx-trigger="intersect once" hx-target="this" swap (CBH-014), and
+rendered inline by the view when the activity tab is the server-selected one
+(the no-JS floor renders the active panel full-page, AC-BW-085). The root
+carries a FIXED (not min-) block-size matching the skeleton placeholder's
+own reserved box (not just its bar), so the swap can never ask the browser
+to grow the box mid-transition: a min-block-size wrapper measures against
+its own natural content height first and only THEN clamps to the floor,
+which left an 8px single-frame overshoot visible to the Layout Instability
+API between htmx's swap and settle events even though the final settled
+height matched. A fixed height has nowhere to overshoot from
+(BR-BW-HTMX-009, AC-BW-094).
+{% endcomment %}
+<div class="itx-panel-body" style="block-size: 10rem; overflow-y: auto">
+  <h3>Recent activity</h3>
+  <ul>
+    <li>Priya restocked Alpha this morning.</li>
+    <li>Sam moved Beta back to draft yesterday.</li>
+    <li>The nightly import added no new widgets.</li>
+  </ul>
+</div>
