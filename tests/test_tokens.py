@@ -230,6 +230,9 @@ def test_info_and_accent_are_distinct_colours() -> None:
 
 
 def test_tailwind_bridge_is_theme_inline() -> None:
+    # 0.10.0: the bridge is the REAL projection (Tailwind namespace keys ->
+    # var(--bw-*) references), not the 0.9.0 self-referential identity block;
+    # the full projection contract lives in test_tailwind_projection.py.
     tw = (_DIST / "tailwind-theme.css").read_text()
     assert "@theme inline" in tw
-    assert "--bw-color-surface:" in tw
+    assert "--color-surface: var(--bw-color-surface);" in tw

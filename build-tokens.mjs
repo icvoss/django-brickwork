@@ -7,8 +7,10 @@
 //
 //   tokens.css          plain --bw-* custom properties, all four axes as CSS
 //                        selectors (:root, [data-theme="dark"], [data-density]).
-//   tailwind-theme.css  a Tailwind 4 `@theme inline` fragment bridging --bw-* to
-//                        short utility names.
+//   tailwind-theme.css  a Tailwind 4 `@theme inline` projection of the semantic
+//                        --bw-* contract into Tailwind's utility namespaces
+//                        (ADR-054 section 4), imported by a consumer AFTER the
+//                        tailwindcss import.
 //   tokens.js           a JS re-export of the token names (for a Vite consumer).
 //
 // Why a custom composer, not vanilla Style Dictionary: the theme and density
@@ -121,10 +123,6 @@ async function main() {
   const themePrefixes = ["bw-color-", "bw-state-", "bw-elevation-"];
   const themeOnly = (tokens) =>
     tokens.filter((t) => themePrefixes.some((p) => t.name.startsWith(p)));
-  // Component + sizing tokens for :root: everything the base layer produces that
-  // is NOT a raw primitive ramp value (those stay available but are not the
-  // consumer contract). Semantic colours come from colourOnly(light) separately.
-  const nonPrimitive = (tokens) => tokens.filter((t) => !t.name.startsWith("bw-primitive-"));
 
   const header =
     "/* django-brickwork design tokens. GENERATED from src/brickwork/tokens/source/**.\n" +
@@ -147,25 +145,93 @@ async function main() {
   ];
   writeFileSync(resolve(DIST, "tokens.css"), cssParts.join("\n\n") + "\n", "utf8");
 
-  // Tailwind @theme inline bridge: map the semantic --bw-color-* tokens plus the
-  // component/sizing tokens to short Tailwind utility names. Only the semantic
-  // and component tiers are bridged (raw primitives are not consumer utilities).
-  const bridged = [...themeOnly(light), ...nonPrimitive(base), ...densities.comfortable];
-  const seenBridge = new Set();
-  const themeVars = bridged
-    .filter((t) => !seenBridge.has(t.name) && seenBridge.add(t.name))
-    .map((t) => `  --${t.name}: var(--${t.name});`);
+  // Tailwind @theme inline projection (ADR-054 section 4): map the SEMANTIC
+  // --bw-* contract into Tailwind 4's utility namespaces so a consumer's own
+  // utilities (bg-accent, rounded-md, shadow-3, text-heading-lg, p-4) inherit
+  // the brand. Every mapped value is a var(--bw-*) reference, never a literal,
+  // so data-theme / data-bw-brand switching recolours consumer utilities with
+  // zero rebuild (which is also why the block must be `@theme inline`).
+  //
+  // Coverage is the semantic visual contract ONLY, walked from the token data:
+  // colours, radius steps, elevation ladder, type roles (size + line-height),
+  // font stacks, the dynamic --spacing base, and the two --default-* font keys.
+  // Deliberately NOT projected: component-tier tokens, state overlays, z-index,
+  // opacity, motion, focus ring geometry (--bw-focus-*; the ring COLOUR is a
+  // semantic colour and projects with that family), density, borders, icons,
+  // and the raw font/space scales (roles and the --spacing base are the
+  // consumer surface). Our entries
+  // ADD semantic names alongside Tailwind's own palette (no --color-* wildcard
+  // wipe: a consumer may still want blue-500 for one-off content); the one
+  // deliberate global override is --spacing, which works because the space
+  // scale is authored as Tailwind --spacing multiples of 0.25rem (DESIGN.md
+  // section 6.1), so p-4 stays 1rem by default yet rescales with the brand.
+  const baseNames = new Set(base.map((t) => t.name));
+  const projected = [];
+  const seenProjection = new Set();
+  const project = (utilityKey, bwName) => {
+    if (seenProjection.has(utilityKey)) return;
+    seenProjection.add(utilityKey);
+    projected.push(`  --${utilityKey}: var(--${bwName});`);
+  };
+  // Every semantic colour: --color-<name> from --bw-color-<name>.
+  for (const t of themeOnly(light)) {
+    if (t.name.startsWith("bw-color-")) {
+      project(`color-${t.name.slice("bw-color-".length)}`, t.name);
+    }
+  }
+  // Every radius step: --radius-<step> from --bw-size-radius-<step>.
+  for (const t of base) {
+    if (t.name.startsWith("bw-size-radius-")) {
+      project(`radius-${t.name.slice("bw-size-radius-".length)}`, t.name);
+    }
+  }
+  // The elevation ladder: --shadow-<level> from --bw-elevation-<level>.
+  for (const t of themeOnly(light)) {
+    if (t.name.startsWith("bw-elevation-")) {
+      project(`shadow-${t.name.slice("bw-elevation-".length)}`, t.name);
+    }
+  }
+  // The type roles: --text-<role> from --bw-text-<role>-size, plus Tailwind 4's
+  // companion key --text-<role>--line-height where the role has a line-height
+  // token (all roles do today; guarded so a future role without one is safe).
+  for (const t of base) {
+    const role = t.name.match(/^bw-text-(.+)-size$/)?.[1];
+    if (!role) continue;
+    project(`text-${role}`, t.name);
+    const lineHeight = `bw-text-${role}-line-height`;
+    if (baseNames.has(lineHeight)) project(`text-${role}--line-height`, lineHeight);
+  }
+  // The font stacks: --font-<name> from --bw-font-family-<name>.
+  for (const t of base) {
+    if (t.name.startsWith("bw-font-family-")) {
+      project(`font-${t.name.slice("bw-font-family-".length)}`, t.name);
+    }
+  }
+  // The spacing scale, via the dynamic base only.
+  if (baseNames.has("bw-size-space-1")) project("spacing", "bw-size-space-1");
+  // Preflight defaults follow the brand stacks.
+  if (baseNames.has("bw-font-family-sans")) {
+    project("default-font-family", "bw-font-family-sans");
+  }
+  if (baseNames.has("bw-font-family-mono")) {
+    project("default-mono-font-family", "bw-font-family-mono");
+  }
   // NOTE: the header comment must NOT contain a literal `@import "..."` string.
   // Django/WhiteNoise ManifestStaticFilesStorage rewrites @import/url() targets by
   // regex WITHOUT skipping comments, so a commented example import is treated as a
   // real reference and fails collectstatic with a MissingFileError (found by the
   // icvlocal.com consumer, brickwork 0.1.0). Describe the import in prose instead.
   const tailwind =
-    "/* GENERATED: Tailwind 4 @theme inline bridge for --bw-* semantic tokens.\n" +
+    "/* GENERATED: Tailwind 4 @theme inline projection of the --bw-* semantic\n" +
+    " * contract into Tailwind's utility namespaces (ADR-054 section 4), so\n" +
+    " * consumer utilities inherit the brand and both themes: colours, radius,\n" +
+    " * elevation (shadow-*), type roles (text-<role>), font stacks, and the\n" +
+    " * dynamic --spacing base. Every value is a var(--bw-*) reference, so theme\n" +
+    " * and brand switching recolours consumer utilities with no rebuild.\n" +
     " * Import this fragment in a consumer's entry CSS AFTER the Tailwind import\n" +
     " * (the line that pulls in tailwindcss itself). Do not edit by hand. */\n" +
     "@theme inline {\n" +
-    themeVars.join("\n") +
+    projected.join("\n") +
     "\n}\n";
   writeFileSync(resolve(DIST, "tailwind-theme.css"), tailwind, "utf8");
 

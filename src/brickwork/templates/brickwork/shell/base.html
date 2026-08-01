@@ -13,11 +13,20 @@ The theme attributes come from a consuming project's context (typically via
 brickwork.services.tokens.resolve_theme_attributes in a context processor); they
 default to the documented BRICKWORK_DEFAULT_* here so the shell renders unbranded
 out of the box.
+
+Brand hook (0.10.0, 03-services amendment): a non-empty bw_brand renders
+data-bw-brand on <html>, NEVER on body or a link tag, because the derived
+color-mix tokens compute at :root and a lower hook cannot recolour them. The
+slug is validated at resolve time (resolve_theme_attributes). With bw_brand
+unset the output is byte-identical to 0.9.0. This is the first-class version of
+the site-level base.html override icvlocal carried from 0.6.0 (BR-BW-TPL-002
+demand evidence, resolved here).
 {% endcomment %}<!doctype html>
 <html lang="{{ bw_lang|default:'en' }}"
       dir="{{ bw_dir|default:'ltr' }}"
       data-theme="{{ bw_theme|default:'light' }}"
-      data-density="{{ bw_density|default:'comfortable' }}">
+      data-density="{{ bw_density|default:'comfortable' }}"{% if bw_brand %}
+      data-bw-brand="{{ bw_brand }}"{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -18,6 +18,7 @@ Run: DJANGO_SETTINGS_MODULE=tests.settings_seams PYTHONPATH=src:tests \
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 
 import django
@@ -535,8 +536,88 @@ def render_combobox_options_fragment() -> str:
     )
 
 
+# --- the 0.10.0 Tailwind projection proof (AC-BW-095, the dynamic half) ------
+#
+# projection-<theme>.html is a CONSUMER page: no brickwork.css, no component
+# classes, only Tailwind utilities from a REAL Tailwind 4 build over the
+# shipped dist/tailwind-theme.css fragment (compiled at generation time by
+# a11y/build-projection-css.mjs through @tailwindcss/node, the same compiler
+# the Vite plugin uses), inlined alongside dist/tokens.css so the fixture is
+# self-contained under file://. a11y/projection.spec.mjs asserts the utilities
+# resolve through the LIVE --bw-* tokens: flipping data-theme and adding a
+# data-bw-brand override both restyle the page with no rebuild. Both theme
+# variants join the axe gate automatically (axe.spec.mjs walks every fixture
+# .html in this directory).
+#
+# The single candidate list below feeds BOTH the Tailwind build (as argv, so
+# the compiled CSS always contains exactly these utilities) and the page
+# markup; keeping one list means the two can never drift.
+
+PROJECTION_UTILITIES = (
+    # the page canvas, so the dark fixture genuinely renders dark for axe
+    "bg-surface",
+    "text-fg",
+    # the probed card: colour pair, radius step, elevation level, spacing
+    # step, and a type role (size + line-height companion)
+    "bg-accent",
+    "text-fg-on-accent",
+    "rounded-md",
+    "shadow-3",
+    "p-4",
+    "text-body-lg",
+)
+
+# The brand override is baked into the page but inert until the spec stamps
+# data-bw-brand="proof" on <html> (the shell's root hook: derived tokens
+# compute at :root). oklch(0.5 0.2 300) is an arbitrary, visibly different
+# purple; the spec compares computed values probe-to-probe against the same
+# literal.
+_PROJECTION_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tailwind projection proof (__THEME__)</title>
+<style>__TOKENS_CSS__</style>
+<style>__CONSUMER_CSS__</style>
+<style>[data-bw-brand="proof"] { --bw-color-accent: oklch(0.5 0.2 300); }</style>
+</head>
+<body class="bg-surface text-fg">
+<main>
+  <h1 class="text-body-lg">Tailwind projection proof</h1>
+  <p id="projection-card" class="bg-accent text-fg-on-accent rounded-md shadow-3 p-4 text-body-lg">
+    Consumer utilities styled by the --bw-* tokens alone.
+  </p>
+</main>
+</body>
+</html>
+"""
+
+
+def build_projection_css() -> str:
+    """Run the real Tailwind 4 consumer build once per generation run."""
+    result = subprocess.run(
+        ["node", str(ROOT / "a11y" / "build-projection-css.mjs"), *PROJECTION_UTILITIES],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=ROOT,
+    )
+    return result.stdout
+
+
+def render_projection(theme: str, consumer_css: str) -> str:
+    tokens_css = (ROOT / "src/brickwork/static/brickwork/dist/tokens.css").read_text()
+    return (
+        _PROJECTION_PAGE.replace("__THEME__", theme)
+        .replace("__TOKENS_CSS__", tokens_css)
+        .replace("__CONSUMER_CSS__", consumer_css)
+    )
+
+
 def main() -> None:
     written = []
+    projection_css = build_projection_css()
     for theme in ("light", "dark"):
         (OUT / f"list-{theme}.html").write_text(render_list(theme))
         (OUT / f"list-menu-open-{theme}.html").write_text(render_list(theme, menu_open=True))
@@ -564,6 +645,8 @@ def main() -> None:
         (OUT / f"toasts-js-{theme}.html").write_text(render_toasts(theme, inject_js=True))
         (OUT / f"comboboxes-{theme}.html").write_text(render_comboboxes(theme))
         (OUT / f"comboboxes-js-{theme}.html").write_text(render_comboboxes(theme, selected=True, inject_js=True))
+        # the 0.10.0 Tailwind projection proof (consumer utilities only)
+        (OUT / f"projection-{theme}.html").write_text(render_projection(theme, projection_css))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -582,6 +665,7 @@ def main() -> None:
             f"toasts-js-{theme}",
             f"comboboxes-{theme}",
             f"comboboxes-js-{theme}",
+            f"projection-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())
