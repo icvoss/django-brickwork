@@ -8,7 +8,63 @@ versioning contract).
 
 ## [Unreleased]
 
-## [0.8.0] - 2026-08-01
+## [0.9.0] - 2026-08-01
+
+Interactions II: the second tranche of the interaction set (spec
+04-interfaces section 4b as amended by umbrella PR #119). Server-driven
+throughout: toasts have no client-side creation path, the combobox keeps
+a native select as its form-state carrier, and dismiss controls only
+exist under JS.
+
+### Added
+
+- **Toast** (`{% bw_toast %}` + `components/_toast_region.html`): the
+  shell base now includes the toast region once (`#bw-toast-region`,
+  `aria-live="polite"`, four logical positions, default top-end), so
+  every shell page has a working toast target. The tag validates intent
+  (`success|warning|danger|info`; `neutral` raises) and duration
+  (`short|normal|long|persistent`), always renders a close control, and
+  gives danger toasts `role="alert"`. Delivery is server-rendered only:
+  an htmx response appends via
+  `hx-swap-oob="afterbegin:#bw-toast-region"`;
+  the no-JS floor is a `django.contrib.messages` alert banner. Alpine:
+  `bwToastRegion` (at most 3 visible, older collapse behind "+N more")
+  and `bwToast` (auto-dismiss from the duration tokens, timer pauses on
+  hover and focus-within, never steals focus); events `bw:toast:show`
+  and `bw:toast:dismiss`.
+- **Combobox** (`{% bw_combobox %}`): a form-field widget rendered
+  inside the field chrome (label, help, errors, `aria-describedby`).
+  The base markup is a fully working native `<select>` that remains the
+  submitted control at all times; `bwCombobox` progressively enhances
+  it with the hand-rolled APG combobox pattern
+  (`aria-activedescendant`, typeahead filtering, chips with Backspace
+  removal in `multiple` mode, `allow_create` affordance emitting
+  `bw:combobox:create`). Server filtering (`filter_mode="server"`, the
+  default) debounces at `--bw-debounce-search` and swaps the option
+  list into the stable `bw-listbox-<id>` target; 422 re-renders
+  rehydrate selection from the DOM.
+- **Dismissible alert and badge**: `{% bw_alert %}`/`{% bw_badge %}`
+  gain `dismissible` (default off, output unchanged). The close control
+  renders hidden and is revealed at JS init; `bwDismissible` removes
+  the element and emits `bw:dismiss`. Persistence stays host-owned.
+- **Tokens**: `--bw-duration-toast-{short,normal,long}` (4s/6s/10s),
+  `--bw-debounce-search` (300ms), `--bw-toast-max-width` (24rem), and
+  `--bw-htmx-indicator-opacity` (0.6; the STA-006 in-flight dim
+  treatment, implemented for the first time with the combobox listbox
+  as its first consumer).
+
+### Fixed
+
+- htmx settle classes (`htmx-added`/`htmx-settling`/`htmx-swapping`)
+  knocked classless prose out of the content-typography floor
+  (`:where(p:not([class]))` and family) for the settle window, causing
+  a visible layout bounce on any swap targeting classless content.
+  Latent since the floor shipped in 0.5.0; the `:where()` lists now
+  match elements carrying only htmx lifecycle classes.
+- A `[class^="bw-"][hidden]` display floor: author `display` rules on
+  brickwork components no longer silently defeat the `hidden`
+  attribute (the combobox floor/enhanced split and toast collapse rely
+  on it).
 
 Interactions I: the first tranche of the interactive component library on
 the token substrate (spec 04-interfaces section 4b). Progressive
