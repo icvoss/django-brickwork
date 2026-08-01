@@ -88,12 +88,14 @@ not a safe default.
 
 Worked failure, from a real pilot: a brand ran a light theme with a deep
 aubergine accent and a dark theme whose accent was a light pink. White
-`fg-on-accent` in *both* was the reflex, and it was wrong in dark. Measured:
+`fg-on-accent` in *both* was the reflex, and it was wrong in dark. For the
+example oklch values below (ratios are what `render_brand_css`'s own contrast
+check reports, so the doc and the emitter agree):
 
 | theme | accent | white `fg-on-accent` | dark ink `fg-on-accent` | correct value |
 |---|---|---|---|---|
-| light | deep aubergine | 10.59:1 (pass) | fails | **white** |
-| dark | light pink | 2.6:1 (fail) | 6.56:1 (pass) | **dark ink** |
+| light | deep aubergine | 8.72:1 (pass) | 1.84:1 (fail) | **white** |
+| dark | light pink | 1.52:1 (fail) | 10.55:1 (pass) | **dark ink** |
 
 So the *same* token needs *opposite* values in the two themes. Author it per
 theme and verify each at 4.5:1 against its own accent:
@@ -101,12 +103,12 @@ theme and verify each at 4.5:1 against its own accent:
 ```css
 :root {
   --bw-color-accent:        oklch(0.42 0.11 330);   /* deep aubergine */
-  --bw-color-fg-on-accent:  oklch(0.99 0 0);        /* white: 10.59:1, passes */
+  --bw-color-fg-on-accent:  oklch(0.99 0 0);        /* white: 8.72:1, passes */
 }
 [data-theme="dark"] {
   --bw-color-accent:        oklch(0.86 0.06 350);   /* light pink */
-  --bw-color-fg-on-accent:  oklch(0.24 0.02 330);   /* dark ink: 6.56:1, passes
-                                                        (white here is 2.6:1) */
+  --bw-color-fg-on-accent:  oklch(0.24 0.02 330);   /* dark ink: 10.55:1, passes
+                                                        (white here is 1.52:1) */
 }
 ```
 
