@@ -8,7 +8,46 @@ versioning contract).
 
 ## [Unreleased]
 
-## [0.9.0] - 2026-08-01
+## [0.10.0] - 2026-08-01
+
+The structural close of the interaction-set programme: consumer Tailwind
+utilities now inherit the brand, and the brand attribute is first-class
+shell configuration rather than a template override.
+
+### Added
+
+- **Real Tailwind projection** (`dist/tailwind-theme.css`): an `@theme
+  inline` block mapping the semantic `--bw-*` contract into Tailwind 4's
+  utility namespaces, so consumer utilities (`bg-accent`, `rounded-md`,
+  `shadow-3`, `text-heading-lg`, `font-display`, `p-4`) inherit
+  brickwork's defaults and any active brand, in both themes, with no
+  rebuild (every mapped value is a `var(--bw-*)` reference). Coverage:
+  all 51 semantic colours, the 7 radius steps, the 6-level elevation
+  ladder as `--shadow-*`, the 12 type roles with line heights, the 3
+  font stacks, the preflight font defaults, and the dynamic `--spacing`
+  base wired to `--bw-size-space-1` (the space scale was authored as
+  Tailwind `--spacing` multiples from the start, so one declaration
+  wires the whole numeric scale). Additive to Tailwind's own palette
+  (`bg-blue-500` survives); component-tier, state-overlay, z-index,
+  opacity, motion, and focus-geometry tokens are deliberately not
+  projected. Consumption: import the fragment after the `tailwindcss`
+  import. Reference: `docs/DESIGN.md` section 12.
+- **Shell brand hook**: `resolve_theme_attributes` gains a `brand` axis.
+  A `theme_resolver` that returns a `brand` key wins; otherwise the new
+  `BRICKWORK_DEFAULT_BRAND` setting applies (default `""` emits nothing
+  and renders byte-identically to 0.9.0). A non-empty brand renders
+  `data-bw-brand="<slug>"` on `<html>`, where brand stylesheets scope
+  and the derived `color-mix` tokens compute. Slugs are validated
+  (`[A-Za-z][A-Za-z0-9_-]*`) at resolve time. This makes the site-level
+  `shell/base.html` override that consuming sites carried for the brand
+  attribute unnecessary.
+
+### Fixed
+
+- The previous `tailwind-theme.css` was a self-referential `--bw-*`
+  identity map: `--bw-*` is not a Tailwind utility namespace, so the
+  fragment generated no utilities and no inheritance. It had shipped
+  that way since the fragment first appeared.
 
 Interactions II: the second tranche of the interaction set (spec
 04-interfaces section 4b as amended by umbrella PR #119). Server-driven
