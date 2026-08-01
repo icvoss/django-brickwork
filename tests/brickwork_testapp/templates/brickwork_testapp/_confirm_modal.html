@@ -1,0 +1,24 @@
+{% extends "brickwork/components/_modal.html" %}
+{% comment %}
+The consumer's modal partial (04-interfaces 4b): extends the shipped chrome
+and fills the named blocks. One partial, two render paths: the view returns
+this alone on an htmx GET (swapped into #bw-modal-root) and includes it in a
+full page (interaction_confirm.html) on a plain GET, so the no-JS floor is a
+working page with a real POST form and a real close anchor (close_url).
+The view supplies title, modal_id, close_url, and backdrop_dismiss.
+{% endcomment %}
+
+{% block modal_body %}
+  <p>This permanently removes every demo widget. Type <strong>RESET</strong> to confirm.</p>
+  <form id="confirm-reset-form" method="post" action="{% url 'testapp:interaction-confirm' %}">
+    {% csrf_token %}
+    <label class="bw-field__label" for="confirm-reset-input">Confirmation</label>
+    <input class="bw-input" id="confirm-reset-input" name="confirm" type="text" required data-bw-autofocus>
+  </form>
+{% endblock %}
+
+{% block modal_footer %}
+  <footer class="bw-modal__footer">
+    <button class="bw-btn bw-btn--danger bw-btn--md" type="submit" form="confirm-reset-form">Reset data</button>
+  </footer>
+{% endblock %}

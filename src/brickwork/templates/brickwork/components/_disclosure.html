@@ -1,0 +1,47 @@
+{% load brickwork_icons %}
+{% comment %}
+Disclosure (04-interfaces section 4b, 0.8.0): a native <details>/<summary>
+expand/collapse. Consumed via {% include %} (purely structural, matching
+_card.html). The no-JS floor holds BY CONSTRUCTION (BR-BW-HTMX-001/006): this
+component ships no JavaScript at all, registers no Alpine.data component, and
+re-emits no bw: event. Single-open accordion grouping rides the native
+<details name> exclusive-group attribute (Baseline 2024, CBH-016); a consumer
+wanting a hook listens for the element's native "toggle" event.
+
+Keyboard (WAI-ARIA APG Disclosure pattern, native behaviour): Tab to the
+<summary>, Enter/Space toggles. Nothing else; the browser owns it all.
+
+htmx: none shipped. A consumer may put hx-get/hx-trigger on panel content it
+supplies (lazy-loading a panel body); the component itself wires nothing.
+
+Required context:
+  label:   the trigger text.
+  content: the panel body: pre-rendered HTML (mark it safe at the call site)
+           or a consumer include's output.
+Optional:
+  style ("bordered"|"divided", default "divided", CMP-026): bordered takes
+           --bw-size-radius-lg and --bw-color-border; divided is the stacked
+           hairline form.
+  name (str): items sharing a name form a single-open accordion (CBH-016);
+           omit for independent multi-open items.
+  open (bool, default False): renders the open attribute (CBH-017).
+  trigger_meta: optional pre-rendered HTML at the trigger's inline end (an
+           icon or badge, CMP-027).
+
+Motion (BR-BW-TOK-009, CSS-only): the panel animates grid-template-rows
+0fr -> 1fr at --bw-duration-normal/--bw-ease-standard (MOT-008; the
+__panel/__panel-inner pair below is that animation's grid track + overflow
+clip), the caret rotates on the same pair, and both sit under the global
+prefers-reduced-motion floor (MOT-003, DESIGN.md section 8.4). No z-index,
+no elevation: in-flow content, not an overlay.
+{% endcomment %}
+<details class="bw-disclosure bw-disclosure--{{ style|default:'divided' }}"{% if name %} name="{{ name }}"{% endif %}{% if open %} open{% endif %}>
+  <summary class="bw-disclosure__trigger">
+    <span class="bw-disclosure__label">{{ label }}</span>
+    {% if trigger_meta %}<span class="bw-disclosure__meta">{{ trigger_meta }}</span>{% endif %}
+    {% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-disclosure__caret" %}
+  </summary>
+  <div class="bw-disclosure__panel">
+    <div class="bw-disclosure__panel-inner">{{ content }}</div>
+  </div>
+</details>

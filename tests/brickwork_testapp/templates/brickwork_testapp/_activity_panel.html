@@ -1,0 +1,17 @@
+{% comment %}
+The lazy tab panel's content: served whole by LazyActivityPanelView for the
+hx-get="..." hx-trigger="revealed" hx-target="this" swap (CBH-014), and
+rendered inline by the view when the activity tab is the server-selected one
+(the no-JS floor renders the active panel full-page, AC-BW-085). The root
+carries the same fixed min-block-size as the skeleton placeholder so the swap
+reserves its space and shifts nothing outside the panel (BR-BW-HTMX-009,
+AC-BW-094).
+{% endcomment %}
+<div class="itx-panel-body" style="min-block-size: 10rem">
+  <h3>Recent activity</h3>
+  <ul>
+    <li>Priya restocked Alpha this morning.</li>
+    <li>Sam moved Beta back to draft yesterday.</li>
+    <li>The nightly import added no new widgets.</li>
+  </ul>
+</div>

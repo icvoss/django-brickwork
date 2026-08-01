@@ -221,3 +221,112 @@ def test_shell_carries_default_theme_axes(client: Client, widgets) -> None:
     assert 'data-theme="light"' in html
     assert 'data-density="comfortable"' in html
     assert 'dir="ltr"' in html
+
+
+# --- the 0.8.0 interaction set page (04-interfaces section 4b) --------------
+
+
+def test_interactions_page_composes_all_four_components_as_floors(client: Client, widgets) -> None:
+    html = client.get("/interactions/").content.decode()
+    # dropdown floor: a details disclosure of plain links, no menu semantics
+    assert '<details class="bw-dropdown"' in html
+    assert 'href="/widgets/new/?via=dropdown"' in html
+    assert 'role="menu"' not in html and 'role="menuitem"' not in html
+    # tabs floor: real anchors with the server-selected panel visible
+    assert 'href="/interactions/?tab=details"' in html
+    assert 'id="bw-tabpanel-itx-overview"' in html
+    # modal trigger: a real anchor to the full-page floor route, plus the
+    # documented hx-get swap into the shell's modal root (BR-BW-HTMX-005)
+    assert 'href="/interactions/confirm/"' in html
+    assert 'hx-target="#bw-modal-root"' in html
+    # disclosure group: three native details sharing one accordion name
+    assert html.count('name="itx-faq"') == 3
+    # the composed floor page ships no script at all (BR-BW-HTMX-001)
+    assert "<script" not in html.lower()
+
+
+def test_interactions_page_marks_its_nav_item_active(client: Client) -> None:
+    html = client.get("/interactions/").content.decode()
+    assert "bw-nav__link--active" in html
+    assert "Interactions" in html
+
+
+def test_tabs_floor_renders_the_active_panel_and_hides_the_rest(client: Client) -> None:
+    html = client.get("/interactions/").content.decode()
+    overview = re.search(r'<div class="bw-tabs__panel"[^>]*id="bw-tabpanel-itx-overview"[^>]*>', html)
+    details = re.search(r'<div class="bw-tabs__panel"[^>]*id="bw-tabpanel-itx-details"[^>]*>', html)
+    assert overview and "hidden" not in overview.group(0)
+    assert details and "hidden" in details.group(0)
+
+
+def test_lazy_tab_is_server_rendered_when_it_is_the_active_tab(client: Client) -> None:
+    # AC-BW-085: the no-JS floor renders the active panel full-page, so the
+    # lazy wiring is dropped and the content is inline.
+    html = client.get("/interactions/?tab=activity").content.decode()
+    activity = re.search(r'<div class="bw-tabs__panel"[^>]*id="bw-tabpanel-itx-activity"[^>]*>', html)
+    assert activity and "hidden" not in activity.group(0)
+    assert "hx-trigger" not in html
+    assert "Priya restocked Alpha" in html
+
+
+def test_lazy_tab_carries_the_revealed_swap_when_inactive(client: Client) -> None:
+    html = client.get("/interactions/").content.decode()
+    assert 'hx-get="/interactions/panels/activity/"' in html
+    assert 'hx-trigger="revealed"' in html
+    assert 'hx-target="this"' in html
+    # the skeleton placeholder reserves the swap's space (BR-BW-HTMX-009)
+    assert "bw-skeleton" in html
+
+
+def test_unknown_tab_falls_back_to_the_first(client: Client) -> None:
+    html = client.get("/interactions/?tab=bogus").content.decode()
+    overview = re.search(r'<div class="bw-tabs__panel"[^>]*id="bw-tabpanel-itx-overview"[^>]*>', html)
+    assert overview and "hidden" not in overview.group(0)
+
+
+def test_lazy_panel_route_returns_the_partial_only(client: Client) -> None:
+    html = client.get("/interactions/panels/activity/").content.decode()
+    assert "bw-app" not in html and "<html" not in html
+    assert "Priya restocked Alpha" in html
+
+
+# --- the modal's two documented render paths (one partial) ------------------
+
+
+def test_confirm_route_htmx_returns_the_modal_fragment(client: Client) -> None:
+    resp = client.get("/interactions/confirm/", HTTP_HX_REQUEST="true")
+    assert resp.status_code == 200
+    html = resp.content.decode()
+    assert "<html" not in html and "bw-app" not in html  # a fragment, not a page
+    assert 'role="dialog"' in html
+    assert 'x-data="bwModal(' in html
+    assert 'id="confirm-reset"' in html
+    assert 'aria-labelledby="confirm-reset-title"' in html
+
+
+def test_confirm_route_plain_get_is_a_full_working_page(client: Client) -> None:
+    # BR-BW-HTMX-006: the floor is a real page presenting the same content
+    # and action through the shell.
+    html = client.get("/interactions/confirm/").content.decode()
+    assert "bw-app" in html  # rendered through the shell
+    assert "Reset demo data" in html
+    assert 'method="post"' in html and 'action="/interactions/confirm/"' in html
+    # the close control is a real anchor back out (close_url), never a dead
+    # trigger (AC-BW-086)
+    assert re.search(r'<a class="bw-modal__close[^>]*href="/interactions/"', html)
+
+
+def test_confirm_post_htmx_closes_the_modal_server_side(client: Client, widgets) -> None:
+    resp = client.post("/interactions/confirm/", {"confirm": "RESET"}, HTTP_HX_REQUEST="true")
+    assert resp.status_code == 204
+    trigger = resp["HX-Trigger"]
+    assert "bw:modal:close" in trigger and "confirm-reset" in trigger
+    from brickwork_testapp.models import Widget
+
+    assert Widget.objects.count() == 0
+
+
+def test_confirm_post_no_js_redirects_to_the_interactions_page(client: Client, widgets) -> None:
+    resp = client.post("/interactions/confirm/", {"confirm": "RESET"})
+    assert resp.status_code == 302
+    assert resp["Location"] == "/interactions/"

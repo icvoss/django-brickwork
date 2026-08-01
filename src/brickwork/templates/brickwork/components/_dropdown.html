@@ -1,0 +1,61 @@
+{% load i18n brickwork_icons %}
+{% comment %}
+Dropdown menu (04-interfaces section 4b, 0.8.0). PRIVATE render target of the
+{% bw_dropdown %} tag (templatetags/brickwork_interactions.py): never
+{% include %} this file directly; the tag carries the render-time enforcement
+(ICO-008 icon-only aria_label, item intent validation) and ships items here
+already shaped as RenderedMenuItem values.
+
+Progressive enhancement (the _account_menu.html doctrine, run forwards,
+BR-BW-HTMX-006): the markup below IS the no-JS floor: a native
+<details>/<summary> disclosure of plain links in a labelled <nav> landmark,
+with deliberately NO ARIA menu roles, because role="menu" mandates arrow-key
+handling a no-JS page cannot provide. The bwDropdown Alpine component
+(semver-public, BR-BW-JS-004) upgrades this exact markup at init:
+role="menu"/role="menuitem", aria-haspopup="menu", aria-expanded, and the
+APG Menu Button keyboard map (open on Enter/Space/ArrowDown, ArrowUp opens
+focusing last, wrapping arrows, Home/End, printable-character typeahead,
+Escape/Tab/click-outside close, focus returned to the trigger on every
+dismissal route, BR-BW-JS-006/CBH-008). Menu semantics are only ever
+presented when the behaviour they promise is actually running.
+
+Events (optional conventions, BR-BW-HTMX-004): bw:dropdown:open,
+bw:dropdown:close (detail { id }), emitted by bwDropdown.
+
+The data-bw-dropdown-* attributes are bwDropdown's internal upgrade hooks,
+not consumer contract surface. The x-data argument object is the wiring
+point for the tag's behaviour arguments (triggerMode CBH-006,
+closeOnSelect CBH-007); with Alpine absent it is an inert attribute.
+
+Tokens, elevation, motion (CSS lane): panel --bw-color-surface-raised,
+--bw-elevation-3 at --bw-z-dropdown, radius --bw-size-radius-lg,
+min-inline-size var(--bw-menu-min-width); enter bw-fade-in-up at
+--bw-duration-normal/--bw-ease-out, exit --bw-duration-fast/--bw-ease-in;
+danger items --bw-color-danger-fg (the account-menu precedent). All motion
+sits under the reduced-motion floor (BR-BW-TOK-009).
+{% endcomment %}
+<details class="bw-dropdown"
+         x-data="bwDropdown({ triggerMode: '{{ trigger_mode }}', closeOnSelect: {{ close_on_select|yesno:'true,false' }} })">
+  <summary class="bw-dropdown__trigger bw-btn bw-btn--{{ trigger_variant }} bw-btn--md{% if icon_only %} bw-btn--icon-only{% endif %}"
+           {% if icon_only %}aria-label="{{ aria_label }}"{% endif %}
+           data-bw-dropdown-trigger>
+    {% if trigger_icon %}{% bw_icon trigger_icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
+    {% if not icon_only %}<span class="bw-btn__label">{{ trigger_label }}</span>{% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-dropdown__caret" %}{% endif %}
+  </summary>
+  <nav class="bw-dropdown__panel"
+       aria-label="{% if icon_only %}{{ aria_label }}{% else %}{{ trigger_label }}{% endif %}"
+       data-bw-dropdown-panel>
+    {% for item in items %}
+      {% if item.is_divider %}
+        <hr class="bw-dropdown__divider">
+      {% else %}
+        <a class="bw-dropdown__item{% if item.intent == 'danger' %} bw-dropdown__item--danger{% endif %}"
+           href="{{ item.url }}"
+           data-bw-dropdown-item{{ item.attrs_html }}>
+          {% if item.icon %}{% bw_icon item.icon size="sm" decorative=True css_class="bw-dropdown__item-icon" %}{% endif %}
+          <span class="bw-dropdown__item-label">{{ item.label }}</span>
+        </a>
+      {% endif %}
+    {% endfor %}
+  </nav>
+</details>

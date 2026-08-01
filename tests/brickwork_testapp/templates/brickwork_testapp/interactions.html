@@ -1,0 +1,53 @@
+{% extends "brickwork_testapp/base.html" %}
+{% load brickwork_interactions %}
+{% comment %}
+The interactions page (0.8.0): all four interaction components composed with
+real content, in consuming-project shape. Everything below is a no-JS floor
+first (BR-BW-HTMX-001/006): the dropdown is a details disclosure of real
+links, the tabs are real anchors with the server-selected panel visible, the
+modal trigger is a real anchor to a full-page route, and the disclosures are
+native details/summary. This template ships no script tag; the a11y fixture
+generator injects the host-app Alpine/htmx boot for the JS-leg fixtures only.
+{% endcomment %}
+
+{% block page_title %}Interactions{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title=title description=description %}
+{% endblock %}
+
+{% block content %}
+  <section id="dropdown-demo" aria-labelledby="dropdown-demo-heading">
+    <h2 id="dropdown-demo-heading">Widget actions</h2>
+    {% bw_dropdown items=dropdown_items trigger_label="Actions" trigger_icon="more-horizontal" %}
+  </section>
+
+  <section id="tabs-demo" aria-labelledby="tabs-demo-heading">
+    <h2 id="tabs-demo-heading">Workspace tabs</h2>
+    {% bw_tabs tabs=tabs active=active_tab id="itx" lazy_load=True %}
+    {% include "brickwork/components/_tabs.html#tab_panel" with tabs_id="itx" key="overview" active=active_tab content=overview_panel %}
+    {% include "brickwork/components/_tabs.html#tab_panel" with tabs_id="itx" key="details" active=active_tab content=details_panel %}
+    {% include "brickwork/components/_tabs.html#tab_panel" with tabs_id="itx" key="activity" active=active_tab content=activity_panel lazy_url=activity_lazy_url %}
+  </section>
+
+  <section id="modal-demo" aria-labelledby="modal-demo-heading">
+    <h2 id="modal-demo-heading">Danger zone</h2>
+    <p>Resetting clears every widget in the demo workspace.</p>
+    {% comment %} The modal trigger (04-interfaces 4b): a real anchor whose
+       href is the full-page no-JS floor route; hx-get swaps the same view's
+       fragment response into the shell's #bw-modal-root. {% endcomment %}
+    <a id="open-confirm-modal"
+       class="bw-btn bw-btn--danger bw-btn--md"
+       href="{% url 'testapp:interaction-confirm' %}"
+       hx-get="{% url 'testapp:interaction-confirm' %}"
+       hx-target="#bw-modal-root"
+       hx-swap="innerHTML">Reset demo data</a>
+  </section>
+
+  <section id="disclosure-demo" aria-labelledby="disclosure-demo-heading">
+    <h2 id="disclosure-demo-heading">Frequently asked questions</h2>
+    {% for item in disclosure_items %}
+      {% include "brickwork/components/_disclosure.html" with label=item.label content=item.content name="itx-faq" open=item.open trigger_meta=item.meta style="bordered" %}
+    {% endfor %}
+  </section>
+{% endblock %}

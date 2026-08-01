@@ -19,6 +19,9 @@ export default defineConfig({
     emptyOutDir: false, // the token artefacts already live here; do not wipe them
     rollupOptions: {
       input: { brickwork: "frontend/src/index.js" },
+      // brickwork.js is a consumed ESM (registerBrickworkComponents), not an
+      // app entry: keep its exports instead of tree-shaking them away.
+      preserveEntrySignatures: "strict",
       output: {
         entryFileNames: "brickwork.js",
         assetFileNames: (info) =>
