@@ -1,11 +1,26 @@
-{% load brickwork_icons %}{% spaceless %}
+{% load i18n brickwork_icons %}{% spaceless %}
 {% comment %}
 A small status/label badge (neutral information only, never error comms, STA-008).
 An optional leading icon is decorative by default (ICO-009): the badge text
 already conveys the status.
+
+Dismissible (04-interfaces 4b Dismissible section, 0.9.0, CMP-012): with the
+tag's dismissible=True the root gains x-data="bwDismissible()" (semver-public,
+BR-BW-JS-004; no props, state { visible }, method dismiss(), emits
+bw:dismiss { id }) and an icon-only close button ships WITH the hidden
+attribute; bwDismissible removes hidden at init, so the no-JS floor shows no
+dead control. The close control deliberately skips the bw-btn chrome (a
+button-sized control would break the compact badge; CSS lane owns its
+hit-area treatment). Dismissal removes the element from the DOM only;
+persistence stays host-owned. Exit at --bw-duration-fast/--bw-ease-in;
+reduced motion removes instantly (BR-BW-TOK-009). REGRESSION NOTE: with
+dismissible=False (the default) the rendered output is byte-identical to the
+0.8.0 template; the conditional blocks below add not even whitespace when
+False.
 {% endcomment %}
-<span class="bw-badge bw-badge--{{ variant }}">
+<span class="bw-badge bw-badge--{{ variant }}"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
   {% if icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-badge__icon" %}{% endif %}
   {{ label }}
-</span>
+{% if dismissible %}{% translate "Dismiss" as bw_badge_close_label %}  <button class="bw-badge__close" type="button" hidden aria-label="{{ bw_badge_close_label }}" data-bw-dismiss>{% bw_icon "close" size="sm" decorative=True %}</button>
+{% endif %}</span>
 {% endspaceless %}

@@ -1,15 +1,34 @@
-{% load brickwork_icons %}
+{% load i18n brickwork_icons %}
 {% comment %}
 Full-width banner alert (STA-008/009). role="alert" so it is announced. The
 status icon is decorative (the variant + text carry the meaning; the icon is
 reinforcement, not the sole signal). This is the loud surface for page-level
 errors and status, distinct from a field's inline error (forms/_field.html).
+
+Dismissible (04-interfaces 4b Dismissible section, 0.9.0, CMP-010): with the
+tag's dismissible=True the root gains x-data="bwDismissible()" (semver-public,
+BR-BW-JS-004; no props, state { visible }, method dismiss(), emits
+bw:dismiss { id }) and an icon-only close button ships WITH the hidden
+attribute; bwDismissible removes hidden at init, so the no-JS floor shows no
+dead control. Dismissal removes the element from the DOM only; persistence
+stays host-owned (CMP-012). Exit at --bw-duration-fast/--bw-ease-in
+(MOT-007's clear-quickly tier); reduced motion removes instantly
+(BR-BW-TOK-009). REGRESSION NOTE: with dismissible=False (the default) the
+rendered output is byte-identical to the 0.8.0 template; the conditional
+blocks below are laid out so the False path adds not even whitespace.
 {% endcomment %}
-<div class="bw-alert bw-alert--{{ variant }}" role="alert">
+<div class="bw-alert bw-alert--{{ variant }}" role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
   {% bw_icon icon size="md" decorative=True css_class="bw-alert__icon" %}
   <div class="bw-alert__body">
     {% if title %}<p class="bw-alert__title">{{ title }}</p>{% endif %}
     {% if message %}<p class="bw-alert__message">{{ message }}</p>{% endif %}
     {% block alert_body %}{% endblock %}
   </div>
-</div>
+{% if dismissible %}{% translate "Dismiss" as bw_alert_close_label %}  <button class="bw-alert__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
+          type="button"
+          hidden
+          aria-label="{{ bw_alert_close_label }}"
+          data-bw-dismiss>
+    {% bw_icon "close" size="sm" decorative=True %}
+  </button>
+{% endif %}</div>

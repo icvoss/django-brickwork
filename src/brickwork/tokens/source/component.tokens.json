@@ -84,6 +84,20 @@
       "$value": "min(20rem, 80vw)"
     }
   },
+  "toast": {
+    "max-width": {
+      "$type": "dimension",
+      "$value": "24rem",
+      "$description": "Toast readable measure (0.9.0 interaction set): the sizing ramp has no step between max-width-modal-sm (28rem) and the drawer width, and a toast wants a narrower, glanceable line length than either."
+    }
+  },
+  "htmx-indicator": {
+    "opacity": {
+      "$type": "number",
+      "$value": "0.6",
+      "$description": "STA-006: the substrate's one opinionated in-flight treatment. Applied to an htmx swap target via htmx's own htmx-request class convention, dimming still-visible content while a request is in flight; sits between disabled (0.5) and muted (0.7) so in-flight never reads as disabled."
+    }
+  },
   "focus": {
     "$description": "Focus-ring geometry (DESIGN.md section 6.4). An accessibility floor: not brand-tunable except via --bw-color-focus-ring.",
     "ring-width": {

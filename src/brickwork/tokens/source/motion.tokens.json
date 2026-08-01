@@ -1,6 +1,6 @@
 {
   "duration": {
-    "$description": "Motion durations (DESIGN.md section 8.1). instant is 1ms, not 0, so transitionend still fires; shimmer and spin formalise the two hardcoded loop timings.",
+    "$description": "Motion durations (DESIGN.md section 8.1). instant is 1ms, not 0, so transitionend still fires; shimmer and spin formalise the two hardcoded loop timings; the toast-* rungs are the CBH-009 auto-dismiss ladder, read by bwToast via getComputedStyle, never a transition timing.",
     "$type": "duration",
     "instant": { "$value": "1ms" },
     "fast": { "$value": "100ms" },
@@ -8,7 +8,15 @@
     "moderate": { "$value": "250ms" },
     "slow": { "$value": "400ms" },
     "shimmer": { "$value": "1500ms" },
-    "spin": { "$value": "700ms" }
+    "spin": { "$value": "700ms" },
+    "toast-short": { "$value": "4000ms" },
+    "toast-normal": { "$value": "6000ms" },
+    "toast-long": { "$value": "10000ms" }
+  },
+  "debounce": {
+    "$description": "Interaction debounce windows (04-interfaces section 4b). JS-consumed via getComputedStyle so a consumer retunes timing in the token layer without touching templates; search is the combobox server-filter window.",
+    "$type": "duration",
+    "search": { "$value": "300ms" }
   },
   "ease": {
     "$description": "Easing curves (DESIGN.md section 8.2): in for exits, out for entrances, in-out for moves, emphasised for energetic entrances.",

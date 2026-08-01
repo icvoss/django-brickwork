@@ -1,0 +1,48 @@
+{% extends "brickwork_testapp/base.html" %}
+{% load brickwork_components %}
+{% comment %}
+The toast demo page (0.9.0): the shell's base includes the one #bw-toast-region
+per page, so this page only adds the delivery form and its two floors. The
+plain-POST branch of the action endpoint queues a django.contrib.messages flash
+that renders below as a banner alert (STA-008: the toast is the enhanced form
+of a flash message, never the only form); the htmx branch prepends a toast into
+the region via an OOB wrapper (BR-BW-HTMX-007). The dismissible alert/badge
+instances (04-interfaces 4b) round out the 0.9.0 surfaces. No script tag here:
+the a11y fixture generator injects the host-app boot for the JS-leg fixtures.
+{% endcomment %}
+
+{% block page_title %}Toasts{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title=title description=description %}
+{% endblock %}
+
+{% block content %}
+  {% comment %} The no-JS feedback floor: flash messages queued by the plain-POST
+     branch render as banner alerts, so the page works with zero JS. {% endcomment %}
+  {% for message in messages %}
+    {% bw_alert message variant=message.level_tag %}
+  {% endfor %}
+
+  <section id="toast-demo" aria-labelledby="toast-demo-heading">
+    <h2 id="toast-demo-heading">Send feedback</h2>
+    {% comment %} With htmx running, the form swaps the status line below while the
+       response's OOB wrapper delivers the toast; with no JS it is a plain POST
+       into the messages floor above. {% endcomment %}
+    <form id="toast-demo-form" method="post" action="{% url 'testapp:toast-action' %}"
+          hx-post="{% url 'testapp:toast-action' %}" hx-target="#toast-demo-status" hx-swap="outerHTML">
+      {% csrf_token %}
+      <button class="bw-btn bw-btn--secondary bw-btn--md" name="intent" value="success">Success toast</button>
+      <button class="bw-btn bw-btn--secondary bw-btn--md" name="intent" value="info">Info toast</button>
+      <button class="bw-btn bw-btn--secondary bw-btn--md" name="intent" value="warning">Warning toast</button>
+      <button class="bw-btn bw-btn--danger bw-btn--md" name="intent" value="danger">Danger toast</button>
+    </form>
+    <p id="toast-demo-status">No toast sent yet.</p>
+  </section>
+
+  <section id="dismissible-demo" aria-labelledby="dismissible-demo-heading">
+    <h2 id="dismissible-demo-heading">Dismissible surfaces</h2>
+    {% bw_alert "The demo workspace was reset overnight." variant="info" dismissible=True %}
+    <p>Release channel: {% bw_badge "Beta" variant="info" dismissible=True %}</p>
+  </section>
+{% endblock %}

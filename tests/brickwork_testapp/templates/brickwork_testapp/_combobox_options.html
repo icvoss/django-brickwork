@@ -1,0 +1,9 @@
+{% comment %}
+The consumer's filtered option-list partial (CBH-019): the whole hx-get
+response for the debounced server filter, swapped into the stable
+bw-listbox-id_colour listbox (BR-BW-HTMX-005). Options only, never page
+chrome: a fragment endpoint returns exactly what the swap target holds.
+{% endcomment %}
+{% for value, label in options %}
+<li class="bw-combobox__option" role="option" id="{{ listbox_id }}-opt-{{ value }}" data-bw-value="{{ value }}">{{ label }}</li>
+{% endfor %}

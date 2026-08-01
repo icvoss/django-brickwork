@@ -2,15 +2,20 @@
 
 These render each tag in isolation (no testapp needed), covering the branch paths
 the integration suite exercises only indirectly: variant/size validation, the
-icon-only accessible-name enforcement (ICO-008), loading, and the link-vs-button
-split.
+icon-only accessible-name enforcement (ICO-008), loading, the link-vs-button
+split, and the 0.9.0 dismissible upgrade to alert and badge (04-interfaces 4b).
 """
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import pytest
 from django.template import Context, Template
 from django.template.exceptions import TemplateSyntaxError
+
+_DIST_JS = Path(__file__).resolve().parent.parent / "src/brickwork/static/brickwork/dist/brickwork.js"
 
 
 def _render(snippet: str, **ctx: object) -> str:
@@ -108,3 +113,51 @@ def test_alert_invalid_variant_raises() -> None:
 def test_alert_with_title() -> None:
     out = _render('{% bw_alert "the message" variant="error" title="Oops" %}')
     assert "Oops" in out and "the message" in out
+
+
+# --- dismissible alert and badge (04-interfaces 4b, 0.9.0) ------------------
+
+
+def _close_button(out: str) -> str:
+    """The dismiss control's opening tag, for attribute assertions."""
+    match = re.search(r"<button[^>]*aria-label[^>]*>", out)
+    assert match, "no close control in output"
+    return match.group(0)
+
+
+def test_alert_default_output_is_unchanged_without_dismissible() -> None:
+    # regression: the new argument's default must not disturb the shipped
+    # markup; dismissible=False and omitting it are byte-equal
+    default = _render('{% bw_alert "msg" variant="info" %}')
+    assert default == _render('{% bw_alert "msg" variant="info" dismissible=False %}')
+    assert "x-data" not in default
+    assert "<button" not in default
+
+
+def test_badge_default_output_is_unchanged_without_dismissible() -> None:
+    default = _render('{% bw_badge "Active" variant="success" %}')
+    assert default == _render('{% bw_badge "Active" variant="success" dismissible=False %}')
+    assert "x-data" not in default
+    assert "<button" not in default
+
+
+def test_dismissible_alert_gains_the_component_and_a_hidden_close_control() -> None:
+    # The control ships WITH the hidden attribute and JS reveals it at init:
+    # the no-JS floor shows no dead dismiss affordance (04-interfaces 4b).
+    out = _render('{% bw_alert "msg" variant="info" dismissible=True %}')
+    assert 'x-data="bwDismissible()"' in out
+    assert "hidden" in _close_button(out).replace("aria-hidden", "")
+
+
+def test_dismissible_badge_gains_the_component_and_a_hidden_close_control() -> None:
+    out = _render('{% bw_badge "Beta" variant="info" dismissible=True %}')
+    assert 'x-data="bwDismissible()"' in out
+    assert "hidden" in _close_button(out).replace("aria-hidden", "")
+
+
+def test_bundle_registers_bwdismissible_and_its_event() -> None:
+    # AC static leg, mirroring the interaction modules: the compiled bundle
+    # carries the semver-public name and its documented bw: event.
+    bundle = _DIST_JS.read_text()
+    assert "bwDismissible" in bundle
+    assert "bw:dismiss" in bundle

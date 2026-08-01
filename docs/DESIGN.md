@@ -361,6 +361,7 @@ surfaces.
 | `--bw-size-max-width-modal-lg` **[NEW]** | `48rem` | |
 | `--bw-drawer-width` **[NEW]** | `min(20rem, 80vw)` | formalises the drawer literal |
 | `--bw-menu-min-width` **[NEW]** | `12rem` | minimum width for dropdown-shaped panels; the account-menu literal becomes its consumer |
+| `--bw-toast-max-width` **[NEW 0.9.0]** | `24rem` | toast readable measure; the ramp has no step between modal-sm (28rem) and the drawer width, and a toast wants a narrower glanceable line |
 | `--bw-stat-tile-value-size` **[NEW 0.5.0]** | `var(--bw-font-size-3xl)` | stat tile numeral size (VIZ-001); a live reference so the font scale cascades, and the `size` modifiers re-point it per tile |
 | `--bw-select-indicator` **[NEW 0.7.0]** | chevron SVG data URI | select dropdown indicator, drawn at a mid-grey that reads as decorative on both themes |
 | `--bw-checkbox-glyph` **[NEW 0.7.0]** | tick SVG data URI (alpha mask) | consumed via mask-image and painted with `fg-on-accent`, so the glyph stays AA in both themes |
@@ -478,6 +479,15 @@ component); the card-title row shipped in 0.5.0 (_card.html, heading-md).
 `moderate 250ms`, `slow 400ms`, plus loop timings `shimmer 1500ms`,
 `spin 700ms` (formalising the two hardcoded loops).
 
+0.9.0 interaction-set additions (MINOR, section 11):
+
+| Token | Value | Use |
+|---|---|---|
+| `--bw-duration-toast-short` **[NEW 0.9.0]** | `4000ms` | toast auto-dismiss, `duration="short"` (CBH-009); read by `bwToast` via getComputedStyle, never a transition timing |
+| `--bw-duration-toast-normal` **[NEW 0.9.0]** | `6000ms` | toast auto-dismiss, the `"normal"` default |
+| `--bw-duration-toast-long` **[NEW 0.9.0]** | `10000ms` | toast auto-dismiss, `duration="long"` |
+| `--bw-debounce-search` **[NEW 0.9.0]** | `300ms` | the combobox server-filter debounce window (CBH-019 path); JS-consumed, retunable in the token layer without touching templates |
+
 ### 8.2 Easings (`--bw-ease-*`) **[NEW]**
 
 `linear`, `standard cubic-bezier(0.4, 0, 0.2, 1)`,
@@ -518,6 +528,7 @@ unshipped extension point.
 | `--bw-disabled-opacity` | `0.5` | existing, unchanged (name migrates in 0.4.0) |
 | `--bw-opacity-muted` **[NEW]** | `0.7` | de-emphasis that is not disabled; conservative floor, re-verify contrast per use |
 | `--bw-opacity-sort-idle` **[NEW]** | `0.4` | names the shipped sort-caret literal (decorative only) |
+| `--bw-htmx-indicator-opacity` **[NEW 0.9.0]** | `0.6` | STA-006 in-flight dimming of an htmx swap target via the `htmx-request` class convention; between disabled (0.5) and muted (0.7) so in-flight never reads as disabled |
 
 ## 10. Reserved names (documented, deliberately not shipped)
 

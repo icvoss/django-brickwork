@@ -17,6 +17,35 @@ class WidgetFilterForm(forms.Form):
     )
 
 
+# The combobox demo option sets (0.9.0): module-level so the a11y fixture
+# generator and the filter endpoint read the exact same data (no fixture drift).
+COLOUR_CHOICES = [("red", "Red"), ("green", "Green"), ("blue", "Blue"), ("plaid", "Plaid")]
+TAG_CHOICES = [("alpha", "Alpha"), ("beta", "Beta"), ("gamma", "Gamma")]
+
+# The standalone allow_create instance's option set (CBH-021 gap): deliberately
+# small so a query that matches nothing is trivial to type in the spec.
+SKILL_OPTIONS = [("python", "Python"), ("django", "Django"), ("javascript", "JavaScript")]
+
+
+class ComboDemoForm(forms.Form):
+    """The combobox demo form (04-interfaces 4b, 0.9.0): a single-select
+    ChoiceField (server filter mode) plus a MultipleChoiceField chips case
+    (client mode), and a required reason field so a failed submit proves the
+    combobox selections survive the 422 re-render through the floor controls."""
+
+    colour = forms.ChoiceField(choices=COLOUR_CHOICES, label="Colour", help_text="The widget's colour.")
+    tags = forms.MultipleChoiceField(required=False, choices=TAG_CHOICES, label="Tags")
+    reason = forms.CharField(label="Reason", help_text="Why these were picked.")
+
+    def clean_colour(self) -> str:
+        colour = self.cleaned_data["colour"]
+        if colour == "plaid":
+            # a deterministic failure ON the combobox field itself, for the
+            # errored field-chrome fixtures
+            raise forms.ValidationError("Plaid is a pattern, not a colour.")
+        return colour
+
+
 class WidgetForm(forms.ModelForm):
     # A declared (non-model) boolean so the a11y fixtures exercise the drawn
     # checkbox control (bw-checkbox) through the accessible field renderer;

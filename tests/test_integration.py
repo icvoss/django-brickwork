@@ -330,3 +330,103 @@ def test_confirm_post_no_js_redirects_to_the_interactions_page(client: Client, w
     resp = client.post("/interactions/confirm/", {"confirm": "RESET"})
     assert resp.status_code == 302
     assert resp["Location"] == "/interactions/"
+
+
+# --- the 0.9.0 overlay pair: toast delivery + combobox floor -----------------
+
+
+def test_toast_demo_page_ships_the_shell_region_and_no_script(client: Client) -> None:
+    # the shell's one #bw-toast-region include (BR-BW-HTMX-005): every shell
+    # page has a working toast target out of the box, empty and invisible
+    html = client.get("/toasts/").content.decode()
+    assert 'id="bw-toast-region"' in html
+    assert 'aria-live="polite"' in html
+    assert "bw-toast--" not in html  # an empty region shows no toast
+    assert "<script" not in html.lower()  # the floor page ships no JS
+
+
+def test_toast_htmx_post_returns_the_oob_wrapper(client: Client) -> None:
+    # BR-BW-HTMX-007: the only creation path is server-rendered markup riding
+    # an OOB wrapper; the rest of the response is the ordinary main swap.
+    resp = client.post("/toasts/action/", {"intent": "success"}, HTTP_HX_REQUEST="true")
+    assert resp.status_code == 200
+    html = resp.content.decode()
+    assert 'hx-swap-oob="afterbegin:#bw-toast-region"' in html
+    assert "bw-toast--success" in html
+    assert "data-bw-toast" in html
+    assert "bw-toast__close" in html  # CBH-012: always dismissible
+    assert "bw-app" not in html  # a fragment, never a full page
+    assert 'id="toast-demo-status"' in html  # the main swap content
+
+
+def test_toast_no_js_post_falls_back_to_the_alert_floor(client: Client) -> None:
+    # BR-BW-HTMX-001/STA-008: POST -> redirect -> the same feedback as a
+    # messages banner alert; the toast is never the only form.
+    resp = client.post("/toasts/action/", {"intent": "success"}, follow=True)
+    assert resp.redirect_chain == [("/toasts/", 302)]
+    html = resp.content.decode()
+    assert "bw-alert--success" in html
+    assert "Demo data saved." in html
+    assert "bw-toast--" not in html
+
+
+def test_dismissible_instances_render_on_the_toast_page(client: Client) -> None:
+    # one dismissible alert + one dismissible badge (04-interfaces 4b)
+    html = client.get("/toasts/").content.decode()
+    assert html.count('x-data="bwDismissible()"') == 2
+
+
+def test_combobox_page_floor_is_the_native_select(client: Client) -> None:
+    html = client.get("/comboboxes/").content.decode()
+    floor = re.search(r'<select[^>]*name="colour"[^>]*>', html)
+    assert floor and "bw-combobox__floor" in floor.group(0)
+    assert "hidden" not in floor.group(0).replace("aria-hidden", "")
+    # the enhanced field wrapper ships hidden; only bwCombobox reveals it
+    field = re.search(r"<div[^>]*bw-combobox__field[^>]*>", html)
+    assert field and "hidden" in field.group(0).replace("aria-hidden", "")
+    assert "<script" not in html.lower()
+
+
+def test_combobox_page_multiple_floor_is_a_select_multiple(client: Client) -> None:
+    html = client.get("/comboboxes/").content.decode()
+    tags = re.search(r'<select[^>]*name="tags"[^>]*>', html)
+    assert tags and "multiple" in tags.group(0)
+
+
+def test_combobox_options_endpoint_returns_the_option_list_partial(client: Client) -> None:
+    html = client.get("/comboboxes/options/colour/?q=gr").content.decode()
+    assert "bw-app" not in html and "<html" not in html
+    assert 'role="option"' in html
+    assert 'data-bw-value="green"' in html
+    assert 'data-bw-value="red"' not in html
+
+
+def test_combobox_422_rerender_keeps_the_selection(client: Client) -> None:
+    # BR-BW-HTMX-003: selections survive a failed submit through POST data
+    # carried by the floor controls, never through Alpine state.
+    resp = client.post(
+        "/comboboxes/",
+        {"colour": "green", "tags": ["alpha", "beta"], "reason": ""},
+        HTTP_HX_REQUEST="true",
+    )
+    assert resp.status_code == 422
+    html = resp.content.decode()
+    assert "bw-app" not in html  # only the form section swaps
+    assert 'id="combobox-form"' in html
+    for value in ("green", "alpha", "beta"):
+        option = re.search(rf'<option[^>]*value="{value}"[^>]*>', html)
+        assert option and "selected" in option.group(0)
+    assert "This field is required." in html
+
+
+def test_combobox_non_htmx_invalid_post_redisplays_full_page(client: Client) -> None:
+    # BR-BW-HTMX-001: with no JS the same view returns a full working page.
+    resp = client.post("/comboboxes/", {"colour": "green", "tags": [], "reason": ""})
+    assert resp.status_code == 200
+    assert "bw-app" in resp.content.decode()
+
+
+def test_combobox_valid_post_redirects(client: Client) -> None:
+    resp = client.post("/comboboxes/", {"colour": "red", "reason": "Because."})
+    assert resp.status_code == 302
+    assert resp["Location"] == "/comboboxes/"

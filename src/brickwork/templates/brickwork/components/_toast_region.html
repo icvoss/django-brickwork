@@ -1,0 +1,47 @@
+{% load i18n %}
+{% comment %}
+Toast region (04-interfaces section 4b, 0.9.0): the stacking container and
+live region for server-rendered toasts. Consumed via {% include %} (purely
+structural, matching _disclosure.html); shell/base.html includes it once from
+0.9.0, so every shell page has a working toast target out of the box. An
+EMPTY region renders nothing visible (no box, no border: CSS lane), so
+shipping it unconditionally costs nothing.
+
+Stable id (BR-BW-HTMX-005): bw-toast-region. Delivery is server-rendered only
+(BR-BW-HTMX-007, no client-side creation API): an htmx response appends a
+toast out of band by rendering {% bw_toast %} inside a wrapper carrying
+hx-swap-oob="afterbegin:#bw-toast-region" (the reserved non-field-scoped OOB
+use BR-BW-HTMX-003 names). afterbegin prepends, so the newest toast is always
+the region's first child and the overflow control below stays last.
+
+aria-live="polite" sits on the region intrinsically (A11Y-013): a toast
+arriving by OOB swap is announced without stealing focus (BR-BW-JS-006).
+danger toasts additionally carry their own role="alert" (assertive) on the
+toast root, not here.
+
+Stack management (bwToastRegion, fixed behaviour, no public props, CBH-011):
+at most 3 toasts visible; bwToastRegion sets the hidden attribute on every
+toast beyond the 3 newest and reveals the "+N more" control below, filling
+the count into the [data-bw-toast-more-count] span. The control ships hidden
+in the base markup (no dead control on the no-JS floor, where the region only
+ever renders server-redirect pages' zero toasts anyway); activating it
+expands the collapsed stack.
+
+Context (validated nowhere at include level, matching include doctrine):
+  position ("top-end"|"top-start"|"bottom-end"|"bottom-start", default
+      "top-end"): logical values so RTL mirrors for free (CBH-010). Set once
+      per page; the CSS keys the fixed placement on the modifier class.
+
+Tokens, elevation, motion (CSS lane): toasts stack at --bw-z-toast (above the
+modal, the z scale's deliberate ordering); the region itself paints nothing.
+{% endcomment %}
+<div id="bw-toast-region"
+     class="bw-toast-region bw-toast-region--{{ position|default:'top-end' }}"
+     x-data="bwToastRegion()"
+     aria-live="polite"
+     data-bw-toast-region>
+  {# Overflow control: hidden until bwToastRegion has more than 3 toasts; JS fills the count span. #}
+  <button class="bw-toast-region__more" type="button" hidden data-bw-toast-more>
+    +<span data-bw-toast-more-count>0</span> {% translate "more" context "toast overflow count" %}
+  </button>
+</div>

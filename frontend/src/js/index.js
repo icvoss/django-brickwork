@@ -2,14 +2,17 @@
 // interaction set (brickwork-interaction-set plan, section b).
 //
 // One module per Alpine.data component; the registered names are the
-// versioned public JS contract (BR-BW-JS-004). The 0.8.0 tranche registers
-// exactly bwDropdown, bwTabs and bwModal; the disclosure ships no JS at
-// all (native <details>, see ./disclosure.js), and bwToastRegion/bwToast/
-// bwCombobox arrive with the 0.9.0 tranche.
+// versioned public JS contract (BR-BW-JS-004). The 0.8.0 tranche shipped
+// bwDropdown, bwTabs and bwModal; the interactions-2 tranche adds
+// bwToastRegion, bwToast, bwCombobox and bwDismissible. The disclosure
+// ships no JS at all (native <details>, see ./disclosure.js).
 
 import dropdown from "./dropdown.js";
 import tabs from "./tabs.js";
 import modal from "./modal.js";
+import { toastRegion, toast } from "./toast.js";
+import combobox from "./combobox.js";
+import dismissible from "./dismissible.js";
 
 /**
  * Register brickwork's Alpine.data() components on a host-owned Alpine
@@ -30,6 +33,10 @@ export function registerBrickworkComponents(Alpine) {
   Alpine.data("bwDropdown", dropdown);
   Alpine.data("bwTabs", tabs);
   Alpine.data("bwModal", modal);
+  Alpine.data("bwToastRegion", toastRegion);
+  Alpine.data("bwToast", toast);
+  Alpine.data("bwCombobox", combobox);
+  Alpine.data("bwDismissible", dismissible);
 }
 
 export default registerBrickworkComponents;

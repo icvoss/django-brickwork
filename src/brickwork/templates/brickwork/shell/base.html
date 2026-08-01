@@ -36,6 +36,15 @@ out of the box.
 
   {% block body_js %}{% endblock %}
 {% comment %}
+Toast region (BR-BW-HTMX-005): the stable #bw-toast-region live region and
+OOB append target (hx-swap-oob="afterbegin:#bw-toast-region",
+BR-BW-HTMX-003/007). Included once here from 0.9.0 so every shell page has
+a working toast target out of the box; an empty region renders nothing
+visible. position defaults to top-end; a consuming project sets
+bw_toast_position in context (the bw_theme pattern) to move it.
+{% endcomment %}
+{% include "brickwork/components/_toast_region.html" with position=bw_toast_position %}
+{% comment %}
 htmx modal target (BR-BW-HTMX-005): a stable swap root for server-rendered
 modal fragments; zero-footprint when empty (display: contents) so an OOB
 or targeted swap never shifts layout (BR-BW-HTMX-009). Shipped with the

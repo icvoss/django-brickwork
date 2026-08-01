@@ -22,6 +22,16 @@
   box-sizing: border-box;
 }
 
+/* Scoped hidden floor: the interaction set toggles the hidden ATTRIBUTE on
+ * elements whose component class sets display (.bw-toast, .bw-combobox__field,
+ * .bw-combobox__option, the bw-btn close controls), and any author display
+ * rule outranks the UA sheet's [hidden]. Restated here, scoped to bw-
+ * classes, so hidden always means hidden without a consumer preflight. */
+[class^="bw-"][hidden],
+[class*=" bw-"][hidden] {
+  display: none !important;
+}
+
 /* --- accessibility + RTL primitives (no component depends on JS for these) --- */
 
 /* Skip link: visually hidden until focused, then pinned to the top-inline-start.
