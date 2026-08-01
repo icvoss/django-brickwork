@@ -1,0 +1,12 @@
+{% load brickwork_interactions %}
+{% comment %}
+The htmx delivery response (BR-BW-HTMX-007): the OOB wrapper prepends one
+server-rendered toast into the shell's #bw-toast-region while the rest of the
+response is the ordinary main swap (the status line the form targets). This is
+exactly the reserved non-field-scoped OOB use BR-BW-HTMX-003 names, and it
+needs zero event listeners (BR-BW-HTMX-004).
+{% endcomment %}
+<div hx-swap-oob="afterbegin:#bw-toast-region">
+  {% bw_toast message intent=intent duration=duration %}
+</div>
+<p id="toast-demo-status">Sent a {{ intent }} toast.</p>

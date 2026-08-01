@@ -19,4 +19,11 @@ urlpatterns = [
     path("interactions/", views.InteractionsView.as_view(), name="interactions"),
     path("interactions/confirm/", views.InteractionConfirmView.as_view(), name="interaction-confirm"),
     path("interactions/panels/activity/", views.LazyActivityPanelView.as_view(), name="interaction-panel-activity"),
+    # the 0.9.0 overlay pair: the toast demo page and its delivery endpoint
+    # (OOB wrapper on the htmx branch, messages alert floor on the plain
+    # branch), and the combobox demo page with its server filter endpoint
+    path("toasts/", views.ToastDemoView.as_view(), name="toast-demo"),
+    path("toasts/action/", views.ToastActionView.as_view(), name="toast-action"),
+    path("comboboxes/", views.ComboboxDemoView.as_view(), name="combobox-demo"),
+    path("comboboxes/options/colour/", views.ComboboxColourOptionsView.as_view(), name="combobox-colour-options"),
 ]

@@ -1,0 +1,182 @@
+{% load i18n brickwork_icons %}
+{% comment %}
+Combobox (04-interfaces section 4b, 0.9.0). PRIVATE render target of the
+{% bw_combobox %} tag (templatetags/brickwork_interactions.py): never
+{% include %} this file directly; the tag carries the render-time enforcement
+(filter_mode="server" without options_url raises, CBH-019; field-or-trio
+shape; id-safe tokens for the stable ids, BR-BW-HTMX-005) and ships options
+here already shaped as RenderedComboboxOption values.
+
+Progressive enhancement, ONE markup (BR-BW-HTMX-001/006, chosen by the option
+set's shape, never by filter_mode, BR-BW-HTMX-008): the base control below IS
+a native <select> (or <select multiple>) built from the choices, and it STAYS
+the submitted form control at all times. The enhanced chrome next to it ships
+inside a wrapper carrying the hidden attribute, so the no-JS floor is simply
+the fully working native select. At init bwCombobox (semver-public,
+BR-BW-JS-004; props { filterMode, multiple, allowCreate }, state { open,
+query, activeIndex, selected }, methods open()/close()/select(value)/clear())
+removes hidden from the field wrapper, sets hidden on the floor select, and
+mirrors selection BOTH ways: the floor select carries form state, so a failed
+submit's 422 re-render (hx-target="this" hx-swap="outerHTML", BR-BW-HTMX-003)
+rehydrates the component from the re-rendered DOM. Selections survive
+validation errors through POST data, never through Alpine state.
+
+Field chrome: given a bound field the tag renders this control inside the
+forms/_field.html chrome below (same classes, same help/error ids, same
+aria-describedby wiring, BR-BW-A11Y-002). The <label for> pairs with the
+floor select (the real control on the floor); the enhanced input instead
+carries aria-labelledby pointing at the label's id, so both controls are
+named without JS moving attributes. No required attribute is rendered:
+constraint validation on a JS-hidden control cannot surface its message
+(the browser tries to focus a hidden element), and the server owns
+validation per the 422 flow above.
+
+ARIA: the combobox role set (role="combobox", aria-expanded, aria-controls,
+aria-autocomplete="list") is static below but sits INSIDE the hidden wrapper,
+so it is inert until JS reveals it; aria-activedescendant only makes sense
+under JS (it tracks the active option) and arrives at init, per the tranche
+upgrade-at-init discipline. The listbox id bw-listbox-<field id> is stable
+(BR-BW-HTMX-005). Keyboard is the WAI-ARIA APG combobox pattern (listbox
+popup, aria-activedescendant), HAND-ROLLED by bwCombobox per the 2026-08-01
+amendment (no @alpinejs/ui): closed: ArrowDown opens with first-or-current
+active, ArrowUp opens with last active, Alt+ArrowDown opens without moving,
+typing opens and filters; open: ArrowDown/ArrowUp move the active option,
+Enter selects (single: select and close; multiple: toggle and stay open),
+Escape closes and, when already closed, clears the query, Tab closes without
+selecting and continues, Home/End keep native caret behaviour. Multiple:
+Backspace with an empty query removes the last chip. Guaranteed operable,
+no opt-out (CBH-022).
+
+htmx (filter_mode="server", the default): the attributes are wired ON the
+input below: hx-get to options_url, hx-target the stable listbox id,
+hx-swap="innerHTML" (explicit: the input would otherwise inherit the
+ancestor form's hx-swap="outerHTML" from the 422 contract above, and the
+first filter response would replace the stable listbox element itself
+instead of its contents, BR-BW-HTMX-005), hx-trigger="bw:combobox:search"
+(a custom event bwCombobox fires after debouncing the query at
+--bw-debounce-search, read via getComputedStyle), hx-include="this" so the
+query travels as the "q" parameter (the input carries name="q" with
+form="", which dissociates it from any ancestor form so the floor select
+stays the ONLY control the form submits). The response
+is the option-list partial only, swapped into the listbox; while in flight
+the listbox dims via the standard --bw-htmx-indicator-opacity treatment
+(STA-006, hx-indicator). NOTE for the create affordance below: a server
+swap replaces the listbox contents, so bwCombobox re-appends the create
+option after each swap.
+
+Multiple mode: selected values render as chips (span.bw-combobox__chip with
+an icon-only button.bw-combobox__chip-remove). The floor's selections render
+as chips server-side; bwCombobox rebuilds the run from the floor select's
+state at init and on every change, cloning the registry close icon from the
+chip seed template below and composing each remove button's enforced
+translated aria-label from the seed's data-bw-chip-remove-label plus the
+option label (ICO-008, wired internally). allow_create (CBH-021): the
+affordance is the final option,
+revealed with the current query filled into its span; activating it emits
+bw:combobox:create { query }, and wiring that to an endpoint is the
+caller's job (brickwork ships the affordance only).
+
+Events (optional conventions, BR-BW-HTMX-004): bw:combobox:open/close,
+bw:combobox:select { value, label }, bw:combobox:create { query }
+(allow_create only), emitted by bwCombobox.
+
+The data-bw-combobox-* attributes are bwCombobox's internal upgrade hooks,
+not consumer contract surface. The x-data argument object is the wiring
+point for the tag's behaviour arguments.
+
+Tokens, elevation, motion (CSS lane): the listbox is a dropdown-shaped panel
+(--bw-color-surface-raised, --bw-elevation-3, --bw-z-dropdown, radius
+--bw-size-radius-lg, min-inline-size var(--bw-menu-min-width), bw-fade-in-up
+at --bw-duration-normal/--bw-ease-out, exit --bw-duration-fast/--bw-ease-in,
+MOT-011's tier); the input takes --bw-color-border-control; chips take
+--bw-size-radius-full; the active option takes --bw-state-selected-bg. All
+motion sits under the reduced-motion floor (BR-BW-TOK-009).
+{% endcomment %}
+{% partialdef combobox_control %}
+<div class="bw-combobox"
+     x-data='bwCombobox({ filterMode: "{{ filter_mode }}", multiple: {{ multiple|yesno:"true,false" }}, allowCreate: {{ allow_create|yesno:"true,false" }} })'
+     data-bw-combobox>
+  <select class="bw-combobox__floor bw-input"
+          id="{{ field_id }}"
+          name="{{ html_name }}"
+          {% if multiple %}multiple{% endif %}
+          {% if errors %}aria-invalid="true"{% endif %}
+          {% if described_by %}aria-describedby="{{ described_by }}"{% endif %}
+          data-bw-combobox-floor>
+    {% for opt in options %}
+    <option value="{{ opt.value }}"{% if opt.is_selected %} selected{% endif %}>{{ opt.label }}</option>
+    {% endfor %}
+  </select>
+  <div class="bw-combobox__field" hidden data-bw-combobox-field>
+    {% if multiple %}
+    {% translate "Remove" as bw_chip_remove_label %}
+    {# Initial chips from the floor's selections; bwCombobox rebuilds this run from the floor state at init and on every change. #}
+    {% for opt in options %}{% if opt.is_selected %}<span class="bw-combobox__chip" data-bw-value="{{ opt.value }}">{{ opt.label }}<button class="bw-combobox__chip-remove" type="button" aria-label="{{ bw_chip_remove_label }} {{ opt.label }}">{% bw_icon "close" size="sm" decorative=True %}</button></span>{% endif %}{% endfor %}
+    {# Chip seed: the registry close icon bwCombobox clones into JS-built chips, plus the translated remove-label prefix (ICO-008). #}
+    <template data-bw-combobox-chip-icon data-bw-chip-remove-label="{{ bw_chip_remove_label }}">{% bw_icon "close" size="sm" decorative=True %}</template>
+    {% endif %}
+    <input class="bw-combobox__input bw-input"
+           type="text"
+           id="{{ field_id }}_combobox"
+           role="combobox"
+           aria-expanded="false"
+           aria-controls="{{ listbox_id }}"
+           aria-autocomplete="list"
+           {% if label_id %}aria-labelledby="{{ label_id }}"{% endif %}
+           {% if errors %}aria-invalid="true"{% endif %}
+           {% if described_by %}aria-describedby="{{ described_by }}"{% endif %}
+           {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+           autocomplete="off"
+           name="q"
+           form=""
+           {% if filter_mode == "server" %}hx-get="{{ options_url }}" hx-target="#{{ listbox_id }}" hx-swap="innerHTML" hx-trigger="bw:combobox:search" hx-include="this" hx-indicator="#{{ listbox_id }}"{% endif %}
+           data-bw-combobox-input>
+    <ul class="bw-combobox__listbox"
+        id="{{ listbox_id }}"
+        role="listbox"
+        {% if multiple %}aria-multiselectable="true"{% endif %}
+        data-bw-combobox-listbox>
+      {% for opt in options %}
+      <li class="bw-combobox__option"
+          id="{{ opt.option_id }}"
+          role="option"
+          data-bw-value="{{ opt.value }}"
+          {% if opt.is_selected %}aria-selected="true"{% endif %}>{{ opt.label }}</li>
+      {% endfor %}
+      {% if allow_create %}
+      {# Create affordance (CBH-021): revealed by bwCombobox with the query filled in; re-appended after server swaps. #}
+      <li class="bw-combobox__option bw-combobox__option--create"
+          id="{{ listbox_id }}-create"
+          role="option"
+          hidden
+          data-bw-combobox-create>{% translate "Create" %} <span class="bw-combobox__create-query" data-bw-combobox-create-query></span></li>
+      {% endif %}
+      {# Empty message row (CMP-029): revealed by bwCombobox when no option matches; kept across server swaps by re-appending. #}
+      <li class="bw-combobox__empty" role="presentation" data-bw-combobox-empty hidden>{{ empty_message }}</li>
+    </ul>
+  </div>
+</div>
+{% endpartialdef %}
+{% if has_field %}
+{# The forms/_field.html chrome, verbatim classes and ids, with the combobox control in the widget slot. #}
+<div class="bw-field{% if errors %} bw-field--invalid{% endif %}">
+  <label class="bw-field__label" id="{{ label_id }}" for="{{ field_id }}">
+    {{ label }}{% if required %} <span class="bw-field__required" aria-hidden="true">*</span>{% endif %}
+  </label>
+  <div class="bw-field__control">
+    {% partial combobox_control %}
+  </div>
+  {% if help_text %}
+    <p class="bw-field__help" id="{{ help_id }}">{{ help_text }}</p>
+  {% endif %}
+  {# Error container: id matches what aria-describedby references (BR-BW-A11Y-002). #}
+  <div class="bw-field__errors" id="{{ error_id }}" role="alert">
+    {% for error in errors %}
+      <p class="bw-field__error">{{ error }}</p>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+{# Explicit-trio path: bare control; the consumer owns labelling (pair a label with the floor select id). #}
+{% partial combobox_control %}
+{% endif %}

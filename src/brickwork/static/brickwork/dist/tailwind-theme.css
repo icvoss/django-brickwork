@@ -120,6 +120,8 @@
   --bw-content-max-width: var(--bw-content-max-width);
   --bw-topbar-position: var(--bw-topbar-position);
   --bw-drawer-width: var(--bw-drawer-width);
+  --bw-toast-max-width: var(--bw-toast-max-width);
+  --bw-htmx-indicator-opacity: var(--bw-htmx-indicator-opacity);
   --bw-focus-ring-width: var(--bw-focus-ring-width);
   --bw-focus-ring-offset: var(--bw-focus-ring-offset);
   --bw-focus-ring-style: var(--bw-focus-ring-style);
@@ -229,6 +231,10 @@
   --bw-duration-slow: var(--bw-duration-slow);
   --bw-duration-shimmer: var(--bw-duration-shimmer);
   --bw-duration-spin: var(--bw-duration-spin);
+  --bw-duration-toast-short: var(--bw-duration-toast-short);
+  --bw-duration-toast-normal: var(--bw-duration-toast-normal);
+  --bw-duration-toast-long: var(--bw-duration-toast-long);
+  --bw-debounce-search: var(--bw-debounce-search);
   --bw-ease-linear: var(--bw-ease-linear);
   --bw-ease-standard: var(--bw-ease-standard);
   --bw-ease-in: var(--bw-ease-in);

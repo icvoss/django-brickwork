@@ -1,0 +1,23 @@
+{% load brickwork_components brickwork_interactions %}
+{% comment %}
+The form section and 422 hx-swap target (BR-BW-HTMX-003), exactly as
+_widget_form.html: hx-target="this" hx-swap="outerHTML". The combobox fields
+keep their selected state in the native floor selects at all times, so when
+the view re-renders this partial with errors and status 422 the component
+rehydrates from the swapped-in DOM and no selection is lost (04-interfaces 4b).
+The colour combobox uses the default server filter mode against the testapp's
+option endpoint; the tags combobox is the chips case in client mode (a small
+static option set, the documented degradation choice, BR-BW-HTMX-008).
+{% endcomment %}
+<form id="combobox-form" class="bw-form" method="post"
+      hx-post="{{ request.path }}" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  {% include "brickwork/forms/_form_errors.html" %}
+  {% bw_combobox field=form.colour options_url="/comboboxes/options/colour/" placeholder="Filter colours" %}
+  {% bw_combobox field=form.tags multiple=True filter_mode="client" %}
+  {% include "brickwork/forms/_field.html" with field=form.reason %}
+  <div class="bw-form__actions">
+    {% bw_button "Save" type="submit" variant="primary" icon="check" %}
+    {% bw_button "Cancel" href="/comboboxes/" variant="ghost" %}
+  </div>
+</form>

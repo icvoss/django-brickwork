@@ -129,8 +129,23 @@
  * of UA styles, so "our defaults are beautiful" holds for content, not just
  * chrome. :not([class]) keeps every bw-* component out of scope; :where()
  * keeps specificity at the bare .bw-content class so consumer CSS still wins.
- * Roles are theme-aware tokens, so both themes resolve correctly. */
-.bw-content :where(h1:not([class])) {
+ * Roles are theme-aware tokens, so both themes resolve correctly.
+ *
+ * htmx lifecycle classes (interactions-2, 0.9.0): htmx stamps exactly one of
+ * htmx-added / htmx-settling / htmx-swapping onto an otherwise-unclassed
+ * swapped-in element during its transition window, which makes :not([class])
+ * stop matching mid-settle and the UA default margins flip back in (a CLS
+ * bounce on every swap into classless prose). [class="htmx-<x>"] is an EXACT
+ * attribute match, so it only ever matches an element carrying that one
+ * lifecycle class and nothing else; a real author class alongside it still
+ * falls outside :where() here, exactly as :not([class]) already excludes one. */
+.bw-content
+  :where(
+    h1:not([class]),
+    h1[class="htmx-added"],
+    h1[class="htmx-settling"],
+    h1[class="htmx-swapping"]
+  ) {
   font-family: var(--bw-text-heading-xl-family);
   font-size: var(--bw-text-heading-xl-size);
   font-weight: var(--bw-text-heading-xl-weight);
@@ -138,7 +153,13 @@
   letter-spacing: var(--bw-text-heading-xl-tracking);
   margin-block: 0 var(--bw-size-space-4);
 }
-.bw-content :where(h2:not([class])) {
+.bw-content
+  :where(
+    h2:not([class]),
+    h2[class="htmx-added"],
+    h2[class="htmx-settling"],
+    h2[class="htmx-swapping"]
+  ) {
   font-family: var(--bw-text-heading-lg-family);
   font-size: var(--bw-text-heading-lg-size);
   font-weight: var(--bw-text-heading-lg-weight);
@@ -146,30 +167,61 @@
   letter-spacing: var(--bw-text-heading-lg-tracking);
   margin-block: var(--bw-density-section-gap) var(--bw-size-space-3);
 }
-.bw-content :where(h3:not([class])) {
+.bw-content
+  :where(
+    h3:not([class]),
+    h3[class="htmx-added"],
+    h3[class="htmx-settling"],
+    h3[class="htmx-swapping"]
+  ) {
   font-size: var(--bw-text-heading-md-size);
   font-weight: var(--bw-text-heading-md-weight);
   line-height: var(--bw-text-heading-md-line-height);
   margin-block: var(--bw-size-space-6) var(--bw-size-space-2);
 }
-.bw-content :where(h4:not([class]), h5:not([class]), h6:not([class])) {
+.bw-content
+  :where(
+    h4:not([class]), h5:not([class]), h6:not([class]),
+    h4[class="htmx-added"], h5[class="htmx-added"], h6[class="htmx-added"],
+    h4[class="htmx-settling"], h5[class="htmx-settling"], h6[class="htmx-settling"],
+    h4[class="htmx-swapping"], h5[class="htmx-swapping"], h6[class="htmx-swapping"]
+  ) {
   font-size: var(--bw-text-heading-sm-size);
   font-weight: var(--bw-text-heading-sm-weight);
   line-height: var(--bw-text-heading-sm-line-height);
   margin-block: var(--bw-size-space-4) var(--bw-size-space-2);
 }
-.bw-content :where(p:not([class])) {
+.bw-content
+  :where(
+    p:not([class]),
+    p[class="htmx-added"],
+    p[class="htmx-settling"],
+    p[class="htmx-swapping"]
+  ) {
   font-size: var(--bw-text-body-md-size);
   line-height: var(--bw-text-body-md-line-height);
   margin-block: 0 var(--bw-size-space-3);
   max-inline-size: var(--bw-size-max-width-prose);
 }
-.bw-content :where(ul:not([class]), ol:not([class])) {
+.bw-content
+  :where(
+    ul:not([class]), ol:not([class]),
+    ul[class="htmx-added"], ol[class="htmx-added"],
+    ul[class="htmx-settling"], ol[class="htmx-settling"],
+    ul[class="htmx-swapping"], ol[class="htmx-swapping"]
+  ) {
   margin-block: 0 var(--bw-size-space-3);
   padding-inline-start: var(--bw-size-space-5);
   max-inline-size: var(--bw-size-max-width-prose);
 }
-.bw-content :where(ul:not([class]), ol:not([class])) :where(li)::marker {
+.bw-content
+  :where(
+    ul:not([class]), ol:not([class]),
+    ul[class="htmx-added"], ol[class="htmx-added"],
+    ul[class="htmx-settling"], ol[class="htmx-settling"],
+    ul[class="htmx-swapping"], ol[class="htmx-swapping"]
+  )
+  :where(li)::marker {
   color: var(--bw-color-fg-subtle); /* decorative; adjacent text carries meaning */
 }
 

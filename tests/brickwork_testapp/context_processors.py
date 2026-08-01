@@ -23,6 +23,10 @@ def _breadcrumb_trail(request):
         return [{"label": "Home", "url": "/widgets/"}, {"label": "Dashboard"}]
     if view_name in {"testapp:interactions", "testapp:interaction-confirm"}:
         return [{"label": "Home", "url": "/widgets/"}, {"label": "Interactions"}]
+    if view_name in {"testapp:toast-demo", "testapp:toast-action"}:
+        return [{"label": "Home", "url": "/widgets/"}, {"label": "Toasts"}]
+    if view_name == "testapp:combobox-demo":
+        return [{"label": "Home", "url": "/widgets/"}, {"label": "Comboboxes"}]
     if view_name in {"testapp:widget-create", "testapp:widget-edit"}:
         return [
             {"label": "Home", "url": "/widgets/"},

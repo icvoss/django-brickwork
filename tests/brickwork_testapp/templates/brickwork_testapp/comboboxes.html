@@ -1,0 +1,24 @@
+{% extends "brickwork_testapp/base.html" %}
+{% comment %}
+The combobox demo page (0.9.0): one form, two combobox instances over native
+select floors (single-select colour in the default server filter mode, the
+tags MultipleChoiceField as the chips case in client mode), plus a plain
+required field so an invalid submit exercises the 422 swap with the combobox
+selections surviving in the floor controls (BR-BW-HTMX-003). A third,
+standalone instance (explicit name=/options= trio, outside the form) carries
+allow_create=True so the bw:combobox:create affordance renders somewhere on
+the harness (CBH-021); it has no server-side handler, it only demonstrates
+the affordance itself. Ships no script tag (BR-BW-HTMX-001); the a11y
+fixture generator injects the host-app boot.
+{% endcomment %}
+
+{% block page_title %}Comboboxes{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title=title description=description %}
+{% endblock %}
+
+{% block content %}
+  {% include "brickwork_testapp/_combobox_form.html" %}
+  {% include "brickwork_testapp/_combobox_create.html" %}
+{% endblock %}

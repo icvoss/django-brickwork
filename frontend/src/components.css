@@ -1605,6 +1605,384 @@ a.bw-stat:hover {
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
 }
 
+/* --- Toast region + toast (0.9.0 interaction set, CBH-009..012, CMP-022/023) - */
+
+/* Two pieces (per _toast_region.html / _toast.html). Expected markup:
+ *
+ *   <div id="bw-toast-region" class="bw-toast-region bw-toast-region--top-end"
+ *        x-data="bwToastRegion()" aria-live="polite" data-bw-toast-region>
+ *     <div id="..." class="bw-toast bw-toast--success"
+ *          x-data='bwToast({ duration: "normal" })' data-bw-toast>
+ *       <svg class="bw-icon bw-toast__icon" aria-hidden="true">...</svg>
+ *       <p class="bw-toast__message">...</p>
+ *       [<a class="bw-toast__action" href="...">label</a>]
+ *       <button class="bw-toast__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only">...</button>
+ *     </div>
+ *     <button class="bw-toast-region__more" hidden>+N more</button>
+ *   </div>
+ *
+ * Toasts arrive server-rendered only (BR-BW-HTMX-007), via hx-swap-oob
+ * afterbegin appends into the stable region id; the no-JS floor renders the
+ * same feedback as an _alert.html banner (STA-008) and never a toast, so a
+ * resting toast being invisible below breaks no floor: a toast only exists
+ * on the JS path. Enter AND exit key on [data-bw-visible] (bwToast stamps
+ * it a frame after insertion and drops it before removal), so the marker
+ * carries both legs with the durations swapped per direction. */
+.bw-toast-region {
+  position: fixed;
+  z-index: var(--bw-z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-size-space-2);
+  inline-size: min(var(--bw-toast-max-width), calc(100vw - 2 * var(--bw-size-space-4)));
+  /* Inert chrome: an empty region paints nothing and clicks fall through the
+   * column; toasts and the collapse control restore their own hit-testing. */
+  pointer-events: none;
+}
+/* Logical position variants (RTL mirrors for free, CBH-010). afterbegin
+ * appends put the newest toast first in the DOM, so the bottom regions
+ * reverse the column to keep the newest nearest the viewport edge. */
+.bw-toast-region--top-end {
+  inset-block-start: var(--bw-size-space-4);
+  inset-inline-end: var(--bw-size-space-4);
+}
+.bw-toast-region--top-start {
+  inset-block-start: var(--bw-size-space-4);
+  inset-inline-start: var(--bw-size-space-4);
+}
+.bw-toast-region--bottom-end {
+  inset-block-end: var(--bw-size-space-4);
+  inset-inline-end: var(--bw-size-space-4);
+  flex-direction: column-reverse;
+}
+.bw-toast-region--bottom-start {
+  inset-block-end: var(--bw-size-space-4);
+  inset-inline-start: var(--bw-size-space-4);
+  flex-direction: column-reverse;
+}
+/* OOB delivery wrappers: hx-swap-oob="afterbegin:#bw-toast-region" inserts
+ * the wrapper element itself, so any region child that is not a toast or
+ * the collapse control is layout-transparent (the #bw-modal-root
+ * display: contents idiom, BR-BW-HTMX-009). The toasts stay the flex items
+ * and a wrapper whose toast has hidden (or has been dismissed) spaces
+ * nothing. */
+.bw-toast-region > :not([data-bw-toast]):not(.bw-toast-region__more) {
+  display: contents;
+}
+/* The toast card: raised surface at the reserved elevation-5 toast row with
+ * the card family's light-theme top-light (dark reset at the end of this
+ * file), radius-xl, and an emphasis-width inline-start edge that the intent
+ * variants recolour. Resting = pre-enter (or mid-exit): faded and pulled
+ * toward the region's block edge; the base transition is the exit leg
+ * (fast/in, MOT-007's clear-quickly tier). */
+.bw-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bw-size-space-3);
+  padding: var(--bw-size-space-3);
+  pointer-events: auto;
+  background: var(--bw-color-surface-raised);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-inline-start: var(--bw-size-border-thick) solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-xl);
+  box-shadow: var(--bw-elevation-5), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--bw-size-space-2)));
+  transition:
+    opacity var(--bw-duration-fast) var(--bw-ease-in),
+    transform var(--bw-duration-fast) var(--bw-ease-in);
+}
+/* The enter leg: settle into place at normal/out. */
+.bw-toast[data-bw-visible] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--bw-duration-normal) var(--bw-ease-out),
+    transform var(--bw-duration-normal) var(--bw-ease-out);
+}
+/* Bottom regions enter from the block-end edge instead; a vertical travel in
+ * both cases because transforms are physical and an inline slide would
+ * mirror wrongly under RTL. */
+.bw-toast-region--bottom-end .bw-toast:not([data-bw-visible]),
+.bw-toast-region--bottom-start .bw-toast:not([data-bw-visible]) {
+  transform: translateY(var(--bw-size-space-2));
+}
+/* Intent edge and icon take the full-strength intent colour (the alert icon
+ * tier); message ink stays fg, the accessible carrier (DESIGN.md 4.5). */
+.bw-toast--success {
+  border-inline-start-color: var(--bw-color-success);
+}
+.bw-toast--success .bw-toast__icon {
+  color: var(--bw-color-success);
+}
+.bw-toast--warning {
+  border-inline-start-color: var(--bw-color-warning);
+}
+.bw-toast--warning .bw-toast__icon {
+  color: var(--bw-color-warning);
+}
+.bw-toast--danger {
+  border-inline-start-color: var(--bw-color-danger);
+}
+.bw-toast--danger .bw-toast__icon {
+  color: var(--bw-color-danger);
+}
+.bw-toast--info {
+  border-inline-start-color: var(--bw-color-info);
+}
+.bw-toast--info .bw-toast__icon {
+  color: var(--bw-color-info);
+}
+.bw-toast__icon {
+  flex-shrink: 0;
+}
+.bw-toast__message {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+/* The one optional inline action (CMP-023): the skip-link's accent-on-surface
+ * link voice, underlined so colour is not the only signal. */
+.bw-toast__action {
+  flex-shrink: 0;
+  color: var(--bw-color-accent);
+  font-size: var(--bw-text-body-sm-size);
+  font-weight: var(--bw-font-weight-medium);
+  line-height: var(--bw-text-body-sm-line-height);
+  text-decoration: underline;
+}
+.bw-toast__close {
+  flex-shrink: 0;
+}
+/* The stack-collapse control (CBH-011): a quiet pill in the caption voice,
+ * floor-sized per the pagination-link pattern; toasts beyond the 3 newest
+ * carry the hidden attribute and need no rule here. */
+.bw-toast-region__more {
+  align-self: center;
+  pointer-events: auto;
+  min-block-size: var(--bw-size-touch-target-min);
+  min-inline-size: var(--bw-size-touch-target-min);
+  padding-block: var(--bw-size-space-1);
+  padding-inline: var(--bw-size-space-3);
+  background: var(--bw-color-surface-raised);
+  color: var(--bw-color-fg-muted);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-full);
+  box-shadow: var(--bw-elevation-1);
+  font: inherit;
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+.bw-toast-region__more:hover {
+  background-color: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg);
+}
+/* reduced-motion: nothing explicit needed; the global floor collapses both
+ * transition legs to an instant swap and a settled toast never misleads
+ * (timers are JS-owned and unchanged, DESIGN.md 8.4). */
+
+/* --- Combobox (0.9.0 interaction set, CBH-018..022, CMP-028/029) ------------- */
+
+/* One markup, progressive enhancement (BR-BW-HTMX-008). Expected markup (per
+ * _combobox.html, inside the forms/_field.html chrome):
+ *
+ *   <div class="bw-combobox" x-data='bwCombobox({...})' data-bw-combobox>
+ *     <select class="bw-input bw-combobox__floor">...</select>
+ *     <div class="bw-combobox__field" hidden>
+ *       [<span class="bw-combobox__chip">label
+ *          <button class="bw-combobox__chip-remove">...</button></span>]
+ *       <input class="bw-input bw-combobox__input" role="combobox" ...>
+ *       <ul class="bw-combobox__listbox" role="listbox" id="bw-listbox-...">
+ *         <li class="bw-combobox__option" role="option" data-bw-value="...">...</li>
+ *         [<li class="bw-combobox__empty">No matches</li>]
+ *       </ul>
+ *     </div>
+ *   </div>
+ *
+ * The floor <select> IS the submitted control at all times; bwCombobox swaps
+ * the hidden attributes at init and mirrors selection both ways, so with no
+ * JS the native select simply works and nothing here styles it beyond its
+ * own .bw-input class. The enhanced input composes .bw-input in its class
+ * list too (compose, never duplicate); only combobox-specific physics live
+ * here. */
+.bw-combobox {
+  position: relative;
+}
+/* Chips and the input share one wrapping row; the absolutely positioned
+ * listbox anchors to it. The input trades .bw-input's full width for a
+ * flexible run beside any chips. */
+.bw-combobox__field {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-size-space-1);
+}
+.bw-combobox__input {
+  flex: 1 1 var(--bw-menu-min-width);
+  inline-size: auto;
+  min-inline-size: 0;
+}
+/* The listbox mirrors the dropdown panel exactly (DESIGN.md reserved rows):
+ * raised surface, elevation-3 at z-dropdown, radius-lg, menu min-width, the
+ * light-theme top-light (dark reset at the end of this file), bw-fade-in-up
+ * entrance. Exit is an instant state removal, the interaction set's recorded
+ * deviation (the JS lane is state-driven and never sequences animation).
+ * Width tracks the field so options align under the control. Closed is the
+ * resting state: bwCombobox stamps [data-bw-open] on the root while the
+ * popup is open (the modal's open-marker convention), and the display flip
+ * restarts the entrance each open. */
+.bw-combobox__listbox {
+  display: none;
+  position: absolute;
+  inset-block-start: calc(100% + var(--bw-size-space-1));
+  inset-inline-start: 0;
+  inline-size: 100%;
+  min-inline-size: var(--bw-menu-min-width);
+  /* Scroll cap at roughly seven option rows; a length literal because the
+   * sizing ramp has no step near it (the checkbox-size precedent). */
+  max-block-size: 16rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bw-color-border) transparent;
+  margin: 0;
+  padding: var(--bw-size-space-1);
+  list-style: none;
+  background: var(--bw-color-surface-raised);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-lg);
+  box-shadow: var(--bw-elevation-3), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  z-index: var(--bw-z-dropdown);
+  animation: bw-fade-in-up var(--bw-duration-normal) var(--bw-ease-out);
+  transition: var(--bw-transition-opacity);
+}
+.bw-combobox[data-bw-open] .bw-combobox__listbox {
+  display: block;
+}
+/* STA-006: while the server-filter round trip is in flight the listbox dims
+ * via htmx's own htmx-request class convention, whichever element htmx
+ * stamps it on: the target listbox itself, or the requesting input beside
+ * it. First consumer of --bw-htmx-indicator-opacity. */
+.bw-combobox__listbox.htmx-request,
+.bw-combobox__input.htmx-request ~ .bw-combobox__listbox {
+  opacity: var(--bw-htmx-indicator-opacity);
+}
+/* Option rows mirror the dropdown items (body-sm, hover overlay, radius-md);
+ * role="option" rows are not anchors, so the pointer cursor is explicit. */
+.bw-combobox__option {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-size-space-2);
+  padding: var(--bw-size-space-2) var(--bw-size-space-3);
+  border-radius: var(--bw-size-radius-md);
+  color: var(--bw-color-fg);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+.bw-combobox__option:hover {
+  background-color: var(--bw-state-hover-overlay);
+}
+/* The aria-activedescendant row: focus never leaves the input, so the active
+ * option is marked with [data-bw-active] (the tabs convention) and paints
+ * the selected wash. A chosen option keeps its meaning when not active via
+ * weight (its width cannot jitter: the panel width is fixed by the field). */
+.bw-combobox__option[data-bw-active] {
+  background-color: var(--bw-state-selected-bg);
+}
+.bw-combobox__option[aria-selected="true"] {
+  font-weight: var(--bw-font-weight-medium);
+}
+.bw-combobox__empty {
+  padding: var(--bw-size-space-2) var(--bw-size-space-3);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+/* Selected-value chips (multiple mode, CMP-028): the selected wash at
+ * radius-full, block-sized by the floor-height remove control (the
+ * pagination-link touch pattern), so a chip row sits level with the
+ * control beside it. */
+.bw-combobox__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-size-space-1);
+  padding-inline: var(--bw-size-space-3) var(--bw-size-space-1);
+  background: var(--bw-state-selected-bg);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-size-radius-full);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+.bw-combobox__chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--bw-size-touch-target-min);
+  min-inline-size: var(--bw-size-touch-target-min);
+  padding: var(--bw-size-space-1);
+  background: transparent;
+  border: 0;
+  border-radius: var(--bw-size-radius-full);
+  color: var(--bw-color-icon-muted);
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+.bw-combobox__chip-remove:hover {
+  background-color: var(--bw-state-hover-overlay);
+  color: var(--bw-color-fg);
+}
+.bw-combobox__chip-remove:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
+}
+
+/* --- Dismissible exit (0.9.0 interaction set, CMP-010/012 adoption) ---------- */
+
+/* bw_alert / bw_badge with dismissible=True: the close control ships with
+ * the hidden attribute and bwDismissible reveals it at init (no dead
+ * control on the floor), so there is no resting state to style here. The
+ * exit keys on the [data-bw-dismissing] marker the component stamps as
+ * dismiss() runs; DOM removal follows the fade (MOT-007's clear-quickly
+ * tier). The 04 contract permits a slight block-size collapse; declined:
+ * the markup has no wrapper for a jank-free grid-rows collapse, and
+ * removal closes the gap in one reflow exactly as reduced motion does
+ * (the global floor collapses this fade to an instant removal). */
+.bw-alert[data-bw-dismissing],
+.bw-badge[data-bw-dismissing] {
+  opacity: 0;
+  transition: opacity var(--bw-duration-fast) var(--bw-ease-in);
+}
+/* The badge's close control skips the bw-btn chrome (a control-height button
+ * would dwarf the compact badge; the template notes the hit area is owned
+ * here): an inline icon run with the overlay hover physics, inline content's
+ * documented WCAG 2.5.8 carve-out. The alert's close IS a bw-btn and needs
+ * nothing extra. */
+.bw-badge__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--bw-size-space-0-5);
+  background: transparent;
+  border: 0;
+  border-radius: var(--bw-size-radius-full);
+  color: inherit;
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+.bw-badge__close:hover {
+  background-color: var(--bw-state-hover-overlay);
+}
+.bw-badge__close:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
+}
+
 /* reduced-motion (interaction set): explicit caret overrides on top of the
  * global floor; a half-rotated caret reads as broken (DESIGN.md 8.4). The
  * entrance/exit keyframes need no explicit override: the global floor
@@ -1637,8 +2015,12 @@ a.bw-stat:hover {
   box-shadow: var(--bw-elevation-2);
 }
 [data-theme="dark"] .bw-account-menu__panel,
-[data-theme="dark"] .bw-dropdown__panel {
+[data-theme="dark"] .bw-dropdown__panel,
+[data-theme="dark"] .bw-combobox__listbox {
   box-shadow: var(--bw-elevation-3);
+}
+[data-theme="dark"] .bw-toast {
+  box-shadow: var(--bw-elevation-5);
 }
 [data-theme="dark"] .bw-modal:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
   box-shadow: var(--bw-elevation-4);

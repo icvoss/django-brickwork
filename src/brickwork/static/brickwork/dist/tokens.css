@@ -106,6 +106,8 @@
   --bw-content-max-width: 72rem;
   --bw-topbar-position: sticky;
   --bw-drawer-width: min(20rem, 80vw);
+  --bw-toast-max-width: 24rem;
+  --bw-htmx-indicator-opacity: 0.6;
   --bw-focus-ring-width: 2px;
   --bw-focus-ring-offset: 2px;
   --bw-focus-ring-style: solid;
@@ -215,6 +217,10 @@
   --bw-duration-slow: 400ms;
   --bw-duration-shimmer: 1500ms;
   --bw-duration-spin: 700ms;
+  --bw-duration-toast-short: 4000ms;
+  --bw-duration-toast-normal: 6000ms;
+  --bw-duration-toast-long: 10000ms;
+  --bw-debounce-search: 300ms;
   --bw-ease-linear: linear;
   --bw-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --bw-ease-in: cubic-bezier(0.4, 0, 1, 1);

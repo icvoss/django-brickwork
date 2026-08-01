@@ -9,6 +9,8 @@ MAIN_NAV = (
     NavItem(key="dashboard", label="Dashboard", url_name="testapp:dashboard", icon="home"),
     NavItem(key="widgets", label="Widgets", url_name="testapp:widget-list", icon="folder"),
     NavItem(key="interactions", label="Interactions", url_name="testapp:interactions", icon="info"),
+    NavItem(key="toasts", label="Toasts", url_name="testapp:toast-demo", icon="bell"),
+    NavItem(key="comboboxes", label="Comboboxes", url_name="testapp:combobox-demo", icon="search"),
     NavItem(
         key="admin-section",
         label="Admin",

@@ -13,16 +13,17 @@ from __future__ import annotations
 
 import json
 
+from django.contrib import messages
 from django.db.models import Count, Q
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
-from django.views.generic import CreateView, ListView, TemplateView, UpdateView
+from django.views.generic import CreateView, FormView, ListView, TemplateView, UpdateView, View
 
 from brickwork.services.forms import is_htmx_validation_request
 
-from .forms import WidgetFilterForm, WidgetForm
+from .forms import COLOUR_CHOICES, SKILL_OPTIONS, ComboDemoForm, WidgetFilterForm, WidgetForm
 from .models import Widget
 
 # The minimal sortable-column contract (#23): only label + sortable + sort_key.
@@ -142,8 +143,6 @@ class _WidgetFormMixin:
         # swaps the form section in place (BR-BW-HTMX-003). Otherwise fall back to
         # the full-page redisplay (a working no-JS page).
         if is_htmx_validation_request(self.request):
-            from django.shortcuts import render
-
             response = render(
                 self.request,
                 "brickwork_testapp/_widget_form.html",
@@ -345,3 +344,103 @@ class LazyActivityPanelView(TemplateView):
     (the hx-get="... " hx-trigger="intersect once" hx-target="this" swap, CBH-014)."""
 
     template_name = "brickwork_testapp/_activity_panel.html"
+
+
+# --- the 0.9.0 overlay pair (04-interfaces section 4b) ----------------------
+#
+# Two demo pages in consuming-project shape: the toast page (server-delivered
+# feedback whose no-JS floor is the messages alert banner, plus the dismissible
+# alert/badge instances) and the combobox page (native select floors under one
+# form, with the server filter endpoint and the 422 selection-survival path).
+
+TOAST_INTENTS = ("success", "info", "warning", "danger")
+TOAST_DURATIONS = ("short", "normal", "long", "persistent")
+
+_TOAST_MESSAGE = "Demo data saved."
+
+
+class ToastDemoView(TemplateView):
+    """The toast demo page: the shell's one #bw-toast-region, the delivery
+    form, the messages alert floor, and the dismissible alert/badge instances."""
+
+    template_name = "brickwork_testapp/toasts.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update({"title": "Toasts", "description": "Server-delivered feedback, floor first."})
+        return ctx
+
+
+class ToastActionView(View):
+    """The toast delivery endpoint, one action with the two documented paths
+    (04-interfaces 4b). An htmx POST answers 200 with the OOB toast wrapper
+    (hx-swap-oob="afterbegin:#bw-toast-region", the only creation path,
+    BR-BW-HTMX-007) plus the ordinary main-swap content; a plain POST queues a
+    django.contrib.messages flash and redirects, so the same feedback renders
+    as the _alert.html banner floor (STA-008): the toast is the enhanced form
+    of a flash message, never the only form."""
+
+    def post(self, request, *args, **kwargs):
+        intent = request.POST.get("intent", "success")
+        if intent not in TOAST_INTENTS:
+            intent = "success"
+        duration = request.POST.get("duration", "normal")
+        if duration not in TOAST_DURATIONS:
+            duration = "normal"
+        if request.headers.get("HX-Request") == "true":
+            return render(
+                request,
+                "brickwork_testapp/_toast_oob.html",
+                {"intent": intent, "duration": duration, "message": _TOAST_MESSAGE},
+            )
+        messages.success(request, _TOAST_MESSAGE)
+        return redirect("testapp:toast-demo")
+
+
+class ComboboxDemoView(FormView):
+    """The combobox demo page: two combobox instances over native select
+    floors (single server-filter mode + multiple client mode) in one form.
+    An invalid htmx POST re-renders ONLY the form partial with 422
+    (BR-BW-HTMX-003) so the combobox rehydrates its selection from the
+    re-rendered floor controls; a plain invalid POST redisplays the full page."""
+
+    template_name = "brickwork_testapp/comboboxes.html"
+    form_class = ComboDemoForm
+    success_url = reverse_lazy("testapp:combobox-demo")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(
+            {
+                "title": "Comboboxes",
+                "description": "Filterable selection over a native select floor.",
+                "skill_options": SKILL_OPTIONS,
+            }
+        )
+        return ctx
+
+    def form_invalid(self, form):
+        if is_htmx_validation_request(self.request):
+            response = render(
+                self.request,
+                "brickwork_testapp/_combobox_form.html",
+                self.get_context_data(form=form),
+            )
+            response.status_code = 422
+            return response
+        return super().form_invalid(form)
+
+
+class ComboboxColourOptionsView(TemplateView):
+    """The server filter endpoint (CBH-019): returns the consumer's option-list
+    partial only, filtered by ?q, for the debounced hx-get targeting the stable
+    bw-listbox-id_colour listbox id (BR-BW-HTMX-005)."""
+
+    template_name = "brickwork_testapp/_combobox_options.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        q = self.request.GET.get("q", "").strip().lower()
+        ctx["listbox_id"] = "bw-listbox-id_colour"
+        ctx["options"] = [(value, label) for value, label in COLOUR_CHOICES if q in label.lower()]
+        return ctx

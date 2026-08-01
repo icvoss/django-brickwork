@@ -56,17 +56,23 @@ def bw_button(
 
 
 @register.inclusion_tag("brickwork/components/_badge.html")
-def bw_badge(label: str, *, variant: str = "neutral", icon: str = "") -> dict:
+def bw_badge(label: str, *, variant: str = "neutral", icon: str = "", dismissible: bool = False) -> dict:
     """A small status/label badge. Reserved for neutral information, never error
-    communication (errors use bw_alert in banner form, STA-008)."""
-    return {"label": label, "variant": variant, "icon": icon}
+    communication (errors use bw_alert in banner form, STA-008). dismissible=True
+    (04-interfaces 4b Dismissible section, CMP-012) adds the bwDismissible wiring
+    and a hidden-until-init close control; False renders byte-identical to the
+    pre-0.9.0 output."""
+    return {"label": label, "variant": variant, "icon": icon, "dismissible": bool(dismissible)}
 
 
 @register.inclusion_tag("brickwork/components/_alert.html")
-def bw_alert(message: str = "", *, variant: str = "info", title: str = "") -> dict:
+def bw_alert(message: str = "", *, variant: str = "info", title: str = "", dismissible: bool = False) -> dict:
     """A full-width banner alert (role=alert), the loud-surface for errors and
-    other page-level status (STA-008/009)."""
+    other page-level status (STA-008/009). dismissible=True (04-interfaces 4b
+    Dismissible section, CMP-010) adds the bwDismissible wiring and a
+    hidden-until-init close control; False renders byte-identical to the
+    pre-0.9.0 output."""
     if variant not in _ALERT_VARIANTS:
         raise TemplateSyntaxError(f"bw_alert variant must be one of {sorted(_ALERT_VARIANTS)}, got {variant!r}")
     icon = {"info": "info", "success": "success", "warning": "alert-triangle", "error": "alert-circle"}[variant]
-    return {"message": message, "variant": variant, "title": title, "icon": icon}
+    return {"message": message, "variant": variant, "title": title, "icon": icon, "dismissible": bool(dismissible)}
