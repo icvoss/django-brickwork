@@ -2,6 +2,7 @@
 // Read a live value with getComputedStyle(el).getPropertyValue(tokens.X).
 export const tokens = Object.freeze({
   "button_radius": "var(--bw-button-radius)",
+  "checkbox_glyph": "var(--bw-checkbox-glyph)",
   "color_accent": "var(--bw-color-accent)",
   "color_accent_hover": "var(--bw-color-accent-hover)",
   "color_accent_subtle": "var(--bw-color-accent-subtle)",
@@ -169,6 +170,7 @@ export const tokens = Object.freeze({
   "primitive_red_600": "var(--bw-primitive-red-600)",
   "primitive_red_700": "var(--bw-primitive-red-700)",
   "primitive_red_950": "var(--bw-primitive-red-950)",
+  "select_indicator": "var(--bw-select-indicator)",
   "size_border_hairline": "var(--bw-size-border-hairline)",
   "size_border_nav_marker": "var(--bw-size-border-nav-marker)",
   "size_border_thick": "var(--bw-size-border-thick)",

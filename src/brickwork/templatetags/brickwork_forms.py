@@ -12,12 +12,31 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django import template
+from django.forms.widgets import CheckboxInput, CheckboxSelectMultiple, RadioSelect, Widget
 from django.utils.safestring import SafeString
 
 if TYPE_CHECKING:
     from django.forms import BoundField
 
 register = template.Library()
+
+
+def _widget_css_class(widget: Widget) -> str:
+    """The brickwork class for ``widget``: bw-checkbox for checkbox controls,
+    bw-radio for radio options, bw-input for everything else (Select included:
+    the CSS draws it via the element selector).
+
+    Order matters: CheckboxSelectMultiple subclasses RadioSelect, so it must be
+    tested first. For RadioSelect/CheckboxSelectMultiple the class lands on the
+    group wrapper div AND on every option input, because both widgets inherit
+    option attrs from ``as_widget`` (``option_inherits_attrs``), the same route
+    the aria attributes already take.
+    """
+    if isinstance(widget, CheckboxSelectMultiple | CheckboxInput):
+        return "bw-checkbox"
+    if isinstance(widget, RadioSelect):
+        return "bw-radio"
+    return "bw-input"
 
 
 @register.simple_tag(name="bw_field_widget")
@@ -38,7 +57,7 @@ def bw_field_widget(field: BoundField, *, readonly: bool = False) -> SafeString:
     if field.errors:
         described_by.append(f"{field.auto_id}_errors")
 
-    attrs: dict[str, str] = {"class": "bw-input"}
+    attrs: dict[str, str] = {"class": _widget_css_class(field.field.widget)}
     if field.errors:
         attrs["aria-invalid"] = "true"
     if described_by:

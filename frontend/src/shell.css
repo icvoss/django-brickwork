@@ -17,6 +17,15 @@
   line-height: var(--bw-font-line-height-normal);
 }
 
+/* Branded text selection (0.7.0 craft): a 22% accent wash over whatever sits
+ * beneath, so selecting text feels like the product, not the UA default. The
+ * text keeps its own ink; fg measures 13.18:1 light / 10.71:1 dark over the
+ * composited wash on the surface, comfortably AA. */
+.bw-body ::selection,
+.bw-body::selection {
+  background-color: color-mix(in oklab, var(--bw-color-accent) 22%, transparent);
+}
+
 /* --- App shell: sidebar + main column -------------------------------------- */
 
 .bw-app {
@@ -60,6 +69,10 @@
 .bw-sidebar__nav {
   flex: 1 1 auto;
   overflow-y: auto;
+  /* Thin, border-toned scrollbar (0.7.0 craft): navigation chrome scrolls
+   * quietly instead of hoisting the UA's full-width gutter. Decorative. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--bw-color-border) transparent;
 }
 
 .bw-sidebar__footer {

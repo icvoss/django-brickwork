@@ -113,6 +113,13 @@ the literal the expression computes (a permitted MINOR default-value change,
 section 11), so $value always documents the value the live expression
 resolves to.
 
+0.7.0 craft round: the components gained drawn form controls (select
+indicator, checkbox/radio), solid-button borders in their own hue, input
+focus halo under the a11y outline, light-theme surface top-light,
+selection wash and thin scrollbars; all colour maths measured in the CSS
+comments, per the owner directive that token identity alone still read
+mechanical next to Radix-grade control drawing.
+
 0.4.0 polish round: the sunken depth, muted ink, dark surface ladder, dark
 intent and accent tint volumes, heading-xl weight, content measure, and dark
 low-level elevation defaults were retuned per the synthesised four-critic
@@ -355,6 +362,8 @@ surfaces.
 | `--bw-drawer-width` **[NEW]** | `min(20rem, 80vw)` | formalises the drawer literal |
 | `--bw-menu-min-width` **[NEW]** | `12rem` | minimum width for dropdown-shaped panels; the account-menu literal becomes its consumer |
 | `--bw-stat-tile-value-size` **[NEW 0.5.0]** | `var(--bw-font-size-3xl)` | stat tile numeral size (VIZ-001); a live reference so the font scale cascades, and the `size` modifiers re-point it per tile |
+| `--bw-select-indicator` **[NEW 0.7.0]** | chevron SVG data URI | select dropdown indicator, drawn at a mid-grey that reads as decorative on both themes |
+| `--bw-checkbox-glyph` **[NEW 0.7.0]** | tick SVG data URI (alpha mask) | consumed via mask-image and painted with `fg-on-accent`, so the glyph stays AA in both themes |
 | `--bw-icon-stroke-width` | `2` | shipped, previously undocumented; the stroke width for the icon set |
 | `--bw-content-max-width` | `72rem` | 0.4.0: was `none`; a default measure cap so bands stop degrading into full-bleed wires on wide monitors (invisible at 1280px); a consumer overrides it, including back to `none` |
 | `--bw-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar |

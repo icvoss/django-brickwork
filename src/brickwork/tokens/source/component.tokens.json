@@ -38,6 +38,20 @@
       "$description": "Minimum width for dropdown-shaped panels (the account-menu panel is the first consumer)."
     }
   },
+  "select": {
+    "indicator": {
+      "$type": "other",
+      "$value": "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='oklch(0.55 0.01 265)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='m4 6 4 4 4-4'/%3E%3C/svg%3E\")",
+      "$description": "The select's embedded chevron (0.7.0 craft round). A data URI cannot reference a custom property, so the stroke is baked: oklch(0.55 0.01 265), a mid-grey chosen to read as decorative chrome on BOTH themes (measured 4.85:1 on the light surface, 3.88:1 on the dark surface; the accessible affordance is the native select semantics, not this glyph). A brand whose surfaces sit far from the defaults overrides this token with a re-inked URI."
+    }
+  },
+  "checkbox": {
+    "glyph": {
+      "$type": "other",
+      "$value": "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m2.5 6.5 2.5 2.5 4.5-5.5'/%3E%3C/svg%3E\")",
+      "$description": "The checkbox tick SHAPE (0.7.0 craft round), consumed as a CSS mask-image and painted with background-color: var(--bw-color-fg-on-accent), so the glyph ink stays theme-correct without a theme-variant image (dark fg-on-accent is near-black ink on the lighter dark accent; a baked white tick would measure 2.63:1 there and fail 1.4.11, whereas fg-on-accent measures 5.11:1 light and 7.52:1 dark against the accent fill). The 'black' stroke is only the mask's alpha carrier, not a colour choice."
+    }
+  },
   "stat-tile": {
     "value-size": {
       "$type": "dimension",

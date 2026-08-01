@@ -66,6 +66,62 @@ def test_readonly_widget_sets_readonly_attr() -> None:
     assert "readonly" in out
 
 
+# --- bw_field_widget class stamping -----------------------------------------
+
+
+class _ZooForm(forms.Form):
+    """One field per widget family, to pin the class-stamping matrix."""
+
+    name = forms.CharField()
+    subscribed = forms.BooleanField(required=False, help_text="Tick to subscribe")
+    colour = forms.ChoiceField(choices=[("r", "Red"), ("g", "Green")], widget=forms.RadioSelect)
+    tags = forms.MultipleChoiceField(
+        required=False,
+        choices=[("a", "Alpha"), ("b", "Beta")],
+        widget=forms.CheckboxSelectMultiple,
+    )
+    status = forms.ChoiceField(choices=[("d", "Draft"), ("p", "Published")])
+
+
+def test_checkbox_widget_gets_bw_checkbox_not_bw_input() -> None:
+    out = _render_widget(_ZooForm()["subscribed"])
+    assert 'class="bw-checkbox"' in out
+    assert "bw-input" not in out
+
+
+def test_checkbox_widget_keeps_aria_describedby_for_help_text() -> None:
+    field = _ZooForm()["subscribed"]
+    out = _render_widget(field)
+    assert f'aria-describedby="{field.auto_id}_help"' in out
+
+
+def test_text_input_keeps_bw_input() -> None:
+    out = _render_widget(_ZooForm()["name"])
+    assert 'class="bw-input"' in out
+
+
+def test_select_keeps_bw_input() -> None:
+    out = _render_widget(_ZooForm()["status"])
+    assert 'class="bw-input"' in out
+    assert "bw-checkbox" not in out and "bw-radio" not in out
+
+
+def test_radio_select_stamps_bw_radio_on_every_option() -> None:
+    out = _render_widget(_ZooForm()["colour"])
+    # the group wrapper div inherits the as_widget attrs, and every option
+    # input inherits them too (option_inherits_attrs): wrapper + 2 options
+    assert out.count('type="radio"') == 2
+    assert out.count('class="bw-radio"') == 3
+    assert "bw-input" not in out
+
+
+def test_checkbox_select_multiple_stamps_bw_checkbox_on_every_option() -> None:
+    out = _render_widget(_ZooForm()["tags"])
+    assert out.count('type="checkbox"') == 2
+    assert out.count('class="bw-checkbox"') == 3  # group wrapper + 2 options
+    assert "bw-input" not in out and "bw-radio" not in out
+
+
 # --- _field.html partial ---------------------------------------------------
 
 
