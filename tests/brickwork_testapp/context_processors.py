@@ -30,6 +30,13 @@ def _breadcrumb_trail(request):
     return [{"label": "Home", "url": "/widgets/"}, {"label": "Widgets"}]
 
 
+def _layout(request) -> str:
+    """SHL-001 layout passthrough: ?layout=topbar flips the shell's layout ARG
+    on every testapp page; anything else falls back to the sidebar default."""
+    layout = request.GET.get("layout", "")
+    return layout if layout in {"sidebar", "topbar"} else "sidebar"
+
+
 def brickwork_context(request):
     perm = getattr(getattr(request, "user", None), "has_perm", lambda _p: True)
     context = NavContext(request=request, permission_checker=perm, feature_checker=lambda _f: True)
@@ -42,6 +49,7 @@ def brickwork_context(request):
         "bw_theme": theme["theme"],
         "bw_density": theme["density"],
         "bw_dir": theme["dir"],
+        "layout": _layout(request),
         "breadcrumb_trail": _breadcrumb_trail(request),
         "account_menu_items": _ACCOUNT_MENU_ITEMS,
     }

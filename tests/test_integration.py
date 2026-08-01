@@ -44,6 +44,15 @@ def test_list_page_has_a_skip_link_and_no_script(client: Client, widgets) -> Non
     assert "<script" not in html.lower()  # the no-JS floor: shell ships no JS
 
 
+def test_layout_context_passthrough_selects_topbar(client: Client, widgets) -> None:
+    # SHL-001: the testapp's context processor passes ?layout=topbar through to
+    # the shell's data-layout hook; the default (and anything invalid) stays
+    # sidebar. Same DOM either way; only the attribute flips.
+    assert 'data-layout="sidebar"' in client.get("/widgets/").content.decode()
+    assert 'data-layout="topbar"' in client.get("/widgets/?layout=topbar").content.decode()
+    assert 'data-layout="sidebar"' in client.get("/widgets/?layout=bogus").content.decode()
+
+
 def test_nav_marks_the_current_route_active(client: Client, widgets) -> None:
     # BR-BW-NAV-001: the widgets item resolves active via resolver_match.
     html = client.get("/widgets/").content.decode()
