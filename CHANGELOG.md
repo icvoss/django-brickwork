@@ -8,6 +8,39 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-01
+
+The craft round. Owner bar: next to Radix, the components still read as
+mechanically generated; token identity alone does not fix control-level
+drawing. Additive; nothing renamed. One class-stamping change recorded
+below.
+
+### Added
+
+- **Drawn form controls**: `select.bw-input` gets `appearance: none`, an
+  embedded chevron (`--bw-select-indicator` component token) and
+  hover/focus physics matching text inputs; new `.bw-checkbox` and
+  `.bw-radio` custom-drawn controls (checkbox tick is an alpha mask,
+  `--bw-checkbox-glyph`, painted with `fg-on-accent` so it stays AA in
+  both themes; radio uses the border-width dot). The global focus ring
+  covers both natively.
+- **Control physics**: inputs gain an inner top hairline and a soft
+  accent halo beneath the accessibility outline on focus; solid primary
+  and danger buttons gain a border in their own hue and exact icon-only
+  squares; secondary buttons gain surface + hairline + elevation.
+- **Surface finesse**: light-theme top-light on cards, table wrap and
+  menu panels (dark keeps its elevation inset highlights); `::selection`
+  accent wash; thin tokenised scrollbars on the table wrap and sidebar
+  nav; empty-state icons sit on a tinted accent disc.
+
+### Changed
+
+- `bw_field_widget` class stamping: `CheckboxInput` and
+  `CheckboxSelectMultiple` now stamp `bw-checkbox`, `RadioSelect` stamps
+  `bw-radio` (per-option, `option_inherits_attrs` verified); `Select`
+  keeps `bw-input`. Checkbox widgets no longer carry `bw-input`; a
+  consumer targeting `.bw-input` for checkboxes re-targets the new class.
+
 ## [0.6.0] - 2026-08-01
 
 The topbar layout release: CSS for the shell's existing `layout` ARG
