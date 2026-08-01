@@ -3,15 +3,22 @@
 Pagination controls for a Django Page object. Renders nothing when there is only
 one page (STA-014: a one-page result shows no controls). Uses logical
 prev/next (chevron-back/-forward flip under RTL, ICO-014). Preserves the current
-querystring so sort/filter survive a page change.
+sort and filter params so they survive a page change.
+
+#41: when ``request`` is in context (the view/pattern path) the built-in
+``{% querystring %}`` tag overrides only ``page`` and keeps every other current
+GET param (sort, filters), so the pattern owns the sort/pagination split with no
+consumer-supplied ``querystring``. Standalone renders with no request fall back
+to the documented ``querystring`` var (the current GET minus ``page``), so the
+component's request-free render contract is unchanged.
 
 Required context: page_obj (a django.core.paginator.Page). Optional: querystring
-(the current GET params minus 'page', e.g. from request.GET).
+(the request-free fallback: the current GET params minus 'page').
 {% endcomment %}
 {% if page_obj.paginator.num_pages > 1 %}
 <nav class="bw-pagination" aria-label="{% translate 'Pagination' %}">
   {% if page_obj.has_previous %}
-    <a class="bw-pagination__link" href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}"
+    <a class="bw-pagination__link" href="{% if request %}{% querystring page=page_obj.previous_page_number %}{% else %}?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}"
        aria-label="{% translate 'Previous page' %}" rel="prev">
       {% bw_icon "chevron-back" size="sm" decorative=True %}
     </a>
@@ -26,7 +33,7 @@ Required context: page_obj (a django.core.paginator.Page). Optional: querystring
   </span>
 
   {% if page_obj.has_next %}
-    <a class="bw-pagination__link" href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}"
+    <a class="bw-pagination__link" href="{% if request %}{% querystring page=page_obj.next_page_number %}{% else %}?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}"
        aria-label="{% translate 'Next page' %}" rel="next">
       {% bw_icon "chevron-forward" size="sm" decorative=True %}
     </a>
