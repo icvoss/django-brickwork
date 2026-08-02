@@ -564,6 +564,70 @@ input.bw-toggle:disabled {
   color: var(--bw-color-danger);
 }
 
+/* --- Whole-form renderer (brickwork#53, FRM-002/003/019) -------------------- */
+
+/* .bw-form-fields wraps a run of .bw-field-row, each holding one or more
+ * fields (a plain stacked row always holds exactly one). .bw-field already
+ * owns its OWN bottom margin and a max-inline-size cap (a single hand-
+ * included field outside any form-renderer stays exactly as it always has);
+ * inside a row wrapper both would double up with (stacked) or actively
+ * fight (grid: capping a field's width mid-column) the row's own layout, so
+ * they are neutralised here and the row takes over spacing/sizing. */
+.bw-form-fields--stacked .bw-field-row {
+  margin-block-end: var(--bw-density-stack-gap);
+}
+.bw-form-fields--stacked .bw-field-row:last-child {
+  margin-block-end: 0;
+}
+.bw-form-fields--stacked .bw-field-row .bw-field {
+  margin-block-end: 0;
+}
+/* A grouped row (rows= put >1 field on one line): a flex row so the fields
+ * sit side by side regardless of the surrounding layout mode, each still
+ * capped at the form's max width divided across the group so the pair does
+ * not blow past a single field's usual measure. */
+.bw-field-row--grouped {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-3);
+}
+.bw-field-row--grouped .bw-field {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  max-inline-size: none;
+}
+
+/* layout="grid": an N-column CSS grid (--bw-form-grid-columns, set inline by
+ * {% bw_form %}); each row spans the grid via display:contents so a
+ * single-field row's field becomes a direct grid child (one cell) and a
+ * grouped row's flex wrapper becomes a direct grid child (one cell spanning
+ * its own flex-laid-out fields), matching FRM-003's "fields flow into it"
+ * wording without special-casing grouped rows. DOM order is UNCHANGED (only
+ * the visual position moves), so tab order still follows source order. */
+.bw-form-fields--grid {
+  display: grid;
+  grid-template-columns: repeat(var(--bw-form-grid-columns, 2), minmax(0, 1fr));
+  gap: var(--bw-density-stack-gap) var(--bw-space-4);
+  max-inline-size: none;
+}
+.bw-form-fields--grid .bw-field-row {
+  display: contents;
+}
+.bw-form-fields--grid .bw-field-row .bw-field {
+  margin-block-end: 0;
+  max-inline-size: none;
+}
+.bw-form-fields--grid .bw-field-row--grouped {
+  display: flex; /* a grouped row inside grid: one grid cell, fields flex within it */
+}
+/* Narrow viewports collapse the grid to one column regardless of
+ * grid_columns: a form is read top-to-bottom on a phone, never squeezed. */
+@media (max-width: 40rem) {
+  .bw-form-fields--grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- Page header ----------------------------------------------------------- */
 
 .bw-page-header__title {
@@ -766,6 +830,137 @@ input.bw-toggle:disabled {
   font-weight: var(--bw-text-label-weight);
   letter-spacing: var(--bw-font-tracking-normal);
   text-transform: none;
+}
+
+/* --- Data table: bulk selection, sticky header, responsive (brickwork#54) -- */
+
+/* The leading checkbox column: 1% width hugs the control (the __th--label
+ * inline-size:1% trick reused), centred so it does not drag the header text
+ * baseline off the other columns. */
+.bw-data-table__th--select,
+.bw-data-table__td--select {
+  inline-size: 1%;
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* scroll_container / sticky_header: the wrap keeps its own scroll (unchanged
+ * from the plain wrap), the <thead> pins to the top of that scroll region.
+ * The header cells need an opaque background of their own (they already
+ * carry --bw-color-surface-sunken) so scrolled body rows do not show through
+ * underneath the pinned band; the z-index keeps it above the body but below
+ * any overlay chrome (the shared --bw-z-sticky token, the same one the
+ * shell topbar uses, so a table's sticky head never fights the app chrome
+ * for stacking). */
+.bw-data-table-wrap--sticky {
+  max-block-size: 100%;
+}
+.bw-data-table-wrap--sticky .bw-data-table__th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--bw-z-sticky);
+}
+
+/* responsive="stack": below the breakpoint each row becomes a labelled card
+ * (data-label per cell, stamped by the template from the column list) and
+ * the header row is hidden (the labels replace it). Above the breakpoint
+ * this is a no-op: the table renders exactly as the scroll default. The
+ * breakpoint matches the shell's own mobile cut (DESIGN.md's sidebar
+ * collapse breakpoint), so a table's card mode and the shell's mobile nav
+ * change together. */
+@media (max-width: 48rem) {
+  .bw-data-table--stack thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .bw-data-table--stack,
+  .bw-data-table--stack tbody,
+  .bw-data-table--stack .bw-data-table__row {
+    display: block;
+    inline-size: 100%;
+  }
+  .bw-data-table--stack .bw-data-table__row {
+    padding: var(--bw-density-row-padding-block) 0;
+    border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  }
+  .bw-data-table--stack .bw-data-table__row:last-child {
+    border-block-end: 0;
+  }
+  .bw-data-table--stack .bw-data-table__td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--bw-space-3);
+    padding: var(--bw-space-1) var(--bw-density-row-padding-inline);
+    border-block-end: 0;
+    text-align: end;
+  }
+  /* The stamped label reads as the row's own column key, in the same muted
+   * voice _data_table.html--definition uses for its row headers, so a
+   * stacked card and a definition table share one "key: value" language. */
+  .bw-data-table--stack .bw-data-table__td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--bw-color-fg-muted);
+    font-size: var(--bw-text-body-sm-size);
+    font-weight: var(--bw-font-weight-medium);
+    text-align: start;
+  }
+  /* The select column carries no data-label (it is a control, not a fact);
+   * it stays a plain leading row instead of a fake "key: value" pair. */
+  .bw-data-table--stack .bw-data-table__td--select {
+    justify-content: flex-start;
+  }
+}
+
+/* --- Bulk-actions bar (brickwork#54) ---------------------------------------- */
+
+/* Sits directly above a selectable table, inside the consumer's <form>
+ * (see _bulk_actions_bar.html). Same control-deck treatment as the filter
+ * bar (surface + hairline + elevation-1), so the two compose visually when
+ * both are present above one table. Always rendered (the no-JS floor); only
+ * the live count text changes under JS. */
+.bw-bulk-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bw-space-3);
+  padding: var(--bw-density-card-padding);
+  background: var(--bw-color-surface);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  box-shadow: var(--bw-elevation-1);
+  margin-block-end: var(--bw-density-stack-gap);
+}
+.bw-bulk-actions-bar__count {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  font-weight: var(--bw-font-weight-medium);
+  /* Empty at rest (zero selected) and under the no-JS floor; only ever
+   * carries text once bwTableSelection writes a live count into it, so an
+   * empty region takes no visible space rather than a hollow gap. */
+  min-inline-size: 0;
+}
+.bw-bulk-actions-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-2);
+}
+.bw-bulk-actions-bar__select-all {
+  color: var(--bw-color-accent);
+  font-size: var(--bw-text-body-sm-size);
+  text-decoration: none;
+}
+.bw-bulk-actions-bar__select-all:hover {
+  text-decoration: underline;
 }
 
 /* --- Account menu (#25) ---------------------------------------------------- */

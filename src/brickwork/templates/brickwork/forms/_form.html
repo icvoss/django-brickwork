@@ -1,0 +1,71 @@
+{% load brickwork_forms %}
+{% comment %}
+Whole-form renderer (brickwork#53, FRM-002/003/019): renders every visible
+field of ``form`` through the SAME ``forms/_field.html`` chrome a hand-picked
+per-field include uses, one call instead of a per-field ``{% include %}``
+loop written by hand on every form. Consumed via the ``{% bw_form %}``
+inclusion tag (``brickwork_forms.py`` shapes the field order/grouping;
+this template is pure presentation, matching the {% bw_nav %} / RenderedTab
+precedent):
+
+    {% load brickwork_forms %}
+    {% bw_form form %}
+    {% bw_form form layout="grid" grid_columns=2 %}
+    {% bw_form form rows=name_email_rows %}
+
+RENDERS THE FIELDS REGION ONLY, never a ``<form>`` element (BR-BW-HTMX-003's
+existing worked example, docs/INTEGRATION.md section 4, already establishes
+this shape for the per-field case; a whole-form call keeps the same
+contract rather than inventing a second one). The consumer's own ``<form>``
+wraps the include and owns method/action/hx-post/hx-target/hx-swap and
+{% csrf_token %}:
+
+    <form id="project-form" method="post"
+          hx-post="{{ request.path }}" hx-target="this" hx-swap="outerHTML">
+      {% csrf_token %}
+      {% load brickwork_forms %}
+      {% bw_form form %}
+      {% bw_button label="Save" type="submit" variant="primary" %}
+    </form>
+
+Because this include is exactly what BR-BW-HTMX-003's ``outerHTML`` swap
+re-renders on a 422, every field keeps its own
+``id="{{ field.auto_id }}_errors"`` container (rendered inside _field.html,
+untouched by this template) and non-field errors render via
+``forms/_form_errors.html`` above the fields, so the swap contract is
+identical whether the consumer built the form region by hand or via
+``{% bw_form %}``.
+
+Layout (FRM-003): "stacked" (default) places one bw-field-row per row, each
+holding exactly one field (byte-identical spacing to a hand-written
+{% include %} loop). "grid" additionally sets ``--bw-form-grid-columns`` on
+the wrapper and every row spans the grid via ``display: contents`` (a
+row's own multi-field grouping, see below, still lays out as one grid row
+inside that column count). Purely a CSS arrangement: the DOM order is
+UNCHANGED by layout (a field's tab order follows source order, i.e. form
+order / rows= order, never the visual column position), so grid columns are
+a visual-only rearrangement that a screen reader or keyboard user reads
+in the same order as stacked.
+
+rows= grouping (FRM-019): shaped in Python (``_shape_form_rows``) into
+``form_rows``, a list of RenderedFormRow(fields=[...]); a stacked single-
+field row and a multi-field grouped row render through the SAME
+``bw-field-row`` wrapper, so a consumer sees one visual language regardless
+of whether a given row was grouped or fell back to stacked. Each field
+still renders via _field.html, so its label/control/error association is
+identical to every other field call site.
+
+Required context: form. Optional (set via {% bw_form %}, not passed
+directly): layout, grid_columns, rows, density, readonly.
+{% endcomment %}
+{% include "brickwork/forms/_form_errors.html" with form=form %}
+<div class="bw-form-fields bw-form-fields--{{ layout }}"{% if layout == "grid" %} style="--bw-form-grid-columns: {{ grid_columns }};"{% endif %}{% if density %} data-density="{{ density }}"{% endif %}>
+  {% for form_row in form_rows %}
+    <div class="bw-field-row{% if form_row.fields|length > 1 %} bw-field-row--grouped{% endif %}">
+      {% for field in form_row.fields %}
+        {% include "brickwork/forms/_field.html" with field=field readonly=readonly %}
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}

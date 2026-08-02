@@ -7,8 +7,10 @@ error/help rendering, all in the default settings leg.
 
 from __future__ import annotations
 
+import pytest
 from django import forms
 from django.template import Context, Template
+from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 
 from brickwork.services.forms import (
@@ -169,3 +171,147 @@ def test_is_htmx_validation_request_header_and_duck_type() -> None:
     assert is_htmx_validation_request(_Req(header=True))
     assert is_htmx_validation_request(_Req(htmx=True))
     assert not is_htmx_validation_request(_Req())
+
+
+# --- whole-form renderer ({% bw_form %} / forms/_form.html, brickwork#53) --
+
+
+class _ContactForm(forms.Form):
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    email = forms.EmailField()
+    reference = forms.CharField(widget=forms.HiddenInput, initial="ref-123")
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("first_name") == "bad":
+            raise forms.ValidationError("Something went wrong with your submission.")
+        return cleaned
+
+
+def _render_bw_form(form, **kwargs) -> str:
+    # pass every kwarg through the context (as ctx_<name>) rather than
+    # inlining Python literals into the template source, so a rows= list of
+    # lists (not expressible as a bare template literal) works the same as
+    # a plain string/int kwarg.
+    ctx = {"form": form}
+    parts = []
+    for key, value in kwargs.items():
+        ctx_key = f"ctx_{key}"
+        ctx[ctx_key] = value
+        parts.append(f"{key}={ctx_key}")
+    source = f"{{% load brickwork_forms %}}{{% bw_form form {' '.join(parts)} %}}"
+    return Template(source).render(Context(ctx))
+
+
+def test_bw_form_renders_every_visible_field_through_field_chrome() -> None:
+    form = _ContactForm()
+    out = _render_bw_form(form)
+    for name in ("first_name", "last_name", "email"):
+        auto_id = f"id_{name}"
+        assert f'id="{auto_id}"' in out
+        assert f'id="{auto_id}_errors"' in out  # the _field.html error container
+
+
+def test_bw_form_never_emits_a_form_element() -> None:
+    form = _ContactForm()
+    out = _render_bw_form(form)
+    assert "<form" not in out
+    assert "</form>" not in out
+
+
+def test_bw_form_renders_non_field_errors() -> None:
+    form = _ContactForm(data={"first_name": "bad", "last_name": "Smith", "email": "a@example.com"})
+    form.is_valid()
+    out = _render_bw_form(form)
+    assert "bw-form-errors" in out
+    assert "Something went wrong with your submission." in out
+
+
+def test_bw_form_renders_hidden_fields_unwrapped() -> None:
+    form = _ContactForm()
+    out = _render_bw_form(form)
+    assert 'type="hidden"' in out
+    assert 'name="reference"' in out
+    # a hidden field is not wrapped in the field chrome (no bw-field div for it)
+    assert 'id="id_reference_errors"' not in out
+
+
+def test_bw_form_layout_grid_applies_the_grid_class() -> None:
+    form = _ContactForm()
+    out = _render_bw_form(form, layout="grid", grid_columns=2)
+    assert "bw-form-fields--grid" in out
+    assert "--bw-form-grid-columns: 2" in out
+
+
+def test_bw_form_layout_stacked_is_the_default() -> None:
+    form = _ContactForm()
+    out = _render_bw_form(form)
+    assert "bw-form-fields--stacked" in out
+    assert "--bw-form-grid-columns" not in out
+
+
+def test_bw_form_invalid_layout_raises() -> None:
+    form = _ContactForm()
+    with pytest.raises(TemplateSyntaxError):
+        _render_bw_form(form, layout="columns")
+
+
+def test_bw_form_invalid_grid_columns_raises() -> None:
+    form = _ContactForm()
+    with pytest.raises(TemplateSyntaxError):
+        _render_bw_form(form, layout="grid", grid_columns=0)
+
+
+def test_bw_form_rows_groups_named_fields_on_one_row() -> None:
+    form = _ContactForm()
+    out = _render_bw_form(form, rows=[["first_name", "last_name"]])
+    # both grouped fields render inside the SAME grouped row wrapper, in order
+    first_idx = out.index('id="id_first_name"')
+    last_idx = out.index('id="id_last_name"')
+    grouped_marker_idx = out.rindex("bw-field-row--grouped", 0, first_idx)
+    email_idx = out.index('id="id_email"')
+    assert grouped_marker_idx < first_idx < last_idx < email_idx
+    assert out.count("bw-field-row--grouped") == 1
+
+
+def test_bw_form_field_absent_from_rows_falls_back_stacked() -> None:
+    # email is not named in rows=, so it must still render, on its own row
+    form = _ContactForm()
+    out = _render_bw_form(form, rows=[["first_name", "last_name"]])
+    assert 'id="id_email"' in out
+
+
+def test_bw_form_rows_dom_order_follows_grouping_order() -> None:
+    # email grouped ahead of first_name/last_name: the grouped row renders at
+    # its first-named member's original form position (email is 3rd in form
+    # order, so the ungrouped first_name/last_name still precede it)
+    form = _ContactForm()
+    out = _render_bw_form(form, rows=[["email", "last_name"]])
+    email_idx = out.index('id="id_email"')
+    last_name_idx = out.index('id="id_last_name"')
+    first_name_idx = out.index('id="id_first_name"')
+    # first_name is ungrouped and sits before the group's anchor (email, form
+    # position 3rd); the group itself keeps email before last_name (group order)
+    assert first_name_idx < email_idx < last_name_idx
+
+
+def test_bw_form_default_no_rows_is_one_field_per_row() -> None:
+    form = _ContactForm()
+    out = _render_bw_form(form)
+    assert "bw-field-row--grouped" not in out
+
+
+# --- 422 preservation via bw_form ------------------------------------------
+
+
+def test_bw_form_bound_invalid_preserves_aria_describedby_wiring() -> None:
+    form = _ContactForm(data={"first_name": "", "last_name": "Smith", "email": "not-an-email"})
+    form.is_valid()
+    out = _render_bw_form(form)
+    for name in ("first_name", "email"):
+        auto_id = f"id_{name}"
+        error_id = f"{auto_id}_errors"
+        assert f'aria-describedby="{error_id}"' in out
+        assert f'id="{error_id}"' in out
+        assert 'role="alert"' in out

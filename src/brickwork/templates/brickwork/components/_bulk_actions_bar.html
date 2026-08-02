@@ -1,0 +1,71 @@
+{% load i18n %}
+{% comment %}
+Bulk-actions bar (brickwork#54): the region above a selectable
+_data_table.html that a consumer's action buttons live in. STRUCTURE ONLY,
+like the table itself: it holds no business logic and ships no action
+buttons of its own, since "what can you do to N selected rows" is entirely
+use-case specific. Extend-consumed, like _card.html: {% include %} cannot
+fill another template's block, so a caller wanting the actions slot filled
+writes a small template that EXTENDS this one and fills
+``bulk_actions_buttons``:
+
+    {% extends "brickwork/components/_bulk_actions_bar.html" %}
+    {% block bulk_actions_buttons %}
+      {% bw_button label="Archive" type="submit" name="bulk_action" value="archive" variant="secondary" size="sm" %}
+      {% bw_button label="Delete" type="submit" name="bulk_action" value="delete" variant="danger" size="sm" %}
+    {% endblock %}
+
+THE WIRING CONTRACT: this bar and the table it drives share one
+consumer-owned <form> (the same <form> whose "selected" checkboxes
+_data_table.html renders; see that component's docstring for the full
+selection contract: name="selected", one value per checked row.id, read
+server-side via ``request.POST.getlist("selected")``). Include the extended
+template INSIDE that <form>, directly above the table:
+
+    <form method="post" action="{% url 'things:bulk-action' %}">
+      {% csrf_token %}
+      {% include "things/_bulk_actions_bar.html" %}
+      {% include "brickwork/components/_data_table.html" with selectable=True ... %}
+    </form>
+
+No-JS floor (BR-BW-HTMX-001): the bar and its action buttons are ALWAYS
+rendered (never hidden by default, no ``hidden`` attribute, no ``x-cloak``);
+a JS-disabled user ticks boxes then presses a bulk action button, exactly
+like any other HTML form, no live count feedback. The optional
+``select_all_href`` link (pointing at the same URL with a "select every
+matching row" query param your view understands, e.g. "?select_all=1") is
+the documented no-JS equivalent of the header checkbox's select-all, since a
+bare checkbox cannot drive other checkboxes without JS.
+
+Enhanced (opt-in): wrap the <form> in ``x-data="bwTableSelection()"``:
+
+    <form method="post" ... x-data="bwTableSelection()">
+
+bwTableSelection reads every ``[data-bw-row-select]`` checkbox inside its
+root as the SOLE source of truth (no separate JS selection store that could
+desync from what the form actually submits): it sets ``[data-bw-select-all]``'s
+``.indeterminate`` property (some but not all rows checked) and toggles every
+row when it is clicked, and writes the live count into this bar's
+``[data-bw-selection-count]`` element (``aria-live="polite"``, so "3
+selected" is announced without re-announcing the whole bar). The bar itself
+stays visually present at rest (it never disappears under JS); only the
+count text and the select-all checkbox's indeterminate state change.
+i18n stays server-side (matching bwSidebarCollapse's convention): the count
+element carries ``data-bw-selection-count-template`` holding the translated
+"{count} selected" copy with a literal ``{count}`` placeholder; the JS
+module only substitutes the number, it never hardcodes English text.
+
+Required context: none (fill ``bulk_actions_buttons`` by extending).
+Optional:
+  select_all_href (str), select_all_label (str, default "Select all").
+{% endcomment %}
+{% blocktranslate asvar count_template %}{count} selected{% endblocktranslate %}
+<div class="bw-bulk-actions-bar">
+  <div class="bw-bulk-actions-bar__count" data-bw-selection-count data-bw-selection-count-template="{{ count_template }}" aria-live="polite"></div>
+  <div class="bw-bulk-actions-bar__actions">
+    {% block bulk_actions_buttons %}{% endblock %}
+    {% if select_all_href %}
+      <a class="bw-bulk-actions-bar__select-all" href="{{ select_all_href }}">{{ select_all_label|default:_("Select all") }}</a>
+    {% endif %}
+  </div>
+</div>

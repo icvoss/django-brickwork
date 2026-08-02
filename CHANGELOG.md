@@ -8,6 +8,57 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-08-02
+
+The two highest-cost V3 adoption gaps (#47 section 2/3): table bulk-selection
+and the whole-form renderer. All additive; both are opt-in modes over the
+existing structure-only primitives, so every pre-0.15.0 render is unchanged.
+
+### Added
+
+- **Data table bulk selection** (`_data_table.html` `selectable=True` +
+  `components/_bulk_actions_bar.html` + the `bwTableSelection` Alpine
+  component, brickwork#54): the row-selection contract that "must live in
+  brickwork or every consumer reinvents it" (#47). Every row checkbox is a
+  native `<input type="checkbox" name="selected" value="{{ row.id }}">`
+  inside the consumer's own `<form>`; the no-JS floor is a plain multi-value
+  POST, read server-side via `request.POST.getlist("selected")`, zero JS
+  required. The bulk-actions bar is extend-consumed like `_card.html` (fill
+  `bulk_actions_buttons`), always rendered, and reads the checkboxes as the
+  sole source of truth when enhanced (`x-data="bwTableSelection()"` on the
+  shared form): live "N selected" count (`aria-live="polite"`, translated
+  server-side), header select-all with `.indeterminate` wiring. Every
+  checkbox carries a visually-hidden accessible label.
+- **Sticky header / scroll container** (`_data_table.html`
+  `sticky_header=True` or `scroll_container=True`, brickwork#54): CSS-only,
+  pins the `<thead>` while the wrap scrolls, reusing the existing
+  `--bw-z-sticky` token (no new token needed).
+- **Responsive stack mode** (`_data_table.html` `responsive="stack"`,
+  brickwork#54): below a 48rem viewport each row renders as a labelled card
+  (`data-label` per cell, stamped from the `columns` list by position); the
+  `scroll` default (existing horizontal overflow) is unchanged. Backed by a
+  new `list_item` template filter (`brickwork_components.py`), the only way
+  to index a list by a loop counter in a Django template.
+- **Whole-form renderer** (`{% bw_form %}` / `forms/_form.html`, brickwork#53,
+  FRM-002/003/019): renders every visible field of a Django form through the
+  same `forms/_field.html` chrome a hand-picked per-field include uses, one
+  call instead of a per-field `{% include %}` loop written by hand on every
+  form (V3's single largest adoption cost after the shell, per #47). Renders
+  the FIELDS REGION ONLY, never a `<form>` element, matching the existing
+  per-field worked example (docs/INTEGRATION.md section 4): the consumer's
+  own `<form>` wraps the include and owns method/action/hx-post/hx-target/
+  hx-swap/csrf_token, so the BR-BW-HTMX-003 422 swap contract (each field's
+  `{{ field.auto_id }}_errors` container, `_form_errors.html` for non-field
+  errors) is identical whether the form region was hand-built or rendered via
+  `{% bw_form %}`. `layout="stacked"` (default, one field per row) or
+  `"grid"` (an N-column CSS grid via `grid_columns=`, DOM order unchanged so
+  tab order still follows source order). `rows=[["first_name", "last_name"],
+  ["email"]]` (FRM-019) groups named fields side by side on one row,
+  composing with either layout; a field not named in `rows` falls back to
+  its own row at its original form-order position, never silently dropped.
+  Hidden fields render unwrapped. `density=` sets a scoped form-only density
+  override (FRM-018).
+
 ## [0.14.0] - 2026-08-02
 
 Overlay and flow primitives, the third post-1.0 component release (#47

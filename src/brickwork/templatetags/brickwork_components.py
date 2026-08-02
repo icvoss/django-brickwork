@@ -11,6 +11,26 @@ from django.template.exceptions import TemplateSyntaxError
 
 register = template.Library()
 
+
+@register.filter(name="list_item")
+def list_item(sequence, index):
+    """Return ``sequence[index]``, or ``""`` when the index is out of range.
+
+    Django templates have no built-in "index a list by a loop counter"
+    lookup (``|slice`` only takes a static ``start:stop`` literal), and
+    ``_data_table.html``'s ``responsive="stack"`` mode needs exactly that: it
+    walks ``columns`` to label each cell, in lockstep with ``row.cells``, by
+    position (BR-BW-TPL-005, structure only, no data reshaping elsewhere).
+    Silently returns "" on a bad index rather than raising, matching Django's
+    own template philosophy of "fail quiet, not loud" for lookups (the same
+    behaviour ``{{ dict.missing_key }}`` has).
+    """
+    try:
+        return sequence[int(index)]
+    except (IndexError, ValueError, TypeError):
+        return ""
+
+
 _BUTTON_VARIANTS = {"primary", "secondary", "ghost", "danger"}
 _ALERT_VARIANTS = {"info", "success", "warning", "error"}
 _SIZES = {"sm", "md", "lg"}
