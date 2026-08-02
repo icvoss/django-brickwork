@@ -878,18 +878,35 @@ input.bw-radio:disabled {
   position: relative;
   overflow: hidden;
 }
+/* Sizing (0.12.0, #56): each variant rule sets its own natural box, wrapped
+ * in var(--bw-skeleton-w/-h, <variant literal>) so {% bw_skeleton width=
+ * height= %} (which sets the plain, un-suffixed custom property inline)
+ * overrides just the caller-supplied axis and leaves the other at its
+ * variant default. The fallback is the variant's own literal/token
+ * reference directly (not a second intermediate custom property): unlike
+ * --bw-icon-size, whose fallback points at a real emitted design token
+ * (--bw-component-icon-size-md), a per-variant box has no such shared token
+ * to point at, so the literal lives inline in the fallback slot. */
 .bw-skeleton--title {
-  block-size: var(--bw-font-size-2xl);
-  inline-size: 40%;
+  inline-size: var(--bw-skeleton-w, 40%);
+  block-size: var(--bw-skeleton-h, var(--bw-font-size-2xl));
   margin-block-end: var(--bw-space-2);
 }
 .bw-skeleton--text {
-  block-size: var(--bw-font-size-md);
-  inline-size: 60%;
+  inline-size: var(--bw-skeleton-w, 60%);
+  block-size: var(--bw-skeleton-h, var(--bw-font-size-md));
 }
 .bw-skeleton--row {
-  block-size: var(--bw-density-control-height);
+  inline-size: var(--bw-skeleton-w, 100%);
+  block-size: var(--bw-skeleton-h, var(--bw-density-control-height));
   margin-block-end: var(--bw-space-2);
+}
+/* Filled rectangle (0.12.0, #56): a chart/image placeholder with no natural
+ * aspect ratio, so its default box is a plain full-width block; the caller
+ * typically supplies width/height to size it precisely. */
+.bw-skeleton--block {
+  inline-size: var(--bw-skeleton-w, 100%);
+  block-size: var(--bw-skeleton-h, var(--bw-space-24));
 }
 .bw-skeleton::after {
   content: "";
@@ -909,6 +926,73 @@ input.bw-radio:disabled {
   .bw-skeleton::after {
     animation: none;
     background: none;
+  }
+}
+/* Consumer-facing group wrapper (0.12.0, #56, {% bw_skeleton %}): stacks
+ * repeated shapes with a consistent gap, so a multi-line placeholder needs
+ * no per-consumer layout CSS. */
+.bw-skeleton-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+}
+
+/* --- Progress (STA-007, 0.12.0) --------------------------------------------- */
+
+.bw-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+}
+.bw-progress__track {
+  flex: 1 1 auto;
+  block-size: var(--bw-component-progress-track-height);
+  background: var(--bw-color-surface-sunken);
+  border-radius: var(--bw-radius-full);
+  overflow: hidden;
+  /* The track's own visible contrast against the fill is the non-colour
+   * signal STA-007 requires: a sunken trough is legible even if the fill
+   * hue is indistinguishable to the viewer. */
+}
+.bw-progress__fill {
+  block-size: 100%;
+  background: var(--bw-color-accent);
+  border-radius: var(--bw-radius-full);
+  /* Determinate width: --bw-progress-value is an unqualified 0-100 number
+   * (not a percentage string), turned into a length here, never a
+   * hardcoded "N%" string built at the template layer. The 0 fallback
+   * (mirrors the --bw-icon-size per-instance-hook pattern) means a fill
+   * rendered without the inline property collapses to an empty bar rather
+   * than an invalid calc(). */
+  width: calc(var(--bw-progress-value, 0) * 1%);
+  transition: width var(--bw-duration-normal) var(--bw-ease-standard);
+}
+.bw-progress__value {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Indeterminate: a fixed-width segment sweeps the track. Gated behind
+ * no-preference (STA-005); reduced motion falls back to a static partial
+ * fill (below) rather than a frozen mid-sweep segment, so "work is in
+ * progress" still reads without relying on the animation. */
+.bw-progress__fill--indeterminate {
+  width: 40%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bw-progress__fill--indeterminate {
+    animation: bw-progress-sweep var(--bw-duration-shimmer) var(--bw-ease-standard) infinite;
+  }
+}
+@keyframes bw-progress-sweep {
+  0% {
+    margin-inline-start: -40%;
+  }
+  100% {
+    margin-inline-start: 100%;
   }
 }
 
@@ -1076,6 +1160,22 @@ a.bw-stat:hover {
 .bw-stat--lg {
   --bw-component-stat-tile-value-size: var(--bw-font-size-4xl);
   padding: var(--bw-space-6);
+}
+/* Consumer sparkline slot (0.12.0, #60): a constrained-height row below the
+ * value/trend, so a caller's own SVG/canvas sparkline never overruns the
+ * tile. The caller's markup fills this box; brickwork ships no chart
+ * renderer (structural-only, matching bw_data_table's no-virtualisation
+ * doctrine). */
+.bw-stat__sparkline {
+  margin-block-start: var(--bw-space-2);
+  block-size: var(--bw-component-stat-tile-sparkline-height);
+  inline-size: 100%;
+}
+.bw-stat__sparkline > svg,
+.bw-stat__sparkline > canvas {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
 }
 
 /* Visually hidden, screen-reader-available text: the stat trend's directional
@@ -1981,6 +2081,60 @@ a.bw-stat:hover {
 .bw-badge__close:active {
   background-color: var(--bw-state-active-overlay);
   transition-duration: var(--bw-duration-instant);
+}
+
+/* --- Tooltip (0.12.0, #56, supersedes STA-015's title-only baseline) -------- */
+
+/* The wrapper is an inline positioning context only: no visible chrome of
+ * its own, so it never disturbs the trigger's own inline layout. */
+.bw-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+.bw-tooltip__bubble {
+  position: absolute;
+  z-index: var(--bw-z-tooltip);
+  max-inline-size: var(--bw-component-tooltip-max-width);
+  padding: var(--bw-space-1) var(--bw-space-2);
+  background: var(--bw-color-surface-raised);
+  color: var(--bw-color-fg);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-md);
+  box-shadow: var(--bw-elevation-2);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
+  white-space: normal;
+  pointer-events: none;
+}
+/* [hidden] display floor is restated globally ([class^="bw-"][hidden] in
+ * index.css); bwTooltip toggles the attribute, never a class, so the closed
+ * state needs no rule here. */
+.bw-tooltip--top .bw-tooltip__bubble {
+  inset-block-end: calc(100% + var(--bw-space-1));
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+}
+.bw-tooltip--bottom .bw-tooltip__bubble {
+  inset-block-start: calc(100% + var(--bw-space-1));
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+}
+/* Logical placements: inline-start/-end flip automatically under dir="rtl"
+ * (BR-BW-TOK-005), unlike top/bottom which are block-axis and
+ * direction-agnostic already. */
+.bw-tooltip--start .bw-tooltip__bubble {
+  inset-inline-end: calc(100% + var(--bw-space-1));
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+}
+.bw-tooltip--end .bw-tooltip__bubble {
+  inset-inline-start: calc(100% + var(--bw-space-1));
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+}
+[data-theme="dark"] .bw-tooltip__bubble {
+  box-shadow: var(--bw-elevation-3);
 }
 
 /* reduced-motion (interaction set): explicit caret overrides on top of the

@@ -8,6 +8,48 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-08-02
+
+Feedback and dashboard primitives, the first of the post-1.0 component releases
+burning down the #47 inventory (all additive; the substrate contract is unchanged).
+
+### Added
+
+- **Skeleton** (`{% bw_skeleton %}` / `components/_skeleton.html`, brickwork#56):
+  a consumer-facing skeleton placeholder wrapping the existing `.bw-skeleton` CSS.
+  `variant` ("text" default | "title" | "row" | "block"), `count` (positive int),
+  optional `width` / `height`. The group carries `aria-busy="true"` plus a
+  visually-hidden "Loading" text; each shape is `aria-hidden="true"`; the shimmer
+  stays reduced-motion gated (STA-004/005). Invalid `variant` or non-positive
+  `count` raise `TemplateSyntaxError`.
+- **Tooltip** (`components/_tooltip.html` + the `bwTooltip` Alpine component,
+  brickwork#56): a rich accessible tooltip, extend-consumed (fill
+  `{% block tooltip_trigger %}`). No-JS floor: the trigger keeps a native `title`.
+  Enhanced: the bubble (`role="tooltip"`, wired via `aria-describedby`) shows on
+  hover AND focus, hides on mouseleave / blur / Escape, and never traps focus
+  (WAI-ARIA APG Tooltip). `placement` (top default / bottom / start / end,
+  logical for RTL); events `bw:tooltip:show` / `bw:tooltip:hide`. Supersedes the
+  title-only baseline (spec STA-015).
+- **Progress** (`components/_progress.html`, brickwork#56): a determinate or
+  indeterminate progress bar. Determinate (`value` 0-100): `role="progressbar"`
+  with `aria-valuenow` / `-valuemin="0"` / `-valuemax="100"` and an accessible
+  name from `label`; the fill width rides the `--bw-progress-value` custom
+  property via `calc(... * 1%)`, never a hand-built percentage string.
+  Indeterminate (no `value`): an animated sweep gated behind
+  `prefers-reduced-motion: no-preference`, with a static partial-fill fallback so
+  reduced motion still reads as in-progress. Colour is never the only signal
+  (spec STA-018 revisited; this is a progress DISPLAY, not the optimistic-update
+  pattern STA-007 still declines).
+- **Stat sparkline slot** (`_stat.html`, brickwork#60): an optional `sparkline`
+  context var (a pre-rendered safe SVG / canvas string) rendered in a
+  `bw-stat__sparkline` row below the value. The `trend` arg already shipped in
+  0.5.0; this adds only the sparkline extension point. Charts stay
+  consumer-mounted (a declared non-goal).
+- **Three component tokens**: `--bw-component-tooltip-max-width`,
+  `--bw-component-progress-track-height`,
+  `--bw-component-stat-tile-sparkline-height` (canonical grammar with courtesy
+  aliases, per the 0.11.0 tier re-grammar).
+
 ## [0.11.1] - 2026-08-02
 
 Docs-only patch. Documents the `brickwork.css` app-facing-utility-layer change

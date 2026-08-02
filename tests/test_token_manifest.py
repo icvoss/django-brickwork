@@ -85,6 +85,15 @@ def test_overridable_names_includes_canonical_component_names() -> None:
     assert "--bw-size-icon-md" not in names
 
 
+def test_overridable_names_includes_the_012_feedback_component_tokens() -> None:
+    # 0.12.0 (#56/#60): the three new component tokens must be present in the
+    # overridable vocabulary under their canonical --bw-component-* names.
+    names = overridable_names()
+    assert "--bw-component-tooltip-max-width" in names
+    assert "--bw-component-progress-track-height" in names
+    assert "--bw-component-stat-tile-sparkline-height" in names
+
+
 def test_is_overridable_true_for_accent_false_for_primitive() -> None:
     assert is_overridable("--bw-color-accent") is True
     assert is_overridable("--bw-primitive-gray-0") is False

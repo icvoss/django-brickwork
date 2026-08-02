@@ -28,6 +28,23 @@ Optional:
   loading (bool): renders skeleton rows instead of the content (STA-004).
   size ("sm" | "md" | "lg", default "md"): emitted as bw-stat--<value> only
         when supplied (VIZ-027).
+  sparkline (safe string, #60): pre-rendered sparkline markup (SVG/canvas),
+        wrapped in a bw-stat__sparkline row below the value/trend. _stat.html
+        is {% include %}d, never {% extends %}d (unlike _card.html and
+        _modal.html, which expose consumer regions as named blocks): a plain
+        {% include %} cannot fill a block defined in the included template,
+        so a block here would be permanently empty. This follows
+        _data_table.html's existing convention instead (row.cells are
+        caller-supplied pre-rendered strings): the caller renders its own
+        sparkline (an inline <svg> or a <canvas> a script mounts into) and
+        passes the markup already marked safe, e.g.
+        {% include "brickwork/components/_stat.html" with label="Revenue" value="1,234" sparkline=my_rendered_svg|safe %}.
+        The caller owns escaping: brickwork does not sanitise this string
+        (it is trusted markup the same way row.cells and card block-filler
+        content are), so never pass user-supplied input here unescaped.
+        Omitted (the default) renders nothing, matching the unfilled-block
+        convention elsewhere. Ignored while loading=True (the skeleton
+        stands in for the whole tile's content, sparkline included).
 {% endcomment %}
 {% if href %}<a class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}">{% endif %}
   {% if loading %}
@@ -44,5 +61,6 @@ Optional:
         {% if trend_label %}<span>{{ trend_label }}</span>{% endif %}
       </span>
     {% endif %}
+    {% if sparkline %}<div class="bw-stat__sparkline">{{ sparkline }}</div>{% endif %}
   {% endif %}
 {% if href %}</a>{% else %}</div>{% endif %}

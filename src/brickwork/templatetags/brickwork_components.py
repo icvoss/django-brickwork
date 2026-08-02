@@ -14,6 +14,7 @@ register = template.Library()
 _BUTTON_VARIANTS = {"primary", "secondary", "ghost", "danger"}
 _ALERT_VARIANTS = {"info", "success", "warning", "error"}
 _SIZES = {"sm", "md", "lg"}
+_SKELETON_VARIANTS = {"text", "title", "row", "block"}
 
 
 @register.inclusion_tag("brickwork/components/_button.html")
@@ -76,3 +77,38 @@ def bw_alert(message: str = "", *, variant: str = "info", title: str = "", dismi
         raise TemplateSyntaxError(f"bw_alert variant must be one of {sorted(_ALERT_VARIANTS)}, got {variant!r}")
     icon = {"info": "info", "success": "success", "warning": "alert-triangle", "error": "alert-circle"}[variant]
     return {"message": message, "variant": variant, "title": title, "icon": icon, "dismissible": bool(dismissible)}
+
+
+@register.inclusion_tag("brickwork/components/_skeleton.html")
+def bw_skeleton(
+    *,
+    variant: str = "text",
+    count: int = 1,
+    width: str = "",
+    height: str = "",
+) -> dict:
+    """A loading placeholder (STA-004). Repeats ``count`` copies of the shape
+    named by ``variant`` ("text" | "title" | "row" | "block"). A plain
+    {% include %} cannot loop a variable count, so this is a tag: it
+    validates ``variant`` and turns ``count`` into a range() the template
+    iterates. ``width``/``height`` (CSS lengths, e.g. "12rem") override the
+    variant's default box via the --bw-skeleton-w/-h custom properties;
+    omitted keeps the variant's own default sizing."""
+    if variant not in _SKELETON_VARIANTS:
+        raise TemplateSyntaxError(f"bw_skeleton variant must be one of {sorted(_SKELETON_VARIANTS)}, got {variant!r}")
+    if not isinstance(count, int) or count < 1:
+        raise TemplateSyntaxError(f"bw_skeleton count must be a positive int, got {count!r}")
+    style_parts = []
+    if width:
+        style_parts.append(f"--bw-skeleton-w: {width}")
+    if height:
+        style_parts.append(f"--bw-skeleton-h: {height}")
+    return {
+        "variant": variant,
+        "count": range(count),
+        # Plain (unescaped) string: the template renders it inside a
+        # style="..." attribute, where Django's normal autoescaping of the
+        # attribute value is exactly the protection needed (width/height are
+        # caller-supplied CSS lengths, never markup).
+        "style_attr": "; ".join(style_parts),
+    }

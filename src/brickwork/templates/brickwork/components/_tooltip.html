@@ -1,0 +1,62 @@
+{% comment %}
+Tooltip (0.12.0, #56; supersedes STA-015's title-only baseline). Consumed by
+EXTENDING, like patterns/ and _modal.html: a consumer's tooltip partial opens
+with {% extends "brickwork/components/_tooltip.html" %} and fills the
+tooltip_trigger block, e.g.
+
+    {% extends "brickwork/components/_tooltip.html" %}
+    {% block tooltip_trigger %}
+      <button type="button" class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
+              aria-label="{% translate "More info" %}">
+        {% bw_icon "info" size="sm" decorative=True %}
+      </button>
+    {% endblock %}
+
+No-JS floor (BR-BW-HTMX-006): the trigger keeps a native title attribute set
+to ``text``, so a tooltip with zero JavaScript still has SOME accessible
+hint (the browser's own native title tooltip) rather than a silently absent
+one. Enhanced: bwTooltip shows a styled bubble on hover AND focus (not click:
+a tooltip is supplementary information, not an interactive disclosure), wired
+via aria-describedby, and hides on mouseleave, blur or Escape. A tooltip is
+NOT a dialog (WAI-ARIA APG Tooltip pattern): it never traps focus and never
+blocks the trigger's own click/keyboard behaviour, unlike bw_modal.
+
+Required context:
+  id: a stable, id-safe token (letters, digits, hyphen, underscore; the same
+      convention {% bw_tabs %} enforces at render time), for aria-describedby.
+      This is the BUBBLE's id (role="tooltip" id="{{ id }}"); the wrapper
+      root carries "{{ id }}-root" so the two never collide. Structural
+      extends-consumed template, so this cannot raise at render time the way
+      a tag can; the caller supplies a safe id (mirrors _modal.html's
+      modal_id doctrine: an unsafe id is an authoring error, not a runtime
+      guard here).
+  text: the tooltip's content. Rendered BOTH as the trigger's native title
+      (the no-JS floor) and inside the bubble (the enhanced floor), so the
+      two never drift out of sync.
+Optional:
+  placement ("top" default | "bottom" | "start" | "end"): "start"/"end" are
+      logical (inline-start/inline-end), so they flip automatically under
+      dir="rtl"; "top"/"bottom" are block-axis and direction-agnostic.
+
+Events (optional conventions, BR-BW-HTMX-004): bw:tooltip:show,
+bw:tooltip:hide (detail { id }).
+
+Tokens (CSS lane): bubble at --bw-z-tooltip (the highest rung in the
+stacking scale, DESIGN.md section 6.5) over --bw-color-surface-raised,
+--bw-elevation-2, radius --bw-radius-md. Motion, when present, follows the
+BR-BW-TOK-009 reduced-motion floor like every other overlay in the set.
+{% endcomment %}
+<span class="bw-tooltip bw-tooltip--{{ placement|default:'top' }}"
+      id="{{ id }}-root"
+      x-data="bwTooltip({ id: '{{ id|escapejs }}' })">
+  <span data-bw-tooltip-trigger aria-describedby="{{ id }}" title="{{ text }}">
+    {% block tooltip_trigger %}{% endblock %}
+  </span>
+  <span class="bw-tooltip__bubble"
+        id="{{ id }}"
+        role="tooltip"
+        data-bw-tooltip-bubble
+        hidden>
+    {{ text }}
+  </span>
+</span>

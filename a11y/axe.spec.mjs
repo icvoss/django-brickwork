@@ -27,8 +27,20 @@ for (const page of pages) {
     // the disclosure already open) before analyzing. Evaluating mid-animation
     // samples transient opacity/position, which axe correctly, but
     // misleadingly, reports as a steady-state contrast/target-size defect;
-    // the real, settled state is what WCAG governs.
-    await pw.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
+    // the real, settled state is what WCAG governs. Only FINITE animations are
+    // awaited: an infinitely-iterating Animation's .finished promise never
+    // settles by spec, so waiting on it would hang forever. The skeleton
+    // shimmer, the spinner, and the indeterminate progress sweep (all
+    // `infinite`) are steady-state loops, not entrance transitions, so
+    // analyzing while they run is correct: that IS their settled state.
+    await pw.evaluate(() =>
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.effect?.getTiming().iterations !== Infinity)
+          .map((a) => a.finished),
+      ),
+    );
     const results = await new AxeBuilder({ page: pw }).withTags(WCAG_TAGS).analyze();
     // Fail with the concrete violations so a regression is actionable.
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
