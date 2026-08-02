@@ -68,9 +68,12 @@ const RENAMES = new Map([
   ["bw-select-indicator", "bw-component-select-indicator"],
   ["bw-checkbox-glyph", "bw-component-checkbox-glyph"],
   ["bw-stat-tile-value-size", "bw-component-stat-tile-value-size"],
+  ["bw-stat-tile-sparkline-height", "bw-component-stat-tile-sparkline-height"],
   ["bw-drawer-width", "bw-component-drawer-width"],
   ["bw-toast-max-width", "bw-component-toast-max-width"],
   ["bw-htmx-indicator-opacity", "bw-component-htmx-indicator-opacity"],
+  ["bw-progress-track-height", "bw-component-progress-track-height"],
+  ["bw-tooltip-max-width", "bw-component-tooltip-max-width"],
   // Re-tier nav/skeleton/breadcrumb per-component roles from semantic COLOUR to
   // component tier (they are per-component, not role-general; ADR section 2).
   // Values stay theme-variant (emitted in the theme blocks); only the name moves.

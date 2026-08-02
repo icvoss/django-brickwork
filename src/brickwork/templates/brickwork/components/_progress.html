@@ -1,0 +1,54 @@
+{% load i18n %}
+{% comment %}
+Progress (STA-007): a determinate or indeterminate progress bar. Structural,
+consumed via {% include %} (no render-time enforcement needed, unlike the
+tagged components).
+
+Determinate (``value`` supplied): role="progressbar" carries aria-valuenow/
+-valuemin="0"/-valuemax="100" and an accessible name (aria-label, from
+``label``). The fill's width is driven by the --bw-progress-value custom
+property (an unqualified 0-100 number, NOT a percentage string), which the
+CSS turns into a length with `width: calc(var(--bw-progress-value) * 1%)`.
+Colour is never the only signal: the track/fill pairing carries visible
+contrast on its own, and the accessible name plus the optional visible
+``show_value`` text carry the state as words, not just as fill length or
+hue.
+
+Indeterminate (``value`` omitted or None): aria-valuenow is omitted entirely
+(an indeterminate progressbar has no "now" to report, matching the native
+<progress> element without a value attribute), and the fill runs an
+animated sweep gated behind prefers-reduced-motion: no-preference. Under
+reduced motion the sweep stops and a static partial fill (bw-progress__fill
+carries a fixed inline-size instead of animating) stands in as the "work is
+in progress" signal, so reduced motion never leaves a blank track with no
+indication anything is happening.
+
+Required context:
+  label: the accessible name (a plain string, rendered via aria-label). Every
+      progress bar names what it is progress OF (STA-007): a progress bar
+      with no label is an authoring error (structural include, so this
+      cannot raise at render time; the docstring is the enforcement).
+Optional:
+  value (int, 0-100): determinate progress. Omitted renders the
+      indeterminate treatment.
+  show_value (bool, default False): also renders the percentage as visible
+      text beside the bar (determinate only; ignored when indeterminate,
+      since there is no percentage to show).
+{% endcomment %}
+<div class="bw-progress{% if value is None %} bw-progress--indeterminate{% endif %}"
+     role="progressbar"
+     aria-label="{{ label }}"
+     aria-valuemin="0"
+     aria-valuemax="100"
+     {% if value is not None %}aria-valuenow="{{ value }}"{% endif %}>
+  <div class="bw-progress__track">
+    {% if value is not None %}
+      <div class="bw-progress__fill" style="--bw-progress-value: {{ value }}"></div>
+    {% else %}
+      <div class="bw-progress__fill bw-progress__fill--indeterminate"></div>
+    {% endif %}
+  </div>
+  {% if show_value and value is not None %}
+    <span class="bw-progress__value">{% blocktranslate with percent=value %}{{ percent }}%{% endblocktranslate %}</span>
+  {% endif %}
+</div>

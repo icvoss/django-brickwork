@@ -59,6 +59,9 @@
   --bw-component-select-indicator: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='oklch(0.55 0.01 265)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
   --bw-component-checkbox-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m2.5 6.5 2.5 2.5 4.5-5.5'/%3E%3C/svg%3E");
   --bw-component-stat-tile-value-size: var(--bw-font-size-3xl);
+  --bw-component-stat-tile-sparkline-height: 2rem;
+  --bw-component-progress-track-height: 0.5rem;
+  --bw-component-tooltip-max-width: 16rem;
   --bw-component-disabled-opacity: 0.5;
   --bw-component-content-max-width: 72rem;
   --bw-component-topbar-position: sticky;
@@ -455,6 +458,7 @@
   --bw-icon-size-xl: var(--bw-component-icon-size-xl);
   --bw-icon-stroke-width: var(--bw-component-icon-stroke-width);
   --bw-menu-min-width: var(--bw-component-menu-min-width);
+  --bw-progress-track-height: var(--bw-component-progress-track-height);
   --bw-select-indicator: var(--bw-component-select-indicator);
   --bw-size-icon-2xl: var(--bw-component-icon-size-2xl);
   --bw-size-icon-lg: var(--bw-component-icon-size-lg);
@@ -487,7 +491,9 @@
   --bw-size-space-8: var(--bw-space-8);
   --bw-size-space-9: var(--bw-space-9);
   --bw-size-space-px: var(--bw-space-px);
+  --bw-stat-tile-sparkline-height: var(--bw-component-stat-tile-sparkline-height);
   --bw-stat-tile-value-size: var(--bw-component-stat-tile-value-size);
   --bw-toast-max-width: var(--bw-component-toast-max-width);
+  --bw-tooltip-max-width: var(--bw-component-tooltip-max-width);
   --bw-topbar-position: var(--bw-component-topbar-position);
 }

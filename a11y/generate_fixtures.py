@@ -25,6 +25,7 @@ import django
 
 django.setup()
 
+from django.template import engines  # noqa: E402
 from django.template.loader import render_to_string  # noqa: E402
 from django.test import RequestFactory  # noqa: E402
 
@@ -615,6 +616,109 @@ def render_projection(theme: str, consumer_css: str) -> str:
     )
 
 
+# --- the 0.12.0 feedback fixtures (#56/#60) -----------------------------------
+#
+# feedback-<theme>.html is a standalone (non-shell) page, mirroring the
+# projection fixture's self-contained shape rather than a full testapp route:
+# these three components (skeleton, tooltip, progress) are isolated widgets
+# with no dedicated demo page of their own yet, so the fixture composes the
+# REAL component templates directly (bw_skeleton tag, an extends-consumed
+# tooltip partial, and the plain-include progress bar) with the compiled
+# brickwork.css inlined, exactly as the shell-routed fixtures inline it.
+# Covers: a skeleton group (STA-004, aria-busy + hidden shapes), a tooltip
+# (trigger + bubble, no-JS floor plus the JS-enhanced bwTooltip open state,
+# WAI-ARIA APG Tooltip pattern), and a progress bar in both the determinate
+# and indeterminate treatments (STA-007). The JS boot registers bwTooltip so
+# axe also examines the OPEN bubble state, not just the floor.
+
+_FEEDBACK_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feedback components (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Feedback components</h1>
+
+  <section aria-labelledby="skeleton-heading">
+    <h2 id="skeleton-heading">Skeleton</h2>
+    __SKELETON__
+  </section>
+
+  <section aria-labelledby="tooltip-heading">
+    <h2 id="tooltip-heading">Tooltip</h2>
+    __TOOLTIP__
+  </section>
+
+  <section aria-labelledby="progress-heading">
+    <h2 id="progress-heading">Progress</h2>
+    __PROGRESS_DETERMINATE__
+    __PROGRESS_INDETERMINATE__
+  </section>
+</main>
+__JS_BOOT__
+</body>
+</html>
+"""
+
+_FEEDBACK_TOOLTIP_SOURCE = (
+    '{% extends "brickwork/components/_tooltip.html" %}'
+    "{% block tooltip_trigger %}"
+    '<button type="button" class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only" aria-label="More info">'
+    "?"
+    "</button>"
+    "{% endblock %}"
+)
+
+
+def _render_skeleton_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template('{% load brickwork_components %}{% bw_skeleton variant="row" count=3 %}').render(Context({}))
+
+
+def _render_tooltip_fixture(*, open_state: bool) -> str:
+    html = (
+        engines["django"]
+        .from_string(_FEEDBACK_TOOLTIP_SOURCE)
+        .render({"id": "feedback-tip", "text": "More information about this field"})
+    )
+    if open_state:
+        # Model the JS-enhanced open state statically (mirrors
+        # render_toast_stack's settled-state stamping): bwTooltip.open()
+        # removes `hidden` from the bubble and stamps data-bw-open on the
+        # root, so axe also examines the bubble WHILE visible, not just the
+        # closed no-JS floor. Regex rather than a literal-whitespace replace
+        # so this survives a reformat of _tooltip.html's own indentation.
+        html = re.sub(r"(x-data=\"bwTooltip\([^)]*\)\")", r"\1 data-bw-open", html, count=1)
+        html = re.sub(r"(data-bw-tooltip-bubble)\s+hidden>", r"\1>", html, count=1)
+    return html
+
+
+def _render_progress_fixture(*, value: int | None, show_value: bool = False) -> str:
+    ctx = {"label": "Import progress" if value is not None else "Loading widgets"}
+    if value is not None:
+        ctx["value"] = value
+        ctx["show_value"] = show_value
+    return render_to_string("brickwork/components/_progress.html", ctx)
+
+
+def render_feedback(theme: str, *, inject_js: bool = False, tooltip_open: bool = False) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    page = (
+        _FEEDBACK_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__SKELETON__", _render_skeleton_fixture())
+        .replace("__TOOLTIP__", _render_tooltip_fixture(open_state=tooltip_open))
+        .replace("__PROGRESS_DETERMINATE__", _render_progress_fixture(value=42, show_value=True))
+        .replace("__PROGRESS_INDETERMINATE__", _render_progress_fixture(value=None))
+    )
+    return page.replace("__JS_BOOT__", _JS_BOOT if inject_js else "")
+
+
 def main() -> None:
     written = []
     projection_css = build_projection_css()
@@ -647,6 +751,13 @@ def main() -> None:
         (OUT / f"comboboxes-js-{theme}.html").write_text(render_comboboxes(theme, selected=True, inject_js=True))
         # the 0.10.0 Tailwind projection proof (consumer utilities only)
         (OUT / f"projection-{theme}.html").write_text(render_projection(theme, projection_css))
+        # the 0.12.0 feedback set (#56/#60): skeleton, tooltip (floor + JS-open
+        # state), progress (determinate + indeterminate)
+        (OUT / f"feedback-{theme}.html").write_text(render_feedback(theme))
+        (OUT / f"feedback-js-{theme}.html").write_text(render_feedback(theme, inject_js=True))
+        (OUT / f"feedback-tooltip-open-{theme}.html").write_text(
+            render_feedback(theme, inject_js=True, tooltip_open=True)
+        )
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -666,6 +777,9 @@ def main() -> None:
             f"comboboxes-{theme}",
             f"comboboxes-js-{theme}",
             f"projection-{theme}",
+            f"feedback-{theme}",
+            f"feedback-js-{theme}",
+            f"feedback-tooltip-open-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())

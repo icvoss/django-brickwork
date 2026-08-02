@@ -156,3 +156,32 @@ def test_size_maps_to_modifier_classes() -> None:
     assert "bw-stat--sm" in _render(label="X", value="1", size="sm")
     assert "bw-stat--lg" in _render(label="X", value="1", size="lg")
     assert "bw-stat--" not in _render(label="X", value="1")
+
+
+# --- sparkline (#60, 0.12.0) -------------------------------------------------
+
+
+def test_sparkline_renders_the_caller_supplied_markup() -> None:
+    # sparkline is documented as a pre-rendered SAFE string (the caller owns
+    # escaping, matching row.cells / card block-filler content); mark_safe
+    # mirrors what a real caller passes via the |safe filter.
+    from django.utils.safestring import mark_safe
+
+    out = _render(label="Revenue", value="1,234", sparkline=mark_safe("<svg><path d='M0 0'></path></svg>"))
+    assert re.search(r'<div class="bw-stat__sparkline">\s*<svg><path', out)
+
+
+def test_sparkline_omitted_renders_no_empty_div() -> None:
+    out = _render(label="Revenue", value="1,234")
+    assert "bw-stat__sparkline" not in out
+
+
+def test_sparkline_ignored_while_loading() -> None:
+    # loading=True renders the skeleton stand-in for the whole tile; the
+    # sparkline (like label/value/trend) must not leak through.
+    from django.utils.safestring import mark_safe
+
+    out = _render(label="Revenue", value="1,234", sparkline=mark_safe("<svg></svg>"), loading=True)
+    assert "bw-skeleton" in out
+    assert "bw-stat__sparkline" not in out
+    assert "<svg" not in out

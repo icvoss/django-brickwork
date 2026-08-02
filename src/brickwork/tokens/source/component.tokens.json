@@ -57,6 +57,25 @@
       "$type": "dimension",
       "$value": "var(--bw-font-size-3xl)",
       "$description": "Stat tile numeral size (VIZ-001, AC-BW-075); a live var() reference so the font scale cascades, and the size modifiers re-point it per tile."
+    },
+    "sparkline-height": {
+      "$type": "dimension",
+      "$value": "{size.space.8}",
+      "$description": "Consumer sparkline slot height (#60, 0.12.0): tall enough to read a trend line, short enough that the tile stays a compact KPI card."
+    }
+  },
+  "progress": {
+    "track-height": {
+      "$type": "dimension",
+      "$value": "{size.space.2}",
+      "$description": "Progress bar track thickness (STA-007, 0.12.0)."
+    }
+  },
+  "tooltip": {
+    "max-width": {
+      "$type": "dimension",
+      "$value": "16rem",
+      "$description": "Tooltip bubble max width (0.12.0, #56): wide enough for a short sentence, capped so a long text does not stretch across the viewport."
     }
   },
   "disabled": {

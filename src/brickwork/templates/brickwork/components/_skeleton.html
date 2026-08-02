@@ -1,0 +1,29 @@
+{% load i18n %}
+{% comment %}
+Skeleton (STA-004): the consumer-facing loading placeholder. PRIVATE render
+target of the {% bw_skeleton %} tag (templatetags/brickwork_components.py):
+never {% include %} this file directly, since the tag validates ``variant``
+and shapes ``count`` into a repeatable range (a plain {% include %} cannot
+loop a variable count without a supporting tag). The ``.bw-skeleton``
+classes (--text, --title, --row, --block) already ship, used internally by
+_stat.html and _data_table.html's own loading states; this template is the
+public wrapper so a consumer can drop a placeholder anywhere without
+hand-authoring the a11y wiring.
+
+The group root carries aria-busy="true" plus a visually-hidden "Loading"
+text, so a screen reader announces the loading state once, at the group. Each
+individual skeleton shape is aria-hidden="true": the shapes are decorative
+filler, not content, so they never get their own announcement (that would
+read as a pile of unlabelled images). Reduced motion: the shimmer sweep on
+``.bw-skeleton::after`` is already gated behind
+``prefers-reduced-motion: no-preference`` with a static (no animation, no
+gradient) fallback under ``reduce`` (components.css); this template adds
+nothing that could re-enable motion.
+
+Context (shaped by the tag): variant, count (a range() for the repeat),
+style_attr (the --bw-skeleton-w/-h inline override, or "").
+{% endcomment %}
+<div class="bw-skeleton-group" aria-busy="true">
+  <span class="bw-visually-hidden">{% translate "Loading" %}</span>
+  {% for _ in count %}<div class="bw-skeleton bw-skeleton--{{ variant }}"{% if style_attr %} style="{{ style_attr }}"{% endif %} aria-hidden="true"></div>{% endfor %}
+</div>
