@@ -4,8 +4,12 @@ name: CI
 # brickwork specifics:
 #   - Django 6.0 FLOOR (uses core template partials); matrix is 6.0 only, no 5.2.
 #   - SQLite tests (postgres service block deleted).
-#   - Consumer smoke-test job deleted (no tests/consumer/ harness yet; a pre-1.0
-#     checkpoint, added when the package approaches release per ADR-027).
+#   - Consumer smoke leg (brickwork#61): tests/consumer/ is a SECOND, V3-shaped
+#     fixture app (multi-host shell branching, a BRICKWORK_THEME_RESOLVER tenant
+#     resolver, a waffle-style feature_checker gating nav, the 422 form-swap loop,
+#     and a page composing the wider component/interaction set), run as its own
+#     step in the test job under settings_consumer, alongside the existing
+#     settings_seams leg.
 #   - Frontend build + accessibility (axe-core/Playwright) + no-JS browser jobs
 #     are STUBBED: the spec makes the WCAG 2.2 AA gate and the no-JS floor
 #     load-bearing, so the jobs exist from day one but are filled in Phase 0
@@ -79,6 +83,14 @@ jobs:
         run: pytest tests/test_integration.py -v --tb=short --color=yes --no-cov
         env:
           DJANGO_SETTINGS_MODULE: tests.settings_seams
+          PYTHONPATH: src:.:tests
+      - name: Run tests (consumer smoke leg, V3-shaped harness installed, brickwork#61)
+        # The consumer smoke tests need tests/consumer/ installed, which only
+        # happens under settings_consumer (a SECOND, richer fixture app than
+        # brickwork_testapp, kept out of both other legs the same way).
+        run: pytest tests/test_consumer_smoke.py -v --tb=short --color=yes --no-cov
+        env:
+          DJANGO_SETTINGS_MODULE: tests.settings_consumer
           PYTHONPATH: src:.:tests
 
   # ── Frontend build: tokens (Style Dictionary) + assets (Vite) ────────

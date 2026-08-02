@@ -1,0 +1,17 @@
+{% extends "consumer/base.html" %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title=title %}
+{% endblock %}
+
+{% block content %}
+  <ul>
+    {% for ticket in tickets %}
+      <li>{{ ticket.title }} ({{ ticket.get_priority_display }})</li>
+    {% empty %}
+      <li>No tickets yet.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

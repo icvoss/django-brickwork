@@ -1,0 +1,11 @@
+{% extends "consumer/base.html" %}
+{% comment %}
+The slide-over's no-JS floor (BR-BW-HTMX-001): the same consumer partial
+rendered inside the full shell.
+{% endcomment %}
+
+{% block page_title %}Ticket details{% endblock %}
+
+{% block content %}
+  {% include "consumer/_panel_slide_over.html" %}
+{% endblock %}

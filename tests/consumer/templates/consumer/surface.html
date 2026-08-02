@@ -1,0 +1,68 @@
+{% extends "consumer/base.html" %}
+{% load brickwork_forms brickwork_components %}
+{% comment %}
+Composes the shipped interaction/component set (brickwork#61 "exercise the
+shipped surface", a second/third integration exercise ahead of ratification):
+a modal trigger, a slide-over trigger, a selectable data table, a stepper,
+a bw_form, and a toast trigger, all with real content, so the smoke leg
+catches a cross-component integration break, not just the four named seams.
+Ships no script tag: every trigger below is a no-JS-floor-first real anchor
+or real form (BR-BW-HTMX-001).
+{% endcomment %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title=title %}
+{% endblock %}
+
+{% block content %}
+  <section id="modal-demo" aria-labelledby="modal-demo-heading">
+    <h2 id="modal-demo-heading">Danger zone</h2>
+    <a id="open-confirm-modal"
+       class="bw-btn bw-btn--danger bw-btn--md"
+       href="{% url 'consumer:surface-confirm' %}"
+       hx-get="{% url 'consumer:surface-confirm' %}"
+       hx-target="#bw-modal-root"
+       hx-swap="innerHTML">Clear demo tickets</a>
+  </section>
+
+  <section id="slide-over-demo" aria-labelledby="slide-over-demo-heading">
+    <h2 id="slide-over-demo-heading">Ticket details</h2>
+    <a id="open-ticket-panel"
+       class="bw-btn bw-btn--secondary bw-btn--md"
+       href="{% url 'consumer:surface-panel' %}"
+       hx-get="{% url 'consumer:surface-panel' %}"
+       hx-target="#bw-slide-over-root"
+       hx-swap="innerHTML">View details</a>
+  </section>
+
+  <section id="stepper-demo" aria-labelledby="stepper-demo-heading">
+    <h2 id="stepper-demo-heading">Progress</h2>
+    {% include "brickwork/components/_stepper.html" with steps=steps %}
+  </section>
+
+  <section id="table-demo" aria-labelledby="table-demo-heading">
+    <h2 id="table-demo-heading">Tickets</h2>
+    {% include "brickwork/components/_data_table.html" with table_id=table_id columns=columns rows=rows selectable=True empty_heading="No tickets yet" empty_body="Create a ticket to see it here." %}
+  </section>
+
+  <section id="form-demo" aria-labelledby="form-demo-heading">
+    <h2 id="form-demo-heading">Quick add</h2>
+    <form id="surface-ticket-form" class="bw-form" method="post" action="{% url 'consumer:ticket-create' %}">
+      {% csrf_token %}
+      {% bw_form form %}
+      {% bw_button "Save" type="submit" variant="primary" icon="check" %}
+    </form>
+  </section>
+
+  <section id="toast-demo" aria-labelledby="toast-demo-heading">
+    <h2 id="toast-demo-heading">Notify</h2>
+    <form id="surface-toast-form" method="post" action="{% url 'consumer:surface-toast' %}"
+          hx-post="{% url 'consumer:surface-toast' %}" hx-target="#surface-toast-status" hx-swap="outerHTML">
+      {% csrf_token %}
+      {% bw_button "Send notification" type="submit" variant="secondary" %}
+    </form>
+    <p id="surface-toast-status"></p>
+  </section>
+{% endblock %}

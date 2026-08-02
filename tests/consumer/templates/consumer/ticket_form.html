@@ -1,0 +1,11 @@
+{% extends "consumer/base.html" %}
+
+{% block page_title %}New ticket{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="New ticket" %}
+{% endblock %}
+
+{% block content %}
+  {% include "consumer/_ticket_form.html" %}
+{% endblock %}
