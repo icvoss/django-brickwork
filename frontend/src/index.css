@@ -41,12 +41,12 @@
   inset-block-start: 0;
   inset-inline-start: 0;
   transform: translateY(-100%);
-  padding: var(--bw-size-space-2) var(--bw-size-space-4);
+  padding: var(--bw-space-2) var(--bw-space-4);
   background: var(--bw-color-surface);
   color: var(--bw-color-accent);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-start-start-radius: 0;
-  border-end-end-radius: var(--bw-size-radius-md);
+  border-end-end-radius: var(--bw-radius-md);
   z-index: var(--bw-z-skip-link);
   /* The reveal is an entrance, so ease-out per the DESIGN.md interaction map. */
   transition: transform var(--bw-duration-fast) var(--bw-ease-out);
@@ -60,14 +60,14 @@
  * which {% bw_icon %} sets inline to a --bw-icon-size-{sm,md,lg,xl} token. It
  * MUST be applied here as a CSS property, not as an SVG width/height attribute:
  * SVG geometry attributes do not accept var(), so an attribute of
- * var(--bw-icon-size-sm) is invalid and the icon falls back to the 300x150
+ * var(--bw-component-icon-size-sm) is invalid and the icon falls back to the 300x150
  * default. Logical properties keep it correct under RTL. */
 .bw-icon {
   display: inline-block;
   flex-shrink: 0;
   vertical-align: middle;
-  inline-size: var(--bw-icon-size, var(--bw-icon-size-md));
-  block-size: var(--bw-icon-size, var(--bw-icon-size-md));
+  inline-size: var(--bw-icon-size, var(--bw-component-icon-size-md));
+  block-size: var(--bw-icon-size, var(--bw-component-icon-size-md));
 }
 [dir="rtl"] .bw-icon-directional {
   transform: scaleX(-1);

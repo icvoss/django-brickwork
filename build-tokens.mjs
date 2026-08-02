@@ -44,6 +44,77 @@ StyleDictionary.registerTransform({
 // deliberately do NOT use them for the colour tier.
 const TRANSFORMS = ["attribute/cti", "name/bw"];
 
+// 0.11.0 tier re-grammar (ADR-054 section 2/7, brickwork Phase b). The source
+// keeps its historical structure so references resolve; the CANONICAL public
+// names are produced here by a rename map applied to the captured names, and
+// every OLD name ships as a courtesy alias block (old: var(--new);) on :root so
+// a 0.10.0 consumer does not break on the minor (aliases are a documented,
+// time-boxed 0.x courtesy per ADR section 7). `bw-` prefix, no leading `--`.
+const RENAMES = new Map([
+  // Scale promotions: the scale IS the role vocabulary, so it is semantic; drop
+  // the `size-` infix (--bw-size-space-* -> --bw-space-*, likewise radius).
+  ...spaceRadiusRenames(),
+  // Icon-size dedup: both the primitive scale (size-icon-*) and its component
+  // alias (icon-size-*) collapse to one component-tier name.
+  ...iconSizeRenames(),
+  // Component tier: the canonical --bw-component-* grammar for the un-infixed
+  // component tokens.
+  ["bw-button-radius", "bw-component-button-radius"],
+  ["bw-icon-stroke-width", "bw-component-icon-stroke-width"],
+  ["bw-content-max-width", "bw-component-content-max-width"],
+  ["bw-topbar-position", "bw-component-topbar-position"],
+  ["bw-disabled-opacity", "bw-component-disabled-opacity"],
+  ["bw-menu-min-width", "bw-component-menu-min-width"],
+  ["bw-select-indicator", "bw-component-select-indicator"],
+  ["bw-checkbox-glyph", "bw-component-checkbox-glyph"],
+  ["bw-stat-tile-value-size", "bw-component-stat-tile-value-size"],
+  ["bw-drawer-width", "bw-component-drawer-width"],
+  ["bw-toast-max-width", "bw-component-toast-max-width"],
+  ["bw-htmx-indicator-opacity", "bw-component-htmx-indicator-opacity"],
+  // Re-tier nav/skeleton/breadcrumb per-component roles from semantic COLOUR to
+  // component tier (they are per-component, not role-general; ADR section 2).
+  // Values stay theme-variant (emitted in the theme blocks); only the name moves.
+  ["bw-color-nav-item-active-bg", "bw-component-nav-item-active-bg"],
+  ["bw-color-nav-item-active-text", "bw-component-nav-item-active-text"],
+  ["bw-color-nav-item-active-border", "bw-component-nav-item-active-border"],
+  ["bw-color-nav-item-disabled-text", "bw-component-nav-item-disabled-text"],
+  ["bw-color-nav-section-text", "bw-component-nav-section-text"],
+  ["bw-color-breadcrumb-current", "bw-component-breadcrumb-current"],
+  ["bw-color-breadcrumb-separator", "bw-component-breadcrumb-separator"],
+  ["bw-color-skeleton-bg", "bw-component-skeleton-bg"],
+  ["bw-color-skeleton-shimmer", "bw-component-skeleton-shimmer"],
+]);
+
+function spaceRadiusRenames() {
+  const spaceSteps = ["0", "px", "0-5", "1", "1-5", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "16", "20", "24"];
+  const radiusSteps = ["none", "sm", "md", "lg", "xl", "2xl", "full"];
+  return [
+    ...spaceSteps.map((s) => [`bw-size-space-${s}`, `bw-space-${s}`]),
+    ...radiusSteps.map((s) => [`bw-size-radius-${s}`, `bw-radius-${s}`]),
+  ];
+}
+function iconSizeRenames() {
+  const steps = ["sm", "md", "lg", "xl", "2xl"];
+  return steps.flatMap((s) => [
+    [`bw-icon-size-${s}`, `bw-component-icon-size-${s}`],
+    [`bw-size-icon-${s}`, `bw-component-icon-size-${s}`],
+  ]);
+}
+
+// Apply the rename to a captured token name; unmapped names pass through.
+const canonical = (name) => RENAMES.get(name) ?? name;
+
+// Rewrite every var(--bw-<old>) reference inside a derived expression to its
+// canonical name, so a derivation pointing at a re-tiered token still resolves.
+function renameRefs(expr) {
+  if (!expr) return expr;
+  return expr.replace(/var\(--(bw-[a-z0-9-]+)\)/g, (m, name) => `var(--${canonical(name)})`);
+}
+
+// The set of OLD names that were emitted in 0.10.0 and are kept as aliases (the
+// icon-size dedup maps two old names to one canonical, so both are aliased).
+const ALIAS_OLD_NAMES = [...RENAMES.keys()];
+
 async function buildLayer(sourceGlobs) {
   // Build one layer to an in-memory flat list of {name, value} and return it,
   // rather than writing a file per layer. We use a custom format that captures
@@ -66,13 +137,21 @@ async function buildLayer(sourceGlobs) {
       formats: {
         "bw/capture": ({ dictionary }) => {
           captured = dictionary.allTokens.map((t) => ({
-            name: t.name,
+            // 0.11.0: emit the canonical (renamed) name. The old name is kept as
+            // an alias block (see main()).
+            name: canonical(t.name),
             value: t.$value ?? t.value,
             // Live derivation expression (DESIGN.md section 3): when present it is
             // emitted as the CSS value instead of the resolved $value, so a brand
             // override of a load-bearing token recolours the family in-browser.
-            // $value stays the resolved-default regression baseline.
-            derived: t.$extensions?.bw?.derived,
+            // $value stays the resolved-default regression baseline. Any --bw-*
+            // reference inside the expression is renamed too, so a derivation that
+            // points at a re-tiered token (skeleton-shimmer -> skeleton-bg) keeps
+            // resolving after the rename.
+            derived: renameRefs(t.$extensions?.bw?.derived),
+            // The whole bw extension block, so the manifest emitter (brickwork#39)
+            // can read loadBearing / constraint metadata straight from the token.
+            bw: t.$extensions?.bw,
           }));
           return "";
         },
@@ -121,8 +200,18 @@ async function main() {
   // theme layers are built by merging the primitive file (so references
   // resolve), so filter to the theme-variant name families here.
   const themePrefixes = ["bw-color-", "bw-state-", "bw-elevation-"];
+  // The nav/skeleton/breadcrumb per-component roles were re-tiered out of the
+  // semantic colour family into --bw-component-* (0.11.0), but they remain
+  // theme-variant values (authored per theme in the semantic source), so they
+  // must still land in the theme blocks, not on :root. They are exactly the
+  // canonical names produced by renaming a bw-color-* source token.
+  const reTieredThemeNames = new Set(
+    [...RENAMES.entries()].filter(([oldName]) => oldName.startsWith("bw-color-")).map(([, newName]) => newName),
+  );
   const themeOnly = (tokens) =>
-    tokens.filter((t) => themePrefixes.some((p) => t.name.startsWith(p)));
+    tokens.filter(
+      (t) => themePrefixes.some((p) => t.name.startsWith(p)) || reTieredThemeNames.has(t.name),
+    );
 
   const header =
     "/* django-brickwork design tokens. GENERATED from src/brickwork/tokens/source/**.\n" +
@@ -130,10 +219,35 @@ async function main() {
     " * public contract (BR-BW-TOK-001); values are brand-overridable. oklch,\n" +
     " * dark authored not derived (BR-BW-TOK-002/003). */\n";
 
-  // :root carries the base (primitives + component + sizing + light colours +
-  // the default comfortable density). data-theme flips only colours;
-  // data-density flips only the density scale.
-  const rootTokens = [...base, ...themeOnly(light), ...densities.comfortable];
+  // :root carries the base (component + sizing + light colours + the default
+  // comfortable density). data-theme flips only colours; data-density flips only
+  // the density scale.
+  //
+  // 0.11.0 (ADR-054 section 2): primitives are BUILD-TIME INPUT ONLY and are no
+  // longer emitted to the browser (they leaked onto :root through 0.10.0,
+  // inviting var(--bw-primitive-*) which the contract forbids). Style Dictionary
+  // has already resolved every semantic reference to a literal by this point, so
+  // dropping them from the emitted set changes no resolved value.
+  const notPrimitive = (t) => !t.name.startsWith("bw-primitive-");
+  const emittedBase = base.filter(notPrimitive);
+  const rootTokens = [...emittedBase, ...themeOnly(light), ...densities.comfortable];
+
+  // Courtesy alias blocks (ADR-054 section 7): every 0.10.0 name that was renamed
+  // ships as `old: var(--new);` so a consumer on the old name does not break on
+  // this minor. Aliases are theme-agnostic references (the new name resolves to
+  // its own theme-variant value), so one :root block covers all axes. The two
+  // icon-size old names both alias the single canonical name.
+  const emittedNow = new Set([...rootTokens, ...themeOnly(dark)].map((t) => t.name));
+  const aliasLines = ALIAS_OLD_NAMES
+    .filter((old) => emittedNow.has(canonical(old)))
+    .sort()
+    .map((old) => `  --${old}: var(--${canonical(old)});`);
+  const aliasBlock =
+    "/* 0.10.0 -> 0.11.0 courtesy aliases (ADR-054 section 7): the renamed tokens\n" +
+    " * kept under their old names so a 0.10.0 consumer does not break on this\n" +
+    " * minor. Time-boxed for the 0.x window; prefer the canonical names. */\n" +
+    `:root {\n${aliasLines.join("\n")}\n}`;
+
   const cssParts = [
     header,
     cssBlock(":root", rootTokens),
@@ -142,6 +256,7 @@ async function main() {
     cssBlock('[data-density="comfortable"]', densities.comfortable),
     cssBlock('[data-density="compact"]', densities.compact),
     cssBlock('[data-density="spacious"]', densities.spacious),
+    aliasBlock,
   ];
   writeFileSync(resolve(DIST, "tokens.css"), cssParts.join("\n\n") + "\n", "utf8");
 
@@ -179,10 +294,11 @@ async function main() {
       project(`color-${t.name.slice("bw-color-".length)}`, t.name);
     }
   }
-  // Every radius step: --radius-<step> from --bw-size-radius-<step>.
+  // Every radius step: --radius-<step> from --bw-radius-<step> (0.11.0 canonical
+  // name; was --bw-size-radius-* through 0.10.0).
   for (const t of base) {
-    if (t.name.startsWith("bw-size-radius-")) {
-      project(`radius-${t.name.slice("bw-size-radius-".length)}`, t.name);
+    if (t.name.startsWith("bw-radius-")) {
+      project(`radius-${t.name.slice("bw-radius-".length)}`, t.name);
     }
   }
   // The elevation ladder: --shadow-<level> from --bw-elevation-<level>.
@@ -207,8 +323,9 @@ async function main() {
       project(`font-${t.name.slice("bw-font-family-".length)}`, t.name);
     }
   }
-  // The spacing scale, via the dynamic base only.
-  if (baseNames.has("bw-size-space-1")) project("spacing", "bw-size-space-1");
+  // The spacing scale, via the dynamic base only (0.11.0 canonical name; was
+  // --bw-size-space-1 through 0.10.0).
+  if (baseNames.has("bw-space-1")) project("spacing", "bw-space-1");
   // Preflight defaults follow the brand stacks.
   if (baseNames.has("bw-font-family-sans")) {
     project("default-font-family", "bw-font-family-sans");
@@ -245,6 +362,49 @@ async function main() {
     allNames.map((n) => `  ${JSON.stringify(n.replace(/^bw-/, "").replace(/-/g, "_"))}: "var(--${n})",`).join("\n") +
     "\n});\nexport default tokens;\n";
   writeFileSync(resolve(DIST, "tokens.js"), jsBody, "utf8");
+
+  // Contract manifest (brickwork#39): a machine-readable description of the
+  // load-bearing brand set and the full overridable vocabulary, so a consumer
+  // building a theming UI (or the render_brand_css emitter, brickwork#40) reads
+  // the set, its types and its constraints instead of hard-coding token names
+  // that semver could move. Derived from the annotated DTCG source, so the
+  // manifest and the tokens can never drift. The load-bearing metadata is
+  // theme-independent (both themes carry the same flags), so we read it off the
+  // light layer; a token's presence in the theme-only set marks it theme-variant.
+  const loadBearing = [];
+  for (const t of themeOnly(light)) {
+    const meta = t.bw;
+    if (!meta?.loadBearing) continue;
+    // Names are the --bw-* custom-property form throughout the manifest, so a
+    // consumer uses them directly (no prefix reconstruction).
+    const entry = { name: `--${t.name}` };
+    if (meta.conditional) entry.conditional = true;
+    if (meta.authoredPerTheme) entry.authoredPerTheme = true;
+    if (meta.contrastPair) {
+      entry.contrastPair = `--bw-${meta.contrastPair}`;
+      entry.minContrast = meta.minContrast ?? 4.5;
+    }
+    if (meta.collapsesTo) entry.collapsesTo = `--bw-${meta.collapsesTo}`;
+    loadBearing.push(entry);
+  }
+  // The full set of overridable custom-property names: every emitted semantic and
+  // component token (NOT primitives, NOT the raw font/space ramps a brand should
+  // not target). A consumer's brand override, and the emitter's validation, work
+  // against exactly this set.
+  const overridable = [...new Set([...base, ...themeOnly(light), ...densities.comfortable].map((t) => t.name))]
+    .filter((n) => !n.startsWith("bw-primitive-"))
+    .sort()
+    .map((n) => `--${n}`);
+  const manifest = {
+    $schema: "https://brickwork.icvoss.dev/token-manifest/v1",
+    version: 1,
+    description:
+      "brickwork token contract: the load-bearing brand set and its constraints (brickwork#39), " +
+      "and the full overridable --bw-* vocabulary. Generated from the DTCG source; do not edit by hand.",
+    loadBearing,
+    overridable,
+  };
+  writeFileSync(resolve(DIST, "token-manifest.json"), JSON.stringify(manifest, null, 2) + "\n", "utf8");
 
   console.log(
     `tokens built: ${rootTokens.length} root vars, ` +

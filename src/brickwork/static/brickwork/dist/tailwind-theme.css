@@ -49,22 +49,13 @@
   --color-info-on-fg: var(--bw-color-info-on-fg);
   --color-icon-muted: var(--bw-color-icon-muted);
   --color-focus-ring: var(--bw-color-focus-ring);
-  --color-nav-item-active-bg: var(--bw-color-nav-item-active-bg);
-  --color-nav-item-active-text: var(--bw-color-nav-item-active-text);
-  --color-nav-item-active-border: var(--bw-color-nav-item-active-border);
-  --color-nav-item-disabled-text: var(--bw-color-nav-item-disabled-text);
-  --color-nav-section-text: var(--bw-color-nav-section-text);
-  --color-breadcrumb-current: var(--bw-color-breadcrumb-current);
-  --color-breadcrumb-separator: var(--bw-color-breadcrumb-separator);
-  --color-skeleton-bg: var(--bw-color-skeleton-bg);
-  --color-skeleton-shimmer: var(--bw-color-skeleton-shimmer);
-  --radius-none: var(--bw-size-radius-none);
-  --radius-sm: var(--bw-size-radius-sm);
-  --radius-md: var(--bw-size-radius-md);
-  --radius-lg: var(--bw-size-radius-lg);
-  --radius-xl: var(--bw-size-radius-xl);
-  --radius-2xl: var(--bw-size-radius-2xl);
-  --radius-full: var(--bw-size-radius-full);
+  --radius-none: var(--bw-radius-none);
+  --radius-sm: var(--bw-radius-sm);
+  --radius-md: var(--bw-radius-md);
+  --radius-lg: var(--bw-radius-lg);
+  --radius-xl: var(--bw-radius-xl);
+  --radius-2xl: var(--bw-radius-2xl);
+  --radius-full: var(--bw-radius-full);
   --shadow-0: var(--bw-elevation-0);
   --shadow-1: var(--bw-elevation-1);
   --shadow-2: var(--bw-elevation-2);
@@ -98,7 +89,7 @@
   --font-sans: var(--bw-font-family-sans);
   --font-display: var(--bw-font-family-display);
   --font-mono: var(--bw-font-family-mono);
-  --spacing: var(--bw-size-space-1);
+  --spacing: var(--bw-space-1);
   --default-font-family: var(--bw-font-family-sans);
   --default-mono-font-family: var(--bw-font-family-mono);
 }

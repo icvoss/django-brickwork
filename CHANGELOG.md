@@ -8,8 +8,38 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-08-02
+
+The token tier re-grammar (ADR-054 Phase b): the authored token surface is
+tidied to its canonical grammar before 1.0 freezes the names, and the token
+contract gains a machine-readable manifest and a brand-CSS emitter. This release
+also lands the issue-wave docs (integration cookbook, adoption guide, branding
+recipes, the htmx floor) and the list-pattern querystring-split fix. Names are
+the semver-public surface, so every rename ships a courtesy alias; no resolved
+default value changes.
+
 ### Added
 
+- **Machine-readable load-bearing manifest** (brickwork#39):
+  `dist/token-manifest.json`, generated from the DTCG source, enumerates the
+  load-bearing brand set (7 core plus the conditional `surface-inverse` / `info`
+  and the authored-per-theme `fg-on-accent`) with its constraints (contrast pair
+  and minimum ratio, conditional / collapses-to flags), and the full overridable
+  `--bw-*` vocabulary. The source now carries explicit
+  `$extensions.bw.loadBearing` and constraint metadata rather than the set being
+  implicit in the absence of a `derived` expression. `services/token_manifest.py`
+  exposes `load_bearing()`, `overridable_names()`, `is_overridable()`.
+- **`render_brand_css` emitter** (brickwork#40, `services/brand_css.py`,
+  re-exported from `services/tokens`): `render_brand_css(light, dark=None, *,
+  validate=True) -> str` takes brand override values keyed by token name (the
+  full `--bw-color-accent` or short `color-accent` form), rejects unknown names
+  against the manifest vocabulary, enforces the `fg-on-accent` 4.5:1 contrast
+  constraint (correct OKLab -> linear-sRGB -> WCAG relative-luminance), warns
+  when a status hue collapses onto the accent, and emits the documented
+  `:root { }` / `[data-theme="dark"] { }` override blocks. This is the supported
+  primitive behind BRANDING.md's per-tenant runtime-branding recipe; every
+  consumer doing per-request theming stops hand-rolling CSS generation against
+  the token names.
 - **Integration cookbook** (`docs/INTEGRATION.md`): a seam-by-seam greenfield
   guide covering settings and static (with the static include-linter allowlist
   heads-up, brickwork#34), the nav config (including `kwarg_name` and the
@@ -24,8 +54,8 @@ versioning contract).
   brickwork#49). Closes brickwork#37.
 - **BRANDING.md: the fg-on-accent contrast trap** (brickwork#35): a worked
   light+dark example where the dark accent is light-toned and therefore needs
-  dark `fg-on-accent`, with measured ratios and the "do not assume white"
-  warning. Closes brickwork#35.
+  dark `fg-on-accent`, with the ratios `render_brand_css` reports and the "do
+  not assume white" warning. Closes brickwork#35.
 - **BRANDING.md: a dynamic-theming section** (brickwork#36) with two recipes,
   per-user density/theme/direction via a `theme_resolver`, and per-tenant
   runtime brand-token injection via the `render_brand_css` emitter. Closes
@@ -33,6 +63,33 @@ versioning contract).
 
 ### Changed
 
+- **Primitives are no longer emitted to the browser** (ADR-054 section 2):
+  `--bw-primitive-*` (the 43 raw colour ramps) are build-time input only now.
+  They leaked onto `:root` through 0.10.0, inviting `var(--bw-primitive-*)` which
+  the contract forbids (BR-BW-TOK-001). Style Dictionary resolves every semantic
+  reference to a literal at build time, so no resolved value changes.
+- **Scales promoted to the canonical semantic grammar** (the scale IS the role
+  vocabulary): `--bw-size-space-*` -> `--bw-space-*`, `--bw-size-radius-*` ->
+  `--bw-radius-*`. The Tailwind projection's `--spacing` / `--radius-*` follow.
+- **Icon-size duplication resolved**: `--bw-icon-size-*` and `--bw-size-icon-*`
+  (two names, identical values) collapse to one `--bw-component-icon-size-*`. The
+  `{% bw_icon %}` size arg and the `.bw-icon` sizing reference the canonical name;
+  the inline `--bw-icon-size` instance property is unchanged.
+- **Component tier gains the canonical `--bw-component-*` grammar**: the
+  un-infixed component tokens (`button-radius`, `icon-stroke-width`,
+  `content-max-width`, `topbar-position`, `disabled-opacity`, `menu-min-width`,
+  `select-indicator`, `checkbox-glyph`, `stat-tile-value-size`, `drawer-width`,
+  `toast-max-width`, `htmx-indicator-opacity`) are re-infixed under
+  `--bw-component-*`.
+- **Nav / skeleton / breadcrumb per-component roles re-tiered** from the semantic
+  colour family into `--bw-component-*` (`--bw-color-nav-item-active-*`,
+  `--bw-color-nav-section-text`, `--bw-color-breadcrumb-*`,
+  `--bw-color-skeleton-*` -> `--bw-component-*`). They stay theme-variant; only
+  the name moves.
+- **Courtesy aliases** ship for every renamed name (`--old: var(--new);` on
+  `:root`), so a 0.10.0 consumer does not break on this minor. Aliases are a
+  documented, time-boxed 0.x courtesy (ADR-054 section 7); prefer the canonical
+  names.
 - **README: the htmx floor is now stated explicitly** as `htmx >= 2.0`
   (brickwork#48); htmx 1.9 is out of contract. Documentation index links the new
   integration and adoption guides.

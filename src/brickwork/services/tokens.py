@@ -28,10 +28,22 @@ from django.core.exceptions import ImproperlyConfigured
 
 from brickwork.conf import get_setting
 
+# The brand-CSS emitter (brickwork#40) lives in its own module but is re-exported
+# here so ``brickwork.services.tokens`` stays the single public token-services
+# entry point (docs/BRANDING.md points consumers at this path).
+from brickwork.services.brand_css import BrandValidationError, render_brand_css
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from django.http import HttpRequest
+
+__all__ = [
+    "BrandValidationError",
+    "ThemeAttributes",
+    "render_brand_css",
+    "resolve_theme_attributes",
+]
 
 
 class ThemeAttributes(TypedDict, total=False):

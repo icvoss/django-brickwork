@@ -195,19 +195,42 @@ def test_shell_css_consumes_the_font_family_token() -> None:
     assert "var(--bw-font-family-display)" in css
 
 
+# 0.11.0 tier re-grammar: the nav/skeleton/breadcrumb roles re-tiered from
+# --bw-color-* to --bw-component-* (rename-table.md), but stayed genuinely
+# theme-variant (their derived values still differ light vs dark), so they
+# legitimately appear in the dark block under their new component-tier names.
+# This is the closed set of component-tier names allowed there; any OTHER
+# --bw-component-* token (button-radius, icon-size, etc.) is not theme-variant
+# and must not leak in.
+_DARK_BLOCK_COMPONENT_ALLOWLIST = (
+    "--bw-component-nav-item-active-bg",
+    "--bw-component-nav-item-active-text",
+    "--bw-component-nav-item-active-border",
+    "--bw-component-nav-item-disabled-text",
+    "--bw-component-nav-section-text",
+    "--bw-component-breadcrumb-current",
+    "--bw-component-breadcrumb-separator",
+    "--bw-component-skeleton-bg",
+    "--bw-component-skeleton-shimmer",
+)
+
+
 def test_dark_block_overrides_surface_to_a_dark_value() -> None:
     css = (_DIST / "tokens.css").read_text()
     dark_block = css.split('[data-theme="dark"]')[1].split("}")[0]
     # the dark block must set surface, and only theme-variant tokens: colour,
-    # state overlays, and elevation (never the size/density scales)
+    # state overlays, elevation, and the closed set of re-tiered component
+    # colour roles above (never the size/density scales or any other component
+    # token)
     assert "--bw-color-surface:" in dark_block
     for line in dark_block.splitlines():
         line = line.strip()
         if not line.startswith("--bw-"):
             continue
-        assert line.startswith(("--bw-color-", "--bw-state-", "--bw-elevation-")), (
-            f"non-theme token leaked into the dark block: {line}"
-        )
+        name = line.split(":", 1)[0]
+        assert line.startswith(("--bw-color-", "--bw-state-", "--bw-elevation-")) or name in (
+            _DARK_BLOCK_COMPONENT_ALLOWLIST
+        ), f"non-theme token leaked into the dark block: {line}"
 
 
 def test_info_and_accent_are_distinct_colours() -> None:

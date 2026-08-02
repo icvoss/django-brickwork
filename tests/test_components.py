@@ -55,8 +55,9 @@ def test_button_loading_marks_busy_and_disabled() -> None:
     # ICO-004/issue #16: the spinner sizes via the --bw-icon-size CSS custom
     # property (which .bw-spinner reads for inline-size/block-size), never as
     # an SVG width/height attribute (var() is invalid there and silently
-    # falls back to the 300x150 SVG default).
-    assert "--bw-icon-size: var(--bw-icon-size-sm)" in out
+    # falls back to the 300x150 SVG default). The token is the canonical
+    # component-tier name (0.11.0 tier re-grammar).
+    assert "--bw-icon-size: var(--bw-component-icon-size-sm)" in out
     assert ' width="var(' not in out
     assert ' height="var(' not in out
 

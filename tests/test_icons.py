@@ -120,7 +120,7 @@ def test_name_is_not_a_raw_svg_injection_vector() -> None:
 
 def test_default_size_is_md_token() -> None:
     out = _render('{% bw_icon "trash" decorative=True %}')
-    assert "--bw-icon-size: var(--bw-icon-size-md)" in out
+    assert "--bw-icon-size: var(--bw-component-icon-size-md)" in out
 
 
 @pytest.mark.parametrize("size", ["sm", "md", "lg", "xl"])
@@ -129,8 +129,10 @@ def test_each_valid_size_maps_to_its_token(size: str) -> None:
     # ICO-004: the token is applied via the --bw-icon-size CSS custom property
     # (which .bw-icon reads for width/height), NOT as an SVG width/height
     # attribute. SVG geometry attributes reject var(), so an attribute form
-    # would silently render at the 300x150 default (issue #16).
-    assert f"--bw-icon-size: var(--bw-icon-size-{size})" in out
+    # would silently render at the 300x150 default (issue #16). The size maps
+    # to the canonical --bw-component-icon-size-* token (0.11.0 tier re-grammar:
+    # --bw-icon-size-* and --bw-size-icon-* both collapsed into the component tier).
+    assert f"--bw-icon-size: var(--bw-component-icon-size-{size})" in out
     # Match the SVG geometry attributes exactly (bounded by a space before
     # "width"), not as a bare substring: "stroke-width=" legitimately contains
     # "width=" and must not trip this assertion.

@@ -10,21 +10,21 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--bw-size-space-0-5);
+  gap: var(--bw-space-0-5);
 }
 
 .bw-nav__list--nested {
-  margin-inline-start: var(--bw-size-space-4);
-  margin-block-start: var(--bw-size-space-0-5);
+  margin-inline-start: var(--bw-space-4);
+  margin-block-start: var(--bw-space-0-5);
 }
 
 .bw-nav__link {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
+  gap: var(--bw-space-2);
   padding-block: var(--bw-density-row-padding-block);
   padding-inline: var(--bw-density-row-padding-inline);
-  border-radius: var(--bw-size-radius-md);
+  border-radius: var(--bw-radius-md);
   color: var(--bw-color-fg);
   /* Chrome runs at body-sm so the workspace content (body-md) is the point of
    * the page; matches the breadcrumbs and account menu. */
@@ -49,9 +49,9 @@
 }
 
 .bw-nav__link--active {
-  background-color: var(--bw-color-nav-item-active-bg);
-  color: var(--bw-color-nav-item-active-text);
-  border-inline-start-color: var(--bw-color-nav-item-active-border);
+  background-color: var(--bw-component-nav-item-active-bg);
+  color: var(--bw-component-nav-item-active-text);
+  border-inline-start-color: var(--bw-component-nav-item-active-border);
   font-weight: var(--bw-font-weight-semibold);
 }
 
@@ -60,7 +60,7 @@
  * overlay.
  */
 .bw-nav__link--active:hover {
-  background-color: var(--bw-color-nav-item-active-bg);
+  background-color: var(--bw-component-nav-item-active-bg);
   background-image: linear-gradient(
     var(--bw-state-hover-overlay),
     var(--bw-state-hover-overlay)
@@ -68,7 +68,7 @@
 }
 
 .bw-nav__link--active:active {
-  background-color: var(--bw-color-nav-item-active-bg);
+  background-color: var(--bw-component-nav-item-active-bg);
   background-image: linear-gradient(
     var(--bw-state-active-overlay),
     var(--bw-state-active-overlay)
@@ -78,20 +78,20 @@
 
 /* An ancestor of the active leaf gets a lighter treatment (NAV-008). */
 .bw-nav__link--active-ancestor {
-  color: var(--bw-color-nav-item-active-text);
+  color: var(--bw-component-nav-item-active-text);
   font-weight: var(--bw-font-weight-medium);
 }
 
 .bw-nav__link--disabled {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
+  gap: var(--bw-space-2);
   padding-block: var(--bw-density-row-padding-block);
   padding-inline: var(--bw-density-row-padding-inline);
-  border-radius: var(--bw-size-radius-md);
+  border-radius: var(--bw-radius-md);
   /* Colour token alone dims the row (the documented nav exception); adding
      the disabled-opacity as well double-dims to roughly 1.9:1 contrast. */
-  color: var(--bw-color-nav-item-disabled-text);
+  color: var(--bw-component-nav-item-disabled-text);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);
   cursor: not-allowed;
@@ -109,10 +109,10 @@
 
 .bw-nav__badge {
   flex-shrink: 0;
-  min-inline-size: var(--bw-size-space-5);
-  padding-block: var(--bw-size-space-0-5);
-  padding-inline: var(--bw-size-space-1);
-  border-radius: var(--bw-size-radius-full);
+  min-inline-size: var(--bw-space-5);
+  padding-block: var(--bw-space-0-5);
+  padding-inline: var(--bw-space-1);
+  border-radius: var(--bw-radius-full);
   /* A quiet bordered count chip: the number stays legible without out-shouting
    * the primary button (the inverse pill was the darkest object on the page). */
   background: var(--bw-color-surface-sunken);
@@ -149,8 +149,8 @@
 .bw-nav__section-label {
   display: block;
   padding-inline: var(--bw-density-row-padding-inline);
-  padding-block-end: var(--bw-size-space-1);
-  color: var(--bw-color-nav-section-text);
+  padding-block-end: var(--bw-space-1);
+  color: var(--bw-component-nav-section-text);
   font-size: var(--bw-text-overline-size);
   font-weight: var(--bw-text-overline-weight);
   line-height: var(--bw-text-overline-line-height);
@@ -172,7 +172,7 @@
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--bw-size-space-1);
+  gap: var(--bw-space-1);
 }
 
 [data-layout="topbar"] .bw-sidebar__nav > .bw-nav__list {
@@ -197,7 +197,7 @@
 }
 
 [data-layout="topbar"] .bw-sidebar .bw-nav__link--active {
-  border-block-end-color: var(--bw-color-nav-item-active-border);
+  border-block-end-color: var(--bw-component-nav-item-active-border);
 }
 
 /* Sections sit inline in the row; their labels become overline separators. */
@@ -210,5 +210,5 @@
 
 [data-layout="topbar"] .bw-sidebar .bw-nav__section-label {
   padding-block-end: 0;
-  margin-inline: var(--bw-size-space-2);
+  margin-inline: var(--bw-space-2);
 }

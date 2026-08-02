@@ -4,21 +4,40 @@
     "$type": "color",
     "surface": {
       "$value": "oklch(0.18 0.005 265)",
-      "$description": "0.4.0 polish: lifted from gray.950 (0.145), whose derived sunken sat near L 0.11, an undifferentiated void; the graphite base gives a legible three-step sunken/surface/raised ladder."
+      "$description": "0.4.0 polish: lifted from gray.950 (0.145), whose derived sunken sat near L 0.11, an undifferentiated void; the graphite base gives a legible three-step sunken/surface/raised ladder.",
+      "$extensions": {
+        "bw": {
+          "loadBearing": true
+        }
+      }
     },
     "surface-sunken": {
       "$value": "oklch(0.137 0.004 265)",
       "$description": "Resolved literal of the 76% mix over the 0.4.0 graphite surface.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface) 76%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-surface) 76%, black)"
+        }
+      }
     },
     "surface-raised": {
       "$value": "oklch(0.237 0.005 265)",
       "$description": "Resolved literal of the 93%-toward-white mix over the 0.4.0 graphite surface.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface) 93%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-surface) 93%, white)"
+        }
+      }
     },
     "surface-inverse": {
       "$value": "oklch(0.93 0.002 265)",
-      "$extensions": { "bw": { "derived": "var(--bw-color-fg)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-fg)",
+          "loadBearing": true,
+          "conditional": true
+        }
+      }
     },
     "surface-overlay": {
       "$value": "oklch(0 0 0 / 0.6)",
@@ -26,188 +45,369 @@
     },
     "fg": {
       "$value": "oklch(0.93 0.002 265)",
-      "$description": "0.4.0 polish: dimmed from gray.50 (0.985); maximum-white body text glares on a dark canvas. Measures 15.30:1 on the graphite surface, far above the 7:1 heading floor."
+      "$description": "0.4.0 polish: dimmed from gray.50 (0.985); maximum-white body text glares on a dark canvas. Measures 15.30:1 on the graphite surface, far above the 7:1 heading floor.",
+      "$extensions": {
+        "bw": {
+          "loadBearing": true
+        }
+      }
     },
     "fg-muted": {
       "$value": "oklch(0.72 0.003 265)",
       "$description": "0.4.0 polish: mix raised 67% to 72% to companion the dimmed fg; measures 7.58:1 on surface and 6.68:1 on raised.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-fg) 72%, var(--bw-color-surface))" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-fg) 72%, var(--bw-color-surface))"
+        }
+      }
     },
     "fg-subtle": {
       "$value": "oklch(0.548 0.004 265)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-fg) 49%, var(--bw-color-surface))" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-fg) 49%, var(--bw-color-surface))"
+        }
+      }
     },
     "fg-on-accent": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.gray.950}",
+      "$extensions": {
+        "bw": {
+          "loadBearing": true,
+          "authoredPerTheme": true,
+          "contrastPair": "color-accent",
+          "minContrast": 4.5
+        }
+      }
     },
     "fg-on-inverse": {
       "$value": "oklch(0.18 0.005 265)",
-      "$extensions": { "bw": { "derived": "var(--bw-color-surface)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-surface)"
+        }
+      }
     },
     "border": {
-      "$value": "{primitive.gray.800}"
+      "$value": "{primitive.gray.800}",
+      "$extensions": {
+        "bw": {
+          "loadBearing": true
+        }
+      }
     },
     "border-strong": {
       "$value": "{primitive.gray.700}",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-border) 86%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-border) 86%, white)"
+        }
+      }
     },
     "border-control": {
       "$value": "oklch(0.518 0.004 265)",
       "$description": "Input/control boundary. The divider border token stays subtle; controls need a WCAG 1.4.11 compliant boundary (measured 3.38:1 against the 0.4.0 graphite surface).",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface))" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface))"
+        }
+      }
     },
     "accent": {
-      "$value": "{primitive.blue.400}"
+      "$value": "{primitive.blue.400}",
+      "$extensions": {
+        "bw": {
+          "loadBearing": true
+        }
+      }
     },
     "accent-hover": {
       "$value": "oklch(0.622 0.145 254)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-accent) 88%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-accent) 88%, black)"
+        }
+      }
     },
     "accent-subtle": {
       "$value": "oklch(0.212 0.05 254)",
       "$description": "0.4.0 polish: mix lowered 40% to 30% so selection and active-nav recede behind content instead of outshining it; nav-item-active-text gains contrast on the darker tint (14.47:1).",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-accent) 30%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-accent) 30%, black)"
+        }
+      }
     },
     "danger": {
-      "$value": "{primitive.red.500}"
+      "$value": "{primitive.red.500}",
+      "$extensions": {
+        "bw": {
+          "loadBearing": true
+        }
+      }
     },
     "danger-subtle": {
       "$value": "oklch(0.166 0.054 25)",
       "$description": "0.4.0 polish: mix lowered 41% to 26% so the dark tint whispers like its light counterpart; danger-fg measures 7.22:1 on it. A literal (the red.950 alias no longer matches).",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-danger) 26%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-danger) 26%, black)"
+        }
+      }
     },
     "danger-border": {
       "$value": "oklch(0.35 0.114 25)",
       "$description": "Tinted badge/alert border for the danger intent; clears the black-mixed subtle tint by delta-L 0.184.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-danger) 55%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-danger) 55%, black)"
+        }
+      }
     },
     "danger-strong": {
       "$value": "oklch(0.652 0.2 25)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-danger) 96%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-danger) 96%, white)"
+        }
+      }
     },
     "danger-fg": {
       "$value": "oklch(0.717 0.162 25)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-danger) 78%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-danger) 78%, white)"
+        }
+      }
     },
     "danger-on-fg": {
       "$value": "{primitive.gray.950}"
     },
     "warning": {
-      "$value": "{primitive.amber.500}"
+      "$value": "{primitive.amber.500}",
+      "$extensions": {
+        "bw": {
+          "loadBearing": true
+        }
+      }
     },
     "warning-subtle": {
       "$value": "oklch(0.169 0.037 70)",
       "$description": "Literal, not an amber ramp alias: black is hue-powerless in the mix, so the resolved hue stays the warning base's 70, not the ramp's 46. 0.4.0 polish: mix lowered 36% to 22%; warning-fg measures 10.77:1 on it.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-warning) 22%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-warning) 22%, black)"
+        }
+      }
     },
     "warning-border": {
       "$value": "oklch(0.423 0.091 70)",
       "$description": "Tinted badge/alert border for the warning intent; clears the black-mixed subtle tint by delta-L 0.254.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-warning) 55%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-warning) 55%, black)"
+        }
+      }
     },
     "warning-strong": {
       "$value": "oklch(0.778 0.159 70)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-warning) 96%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-warning) 96%, white)"
+        }
+      }
     },
     "warning-fg": {
       "$value": "oklch(0.82 0.129 70)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-warning) 78%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-warning) 78%, white)"
+        }
+      }
     },
     "warning-on-fg": {
       "$value": "{primitive.gray.950}"
     },
     "success": {
-      "$value": "{primitive.green.500}"
+      "$value": "{primitive.green.500}",
+      "$extensions": {
+        "bw": {
+          "loadBearing": true
+        }
+      }
     },
     "success-subtle": {
       "$value": "oklch(0.166 0.039 152)",
       "$description": "0.4.0 polish: mix lowered 37% to 23%; success-fg measures 10.19:1 on it. A literal (the green.950 alias no longer matches).",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-success) 23%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-success) 23%, black)"
+        }
+      }
     },
     "success-border": {
       "$value": "oklch(0.398 0.093 152)",
       "$description": "Tinted badge/alert border for the success intent; clears the black-mixed subtle tint by delta-L 0.232.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-success) 55%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-success) 55%, black)"
+        }
+      }
     },
     "success-strong": {
       "$value": "oklch(0.734 0.162 152)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-success) 96%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-success) 96%, white)"
+        }
+      }
     },
     "success-fg": {
       "$value": "oklch(0.784 0.132 152)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-success) 78%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-success) 78%, white)"
+        }
+      }
     },
     "success-on-fg": {
       "$value": "{primitive.gray.950}"
     },
     "info": {
-      "$value": "{primitive.cyan.400}"
+      "$value": "{primitive.cyan.400}",
+      "$extensions": {
+        "bw": {
+          "loadBearing": true,
+          "conditional": true,
+          "collapsesTo": "color-accent"
+        }
+      }
     },
     "info-subtle": {
       "$value": "oklch(0.187 0.029 220)",
       "$description": "Literal, not the cyan.950 alias: black is hue-powerless in the mix, so the resolved hue stays the info base's 220, not the ramp's 230. 0.4.0 polish: mix lowered 42% to 26%; info-fg measures 9.53:1 on it.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-info) 26%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-info) 26%, black)"
+        }
+      }
     },
     "info-border": {
       "$value": "oklch(0.396 0.061 220)",
       "$description": "Tinted badge/alert border for the info intent; clears the black-mixed subtle tint by delta-L 0.209.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-info) 55%, black)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-info) 55%, black)"
+        }
+      }
     },
     "info-strong": {
       "$value": "oklch(0.731 0.106 220)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-info) 96%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-info) 96%, white)"
+        }
+      }
     },
     "info-fg": {
       "$value": "oklch(0.782 0.086 220)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-info) 78%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-info) 78%, white)"
+        }
+      }
     },
     "info-on-fg": {
       "$value": "{primitive.gray.950}"
     },
     "icon-muted": {
       "$value": "oklch(0.548 0.004 265)",
-      "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-fg-subtle)"
+        }
+      }
     },
     "focus-ring": {
       "$value": "{primitive.blue.400}",
-      "$extensions": { "bw": { "derived": "var(--bw-color-accent)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-accent)"
+        }
+      }
     },
     "nav-item-active-bg": {
       "$value": "oklch(0.212 0.05 254)",
-      "$extensions": { "bw": { "derived": "var(--bw-color-accent-subtle)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-accent-subtle)"
+        }
+      }
     },
     "nav-item-active-text": {
       "$value": "{primitive.blue.100}",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-accent) 25%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-accent) 25%, white)"
+        }
+      }
     },
     "nav-item-active-border": {
       "$value": "{primitive.blue.400}",
-      "$extensions": { "bw": { "derived": "var(--bw-color-accent)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-accent)"
+        }
+      }
     },
     "nav-item-disabled-text": {
       "$value": "oklch(0.548 0.004 265)",
-      "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-fg-subtle)"
+        }
+      }
     },
     "nav-section-text": {
       "$value": "oklch(0.72 0.003 265)",
-      "$extensions": { "bw": { "derived": "var(--bw-color-fg-muted)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-fg-muted)"
+        }
+      }
     },
     "breadcrumb-current": {
       "$value": "oklch(0.93 0.002 265)",
-      "$extensions": { "bw": { "derived": "var(--bw-color-fg)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-fg)"
+        }
+      }
     },
     "breadcrumb-separator": {
       "$value": "oklch(0.548 0.004 265)",
-      "$extensions": { "bw": { "derived": "var(--bw-color-fg-subtle)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-fg-subtle)"
+        }
+      }
     },
     "skeleton-bg": {
       "$value": "oklch(0.292 0.003 265)",
       "$description": "Resolved literal of the 82%-toward-white mix over the 0.4.0 sunken canvas.",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white)"
+        }
+      }
     },
     "skeleton-shimmer": {
       "$value": "oklch(0.391 0.003 265)",
-      "$extensions": { "bw": { "derived": "color-mix(in oklab, var(--bw-color-skeleton-bg) 86%, white)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-skeleton-bg) 86%, white)"
+        }
+      }
     }
   },
   "state": {
@@ -221,7 +421,11 @@
     },
     "selected-bg": {
       "$value": "oklch(0.212 0.05 254)",
-      "$extensions": { "bw": { "derived": "var(--bw-color-accent-subtle)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-color-accent-subtle)"
+        }
+      }
     }
   },
   "elevation": {
