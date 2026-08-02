@@ -60,5 +60,13 @@ or targeted swap never shifts layout (BR-BW-HTMX-009). Shipped with the
 0.8.0 interaction tranche alongside _modal.html.
 {% endcomment %}
 <div id="bw-modal-root"></div>
+{% comment %}
+htmx slide-over target (BR-BW-HTMX-005, 0.14.0, brickwork#55): a SEPARATE
+stable swap root from #bw-modal-root, so a modal and a slide-over can be
+open at the same time (e.g. a split-shell detail screen where a slide-over
+sits beside content while a confirm modal opens over it). Zero-footprint
+when empty (display: contents), matching the modal root.
+{% endcomment %}
+<div id="bw-slide-over-root"></div>
 </body>
 </html>

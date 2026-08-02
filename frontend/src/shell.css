@@ -35,6 +35,13 @@
   display: contents;
 }
 
+/* The stable slide-over swap target (BR-BW-HTMX-005, 0.14.0, brickwork#55):
+ * a SEPARATE root from #bw-modal-root so a modal and a slide-over can be
+ * open at once. Same zero-footprint contract. */
+#bw-slide-over-root {
+  display: contents;
+}
+
 /* --- App shell: sidebar + main column -------------------------------------- */
 
 .bw-app {

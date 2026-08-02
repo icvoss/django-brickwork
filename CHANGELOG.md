@@ -8,6 +8,48 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-08-02
+
+Overlay and flow primitives, the third post-1.0 component release (#47
+inventory). All additive.
+
+### Added
+
+- **Slide-over / side panel** (`components/_slide_over.html` + the `bwSlideOver`
+  Alpine component, brickwork#55): an edge-anchored overlay panel, extend-consumed
+  like `_modal.html` (fill `slide_over_title` / `slide_over_body` /
+  `slide_over_footer`). Dual consumption identical to the modal: the htmx path
+  swaps the consumer partial into a dedicated `#bw-slide-over-root` (new in
+  `shell/base.html`, so a modal can layer over an open slide-over, the V3
+  split-shell case); the no-JS floor is the same partial rendered in-flow on a
+  full page. `role="dialog"` `aria-modal="true"`, `aria-labelledby` the title,
+  focus-trapped and focus-returned to the invoker, Escape and scrim dismiss, the
+  `HX-Trigger: bw:slide-over:close` server dismissal. `placement`
+  (inline-end default / start, logical for RTL). Events `bw:slide-over:open` /
+  `bw:slide-over:close`.
+- **Stepper** (`components/_stepper.html`, brickwork#59): a step progress
+  indicator, include-consumed, zero JS. Each step's status (complete / current /
+  upcoming) is conveyed by a state glyph, colour, AND visually-hidden text
+  ("(completed)" / "(current step)" / "(not started)"), never colour alone; the
+  current step carries `aria-current="step"`; the connectors are `aria-hidden`.
+  `orientation` (horizontal default / vertical).
+- **Wizard pattern** (`patterns/wizard.html`, brickwork#59): a thin multi-step
+  flow scaffold extending `shell/app.html`, with blocks for the stepper, the step
+  body, and the step navigation. Server-driven: each step is its own URL
+  rendering the stepper at the current position plus that step's form; a normal
+  POST redirects to the next step on success or re-renders the step with inline
+  errors, and Back is an ordinary link. brickwork ships the two rendering pieces
+  only and tracks no wizard state (the consumer owns the forms, routing, and
+  step persistence).
+
+### Changed
+
+- **Overlay JS shares a helper** (`frontend/src/js/overlay_shared.js`): the
+  trap-engage race guard and invoker capture / restore, previously inline in
+  `bwModal`, are factored out and shared by `bwModal` and `bwSlideOver`.
+  `bwModal`'s public component name, config, events, and behaviour are unchanged
+  (regression-verified against the existing modal suite).
+
 ## [0.13.0] - 2026-08-02
 
 Input-chrome primitives and the sidebar collapse, the second post-1.0 component

@@ -836,6 +836,142 @@ def render_sidebar_collapsed(theme: str) -> str:
     return html
 
 
+# --- the 0.14.0 slide-over + stepper + wizard fixtures (#55/#59) --------------
+#
+# slide-over-open-<theme>.html  the slide-over's OPEN state, stamped
+#                               statically (mirroring the tooltip-open and
+#                               sidebar-collapsed techniques above): bwSlideOver
+#                               sets isOpen, [data-bw-open] on the root, and
+#                               moves focus into the panel, so this fixture
+#                               emulates that settled state without a JS boot,
+#                               giving axe a real dialog-open surface to walk
+#                               (dialog semantics, labelling, focusable
+#                               content) in both themes.
+# stepper-<theme>.html          a standalone page (mirrors render_feedback's
+#                               shape) with all three step statuses present
+#                               (complete/current/upcoming) so axe examines
+#                               the aria-current wiring and the glyph +
+#                               hidden-text status pairing.
+# wizard-<theme>.html           patterns/wizard.html rendered through the
+#                               full shell (mirrors render_list/render_
+#                               dashboard: a real pattern page, not a
+#                               standalone fixture) with the stepper plus a
+#                               minimal step form and a back link, so axe
+#                               examines the composed page.
+
+_SLIDE_OVER_OPEN_SOURCE = (
+    '{% extends "brickwork/components/_slide_over.html" %}'
+    "{% block slide_over_body %}"
+    '<form id="fx-slide-over-form"><label for="fx-slide-over-input">Widget name'
+    '<input id="fx-slide-over-input" name="name" data-bw-autofocus></label></form>'
+    "{% endblock %}"
+    '{% block slide_over_footer %}<footer class="bw-slide-over__footer">'
+    '<button type="submit" form="fx-slide-over-form">Save</button></footer>{% endblock %}'
+)
+
+_STEPPER_STEPS = [
+    {"label": "Account", "status": "complete"},
+    {"label": "Business details", "status": "current"},
+    {"label": "Review", "status": "upcoming"},
+]
+
+_STEPPER_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stepper (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Stepper</h1>
+  <section aria-labelledby="stepper-heading">
+    <h2 id="stepper-heading">Horizontal</h2>
+    __STEPPER_HORIZONTAL__
+  </section>
+  <section aria-labelledby="stepper-vertical-heading">
+    <h2 id="stepper-vertical-heading">Vertical</h2>
+    __STEPPER_VERTICAL__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def render_slide_over_open(theme: str) -> str:
+    """The slide-over's JS-set OPEN state, stamped statically (the fixture
+    boots no Alpine): [data-bw-open] on the root plus the removed hidden
+    guard, matching what bwSlideOver.open() does at runtime, so axe examines
+    the panel while genuinely presented, not the closed no-JS floor."""
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    body = engines["django"].from_string(_SLIDE_OVER_OPEN_SOURCE).render({"title": "Edit widget"})
+    body = re.sub(r'(x-data="bwSlideOver\([^)]*\)")', r"\1 data-bw-open", body, count=1)
+    page = (
+        "<!doctype html>\n"
+        f'<html lang="en" data-theme="{theme}">\n'
+        "<head>\n"
+        '<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        f"<title>Slide-over open ({theme})</title>\n"
+        f"<style>{css}</style>\n"
+        "</head>\n"
+        '<body class="bw-body">\n'
+        "<main><h1>Slide-over (open)</h1></main>\n"
+        f"{body}\n"
+        "</body>\n"
+        "</html>\n"
+    )
+    return page
+
+
+def render_stepper(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    horizontal = render_to_string(
+        "brickwork/components/_stepper.html", {"steps": _STEPPER_STEPS, "orientation": "horizontal"}
+    )
+    vertical = render_to_string(
+        "brickwork/components/_stepper.html", {"steps": _STEPPER_STEPS, "orientation": "vertical"}
+    )
+    return (
+        _STEPPER_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__STEPPER_HORIZONTAL__", horizontal)
+        .replace("__STEPPER_VERTICAL__", vertical)
+    )
+
+
+def render_wizard(theme: str) -> str:
+    """patterns/wizard.html rendered through the full shell, mirroring
+    render_list/render_dashboard: a minimal step form plus a back link, so
+    axe examines the composed page (stepper + step body + nav)."""
+    from django.urls import resolve
+
+    request = RequestFactory().get("/interactions/")
+    request.resolver_match = resolve("/interactions/")
+    ctx = _base_context(request, theme)
+    ctx.update(
+        {
+            "title": "Set up your store",
+            "description": "A quick multi-step setup.",
+            "steps": _STEPPER_STEPS,
+            "back_url": "/interactions/",
+        }
+    )
+    body_source = (
+        "{% extends 'brickwork/patterns/wizard.html' %}"
+        "{% block page_title %}Set up your store{% endblock %}"
+        "{% block wizard_step %}"
+        '<form id="fx-wizard-form"><label for="fx-wizard-input">Business name'
+        '<input id="fx-wizard-input" name="business_name" data-bw-autofocus></label>'
+        '<button type="submit">Continue</button></form>'
+        "{% endblock %}"
+    )
+    html = engines["django"].from_string(body_source).render(ctx)
+    return _inline_css(html)
+
+
 def main() -> None:
     written = []
     projection_css = build_projection_css()
@@ -879,6 +1015,12 @@ def main() -> None:
         # a styled date field; plus the shell's collapsed-sidebar state
         (OUT / f"inputs-{theme}.html").write_text(render_inputs(theme))
         (OUT / f"sidebar-collapsed-{theme}.html").write_text(render_sidebar_collapsed(theme))
+        # the 0.14.0 slide-over + stepper + wizard set (#55/#59): the
+        # slide-over's OPEN state (dialog semantics, labelling, focusable
+        # content), the stepper's status pairing, and the composed wizard page
+        (OUT / f"slide-over-open-{theme}.html").write_text(render_slide_over_open(theme))
+        (OUT / f"stepper-{theme}.html").write_text(render_stepper(theme))
+        (OUT / f"wizard-{theme}.html").write_text(render_wizard(theme))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -903,6 +1045,9 @@ def main() -> None:
             f"feedback-tooltip-open-{theme}",
             f"inputs-{theme}",
             f"sidebar-collapsed-{theme}",
+            f"slide-over-open-{theme}",
+            f"stepper-{theme}",
+            f"wizard-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())

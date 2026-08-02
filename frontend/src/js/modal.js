@@ -57,18 +57,11 @@
 // root plus the isOpen binding) and never sequences animation or reads
 // timing (BR-BW-TOK-009 lives entirely in the component CSS).
 
-function dispatch(el, name, detail) {
-  el.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
-}
-
-// Minimum gap between the open and close state flips. The wrapped x-trap
-// engages its focus trap ~15ms after the open flip (upstream @alpinejs/
-// focus schedules trap.activate() on a timeout, with inert applied after
-// activation); a close flip landing inside that window tears down a trap
-// that has not engaged yet and leaves an ORPHANED ACTIVE trap stealing
-// focus page-wide. Not motion timing (BR-BW-TOK-009 governs CSS); a
-// behavioural race guard, invisible to humans.
-const TRAP_ENGAGE_GUARD_MS = 50;
+// 0.14.0 (brickwork#55): the focus-trap-engage race guard and invoker
+// capture/restore are shared with bwSlideOver via overlay_shared.js, since
+// both wrap the same x-trap.inert.noscroll directive and need identical
+// close-timing protection. Public shape and behaviour here are unchanged.
+import { dispatch, captureInvoker, guardedClose, restoreInvokerFocus } from "./overlay_shared.js";
 
 export default function modal(config = {}) {
   return {
@@ -156,11 +149,7 @@ export default function modal(config = {}) {
       // Capture the invoker BEFORE focus moves into the dialog, so every
       // dismissal route can restore it (CBH-004, BR-BW-JS-006). On the
       // htmx path this is the triggering anchor (htmx leaves focus there).
-      const active = document.activeElement;
-      this._invoker =
-        active && active !== document.body && !this._root.contains(active)
-          ? active
-          : this._invoker;
+      this._invoker = captureInvoker(this._root, this._invoker);
       this.isOpen = true;
       this._root.setAttribute("data-bw-open", "");
       dispatch(this._root, "bw:modal:open", { id: this.id });
@@ -176,17 +165,10 @@ export default function modal(config = {}) {
 
     close(reason = "programmatic") {
       if (!this.isOpen || this._pendingClose) return;
-      const elapsed = Date.now() - this._openedAt;
-      if (elapsed < TRAP_ENGAGE_GUARD_MS) {
-        // Defer just long enough for the trap to engage before teardown;
-        // the close still happens, same reason, same event.
-        this._pendingClose = setTimeout(() => {
-          this._pendingClose = null;
-          this._close(reason);
-        }, TRAP_ENGAGE_GUARD_MS - elapsed);
-        return;
-      }
-      this._close(reason);
+      // Defer just long enough for the trap to engage before teardown; the
+      // close still happens, same reason, same event (see overlay_shared.js).
+      const deferred = guardedClose(this, reason, (deferredReason) => this._close(deferredReason));
+      if (!deferred) this._close(reason);
     },
 
     _close(reason) {
@@ -201,11 +183,7 @@ export default function modal(config = {}) {
       // htmx swap.
       const invoker = this._invoker;
       this._invoker = null;
-      this.$nextTick(() => {
-        if (invoker && invoker.isConnected && typeof invoker.focus === "function") {
-          invoker.focus();
-        }
-      });
+      restoreInvokerFocus(invoker, this.$nextTick.bind(this));
     },
   };
 }
