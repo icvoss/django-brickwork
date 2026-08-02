@@ -8,14 +8,34 @@ versioning contract).
 
 ## [Unreleased]
 
+## [1.0.0rc1] - 2026-08-02
+
+The first public release candidate, and the first release on public PyPI
+(`pip install django-brickwork`), graduating from the private index. This is the
+parity floor: the complete, spec-governed component surface built across 0.1.0 to
+0.16.0, published under the five semver-governed public-API contracts. No API
+change from 0.16.0; rc1 marks the surface as complete and stable-candidate.
+
+### Ratification (BR-BW-VER-002)
+
+- The **token, template, and navigation** contracts are exercised by both v1
+  pilots and are declared **stable** at 1.0.
+- The **interaction contracts** (modal, toast, dropdown, combobox, tabs,
+  tooltip, slide-over) remain **`[v1-single-consumer]`**: ratified by consentics
+  only, they are not yet declared stable per BR-BW-VER-002 (which requires both
+  pilots). The 0.16.0 consumer smoke harness exercises them in-repo, but a
+  fixture is not a second independent consumer. These stabilise in a later minor
+  once a second real JS consumer (agentpm's JS layer, or vendably_v3) adopts
+  them; until then they may change with a documented deprecation window even
+  within the 1.x line.
+
 ### Changed
 
-- **Public graduation prep**: the publish pipeline now targets public PyPI via
-  OIDC trusted publishing (`.github/workflows/publish.yml`), replacing the
-  private-index workflow (`publish-private.yml`, removed). The
-  `Development Status` classifier moves to `4 - Beta` (the 1.0.0rc1 tier) and the
-  README status reflects the complete surface. No API-level change; this is
-  release-infrastructure and metadata for the private-to-public flip.
+- **Public graduation**: the publish pipeline now targets public PyPI via OIDC
+  trusted publishing (`.github/workflows/publish.yml`), replacing the
+  private-index workflow (`publish-private.yml`, removed). `Development Status`
+  is `4 - Beta` (the release-candidate tier); the README status reflects the
+  complete surface. Release infrastructure and metadata only, no API change.
 
 ## [0.16.0] - 2026-08-02
 
