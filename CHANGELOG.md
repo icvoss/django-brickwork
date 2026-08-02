@@ -8,6 +8,47 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-08-02
+
+Input-chrome primitives and the sidebar collapse, the second post-1.0 component
+release (#47 inventory). All additive; progressive enhancement over native form
+controls (a working native control is always the no-JS floor).
+
+### Added
+
+- **Toggle switch** (`{% bw_toggle %}` / `components/_toggle.html`, brickwork#57,
+  BR-BW-INPUT-001): a native `<input type="checkbox" role="switch">` with an
+  enforced non-empty `label` (a switch with no label is a WCAG 4.1.2 failure).
+  Also a `bw_field_widget` opt-in for form fields (a `CheckboxInput` carrying the
+  `bw-toggle` class gets `role="switch"` stamped). `aria-checked` follows the
+  checked state natively, so the switch works with zero JS.
+- **Tag / chips input** (`components/_tag_input.html` + the `bwTagInput` Alpine
+  component, brickwork#57, BR-BW-INPUT-002): the no-JS floor is a real submittable
+  text control (a delimited tag list the server splits); Alpine enhances it into
+  removable chips (reusing the combobox chip markup), Enter/comma commits,
+  Backspace-on-empty removes the last chip. Events `bw:taginput:add` /
+  `bw:taginput:remove`.
+- **File dropzone** (`components/_dropzone.html` + the `bwDropzone` Alpine
+  component, brickwork#57, BR-BW-INPUT-003): a native `<input type="file">` kept
+  in the tab order (visually hidden, focusable) inside a labelled `<label>` that
+  is the click target, never replaced. Alpine adds the drag-over state and a
+  selected-file list; clicking to browse works with zero JS.
+- **Styled native date/time inputs** (brickwork#57, BR-BW-INPUT-004): CSS chrome
+  so `<input type="date|time|datetime-local">` match the other `bw-input` fields
+  (border, height, focus ring, the picker indicator where the engine allows). No
+  JS date-picker; the native picker and keyboard entry are the accessible
+  baseline.
+- **Sidebar collapse** (the `sidebar_toggle` block + the `bwSidebarCollapse`
+  Alpine component, brickwork#58, BR-BW-INPUT-005): the shell ships a labelled
+  toggle `<button>` (`aria-expanded`, `aria-controls="bw-sidebar"`, translated
+  collapse/expand labels) that narrows the sidebar to `--bw-density-sidebar-width-collapsed`
+  and hides the nav-item text labels *visually* (the clip technique), keeping
+  every item and its accessible name in the a11y tree. The expanded state is the
+  no-JS floor; the collapsed preference persists in `localStorage`. The width
+  transition is reduced-motion gated.
+- **Four toggle tokens**: `--bw-component-toggle-{track-width,track-height,thumb-size,thumb-inset}`
+  (canonical grammar with courtesy aliases).
+
 ## [0.12.0] - 2026-08-02
 
 Feedback and dashboard primitives, the first of the post-1.0 component releases

@@ -5,8 +5,11 @@
 // versioned public JS contract (BR-BW-JS-004). The 0.8.0 tranche shipped
 // bwDropdown, bwTabs and bwModal; the interactions-2 tranche adds
 // bwToastRegion, bwToast, bwCombobox and bwDismissible; the 0.12.0 tranche
-// adds bwTooltip. The disclosure ships no JS at all (native <details>, see
-// ./disclosure.js).
+// adds bwTooltip; the 0.13.0 tranche adds bwTagInput, bwDropzone and
+// bwSidebarCollapse (brickwork#57/#58). The disclosure ships no JS at all
+// (native <details>, see ./disclosure.js); the toggle switch likewise ships
+// no JS (native checkbox + role=switch, see forms/_field.html /
+// components/_toggle.html).
 
 import dropdown from "./dropdown.js";
 import tabs from "./tabs.js";
@@ -15,6 +18,9 @@ import { toastRegion, toast } from "./toast.js";
 import combobox from "./combobox.js";
 import dismissible from "./dismissible.js";
 import tooltip from "./tooltip.js";
+import tagInput from "./tag_input.js";
+import dropzone from "./dropzone.js";
+import sidebarCollapse from "./sidebar_collapse.js";
 
 /**
  * Register brickwork's Alpine.data() components on a host-owned Alpine
@@ -40,6 +46,9 @@ export function registerBrickworkComponents(Alpine) {
   Alpine.data("bwCombobox", combobox);
   Alpine.data("bwDismissible", dismissible);
   Alpine.data("bwTooltip", tooltip);
+  Alpine.data("bwTagInput", tagInput);
+  Alpine.data("bwDropzone", dropzone);
+  Alpine.data("bwSidebarCollapse", sidebarCollapse);
 }
 
 export default registerBrickworkComponents;

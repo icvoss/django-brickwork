@@ -719,6 +719,123 @@ def render_feedback(theme: str, *, inject_js: bool = False, tooltip_open: bool =
     return page.replace("__JS_BOOT__", _JS_BOOT if inject_js else "")
 
 
+# --- the 0.13.0 input chrome fixtures (#57/#58) -------------------------------
+#
+# inputs-<theme>.html is a standalone (non-shell) page, mirroring the
+# feedback fixture's self-contained shape: these components (toggle, tag
+# input, dropzone, a styled date input) have no dedicated demo page of their
+# own yet, so the fixture composes the REAL component templates directly
+# (the {% bw_toggle %} tag, the tag-input and dropzone {% include %}
+# partials, and a DateInput rendered through bw_field_widget for the
+# ::-webkit-calendar-picker-indicator chrome) with the compiled brickwork.css
+# inlined. Covers: a toggle switch (role=switch, WCAG 4.1.2 accessible name),
+# a tag input (labelled text floor + the chip container Alpine enhances), a
+# dropzone (native <input type="file">, visually hidden but never removed
+# from the tab order or the a11y tree), and a styled date input.
+#
+# sidebar-collapsed-<theme>.html re-renders the ordinary list fixture (real
+# shell, real nav) with the sidebar's [data-bw-collapsed] attribute stamped
+# statically (mirroring render_toast_stack's settled-state stamping
+# technique): axe then examines the COLLAPSED state itself, the one most at
+# risk of losing nav-item accessible names, in both themes, not just the
+# expanded floor every other shell-routed fixture already covers.
+
+_INPUTS_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Input chrome (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Input chrome</h1>
+
+  <section aria-labelledby="toggle-heading">
+    <h2 id="toggle-heading">Toggle</h2>
+    __TOGGLE__
+  </section>
+
+  <section aria-labelledby="tag-input-heading">
+    <h2 id="tag-input-heading">Tag input</h2>
+    __TAG_INPUT__
+  </section>
+
+  <section aria-labelledby="dropzone-heading">
+    <h2 id="dropzone-heading">Dropzone</h2>
+    __DROPZONE__
+  </section>
+
+  <section aria-labelledby="date-heading">
+    <h2 id="date-heading">Date field</h2>
+    __DATE_FIELD__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_toggle_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template('{% load brickwork_components %}{% bw_toggle "Email alerts" id="email-alerts" %}').render(
+        Context({})
+    )
+
+
+def _render_tag_input_fixture() -> str:
+    return render_to_string(
+        "brickwork/components/_tag_input.html",
+        {"label": "Skill tags", "id": "skill-tags", "name": "skill_tags", "value": "django,python"},
+    )
+
+
+def _render_dropzone_fixture() -> str:
+    return render_to_string(
+        "brickwork/components/_dropzone.html",
+        {"label": "Upload files", "id": "upload", "name": "upload", "help_text": "PNG or JPG, up to 10MB."},
+    )
+
+
+def _render_date_field_fixture() -> str:
+    from django import forms
+    from django.template import Context, Template
+
+    class _DateForm(forms.Form):
+        starts_on = forms.DateField(widget=forms.DateInput, label="Starts on")
+
+    field = _DateForm()["starts_on"]
+    widget = Template("{% load brickwork_forms %}{% bw_field_widget field %}").render(Context({"field": field}))
+    label = f'<label for="{field.auto_id}">{field.label}</label>'
+    return f'<div class="bw-field">{label}<div class="bw-field__control">{widget}</div></div>'
+
+
+def render_inputs(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _INPUTS_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__TOGGLE__", _render_toggle_fixture())
+        .replace("__TAG_INPUT__", _render_tag_input_fixture())
+        .replace("__DROPZONE__", _render_dropzone_fixture())
+        .replace("__DATE_FIELD__", _render_date_field_fixture())
+    )
+
+
+def render_sidebar_collapsed(theme: str) -> str:
+    """The list fixture's shell, with the sidebar's collapsed CSS state
+    stamped statically so axe examines [data-bw-collapsed] itself (SHL-004:
+    nav labels clip visually but must stay in the accessible tree)."""
+    html = render_list(theme)
+    html = html.replace(
+        '<aside class="bw-sidebar" id="bw-sidebar"', '<aside class="bw-sidebar" data-bw-collapsed id="bw-sidebar"', 1
+    )
+    html = html.replace('aria-expanded="true"', 'aria-expanded="false"', 1)
+    return html
+
+
 def main() -> None:
     written = []
     projection_css = build_projection_css()
@@ -758,6 +875,10 @@ def main() -> None:
         (OUT / f"feedback-tooltip-open-{theme}.html").write_text(
             render_feedback(theme, inject_js=True, tooltip_open=True)
         )
+        # the 0.13.0 input chrome set (#57/#58): toggle, tag input, dropzone,
+        # a styled date field; plus the shell's collapsed-sidebar state
+        (OUT / f"inputs-{theme}.html").write_text(render_inputs(theme))
+        (OUT / f"sidebar-collapsed-{theme}.html").write_text(render_sidebar_collapsed(theme))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -780,6 +901,8 @@ def main() -> None:
             f"feedback-{theme}",
             f"feedback-js-{theme}",
             f"feedback-tooltip-open-{theme}",
+            f"inputs-{theme}",
+            f"sidebar-collapsed-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())

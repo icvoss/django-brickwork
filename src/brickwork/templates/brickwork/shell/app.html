@@ -1,14 +1,30 @@
 {% extends "brickwork/shell/base.html" %}
-{% load i18n %}
+{% load i18n brickwork_icons %}
 {% comment %}
 The app shell: sidebar + topbar + workspace (SHL-001/006/011). Named blocks are
 the versioned public contract (BR-BW-TPL-001). A consuming page extends this and
 fills {% block content %} (plus any topbar/nav/header blocks it needs).
 
-No-JS floor: the sidebar toggle and mobile drawer are native <details>/<summary>
-disclosures (SHL-005/015/016), so the shell is fully navigable with zero JS. A
-consumer that loads Alpine may progressively enhance these via a template
-override (BR-BW-TPL-002), never a required layer.
+No-JS floor: the mobile drawer is a native <details>/<summary> disclosure
+(SHL-015/016), so the shell is fully navigable with zero JS. A consumer that
+loads Alpine may progressively enhance it via a template override
+(BR-BW-TPL-002), never a required layer.
+
+Sidebar collapse (0.13.0, SHL-003/004, brickwork#58): `{% block sidebar_toggle %}`
+now ships a default labelled <button> (BR-BW-INPUT-005) rather than empty, since
+an icon-only collapse narrows the sidebar's WIDTH and hides its text labels
+without removing the nav items themselves (SHL-004's animated-width contract).
+That is a CSS attribute-state change, not a show/hide content disclosure, so
+(deviating from SHL-005's literal "mirror _disclosure.html" wording, which
+describes the SEPARATE `_disclosure.html` component's own show/hide panel, not
+this width toggle) the mechanism here is a button toggling `data-bw-collapsed`
+on `.bw-sidebar`, progressively enhanced by the optional `bwSidebarCollapse`
+Alpine component. The no-JS floor (BR-BW-HTMX-001) is a fully expanded,
+fully functional sidebar: the button renders and is reachable, but collapsing
+is an enhancement only, never required for navigation to work. Persisting the
+user's choice is host-owned (SHL-003: "no brickwork model exists to store
+it"); bwSidebarCollapse persists to localStorage as its own default, itself
+overridable by a consumer template override (BR-BW-TPL-002).
 
 Layout: the `layout` context var ("sidebar" default, or "topbar") selects which
 region is primary (SHL-001). Logical CSS properties throughout (BR-BW-TOK-005),
@@ -29,11 +45,29 @@ project's own template, never a brickwork-shipped default (AC-BW-078).
 <div class="bw-app" data-layout="{{ layout|default:'sidebar' }}">
 
   {# --- Sidebar (primary nav container on desktop) --- #}
-  <aside class="bw-sidebar" aria-label="{% translate 'Primary' %}">
+  {# x-data mounts bwSidebarCollapse (optional; a page with no Alpine loaded  #}
+  {# just never sees data-bw-collapsed toggle, the no-JS floor per SHL-005). #}
+  <aside class="bw-sidebar" id="bw-sidebar" aria-label="{% translate 'Primary' %}" x-data="bwSidebarCollapse()">
     <div class="bw-sidebar__header">
       {% block brand_logo %}{% endblock %}
       {% block brand_wordmark %}{% endblock %}
-      {% block sidebar_toggle %}{% endblock %}
+      {% block sidebar_toggle %}
+        {% translate "Collapse sidebar" as bw_sidebar_collapse_label %}
+        {% translate "Expand sidebar" as bw_sidebar_expand_label %}
+        {# The accessible name reflects state (aria-expanded + a text swap);  #}
+        {# both translated strings ship server-side so bwSidebarCollapse      #}
+        {# never sources English from JS (the chip-seed i18n precedent).     #}
+        <button type="button"
+                class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only bw-sidebar__toggle"
+                aria-expanded="true"
+                aria-controls="bw-sidebar"
+                aria-label="{{ bw_sidebar_collapse_label }}"
+                data-bw-sidebar-collapse-label="{{ bw_sidebar_collapse_label }}"
+                data-bw-sidebar-expand-label="{{ bw_sidebar_expand_label }}"
+                data-bw-sidebar-toggle>
+          {% bw_icon "sidebar" size="sm" decorative=True %}
+        </button>
+      {% endblock %}
     </div>
     <div class="bw-sidebar__switcher">{% block sidebar_switcher %}{% endblock %}</div>
     <nav class="bw-sidebar__nav" aria-label="{% translate 'Main navigation' %}">
