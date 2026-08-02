@@ -8,6 +8,28 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-08-02
+
+Docs-only patch. Documents the `brickwork.css` app-facing-utility-layer change
+that 0.10.0 shipped without a migration signal (brickwork#64).
+
+### Added
+
+- **`docs/INTEGRATION.md` section 1: what `brickwork.css` does and does not
+  provide** (brickwork#64). Makes explicit that `brickwork.css` styles the
+  `bw-*` substrate only, not a general Tailwind utility layer, and that a
+  consumer's own page-content utilities must come from the consumer's Tailwind
+  build (importing `dist/tailwind-theme.css` to inherit the brand) or their own
+  bundle. Closes the discoverability gap behind the 0.10.0 console breakage.
+
+### Fixed
+
+- **The 0.10.0 CHANGELOG now carries the missing migration note** (brickwork#64):
+  a retroactive BREAKING entry recording that `brickwork.css` stopped emitting an
+  app-facing Tailwind utility layer in 0.10.0, with the two supported migration
+  paths. No code change; the behaviour shipped in 0.10.0, the *signal* was
+  missing.
+
 ## [0.11.0] - 2026-08-02
 
 The token tier re-grammar (ADR-054 Phase b): the authored token surface is
@@ -151,6 +173,26 @@ shell configuration rather than a template override.
   identity map: `--bw-*` is not a Tailwind utility namespace, so the
   fragment generated no utilities and no inheritance. It had shipped
   that way since the fragment first appeared.
+
+### Migration (documented retroactively in 0.11.1, brickwork#64)
+
+- **BREAKING for consumers who relied on `brickwork.css` for app-facing
+  Tailwind utilities.** Moving consumer-utility generation out to the
+  `tailwind-theme.css` projection (above) means `brickwork.css` no longer
+  ships a general Tailwind utility layer: it contains the `bw-*` component
+  and shell classes only, not `.grid`, `.gap-4`, `.px-3`, `.sm:grid-cols-2`
+  and the like. A consumer whose *page content* (inside `{% block content %}`)
+  was authored in plain Tailwind utilities and was implicitly getting them
+  from `brickwork.css` loses them on upgrade, so content collapses to
+  unstyled document flow while the shell chrome still styles correctly.
+  This was not called out at the time (0.10.0 framed the projection purely
+  as Added), which broke a consumer's console. **The fix:** import
+  `dist/tailwind-theme.css` after your `tailwindcss` import and build your
+  own utilities from it (so your utilities also inherit the brand), OR
+  ensure your own Tailwind / CSS bundle is linked on every brickwork-shell
+  page. `brickwork.css` styles the substrate (`bw-*`); your content's
+  utilities are yours to build. See `docs/INTEGRATION.md` section 1 (what
+  `brickwork.css` does and does not provide).
 
 ## [0.9.0] - 2026-08-01
 

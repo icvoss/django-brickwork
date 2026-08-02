@@ -60,6 +60,32 @@ That single `<link>`, holding your ~7-14 token brand delta, is the whole visual
 rebrand. Do not fork brickwork's stylesheet or reach into its component classes;
 override tokens only.
 
+### What `brickwork.css` provides, and what it does not (brickwork#64)
+
+`brickwork.css` styles the **substrate**: the `bw-*` component and shell classes
+(`.bw-card`, `.bw-data-table`, `.bw-page-header`, the shell layout) and the token
+definitions they consume. It does **not** ship a general Tailwind utility layer:
+it contains no `.grid`, `.gap-4`, `.px-3`, `.sm:grid-cols-2` and the like.
+
+This matters for your **page content** (everything inside `{% block content %}`).
+brickwork gives you the chrome and the components; the layout and spacing of your
+own content is yours to author, and if you write it in Tailwind utilities you must
+generate those utilities yourself. Two supported paths:
+
+1. **Import brickwork's projection into your own Tailwind build** (recommended):
+   import `dist/tailwind-theme.css` after your `tailwindcss` import, and your
+   utilities (`bg-accent`, `p-4`, `rounded-md`, `text-heading-lg`) inherit
+   brickwork's defaults and any active brand automatically (DESIGN.md section 12).
+   Your Tailwind build then emits the utility classes your content uses.
+2. **Link your own CSS bundle** on every brickwork-shell page (via `head_extra`),
+   carrying whatever utility or component classes your content needs.
+
+Either way, `brickwork.css` alone will not style content authored in plain
+Tailwind utilities. (Through 0.9.0 an app-facing utility layer happened to ship
+inside `brickwork.css`; 0.10.0 moved utility generation out to the projection, so
+a consumer implicitly relying on it must adopt path 1 or 2. See the 0.10.0
+migration note in the CHANGELOG.)
+
 ### Static include-linters: allowlist the `brickwork/` namespace (brickwork#34)
 
 brickwork ships its shell, component, and form templates **inside the installed
