@@ -7,11 +7,13 @@
 // bwToastRegion, bwToast, bwCombobox and bwDismissible; the 0.12.0 tranche
 // adds bwTooltip; the 0.13.0 tranche adds bwTagInput, bwDropzone and
 // bwSidebarCollapse (brickwork#57/#58); the 0.14.0 tranche adds
-// bwSlideOver (brickwork#55). The disclosure ships no JS at all (native
-// <details>, see ./disclosure.js); the toggle switch likewise ships no JS
-// (native checkbox + role=switch, see forms/_field.html /
-// components/_toggle.html); the stepper (brickwork#59) ships no JS either
-// (purely structural, server-driven step navigation).
+// bwSlideOver (brickwork#55); the 0.15.0 tranche adds bwTableSelection
+// (brickwork#54). The disclosure ships no JS at all (native <details>, see
+// ./disclosure.js); the toggle switch likewise ships no JS (native checkbox
+// + role=switch, see forms/_field.html / components/_toggle.html); the
+// stepper (brickwork#59) ships no JS either (purely structural,
+// server-driven step navigation); the whole-form renderer (brickwork#53)
+// ships no JS either (structure only, server-driven layout).
 
 import dropdown from "./dropdown.js";
 import tabs from "./tabs.js";
@@ -24,6 +26,7 @@ import tagInput from "./tag_input.js";
 import dropzone from "./dropzone.js";
 import sidebarCollapse from "./sidebar_collapse.js";
 import slideOver from "./slide_over.js";
+import tableSelection from "./table_selection.js";
 
 /**
  * Register brickwork's Alpine.data() components on a host-owned Alpine
@@ -53,6 +56,7 @@ export function registerBrickworkComponents(Alpine) {
   Alpine.data("bwDropzone", dropzone);
   Alpine.data("bwSidebarCollapse", sidebarCollapse);
   Alpine.data("bwSlideOver", slideOver);
+  Alpine.data("bwTableSelection", tableSelection);
 }
 
 export default registerBrickworkComponents;

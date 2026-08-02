@@ -1,4 +1,4 @@
-{% load brickwork_icons i18n %}
+{% load brickwork_components brickwork_icons i18n %}
 {% comment %}
 Data table: STRUCTURE ONLY (BR-BW-TPL-005, never virtualisation/AG-Grid). It
 renders columns with server-side sortable headers, rows with STABLE per-row ids
@@ -39,9 +39,49 @@ Required context:
 Optional:
   variant ("records" default | "definition"), loading (bool),
   current_sort (str, e.g. "name" or "-name"), empty_heading, empty_body,
-  querystring.
+  querystring, selectable (bool, records only, see below), scroll_container /
+  sticky_header (bool, either name, see below), responsive
+  ("scroll" default | "stack", see below).
+
+--- Bulk selection (brickwork#54, records variant only) --------------------
+
+selectable=True adds a leading checkbox column. THE SELECTION CONTRACT (the
+load-bearing part, #47: "must live in brickwork or every consumer reinvents
+it"): every row checkbox is a plain native
+``<input type="checkbox" name="selected" value="{{ row.id }}">``. It carries
+NO form of its own (BR-BW-TPL-005: structure only); it relies on sitting
+inside a ``<form>`` THE CONSUMER OWNS (e.g. wrapping this include, or wrapping
+the whole patterns/list.html list_body block). The no-JS floor is a normal
+multi-value POST: a consumer's view reads the selection with
+``request.POST.getlist("selected")``, exactly what a plain HTML checkbox
+group has always given you, zero JS required. A "select all" checkbox
+appears in the header; it carries an accessible name and gets
+JS-progressive-enhanced (below) but works as a plain unchecked box with no
+JS (it does not natively check every row without Alpine, which is why the
+bulk-actions bar - see _bulk_actions_bar.html - documents pairing it with a
+"select all" fallback link for the true no-JS case). Every checkbox has a
+visually-hidden accessible label ("Select row" / "Select all rows"), never a
+bare unlabelled control (WCAG 4.1.2).
+
+Enhanced (optional, opt-in by wrapping the table AND the bulk-actions bar in
+one ``x-data="bwTableSelection()"`` root, see
+components/_bulk_actions_bar.html's docstring for the full wiring): the
+``bwTableSelection`` Alpine component reads the checkboxes as the SOLE source
+of truth (it holds no separate selection store that could desync from what
+will actually submit), toggles the header checkbox's indeterminate state, and
+reveals the bulk-actions bar with a live selected-count.
+
+scroll_container / sticky_header (CSS only, either name works, both wire the
+same treatment): sticky_header=True pins the <thead> (position: sticky) while
+the wrap scrolls, so long lists keep their column headers in view.
+
+responsive ("scroll" default | "stack"): "scroll" is the existing horizontal
+overflow (no change). "stack" additionally stamps each <td> with
+data-label="<column label>" (read from ``columns`` by position via the
+``list_item`` filter, BR-BW-TPL-005: no data reshaping, just a positional
+read) so a narrow-viewport CSS rule can render each row as a labelled card.
 {% endcomment %}
-<div id="{{ table_id|default:'bw-data-table' }}" class="bw-data-table-wrap">
+<div id="{{ table_id|default:'bw-data-table' }}" class="bw-data-table-wrap{% if scroll_container or sticky_header %} bw-data-table-wrap--sticky{% endif %}{% if responsive == "stack" %} bw-data-table-wrap--stack{% endif %}">
   {% if loading %}
     <div class="bw-data-table__skeleton" aria-hidden="true">
       {% for _ in "xxxxx" %}<div class="bw-skeleton bw-skeleton--row"></div>{% endfor %}
@@ -60,9 +100,27 @@ Optional:
       </tbody>
     </table>
   {% else %}
-    <table class="bw-data-table">
+    <table class="bw-data-table{% if responsive == "stack" %} bw-data-table--stack{% endif %}">
       <thead>
         <tr>
+          {% if selectable %}
+            {% comment %}
+            #54: the header "select all" checkbox. Bare native checkbox, no
+            name/value of its own (it never submits a value; only the
+            per-row boxes it drives do): a no-JS user still gets a working,
+            individually-labelled checkbox per row, just not the one-click
+            select-all convenience. bwTableSelection (see the component
+            docstring above) wires :indeterminate and the click-to-toggle-all
+            behaviour once Alpine is present.
+            {% endcomment %}
+            <th scope="col" class="bw-data-table__th bw-data-table__th--select">
+              <label class="bw-visually-hidden" for="{{ table_id|default:'bw-data-table' }}-select-all">{% translate "Select all rows" %}</label>
+              <input type="checkbox" class="bw-checkbox"
+                     id="{{ table_id|default:'bw-data-table' }}-select-all"
+                     data-bw-select-all
+                     aria-label="{% translate 'Select all rows' %}">
+            </th>
+          {% endif %}
           {% for col in columns %}
             {% comment %}
             #23: the consumer supplies only ``sort_key`` and the shared
@@ -110,8 +168,25 @@ Optional:
       <tbody>
         {% for row in rows %}
           <tr id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}{% if row.selected %} bw-data-table__row--selected{% endif %}">
+            {% if selectable %}
+              {% comment %}
+              #54: the selection contract. name="selected" value="{{ row.id }}"
+              is the WHOLE contract; a consumer's view reads
+              request.POST.getlist("selected") against whatever <form> wraps
+              this table. data-bw-row-select marks it for bwTableSelection's
+              count/indeterminate wiring; absent Alpine it is just a checkbox.
+              {% endcomment %}
+              <td class="bw-data-table__td bw-data-table__td--select">
+                <label class="bw-visually-hidden" for="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}-select">{% blocktranslate with row_id=row.id %}Select row {{ row_id }}{% endblocktranslate %}</label>
+                <input type="checkbox" class="bw-checkbox" name="selected" value="{{ row.id }}"
+                       id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}-select"
+                       data-bw-row-select>
+              </td>
+            {% endif %}
             {% for cell in row.cells %}
-              <td class="bw-data-table__td">{% if row.url and forloop.first %}<a class="bw-data-table__row-link" href="{{ row.url }}">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
+              {% with col=columns|list_item:forloop.counter0 %}
+              <td class="bw-data-table__td"{% if responsive == "stack" %} data-label="{{ col.label }}"{% endif %}>{% if row.url and forloop.first %}<a class="bw-data-table__row-link" href="{{ row.url }}">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
+              {% endwith %}
             {% endfor %}
           </tr>
         {% endfor %}

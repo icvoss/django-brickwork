@@ -972,6 +972,139 @@ def render_wizard(theme: str) -> str:
     return _inline_css(html)
 
 
+# --- the 0.15.0 table bulk-selection + whole-form fixtures (#53/#54) ---------
+#
+# table-selection-<theme>.html   a standalone page (mirrors render_feedback's
+#                                shape) composing the REAL _data_table.html
+#                                with selectable=True plus the REAL
+#                                _bulk_actions_bar.html (extend-consumed, both
+#                                inside one shared <form>), a couple of rows,
+#                                one pre-checked, so axe examines the row
+#                                checkboxes' labelling, the header select-all
+#                                checkbox, and the always-visible bulk bar.
+# bw-form-<theme>.html          a standalone page composing {% bw_form %}
+#                                twice: a valid grid-layout render and a
+#                                bound-invalid render (both field-level and
+#                                non-field errors), inside a bare <form> the
+#                                fixture itself owns (mirrors the documented
+#                                consumer contract), so axe examines the
+#                                whole-form renderer's field chrome, grid
+#                                layout, and 422 error surfaces.
+
+_TABLE_SELECTION_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Table selection (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Table selection</h1>
+  <form method="post" action="#">
+    __BULK_BAR__
+    __TABLE__
+  </form>
+</main>
+</body>
+</html>
+"""
+
+_TABLE_SELECTION_BULK_BAR_SOURCE = (
+    '{% extends "brickwork/components/_bulk_actions_bar.html" %}'
+    "{% block bulk_actions_buttons %}"
+    '<button type="submit" name="bulk_action" value="archive">Archive</button>'
+    '<button type="submit" name="bulk_action" value="delete">Delete</button>'
+    "{% endblock %}"
+)
+
+
+def render_table_selection(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    bulk_bar = (
+        engines["django"].from_string(_TABLE_SELECTION_BULK_BAR_SOURCE).render({"select_all_href": "?select_all=1"})
+    )
+    columns = [
+        {"label": "Name", "sortable": False},
+        {"label": "Status", "sortable": False},
+    ]
+    rows = [
+        {"id": 1, "cells": ["Alpha", "Active"], "selected": True},
+        {"id": 2, "cells": ["Beta", "Draft"]},
+    ]
+    table = render_to_string(
+        "brickwork/components/_data_table.html",
+        {
+            "table_id": "selection-table",
+            "columns": columns,
+            "rows": rows,
+            "selectable": True,
+            "sticky_header": True,
+        },
+    )
+    return (
+        _TABLE_SELECTION_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__BULK_BAR__", bulk_bar)
+        .replace("__TABLE__", table)
+    )
+
+
+_BW_FORM_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whole-form renderer (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Whole-form renderer</h1>
+  <section aria-labelledby="valid-heading">
+    <h2 id="valid-heading">Grid layout</h2>
+    <form method="post" action="#">
+      __VALID_FORM__
+      <button type="submit">Save</button>
+    </form>
+  </section>
+  <section aria-labelledby="invalid-heading">
+    <h2 id="invalid-heading">Bound, invalid</h2>
+    <form method="post" action="#">
+      __INVALID_FORM__
+      <button type="submit">Save</button>
+    </form>
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def render_bw_form_fixture(theme: str) -> str:
+    from brickwork_testapp.forms import WidgetForm
+
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    valid_form = WidgetForm()
+    invalid_form = WidgetForm(data={"name": "invalid", "status": "archived"})
+    invalid_form.is_valid()  # populate field + non-field errors
+    valid_html = (
+        engines["django"]
+        .from_string('{% load brickwork_forms %}{% bw_form form layout="grid" grid_columns=2 %}')
+        .render({"form": valid_form})
+    )
+    invalid_html = (
+        engines["django"].from_string("{% load brickwork_forms %}{% bw_form form %}").render({"form": invalid_form})
+    )
+    return (
+        _BW_FORM_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__VALID_FORM__", valid_html)
+        .replace("__INVALID_FORM__", invalid_html)
+    )
+
+
 def main() -> None:
     written = []
     projection_css = build_projection_css()
@@ -1021,6 +1154,12 @@ def main() -> None:
         (OUT / f"slide-over-open-{theme}.html").write_text(render_slide_over_open(theme))
         (OUT / f"stepper-{theme}.html").write_text(render_stepper(theme))
         (OUT / f"wizard-{theme}.html").write_text(render_wizard(theme))
+        # the 0.15.0 table bulk-selection + whole-form set (#53/#54): a
+        # selectable table with the bulk-actions bar visible and a checked
+        # row, and the whole-form renderer in a valid grid layout plus a
+        # bound-invalid render (field + non-field errors)
+        (OUT / f"table-selection-{theme}.html").write_text(render_table_selection(theme))
+        (OUT / f"bw-form-{theme}.html").write_text(render_bw_form_fixture(theme))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -1048,6 +1187,8 @@ def main() -> None:
             f"slide-over-open-{theme}",
             f"stepper-{theme}",
             f"wizard-{theme}",
+            f"table-selection-{theme}",
+            f"bw-form-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())
