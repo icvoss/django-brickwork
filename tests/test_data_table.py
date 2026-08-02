@@ -9,10 +9,11 @@ covers the end-to-end server-side sort).
 from __future__ import annotations
 
 from django.template.loader import render_to_string
+from django.test import RequestFactory
 
 
-def _render(**ctx) -> str:
-    return render_to_string("brickwork/components/_data_table.html", ctx)
+def _render(request=None, **ctx) -> str:
+    return render_to_string("brickwork/components/_data_table.html", ctx, request=request)
 
 
 _COLUMNS = [
@@ -165,3 +166,38 @@ def test_explicit_next_sort_still_overrides_when_unsorted() -> None:
     cols = [{"label": "Name", "sortable": True, "sort_key": "name", "next_sort": "-name"}]
     out = _render(table_id="t", columns=cols, rows=_ROWS)
     assert 'href="?sort=-name"' in out
+
+
+# --- #41: request-aware querystring split (sort drops page, keeps filters) --
+
+
+def test_sort_with_request_drops_page_and_keeps_filters_descending() -> None:
+    # currently ascending on "name" -> next click sorts descending, page dropped
+    req = RequestFactory().get("/?sort=name&page=3&status=active")
+    out = _render(req, table_id="t", columns=_SORTABLE, rows=_ROWS, current_sort="name")
+    assert "?sort=-name&amp;status=active" in out
+    assert "page=" not in out
+
+
+def test_sort_with_request_unsorted_to_ascending_drops_page_and_keeps_filters() -> None:
+    # no current_sort -> first click sorts ascending, page still dropped
+    req = RequestFactory().get("/?sort=name&page=3&status=active")
+    out = _render(req, table_id="t", columns=_SORTABLE, rows=_ROWS)
+    assert "?sort=name&amp;status=active" in out
+    assert "page=" not in out
+
+
+def test_sort_with_request_descending_to_ascending_drops_page_and_keeps_filters() -> None:
+    # currently descending on "name" -> next click returns to ascending
+    req = RequestFactory().get("/?sort=-name&page=3&status=active")
+    out = _render(req, table_id="t", columns=_SORTABLE, rows=_ROWS, current_sort="-name")
+    assert "?sort=name&amp;status=active" in out
+    assert "page=" not in out
+
+
+def test_sort_without_request_falls_back_to_raw_querystring_var() -> None:
+    # regression guard: the request-free render contract is byte-identical to
+    # the pre-#41 behaviour, no "&amp;" HTML-escaping from {% querystring %}.
+    out = _render(table_id="t", columns=_SORTABLE, rows=_ROWS, querystring="status=active")
+    assert 'href="?sort=name&status=active"' in out
+    assert "&amp;" not in out

@@ -13,6 +13,7 @@ from __future__ import annotations
 from django.core.paginator import Paginator
 from django.template import Context, Template
 from django.template.loader import render_to_string
+from django.test import RequestFactory
 
 _COLUMNS = [
     {"label": "Name", "sortable": False},
@@ -28,8 +29,8 @@ _FACTS = [
 ]
 
 
-def _render(template: str, **ctx: object) -> str:
-    return render_to_string(template, ctx)
+def _render(template: str, request=None, **ctx: object) -> str:
+    return render_to_string(template, ctx, request=request)
 
 
 def _extend(parent: str, blocks: str, **ctx: object) -> str:
@@ -72,6 +73,31 @@ def test_list_pagination_renders_nothing_at_one_page() -> None:
     page_obj = Paginator(list(range(5)), 10).page(1)
     html = _render("brickwork/patterns/list.html", title="Widgets", page_obj=page_obj)
     assert "bw-pagination" not in html
+
+
+# --- #41: request-aware querystring split (pagination overrides page only) --
+
+
+def test_pagination_with_request_overrides_page_and_keeps_sort_and_filters() -> None:
+    req = RequestFactory().get("/?sort=name&page=3&status=active")
+    page_obj = Paginator(list(range(30)), 10).page(2)
+    html = _render("brickwork/components/_pagination.html", request=req, page_obj=page_obj)
+    assert "?sort=name&amp;page=1&amp;status=active" in html
+    assert "?sort=name&amp;page=3&amp;status=active" in html
+
+
+def test_pagination_without_request_falls_back_to_raw_querystring_var() -> None:
+    # regression guard: the request-free render contract is byte-identical to
+    # the pre-#41 behaviour, no "&amp;" HTML-escaping from {% querystring %}.
+    page_obj = Paginator(list(range(30)), 10).page(2)
+    html = _render(
+        "brickwork/components/_pagination.html",
+        page_obj=page_obj,
+        querystring="sort=name",
+    )
+    assert 'href="?page=1&sort=name"' in html
+    assert 'href="?page=3&sort=name"' in html
+    assert "&amp;" not in html
 
 
 def test_list_every_region_filled_renders_in_documented_order() -> None:

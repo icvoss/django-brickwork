@@ -15,11 +15,22 @@ Blocks (semver-public, BR-BW-TPL-001):
                    own no-JS floor (TBL-003) is unaffected by the pattern.
   list_body        default: a card wrapping _data_table.html (via
                    patterns/_table_card.html), fed by rows/columns/table_id/
-                   current_sort/querystring from the page context. Override
+                   current_sort from the page context. Override
                    the whole block for a non-table body (e.g. a card grid)
                    while keeping the header/filter/pagination scaffolding.
   list_pagination  default: _pagination.html wired from page_obj; renders
                    nothing at one page (STA-014) or when page_obj is absent.
+
+#41: the pattern owns the sort/pagination querystring split. Because the
+context processor puts ``request`` in context, the sort headers and the
+pagination links each build their own href from the live GET params with the
+built-in ``{% templatetag openblock %} querystring {% templatetag closeblock %}``
+tag: a sort click overrides ``sort`` and drops ``page`` (re-sort resets to page
+one), a page click overrides ``page`` and keeps ``sort`` and filters. A consumer
+supplies neither a sort-only nor a page-only ``querystring`` var (the old
+single-var workaround); each link splits correctly on its own. The ``querystring``
+context var remains only as the request-free fallback for the components rendered
+standalone (see their docstrings).
 
 Required context: title. Optional: description, rows, columns, page_obj,
 plus everything _data_table.html and _pagination.html themselves accept,

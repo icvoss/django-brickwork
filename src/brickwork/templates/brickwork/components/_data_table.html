@@ -72,23 +72,31 @@ Optional:
             ascending sort, else lands on ascending. A consumer MAY still pass an
             explicit ``sort_key_desc`` / ``next_sort`` to override the convention
             (back-compatible), but neither is required any more.
+
+            #41: the sort link preserves the other GET params and drops ``page``
+            (a re-sort resets to page one). When ``request`` is in context (the
+            view/pattern path) the built-in ``{% querystring %}`` tag owns the
+            split, so the consumer no longer hand-builds a sort-only
+            ``querystring`` distinct from pagination's. Standalone renders with
+            no request fall back to the documented ``querystring`` var, so the
+            component's request-free render contract is unchanged.
             {% endcomment %}
             <th scope="col" class="bw-data-table__th{% if col.sortable %} bw-data-table__th--sortable{% endif %}"
                 {% if col.sortable and current_sort == col.sort_key %}aria-sort="ascending"{% elif col.sortable and current_sort|slice:"1:" == col.sort_key and current_sort|slice:":1" == "-" %}aria-sort="descending"{% endif %}>
               {% if col.sortable %}
                 {% if current_sort == col.sort_key %}
                   {# currently ascending on this column -> next click sorts descending #}
-                  <a class="bw-data-table__sort" href="?sort=-{{ col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}">
+                  <a class="bw-data-table__sort" href="{% if request %}{% with desc="-"|add:col.sort_key %}{% querystring sort=desc page=None %}{% endwith %}{% else %}?sort=-{{ col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
                     {{ col.label }}{% bw_icon "arrow-up" size="sm" decorative=True %}
                   </a>
                 {% elif current_sort|slice:"1:" == col.sort_key and current_sort|slice:":1" == "-" %}
                   {# currently descending -> next click sorts ascending #}
-                  <a class="bw-data-table__sort" href="?sort={{ col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}">
+                  <a class="bw-data-table__sort" href="{% if request %}{% querystring sort=col.sort_key page=None %}{% else %}?sort={{ col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
                     {{ col.label }}{% bw_icon "arrow-down" size="sm" decorative=True %}
                   </a>
                 {% else %}
                   {# not the current sort -> first click sorts ascending #}
-                  <a class="bw-data-table__sort" href="?sort={{ col.next_sort|default:col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}">
+                  <a class="bw-data-table__sort" href="{% if request %}{% querystring sort=col.next_sort|default:col.sort_key page=None %}{% else %}?sort={{ col.next_sort|default:col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
                     {{ col.label }}{% bw_icon "sort" size="sm" decorative=True css_class="bw-data-table__sort-idle" %}
                   </a>
                 {% endif %}
