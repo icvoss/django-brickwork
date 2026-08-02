@@ -77,6 +77,45 @@ A complete light plus dark brand is about fourteen lines:
 That is the whole brand: base-theme derives the hover shades, subtle tints,
 muted foregrounds, status tiers, and component roles from these values.
 
+## The fg-on-accent trap: do not assume white (brickwork#35)
+
+`--bw-color-fg-on-accent` is the text colour that sits **on** the accent (button
+labels, active nav text, badges). It is authored per theme, not derived, because
+base-theme cannot infer contrast for you. The trap: the safe text colour *flips*
+depending on the accent's lightness, and a brand whose *dark*-theme accent is a
+*light* colour is a common case that inverts the intuition. "White on accent" is
+not a safe default.
+
+Worked failure, from a real pilot: a brand ran a light theme with a deep
+aubergine accent and a dark theme whose accent was a light pink. White
+`fg-on-accent` in *both* was the reflex, and it was wrong in dark. For the
+example oklch values below (ratios are what `render_brand_css`'s own contrast
+check reports, so the doc and the emitter agree):
+
+| theme | accent | white `fg-on-accent` | dark ink `fg-on-accent` | correct value |
+|---|---|---|---|---|
+| light | deep aubergine | 8.72:1 (pass) | 1.84:1 (fail) | **white** |
+| dark | light pink | 1.52:1 (fail) | 10.55:1 (pass) | **dark ink** |
+
+So the *same* token needs *opposite* values in the two themes. Author it per
+theme and verify each at 4.5:1 against its own accent:
+
+```css
+:root {
+  --bw-color-accent:        oklch(0.42 0.11 330);   /* deep aubergine */
+  --bw-color-fg-on-accent:  oklch(0.99 0 0);        /* white: 8.72:1, passes */
+}
+[data-theme="dark"] {
+  --bw-color-accent:        oklch(0.86 0.06 350);   /* light pink */
+  --bw-color-fg-on-accent:  oklch(0.24 0.02 330);   /* dark ink: 10.55:1, passes
+                                                        (white here is 1.52:1) */
+}
+```
+
+This is the single most likely token for a distinct-brand consumer to ship
+broken, precisely because it is the one the derivation cannot catch for you.
+Measure both themes; never copy the light value into dark on reflex.
+
 ## Typography (the `--bw-font-*` tokens)
 
 The shell and components consume `--bw-font-family-sans` (body) and
@@ -152,6 +191,98 @@ positive actions read correctly.
 - **Direction (`dir="ltr|rtl"`)** is handled by logical CSS properties
   throughout; set the `dir` attribute and the browser resolves the rest. No token
   or stylesheet swap.
+
+<h2 id="dynamic-theming">Dynamic theming: per-request axes and per-tenant runtime brand (brickwork#36)</h2>
+
+The four axes and the live oklab derivation are not just build-time knobs; both
+can be driven per request. Two recipes unlock capabilities the token
+architecture already supports.
+
+### Recipe 1: per-user density / theme / direction toggle
+
+Thread a per-user (or per-request) theme, density, and direction through a
+`theme_resolver` and the shipped context processor maps them onto the `bw_*`
+shell vars for you. Point `BRICKWORK_THEME_RESOLVER` at a dotted path:
+
+```python
+# yourapp/theming.py
+def theme_resolver(request):
+    """Return a partial ThemeAttributes dict; only the keys you set are applied."""
+    prefs = getattr(request.user, "ui_prefs", None)
+    if prefs is None:
+        return {}
+    return {
+        "theme": prefs.theme,       # "light" | "dark"
+        "density": prefs.density,   # "compact" | "comfortable" | "spacious"
+        "dir": prefs.direction,     # "ltr" | "rtl"
+    }
+```
+
+```python
+# settings.py
+BRICKWORK_THEME_RESOLVER = "yourapp.theming.theme_resolver"
+```
+
+A partial dict is fine: only the keys you return override the defaults. With
+`brickwork.context_processors.theme` installed (see
+[INTEGRATION.md](INTEGRATION.md) section 3), the resolved attributes land on the
+shell's `<html>` element and the user's preference is live per request, with no
+rebuild and no per-user stylesheet. Density scales spacing only; direction is
+resolved by logical CSS properties; theme swaps to brickwork's authored dark
+values.
+
+### Recipe 2: per-tenant runtime brand-token injection (the multi-tenant prize)
+
+Because the derived colour family is live `color-mix()` over the ~7 load-bearing
+tokens, a multi-tenant SaaS can inject *one tenant's* load-bearing set per request
+and the whole family recolours in-browser, no per-tenant build. The supported
+primitive is the emitter service (brickwork#40, shipped 0.11.0):
+
+```python
+from brickwork.services.tokens import render_brand_css
+
+def tenant_brand_style(request):
+    tenant = request.tenant
+    css = render_brand_css(
+        light={
+            "color-surface": tenant.surface,
+            "color-fg": tenant.fg,
+            "color-border": tenant.border,
+            "color-accent": tenant.accent,
+            "color-danger": tenant.danger,
+            "color-success": tenant.success,
+            "color-warning": tenant.warning,
+            "color-fg-on-accent": tenant.fg_on_accent,
+        },
+        dark=tenant.dark_tokens or None,   # optional; omit for light-only brands
+        validate=True,                     # reject unknown names, check fg-on-accent
+    )
+    return css  # a ready :root { ... } [data-theme="dark"] { ... } block
+```
+
+Emit that block in a per-request `<style>` in the shell head (after
+`brickwork.css`), keyed by the current tenant:
+
+```django
+{% block head_extra %}
+  {{ block.super }}
+  <style>{{ tenant_brand_css }}</style>
+{% endblock %}
+```
+
+`render_brand_css(light, dark=None, *, validate=True) -> str` takes override
+values keyed by token name, rejects unknown names against the shipped vocabulary,
+optionally runs the authored-value checks brickwork already states as rules
+(fg-on-accent at 4.5:1; a warning when a status hue collapses onto the accent),
+and emits the `:root` / `[data-theme="dark"]` blocks in the documented override
+shape. It validates against the machine-readable load-bearing manifest
+(brickwork#39), so you never hand-keep a second list of token names that semver
+could move. Do not hand-build the CSS string yourself; this is the token contract
+expressed as an API.
+
+If you cannot yet adopt the emitter, the inline fallback is the same `<style>`
+block hand-written against the load-bearing names in this document, but you then
+own validation and drift against the token contract. Prefer the service.
 
 ## Where the values live
 

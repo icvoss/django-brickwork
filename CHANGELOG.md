@@ -8,6 +8,35 @@ versioning contract).
 
 ## [Unreleased]
 
+### Added
+
+- **Integration cookbook** (`docs/INTEGRATION.md`): a seam-by-seam greenfield
+  guide covering settings and static (with the static include-linter allowlist
+  heads-up, brickwork#34), the nav config (including `kwarg_name` and the
+  resolver-match hook, brickwork#19), the context processor (the theme-var
+  mapping sharp edge, brickwork#22), a worked HTMX 422 form end to end
+  (brickwork#24), the chrome/body boundary and asset-pipeline coexistence for
+  JS-bearing pages (brickwork#33), the htmx floor, and bulk icon registration
+  (brickwork#49). Closes brickwork#24, brickwork#33.
+- **Adoption / strangle guide** (`docs/ADOPTION.md`): migrating an existing app
+  onto brickwork cluster by cluster, with the multi-host and legacy-shell
+  asset-coexistence wrinkles a real brownfield cutover hits (brickwork#37,
+  brickwork#49). Closes brickwork#37.
+- **BRANDING.md: the fg-on-accent contrast trap** (brickwork#35): a worked
+  light+dark example where the dark accent is light-toned and therefore needs
+  dark `fg-on-accent`, with measured ratios and the "do not assume white"
+  warning. Closes brickwork#35.
+- **BRANDING.md: a dynamic-theming section** (brickwork#36) with two recipes,
+  per-user density/theme/direction via a `theme_resolver`, and per-tenant
+  runtime brand-token injection via the `render_brand_css` emitter. Closes
+  brickwork#36.
+
+### Changed
+
+- **README: the htmx floor is now stated explicitly** as `htmx >= 2.0`
+  (brickwork#48); htmx 1.9 is out of contract. Documentation index links the new
+  integration and adoption guides.
+
 ## [0.10.0] - 2026-08-01
 
 The structural close of the interaction-set programme: consumer Tailwind
