@@ -8,12 +8,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--bw-size-space-2);
+  gap: var(--bw-space-2);
   padding-block: 0;
   padding-inline: var(--bw-density-control-padding-inline);
   block-size: var(--bw-density-control-height);
   border: var(--bw-size-border-hairline) solid transparent;
-  border-radius: var(--bw-button-radius);
+  border-radius: var(--bw-component-button-radius);
   font: inherit;
   font-size: var(--bw-text-label-size);
   font-weight: var(--bw-text-label-weight);
@@ -24,11 +24,11 @@
 }
 .bw-btn--sm {
   block-size: var(--bw-size-control-height-sm);
-  padding-inline: var(--bw-size-space-2);
+  padding-inline: var(--bw-space-2);
 }
 .bw-btn--lg {
   block-size: var(--bw-size-control-height-lg);
-  padding-inline: var(--bw-size-space-4);
+  padding-inline: var(--bw-space-4);
 }
 /* Solid buttons carry a border in their own hue (0.7.0 craft): 80% of the fill
  * toward black is the Radix solid-button edge, a shade the fill visibly sits
@@ -118,15 +118,15 @@
 }
 .bw-btn:disabled,
 .bw-btn--disabled {
-  opacity: var(--bw-disabled-opacity);
+  opacity: var(--bw-component-disabled-opacity);
   cursor: not-allowed;
 }
 
 .bw-spinner {
   /* Sized via --bw-icon-size (set inline to a size token), the same mechanism
    * as .bw-icon: an SVG width/height attribute cannot take var() (issue #16). */
-  inline-size: var(--bw-icon-size, var(--bw-icon-size-sm));
-  block-size: var(--bw-icon-size, var(--bw-icon-size-sm));
+  inline-size: var(--bw-icon-size, var(--bw-component-icon-size-sm));
+  block-size: var(--bw-icon-size, var(--bw-component-icon-size-sm));
   animation: bw-spin var(--bw-duration-spin) var(--bw-ease-linear) infinite;
 }
 @keyframes bw-spin {
@@ -147,13 +147,13 @@
 .bw-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--bw-size-space-1);
-  padding-block: var(--bw-size-space-0-5);
-  padding-inline: var(--bw-size-space-2);
+  gap: var(--bw-space-1);
+  padding-block: var(--bw-space-0-5);
+  padding-inline: var(--bw-space-2);
   /* transparent hairline so intent variants (tinted borders) keep the same
      geometry as the neutral badge */
   border: var(--bw-size-border-hairline) solid transparent;
-  border-radius: var(--bw-size-radius-full);
+  border-radius: var(--bw-radius-full);
   font-size: var(--bw-text-caption-size);
   font-weight: var(--bw-font-weight-medium);
   font-variant-numeric: tabular-nums;
@@ -185,9 +185,9 @@
 
 .bw-alert {
   display: flex;
-  gap: var(--bw-size-space-3);
-  padding: var(--bw-size-space-4);
-  border-radius: var(--bw-size-radius-lg); /* joins the card radius family */
+  gap: var(--bw-space-3);
+  padding: var(--bw-space-4);
+  border-radius: var(--bw-radius-lg); /* joins the card radius family */
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   margin-block-end: var(--bw-density-stack-gap);
 }
@@ -199,7 +199,7 @@
 }
 .bw-alert__message {
   margin: 0;
-  margin-block-start: var(--bw-size-space-1); /* air between title and message */
+  margin-block-start: var(--bw-space-1); /* air between title and message */
   max-inline-size: var(--bw-size-max-width-prose);
   font-size: var(--bw-text-body-sm-size);
   font-weight: var(--bw-text-body-sm-weight);
@@ -260,13 +260,13 @@
 .bw-form__actions {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-3);
-  margin-block-start: var(--bw-size-space-2);
+  gap: var(--bw-space-3);
+  margin-block-start: var(--bw-space-2);
 }
 .bw-field {
   display: flex;
   flex-direction: column;
-  gap: var(--bw-size-space-1);
+  gap: var(--bw-space-1);
   margin-block-end: var(--bw-density-stack-gap);
   max-inline-size: var(--bw-size-max-width-form);
 }
@@ -284,7 +284,7 @@
   block-size: var(--bw-density-control-height);
   padding-inline: var(--bw-density-control-padding-inline);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
-  border-radius: var(--bw-size-radius-md);
+  border-radius: var(--bw-radius-md);
   background: var(--bw-color-surface);
   color: var(--bw-color-fg);
   font: inherit;
@@ -318,7 +318,7 @@
     0 0 0 3px color-mix(in oklab, var(--bw-color-accent) 18%, transparent);
 }
 /* Select (0.7.0 craft): the UA chrome goes, the input's own drawing stays, and
- * the affordance is an embedded chevron (--bw-select-indicator, a component
+ * the affordance is an embedded chevron (--bw-component-select-indicator, a component
  * token carrying a data-URI SVG; its baked mid-grey and measured ratios are
  * documented on the token). Sized to the sm icon step, seated inside the
  * control padding; the end padding clears glyph plus a breathing space.
@@ -326,12 +326,12 @@
  * [dir="rtl"], the same mechanism as .bw-icon-directional. */
 select.bw-input {
   appearance: none;
-  background-image: var(--bw-select-indicator);
+  background-image: var(--bw-component-select-indicator);
   background-repeat: no-repeat;
   background-position: right var(--bw-density-control-padding-inline) center;
-  background-size: var(--bw-icon-size-sm);
+  background-size: var(--bw-component-icon-size-sm);
   padding-inline-end: calc(
-    var(--bw-density-control-padding-inline) + var(--bw-icon-size-sm) + var(--bw-size-space-1)
+    var(--bw-density-control-padding-inline) + var(--bw-component-icon-size-sm) + var(--bw-space-1)
   );
 }
 [dir="rtl"] select.bw-input {
@@ -341,7 +341,7 @@ select.bw-input {
   background: var(--bw-color-surface-sunken);
 }
 .bw-input:disabled {
-  opacity: var(--bw-disabled-opacity);
+  opacity: var(--bw-component-disabled-opacity);
   cursor: not-allowed;
 }
 .bw-field--invalid .bw-input,
@@ -372,17 +372,17 @@ input.bw-radio {
   block-size: 1.125rem;
   flex-shrink: 0;
   margin: 0;
-  margin-inline-end: var(--bw-size-space-2);
+  margin-inline-end: var(--bw-space-2);
   vertical-align: middle;
   border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
   background: var(--bw-color-surface);
   transition: var(--bw-transition-colors);
 }
 input.bw-checkbox {
-  border-radius: var(--bw-size-radius-sm);
+  border-radius: var(--bw-radius-sm);
 }
 input.bw-radio {
-  border-radius: var(--bw-size-radius-full);
+  border-radius: var(--bw-radius-full);
 }
 /* Shared hover pre-light, the input's own mix (constant documented there). */
 input.bw-checkbox:hover:where(:not(:disabled):not(:checked)),
@@ -396,7 +396,7 @@ input.bw-radio:checked {
   border-color: var(--bw-color-accent);
   background-color: var(--bw-color-accent);
 }
-/* The tick: --bw-checkbox-glyph is a colour-free alpha shape consumed as a
+/* The tick: --bw-component-checkbox-glyph is a colour-free alpha shape consumed as a
  * mask and PAINTED with fg-on-accent, so the glyph ink flips with the theme
  * like every other ink-on-accent (white on the light accent, near-black on
  * the lighter dark accent; measured 5.11:1 light / 7.52:1 dark against the
@@ -408,7 +408,7 @@ input.bw-checkbox:checked::before {
   inline-size: 0.75rem; /* 12px glyph centred in the 18px box */
   block-size: 0.75rem;
   background-color: var(--bw-color-fg-on-accent);
-  mask-image: var(--bw-checkbox-glyph);
+  mask-image: var(--bw-component-checkbox-glyph);
   mask-repeat: no-repeat;
   mask-size: 100% 100%;
 }
@@ -423,7 +423,7 @@ input.bw-radio:checked {
 }
 input.bw-checkbox:disabled,
 input.bw-radio:disabled {
-  opacity: var(--bw-disabled-opacity);
+  opacity: var(--bw-component-disabled-opacity);
   cursor: not-allowed;
 }
 
@@ -450,15 +450,15 @@ input.bw-radio:disabled {
  * (the tinted bg and danger-fg title identify the box; the invalid input keeps
  * its full danger border for the 1.4.11 control boundary). */
 .bw-form-errors {
-  padding: var(--bw-size-space-4);
+  padding: var(--bw-space-4);
   margin-block-end: var(--bw-density-stack-gap);
   border: var(--bw-size-border-hairline) solid var(--bw-color-danger-border);
   background: var(--bw-color-danger-subtle);
-  border-radius: var(--bw-size-radius-lg);
+  border-radius: var(--bw-radius-lg);
   max-inline-size: var(--bw-size-max-width-form);
 }
 .bw-form-errors__title {
-  margin: 0 0 var(--bw-size-space-2);
+  margin: 0 0 var(--bw-space-2);
   font-size: var(--bw-text-heading-sm-size);
   font-weight: var(--bw-text-heading-sm-weight);
   line-height: var(--bw-text-heading-sm-line-height);
@@ -466,12 +466,12 @@ input.bw-radio:disabled {
 }
 .bw-form-errors__list {
   margin: 0;
-  padding-inline-start: var(--bw-size-space-5);
+  padding-inline-start: var(--bw-space-5);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);
 }
 .bw-form-errors__list li {
-  margin-block-end: var(--bw-size-space-0-5);
+  margin-block-end: var(--bw-space-0-5);
 }
 .bw-form-errors__list li::marker {
   color: var(--bw-color-danger);
@@ -491,7 +491,7 @@ input.bw-radio:disabled {
   letter-spacing: var(--bw-text-heading-xl-tracking);
 }
 .bw-page-header__description {
-  margin: var(--bw-size-space-1) 0 0;
+  margin: var(--bw-space-1) 0 0;
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-body-md-size);
   font-weight: var(--bw-text-body-md-weight);
@@ -506,9 +506,9 @@ input.bw-radio:disabled {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: var(--bw-size-space-3);
-  padding-block: var(--bw-size-space-16);
-  padding-inline: var(--bw-size-space-4);
+  gap: var(--bw-space-3);
+  padding-block: var(--bw-space-16);
+  padding-inline: var(--bw-space-4);
 }
 .bw-empty-state__icon {
   color: var(--bw-color-icon-muted);
@@ -522,11 +522,11 @@ input.bw-radio:disabled {
  * pairing is decorative (the heading and body carry the meaning, so no AA
  * duty), and still measures 4.66:1 light / 6.70:1 dark. */
 .bw-icon.bw-empty-state__icon {
-  inline-size: calc(var(--bw-icon-size-2xl) + 2 * var(--bw-size-space-2));
-  block-size: calc(var(--bw-icon-size-2xl) + 2 * var(--bw-size-space-2));
-  padding: var(--bw-size-space-2);
+  inline-size: calc(var(--bw-component-icon-size-2xl) + 2 * var(--bw-space-2));
+  block-size: calc(var(--bw-component-icon-size-2xl) + 2 * var(--bw-space-2));
+  padding: var(--bw-space-2);
   background: var(--bw-color-accent-subtle);
-  border-radius: var(--bw-size-radius-full);
+  border-radius: var(--bw-radius-full);
   color: var(--bw-color-accent);
 }
 .bw-empty-state__heading {
@@ -553,7 +553,7 @@ input.bw-radio:disabled {
   overflow-x: auto;
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-lg);
+  border-radius: var(--bw-radius-lg);
   /* Ring treatment (0.7.0 craft): hairline + elevation + the light-theme
    * top-light (white at 60%, the card family's shared sheen, documented at
    * .bw-card); the dark reset at the end of this file returns to the plain
@@ -585,7 +585,7 @@ input.bw-radio:disabled {
 .bw-data-table__sort {
   display: inline-flex;
   align-items: center;
-  gap: var(--bw-size-space-1);
+  gap: var(--bw-space-1);
   color: inherit;
   text-decoration: none;
   transition: var(--bw-transition-colors);
@@ -669,7 +669,7 @@ input.bw-radio:disabled {
   white-space: nowrap;
   background: transparent;
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  padding-inline-end: var(--bw-size-space-6);
+  padding-inline-end: var(--bw-space-6);
   vertical-align: baseline;
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-body-sm-size);
@@ -692,10 +692,10 @@ input.bw-radio:disabled {
 .bw-account-menu__trigger {
   display: inline-flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
+  gap: var(--bw-space-2);
   min-block-size: var(--bw-size-touch-target-min);
-  padding: var(--bw-size-space-1) var(--bw-size-space-2);
-  border-radius: var(--bw-size-radius-md);
+  padding: var(--bw-space-1) var(--bw-space-2);
+  border-radius: var(--bw-radius-md);
   cursor: pointer;
   color: var(--bw-color-fg);
   list-style: none; /* hide the default disclosure triangle */
@@ -719,12 +719,12 @@ input.bw-radio:disabled {
 }
 .bw-account-menu__panel {
   position: absolute;
-  inset-block-start: calc(100% + var(--bw-size-space-1));
-  min-inline-size: var(--bw-menu-min-width);
-  padding: var(--bw-size-space-1);
+  inset-block-start: calc(100% + var(--bw-space-1));
+  min-inline-size: var(--bw-component-menu-min-width);
+  padding: var(--bw-space-1);
   background: var(--bw-color-surface-raised);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-lg); /* card radius family */
+  border-radius: var(--bw-radius-lg); /* card radius family */
   /* Ring treatment (0.7.0 craft): the card family's light-theme top-light
    * (documented at .bw-card); dark reset at the end of this file. */
   box-shadow: var(--bw-elevation-3), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
@@ -752,9 +752,9 @@ input.bw-radio:disabled {
 .bw-account-menu__item {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
-  padding: var(--bw-size-space-2) var(--bw-size-space-3);
-  border-radius: var(--bw-size-radius-md);
+  gap: var(--bw-space-2);
+  padding: var(--bw-space-2) var(--bw-space-3);
+  border-radius: var(--bw-radius-md);
   color: var(--bw-color-fg);
   text-decoration: none;
   white-space: nowrap;
@@ -782,13 +782,13 @@ input.bw-radio:disabled {
 .bw-account-menu__item--danger {
   color: var(--bw-color-danger-fg);
   position: relative;
-  margin-block-start: var(--bw-size-space-2);
+  margin-block-start: var(--bw-space-2);
 }
 .bw-account-menu__item--danger::before {
   content: "";
   position: absolute;
-  inset-inline: calc(-1 * var(--bw-size-space-1));
-  inset-block-start: calc(-1 * var(--bw-size-space-1));
+  inset-inline: calc(-1 * var(--bw-space-1));
+  inset-block-start: calc(-1 * var(--bw-space-1));
   block-size: var(--bw-size-border-hairline);
   background: var(--bw-color-border);
 }
@@ -811,11 +811,11 @@ input.bw-radio:disabled {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: var(--bw-size-space-3);
+  gap: var(--bw-space-3);
   padding: var(--bw-density-card-padding);
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-lg);
+  border-radius: var(--bw-radius-lg);
   box-shadow: var(--bw-elevation-1);
   margin-block-end: var(--bw-density-stack-gap);
 }
@@ -823,13 +823,13 @@ input.bw-radio:disabled {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: var(--bw-size-space-3);
+  gap: var(--bw-space-3);
   flex: 1 1 auto;
 }
 .bw-filter-bar__actions {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
+  gap: var(--bw-space-2);
 }
 
 /* --- Pagination ------------------------------------------------------------ */
@@ -837,7 +837,7 @@ input.bw-radio:disabled {
 .bw-pagination {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
+  gap: var(--bw-space-2);
   margin-block-start: var(--bw-density-stack-gap);
 }
 .bw-pagination__link {
@@ -846,9 +846,9 @@ input.bw-radio:disabled {
   justify-content: center;
   min-block-size: var(--bw-size-touch-target-min);
   min-inline-size: var(--bw-size-touch-target-min);
-  padding: var(--bw-size-space-1);
+  padding: var(--bw-space-1);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-md);
+  border-radius: var(--bw-radius-md);
   color: var(--bw-color-fg);
   transition: var(--bw-transition-colors);
 }
@@ -860,7 +860,7 @@ input.bw-radio:disabled {
   transition-duration: var(--bw-duration-instant);
 }
 .bw-pagination__link--disabled {
-  opacity: var(--bw-disabled-opacity);
+  opacity: var(--bw-component-disabled-opacity);
   cursor: not-allowed;
 }
 .bw-pagination__status {
@@ -873,15 +873,15 @@ input.bw-radio:disabled {
 /* --- Skeleton (loading, STA-004) ------------------------------------------- */
 
 .bw-skeleton {
-  background: var(--bw-color-skeleton-bg);
-  border-radius: var(--bw-size-radius-sm);
+  background: var(--bw-component-skeleton-bg);
+  border-radius: var(--bw-radius-sm);
   position: relative;
   overflow: hidden;
 }
 .bw-skeleton--title {
   block-size: var(--bw-font-size-2xl);
   inline-size: 40%;
-  margin-block-end: var(--bw-size-space-2);
+  margin-block-end: var(--bw-space-2);
 }
 .bw-skeleton--text {
   block-size: var(--bw-font-size-md);
@@ -889,13 +889,13 @@ input.bw-radio:disabled {
 }
 .bw-skeleton--row {
   block-size: var(--bw-density-control-height);
-  margin-block-end: var(--bw-size-space-2);
+  margin-block-end: var(--bw-space-2);
 }
 .bw-skeleton::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, var(--bw-color-skeleton-shimmer), transparent);
+  background: linear-gradient(90deg, transparent, var(--bw-component-skeleton-shimmer), transparent);
   transform: translateX(-100%);
   animation: bw-shimmer var(--bw-duration-shimmer) var(--bw-ease-linear) infinite;
 }
@@ -922,7 +922,7 @@ input.bw-radio:disabled {
 .bw-card {
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-lg);
+  border-radius: var(--bw-radius-lg);
   /* Ring treatment (0.7.0 craft): the hairline border stays for layout
    * stability, and a light-scoped inset top-light joins the elevation. White
    * at 60% alpha: a catch-light along the top edge (the paper sheen Radix
@@ -941,13 +941,13 @@ input.bw-radio:disabled {
 /* padding arg (04-interfaces): md restates the density default so an explicit
    padding="md" and the bare card always agree. */
 .bw-card--padding-sm {
-  padding: var(--bw-size-space-3);
+  padding: var(--bw-space-3);
 }
 .bw-card--padding-md {
   padding: var(--bw-density-card-padding);
 }
 .bw-card--padding-lg {
-  padding: var(--bw-size-space-6);
+  padding: var(--bw-space-6);
 }
 /* Card-as-link (CMP-017): the whole card is an anchor; content keeps its own
    ink and no underline smears across the card. The focus ring comes from the
@@ -974,8 +974,8 @@ a.bw-card {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--bw-size-space-3);
-  margin-block-end: var(--bw-size-space-3);
+  gap: var(--bw-space-3);
+  margin-block-end: var(--bw-space-3);
 }
 /* Card titles speak in the heading-md role (DESIGN.md 7.4 component map). */
 .bw-card__title {
@@ -987,13 +987,13 @@ a.bw-card {
 .bw-card__actions {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
+  gap: var(--bw-space-2);
 }
 /* The footer is a quiet caption band under a hairline, matching the sidebar
    footer's divider treatment. */
 .bw-card__footer {
-  margin-block-start: var(--bw-size-space-3);
-  padding-block-start: var(--bw-size-space-3);
+  margin-block-start: var(--bw-space-3);
+  padding-block-start: var(--bw-space-3);
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-caption-size);
@@ -1008,10 +1008,10 @@ a.bw-card {
 .bw-stat {
   display: flex;
   flex-direction: column;
-  gap: var(--bw-size-space-1);
+  gap: var(--bw-space-1);
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-lg);
+  border-radius: var(--bw-radius-lg);
   box-shadow: var(--bw-elevation-1);
   padding: var(--bw-density-card-padding);
 }
@@ -1041,7 +1041,7 @@ a.bw-stat:hover {
   /* The component token scales the numeral (VIZ-001, AC-BW-075); until it is
      emitted by the token build it falls back to the 3xl step, the same
      inline-token-with-fallback mechanism as .bw-spinner's size. */
-  font-size: var(--bw-stat-tile-value-size, var(--bw-font-size-3xl));
+  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-3xl));
   font-weight: var(--bw-font-weight-semibold);
   line-height: var(--bw-font-line-height-tight);
   font-variant-numeric: tabular-nums; /* a column of tiles never jitters as digits change */
@@ -1049,7 +1049,7 @@ a.bw-stat:hover {
 .bw-stat__trend {
   display: inline-flex;
   align-items: center;
-  gap: var(--bw-size-space-1);
+  gap: var(--bw-space-1);
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-caption-size);
   font-weight: var(--bw-text-caption-weight);
@@ -1070,12 +1070,12 @@ a.bw-stat:hover {
 /* size arg (VIZ-027): modifiers re-point the value-size component token, so
    the numeral rule itself never forks. */
 .bw-stat--sm {
-  --bw-stat-tile-value-size: var(--bw-font-size-2xl);
-  padding: var(--bw-size-space-3);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
+  padding: var(--bw-space-3);
 }
 .bw-stat--lg {
-  --bw-stat-tile-value-size: var(--bw-font-size-4xl);
-  padding: var(--bw-size-space-6);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-4xl);
+  padding: var(--bw-space-6);
 }
 
 /* Visually hidden, screen-reader-available text: the stat trend's directional
@@ -1084,9 +1084,9 @@ a.bw-stat:hover {
    px token keeps it out of the literal ban. */
 .bw-visually-hidden {
   position: absolute;
-  inline-size: var(--bw-size-space-px);
-  block-size: var(--bw-size-space-px);
-  margin: calc(var(--bw-size-space-px) * -1);
+  inline-size: var(--bw-space-px);
+  block-size: var(--bw-space-px);
+  margin: calc(var(--bw-space-px) * -1);
   padding: 0;
   overflow: hidden;
   clip-path: inset(50%);
@@ -1117,7 +1117,7 @@ a.bw-stat:hover {
  * behaviour; the exit needs no choreography of its own). */
 .bw-disclosure--bordered {
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-lg);
+  border-radius: var(--bw-radius-lg);
 }
 .bw-disclosure--divided {
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
@@ -1128,11 +1128,11 @@ a.bw-stat:hover {
 .bw-disclosure__trigger {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
+  gap: var(--bw-space-2);
   min-block-size: var(--bw-size-touch-target-min);
   padding-block: var(--bw-density-row-padding-block);
   padding-inline: var(--bw-density-row-padding-inline);
-  border-radius: var(--bw-size-radius-md);
+  border-radius: var(--bw-radius-md);
   cursor: pointer;
   color: var(--bw-color-fg);
   list-style: none; /* hide the default disclosure triangle; the caret glyph is the affordance */
@@ -1202,7 +1202,7 @@ a.bw-stat:hover {
 .bw-disclosure__panel-inner {
   min-block-size: 0;
   overflow: hidden;
-  padding-block: var(--bw-size-space-1) var(--bw-size-space-3);
+  padding-block: var(--bw-space-1) var(--bw-space-3);
   /* Content aligns under the trigger label, inside the same row inset. */
   padding-inline: var(--bw-density-row-padding-inline);
   font-size: var(--bw-text-body-sm-size);
@@ -1264,13 +1264,13 @@ a.bw-stat:hover {
  * at normal/out (04-interfaces 4b). */
 .bw-dropdown__panel {
   position: absolute;
-  inset-block-start: calc(100% + var(--bw-size-space-1));
+  inset-block-start: calc(100% + var(--bw-space-1));
   inset-inline-start: 0;
-  min-inline-size: var(--bw-menu-min-width);
-  padding: var(--bw-size-space-1);
+  min-inline-size: var(--bw-component-menu-min-width);
+  padding: var(--bw-space-1);
   background: var(--bw-color-surface-raised);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-lg);
+  border-radius: var(--bw-radius-lg);
   box-shadow: var(--bw-elevation-3), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
   z-index: var(--bw-z-dropdown);
 }
@@ -1286,9 +1286,9 @@ a.bw-stat:hover {
 .bw-dropdown__item {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
-  padding: var(--bw-size-space-2) var(--bw-size-space-3);
-  border-radius: var(--bw-size-radius-md);
+  gap: var(--bw-space-2);
+  padding: var(--bw-space-2) var(--bw-space-3);
+  border-radius: var(--bw-radius-md);
   color: var(--bw-color-fg);
   text-decoration: none;
   white-space: nowrap;
@@ -1318,8 +1318,8 @@ a.bw-stat:hover {
  * inner edges (the panel padding is space-1), breathing space either side. */
 .bw-dropdown__divider {
   block-size: var(--bw-size-border-hairline);
-  margin-block: var(--bw-size-space-1);
-  margin-inline: calc(-1 * var(--bw-size-space-1));
+  margin-block: var(--bw-space-1);
+  margin-inline: calc(-1 * var(--bw-space-1));
   background: var(--bw-color-border);
   border: 0;
 }
@@ -1347,7 +1347,7 @@ a.bw-stat:hover {
 .bw-tabs__list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--bw-size-space-1);
+  gap: var(--bw-space-1);
   /* The hairline rail the active marker sits on (underline style). */
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
 }
@@ -1359,10 +1359,10 @@ a.bw-stat:hover {
 .bw-tabs__tab {
   display: inline-flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
+  gap: var(--bw-space-2);
   min-block-size: var(--bw-size-touch-target-min);
   padding-block: var(--bw-density-row-padding-block);
-  padding-inline: var(--bw-size-space-3);
+  padding-inline: var(--bw-space-3);
   background: transparent;
   border: 0;
   /* The marker slot: transparent at rest so rows never shift on selection;
@@ -1395,16 +1395,16 @@ a.bw-stat:hover {
  * pointer-over. */
 .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]),
 .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]):hover {
-  color: var(--bw-color-nav-item-active-text);
-  border-block-end-color: var(--bw-color-nav-item-active-border);
+  color: var(--bw-component-nav-item-active-text);
+  border-block-end-color: var(--bw-component-nav-item-active-border);
 }
 /* Badge count: the nav badge's quiet bordered chip. */
 .bw-tabs__badge {
   flex-shrink: 0;
-  min-inline-size: var(--bw-size-space-5);
-  padding-block: var(--bw-size-space-0-5);
-  padding-inline: var(--bw-size-space-1);
-  border-radius: var(--bw-size-radius-full);
+  min-inline-size: var(--bw-space-5);
+  padding-block: var(--bw-space-0-5);
+  padding-inline: var(--bw-space-1);
+  border-radius: var(--bw-radius-full);
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
@@ -1424,7 +1424,7 @@ a.bw-stat:hover {
 .bw-tabs--pill .bw-tabs__tab {
   border-block-end: 0;
   margin-block-end: 0;
-  border-radius: var(--bw-size-radius-full);
+  border-radius: var(--bw-radius-full);
 }
 .bw-tabs--pill .bw-tabs__tab:hover {
   background-color: var(--bw-state-hover-overlay);
@@ -1436,7 +1436,7 @@ a.bw-stat:hover {
 .bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]),
 .bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]):hover {
   background-color: var(--bw-state-selected-bg);
-  color: var(--bw-color-nav-item-active-text);
+  color: var(--bw-component-nav-item-active-text);
 }
 .bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]):hover {
   background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
@@ -1493,7 +1493,7 @@ a.bw-stat:hover {
   margin-inline: auto;
   background: var(--bw-color-surface-raised);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-xl);
+  border-radius: var(--bw-radius-xl);
   box-shadow: var(--bw-elevation-2);
 }
 /* The open state: a fixed, centred overlay layer at z-modal. */
@@ -1503,7 +1503,7 @@ a.bw-stat:hover {
   z-index: var(--bw-z-modal);
   display: grid;
   place-items: center;
-  padding: var(--bw-size-space-6);
+  padding: var(--bw-space-6);
 }
 /* The scrim exists only while open: the authored dark-over-content overlay
  * colour in both themes, at the overlay layer beneath the panel. Enter
@@ -1537,7 +1537,7 @@ a.bw-stat:hover {
 @keyframes bw-modal-in {
   from {
     opacity: 0;
-    transform: translateY(calc(-1 * var(--bw-size-space-1))) scale(0.96);
+    transform: translateY(calc(-1 * var(--bw-space-1))) scale(0.96);
   }
   to {
     opacity: 1;
@@ -1559,7 +1559,7 @@ a.bw-stat:hover {
 .bw-modal--full:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
   max-inline-size: none;
   block-size: 100%;
-  border-radius: var(--bw-size-radius-none);
+  border-radius: var(--bw-radius-none);
 }
 /* Sticky header: title plus the always-present close control (BR-BW-JS-007),
  * divided from the scrolling body by a hairline. Density card padding scales
@@ -1568,7 +1568,7 @@ a.bw-stat:hover {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--bw-size-space-3);
+  gap: var(--bw-space-3);
   padding: var(--bw-density-card-padding);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
 }
@@ -1600,7 +1600,7 @@ a.bw-stat:hover {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--bw-size-space-3);
+  gap: var(--bw-space-3);
   padding: var(--bw-density-card-padding);
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
 }
@@ -1633,8 +1633,8 @@ a.bw-stat:hover {
   z-index: var(--bw-z-toast);
   display: flex;
   flex-direction: column;
-  gap: var(--bw-size-space-2);
-  inline-size: min(var(--bw-toast-max-width), calc(100vw - 2 * var(--bw-size-space-4)));
+  gap: var(--bw-space-2);
+  inline-size: min(var(--bw-component-toast-max-width), calc(100vw - 2 * var(--bw-space-4)));
   /* Inert chrome: an empty region paints nothing and clicks fall through the
    * column; toasts and the collapse control restore their own hit-testing. */
   pointer-events: none;
@@ -1643,21 +1643,21 @@ a.bw-stat:hover {
  * appends put the newest toast first in the DOM, so the bottom regions
  * reverse the column to keep the newest nearest the viewport edge. */
 .bw-toast-region--top-end {
-  inset-block-start: var(--bw-size-space-4);
-  inset-inline-end: var(--bw-size-space-4);
+  inset-block-start: var(--bw-space-4);
+  inset-inline-end: var(--bw-space-4);
 }
 .bw-toast-region--top-start {
-  inset-block-start: var(--bw-size-space-4);
-  inset-inline-start: var(--bw-size-space-4);
+  inset-block-start: var(--bw-space-4);
+  inset-inline-start: var(--bw-space-4);
 }
 .bw-toast-region--bottom-end {
-  inset-block-end: var(--bw-size-space-4);
-  inset-inline-end: var(--bw-size-space-4);
+  inset-block-end: var(--bw-space-4);
+  inset-inline-end: var(--bw-space-4);
   flex-direction: column-reverse;
 }
 .bw-toast-region--bottom-start {
-  inset-block-end: var(--bw-size-space-4);
-  inset-inline-start: var(--bw-size-space-4);
+  inset-block-end: var(--bw-space-4);
+  inset-inline-start: var(--bw-space-4);
   flex-direction: column-reverse;
 }
 /* OOB delivery wrappers: hx-swap-oob="afterbegin:#bw-toast-region" inserts
@@ -1678,16 +1678,16 @@ a.bw-stat:hover {
 .bw-toast {
   display: flex;
   align-items: flex-start;
-  gap: var(--bw-size-space-3);
-  padding: var(--bw-size-space-3);
+  gap: var(--bw-space-3);
+  padding: var(--bw-space-3);
   pointer-events: auto;
   background: var(--bw-color-surface-raised);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-inline-start: var(--bw-size-border-thick) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-xl);
+  border-radius: var(--bw-radius-xl);
   box-shadow: var(--bw-elevation-5), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
   opacity: 0;
-  transform: translateY(calc(-1 * var(--bw-size-space-2)));
+  transform: translateY(calc(-1 * var(--bw-space-2)));
   transition:
     opacity var(--bw-duration-fast) var(--bw-ease-in),
     transform var(--bw-duration-fast) var(--bw-ease-in);
@@ -1705,7 +1705,7 @@ a.bw-stat:hover {
  * mirror wrongly under RTL. */
 .bw-toast-region--bottom-end .bw-toast:not([data-bw-visible]),
 .bw-toast-region--bottom-start .bw-toast:not([data-bw-visible]) {
-  transform: translateY(var(--bw-size-space-2));
+  transform: translateY(var(--bw-space-2));
 }
 /* Intent edge and icon take the full-strength intent colour (the alert icon
  * tier); message ink stays fg, the accessible carrier (DESIGN.md 4.5). */
@@ -1763,12 +1763,12 @@ a.bw-stat:hover {
   pointer-events: auto;
   min-block-size: var(--bw-size-touch-target-min);
   min-inline-size: var(--bw-size-touch-target-min);
-  padding-block: var(--bw-size-space-1);
-  padding-inline: var(--bw-size-space-3);
+  padding-block: var(--bw-space-1);
+  padding-inline: var(--bw-space-3);
   background: var(--bw-color-surface-raised);
   color: var(--bw-color-fg-muted);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-full);
+  border-radius: var(--bw-radius-full);
   box-shadow: var(--bw-elevation-1);
   font: inherit;
   font-size: var(--bw-text-caption-size);
@@ -1820,10 +1820,10 @@ a.bw-stat:hover {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--bw-size-space-1);
+  gap: var(--bw-space-1);
 }
 .bw-combobox__input {
-  flex: 1 1 var(--bw-menu-min-width);
+  flex: 1 1 var(--bw-component-menu-min-width);
   inline-size: auto;
   min-inline-size: 0;
 }
@@ -1839,10 +1839,10 @@ a.bw-stat:hover {
 .bw-combobox__listbox {
   display: none;
   position: absolute;
-  inset-block-start: calc(100% + var(--bw-size-space-1));
+  inset-block-start: calc(100% + var(--bw-space-1));
   inset-inline-start: 0;
   inline-size: 100%;
-  min-inline-size: var(--bw-menu-min-width);
+  min-inline-size: var(--bw-component-menu-min-width);
   /* Scroll cap at roughly seven option rows; a length literal because the
    * sizing ramp has no step near it (the checkbox-size precedent). */
   max-block-size: 16rem;
@@ -1850,11 +1850,11 @@ a.bw-stat:hover {
   scrollbar-width: thin;
   scrollbar-color: var(--bw-color-border) transparent;
   margin: 0;
-  padding: var(--bw-size-space-1);
+  padding: var(--bw-space-1);
   list-style: none;
   background: var(--bw-color-surface-raised);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-lg);
+  border-radius: var(--bw-radius-lg);
   box-shadow: var(--bw-elevation-3), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
   z-index: var(--bw-z-dropdown);
   animation: bw-fade-in-up var(--bw-duration-normal) var(--bw-ease-out);
@@ -1866,19 +1866,19 @@ a.bw-stat:hover {
 /* STA-006: while the server-filter round trip is in flight the listbox dims
  * via htmx's own htmx-request class convention, whichever element htmx
  * stamps it on: the target listbox itself, or the requesting input beside
- * it. First consumer of --bw-htmx-indicator-opacity. */
+ * it. First consumer of --bw-component-htmx-indicator-opacity. */
 .bw-combobox__listbox.htmx-request,
 .bw-combobox__input.htmx-request ~ .bw-combobox__listbox {
-  opacity: var(--bw-htmx-indicator-opacity);
+  opacity: var(--bw-component-htmx-indicator-opacity);
 }
 /* Option rows mirror the dropdown items (body-sm, hover overlay, radius-md);
  * role="option" rows are not anchors, so the pointer cursor is explicit. */
 .bw-combobox__option {
   display: flex;
   align-items: center;
-  gap: var(--bw-size-space-2);
-  padding: var(--bw-size-space-2) var(--bw-size-space-3);
-  border-radius: var(--bw-size-radius-md);
+  gap: var(--bw-space-2);
+  padding: var(--bw-space-2) var(--bw-space-3);
+  border-radius: var(--bw-radius-md);
   color: var(--bw-color-fg);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);
@@ -1899,7 +1899,7 @@ a.bw-stat:hover {
   font-weight: var(--bw-font-weight-medium);
 }
 .bw-combobox__empty {
-  padding: var(--bw-size-space-2) var(--bw-size-space-3);
+  padding: var(--bw-space-2) var(--bw-space-3);
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);
@@ -1911,11 +1911,11 @@ a.bw-stat:hover {
 .bw-combobox__chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--bw-size-space-1);
-  padding-inline: var(--bw-size-space-3) var(--bw-size-space-1);
+  gap: var(--bw-space-1);
+  padding-inline: var(--bw-space-3) var(--bw-space-1);
   background: var(--bw-state-selected-bg);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-size-radius-full);
+  border-radius: var(--bw-radius-full);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);
 }
@@ -1925,10 +1925,10 @@ a.bw-stat:hover {
   justify-content: center;
   min-block-size: var(--bw-size-touch-target-min);
   min-inline-size: var(--bw-size-touch-target-min);
-  padding: var(--bw-size-space-1);
+  padding: var(--bw-space-1);
   background: transparent;
   border: 0;
-  border-radius: var(--bw-size-radius-full);
+  border-radius: var(--bw-radius-full);
   color: var(--bw-color-icon-muted);
   cursor: pointer;
   transition: var(--bw-transition-colors);
@@ -1967,10 +1967,10 @@ a.bw-stat:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--bw-size-space-0-5);
+  padding: var(--bw-space-0-5);
   background: transparent;
   border: 0;
-  border-radius: var(--bw-size-radius-full);
+  border-radius: var(--bw-radius-full);
   color: inherit;
   cursor: pointer;
   transition: var(--bw-transition-colors);
