@@ -79,6 +79,40 @@ def bw_alert(message: str = "", *, variant: str = "info", title: str = "", dismi
     return {"message": message, "variant": variant, "title": title, "icon": icon, "dismissible": bool(dismissible)}
 
 
+@register.inclusion_tag("brickwork/components/_toggle.html")
+def bw_toggle(
+    label: str,
+    *,
+    id: str,
+    name: str = "",
+    value: str = "on",
+    checked: bool = False,
+    disabled: bool = False,
+) -> dict:
+    """A standalone labelled toggle switch, not bound to a Django form field
+    (BR-BW-INPUT-001). ``label`` is required and non-empty (a switch with no
+    accessible name is a WCAG 4.1.2 failure, the ICO-008 defect class); ``id``
+    is required so the wrapping <label> pairs correctly. ``name`` defaults to
+    ``id`` when omitted, matching how most single-control POST/hx-post payloads
+    key their field. For a form-bound checkbox use bw_field_widget's own
+    BR-BW-INPUT-001 opt-in (forms.CheckboxInput(attrs={"class": "bw-toggle"}))
+    instead of this tag."""
+    if not label:
+        raise TemplateSyntaxError(
+            "bw_toggle requires a non-empty label (a switch with no accessible name is a WCAG 4.1.2 failure)."
+        )
+    if not id:
+        raise TemplateSyntaxError("bw_toggle requires id= (the wrapping label pairs with it).")
+    return {
+        "label": label,
+        "id": id,
+        "name": name or id,
+        "value": value,
+        "checked": bool(checked),
+        "disabled": bool(disabled),
+    }
+
+
 @register.inclusion_tag("brickwork/components/_skeleton.html")
 def bw_skeleton(
     *,

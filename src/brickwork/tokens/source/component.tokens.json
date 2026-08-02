@@ -52,6 +52,26 @@
       "$description": "The checkbox tick SHAPE (0.7.0 craft round), consumed as a CSS mask-image and painted with background-color: var(--bw-color-fg-on-accent), so the glyph ink stays theme-correct without a theme-variant image (dark fg-on-accent is near-black ink on the lighter dark accent; a baked white tick would measure 2.63:1 there and fail 1.4.11, whereas fg-on-accent measures 5.11:1 light and 7.52:1 dark against the accent fill). The 'black' stroke is only the mask's alpha carrier, not a colour choice."
     }
   },
+  "toggle": {
+    "$description": "Toggle switch track/thumb geometry (BR-BW-INPUT-001, 0.13.0, brickwork#57): no primitive scale step fits a switch track, so these are genuinely component-specific.",
+    "track-width": {
+      "$type": "dimension",
+      "$value": "2.25rem"
+    },
+    "track-height": {
+      "$type": "dimension",
+      "$value": "1.25rem"
+    },
+    "thumb-size": {
+      "$type": "dimension",
+      "$value": "0.875rem",
+      "$description": "Leaves a visible track margin on every edge at rest (track-height 1.25rem minus thumb 0.875rem minus two 0.125rem-ish insets from the border)."
+    },
+    "thumb-inset": {
+      "$type": "dimension",
+      "$value": "{size.space.1}"
+    }
+  },
   "stat-tile": {
     "value-size": {
       "$type": "dimension",

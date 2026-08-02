@@ -1,0 +1,40 @@
+{% load i18n %}{% spaceless %}
+{% comment %}
+Standalone toggle switch (BR-BW-INPUT-001, 0.13.0, brickwork#57). Private
+render target of the {% bw_toggle %} tag (templatetags/brickwork_components.py):
+never {% include %} directly, the tag enforces a non-empty accessible name
+(ICO-008-shaped: a switch with no label is a WCAG 4.1.2 failure) and builds the
+input's id/name pairing.
+
+For a Django form field use bw_field_widget's BR-BW-INPUT-001 opt-in instead
+(forms.CheckboxInput(attrs={"class": "bw-toggle"}) on the field, rendered via
+the ordinary {% bw_field_widget %} + forms/_field.html chrome); this tag is for
+a toggle that is NOT bound to a form field (a settings-page on/off control
+posted individually, typically via hx-post on change).
+
+No-JS floor (BR-BW-HTMX-001), by construction: this IS a native
+<input type="checkbox" role="switch">. role="switch" is the only part of the
+switch presentation that is not automatic; once set, the browser reports
+aria-checked from the checked state with zero JS, and Enter/Space toggle it
+exactly like any checkbox. No Alpine, no bw: event, no registered component.
+
+Required context: label, id, name.
+Optional: checked (bool), value (str, default "on", matching Django's own
+CheckboxInput default so a plain POST parses the same way), disabled (bool).
+
+Tokens (CSS lane): the track/thumb pair with role=switch styling live under
+input.bw-toggle in components.css; the thumb-slide motion sits under the
+reduced-motion floor (BR-BW-TOK-009), same as every other component transition.
+{% endcomment %}
+<label class="bw-toggle-field">
+  <input class="bw-toggle bw-checkbox"
+         type="checkbox"
+         role="switch"
+         id="{{ id }}"
+         name="{{ name }}"
+         value="{{ value|default:'on' }}"
+         {% if checked %}checked{% endif %}
+         {% if disabled %}disabled{% endif %}>
+  <span class="bw-toggle-field__label">{{ label }}</span>
+</label>
+{% endspaceless %}

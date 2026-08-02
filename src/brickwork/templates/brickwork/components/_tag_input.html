@@ -1,0 +1,78 @@
+{% load i18n %}
+{% comment %}
+Tag / chips input (BR-BW-INPUT-002, 0.13.0, brickwork#57). Purely structural,
+{% include %}-consumed with context (matching _card.html/_disclosure.html: no
+render-time a11y enforcement of its own beyond a required label, so it is not a
+tag per the 04-interfaces.md tag-vs-include doctrine).
+
+No-JS floor (BR-BW-HTMX-001), by construction: the submitted control is a
+plain <input type="text"> (or <textarea> when multiline=True) carrying the
+real `name`; its value is a comma-separated tag list, and the SERVER splits it
+(this component ships no split/join logic of its own). With zero JS this is
+simply a labelled text field: fully working, nothing hidden behind JS.
+
+Enhanced (bwTagInput, semver-public, BR-BW-JS-004): x-data mounts on the
+wrapper and, at init, hides the floor input's raw text presentation behind a
+chip run reusing the combobox's OWN chip classes (bw-combobox__chip /
+bw-combobox__chip-remove, CMP-028 precedent) so a tag input and a multi-select
+combobox render identically. Enter or comma commits the current text as a
+chip; Backspace with an empty text buffer removes the last chip; each chip's
+remove button carries a translated per-chip aria-label (ICO-008: an icon-only
+control needs a distinguishable name). The floor input STAYS the single
+source of truth for form submission: bwTagInput serialises the chip list back
+into the floor input's value (comma-joined) on every add/remove, so a normal
+POST or a 422 re-render both work from the same one field, exactly as the
+combobox's floor <select> stays the submitted control (BR-BW-HTMX-003).
+
+Required context: label, id, name.
+Optional: value (str, pre-filled comma-separated tags), placeholder,
+help_text, errors (iterable of strings), multiline (bool, default False:
+renders a <textarea> floor instead of <input type="text">, for a longer
+tag/keyword list where wrapping to a second visual line reads better).
+
+Events (optional conventions, BR-BW-HTMX-004): bw:taginput:add { value },
+bw:taginput:remove { value }, bubbling CustomEvents from the component root.
+
+Tokens: the chip run and remove button are bw-combobox__chip{,-remove}
+verbatim (no new tokens); the wrapper composes .bw-input's own border/focus
+treatment so the enhanced state reads as one field, not two controls.
+{% endcomment %}
+{% with help_id=id|add:"_help" error_id=id|add:"_errors" %}
+<div class="bw-field{% if errors %} bw-field--invalid{% endif %}">
+  <label class="bw-field__label" for="{{ id }}">{{ label }}</label>
+  <div class="bw-field__control">
+    <div class="bw-tag-input" x-data="bwTagInput()" data-bw-tag-input>
+      {% translate "Remove" as bw_tag_remove_label %}
+      {# The translated chip-remove aria-label prefix (ICO-008), read by bwTagInput; keeps i18n server-side, matching the combobox chip seed. #}
+      <div class="bw-tag-input__chips" data-bw-tag-input-chips data-bw-tag-remove-label="{{ bw_tag_remove_label }}"></div>
+      {% if multiline %}
+      <textarea class="bw-input bw-tag-input__floor"
+                id="{{ id }}"
+                name="{{ name }}"
+                {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+                {% if errors %}aria-invalid="true"{% endif %}
+                aria-describedby="{{ help_id }} {{ error_id }}"
+                data-bw-tag-input-floor>{{ value }}</textarea>
+      {% else %}
+      <input class="bw-input bw-tag-input__floor"
+             type="text"
+             id="{{ id }}"
+             name="{{ name }}"
+             value="{{ value }}"
+             {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+             {% if errors %}aria-invalid="true"{% endif %}
+             aria-describedby="{{ help_id }} {{ error_id }}"
+             data-bw-tag-input-floor>
+      {% endif %}
+    </div>
+  </div>
+  {% if help_text %}
+    <p class="bw-field__help" id="{{ help_id }}">{{ help_text }}</p>
+  {% endif %}
+  <div class="bw-field__errors" id="{{ error_id }}" role="alert">
+    {% for error in errors %}
+      <p class="bw-field__error">{{ error }}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endwith %}

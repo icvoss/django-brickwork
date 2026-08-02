@@ -43,6 +43,17 @@
   min-height: 100vh;
 }
 
+/* The collapsed column tracks the sidebar's own width so the grid narrows
+ * with it (SHL-003/004, brickwork#58); [data-bw-collapsed] lives on
+ * .bw-sidebar (set by bwSidebarCollapse), so this selector reaches up via
+ * :has() to retarget the OUTER grid template. Chromium/Firefox/Safari all
+ * support :has() as of this package's baseline; the graceful fallback with
+ * no :has() support is simply an un-narrowed main column beside a narrowed
+ * sidebar, a cosmetic gap only, never a functional break. */
+.bw-app:has(.bw-sidebar[data-bw-collapsed]) {
+  grid-template-columns: var(--bw-density-sidebar-width-collapsed) 1fr;
+}
+
 .bw-sidebar {
   display: flex;
   flex-direction: column;
@@ -51,6 +62,62 @@
   /* space-2 at the top puts the first nav row on the topbar's centreline. */
   padding-block: var(--bw-space-2) var(--bw-density-stack-gap);
   padding-inline: var(--bw-space-3);
+  inline-size: var(--bw-density-sidebar-width);
+  transition: inline-size var(--bw-duration-normal) var(--bw-ease-standard);
+}
+
+/* --- Collapsed (icon-only) state (SHL-003/004, brickwork#58) --------------- */
+
+/* [data-bw-collapsed] narrows the sidebar to the collapsed-width token and
+ * hides text labels while KEEPING every icon and every accessible name: the
+ * label text is visually hidden (.bw-visually-hidden's own clip technique),
+ * never aria-hidden or removed, so a screen reader still announces the full
+ * nav item name regardless of the visual collapse state (SHL-004's own
+ * "narrows, hides text, keeps icons" contract). */
+.bw-sidebar[data-bw-collapsed] {
+  inline-size: var(--bw-density-sidebar-width-collapsed);
+}
+.bw-sidebar[data-bw-collapsed] .bw-nav__label,
+.bw-sidebar[data-bw-collapsed] .bw-nav__badge,
+.bw-sidebar[data-bw-collapsed] .bw-nav__external,
+.bw-sidebar[data-bw-collapsed] .bw-sidebar__switcher,
+.bw-sidebar[data-bw-collapsed] .bw-sidebar__footer {
+  position: absolute;
+  inline-size: var(--bw-space-px);
+  block-size: var(--bw-space-px);
+  margin: calc(var(--bw-space-px) * -1);
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+/* The nav row centres its icon once the label collapses out of flow (the
+ * label's own flex:1 auto no longer exists to push things, but the row
+ * still reserves label space via its own layout unless re-centred). */
+.bw-sidebar[data-bw-collapsed] .bw-nav__link,
+.bw-sidebar[data-bw-collapsed] .bw-nav__link--disabled {
+  justify-content: center;
+}
+/* Section headers read as pure text with no icon; collapsing them to
+ * clipped text would leave an empty, confusing row, so the whole header
+ * hides (its accessible name is redundant with the icon-only items below it
+ * once collapsed, unlike a nav link whose name IS the destination). */
+.bw-sidebar[data-bw-collapsed] .bw-nav__section-label {
+  display: none;
+}
+/* Nested (child) lists never show icon-only: a collapsed sidebar has no
+ * room to indicate hierarchy with icons alone, so submenus simply do not
+ * render open in the collapsed rail (consistent with SHL-004: this package
+ * ships no flyout-on-hover mechanism; a consumer wanting one composes
+ * bw_dropdown per nav item, its own template work). */
+.bw-sidebar[data-bw-collapsed] .bw-nav__list--nested {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-sidebar {
+    transition: none;
+  }
 }
 
 .bw-sidebar__header {
@@ -59,6 +126,21 @@
   gap: var(--bw-space-2);
   padding-inline: var(--bw-space-2);
   padding-block-end: var(--bw-density-stack-gap);
+}
+
+/* The collapse toggle seats at the row end regardless of whether
+ * brand_logo/brand_wordmark are filled (brickwork#58). */
+.bw-sidebar__toggle {
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+/* Collapsed: the header holds only the toggle (logo/wordmark clip like the
+ * nav labels above), so it centres instead of pinning to a now-empty end. */
+.bw-sidebar[data-bw-collapsed] .bw-sidebar__toggle {
+  margin-inline-start: 0;
+}
+.bw-sidebar[data-bw-collapsed] .bw-sidebar__header {
+  justify-content: center;
 }
 
 /* The nav slot (brickwork#21, BR-BW-NAV-007): a quiet, positioned seat for a

@@ -1,0 +1,53 @@
+{% load i18n brickwork_icons %}
+{% comment %}
+File dropzone / upload chrome (BR-BW-INPUT-003, 0.13.0, brickwork#57). Purely
+structural, {% include %}-consumed with context (matching _disclosure.html:
+no render-time a11y enforcement beyond a required label, so it is not a tag).
+
+No-JS floor (BR-BW-HTMX-001), by construction: this IS a native
+<input type="file">, styled visually hidden but focusable and labelled (the
+wrapping <label> is the clickable, styled dropzone surface). "Click to
+browse" and Tab + Space/Enter both work with zero JS; the native input is
+NEVER replaced or removed, only visually hidden (the WCAG-safe hiding
+technique, not display:none, which a screen reader also skips).
+
+Enhanced (bwDropzone, semver-public, BR-BW-JS-004): x-data mounts on the
+wrapper and adds drag-over visual state ([data-bw-drag-over] while a file is
+dragged over the surface) plus a selected-file-name list rendered below the
+control, read from the input's own .files after a change. It never intercepts
+or duplicates the native file-selection mechanism.
+
+Required context: label, id, name.
+Optional: multiple (bool, default False), accept (str, MIME/extension filter
+passed straight to the accept attribute), help_text, errors (iterable of
+strings).
+
+Events (optional conventions, BR-BW-HTMX-004): bw:dropzone:change
+{ files: [name, ...] }, a bubbling CustomEvent from the component root.
+{% endcomment %}
+{% with help_id=id|add:"_help" error_id=id|add:"_errors" %}
+<div class="bw-field{% if errors %} bw-field--invalid{% endif %}">
+  <div class="bw-field__control">
+    <label class="bw-dropzone" x-data="bwDropzone()" data-bw-dropzone for="{{ id }}">
+      {% bw_icon "upload" size="lg" decorative=True css_class="bw-dropzone__icon" %}
+      <span class="bw-dropzone__label">{{ label }}</span>
+      {% if help_text %}<span class="bw-dropzone__hint" id="{{ help_id }}">{{ help_text }}</span>{% endif %}
+      <input class="bw-dropzone__input"
+             type="file"
+             id="{{ id }}"
+             name="{{ name }}"
+             {% if multiple %}multiple{% endif %}
+             {% if accept %}accept="{{ accept }}"{% endif %}
+             {% if errors %}aria-invalid="true"{% endif %}
+             {% if help_text %}aria-describedby="{{ help_id }} {{ error_id }}"{% else %}aria-describedby="{{ error_id }}"{% endif %}
+             data-bw-dropzone-input>
+      <ul class="bw-dropzone__files" data-bw-dropzone-files></ul>
+    </label>
+  </div>
+  <div class="bw-field__errors" id="{{ error_id }}" role="alert">
+    {% for error in errors %}
+      <p class="bw-field__error">{{ error }}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endwith %}
