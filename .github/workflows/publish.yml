@@ -1,36 +1,25 @@
-name: Publish django-brickwork to the private index
+name: Publish django-brickwork to PyPI
 
-# Canonical publish template for PRIVATE ICV package repos
-# (templates/repo/publish-private.yml). Public repos use publish.yml
-# (OIDC to PyPI); private repos publish to the private index at
-# https://pypi.icvoss.com/ per ADR-020.
+# Public publish workflow (OIDC trusted publishing to PyPI). brickwork
+# graduated from the private index (pypi.icvoss.com) to public PyPI; this
+# replaces publish-private.yml.
 #
-# Copy to .github/workflows/publish.yml and replace:
-#   __PACKAGE_NAME__  package / repo name, e.g. icv-cms
-#   __TEST_DB__       CI PostgreSQL database name, e.g. icv_cms_test
-# SQLite packages: strip the postgres service block and POSTGRES_* env as in ci.yml.
+# OIDC trusted publishing: no API token or Actions secret is required.
+# Configure the trusted publisher in the PyPI project settings:
+#   Publisher: GitHub Actions
+#   Owner: icvoss
+#   Repository: django-brickwork
+#   Workflow: publish.yml
+#   Environment: pypi
+# The `pypi` GitHub environment must exist on this repo (Settings ->
+# Environments -> pypi); add a required reviewer there to gate each publish.
 #
-# RUNNER AND AUTH (owner ruling 2026-07-23, zero-GitHub-secrets
-# convention): every job runs on ubuntu-latest EXCEPT the publish job,
-# which runs on `[self-hosted, icv-vps]` and resolves the index
-# credentials from the runner user's ~/.netrc entry for pypi.icvoss.com at
-# run time. No repository or organisation Actions secrets (the icvoss org
-# is on the GitHub free plan, where org secrets cannot reach private
-# repos; per-repo PRIVATE_PYPI_* secrets are the deprecated older
-# convention, still present on repos released before this ruling). If the
-# netrc entry is missing, the publish job fails fast before any upload:
-# fix the netrc on the runner host and re-run the workflow; never re-tag.
-# If the test job needs private-index deps (icv-provider-adapters,
-# icv-connections, ...), run it on the self-hosted runner too and install
-# with --extra-index-url read from the same netrc, not from secrets: see
-# the commented pattern above the test job's install step below. Packages
-# with only public deps (the common case) need no private index in CI at
-# all; do not carry an inert PIP_EXTRA_INDEX_URL line.
+# Triggered by tags of the form: v1.0.0rc1
 #
-# Triggered by tags of the form: v0.4.0
-#
-# The index rejects nothing on re-upload of an existing version file name;
-# treat versions as immutable anyway: never re-tag a published version.
+# Pushing a v* tag IS publishing (irreversible). PyPI rejects a re-upload of
+# an existing version file name; treat versions as immutable and never re-tag
+# a published version. CI refuses to publish without a matching CHANGELOG
+# entry (the resolve job's gate below).
 
 on:
   push:
@@ -45,6 +34,9 @@ env:
 
 permissions:
   contents: write
+  # OIDC trusted publishing to PyPI: the publish job exchanges this token for a
+  # short-lived PyPI credential, so no API token or Actions secret is stored.
+  id-token: write
 
 jobs:
   # 1. Parse version from the tag
@@ -186,73 +178,24 @@ jobs:
           path: dist/
           if-no-files-found: error
 
-  # 4. Publish to the private index. Runs on the VPS runner: the index
-  # credentials come from the runner user's ~/.netrc, never from GitHub
-  # secrets (see the header note).
+  # 4. Publish to PyPI via OIDC trusted publishing. No API token or secret:
+  # the `pypi` environment plus id-token: write authenticates the upload
+  # (see the header note for the PyPI project trusted-publisher config).
   publish:
-    name: Publish django-brickwork to pypi.icvoss.com
-    runs-on: [self-hosted, icv-vps]
+    name: Publish django-brickwork to PyPI
+    runs-on: ubuntu-latest
     needs: [resolve, build]
-    environment: private-pypi
+    environment: pypi
 
     steps:
-      # The self-hosted runner is persistent: wipe any dist/ left by a prior
-      # publish run before downloading this run's artifacts, or twine would
-      # upload a stale wheel and 400 on the duplicate.
-      - name: Clean the dist directory
-        run: rm -rf dist
-
       - name: Download dist artifacts
         uses: actions/download-artifact@v8
         with:
           name: dist-django-brickwork-${{ needs.resolve.outputs.version }}
           path: dist/
 
-      - name: Publish to the private index (credentials from the runner netrc)
-        run: |
-          NETRC="$HOME/.netrc"
-          # Root-owned source of truth for the index credentials, placed on the
-          # runner host once (root:root, 0600). The live ~/.netrc has repeatedly
-          # gone missing or become unreadable across releases (rc13/rc14/cms
-          # rc1); self-heal from the source so a wiped or mis-owned file repairs
-          # itself here instead of failing the publish. See docs/RELEASING.md.
-          NETRC_SOURCE="/etc/icv/pypi-netrc"
-
-          # Diagnostics: reveal the true HOME / workspace / file state so a
-          # recurrence shows WHY (deleted vs unreadable vs workspace==HOME).
-          echo "HOME=$HOME  GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-          echo "netrc state:"; ls -la "$NETRC" 2>&1 || echo "  (no $NETRC)"
-
-          have_entry() { grep -q "machine pypi.icvoss.com" "$1" 2>/dev/null; }
-
-          if ! have_entry "$NETRC"; then
-            echo "::warning::$NETRC missing or unreadable / lacks the pypi.icvoss.com entry; attempting self-heal from $NETRC_SOURCE."
-            if sudo -n test -r "$NETRC_SOURCE" 2>/dev/null; then
-              sudo -n install -o "$(id -un)" -g "$(id -gn)" -m 600 "$NETRC_SOURCE" "$NETRC"
-              echo "Restored $NETRC from $NETRC_SOURCE."
-            fi
-          fi
-
-          if ! have_entry "$NETRC"; then
-            echo "::error::$NETRC has no readable pypi.icvoss.com entry and self-heal failed."
-            echo "::error::Place the credentials at $NETRC_SOURCE (root:root, 0600) so the runner self-heals, or restore $NETRC directly, then RE-RUN this workflow. Do not re-tag. See docs/RELEASING.md."
-            exit 1
-          fi
-          export TWINE_USERNAME="$(awk '/machine pypi.icvoss.com/{f=1} f && /login/{print $2; exit}' "$NETRC")"
-          export TWINE_PASSWORD="$(awk '/machine pypi.icvoss.com/{f=1} f && /password/{print $2; exit}' "$NETRC")"
-          # The host Python is Debian externally-managed (PEP 668), so twine
-          # runs from an ephemeral venv in the job temp dir, not --user.
-          if command -v twine >/dev/null 2>&1; then
-            TWINE="$(command -v twine)"
-          else
-            python3 -m venv "$RUNNER_TEMP/twine-venv"
-            "$RUNNER_TEMP/twine-venv/bin/pip" install --quiet --upgrade twine
-            TWINE="$RUNNER_TEMP/twine-venv/bin/twine"
-          fi
-          # No --skip-existing: this pypiserver index rejects it as an
-          # unsupported configuration. The clean-dist step above prevents a
-          # stale wheel from a prior run being re-uploaded.
-          "$TWINE" upload --non-interactive --repository-url https://pypi.icvoss.com/ dist/*
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
   # 5. Create GitHub Release
   release:
