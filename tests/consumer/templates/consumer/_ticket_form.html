@@ -1,0 +1,15 @@
+{% load brickwork_forms brickwork_components %}
+{% comment %}
+The 422 swap target (BR-BW-HTMX-003): hx-target="this" hx-swap="outerHTML".
+Rendered through {% bw_form %} (0.15.0), not a per-field loop, proving the
+whole-form renderer against a real 422/200/302 view loop.
+{% endcomment %}
+<form id="ticket-form" class="bw-form" method="post"
+      hx-post="{{ request.path }}" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  {% bw_form form %}
+  <div class="bw-form__actions">
+    {% bw_button "Save" type="submit" variant="primary" icon="check" %}
+    {% bw_button "Cancel" href="/tickets/" variant="ghost" %}
+  </div>
+</form>

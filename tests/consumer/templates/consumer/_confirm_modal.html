@@ -1,0 +1,20 @@
+{% extends "brickwork/components/_modal.html" %}
+{% comment %}
+The consumer's modal partial (brickwork#61 "exercise the shipped surface"):
+extends the shipped chrome, filled by TicketConfirmView.
+{% endcomment %}
+
+{% block modal_body %}
+  <p>This permanently removes every demo ticket. Type <strong>CLEAR</strong> to confirm.</p>
+  <form id="confirm-clear-form" method="post" action="{% url 'consumer:surface-confirm' %}">
+    {% csrf_token %}
+    <label class="bw-field__label" for="confirm-clear-input">Confirmation</label>
+    <input class="bw-input" id="confirm-clear-input" name="confirm" type="text" required data-bw-autofocus>
+  </form>
+{% endblock %}
+
+{% block modal_footer %}
+  <footer class="bw-modal__footer">
+    <button class="bw-btn bw-btn--danger bw-btn--md" type="submit" form="confirm-clear-form">Clear tickets</button>
+  </footer>
+{% endblock %}

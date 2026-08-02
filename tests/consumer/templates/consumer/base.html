@@ -1,0 +1,12 @@
+{% extends "brickwork/shell/app.html" %}
+{% load brickwork_nav %}
+{% comment %}
+The consumer harness's shared page shell (V3-shaped, brickwork#61). Fills the
+nav and sidebar header once so every page in tests/consumer/ exercises the
+same wiring: bw_nav_items/bw_active_nav_item come from
+consumer.context_processors.consumer_context (feature-gated per nav.py),
+tenant_brand_name comes from TenantHostMiddleware via the same processor.
+{% endcomment %}
+{% block brand_wordmark %}<p class="bw-sidebar__brand">{{ tenant_brand_name }}</p>{% endblock %}
+{% block sidebar %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}
+{% block mobile_nav %}{% bw_nav items=bw_nav_items active=bw_active_nav_item %}{% endblock %}

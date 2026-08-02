@@ -1,0 +1,12 @@
+{% extends "consumer/base.html" %}
+
+{% block page_title %}Reports{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Reports" %}
+{% endblock %}
+
+{% block content %}
+  <p>Reports are reachable directly regardless of the reports_beta flag: nav
+  visibility gates the LINK, never the view (BR-BW-NAV-005).</p>
+{% endblock %}

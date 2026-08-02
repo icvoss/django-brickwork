@@ -1,0 +1,11 @@
+{% extends "consumer/base.html" %}
+{% comment %}
+The modal's no-JS floor (BR-BW-HTMX-006): the same consumer modal partial
+rendered inside the full shell.
+{% endcomment %}
+
+{% block page_title %}Clear demo tickets{% endblock %}
+
+{% block content %}
+  {% include "consumer/_confirm_modal.html" %}
+{% endblock %}

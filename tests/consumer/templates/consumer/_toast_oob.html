@@ -1,0 +1,9 @@
+{% load brickwork_interactions %}
+{% comment %}
+The htmx delivery response (BR-BW-HTMX-007): the OOB wrapper prepends one
+server-rendered toast into the shell's #bw-toast-region.
+{% endcomment %}
+<div hx-swap-oob="afterbegin:#bw-toast-region">
+  {% bw_toast message intent="success" duration="normal" %}
+</div>
+<p id="surface-toast-status">{{ message }}</p>

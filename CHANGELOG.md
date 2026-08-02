@@ -8,6 +8,29 @@ versioning contract).
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-08-02
+
+Test infrastructure only: no source changes (brickwork#61).
+
+### Added
+
+- **Consumer smoke harness** (`tests/consumer/`, `tests/settings_consumer.py`,
+  `tests/test_consumer_smoke.py`, brickwork#61): a SECOND, V3-shaped
+  integration fixture alongside the existing `brickwork_testapp`/
+  `settings_seams` harness, run as its own CI leg (`settings_consumer`).
+  Exercises the seams every brownfield adopter hits: multi-host shell
+  branding (a simulated django-hosts-style middleware resolving a tenant from
+  the request host), a `BRICKWORK_THEME_RESOLVER` tenant resolver proving the
+  `brickwork.context_processors.theme` mapping onto the shell's `bw_*`
+  attributes per host, a waffle-style `feature_checker` gating a nav item
+  (hidden when its flag is off, visible when on, reachable directly either
+  way per BR-BW-NAV-005), and the full 422 HTMX form-swap loop
+  (BR-BW-HTMX-003) through the `{% bw_form %}` whole-form renderer (0.15.0).
+  A further page composes the wider shipped interaction/component set (a
+  modal trigger, a slide-over trigger, a selectable data table, a stepper,
+  and a toast trigger) so the leg catches a cross-component integration
+  break, not just the four named seams.
+
 ## [0.15.0] - 2026-08-02
 
 The two highest-cost V3 adoption gaps (#47 section 2/3): table bulk-selection
