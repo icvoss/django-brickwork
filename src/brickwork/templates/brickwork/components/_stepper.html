@@ -1,0 +1,71 @@
+{% load i18n brickwork_icons %}
+{% comment %}
+Stepper (04-interfaces section 4b, 0.14.0, brickwork#59): a progress
+indicator for a multi-step flow. Consumed via {% include %} (purely
+structural, matching _disclosure.html/_progress.html): the component ships
+no JavaScript, registers no Alpine.data component, and re-emits no bw:
+event. Step NAVIGATION is server-driven (a normal multi-page form flow,
+each step its own route); this template renders only the progress
+indicator, never the flow itself.
+
+Progressive enhancement (BR-BW-HTMX-001/006): this markup IS the no-JS
+floor by construction, holding through zero JavaScript. It is an ordered
+list, so a screen reader announces "step 2 of 4" style position
+information natively from the list semantics alone.
+
+A11y (WCAG 2.2, status never carried by colour alone): the current step
+gets aria-current="step" (the APG convention for a step indicator). Each
+step's status is conveyed by a state glyph (a check icon for complete,
+a filled/outlined marker distinguishes current from upcoming via the CSS
+state classes) PLUS visually-hidden text naming the state in words
+("Completed", "Current step", "Not started"), so a user who cannot
+perceive colour or shape still gets the status as text. Connectors between
+steps are decorative (aria-hidden): they carry no information a screen
+reader needs beyond the list order it already announces.
+
+Required context:
+  steps: a list of {label, status} dicts, status one of "complete" |
+      "current" | "upcoming". The view supplies this (typically by
+      comparing each step's position against the current step number);
+      brickwork does not track wizard state itself (CBH-alike doctrine:
+      no client-side state machine, server-driven per brickwork#59).
+Optional:
+  orientation ("horizontal"|"vertical", default "horizontal").
+
+Tokens (CSS lane): the numbered marker uses --bw-color-accent for
+complete/current and --bw-color-border for upcoming (never the sole
+signal: the glyph and hidden text above carry the actual state); labels
+use the label type role; connectors are a hairline in --bw-color-border.
+Reduced motion: no transition is load-bearing here (the stepper has no
+open/close state), but any hover/focus colour transition still follows
+the reduced-motion floor via the shared --bw-transition-colors token.
+{% endcomment %}
+<ol class="bw-stepper bw-stepper--{{ orientation|default:'horizontal' }}">
+  {% for step in steps %}
+    <li class="bw-stepper__step bw-stepper__step--{{ step.status }}"
+        {% if step.status == "current" %}aria-current="step"{% endif %}>
+      <span class="bw-stepper__marker" aria-hidden="true">
+        {% if step.status == "complete" %}
+          {% bw_icon "check" size="sm" decorative=True %}
+        {% else %}
+          <span class="bw-stepper__marker-number">{{ forloop.counter }}</span>
+        {% endif %}
+      </span>
+      <span class="bw-stepper__label">
+        {{ step.label }}
+        <span class="bw-visually-hidden">
+          {% if step.status == "complete" %}
+            {% translate "(completed)" %}
+          {% elif step.status == "current" %}
+            {% translate "(current step)" %}
+          {% else %}
+            {% translate "(not started)" %}
+          {% endif %}
+        </span>
+      </span>
+    </li>
+    {% if not forloop.last %}
+      <li class="bw-stepper__connector" aria-hidden="true"></li>
+    {% endif %}
+  {% endfor %}
+</ol>

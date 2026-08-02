@@ -1792,6 +1792,185 @@ a.bw-stat:hover {
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
 }
 
+/* --- Slide-over / side panel (0.14.0, brickwork#55) -------------------------- */
+
+/* Consumed by extending _slide_over.html; two render paths, one partial
+ * (BR-BW-HTMX-001), same shape as the modal above. Markup (per
+ * _slide_over.html):
+ *
+ *   <div class="bw-slide-over bw-slide-over--sm|--md|--lg bw-slide-over--start|--end">
+ *     <div class="bw-slide-over__scrim" aria-hidden="true"></div>
+ *     <div role="dialog" class="bw-slide-over__panel">
+ *       <header class="bw-slide-over__header">
+ *         <h2 class="bw-slide-over__title">...</h2>
+ *         <button class="bw-slide-over__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only">...</button>
+ *       </header>
+ *       <div class="bw-slide-over__body">...</div>
+ *       [<footer class="bw-slide-over__footer">...</footer>]  (consumer-authored block)
+ *     </div>
+ *   </div>
+ *
+ * State model: identical to the modal's (AT REST this is the no-JS floor,
+ * an ordinary in-flow panel on a full page; the overlay physics apply only
+ * under the JS-set [data-bw-open] state). Body scroll locking is x-trap's
+ * noscroll modifier, not a CSS hook. */
+
+/* Inside the dedicated #bw-slide-over-root swap container a panel exists
+ * only to be opened (bwSlideOver opens it on insertion); a closed one
+ * there must not render as an in-flow panel at the end of the page.
+ * Anywhere else a closed panel IS the floor page's visible panel. */
+#bw-slide-over-root .bw-slide-over:not([data-bw-open]) {
+  display: none;
+}
+/* The resting (floor) panel: full block-size, edge-anchored width from the
+ * modal's own size ramp (no separate width token: 28rem-48rem already
+ * covers a side panel's usual range). Flex column so the header and
+ * footer hold still while the body scrolls, matching the modal. */
+.bw-slide-over__panel {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  max-inline-size: var(--bw-size-max-width-modal-md);
+  block-size: 100%;
+  background: var(--bw-color-surface-raised);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  box-shadow: var(--bw-elevation-2);
+}
+/* The open state: a fixed, edge-anchored overlay layer at z-modal, full
+ * block-size, no padding (the panel meets the viewport edge flush). */
+.bw-slide-over[data-bw-open] {
+  position: fixed;
+  inset-block: 0;
+  inset-inline: 0;
+  z-index: var(--bw-z-modal);
+  display: flex;
+}
+.bw-slide-over--end[data-bw-open] {
+  justify-content: flex-end;
+}
+.bw-slide-over--start[data-bw-open] {
+  justify-content: flex-start;
+}
+/* The scrim: identical contract to the modal's. */
+.bw-slide-over[data-bw-open] .bw-slide-over__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--bw-z-overlay);
+  background: var(--bw-color-surface-overlay);
+  animation: bw-fade-in var(--bw-duration-normal) var(--bw-ease-out);
+}
+/* The open panel rises to the modal elevation row and slides in from its
+ * anchored edge (translateX; logical properties mean --end is
+ * inline-end-anchored, so the enter transform is a positive offset under
+ * ltr and flips sign automatically under rtl via the direction-aware
+ * transform: translateX in a dir-aware axis is NOT itself logical, so the
+ * two placements author their own transform direction below). */
+.bw-slide-over[data-bw-open] .bw-slide-over__panel {
+  position: relative;
+  z-index: var(--bw-z-modal);
+  max-block-size: 100%;
+  box-shadow: var(--bw-elevation-4);
+  animation-duration: var(--bw-duration-normal);
+  animation-timing-function: var(--bw-ease-out);
+}
+.bw-slide-over--end[data-bw-open] .bw-slide-over__panel {
+  border-start-start-radius: var(--bw-radius-xl);
+  border-end-start-radius: var(--bw-radius-xl);
+  animation-name: bw-slide-over-in-end;
+}
+.bw-slide-over--start[data-bw-open] .bw-slide-over__panel {
+  border-start-end-radius: var(--bw-radius-xl);
+  border-end-end-radius: var(--bw-radius-xl);
+  animation-name: bw-slide-over-in-start;
+}
+@keyframes bw-slide-over-in-end {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+[dir="rtl"] .bw-slide-over--end[data-bw-open] .bw-slide-over__panel {
+  animation-name: bw-slide-over-in-end-rtl;
+}
+@keyframes bw-slide-over-in-end-rtl {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes bw-slide-over-in-start {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+[dir="rtl"] .bw-slide-over--start[data-bw-open] .bw-slide-over__panel {
+  animation-name: bw-slide-over-in-start-rtl;
+}
+@keyframes bw-slide-over-in-start-rtl {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-slide-over[data-bw-open] .bw-slide-over__scrim,
+  .bw-slide-over[data-bw-open] .bw-slide-over__panel {
+    animation: none;
+  }
+}
+/* Size modifiers: reuse the modal's own width ramp. */
+.bw-slide-over--sm .bw-slide-over__panel {
+  max-inline-size: var(--bw-size-max-width-modal-sm);
+}
+.bw-slide-over--lg .bw-slide-over__panel {
+  max-inline-size: var(--bw-size-max-width-modal-lg);
+}
+/* Sticky header: title plus the always-present close control, divided
+ * from the scrolling body by a hairline. Density card padding scales the
+ * chrome with the density axis, matching the modal. */
+.bw-slide-over__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--bw-space-3);
+  padding: var(--bw-density-card-padding);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+.bw-slide-over__title {
+  margin: 0;
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+.bw-slide-over__close {
+  flex-shrink: 0;
+}
+.bw-slide-over__body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  padding: var(--bw-density-card-padding);
+  scrollbar-width: thin;
+  scrollbar-color: var(--bw-color-border) transparent;
+}
+.bw-slide-over__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--bw-space-3);
+  padding: var(--bw-density-card-padding);
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
 /* --- Toast region + toast (0.9.0 interaction set, CBH-009..012, CMP-022/023) - */
 
 /* Two pieces (per _toast_region.html / _toast.html). Expected markup:
@@ -2236,6 +2415,111 @@ a.bw-stat:hover {
   }
 }
 
+/* --- Stepper (0.14.0, brickwork#59) ------------------------------------------ */
+
+/* Purely structural (see _stepper.html): an <ol> of steps plus decorative
+ * connector <li>s between them. Status is conveyed by the marker glyph AND
+ * the state colour AND the visually-hidden text in the template, so colour
+ * is never the only signal (WCAG 1.4.1). No JS, no open/close state, so no
+ * reduced-motion override is needed here beyond the shared colour
+ * transition token already gated at its own definition. */
+.bw-stepper {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.bw-stepper--horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+}
+.bw-stepper--vertical {
+  flex-direction: column;
+}
+.bw-stepper__step {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+}
+.bw-stepper--vertical .bw-stepper__step {
+  align-items: flex-start;
+}
+/* The connector: a decorative hairline between steps. Horizontal grows to
+ * fill the row between markers; vertical is a short fixed rule aligned
+ * under the marker column. */
+.bw-stepper__connector {
+  align-self: center;
+  background-color: var(--bw-color-border);
+}
+.bw-stepper--horizontal .bw-stepper__connector {
+  flex: 1 1 auto;
+  block-size: var(--bw-size-border-hairline);
+  margin-inline: var(--bw-space-2);
+}
+.bw-stepper--vertical .bw-stepper__connector {
+  align-self: flex-start;
+  inline-size: var(--bw-size-border-hairline);
+  block-size: var(--bw-space-4);
+  margin-inline-start: calc(var(--bw-size-control-height-sm) / 2 - var(--bw-size-border-hairline) / 2);
+}
+/* The marker: a numbered circle at rest, swapped for a check glyph once
+ * complete (the template makes that swap, not this stylesheet). Colour
+ * distinguishes complete/current/upcoming, but the glyph and the
+ * visually-hidden text (in the template) carry the same information in a
+ * non-colour form, so this is decoration on top of an already-accessible
+ * signal, never the only one. */
+.bw-stepper__marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--bw-size-control-height-sm);
+  block-size: var(--bw-size-control-height-sm);
+  border-radius: var(--bw-radius-full);
+  border: var(--bw-size-border-thick) solid var(--bw-color-border);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  font-weight: var(--bw-font-weight-medium);
+  flex-shrink: 0;
+}
+.bw-stepper__step--complete .bw-stepper__marker {
+  border-color: var(--bw-color-accent);
+  background-color: var(--bw-color-accent);
+  color: var(--bw-color-fg-on-accent);
+}
+.bw-stepper__step--current .bw-stepper__marker {
+  border-color: var(--bw-color-accent);
+  color: var(--bw-color-accent);
+}
+.bw-stepper__label {
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  color: var(--bw-color-fg-muted);
+}
+.bw-stepper__step--current .bw-stepper__label {
+  color: var(--bw-color-fg);
+  font-weight: var(--bw-font-weight-semibold);
+}
+.bw-stepper__step--complete .bw-stepper__label {
+  color: var(--bw-color-fg);
+}
+
+/* --- Wizard pattern (0.14.0, brickwork#59) ------------------------------------ */
+
+/* patterns/wizard.html scaffolding only: the step content wrapper and the
+ * back-link nav row. No form chrome of its own (the step's own <form>
+ * lives inside wizard_step; its submit button is the step's own markup,
+ * following the button-row recipe used elsewhere, e.g. _modal.html's
+ * footer), matching the "structure only" doctrine of the other patterns. */
+.bw-wizard__step {
+  margin-block-start: var(--bw-density-section-gap);
+}
+.bw-wizard__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-3);
+  margin-block-start: var(--bw-density-section-gap);
+}
+
 /* --- Tag / chips input (0.13.0, BR-BW-INPUT-002, brickwork#57) -------------- */
 
 /* One field, two visual rows: the chip run (built by bwTagInput; empty and
@@ -2392,5 +2676,8 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   box-shadow: var(--bw-elevation-5);
 }
 [data-theme="dark"] .bw-modal:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
+  box-shadow: var(--bw-elevation-4);
+}
+[data-theme="dark"] .bw-slide-over[data-bw-open] .bw-slide-over__panel {
   box-shadow: var(--bw-elevation-4);
 }
