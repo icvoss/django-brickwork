@@ -14,18 +14,23 @@ theme axes (brand x theme x density x direction). Applications provide data,
 permissions and business behaviour; the substrate provides structure,
 presentation and interaction conventions.
 
-> Status: **0.3.0, the beautiful-by-default release.** The five semver-governed
+> Status: **0.16.0, graduating to public PyPI.** The five semver-governed
 > public-API contracts (token, template, navigation, interaction, JavaScript)
 > are live, and every component passes two hard gates: is it accessible
-> (axe-core WCAG 2.2 AA in CI) and is it beautiful by default. 0.3.0 ships the
-> complete token vocabulary (elevation, state overlays, type roles, motion,
-> z-index, borders), with the fine colour tokens derived live from a small
-> load-bearing brand set via `color-mix()` (ADR-054 Phase a, additive and
-> non-breaking). The design of record is the spec and brief in the icvoss/oss
-> umbrella:
+> (axe-core WCAG 2.2 AA in CI) and is it beautiful by default. The surface is
+> complete: the application shell and nav, the beautiful-by-default token system
+> (elevation, state overlays, type roles, motion, borders, with fine colours
+> derived live from a small load-bearing brand set via `color-mix()`), the
+> interaction set (modal, toast, dropdown, combobox, tabs, disclosure, tooltip,
+> slide-over), forms with the whole-form renderer and the HTMX 422 loop, the
+> data table with sortable and selectable modes, the feedback and input-chrome
+> primitives, the wizard/stepper, and a machine-readable token contract with a
+> per-tenant brand-CSS emitter. The design of record is the spec and brief in
+> the icvoss/oss umbrella:
 > - Spec: `docs/specs/django-brickwork/` (the five versioned public-API contracts).
-> - Brief: `docs/plans/django-brickwork-request.md`.
-> - Audit evidence: `docs/reviews/django-brickwork-baseline-audit-2026-07-29/`.
+> - Design + branding + integration: `docs/DESIGN.md`, `docs/BRANDING.md`,
+>   `docs/INTEGRATION.md`, `docs/ADOPTION.md`.
+> - Changelog: `CHANGELOG.md` (0.1.0 through 0.16.0).
 
 ## Documentation
 

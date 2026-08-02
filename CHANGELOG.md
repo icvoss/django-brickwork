@@ -8,6 +8,15 @@ versioning contract).
 
 ## [Unreleased]
 
+### Changed
+
+- **Public graduation prep**: the publish pipeline now targets public PyPI via
+  OIDC trusted publishing (`.github/workflows/publish.yml`), replacing the
+  private-index workflow (`publish-private.yml`, removed). The
+  `Development Status` classifier moves to `4 - Beta` (the 1.0.0rc1 tier) and the
+  README status reflects the complete surface. No API-level change; this is
+  release-infrastructure and metadata for the private-to-public flip.
+
 ## [0.16.0] - 2026-08-02
 
 Test infrastructure only: no source changes (brickwork#61).
