@@ -1,6 +1,7 @@
 # brickwork design tokens: the complete reference
 
-**Status:** canonical token reference for brickwork 0.3.0 (ADR-054 Phase a).
+**Status:** canonical token reference for brickwork 0.11.0 (ADR-054 Phase a,
+tier re-grammar per ADR-054 section 7).
 **Authority:** ADR-054 in the umbrella
 (`oss/docs/adrs/ADR-054-brickwork-token-system-and-theme-layers.md`) governs
 the decisions; the umbrella spec (`oss/docs/specs/django-brickwork/`) governs
@@ -16,10 +17,11 @@ blocks a user needs to build beautiful interfaces; our defaults should be
 beautiful.** Every component has two hard gates: is it accessible, and is it
 beautiful by default.
 
-Phase (a) keeps the shipped flat naming (`--bw-color-*`, `--bw-size-*`,
-`--bw-density-*`, `--bw-font-*`); the tier re-grammar (`--bw-space-*`,
-`--bw-component-*`) lands in 0.4.0 per ADR-054 §7. Nothing in this release
-renames or removes a shipped token.
+Phase (a) kept the shipped flat naming (`--bw-color-*`, `--bw-size-*`,
+`--bw-density-*`, `--bw-font-*`) through 0.10.0; the tier re-grammar
+(`--bw-space-*`, `--bw-radius-*`, `--bw-component-*`) landed in 0.11.0 per
+ADR-054 §7, inside the 0.x window before 1.0 freezes the names. Every
+renamed token keeps its old name as a courtesy alias (see section 11).
 
 ---
 
@@ -31,6 +33,13 @@ renames or removes a shipped token.
   base-theme's values.
 - **brand themes**: a delta of ~7-14 load-bearing tokens; everything else
   derives.
+
+**`--bw-primitive-*` is build-time input only, as of 0.11.0.** The raw
+colour/scale ramps behind the DTCG source are consumed by the build to
+compute the semantic and component tokens documented in this file; they are
+no longer emitted to `tokens.css` or available on `:root` (they were,
+through 0.10.0). A consumer never references `--bw-primitive-*` directly;
+every documented token in this file is the correct name to use.
 
 ## 2. The load-bearing minimum
 
@@ -53,6 +62,17 @@ in one line), `--bw-color-fg-on-accent` (contrast pick; verify at 4.5:1),
 the font families (`--bw-font-family-sans/-display/-mono`). Dark mode doubles
 the authored set (dark values are authored, never computed from light,
 BR-BW-TOK-002). Full brand light+dark: ~14-16 values.
+
+**The load-bearing set is machine-readable** (brickwork#39): the DTCG source
+carries `$extensions.bw.loadBearing` plus constraint metadata (contrast
+pairs, allowed ranges) alongside each load-bearing token, and the build
+emits `dist/token-manifest.json`, which holds the load-bearing set with its
+constraints and the full overridable `--bw-*` vocabulary. The Python
+accessor is `services/token_manifest.py`: `load_bearing()`,
+`overridable_names()`, and `is_overridable()`. This file remains the
+narrative reference; the manifest is the machine-checkable source of truth
+for tooling (validation, the brand-CSS emitter in section 3a, brand
+scaffolding).
 
 ## 3. Derivation mechanism
 
@@ -126,6 +146,21 @@ low-level elevation defaults were retuned per the synthesised four-critic
 design review under the owner directive "brickwork is the building blocks to
 build beautiful interfaces; our defaults should be beautiful"; every retuned
 constant re-baselined its $value per the paragraph above.
+
+## 3a. The brand-CSS emitter
+
+**[NEW 0.11.0]** (brickwork#40). `render_brand_css(light, dark=None, *,
+validate=True) -> str` in `services/brand_css.py` (re-exported from
+`services/tokens`) takes a brand's override values (light, and optionally
+dark) and emits the `:root` / `[data-theme="dark"]` override blocks a
+consumer includes after `tokens.css`. With `validate=True` (the default) it
+checks every supplied name against the token manifest (section 2:
+overridable and not build-time-only) and enforces the fg-on-accent contrast
+constraint, raising rather than emitting CSS that would ship an invalid
+name or fail AA. This is the supported primitive behind BRANDING.md's
+per-tenant runtime-branding recipe; this section is a pointer only, the
+worked recipe (multi-tenant lookup, caching, template wiring) lives in
+[BRANDING.md](BRANDING.md).
 
 ## 4. Colour
 
@@ -237,26 +272,34 @@ so hover composes with, rather than replaces, the underlying state.
 (`surface-sunken` on odd rows) → selected (`--bw-state-selected-bg` replaces
 the stripe) → hover overlay (always layers last, on top of whichever
 background resolved). Disabled: opacity remains the mechanism
-(`opacity: var(--bw-disabled-opacity)`), with the nav item as the one
-documented exception, re-coloured via `--bw-color-nav-item-disabled-text`
+(`opacity: var(--bw-component-disabled-opacity)`, was
+`--bw-disabled-opacity` through 0.10.0, kept as a courtesy alias), with the
+nav item as the one documented exception, re-coloured via
+`--bw-component-nav-item-disabled-text`
 instead (no opacity stacking).
 
 **Contrast note:** `fg-muted` text must not sit inside hover-overlaid
 containers; the 4 percent wash sinks it below AA (see 4.2).
 
-### 4.7 Component roles (flat names in 0.3.0; component tier in 0.4.0)
+### 4.7 Component roles (flat names in 0.3.0; component tier in 0.11.0)
+
+The nav, breadcrumb, and skeleton per-component colour roles re-tier from
+`--bw-color-*` to `--bw-component-*` in 0.11.0 (each row's "was" name is
+kept as a courtesy alias). They remain theme-variant: the derivation
+mechanism, load-bearing status, and computed values below are unchanged,
+only the names move.
 
 | Token | LB/D | Light | Dark |
 |---|---|---|---|
-| `--bw-color-nav-item-active-bg` | D | `var(--bw-color-accent-subtle)` | same |
-| `--bw-color-nav-item-active-text` | D | `var(--bw-color-accent-hover)` | **branches**: `color-mix(in oklab, var(--bw-color-accent) 25%, white)` (a high-lightness accent step; the light-mode borrow of accent-hover fails contrast on the dark tint) |
-| `--bw-color-nav-item-active-border` | D | `var(--bw-color-accent)` | same |
-| `--bw-color-nav-item-disabled-text` **[NEW]** | D | `var(--bw-color-fg-subtle)` | same |
-| `--bw-color-nav-section-text` **[NEW]** | D | `var(--bw-color-fg-muted)` | same |
-| `--bw-color-breadcrumb-current` **[NEW]** | D | `var(--bw-color-fg)` | same |
-| `--bw-color-breadcrumb-separator` **[NEW]** | D | `var(--bw-color-fg-subtle)` | same |
-| `--bw-color-skeleton-bg` | D | `color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black)` (0.4.0: constant retuned 94% to 96% to hold the gray.200 landing, one step deeper than the deepened 96.5% sunken) | **direction flips**: `color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white)` |
-| `--bw-color-skeleton-shimmer` | D | `color-mix(in oklab, var(--bw-color-skeleton-bg) 96%, black)` | **direction flips**: `color-mix(in oklab, var(--bw-color-skeleton-bg) 86%, white)` |
+| `--bw-component-nav-item-active-bg` (was `--bw-color-nav-item-active-bg` through 0.10.0; kept as a courtesy alias) | D | `var(--bw-color-accent-subtle)` | same |
+| `--bw-component-nav-item-active-text` (was `--bw-color-nav-item-active-text` through 0.10.0; kept as a courtesy alias) | D | `var(--bw-color-accent-hover)` | **branches**: `color-mix(in oklab, var(--bw-color-accent) 25%, white)` (a high-lightness accent step; the light-mode borrow of accent-hover fails contrast on the dark tint) |
+| `--bw-component-nav-item-active-border` (was `--bw-color-nav-item-active-border` through 0.10.0; kept as a courtesy alias) | D | `var(--bw-color-accent)` | same |
+| `--bw-component-nav-item-disabled-text` **[NEW]** (was `--bw-color-nav-item-disabled-text` through 0.10.0; kept as a courtesy alias) | D | `var(--bw-color-fg-subtle)` | same |
+| `--bw-component-nav-section-text` **[NEW]** (was `--bw-color-nav-section-text` through 0.10.0; kept as a courtesy alias) | D | `var(--bw-color-fg-muted)` | same |
+| `--bw-component-breadcrumb-current` **[NEW]** (was `--bw-color-breadcrumb-current` through 0.10.0; kept as a courtesy alias) | D | `var(--bw-color-fg)` | same |
+| `--bw-component-breadcrumb-separator` **[NEW]** (was `--bw-color-breadcrumb-separator` through 0.10.0; kept as a courtesy alias) | D | `var(--bw-color-fg-subtle)` | same |
+| `--bw-component-skeleton-bg` (was `--bw-color-skeleton-bg` through 0.10.0; kept as a courtesy alias) | D | `color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black)` (0.4.0: constant retuned 94% to 96% to hold the gray.200 landing, one step deeper than the deepened 96.5% sunken) | **direction flips**: `color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white)` |
+| `--bw-component-skeleton-shimmer` (was `--bw-color-skeleton-shimmer` through 0.10.0; kept as a courtesy alias) | D | `color-mix(in oklab, var(--bw-component-skeleton-bg) 96%, black)` | **direction flips**: `color-mix(in oklab, var(--bw-component-skeleton-bg) 86%, white)` |
 
 ## 5. Elevation
 
@@ -287,7 +330,10 @@ with its component); the card row shipped in 0.5.0 (_card.html).
 
 ## 6. Spacing, radius, borders, z-index, sizing
 
-### 6.1 Spacing (`--bw-size-space-*`; values are Tailwind `--spacing` multiples)
+### 6.1 Spacing (`--bw-space-*`; values are Tailwind `--spacing` multiples)
+
+Was `--bw-size-space-*` through 0.10.0; kept as a courtesy alias. Values
+unchanged.
 
 Shipped: `0, 1 (0.25rem), 2 (0.5), 3 (0.75), 4 (1), 5 (1.25), 6 (1.5),
 8 (2), 10 (2.5), 12 (3)`.
@@ -297,9 +343,12 @@ New: `px (1px)`, `0-5 (0.125rem)`, `1-5 (0.375rem)`, `7 (1.75rem)`,
 `-0-5` (not `-px`) replaces the hardcoded `2px` gaps/paddings so they scale
 with root font size; `-px` exists for true hairline spacing that must not
 scale. `-11` deliberately equals the touch-target minimum. No negative ramp
-(use `calc(var(--bw-size-space-N) * -1)` at the point of use).
+(use `calc(var(--bw-space-N) * -1)` at the point of use).
 
-### 6.2 Radius (`--bw-size-radius-*`)
+### 6.2 Radius (`--bw-radius-*`)
+
+Was `--bw-size-radius-*` through 0.10.0; kept as a courtesy alias. Values
+unchanged.
 
 Shipped: `sm 0.25rem, md 0.375rem, lg 0.5rem, full 9999px`.
 New: `none 0`, `xl 0.75rem`, `2xl 1rem` (Tailwind-aligned values).
@@ -347,9 +396,23 @@ surfaces.
 
 ### 6.6 Sizing
 
+The icon-size scale is `--bw-component-icon-size-*` (was, through 0.10.0,
+two duplicate names for the same values, `--bw-icon-size-*` and
+`--bw-size-icon-*`; both are kept as courtesy aliases, and 0.11.0 dedups
+them to the single component-tier name). This is the scale itself (`-sm`
+through `-2xl`); it is distinct from the inline instance property
+`--bw-icon-size` (no step suffix, set per-icon by `{% bw_icon %}`), which is
+unchanged and is not a scale token.
+
+The un-infixed component tokens below (button radius, icon stroke width,
+content max-width, topbar position, disabled opacity, menu min-width,
+select indicator, checkbox glyph, stat-tile value size, drawer width, toast
+max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
+0.11.0; each row below carries its "was" name as a courtesy alias.
+
 | Token | Value | Notes |
 |---|---|---|
-| `--bw-icon-size-2xl` **[NEW]** | `2.5rem` | empty-state hero icons |
+| `--bw-component-icon-size-2xl` **[NEW]** | `2.5rem` | empty-state hero icons; was `--bw-icon-size-2xl` / `--bw-size-icon-2xl` through 0.10.0, kept as courtesy aliases |
 | `--bw-size-control-height-sm` **[NEW]** | `2rem` | fixed, not density-scaled (sm × compact would break touch targets) |
 | `--bw-size-control-height-md` **[NEW]** | `var(--bw-density-control-height)` | alias of the density token |
 | `--bw-size-control-height-lg` **[NEW]** | `3rem` | fixed |
@@ -359,18 +422,20 @@ surfaces.
 | `--bw-size-max-width-modal-sm` **[NEW]** | `28rem` | matches the auth panel |
 | `--bw-size-max-width-modal-md` **[NEW]** | `32rem` | |
 | `--bw-size-max-width-modal-lg` **[NEW]** | `48rem` | |
-| `--bw-drawer-width` **[NEW]** | `min(20rem, 80vw)` | formalises the drawer literal |
-| `--bw-menu-min-width` **[NEW]** | `12rem` | minimum width for dropdown-shaped panels; the account-menu literal becomes its consumer |
-| `--bw-toast-max-width` **[NEW 0.9.0]** | `24rem` | toast readable measure; the ramp has no step between modal-sm (28rem) and the drawer width, and a toast wants a narrower glanceable line |
-| `--bw-stat-tile-value-size` **[NEW 0.5.0]** | `var(--bw-font-size-3xl)` | stat tile numeral size (VIZ-001); a live reference so the font scale cascades, and the `size` modifiers re-point it per tile |
-| `--bw-select-indicator` **[NEW 0.7.0]** | chevron SVG data URI | select dropdown indicator, drawn at a mid-grey that reads as decorative on both themes |
-| `--bw-checkbox-glyph` **[NEW 0.7.0]** | tick SVG data URI (alpha mask) | consumed via mask-image and painted with `fg-on-accent`, so the glyph stays AA in both themes |
-| `--bw-icon-stroke-width` | `2` | shipped, previously undocumented; the stroke width for the icon set |
-| `--bw-content-max-width` | `72rem` | 0.4.0: was `none`; a default measure cap so bands stop degrading into full-bleed wires on wide monitors (invisible at 1280px); a consumer overrides it, including back to `none` |
-| `--bw-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar |
+| `--bw-component-drawer-width` **[NEW]** | `min(20rem, 80vw)` | formalises the drawer literal; was `--bw-drawer-width` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-menu-min-width` **[NEW]** | `12rem` | minimum width for dropdown-shaped panels; the account-menu literal becomes its consumer; was `--bw-menu-min-width` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-toast-max-width` **[NEW 0.9.0]** | `24rem` | toast readable measure; the ramp has no step between modal-sm (28rem) and the drawer width, and a toast wants a narrower glanceable line; was `--bw-toast-max-width` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-stat-tile-value-size` **[NEW 0.5.0]** | `var(--bw-font-size-3xl)` | stat tile numeral size (VIZ-001); a live reference so the font scale cascades, and the `size` modifiers re-point it per tile; was `--bw-stat-tile-value-size` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-select-indicator` **[NEW 0.7.0]** | chevron SVG data URI | select dropdown indicator, drawn at a mid-grey that reads as decorative on both themes; was `--bw-select-indicator` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-checkbox-glyph` **[NEW 0.7.0]** | tick SVG data URI (alpha mask) | consumed via mask-image and painted with `fg-on-accent`, so the glyph stays AA in both themes; was `--bw-checkbox-glyph` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-icon-stroke-width` | `2` | shipped, previously undocumented; the stroke width for the icon set; was `--bw-icon-stroke-width` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-content-max-width` | `72rem` | 0.4.0: was `none`; a default measure cap so bands stop degrading into full-bleed wires on wide monitors (invisible at 1280px); a consumer overrides it, including back to `none`. Token itself was `--bw-content-max-width` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar; was `--bw-topbar-position` through 0.10.0, kept as a courtesy alias |
 
-The `--bw-size-icon-*` / `--bw-icon-size-*` duplication resolves in 0.4.0
-(keep `--bw-icon-size-*`); 0.3.0 adds `2xl` under both names for parity.
+The `--bw-size-icon-*` / `--bw-icon-size-*` duplication (0.3.0 added `2xl`
+under both names for parity, deferring the dedup) resolves in 0.11.0: both
+collapse to the single `--bw-component-icon-size-*` name, per the tier
+re-grammar in section 4.7.
 
 ### 6.7 Density (all three modes; compact / comfortable / spacious)
 
@@ -525,10 +590,10 @@ unshipped extension point.
 
 | Token | Value | Role |
 |---|---|---|
-| `--bw-disabled-opacity` | `0.5` | existing, unchanged (name migrates in 0.4.0) |
+| `--bw-component-disabled-opacity` | `0.5` | existing value unchanged; was `--bw-disabled-opacity` through 0.10.0, kept as a courtesy alias |
 | `--bw-opacity-muted` **[NEW]** | `0.7` | de-emphasis that is not disabled; conservative floor, re-verify contrast per use |
 | `--bw-opacity-sort-idle` **[NEW]** | `0.4` | names the shipped sort-caret literal (decorative only) |
-| `--bw-htmx-indicator-opacity` **[NEW 0.9.0]** | `0.6` | STA-006 in-flight dimming of an htmx swap target via the `htmx-request` class convention; between disabled (0.5) and muted (0.7) so in-flight never reads as disabled |
+| `--bw-component-htmx-indicator-opacity` **[NEW 0.9.0]** | `0.6` | STA-006 in-flight dimming of an htmx swap target via the `htmx-request` class convention; between disabled (0.5) and muted (0.7) so in-flight never reads as disabled; was `--bw-htmx-indicator-opacity` through 0.10.0, kept as a courtesy alias |
 
 ## 10. Reserved names (documented, deliberately not shipped)
 
@@ -549,6 +614,13 @@ light and dark; and changing a token's meaning while keeping its name is a
 rename in disguise (MAJOR). Accessibility floors (`--bw-focus-ring-width`,
 `--bw-size-touch-target-min`, the reduced-motion block) are never
 brand-configurable.
+
+**0.11.0 tier re-grammar:** the space, radius, icon-size, and component
+tiers were renamed as a batch (`--bw-space-*`, `--bw-radius-*`,
+`--bw-component-icon-size-*`, `--bw-component-*`), each old name kept as a
+courtesy alias per ADR-054 section 7, exercising the "relaxed to direct
+minors inside 0.x" allowance above while the grammar is still free to move
+before 1.0 freezes the names.
 
 ## 12. Tailwind projection (`tailwind-theme.css`) **[NEW 0.10.0]**
 
@@ -584,11 +656,11 @@ values the projection references):
 | Tailwind namespace | Mapped from | Count | Example utility |
 |---|---|---|---|
 | `--color-<name>` | every semantic `--bw-color-<name>` | 51 | `bg-accent`, `text-fg-muted`, `border-danger-border` |
-| `--radius-<step>` | every `--bw-size-radius-<step>` | 7 | `rounded-md`, `rounded-full` |
+| `--radius-<step>` | every `--bw-radius-<step>` (was `--bw-size-radius-<step>` through 0.10.0) | 7 | `rounded-md`, `rounded-full` |
 | `--shadow-<level>` | the elevation ladder `--bw-elevation-<level>` | 6 | `shadow-3` |
 | `--text-<role>` + `--text-<role>--line-height` | the type roles `--bw-text-<role>-size` / `-line-height` | 12 roles (24 keys) | `text-heading-lg`, `text-body-md` |
 | `--font-<name>` | the font stacks `--bw-font-family-<name>` | 3 | `font-sans`, `font-display`, `font-mono` |
-| `--spacing` | the dynamic base `--bw-size-space-1` | 1 | `p-4`, `gap-2`, `mt-8` |
+| `--spacing` | the dynamic base `--bw-space-1` (was `--bw-size-space-1` through 0.10.0) | 1 | `p-4`, `gap-2`, `mt-8` |
 | `--default-font-family`, `--default-mono-font-family` | `--bw-font-family-sans` / `-mono` | 2 | preflight body and code text |
 
 94 declarations in total, regenerated by `npm run build:tokens` from the
@@ -605,13 +677,13 @@ with brickwork's values. The one global override is `--spacing` (12.3).
 
 The space scale is authored as Tailwind `--spacing` multiples of `0.25rem`
 (section 6.1), which is deliberate: projecting the SINGLE dynamic base
-(`--spacing: var(--bw-size-space-1)`) makes every numeric spacing utility
-compute through the brand token (`p-4` becomes
-`calc(var(--bw-size-space-1) * 4)` under `@theme inline`). Defaults are
-byte-for-byte Tailwind's rhythm (`p-4` is still `1rem`), yet a brand or
-density override of `--bw-size-space-1` rescales the whole utility grid
-live. The raw `--bw-size-space-<n>` steps are NOT projected individually:
-the dynamic base covers the entire numeric scale.
+(`--spacing: var(--bw-space-1)`, was `--bw-size-space-1` through 0.10.0,
+kept as a courtesy alias) makes every numeric spacing utility compute
+through the brand token (`p-4` becomes `calc(var(--bw-space-1) * 4)` under
+`@theme inline`). Defaults are byte-for-byte Tailwind's rhythm (`p-4` is
+still `1rem`), yet a brand or density override of `--bw-space-1` rescales
+the whole utility grid live. The raw `--bw-space-<n>` steps are NOT
+projected individually: the dynamic base covers the entire numeric scale.
 
 ### 12.4 Exclusions (deliberate)
 

@@ -51,9 +51,24 @@ def _declarations() -> dict[str, str]:
     return decls
 
 
-def _emitted_bw_names() -> set[str]:
-    """Every --bw-* custom property dist/tokens.css actually emits."""
-    names = set(re.findall(r"^\s*(--bw-[a-z0-9-]+):", (_DIST / "tokens.css").read_text(), re.M))
+_ALIAS_BLOCK_MARKER = "courtesy aliases"
+
+
+def _emitted_bw_names(*, include_aliases: bool = True) -> set[str]:
+    """Every --bw-* custom property dist/tokens.css actually emits.
+
+    By default includes the 0.10.0 -> 0.11.0 courtesy alias block (old names
+    still resolve, so a reference to one is legitimately "emitted"). Pass
+    ``include_aliases=False`` for census logic that must derive its expected
+    set from canonical names only: the alias block re-declares re-tiered
+    component roles (nav/skeleton/breadcrumb) under their OLD --bw-color-*
+    names, which would otherwise wrongly imply those old names should still be
+    part of the projected semantic-colour contract.
+    """
+    css = (_DIST / "tokens.css").read_text()
+    if not include_aliases:
+        css = css.split(_ALIAS_BLOCK_MARKER, 1)[0]
+    names = set(re.findall(r"^\s*(--bw-[a-z0-9-]+):", css, re.M))
     assert names, "no custom properties found in dist/tokens.css"
     return names
 
@@ -89,12 +104,14 @@ def test_load_bearing_mappings_are_exact() -> None:
     for key, value in {
         "--color-accent": "var(--bw-color-accent)",
         "--color-surface": "var(--bw-color-surface)",
-        "--radius-md": "var(--bw-size-radius-md)",
+        "--radius-md": "var(--bw-radius-md)",
         "--shadow-3": "var(--bw-elevation-3)",
         # the spacing scale projects via the DYNAMIC base only: the space
         # scale is authored as Tailwind --spacing multiples of 0.25rem
-        # (DESIGN.md 6.1), so p-4 = calc(var(--bw-size-space-1) * 4)
-        "--spacing": "var(--bw-size-space-1)",
+        # (DESIGN.md 6.1), so p-4 = calc(var(--bw-space-1) * 4). 0.11.0 tier
+        # re-grammar: --bw-size-space-* / --bw-size-radius-* -> --bw-space-* /
+        # --bw-radius-* (the scale IS the role vocabulary, no size- infix).
+        "--spacing": "var(--bw-space-1)",
         # a type role is a size + Tailwind 4 companion-syntax line-height pair
         "--text-body-lg": "var(--bw-text-body-lg-size)",
         "--text-body-lg--line-height": "var(--bw-text-body-lg-line-height)",
@@ -124,12 +141,17 @@ def test_projection_is_exactly_the_semantic_contract() -> None:
     projected, and nothing outside that contract is (no component tier, state
     overlays, z-index, opacity, motion, or focus; no hand-listed subset that
     could silently drift when a token is added)."""
-    emitted = _emitted_bw_names()
+    # Derived from CANONICAL names only: the courtesy alias block re-declares
+    # the re-tiered nav/skeleton/breadcrumb roles under their old --bw-color-*
+    # names, which are not part of the semantic-colour contract any more
+    # (0.11.0 tier re-grammar moved them to --bw-component-*, which this
+    # census deliberately does not project).
+    emitted = _emitted_bw_names(include_aliases=False)
     expected: set[str] = {"--spacing", "--default-font-family", "--default-mono-font-family"}
     for name in emitted:
         if m := re.match(r"^--bw-color-([a-z0-9-]+)$", name):
             expected.add(f"--color-{m.group(1)}")
-        elif m := re.match(r"^--bw-size-radius-([a-z0-9-]+)$", name):
+        elif m := re.match(r"^--bw-radius-([a-z0-9-]+)$", name):
             expected.add(f"--radius-{m.group(1)}")
         elif m := re.match(r"^--bw-elevation-([a-z0-9-]+)$", name):
             expected.add(f"--shadow-{m.group(1)}")
