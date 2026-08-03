@@ -95,7 +95,7 @@ def test_each_marketing_page_renders_no_optional_section_markup_when_empty() -> 
         assert 'class="bw-cta' not in html
         assert 'class="bw-testimonial"' not in html
         assert "bw-logo-cloud__grid" not in html
-        assert "bw-stat-band\"" not in html and "bw-stat-band " not in html
+        assert 'bw-stat-band"' not in html and "bw-stat-band " not in html
         assert "<details" not in html  # no FAQ disclosures rendered
 
 
