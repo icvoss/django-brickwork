@@ -173,6 +173,7 @@ worked recipe (multi-tenant lookup, caching, template wiring) lives in
 | `--bw-color-surface-raised` | D | `var(--bw-color-surface)` (light differentiates via shadow) | `color-mix(in oklab, var(--bw-color-surface) 93%, white)` (dark differentiates via lightness) |
 | `--bw-color-surface-inverse` | D | `var(--bw-color-fg)` | `var(--bw-color-fg)` |
 | `--bw-color-surface-overlay` **[NEW]** | D (light) / authored (dark) | `color-mix(in oklab, var(--bw-color-surface-inverse) 50%, transparent)` | authored `oklch(0 0 0 / 0.6)`: a scrim is dark-over-content in both themes, and dark surface-inverse (`:= fg`) is near-white, so the derivation would yield a light wash |
+| `--bw-color-surface-marketing-tint` **[NEW 1.2.0]** | D | `color-mix(in oklab, var(--bw-color-accent) 8%, var(--bw-color-surface))` | AUTHORED per BR-BW-TOK-002 (not mechanically derived from light): `color-mix(in oklab, var(--bw-color-accent) 12%, var(--bw-color-surface))`, mirroring the light shape (mix toward surface, not toward black like accent-subtle) since a mix-toward-black at a low percentage on an already-near-black dark surface would barely tint |
 
 Rule: any component at elevation 2+ uses `background:
 var(--bw-color-surface-raised)`, both themes.
@@ -430,6 +431,8 @@ max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
 | `--bw-component-checkbox-glyph` **[NEW 0.7.0]** | tick SVG data URI (alpha mask) | consumed via mask-image and painted with `fg-on-accent`, so the glyph stays AA in both themes; was `--bw-checkbox-glyph` through 0.10.0, kept as a courtesy alias |
 | `--bw-component-icon-stroke-width` | `2` | shipped, previously undocumented; the stroke width for the icon set; was `--bw-icon-stroke-width` through 0.10.0, kept as a courtesy alias |
 | `--bw-component-content-max-width` | `72rem` | 0.4.0: was `none`; a default measure cap so bands stop degrading into full-bleed wires on wide monitors (invisible at 1280px); a consumer overrides it, including back to `none`. Token itself was `--bw-content-max-width` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-content-max-width-marketing` **[NEW 1.2.0]** | `80rem` | ADR-055 marketing tokens: a wider content cap than the app shell's content-max-width (72rem), since a marketing canvas wants a wider column than a console. Used by `shell/marketing.html`'s content wrapper. Was `--bw-content-max-width-marketing` at the raw name before the `bw-component-*` rename applied at build time; the raw name is not kept as an alias (introduced post-0.10.0, so no prior consumer depends on it) |
+| `--bw-component-section-gap-marketing` **[NEW 1.2.0]** | `4rem` | ADR-055 marketing tokens: the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA), larger than the app's `--bw-density-section-gap` (2rem comfortable) since marketing pages read as fewer, more generous blocks. Density-agnostic (not itself part of the density axis) |
 | `--bw-component-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar; was `--bw-topbar-position` through 0.10.0, kept as a courtesy alias |
 
 The `--bw-size-icon-*` / `--bw-icon-size-*` duplication (0.3.0 added `2xl`
@@ -507,6 +510,7 @@ consume roles, never raw scale steps, so nothing drifts out of rhythm.
 
 | Role | Family | Size | Leading | Weight | Tracking |
 |---|---|---|---|---|---|
+| `heading-display` **[NEW 1.2.0]** | display | 5xl | tight | bold | tight |
 | `heading-2xl` | display | 2xl | tight | bold | tight |
 | `heading-xl` | display | xl | tight | semibold (0.4.0: was bold; 600 at 24px is the product-chrome cut, 2xl keeps bold for true display use) | tight |
 | `heading-lg` | sans | lg | snug | semibold | normal |
@@ -527,7 +531,9 @@ title heading-md; table th overline voice: xs semibold wide-tracked
 uppercase fg-muted (0.4.0: was label; the header band now reads as column
 apparatus, not a first data row; td body-sm; definition-mode label column
 body-sm + fg-subtle); field label label, help and errors caption; button
-label label; badge caption size at medium weight, tabular-nums; nav link
+label label; badge caption size at medium weight, tabular-nums; marketing hero
+heading heading-display, marketing section heading heading-xl (1.2.0,
+ADR-055 marketing tokens, `brickwork.marketing`); nav link
 body-sm (0.4.0: was body-md; chrome sits a step below content), nav
 section-label overline (uppercase at the component); breadcrumbs body-sm +
 fg-muted, current crumb breadcrumb-current; account-menu item body-sm
@@ -602,6 +608,20 @@ unshipped extension point.
 `--bw-focus-ring-offset-color`, `--bw-opacity-backdrop` (superseded by
 `--bw-color-surface-overlay`), `--bw-font-size-scale-multiplier`. Each ships
 only when a real consumer names the need (YAGNI; ADR-054 §6).
+
+**Marketing tokens (v1.2.0, shipped).** ADR-055 §6 named the likely-new design
+surface for the opt-in `brickwork.marketing` sub-app, and the four tokens it
+anticipated have landed as MINOR additions (ADR-054 §8), entered into their
+matching sections above rather than kept as one-off marketing-scoped classes:
+`--bw-text-heading-display-*` (a `heading-display` type role, §7.4),
+`--bw-component-content-max-width-marketing` and
+`--bw-component-section-gap-marketing` (§6.6), and
+`--bw-color-surface-marketing-tint` (§4.1). Marketing-scoped CSS classes are
+used only where a token would be the wrong shape (a layout construct, not a
+themeable value, e.g. `.bw-hero`, `.bw-pricing-tier`). See ADR-055 in the
+umbrella (`oss/docs/adrs/ADR-055-brickwork-marketing-kit-opt-in-subapp.md`)
+and the wider trajectory this opens
+(`oss/docs/plans/brickwork-templates-catalogue-direction.md`).
 
 ## 11. Semver
 

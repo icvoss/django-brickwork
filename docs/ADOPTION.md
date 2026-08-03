@@ -52,8 +52,24 @@ Decide, up front and in writing, what migrates and what does not:
   detail screens, your dashboards.
 - **Does NOT migrate:** data-viz bodies (charts stay app-owned inside
   `{% block content %}`, a declared brickwork non-goal); anything an engine or
-  third party owns; a separately-branded marketing / public site (brickwork is
-  the *application* substrate, not a marketing-site kit).
+  third party owns; a separately-branded, separately-hosted marketing / public
+  site is not pulled into an *application-shell* cutover (that boundary stops
+  "while we are in here" scope creep mid-migration). The core `brickwork` app is
+  the *application* substrate. Note (ADR-055, from v1.2.0): brickwork now also
+  ships an **opt-in `brickwork.marketing` sub-app** (add `"brickwork.marketing"`
+  to `INSTALLED_APPS`) with marketing page templates (landing / pricing / about),
+  a marketing shell, and eight marketing components (hero, feature grid,
+  pricing tier/table, CTA, testimonial, logo cloud, stat band, FAQ) on the
+  same `--bw-*` token / brand / accessibility contract.
+  If a consumer *wants* its marketing pages on brickwork too (the "one package
+  covers all templating" case), that is now a supported opt-in, migrated on its
+  own schedule, not forced into the console cutover. What brickwork still does not
+  ship is a general-purpose public-website *theme engine* (no page builder, no
+  tenant-arbitrary content or CSS/JS); the marketing kit is a fixed, curated set
+  of templates, not a CMS. The marketing kit is the first slice of a wider
+  templates-catalogue trajectory (layout variants, then themed starter kits,
+  each demand-gated); see `oss/docs/plans/brickwork-templates-catalogue-direction.md`
+  in the umbrella.
 
 Writing the boundary down stops scope creep mid-migration, where "while we are in
 here" quietly pulls non-goals into the cutover.

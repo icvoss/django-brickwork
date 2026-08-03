@@ -1,0 +1,33 @@
+{% comment %}
+Testimonial (04-interfaces.md section 4d): a quote card, the social-proof
+block. Structural, consumed via {% include %} (BR-BW-MKT §4d structural-
+include doctrine).
+
+Required context: quote.
+
+Optional context:
+  author  (str): the attribution name.
+  role    (str): the attribution line (e.g. "CTO, Acme Ltd").
+  avatar  (str, an image URL): rendered with alt implied from author (never
+          an unlabelled image, per the standing a11y non-goal). Omitted
+          renders a text-only quote card, never a broken image.
+  logo    (safe string): a company logo, pre-rendered safe HTML. The caller
+          owns escaping, matching _stat.html's sparkline convention.
+{% endcomment %}
+{% if quote %}
+<figure class="bw-testimonial">
+  <blockquote class="bw-testimonial__quote">
+    <p>{{ quote }}</p>
+  </blockquote>
+  {% if author or role or avatar or logo %}
+    <figcaption class="bw-testimonial__attribution">
+      {% if avatar %}<img class="bw-testimonial__avatar" src="{{ avatar }}" alt="{{ author }}">{% endif %}
+      <div class="bw-testimonial__attribution-text">
+        {% if author %}<span class="bw-testimonial__author">{{ author }}</span>{% endif %}
+        {% if role %}<span class="bw-testimonial__role">{{ role }}</span>{% endif %}
+      </div>
+      {% if logo %}<div class="bw-testimonial__logo">{{ logo }}</div>{% endif %}
+    </figcaption>
+  {% endif %}
+</figure>
+{% endif %}

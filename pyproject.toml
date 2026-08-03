@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-brickwork"
-version = "1.1.0"
+version = "1.2.0"
 description = "Brand-agnostic, app-facing professional UI substrate for server-rendered Django (Tailwind 4, Alpine 3, HTMX 2). Accessible by construction; not a Django-admin skin."
 readme = "README.md"
 license = "MIT"
@@ -87,6 +87,13 @@ brickwork = [
     "static/**/*",
     "icons/vendor/**/*.svg",
     "tokens/source/**/*.json",
+]
+# brickwork.marketing (1.2.0, ADR-055): the opt-in marketing kit sub-app.
+# Templates only, in their own brickwork_marketing/ namespace; it compiles
+# into the same brickwork.css bundle (frontend/src/marketing.css), so it
+# ships no static/ tree of its own.
+"brickwork.marketing" = [
+    "templates/**/*.html",
 ]
 
 [tool.pytest.ini_options]

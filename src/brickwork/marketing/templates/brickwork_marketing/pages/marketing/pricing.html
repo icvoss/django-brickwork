@@ -1,0 +1,43 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+Pricing page (04-interfaces.md section 4d, 1.2.0). A consuming page EXTENDS
+this template, never includes it; the page itself extends
+shell/marketing.html (BR-BW-MKT-005/BR-BW-PAGE-001 at marketing scope).
+
+Blocks (semver-public, BR-BW-TPL-001), in document order:
+  hero     default: _hero.html wired from eyebrow/heading/lede/primary_cta/
+           secondary_cta/media/align context.
+  pricing  default: _pricing_table.html wired from pricing_heading/
+           pricing_lede/tiers/pricing_note. This is the page's REASON TO
+           EXIST (BR-BW-PAGE-002's documented exception): a pricing page
+           with no tiers is a content gap, not a shipped placeholder, so
+           unlike the other blocks this one is not expected to render
+           usefully when tiers is entirely absent (the include itself still
+           empties gracefully; the block is simply the point of the page).
+  faq      default: _faq.html wired from faq_heading/faq_items/
+           faq_single_open.
+  cta      default: _cta.html wired from cta_heading/cta_body/cta_primary/
+           cta_secondary/cta_no_tint.
+
+Required context: none from this template itself (see the pricing note
+above for the practical exception). Optional: see each component's own
+context contract in 04-interfaces.md section 4d.
+{% endcomment %}
+
+{% block content %}
+{% block hero %}
+{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta secondary_cta=secondary_cta media=media align=align %}
+{% endblock %}
+
+{% block pricing %}
+{% include "brickwork_marketing/components/_pricing_table.html" with heading=pricing_heading lede=pricing_lede tiers=tiers note=pricing_note %}
+{% endblock %}
+
+{% block faq %}
+{% include "brickwork_marketing/components/_faq.html" with heading=faq_heading items=faq_items single_open=faq_single_open %}
+{% endblock %}
+
+{% block cta %}
+{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary no_tint=cta_no_tint %}
+{% endblock %}
+{% endblock %}

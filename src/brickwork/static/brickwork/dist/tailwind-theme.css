@@ -49,6 +49,7 @@
   --color-info-on-fg: var(--bw-color-info-on-fg);
   --color-icon-muted: var(--bw-color-icon-muted);
   --color-focus-ring: var(--bw-color-focus-ring);
+  --color-surface-marketing-tint: var(--bw-color-surface-marketing-tint);
   --radius-none: var(--bw-radius-none);
   --radius-sm: var(--bw-radius-sm);
   --radius-md: var(--bw-radius-md);
@@ -62,6 +63,8 @@
   --shadow-3: var(--bw-elevation-3);
   --shadow-4: var(--bw-elevation-4);
   --shadow-5: var(--bw-elevation-5);
+  --text-heading-display: var(--bw-text-heading-display-size);
+  --text-heading-display--line-height: var(--bw-text-heading-display-line-height);
   --text-heading-2xl: var(--bw-text-heading-2xl-size);
   --text-heading-2xl--line-height: var(--bw-text-heading-2xl-line-height);
   --text-heading-xl: var(--bw-text-heading-xl-size);

@@ -109,7 +109,17 @@
       "$type": "dimension",
       "$value": "72rem",
       "$description": "0.4.0 polish: was `none`. A default measure cap so content bands stop degrading into full-bleed wires on wide monitors; invisible at 1280px. A consumer overrides it (including back to `none`) to change the cap."
+    },
+    "max-width-marketing": {
+      "$type": "dimension",
+      "$value": "80rem",
+      "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens): a wider content cap than the app shell's content.max-width (72rem), since a marketing canvas wants a wider column than a console. Used by shell/marketing.html's content wrapper."
     }
+  },
+  "section-gap-marketing": {
+    "$type": "dimension",
+    "$value": "4rem",
+    "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens): the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA and so on), larger than the app's --bw-density-section-gap (2rem comfortable) since marketing pages read as fewer, more generous blocks rather than a dense workspace. Named distinctly from the density-scoped section-gap (not itself density-varying: marketing pages are not scoped by the density axis)."
   },
   "topbar": {
     "position": {

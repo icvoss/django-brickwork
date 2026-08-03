@@ -1,0 +1,48 @@
+{% load brickwork_components brickwork_icons %}
+{% comment %}
+Pricing tier (04-interfaces.md section 4d): one plan card. Structural,
+consumed via {% include %} directly, or looped by _pricing_table.html
+(BR-BW-MKT §4d structural-include doctrine). Reuses _card.html's elevated
+surface shape conceptually (its own markup, per BR-BW-MKT-003's clean-room
+rule) rather than composing _card.html by {% extends %}, since a caller
+looping tiers needs a plain {% include %} per iteration and {% include %}
+cannot fill an {% extends %}d block.
+
+Required context: name, price.
+
+Optional context:
+  period      (str, e.g. "/month").
+  description (str).
+  features    (list of str): each a ticked line.
+  cta         ({label, url}).
+  highlighted (bool, default False): the recommended tier; raised elevation
+              plus an accent border.
+  badge       (str, e.g. "Most popular"): rendered via {% bw_badge %} when
+              highlighted.
+{% endcomment %}
+<div class="bw-pricing-tier{% if highlighted %} bw-pricing-tier--highlighted{% endif %}">
+  {% if highlighted and badge %}
+    <div class="bw-pricing-tier__badge">{% bw_badge badge variant="info" %}</div>
+  {% endif %}
+  <h3 class="bw-pricing-tier__name">{{ name }}</h3>
+  {% if description %}<p class="bw-pricing-tier__description">{{ description }}</p>{% endif %}
+  <p class="bw-pricing-tier__price">
+    <span class="bw-pricing-tier__price-value">{{ price }}</span>
+    {% if period %}<span class="bw-pricing-tier__price-period">{{ period }}</span>{% endif %}
+  </p>
+  {% if features %}
+    <ul class="bw-pricing-tier__features">
+      {% for feature in features %}
+        <li class="bw-pricing-tier__feature">
+          {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-tier__feature-icon" %}
+          <span>{{ feature }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% if cta %}
+    <div class="bw-pricing-tier__cta">
+      {% bw_button cta.label variant=highlighted|yesno:"primary,secondary" size="lg" href=cta.url %}
+    </div>
+  {% endif %}
+</div>

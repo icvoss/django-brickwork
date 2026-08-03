@@ -1,0 +1,40 @@
+{% load brickwork_components %}
+{% comment %}
+Hero (04-interfaces.md section 4d): the marketing headline block. Structural,
+consumed via {% include %} (no render-time a11y enforcement or icon
+resolution of its own, so it follows the _card.html/_page_header.html
+structural-include doctrine, not the tag doctrine, per BR-BW-MKT §4d).
+
+Required context: none. An all-empty hero renders a bare hero band, so a
+page can fill it via context or override the block entirely.
+
+Optional context:
+  eyebrow       (str): a small overline above the heading.
+  heading       (str): the display headline. Rendered as the page's h1: a
+                page composing this include owns exactly one hero per page.
+  lede          (str): the subhead paragraph.
+  primary_cta   ({label, url}): rendered via {% bw_button %} primary.
+  secondary_cta ({label, url}): rendered via {% bw_button %} secondary.
+  media         (safe string): pre-rendered HTML for an image/illustration
+                slot. Omitted renders a text-only hero, never a broken image
+                box. The caller owns escaping (mark it safe at the call
+                site), matching _stat.html's sparkline convention.
+  align         ("start" | "center", default "start").
+
+Uses the display type role (--bw-text-heading-display-*) and the marketing
+section-rhythm token for its own block spacing.
+{% endcomment %}
+<section class="bw-hero bw-hero--{{ align|default:'start' }}">
+  <div class="bw-hero__copy">
+    {% if eyebrow %}<p class="bw-hero__eyebrow">{{ eyebrow }}</p>{% endif %}
+    {% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}
+    {% if lede %}<p class="bw-hero__lede">{{ lede }}</p>{% endif %}
+    {% if primary_cta or secondary_cta %}
+      <div class="bw-hero__actions">
+        {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% endif %}
+        {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% endif %}
+      </div>
+    {% endif %}
+  </div>
+  {% if media %}<div class="bw-hero__media">{{ media }}</div>{% endif %}
+</section>

@@ -1,0 +1,32 @@
+{% extends "brickwork_marketing/pages/marketing/about.html" %}
+{% load brickwork_components %}
+{% comment %}
+The marketing about demo page (1.2.0, brickwork.marketing a11y fixtures):
+a consumer-shaped extension of the shipped about page, filling hero,
+about_body (plain prose, since the page ships no default of its own), stat
+band, testimonial, and CTA with representative content.
+{% endcomment %}
+
+{% block marketing_nav %}
+  <a href="#features">Features</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#about">About</a>
+{% endblock %}
+
+{% block marketing_actions %}
+  <a href="#signin">Sign in</a>
+  {% bw_button "Get started" href="#start" variant="primary" size="sm" %}
+{% endblock %}
+
+{% block about_body %}
+  <h2>Our story</h2>
+  <p>Acme was founded in 2019 to make widget management simple for teams of
+  every size. What started as a weekend project is now trusted by teams
+  across the world.</p>
+  <p>We believe software should be fast, accessible, and beautiful by
+  default, so every team can focus on their work, not their tools.</p>
+{% endblock %}
+
+{% block footer_legal %}
+  &copy; 2026 Acme Ltd. All rights reserved.
+{% endblock %}

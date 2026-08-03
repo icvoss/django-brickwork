@@ -1,0 +1,34 @@
+{% comment %}
+Stat band (04-interfaces.md section 4d): a display-scale metric band.
+Structural, consumed via {% include %} (BR-BW-MKT §4d structural-include
+doctrine). Composes _stat.html's tile shape per BR-BW-MKT-004 (a marketing
+component reuses an existing primitive rather than reimplementing it),
+laid out here as a display-scale band rather than the dashboard KPI row
+patterns/dashboard.html's bw-stat-grid uses.
+
+Required context: none.
+
+Optional context:
+  heading (str): the section heading.
+  stats   (list of dicts): {value, label, trend?, trend_label?}. Each is
+          passed straight through to _stat.html, so the standing VIZ-002 /
+          BR-BW-TPL-007 rule holds unchanged here: a trend without a
+          trend_label is a template-authoring defect in the same class as
+          bw_button's icon-only/aria_label pairing (_stat.html enforces
+          this at its own render, not duplicated here).
+
+An empty (or omitted) stats list renders the heading alone (or nothing, if
+that too is empty).
+{% endcomment %}
+{% if heading or stats %}
+<section class="bw-stat-band-section">
+  {% if heading %}<h2 class="bw-stat-band-section__heading">{{ heading }}</h2>{% endif %}
+  {% if stats %}
+    <div class="bw-stat-band">
+      {% for stat in stats %}
+        {% include "brickwork/components/_stat.html" with label=stat.label value=stat.value trend=stat.trend trend_label=stat.trend_label size="lg" %}
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endif %}

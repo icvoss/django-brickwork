@@ -1,0 +1,37 @@
+{% comment %}
+Pricing table (04-interfaces.md section 4d): arranges 2-4 _pricing_tier
+cards responsively. Structural, consumed via {% include %} (BR-BW-MKT §4d
+structural-include doctrine).
+
+Required context: none.
+
+Optional context:
+  heading (str): the section intro heading.
+  lede    (str): the section intro body.
+  tiers   (list of dicts): each the context _pricing_tier.html accepts
+          (name, price, period, description, features, cta, highlighted,
+          badge). A single tier renders centred (bw-pricing-table--single).
+  note    (str): a fine-print line under the table (e.g. a monthly/annual
+          caveat).
+
+An empty tiers list renders the section intro alone (or nothing, if that
+too is empty), never a fabricated placeholder plan.
+{% endcomment %}
+{% if heading or lede or tiers %}
+<section class="bw-pricing-table-section">
+  {% if heading or lede %}
+    <div class="bw-pricing-table-section__intro">
+      {% if heading %}<h2 class="bw-pricing-table-section__heading">{{ heading }}</h2>{% endif %}
+      {% if lede %}<p class="bw-pricing-table-section__lede">{{ lede }}</p>{% endif %}
+    </div>
+  {% endif %}
+  {% if tiers %}
+    <div class="bw-pricing-table{% if tiers|length == 1 %} bw-pricing-table--single{% endif %}">
+      {% for tier in tiers %}
+        {% include "brickwork_marketing/components/_pricing_tier.html" with name=tier.name price=tier.price period=tier.period description=tier.description features=tier.features cta=tier.cta highlighted=tier.highlighted badge=tier.badge %}
+      {% endfor %}
+    </div>
+    {% if note %}<p class="bw-pricing-table__note">{{ note }}</p>{% endif %}
+  {% endif %}
+</section>
+{% endif %}

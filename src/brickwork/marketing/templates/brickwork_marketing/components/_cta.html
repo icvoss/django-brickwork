@@ -1,0 +1,45 @@
+{% load brickwork_components %}
+{% comment %}
+CTA band (04-interfaces.md section 4d): a full-width call-to-action band,
+the section that closes a marketing page. Structural, consumed via
+{% include %} (BR-BW-MKT §4d structural-include doctrine).
+
+Required context: heading. An absent heading renders nothing at all (the same
+"reason to render" convention every sibling component in this kit follows,
+BR-BW-PAGE-002/BR-BW-MKT-005): the three pages wire this component into a
+normal (non-reason-to-exist) block on every page that uses it, so a page
+extended with no cta_heading in context must not still emit an empty CTA band.
+
+Optional context:
+  body          (str).
+  primary_cta   ({label, url}): rendered via {% bw_button %} primary.
+  secondary_cta ({label, url}): rendered via {% bw_button %} secondary
+                (styled to read on the tinted band, see marketing.css).
+  no_tint       (bool, default False): opts OUT of the tinted band
+                background (composed from --bw-color-surface-marketing-tint,
+                contrast-checked in both themes per BR-BW-MKT-002), for a
+                CTA that should render on the page's own surface instead of
+                standing out as its own band. Named as an opt-out (default
+                False) rather than a tint=True default: a plain {% include %}
+                forwarding an omitted page-level context variable resolves
+                it to an empty string, not None, so a default-True flag
+                combined with Django's |default filter cannot distinguish
+                "the caller never set this" from "the caller explicitly
+                turned it off" and would silently re-enable the tint either
+                way. A default-False flag has no such ambiguity: omitted and
+                explicitly-False both correctly mean "tint stays on".
+{% endcomment %}
+{% if heading %}
+<section class="bw-cta{% if not no_tint %} bw-cta--tint{% endif %}">
+  <div class="bw-cta__inner">
+    <h2 class="bw-cta__heading">{{ heading }}</h2>
+    {% if body %}<p class="bw-cta__body">{{ body }}</p>{% endif %}
+    {% if primary_cta or secondary_cta %}
+      <div class="bw-cta__actions">
+        {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% endif %}
+        {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}

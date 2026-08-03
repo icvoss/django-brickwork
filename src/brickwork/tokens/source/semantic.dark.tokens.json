@@ -408,6 +408,15 @@
           "derived": "color-mix(in oklab, var(--bw-color-skeleton-bg) 86%, white)"
         }
       }
+    },
+    "surface-marketing-tint": {
+      "$value": "oklch(0.2432 0.0242 263.68)",
+      "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens), AUTHORED for dark per BR-BW-TOK-002 (never derived from the light value). Mixed toward the dark surface at 12% (mirroring the light theme's own accent-toward-surface shape, unlike accent-subtle's mix-toward-black, which would read as near-black at this low a percentage on an already-dark surface): a faint lift off surface (dark surface L 0.18, surface-raised L 0.237) rather than a heavy tint; text placed on it clears WCAG AA in both themes (BR-BW-MKT-002).",
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-accent) 12%, var(--bw-color-surface))"
+        }
+      }
     }
   },
   "state": {

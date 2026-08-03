@@ -1,0 +1,48 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+About page (04-interfaces.md section 4d, 1.2.0). A consuming page EXTENDS
+this template, never includes it; the page itself extends
+shell/marketing.html (BR-BW-MKT-005/BR-BW-PAGE-001 at marketing scope).
+
+Blocks (semver-public, BR-BW-TPL-001), in document order:
+  hero        default: _hero.html wired from eyebrow/heading/lede/
+              primary_cta/secondary_cta/media/align context.
+  about_body  default: empty. A prose/section stack the consumer fills
+              (e.g. _card includes, or plain prose relying on the shell's
+              own content typography floor). This block has no default
+              component of its own: the "about" narrative is inherently
+              bespoke copy, not a composable data shape (unlike the other
+              pages' blocks, which wire structured context into a shared
+              component).
+  stats       default: _stat_band.html wired from stats_heading/stats.
+  testimonial default: _testimonial.html wired from quote/author/role/
+              avatar/testimonial_logo.
+  cta         default: _cta.html wired from cta_heading/cta_body/
+              cta_primary/cta_secondary/cta_no_tint.
+
+Every block empties gracefully (BR-BW-PAGE-002 at marketing scope). Required
+context: none. Optional: see each component's own context contract in
+04-interfaces.md section 4d.
+{% endcomment %}
+
+{% block content %}
+{% block hero %}
+{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta secondary_cta=secondary_cta media=media align=align %}
+{% endblock %}
+
+<div class="bw-section-stack">
+{% block about_body %}{% endblock %}
+</div>
+
+{% block stats %}
+{% include "brickwork_marketing/components/_stat_band.html" with heading=stats_heading stats=stats %}
+{% endblock %}
+
+{% block testimonial %}
+{% include "brickwork_marketing/components/_testimonial.html" with quote=quote author=author role=role avatar=avatar logo=testimonial_logo %}
+{% endblock %}
+
+{% block cta %}
+{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary no_tint=cta_no_tint %}
+{% endblock %}
+{% endblock %}
