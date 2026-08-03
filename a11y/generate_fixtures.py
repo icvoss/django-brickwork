@@ -25,6 +25,7 @@ import django
 
 django.setup()
 
+from django import forms  # noqa: E402
 from django.template import engines  # noqa: E402
 from django.template.loader import render_to_string  # noqa: E402
 from django.test import RequestFactory  # noqa: E402
@@ -1105,6 +1106,223 @@ def render_bw_form_fixture(theme: str) -> str:
     )
 
 
+# --- the 1.1.0 page-templates kit fixtures (#73's account-menu sign-out is
+# fixtured alongside them since both ship in the same release) -------------
+#
+# form-page-<theme>.html         pages/form_page.html extended with a real
+#                                 consumer <form> wrapping {% bw_form form %}
+#                                 plus a submit button in form_body.
+# settings-<theme>.html          pages/settings.html with a non-empty
+#                                 settings_tabs + active_tab (the real tabs
+#                                 floor) and a settings_body filled with a
+#                                 _card wrapping {% bw_form %}.
+# console-<theme>.html           pages/console.html with heading+body for
+#                                 the default empty-state body.
+# confirm-<theme>.html           pages/confirm.html with a warning _alert in
+#                                 confirm_body and a POST form + cancel link
+#                                 in confirm_actions.
+# auth-signin-<theme>.html       pages/auth_signin.html extended with a
+#                                 consumer <form> wrapping {% bw_form form %}
+#                                 (a small login-shaped form), a submit, an
+#                                 auth_secondary link, and the auth shell's
+#                                 brand_logo/brand_wordmark filled so axe sees
+#                                 the branded panel.
+# account-menu-post-<theme>.html a standalone page (mirrors render_feedback's
+#                                 self-contained shape) rendering
+#                                 _account_menu.html OPEN with a normal link
+#                                 item and a method="post" danger sign-out
+#                                 item, rendered with a request+CSRF context
+#                                 so the token renders.
+
+_FORM_PAGE_SOURCE = (
+    "{% extends 'brickwork/pages/form_page.html' %}"
+    "{% load brickwork_forms brickwork_components %}"
+    "{% block page_title %}New widget{% endblock %}"
+    "{% block form_body %}"
+    '<form method="post" action="/widgets/new/">'
+    "{% csrf_token %}"
+    "{% bw_form form %}"
+    '{% bw_button label="Save" type="submit" variant="primary" %}'
+    "</form>"
+    "{% endblock %}"
+)
+
+
+def render_form_page(theme: str) -> str:
+    from brickwork_testapp.forms import WidgetForm
+    from django.urls import resolve
+
+    request = RequestFactory().get("/widgets/new/")
+    request.resolver_match = resolve("/widgets/new/")
+    ctx = _base_context(request, theme)
+    ctx.update({"title": "New widget", "description": "Create a widget.", "form": WidgetForm()})
+    html = engines["django"].from_string(_FORM_PAGE_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
+
+
+_SETTINGS_TABS = [
+    {"key": "profile", "label": "Profile"},
+    {"key": "billing", "label": "Billing"},
+]
+
+_SETTINGS_BODY_SOURCE = (
+    "{% extends 'brickwork/pages/settings.html' %}"
+    "{% load brickwork_forms %}"
+    "{% block page_title %}Settings{% endblock %}"
+    "{% block settings_body %}"
+    '<div class="bw-card">'
+    '<div class="bw-card__body">'
+    "{% bw_form form %}"
+    "</div>"
+    "</div>"
+    "{% endblock %}"
+)
+
+
+def render_settings(theme: str) -> str:
+    from brickwork_testapp.forms import WidgetForm
+    from django.urls import resolve
+
+    request = RequestFactory().get("/settings/?tab=profile")
+    request.resolver_match = resolve("/settings/")
+    ctx = _base_context(request, theme)
+    ctx.update(
+        {
+            "title": "Settings",
+            "settings_tabs": _SETTINGS_TABS,
+            "active_tab": "profile",
+            "form": WidgetForm(),
+        }
+    )
+    html = engines["django"].from_string(_SETTINGS_BODY_SOURCE).render(ctx)
+    return _inline_css(html)
+
+
+def render_console(theme: str) -> str:
+    from django.urls import resolve
+
+    request = RequestFactory().get("/dashboard/")
+    request.resolver_match = resolve("/dashboard/")
+    ctx = _base_context(request, theme)
+    ctx.update(
+        {
+            "title": "Reports",
+            "bw_page_title": "Reports",
+            "heading": "No reports yet",
+            "body": "Generate your first report to see it appear here.",
+        }
+    )
+    return _inline_css(render_to_string("brickwork/pages/console.html", ctx, request=request))
+
+
+_CONFIRM_SOURCE = (
+    "{% extends 'brickwork/pages/confirm.html' %}"
+    "{% load brickwork_components %}"
+    "{% block page_title %}Delete this widget?{% endblock %}"
+    "{% block confirm_body %}"
+    "<h1>Delete this widget?</h1>"
+    '<div class="bw-alert bw-alert--warning" role="alert">'
+    '<div class="bw-alert__body">'
+    '<p class="bw-alert__title">Delete this widget?</p>'
+    '<p class="bw-alert__message">This cannot be undone.</p>'
+    "</div>"
+    "</div>"
+    "{% endblock %}"
+    "{% block confirm_actions %}"
+    '<form method="post" action="/widgets/1/delete/">'
+    "{% csrf_token %}"
+    '{% bw_button label="Delete" type="submit" variant="danger" %}'
+    "</form>"
+    '{% bw_button label="Cancel" href="/widgets/" variant="ghost" %}'
+    "{% endblock %}"
+)
+
+
+def render_confirm(theme: str) -> str:
+    request = RequestFactory().get("/widgets/1/delete/")
+    ctx = {"request": request, "bw_theme": theme, "bw_density": "comfortable", "bw_dir": "ltr"}
+    html = engines["django"].from_string(_CONFIRM_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
+
+
+class _DemoSigninForm(forms.Form):
+    """A small login-shaped form, deliberately backend-agnostic-named (the
+    field name is not asserted anywhere; the fixture only proves the axe
+    gate examines real, labelled field chrome inside auth_body)."""
+
+    email = forms.EmailField(label="Email address")
+    password = forms.CharField(label="Password", widget=forms.PasswordInput)
+
+
+_AUTH_SIGNIN_SOURCE = (
+    "{% extends 'brickwork/pages/auth_signin.html' %}"
+    "{% load brickwork_forms brickwork_components %}"
+    "{% block page_title %}Sign in{% endblock %}"
+    '{% block brand_wordmark %}<span class="bw-auth__brand">Acme</span>{% endblock %}'
+    "{% block auth_body %}"
+    '<form method="post" action="/accounts/login/">'
+    "{% csrf_token %}"
+    "{% bw_form form %}"
+    '{% bw_button label="Sign in" type="submit" variant="primary" %}'
+    "</form>"
+    "{% endblock %}"
+    "{% block auth_secondary %}"
+    '{% bw_button label="Forgot password?" href="/accounts/password/reset/" variant="ghost" size="sm" %}'
+    "{% endblock %}"
+)
+
+
+def render_auth_signin(theme: str) -> str:
+    request = RequestFactory().get("/accounts/login/")
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "form": _DemoSigninForm(),
+    }
+    html = engines["django"].from_string(_AUTH_SIGNIN_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
+
+
+_ACCOUNT_MENU_ITEMS = [
+    {"label": "Settings", "url": "/settings/", "icon": "settings"},
+    {"label": "Sign out", "url": "/logout/", "icon": "log-out", "danger": True, "method": "post"},
+]
+
+_ACCOUNT_MENU_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Account menu, POST sign-out (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Account menu (open, POST sign-out)</h1>
+  __ACCOUNT_MENU__
+</main>
+</body>
+</html>
+"""
+
+
+def render_account_menu_post(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    request = RequestFactory().get("/")
+    menu_html = render_to_string(
+        "brickwork/components/_account_menu.html",
+        {"items": _ACCOUNT_MENU_ITEMS, "menu_open": True},
+        request=request,
+    )
+    return (
+        _ACCOUNT_MENU_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__ACCOUNT_MENU__", menu_html)
+    )
+
+
 def main() -> None:
     written = []
     projection_css = build_projection_css()
@@ -1160,6 +1378,14 @@ def main() -> None:
         # bound-invalid render (field + non-field errors)
         (OUT / f"table-selection-{theme}.html").write_text(render_table_selection(theme))
         (OUT / f"bw-form-{theme}.html").write_text(render_bw_form_fixture(theme))
+        # the 1.1.0 page-templates kit (form_page, settings, console, confirm,
+        # auth_signin) plus #73's POST sign-out account-menu item
+        (OUT / f"form-page-{theme}.html").write_text(render_form_page(theme))
+        (OUT / f"settings-{theme}.html").write_text(render_settings(theme))
+        (OUT / f"console-{theme}.html").write_text(render_console(theme))
+        (OUT / f"confirm-{theme}.html").write_text(render_confirm(theme))
+        (OUT / f"auth-signin-{theme}.html").write_text(render_auth_signin(theme))
+        (OUT / f"account-menu-post-{theme}.html").write_text(render_account_menu_post(theme))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -1189,6 +1415,12 @@ def main() -> None:
             f"wizard-{theme}",
             f"table-selection-{theme}",
             f"bw-form-{theme}",
+            f"form-page-{theme}",
+            f"settings-{theme}",
+            f"console-{theme}",
+            f"confirm-{theme}",
+            f"auth-signin-{theme}",
+            f"account-menu-post-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())

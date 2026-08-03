@@ -1,0 +1,35 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+Console page (page-templates kit, v1.1.0): a blank-slate or holding console,
+the shape for a section that has no data yet and no dedicated pattern of its
+own. A consuming page EXTENDS this template, never includes it; the pattern
+itself extends shell/app.html, so every shell block stays available to the
+extending page.
+
+Blocks (semver-public, BR-BW-TPL-001):
+  page_header   default: _page_header.html wired from title/description,
+                same convention as patterns/list.html.
+  console_body  default: {% include "brickwork/components/_empty_state.html" %}.
+                _empty_state.html REQUIRES heading and body in context
+                (STA-003: no package-supplied default copy), so using the
+                default body means supplying heading and body yourself;
+                treat them as required-for-default context, documented here
+                rather than invented as English strings inside this
+                template. Override the whole block for any other
+                blank-slate body (an onboarding card, a call-to-action
+                stack) while keeping the header scaffolding.
+
+Composes: _empty_state.html.
+
+Required context: title. Optional: description. Required ONLY if relying on
+the console_body default: heading, body (see _empty_state.html); otherwise
+override console_body entirely and these are not needed.
+{% endcomment %}
+
+{% block page_header %}{% include "brickwork/components/_page_header.html" %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+  {% block console_body %}{% include "brickwork/components/_empty_state.html" %}{% endblock %}
+</div>
+{% endblock %}

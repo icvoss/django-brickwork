@@ -12,9 +12,17 @@ handling this no-JS component cannot provide. The panel is a labelled <nav>
 landmark of ordinary links, the correct pattern for a disclosure of navigation.
 
 Required context:
-  items: a list of dicts: {label, url, icon(optional), danger(optional bool)}.
-         Each becomes a link in the panel; ``danger=True`` styles a destructive
-         item (e.g. Sign out).
+  items: a list of dicts: {label, url, icon(optional), danger(optional bool),
+         method(optional, "get" default or "post")}. Each becomes an item in
+         the panel; ``danger=True`` styles a destructive item (e.g. Sign out).
+         ``method="post"`` (brickwork#73) renders a CSRF-safe POST
+         <form>/<button> instead of an <a>, styled IDENTICALLY to the link
+         items (the button carries the same bw-account-menu__item and
+         bw-account-menu__item--danger classes, and the same icon+label
+         markup), since Django's LogoutView has been POST-only since 5.0 and
+         a GET <a href> against it 405s. Absent, or explicitly "get", renders
+         the original <a> unchanged, so this is a purely additive change:
+         no existing item dict needs updating to keep working.
 Optional:
   trigger_label (str, default "Account"): the accessible name of the toggle and
          of the panel's nav landmark.
@@ -34,11 +42,21 @@ Optional:
   </summary>
   <nav class="bw-account-menu__panel" aria-label="{{ trigger_label|default:default_trigger_label }}">
     {% for item in items %}
-      <a class="bw-account-menu__item{% if item.danger %} bw-account-menu__item--danger{% endif %}"
-         href="{{ item.url }}">
-        {% if item.icon %}{% bw_icon item.icon size="sm" decorative=True css_class="bw-account-menu__item-icon" %}{% endif %}
-        {{ item.label }}
-      </a>
+      {% if item.method == "post" %}
+        <form method="post" action="{{ item.url }}" class="bw-account-menu__item-form">
+          {% csrf_token %}
+          <button type="submit" class="bw-account-menu__item{% if item.danger %} bw-account-menu__item--danger{% endif %}">
+            {% if item.icon %}{% bw_icon item.icon size="sm" decorative=True css_class="bw-account-menu__item-icon" %}{% endif %}
+            {{ item.label }}
+          </button>
+        </form>
+      {% else %}
+        <a class="bw-account-menu__item{% if item.danger %} bw-account-menu__item--danger{% endif %}"
+           href="{{ item.url }}">
+          {% if item.icon %}{% bw_icon item.icon size="sm" decorative=True css_class="bw-account-menu__item-icon" %}{% endif %}
+          {{ item.label }}
+        </a>
+      {% endif %}
     {% endfor %}
   </nav>
 </details>
