@@ -2,6 +2,14 @@
   "text": {
     "$description": "Type roles (DESIGN.md section 7.4): each role bundles family, size, line-height, weight and tracking. Every value is a literal var() reference into the --bw-font-* scales, so a brand override of a scale step cascades through every role that uses it. Components consume roles, never raw scale steps.",
     "$type": "other",
+    "heading-display": {
+      "$description": "Marketing display type role (1.2.0, BR-BW-MKT marketing tokens): the hero/section headline voice, above the app's largest heading role (heading-2xl). Bundles the display family at the 5xl size step with a tight line-height, bold weight and tight tracking, matching heading-2xl's bundling shape one step up the scale.",
+      "family": { "$value": "var(--bw-font-family-display)" },
+      "size": { "$value": "var(--bw-font-size-5xl)" },
+      "line-height": { "$value": "var(--bw-font-line-height-tight)" },
+      "weight": { "$value": "var(--bw-font-weight-bold)" },
+      "tracking": { "$value": "var(--bw-font-tracking-tight)" }
+    },
     "heading-2xl": {
       "family": { "$value": "var(--bw-font-family-display)" },
       "size": { "$value": "var(--bw-font-size-2xl)" },

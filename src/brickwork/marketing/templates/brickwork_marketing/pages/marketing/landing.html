@@ -1,0 +1,55 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+Landing page (04-interfaces.md section 4d, 1.2.0): the canonical product
+landing shape. A consuming page EXTENDS this template, never includes it;
+the page itself extends shell/marketing.html, so every shell block
+(marketing_header, marketing_nav, marketing_actions, marketing_footer) stays
+available to the extending page (BR-BW-MKT-005/BR-BW-PAGE-001 at marketing
+scope).
+
+Blocks (semver-public, BR-BW-TPL-001), in document order:
+  hero        default: _hero.html wired from eyebrow/heading/lede/
+              primary_cta/secondary_cta/media/align context.
+  logo_cloud  default: _logo_cloud.html wired from logo_cloud_heading/logos.
+  features    default: _feature_grid.html wired from features_heading/
+              features_lede/features/features_columns.
+  stats       default: _stat_band.html wired from stats_heading/stats.
+  testimonial default: _testimonial.html wired from quote/author/role/
+              avatar/logo.
+  cta         default: _cta.html wired from cta_heading/cta_body/
+              cta_primary/cta_secondary/cta_tint.
+
+Every block empties gracefully (BR-BW-PAGE-002 at marketing scope): a page
+extending this template with only a title in context renders a complete,
+valid, empty-everywhere marketing document (every section include renders
+nothing when its own required-for-default context is absent).
+
+Required context: none. Optional: see each component's own context contract
+in 04-interfaces.md section 4d.
+{% endcomment %}
+
+{% block content %}
+{% block hero %}
+{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta secondary_cta=secondary_cta media=media align=align %}
+{% endblock %}
+
+{% block logo_cloud %}
+{% include "brickwork_marketing/components/_logo_cloud.html" with heading=logo_cloud_heading logos=logos greyscale=logo_cloud_greyscale %}
+{% endblock %}
+
+{% block features %}
+{% include "brickwork_marketing/components/_feature_grid.html" with heading=features_heading lede=features_lede items=features columns=features_columns %}
+{% endblock %}
+
+{% block stats %}
+{% include "brickwork_marketing/components/_stat_band.html" with heading=stats_heading stats=stats %}
+{% endblock %}
+
+{% block testimonial %}
+{% include "brickwork_marketing/components/_testimonial.html" with quote=quote author=author role=role avatar=avatar logo=testimonial_logo %}
+{% endblock %}
+
+{% block cta %}
+{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary no_tint=cta_no_tint %}
+{% endblock %}
+{% endblock %}

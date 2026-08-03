@@ -417,6 +417,15 @@
           "derived": "color-mix(in oklab, var(--bw-color-skeleton-bg) 96%, black)"
         }
       }
+    },
+    "surface-marketing-tint": {
+      "$value": "oklch(0.9637 0.0154 352.16)",
+      "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens): a subtle tinted section background for marketing bands (_cta.html and any tinted section), derived from the accent/surface pair so a brand recolours it for free. Mixed at a low percentage (8%, one step past accent-subtle's 7%) so text placed on it clears WCAG AA in both themes (BR-BW-MKT-002's both-themes axe gate). Resolved literal (hue rotates toward the achromatic surface's own hue under oklab interpolation, unlike accent-subtle which mixes toward an achromatic-in-oklch literal), not an alias.",
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-accent) 8%, var(--bw-color-surface))"
+        }
+      }
     }
   },
   "state": {

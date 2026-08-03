@@ -6,6 +6,12 @@ brickwork_testapp (real views/URLs/forms for the nav-resolver and 422-form
 tests) is added only in settings_seams.py, kept out of this default leg so its
 routing never pollutes a plain install check (mirrors the icv-media house shape).
 
+brickwork.marketing IS installed here (unlike brickwork_testapp): it ships no
+models, migrations, views, or URLs (BR-BW-MKT-001), so it carries none of the
+routing/model pollution risk that keeps brickwork_testapp out of this leg. Its
+templates need APP_DIRS discovery for test_marketing.py's render_to_string
+calls, exactly as the core brickwork templates do.
+
 brickwork installs with NO django-htmx here: its core reads the HX-Request header
 directly and duck-types request.htmx when present, so this proves the standalone
 install path (django-htmx is an optional [htmx] extra, present in the dev deps
@@ -21,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.staticfiles",
     "brickwork",
+    "brickwork.marketing",
 ]
 
 DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}

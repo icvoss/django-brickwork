@@ -1323,6 +1323,162 @@ def render_account_menu_post(theme: str) -> str:
     )
 
 
+# --- the 1.2.0 marketing kit fixtures (brickwork.marketing, BR-BW-MKT-002) ---
+#
+# landing-<theme>.html   brickwork_testapp/marketing/landing.html: a
+#                        consumer-shaped extension of the shipped landing
+#                        page (hero, logo cloud, feature grid, stat band,
+#                        testimonial, CTA), all filled with representative
+#                        content, so axe examines the fully composed page,
+#                        mirroring how render_list/render_dashboard route
+#                        through the real shipped patterns rather than a
+#                        hand-written sample.
+# pricing-<theme>.html   brickwork_testapp/marketing/pricing.html: hero,
+#                        a 3-tier pricing table (one highlighted, "Most
+#                        popular" badge), FAQ, CTA.
+# about-<theme>.html     brickwork_testapp/marketing/about.html: hero, a
+#                        prose about_body, stat band, testimonial, CTA.
+#
+# None of the three needs a resolver_match: the marketing shell's nav is a
+# plain list of links with no active-route resolver dependency
+# (04-interfaces.md 4d), unlike the app shell's {% bw_nav %}.
+
+_MARKETING_LOGOS = [
+    {"src": "/static/demo/acme.svg", "alt": "Acme Corp"},
+    {"src": "/static/demo/globex.svg", "alt": "Globex"},
+    {"src": "/static/demo/initech.svg", "alt": "Initech"},
+]
+
+_MARKETING_FEATURES = [
+    {"icon": "check", "heading": "Fast by default", "body": "Every page loads in under a second, out of the box."},
+    {"icon": "lock", "heading": "Secure", "body": "SOC 2 Type II certified, with audit logs on every action."},
+    {"icon": "users", "heading": "Built for teams", "body": "Roles, permissions, and shared workspaces from day one."},
+]
+
+_MARKETING_STATS = [
+    {"value": "10,000+", "label": "Teams"},
+    {"value": "99.9%", "label": "Uptime"},
+    {"value": "24%", "label": "Faster onboarding", "trend": "up", "trend_label": "24% faster than last quarter"},
+]
+
+_MARKETING_TESTIMONIAL = {
+    "quote": "Acme cut our onboarding time in half and the support team is fantastic.",
+    "author": "Ada Lovelace",
+    "role": "VP Engineering, Globex",
+}
+
+_MARKETING_TIERS = [
+    {
+        "name": "Starter",
+        "price": "$9",
+        "period": "/month",
+        "description": "For individuals and small teams.",
+        "features": ["Up to 5 users", "Community support"],
+        "cta": {"label": "Choose Starter", "url": "#starter"},
+    },
+    {
+        "name": "Pro",
+        "price": "$29",
+        "period": "/month",
+        "description": "For growing teams.",
+        "features": ["Up to 50 users", "Priority support", "Advanced analytics"],
+        "cta": {"label": "Choose Pro", "url": "#pro"},
+        "highlighted": True,
+        "badge": "Most popular",
+    },
+    {
+        "name": "Enterprise",
+        "price": "Contact us",
+        "description": "For large organisations.",
+        "features": ["Unlimited users", "Dedicated support", "Custom SLAs"],
+        "cta": {"label": "Contact sales", "url": "#enterprise"},
+    },
+]
+
+_MARKETING_FAQ = [
+    {"question": "Can I cancel at any time?", "answer": "Yes, cancel from your billing settings at any time."},
+    {"question": "Is there a free trial?", "answer": "Every plan starts with a 14-day free trial, no card required."},
+    {"question": "Do you offer discounts for non-profits?", "answer": "Yes, contact sales for a non-profit discount."},
+]
+
+_MARKETING_CTA = {
+    "cta_heading": "Ready to get started?",
+    "cta_body": "Join thousands of teams already using Acme.",
+    "cta_primary": {"label": "Start free trial", "url": "#start"},
+    "cta_secondary": {"label": "Talk to sales", "url": "#sales"},
+}
+
+
+def render_landing(theme: str) -> str:
+    request = RequestFactory().get("/marketing/landing/")
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Acme",
+        "bw_page_title": "Acme: ship faster, together",
+        "eyebrow": "New: Acme 2.0",
+        "heading": "Ship faster, together",
+        "lede": "The all-in-one platform for teams who want to spend less time on tooling and more time building.",
+        "primary_cta": {"label": "Get started", "url": "#start"},
+        "secondary_cta": {"label": "See features", "url": "#features"},
+        "logo_cloud_heading": "Trusted by teams at",
+        "logos": _MARKETING_LOGOS,
+        "features_heading": "Everything you need",
+        "features_lede": "One platform, every workflow.",
+        "features": _MARKETING_FEATURES,
+        "stats_heading": "By the numbers",
+        "stats": _MARKETING_STATS,
+        **_MARKETING_TESTIMONIAL,
+        **_MARKETING_CTA,
+    }
+    return _inline_css(render_to_string("brickwork_testapp/marketing/landing.html", ctx, request=request))
+
+
+def render_pricing(theme: str) -> str:
+    request = RequestFactory().get("/marketing/pricing/")
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Pricing",
+        "bw_page_title": "Pricing, Acme",
+        "eyebrow": "Pricing",
+        "heading": "Plans for every team",
+        "lede": "Simple, transparent pricing. No hidden fees.",
+        "pricing_heading": "Choose your plan",
+        "tiers": _MARKETING_TIERS,
+        "pricing_note": "Prices exclude applicable tax. Annual billing saves 20%.",
+        "faq_heading": "Frequently asked questions",
+        "faq_items": _MARKETING_FAQ,
+        "faq_single_open": True,
+        **_MARKETING_CTA,
+    }
+    return _inline_css(render_to_string("brickwork_testapp/marketing/pricing.html", ctx, request=request))
+
+
+def render_about(theme: str) -> str:
+    request = RequestFactory().get("/marketing/about/")
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "About Acme",
+        "bw_page_title": "About, Acme",
+        "eyebrow": "About us",
+        "heading": "We're building the future of team software",
+        "lede": "Founded in 2019, Acme is trusted by teams across the world.",
+        "stats_heading": "Acme in numbers",
+        "stats": _MARKETING_STATS,
+        **_MARKETING_TESTIMONIAL,
+        **_MARKETING_CTA,
+    }
+    return _inline_css(render_to_string("brickwork_testapp/marketing/about.html", ctx, request=request))
+
+
 def main() -> None:
     written = []
     projection_css = build_projection_css()
@@ -1386,6 +1542,12 @@ def main() -> None:
         (OUT / f"confirm-{theme}.html").write_text(render_confirm(theme))
         (OUT / f"auth-signin-{theme}.html").write_text(render_auth_signin(theme))
         (OUT / f"account-menu-post-{theme}.html").write_text(render_account_menu_post(theme))
+        # the 1.2.0 marketing kit (brickwork.marketing, BR-BW-MKT-002): the
+        # three shipped pages, each rendered through a consumer-shaped
+        # extension carrying representative content
+        (OUT / f"landing-{theme}.html").write_text(render_landing(theme))
+        (OUT / f"pricing-{theme}.html").write_text(render_pricing(theme))
+        (OUT / f"about-{theme}.html").write_text(render_about(theme))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -1421,6 +1583,9 @@ def main() -> None:
             f"confirm-{theme}",
             f"auth-signin-{theme}",
             f"account-menu-post-{theme}",
+            f"landing-{theme}",
+            f"pricing-{theme}",
+            f"about-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())

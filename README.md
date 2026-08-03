@@ -14,7 +14,7 @@ theme axes (brand x theme x density x direction). Applications provide data,
 permissions and business behaviour; the substrate provides structure,
 presentation and interaction conventions.
 
-> Status: **0.16.0, graduating to public PyPI.** The five semver-governed
+> Status: **1.2.0 on public PyPI** (`pip install django-brickwork`). The five semver-governed
 > public-API contracts (token, template, navigation, interaction, JavaScript)
 > are live, and every component passes two hard gates: is it accessible
 > (axe-core WCAG 2.2 AA in CI) and is it beautiful by default. The surface is
@@ -30,7 +30,18 @@ presentation and interaction conventions.
 > - Spec: `docs/specs/django-brickwork/` (the five versioned public-API contracts).
 > - Design + branding + integration: `docs/DESIGN.md`, `docs/BRANDING.md`,
 >   `docs/INTEGRATION.md`, `docs/ADOPTION.md`.
-> - Changelog: `CHANGELOG.md` (0.1.0 through 0.16.0).
+> - Changelog: `CHANGELOG.md` (0.1.0 through 1.2.0).
+>
+> **Marketing pages (v1.2.0).** brickwork also ships an opt-in
+> `brickwork.marketing` sub-app (landing/pricing/about page templates, a
+> marketing shell, and eight marketing components: hero, feature grid,
+> pricing tier/table, CTA, testimonial, logo cloud, stat band, FAQ) on the
+> same `--bw-*` token and accessibility contract, so a consumer can build
+> its public marketing pages on brickwork alongside its console. See
+> ADR-055 in the umbrella
+> (`oss/docs/adrs/ADR-055-brickwork-marketing-kit-opt-in-subapp.md`) and the
+> wider templates-catalogue trajectory this opens
+> (`oss/docs/plans/brickwork-templates-catalogue-direction.md`).
 
 ## Documentation
 

@@ -1,0 +1,669 @@
+/* brickwork.marketing kit CSS (1.2.0, ADR-055, BR-BW-MKT-*): the marketing
+ * shell + the eight marketing components. Clean-room, hand-authored CSS over
+ * the --bw-* token layer only (BR-BW-MKT-003): no Tailwind utility classes,
+ * no reference-kit markup or structure. Logical CSS properties throughout
+ * (BR-BW-TOK-005), so RTL is handled by the `dir` attribute alone. Nothing
+ * here needs JavaScript (BR-BW-HTMX-001/BR-BW-MKT's no-JS floor): the
+ * marketing shell's header nav is plain links, and every component is
+ * static markup. Every animation composes the shared motion tokens and sits
+ * under the global prefers-reduced-motion floor already declared in
+ * index.css (BR-BW-TOK-009).
+ *
+ * Section rhythm: every direct section-level element uses
+ * --bw-component-section-gap-marketing (4rem) for its own block spacing,
+ * the marketing-scoped counterpart of the app shell's
+ * --bw-density-section-gap, so marketing pages read as generous, distinct
+ * blocks rather than a dense workspace (BR-BW-MKT-002 beautiful-by-default).
+ */
+
+/* --- Marketing shell -------------------------------------------------------- */
+
+.bw-marketing {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.bw-marketing-header {
+  background: var(--bw-color-surface);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--bw-z-sticky);
+}
+
+.bw-marketing-header__inner {
+  max-inline-size: var(--bw-component-content-max-width-marketing);
+  margin-inline: auto;
+  padding-inline: var(--bw-density-page-gutter-inline);
+  padding-block: var(--bw-space-3);
+}
+
+.bw-marketing-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-6);
+}
+
+.bw-marketing-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-4);
+  flex: 1 1 auto;
+}
+
+.bw-marketing-header__nav:empty {
+  display: none;
+}
+
+.bw-marketing-header__nav :where(a) {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-marketing-header__nav :where(a:hover) {
+  color: var(--bw-color-fg);
+}
+
+.bw-marketing-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+}
+
+.bw-marketing-header__actions:empty {
+  display: none;
+}
+
+/* A plain link (e.g. "Sign in") alongside a bw_button in this slot
+ * (04-interfaces.md 4d documents exactly this shape): styled the same as the
+ * nav link colour, never the UA default blue, so it clears WCAG AA contrast
+ * in both themes (BR-BW-MKT-002). bw_button's own .bw-btn markup is
+ * unaffected: this rule targets only a bare <a> the consumer places here. */
+.bw-marketing-header__actions > :where(a):not(.bw-btn) {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-marketing-header__actions > :where(a:hover):not(.bw-btn) {
+  color: var(--bw-color-fg);
+}
+
+.bw-marketing__content {
+  flex: 1 1 auto;
+  outline: none; /* the skip-link target; focus ring handled by :focus-visible */
+}
+
+.bw-marketing-footer {
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  background: var(--bw-color-surface-sunken);
+  margin-block-start: auto;
+}
+
+.bw-marketing-footer__inner {
+  max-inline-size: var(--bw-component-content-max-width-marketing);
+  margin-inline: auto;
+  padding-inline: var(--bw-density-page-gutter-inline);
+  padding-block: var(--bw-space-8) var(--bw-space-4);
+}
+
+/* The multi-column link-group footer default shape (04-interfaces.md 4d): a
+ * consumer's marketing_footer block content is arbitrary markup, but a plain
+ * <a> link at this level is the documented default shape ("a multi-column
+ * footer with link groups"), so it is styled the same way the header nav
+ * links are, never left to the UA default blue (BR-BW-MKT-002). */
+.bw-marketing-footer__inner :where(a) {
+  color: var(--bw-color-fg-muted);
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-marketing-footer__inner :where(a:hover) {
+  color: var(--bw-color-fg);
+}
+
+.bw-marketing-footer__legal {
+  margin-block-start: var(--bw-space-6);
+  padding-block-start: var(--bw-space-4);
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
+
+.bw-marketing-footer__legal:empty {
+  display: none;
+}
+
+/* Every marketing section wraps at the marketing measure, stacked at the
+ * marketing section rhythm. Applied to the direct section-level components
+ * a page composes (hero, feature grid, pricing, cta, testimonial and so on),
+ * each of which owns this class on its own root element. */
+.bw-marketing__content > * {
+  max-inline-size: var(--bw-component-content-max-width-marketing);
+  margin-inline: auto;
+  padding-inline: var(--bw-density-page-gutter-inline);
+}
+
+.bw-marketing__content > * + * {
+  margin-block-start: var(--bw-component-section-gap-marketing);
+}
+
+/* --- Hero -------------------------------------------------------------------- */
+
+.bw-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-8);
+  padding-block: var(--bw-space-8) 0;
+  text-align: start;
+}
+
+.bw-hero--center {
+  align-items: center;
+  text-align: center;
+}
+
+.bw-hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-4);
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+
+.bw-hero--center .bw-hero__copy {
+  margin-inline: auto;
+}
+
+.bw-hero__eyebrow {
+  margin: 0;
+  color: var(--bw-color-accent);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  line-height: var(--bw-text-overline-line-height);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
+}
+
+.bw-hero__heading {
+  margin: 0;
+  font-family: var(--bw-text-heading-display-family);
+  font-size: var(--bw-text-heading-display-size);
+  font-weight: var(--bw-text-heading-display-weight);
+  line-height: var(--bw-text-heading-display-line-height);
+  letter-spacing: var(--bw-text-heading-display-tracking);
+}
+
+.bw-hero__lede {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-lg-size);
+  line-height: var(--bw-text-body-lg-line-height);
+}
+
+.bw-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-3);
+}
+
+.bw-hero--center .bw-hero__actions {
+  justify-content: center;
+}
+
+.bw-hero__media {
+  max-inline-size: 100%;
+}
+
+.bw-hero__media :where(img, svg) {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--bw-radius-lg);
+}
+
+/* --- Feature grid ------------------------------------------------------------ */
+
+.bw-feature-grid-section__intro {
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-block-end: var(--bw-space-6);
+}
+
+.bw-feature-grid-section__heading {
+  margin: 0 0 var(--bw-space-2);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+}
+
+.bw-feature-grid-section__lede {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-lg-size);
+  line-height: var(--bw-text-body-lg-line-height);
+}
+
+.bw-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--bw-space-6);
+}
+
+@media (min-width: 40rem) {
+  .bw-feature-grid--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bw-feature-grid--3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bw-feature-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 64rem) {
+  .bw-feature-grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .bw-feature-grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.bw-feature-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-3);
+}
+
+.bw-feature-card__icon {
+  color: var(--bw-color-accent);
+}
+
+.bw-feature-card__heading {
+  margin: 0;
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+
+.bw-feature-card__body {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+}
+
+/* --- Pricing ------------------------------------------------------------------ */
+
+.bw-pricing-table-section__intro {
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-block-end: var(--bw-space-6);
+  text-align: center;
+  margin-inline: auto;
+}
+
+.bw-pricing-table-section__heading {
+  margin: 0 0 var(--bw-space-2);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+}
+
+.bw-pricing-table-section__lede {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-lg-size);
+  line-height: var(--bw-text-body-lg-line-height);
+}
+
+.bw-pricing-table {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--bw-space-6);
+  align-items: stretch;
+}
+
+@media (min-width: 48rem) {
+  .bw-pricing-table {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 64rem) {
+  .bw-pricing-table {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.bw-pricing-table--single {
+  max-inline-size: 24rem;
+  margin-inline: auto;
+}
+
+.bw-pricing-table__note {
+  margin: var(--bw-space-4) 0 0;
+  text-align: center;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
+
+.bw-pricing-tier {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-4);
+  background: var(--bw-color-surface);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  box-shadow: var(--bw-elevation-1);
+  padding: var(--bw-space-6);
+}
+
+/* The recommended tier (04-interfaces.md 4d): raised elevation plus an
+ * accent border, never colour alone to signal "recommended" (the badge
+ * text itself carries that meaning; the border/elevation are reinforcement). */
+.bw-pricing-tier--highlighted {
+  border-color: var(--bw-color-accent);
+  box-shadow: var(--bw-elevation-3);
+}
+
+.bw-pricing-tier__badge {
+  position: absolute;
+  inset-block-start: calc(var(--bw-space-4) * -1);
+  inset-inline-start: var(--bw-space-6);
+}
+
+.bw-pricing-tier__name {
+  margin: 0;
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+
+.bw-pricing-tier__description {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+
+.bw-pricing-tier__price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bw-space-1);
+  margin: 0;
+}
+
+.bw-pricing-tier__price-value {
+  font-size: var(--bw-font-size-3xl);
+  font-weight: var(--bw-font-weight-bold);
+  line-height: var(--bw-font-line-height-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.bw-pricing-tier__price-period {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+}
+
+.bw-pricing-tier__features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex: 1 1 auto;
+}
+
+.bw-pricing-tier__feature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bw-space-2);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+
+.bw-pricing-tier__feature-icon {
+  color: var(--bw-color-success);
+  flex-shrink: 0;
+  margin-block-start: 0.15em;
+}
+
+.bw-pricing-tier__cta {
+  margin-block-start: auto;
+  padding-block-start: var(--bw-space-2);
+}
+
+.bw-pricing-tier__cta .bw-btn {
+  inline-size: 100%;
+}
+
+/* --- CTA band ------------------------------------------------------------------ */
+
+.bw-cta {
+  padding-block: var(--bw-space-8);
+  border-radius: var(--bw-radius-xl);
+  text-align: center;
+}
+
+/* Tinted band background: the subtle marketing surface token, contrast-checked
+ * in both themes (BR-BW-MKT-002). */
+.bw-cta--tint {
+  background: var(--bw-color-surface-marketing-tint);
+  padding-inline: var(--bw-space-8);
+}
+
+.bw-cta__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bw-space-4);
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-inline: auto;
+}
+
+.bw-cta__heading {
+  margin: 0;
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+}
+
+.bw-cta__body {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-lg-size);
+  line-height: var(--bw-text-body-lg-line-height);
+}
+
+.bw-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--bw-space-3);
+}
+
+/* --- Testimonial ---------------------------------------------------------------- */
+
+.bw-testimonial {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-6);
+  background: var(--bw-color-surface);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  box-shadow: var(--bw-elevation-1);
+  padding: var(--bw-space-8);
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-inline: auto;
+}
+
+.bw-testimonial__quote {
+  margin: 0;
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-font-weight-normal);
+  line-height: var(--bw-text-heading-lg-line-height);
+}
+
+.bw-testimonial__quote p {
+  margin: 0;
+}
+
+.bw-testimonial__quote p::before {
+  content: "\201C";
+}
+
+.bw-testimonial__quote p::after {
+  content: "\201D";
+}
+
+.bw-testimonial__attribution {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-3);
+}
+
+.bw-testimonial__avatar {
+  inline-size: var(--bw-space-10);
+  block-size: var(--bw-space-10);
+  border-radius: var(--bw-radius-full);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.bw-testimonial__attribution-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.bw-testimonial__author {
+  font-weight: var(--bw-font-weight-semibold);
+}
+
+.bw-testimonial__role {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+}
+
+.bw-testimonial__logo {
+  margin-inline-start: auto;
+}
+
+.bw-testimonial__logo :where(img, svg) {
+  block-size: var(--bw-space-6);
+  inline-size: auto;
+}
+
+/* --- Logo cloud ------------------------------------------------------------------ */
+
+.bw-logo-cloud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bw-space-6);
+  text-align: center;
+}
+
+.bw-logo-cloud__heading {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-overline-weight);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
+}
+
+.bw-logo-cloud__grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--bw-space-8);
+}
+
+.bw-logo-cloud__logo {
+  block-size: var(--bw-space-8);
+  inline-size: auto;
+  object-fit: contain;
+}
+
+/* Purely decorative (never the sole signal of anything); colour-on-hover, so
+ * a greyscale logo is still perfectly legible without the effect. */
+.bw-logo-cloud--greyscale .bw-logo-cloud__logo {
+  filter: grayscale(100%);
+  opacity: var(--bw-opacity-muted);
+  transition: var(--bw-transition-colors);
+}
+
+.bw-logo-cloud--greyscale .bw-logo-cloud__logo:hover {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-logo-cloud--greyscale .bw-logo-cloud__logo {
+    transition: none;
+  }
+}
+
+/* --- Stat band --------------------------------------------------------------------- */
+
+.bw-stat-band-section {
+  text-align: center;
+}
+
+.bw-stat-band-section__heading {
+  margin: 0 0 var(--bw-space-6);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+}
+
+/* Display-scale band, distinct from patterns/dashboard.html's dense KPI grid
+ * (bw-stat-grid): fewer, larger tiles read as a marketing statement, so the
+ * band uses a wider auto-fit floor and centres its tiles (composes
+ * _stat.html's own tile shape unchanged, BR-BW-MKT-004). */
+.bw-stat-band {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: var(--bw-space-6);
+  justify-items: center;
+}
+
+.bw-stat-band .bw-stat {
+  text-align: center;
+  align-items: center;
+  inline-size: 100%;
+  max-inline-size: 20rem;
+}
+
+/* --- FAQ ------------------------------------------------------------------------------ */
+
+.bw-faq-section {
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-inline: auto;
+}
+
+.bw-faq-section__heading {
+  margin: 0 0 var(--bw-space-4);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  text-align: center;
+}
+
+.bw-faq-section__list {
+  display: flex;
+  flex-direction: column;
+}

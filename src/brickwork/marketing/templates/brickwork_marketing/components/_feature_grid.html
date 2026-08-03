@@ -1,0 +1,41 @@
+{% load brickwork_icons %}
+{% comment %}
+Feature grid (04-interfaces.md section 4d): a responsive grid of feature
+cards. Structural, consumed via {% include %} (BR-BW-MKT §4d structural-
+include doctrine).
+
+Required context: none.
+
+Optional context:
+  heading  (str): the section intro heading.
+  lede     (str): the section intro body.
+  items    (list of dicts): {icon?, heading, body}. icon is a registry name
+           rendered via {% bw_icon %} decorative=True (the icon reinforces
+           the heading/body text, which already carries the meaning). An
+           empty (or omitted) items list renders the section intro alone
+           (or nothing at all if that too is empty), never a fabricated
+           placeholder card.
+  columns  (2|3|4, default 3): responsive down to one column on narrow
+           viewports (bw-feature-grid--<n> selects the CSS grid template).
+{% endcomment %}
+{% if heading or lede or items %}
+<section class="bw-feature-grid-section">
+  {% if heading or lede %}
+    <div class="bw-feature-grid-section__intro">
+      {% if heading %}<h2 class="bw-feature-grid-section__heading">{{ heading }}</h2>{% endif %}
+      {% if lede %}<p class="bw-feature-grid-section__lede">{{ lede }}</p>{% endif %}
+    </div>
+  {% endif %}
+  {% if items %}
+    <div class="bw-feature-grid bw-feature-grid--{{ columns|default:3 }}">
+      {% for item in items %}
+        <div class="bw-feature-card">
+          {% if item.icon %}{% bw_icon item.icon size="lg" decorative=True css_class="bw-feature-card__icon" %}{% endif %}
+          <h3 class="bw-feature-card__heading">{{ item.heading }}</h3>
+          <p class="bw-feature-card__body">{{ item.body }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endif %}

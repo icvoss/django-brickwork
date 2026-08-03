@@ -1,0 +1,39 @@
+{% comment %}
+FAQ (04-interfaces.md section 4d): the FAQ section wrapper. Structural,
+consumed via {% include %} (BR-BW-MKT §4d structural-include doctrine).
+Composes _disclosure.html per BR-BW-MKT-004 (a marketing component reuses
+an existing primitive rather than reimplementing it): this template is only
+the heading + a stack of disclosures, never a new accordion interaction
+primitive. The no-JS floor is therefore free by construction
+(BR-BW-HTMX-001/006): _disclosure.html ships no JavaScript at all.
+
+Required context: none.
+
+Optional context:
+  heading     (str): the section heading.
+  items       (list of dicts): {question, answer}. Each renders through
+              {% include "brickwork/components/_disclosure.html" %} with
+              label=question, content=answer.
+  single_open (bool, default False): when set, every disclosure shares a
+              name so only one opens at a time, using _disclosure.html's
+              native <details name> exclusive-group mechanism.
+
+An empty (or omitted) items list renders the heading alone (or nothing, if
+that too is empty).
+{% endcomment %}
+{% if heading or items %}
+<section class="bw-faq-section">
+  {% if heading %}<h2 class="bw-faq-section__heading">{{ heading }}</h2>{% endif %}
+  {% if items %}
+    <div class="bw-faq-section__list">
+      {% for item in items %}
+        {% if single_open %}
+          {% include "brickwork/components/_disclosure.html" with label=item.question content=item.answer name="bw-faq" %}
+        {% else %}
+          {% include "brickwork/components/_disclosure.html" with label=item.question content=item.answer %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endif %}

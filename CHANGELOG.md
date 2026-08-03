@@ -8,6 +8,54 @@ versioning contract).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-03
+
+The marketing kit: an opt-in `brickwork.marketing` sub-app (ADR-055) that brings
+marketing pages onto the same `--bw-*` token, brand, and accessibility contract
+as the console. Additive and backwards compatible: a bare `brickwork` install
+(the sub-app not in `INSTALLED_APPS`) renders byte-identical output to 1.1.0. The
+marketing surface exists only when a consumer opts in. This is the first shipping
+slice of the wider templates-catalogue direction (layout variants, then themed
+starter kits, both demand-gated; see the direction doc in the umbrella).
+
+### Added
+
+- **Marketing kit** as the opt-in sub-app `brickwork.marketing`, governed by the
+  new `BR-BW-MKT-001..005` rule group (spec section 9) and documented in
+  04-interfaces section 4d. Add `"brickwork.marketing"` to `INSTALLED_APPS`
+  alongside `"brickwork"`. The sub-app ships no models, migrations, views, or
+  URLs (BR-BW-MKT-001): templates, components, and static only.
+- **Marketing shell** `brickwork_marketing/shell/marketing.html`: a public-site
+  shell (header + primary nav + footer) extending `brickwork/shell/base.html`,
+  the marketing counterpart of the app shell, with a wider content measure and
+  the full no-JS floor.
+- **Eight marketing components** (all `{% include %}`-consumed, clean-room on
+  `--bw-*`, empty-graceful): `_hero`, `_feature_grid`, `_pricing_tier`,
+  `_pricing_table`, `_cta`, `_testimonial`, `_logo_cloud`, `_stat_band`, `_faq`.
+  The FAQ composes the existing `_disclosure.html` (native `<details>`, no-JS
+  floor free) and the stat band composes `_stat.html` (BR-BW-MKT-004): marketing
+  components reuse existing primitives rather than reimplementing them.
+- **Three marketing pages** (`brickwork_marketing/pages/marketing/`):
+  `landing.html`, `pricing.html`, `about.html`, each extending
+  `shell/marketing.html`, composing the marketing components, empty-graceful, and
+  passing axe WCAG 2.2 AA in both themes plus the no-JS render floor
+  (BR-BW-MKT-002).
+- **Marketing tokens** (MINOR, brand-overridable): a `heading-display` type role,
+  `--bw-component-content-max-width-marketing` (80rem), a marketing section-rhythm
+  token, and `--bw-color-surface-marketing-tint` (the tinted section-band surface,
+  authored per theme, contrast-checked in light and dark).
+
+### Notes
+
+- `_cta.html` uses a `no_tint` opt-out flag (default `False`, tint on) rather than
+  a `tint=True` opt-in: Django's `{% include ... with tint=page_var %}` forwards an
+  absent page-level context variable as an empty string, so a default-`True` flag
+  could never be turned off from a page block; a default-`False` opt-out has no such
+  ambiguity.
+- All new marketing block, component, and token contracts ship
+  `[v1-single-consumer]` (BR-BW-VER-002) until a second consumer ratifies them,
+  matching how the page kit shipped.
+
 ## [1.1.0] - 2026-08-03
 
 The page-templates kit: a new tier one storey above the page patterns. Where a

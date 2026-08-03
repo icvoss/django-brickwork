@@ -120,6 +120,42 @@ test.describe("no-JS floor", () => {
       await checkbox.check();
       await expect(checkbox).toBeChecked();
     });
+
+    // BR-BW-MKT-002's no-JS render floor: every marketing page renders and
+    // functions with neither Alpine nor htmx loaded. The marketing shell
+    // needs no JS at all (BR-BW-HTMX-001), so this is mostly a structural
+    // check: the shell chrome, the FAQ's native <details> accordion, and the
+    // hero's single <h1> are all present with JavaScript disabled.
+    test(`landing page renders the marketing shell with JS disabled (${theme})`, async ({ page }) => {
+      await page.goto(pathToFileURL(join(FIXTURES, `landing-${theme}.html`)).href);
+      await expect(page.locator("#bw-main")).toBeVisible();
+      await expect(page.locator("header.bw-marketing-header")).toBeVisible();
+      await expect(page.locator("footer.bw-marketing-footer")).toBeVisible();
+      // exactly one h1, in the hero
+      await expect(page.locator("h1")).toHaveCount(1);
+      // the nav and header actions are real anchors
+      await expect(page.locator(".bw-marketing-header__nav a").first()).toBeVisible();
+      await expect(page.locator(".bw-marketing-header__actions a").first()).toBeVisible();
+    });
+
+    test(`pricing page's FAQ accordion works with JS disabled (${theme})`, async ({ page }) => {
+      await page.goto(pathToFileURL(join(FIXTURES, `pricing-${theme}.html`)).href);
+      // the pricing table rendered its tiers server-side
+      await expect(page.locator(".bw-pricing-tier")).toHaveCount(3);
+      // the FAQ is native <details>/<summary> (BR-BW-MKT-004): clicking the
+      // summary opens it with JS disabled, no scripting required
+      const firstItem = page.locator("details.bw-disclosure").first();
+      await expect(page.locator("details.bw-disclosure")).toHaveCount(3);
+      await expect(firstItem).not.toHaveAttribute("open");
+      await firstItem.locator("summary").click();
+      await expect(firstItem).toHaveAttribute("open");
+    });
+
+    test(`about page renders its prose body with JS disabled (${theme})`, async ({ page }) => {
+      await page.goto(pathToFileURL(join(FIXTURES, `about-${theme}.html`)).href);
+      await expect(page.locator("h1")).toHaveCount(1);
+      await expect(page.locator(".bw-section-stack")).toContainText("Our story");
+    });
   }
 });
 

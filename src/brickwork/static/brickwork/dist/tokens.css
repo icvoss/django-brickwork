@@ -68,6 +68,8 @@
   --bw-component-tooltip-max-width: 16rem;
   --bw-component-disabled-opacity: 0.5;
   --bw-component-content-max-width: 72rem;
+  --bw-component-content-max-width-marketing: 80rem;
+  --bw-component-section-gap-marketing: 4rem;
   --bw-component-topbar-position: sticky;
   --bw-component-drawer-width: min(20rem, 80vw);
   --bw-component-toast-max-width: 24rem;
@@ -114,6 +116,11 @@
   --bw-font-tracking-normal: 0em;
   --bw-font-tracking-wide: 0.025em;
   --bw-font-tracking-wider: 0.05em;
+  --bw-text-heading-display-family: var(--bw-font-family-display);
+  --bw-text-heading-display-size: var(--bw-font-size-5xl);
+  --bw-text-heading-display-line-height: var(--bw-font-line-height-tight);
+  --bw-text-heading-display-weight: var(--bw-font-weight-bold);
+  --bw-text-heading-display-tracking: var(--bw-font-tracking-tight);
   --bw-text-heading-2xl-family: var(--bw-font-family-display);
   --bw-text-heading-2xl-size: var(--bw-font-size-2xl);
   --bw-text-heading-2xl-line-height: var(--bw-font-line-height-tight);
@@ -246,6 +253,7 @@
   --bw-component-breadcrumb-separator: var(--bw-color-fg-subtle);
   --bw-component-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black);
   --bw-component-skeleton-shimmer: color-mix(in oklab, var(--bw-component-skeleton-bg) 96%, black);
+  --bw-color-surface-marketing-tint: color-mix(in oklab, var(--bw-color-accent) 8%, var(--bw-color-surface));
   --bw-state-hover-overlay: oklch(0 0 0 / 0.04);
   --bw-state-active-overlay: oklch(0 0 0 / 0.08);
   --bw-state-selected-bg: var(--bw-color-accent-subtle);
@@ -320,6 +328,7 @@
   --bw-component-breadcrumb-separator: var(--bw-color-fg-subtle);
   --bw-component-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black);
   --bw-component-skeleton-shimmer: color-mix(in oklab, var(--bw-component-skeleton-bg) 96%, black);
+  --bw-color-surface-marketing-tint: color-mix(in oklab, var(--bw-color-accent) 8%, var(--bw-color-surface));
   --bw-state-hover-overlay: oklch(0 0 0 / 0.04);
   --bw-state-active-overlay: oklch(0 0 0 / 0.08);
   --bw-state-selected-bg: var(--bw-color-accent-subtle);
@@ -383,6 +392,7 @@
   --bw-component-breadcrumb-separator: var(--bw-color-fg-subtle);
   --bw-component-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white);
   --bw-component-skeleton-shimmer: color-mix(in oklab, var(--bw-component-skeleton-bg) 86%, white);
+  --bw-color-surface-marketing-tint: color-mix(in oklab, var(--bw-color-accent) 12%, var(--bw-color-surface));
   --bw-state-hover-overlay: oklch(1 0 0 / 0.06);
   --bw-state-active-overlay: oklch(1 0 0 / 0.12);
   --bw-state-selected-bg: var(--bw-color-accent-subtle);
@@ -452,6 +462,7 @@
   --bw-color-skeleton-bg: var(--bw-component-skeleton-bg);
   --bw-color-skeleton-shimmer: var(--bw-component-skeleton-shimmer);
   --bw-content-max-width: var(--bw-component-content-max-width);
+  --bw-content-max-width-marketing: var(--bw-component-content-max-width-marketing);
   --bw-disabled-opacity: var(--bw-component-disabled-opacity);
   --bw-drawer-width: var(--bw-component-drawer-width);
   --bw-htmx-indicator-opacity: var(--bw-component-htmx-indicator-opacity);
@@ -463,6 +474,7 @@
   --bw-icon-stroke-width: var(--bw-component-icon-stroke-width);
   --bw-menu-min-width: var(--bw-component-menu-min-width);
   --bw-progress-track-height: var(--bw-component-progress-track-height);
+  --bw-section-gap-marketing: var(--bw-component-section-gap-marketing);
   --bw-select-indicator: var(--bw-component-select-indicator);
   --bw-size-icon-2xl: var(--bw-component-icon-size-2xl);
   --bw-size-icon-lg: var(--bw-component-icon-size-lg);

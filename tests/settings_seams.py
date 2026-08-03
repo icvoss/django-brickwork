@@ -15,6 +15,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.sessions",
     "brickwork",
+    "brickwork.marketing",
     "brickwork_testapp",
 ]
 

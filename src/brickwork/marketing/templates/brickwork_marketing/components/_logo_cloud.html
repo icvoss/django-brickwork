@@ -1,0 +1,31 @@
+{% comment %}
+Logo cloud (04-interfaces.md section 4d): a "trusted by" logo row/grid.
+Structural, consumed via {% include %} (BR-BW-MKT §4d structural-include
+doctrine).
+
+Required context:
+  logos (list of dicts): {src, alt}. alt is required per the a11y non-goal
+        that an image is never unlabelled: a caller supplying a decorative-
+        only alt="" is a deliberate choice it makes itself, but this
+        component never invents an empty alt on the caller's behalf.
+
+Optional context:
+  heading   (str, e.g. "Trusted by teams at").
+  greyscale (bool, default False): a CSS greyscale-until-hover treatment,
+            purely decorative, never the sole signal of anything.
+
+An empty (or omitted) logos list renders the heading alone (or nothing, if
+that too is empty), never a fabricated placeholder logo.
+{% endcomment %}
+{% if heading or logos %}
+<section class="bw-logo-cloud{% if greyscale %} bw-logo-cloud--greyscale{% endif %}">
+  {% if heading %}<p class="bw-logo-cloud__heading">{{ heading }}</p>{% endif %}
+  {% if logos %}
+    <div class="bw-logo-cloud__grid">
+      {% for logo in logos %}
+        <img class="bw-logo-cloud__logo" src="{{ logo.src }}" alt="{{ logo.alt }}">
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endif %}

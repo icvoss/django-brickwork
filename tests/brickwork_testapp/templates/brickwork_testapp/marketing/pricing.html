@@ -1,0 +1,23 @@
+{% extends "brickwork_marketing/pages/marketing/pricing.html" %}
+{% load brickwork_components %}
+{% comment %}
+The marketing pricing demo page (1.2.0, brickwork.marketing a11y fixtures):
+a consumer-shaped extension of the shipped pricing page, filling hero,
+pricing table (three tiers, one highlighted), FAQ, and CTA with
+representative content, so axe examines the fully composed page.
+{% endcomment %}
+
+{% block marketing_nav %}
+  <a href="#features">Features</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#about">About</a>
+{% endblock %}
+
+{% block marketing_actions %}
+  <a href="#signin">Sign in</a>
+  {% bw_button "Get started" href="#start" variant="primary" size="sm" %}
+{% endblock %}
+
+{% block footer_legal %}
+  &copy; 2026 Acme Ltd. All rights reserved.
+{% endblock %}
