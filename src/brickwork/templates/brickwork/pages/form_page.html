@@ -1,0 +1,48 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+Form page (page-templates kit, v1.1.0): a single-object create/edit page, the
+plainest possible "one form on a page" shape. A consuming page EXTENDS this
+template, never includes it; the pattern itself extends shell/app.html, so
+every shell block (page_actions, breadcrumbs, sidebar and so on) stays
+available to the extending page.
+
+Blocks (semver-public, BR-BW-TPL-001):
+  page_header  default: _page_header.html wired from title/description, same
+               convention as patterns/list.html and patterns/detail.html.
+               Actions go via the shell's own page_actions block.
+  form_body    default: empty. The consumer's own <form> element wraps a
+               {% bw_form form %} call here AND the submit button:
+
+                 {% block form_body %}
+                 <form method="post" action="{{ request.path }}">
+                   {% csrf_token %}
+                   {% load brickwork_forms brickwork_components %}
+                   {% bw_form form %}
+                   {% bw_button label="Save" type="submit" variant="primary" %}
+                 </form>
+                 {% endblock %}
+
+               Per BR-BW-PAGE-004 there is deliberately NO form_actions
+               block: a base template cannot wrap the consumer's own <form>
+               element, so a submit-outside-form block would be unsound (the
+               button would render outside the element it needs to submit).
+               The submit lives inside form_body, beside the fields.
+               forms/_form_errors.html is auto-included by {% bw_form %}, so
+               it is never included a second time here.
+
+Composes: _page_header.html, {% bw_form %} (fields region only, via
+forms/_form.html), {% bw_button %}. No-JS floor: a native <form method="post">
+submit plus the ordinary 422 re-render loop (BR-BW-HTMX-003), the consumer's
+own view re-rendering this same page with the bound, invalid form.
+
+Required context: title. Optional: description, form. Supplying only title
+renders a complete working page with an empty form_body (AC-BW-076-shaped).
+{% endcomment %}
+
+{% block page_header %}{% include "brickwork/components/_page_header.html" %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+  {% block form_body %}{% endblock %}
+</div>
+{% endblock %}

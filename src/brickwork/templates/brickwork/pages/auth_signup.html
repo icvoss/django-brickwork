@@ -1,0 +1,64 @@
+{% extends "brickwork/shell/auth.html" %}
+{% load i18n %}
+{% comment %}
+Auth: sign up (page-templates kit, v1.1.0, BR-BW-PAGE-003). One of THREE
+discoverability-split auth pages (auth_signin.html, auth_signup.html,
+auth_reset.html): identical block shape, separate files by owner ruling so
+each is found by name rather than guessed at inside one shared template. A
+consuming page EXTENDS this template, never includes it; the pattern itself
+extends shell/auth.html, so brand_logo/brand_wordmark/footer stay available
+on the extending page (do not redeclare them here).
+
+BACKEND-AGNOSTIC CONTRACT (BR-BW-PAGE-003): brickwork ships no view, no
+form, no model, and no URL for authentication (allauth, django.contrib.auth,
+and a hand-rolled backend all shape these differently). This template
+therefore:
+  - never emits a <form> element itself (the consumer's own <form
+    method="post" action="{% url ... %}"> wraps auth_body's content, since
+    only the consumer knows its own URL name),
+  - never references {% url %} for a submit target (a hard-coded name that
+    does not exist in the consuming project would 500 on render),
+  - never names a form field (allauth uses "email"/"password1"/"password2"
+    style fields, django.contrib.auth's UserCreationForm uses "username";
+    a hard-coded field name or label in this template would break whichever
+    backend does not use it), and
+  - never assumes a specific field set (e.g. a single password field vs a
+    confirmation pair) or hard-codes a field label.
+
+Blocks (semver-public, BR-BW-TPL-001):
+  auth_heading    default: the page title, translated, in a heading element.
+                  Override to replace the copy or heading level.
+  auth_body       default: empty. The consumer's own <form> wrapping
+                  {% bw_form form %} and the submit button:
+
+                    {% block auth_body %}
+                    <form method="post" action="{% url 'account_signup' %}">
+                      {% csrf_token %}
+                      {% load brickwork_forms brickwork_components %}
+                      {% bw_form form %}
+                      {% bw_button label="Create account" type="submit" variant="primary" %}
+                    </form>
+                    {% endblock %}
+
+                  form is the consumer's own form instance; brickwork never
+                  inspects or names its fields.
+  auth_secondary  default: empty. Secondary links (e.g. Already have an
+                  account? Sign in) and, for allauth, social-provider
+                  buttons.
+
+Composes: {% bw_form %}, {% bw_button %}, _alert.html (e.g. for a
+non-field signup error), forms/_form_errors.html (auto-included by
+{% bw_form %}). No-JS floor: an ordinary <form method="post"> submit and the
+422 re-render loop (BR-BW-HTMX-003), same as form_page.html.
+
+Required context: none from this template itself. Optional: form (the
+consumer's bound/unbound form instance, used inside auth_body).
+{% endcomment %}
+
+{% block content %}
+<div class="bw-section-stack">
+  {% block auth_heading %}<h1>{% translate "Create your account" %}</h1>{% endblock %}
+  {% block auth_body %}{% endblock %}
+  {% block auth_secondary %}{% endblock %}
+</div>
+{% endblock %}

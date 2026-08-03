@@ -1044,6 +1044,27 @@ input.bw-toggle:disabled {
   line-height: var(--bw-text-body-sm-line-height);
   transition: var(--bw-transition-colors);
 }
+/* The POST sign-out item (brickwork#73): method="post" renders a
+ * <form class="bw-account-menu__item-form"> wrapping a <button>, so a
+ * CSRF-safe POST reaches Django's POST-only LogoutView. The form is
+ * display: contents so it introduces no box of its own and the button
+ * sits in the panel's flow exactly where an <a> item would; the button
+ * then needs the native-control chrome (background, border, native font,
+ * centre-alignment, min-width) reset off so it renders IDENTICALLY to the
+ * <a> items, including the --danger treatment which needs no extra rule
+ * (the ::before divider and colour ride the shared modifier class). */
+.bw-account-menu__item-form {
+  display: contents;
+}
+button.bw-account-menu__item {
+  appearance: none;
+  inline-size: 100%;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+}
 .bw-account-menu__item:hover {
   background-color: var(--bw-state-hover-overlay);
 }

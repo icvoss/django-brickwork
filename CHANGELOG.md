@@ -8,6 +8,58 @@ versioning contract).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-03
+
+The page-templates kit: a new tier one storey above the page patterns. Where a
+pattern is an index or detail scaffold, a page is a whole, opinionated screen a
+consuming project extends and fills, composed of the existing components and one
+of the shipped shells. Additive and backwards compatible: no existing template,
+block, token, or component changed behaviour.
+
+### Added
+
+- **Page-templates kit** (`brickwork/pages/`), governed by the new
+  `BR-BW-PAGE-001..005` rule group (spec section 8) and documented in
+  04-interfaces section 4c. Each page `{% extends %}` a shell, exposes a minimal
+  set of semver-public named blocks (BR-BW-TPL-001), and renders a complete,
+  valid document with every optional region left empty (BR-BW-PAGE-002):
+  - `pages/form_page.html` (extends `shell/app.html`): a single-object
+    create/edit page. One block, `form_body`; the consumer's own `<form>` wraps
+    `{% bw_form form %}` and the submit button inside it. Deliberately no
+    `form_actions` block, since a base template cannot wrap the consumer's
+    `<form>` (BR-BW-PAGE-004).
+  - `pages/settings.html` (extends `shell/app.html`): a tabbed settings area.
+    Blocks `settings_nav` (a `{% bw_tabs %}` tablist, the page's reason to exist
+    so not empty-graceful) and `settings_body`. The tabs contract is
+    `[v1-single-consumer]`, so the page's stability is inherited-provisional
+    (BR-BW-VER-002).
+  - `pages/console.html` (extends `shell/app.html`): a blank-slate console. One
+    block, `console_body`, defaulting to the empty-state component.
+  - `pages/confirm.html` (extends `shell/centred.html`): a destructive-action
+    confirmation. Blocks `confirm_body` and `confirm_actions`; a POST form plus a
+    cancel link, zero JS.
+  - `pages/auth_signin.html`, `pages/auth_signup.html`, `pages/auth_reset.html`
+    (extend `shell/auth.html`): backend-agnostic auth pages (BR-BW-PAGE-003).
+    Three separate files for discoverability, identical block shape
+    (`auth_heading`, `auth_body`, `auth_secondary`). brickwork ships no
+    authentication view, form, model, or URL, references no `{% url %}` that
+    could 500, and names no form field, so the same page serves `allauth`,
+    `django.contrib.auth`, or a custom backend identically; the consumer wraps
+    its own `<form>` and drops `{% bw_form form %}` inside.
+
+### Changed
+
+- **Account-menu CSRF-safe sign-out** (closes
+  [#73](https://github.com/icvoss/django-brickwork/issues/73)): an
+  `_account_menu.html` item may now opt into a POST via a `method: "post"` key in
+  its item dict (`{label, url, icon, danger, method}`). A `post` item renders a
+  `<form method="post" action="...">` with `{% csrf_token %}` and a `<button>`
+  styled identically to the `<a>` items (including the `danger` treatment), so a
+  correct sign-out against Django's POST-only `LogoutView` (POST-only since 5.0)
+  lives inside the accessible disclosure panel alongside the link items. Items
+  without `method` (or `method: "get"`) render as `<a>` exactly as before: the
+  change is purely additive and no existing item dict needs updating.
+
 ## [1.0.0rc1] - 2026-08-02
 
 The first public release candidate, and the first release on public PyPI

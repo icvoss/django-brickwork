@@ -1,0 +1,50 @@
+{% extends "brickwork/shell/app.html" %}
+{% load brickwork_interactions %}
+{% comment %}
+Settings page (page-templates kit, v1.1.0): a tabbed settings area, one page
+per section switched by tabs on a single URL scheme. A consuming page EXTENDS
+this template, never includes it; the pattern itself extends shell/app.html,
+so every shell block stays available to the extending page.
+
+[v1-single-consumer] (BR-BW-VER-002): the tabs contract below is shaped
+against ONE known consumer today, so settings.html's stability is
+inherited-provisional, not the same fully-hardened guarantee as list.html or
+detail.html. Disclose this to any second consumer before relying on it.
+
+Blocks (semver-public, BR-BW-TPL-001):
+  page_header   default: _page_header.html wired from title/description,
+                same convention as patterns/list.html.
+  settings_nav  default: {% bw_tabs settings_tabs active=active_tab
+                id="settings" %}. This IS the page's reason to exist, so
+                (unlike every other block in this kit) it is NOT
+                empty-graceful: {% bw_tabs %} raises at render time if
+                settings_tabs is empty or active_tab does not match a tab
+                key (04-interfaces 4b). Both settings_tabs and active_tab
+                are therefore REQUIRED context, not optional. One nav
+                mechanism only: never pair this with a parallel sidebar
+                nav variant for the same section switch.
+  settings_body default: empty. The active section's own content, typically
+                a _card.html composition wrapping {% bw_form %}:
+
+                  {% block settings_body %}
+                  {% include "brickwork/components/_card.html" %}
+                  {% endblock %}
+
+Composes: {% bw_tabs %}, _card.html, {% bw_form %}. No-JS floor is FREE via
+_tabs.html's own contract: each tab is a real anchor to ?tab=<key> on the
+current path, and the server (active_tab) selects which is current, so
+switching sections is an ordinary navigation with zero JS required.
+
+Required context: title, settings_tabs (a non-empty list of {key, label}
+dicts, see {% bw_tabs %}), active_tab (a key present in settings_tabs).
+Optional: description.
+{% endcomment %}
+
+{% block page_header %}{% include "brickwork/components/_page_header.html" %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+  {% block settings_nav %}{% bw_tabs settings_tabs active=active_tab id="settings" %}{% endblock %}
+  {% block settings_body %}{% endblock %}
+</div>
+{% endblock %}
