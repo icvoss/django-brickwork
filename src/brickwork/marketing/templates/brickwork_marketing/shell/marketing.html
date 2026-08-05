@@ -29,7 +29,8 @@ Named blocks (semver-public, BR-BW-TPL-001), all empty-graceful:
                        active-route resolver dependency (a marketing site's
                        nav is a small fixed set, unlike the app shell's
                        {% bw_nav %}).
-  marketing_actions    header-end CTA cluster (e.g. "Sign in" + "Get started").
+  marketing_actions    header-end CTA cluster (e.g. "Sign in" + "Get started");
+                       see the auth-aware pattern below (#85).
   content              the page body; the one region a page fills.
   marketing_footer     default: a multi-column footer with link groups and a
                        fine-print row (footer_legal).
@@ -40,6 +41,32 @@ header nav renders as plain <a> links; a consumer wanting a mobile nav
 disclosure composes the existing _disclosure.html/_account_menu.html
 <details> pattern (the same way the app shell's switcher slot does), never a
 brickwork-shipped default here.
+
+Auth-aware actions (#85): brickwork never reads auth state itself (state is
+host-injected, per the ADR-025 responsibility model, exactly as the app
+nav's visibility mechanism receives its request). The supported pattern is
+the consumer branching its marketing_actions block on
+request.user.is_authenticated (requires
+django.template.context_processors.request in the consumer's TEMPLATES
+options; note Django's logout is POST-only, hence the form):
+
+  {% block marketing_actions %}
+    {% if request.user.is_authenticated %}
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        {% bw_button "Log out" type="submit" variant="secondary" %}
+      </form>
+    {% else %}
+      <a href="{% url 'login' %}">Sign in</a>
+      {% bw_button "Get started" variant="primary" href="/signup/" %}
+    {% endif %}
+  {% endblock %}
+
+The worked, annotated version lives in docs/INTEGRATION.md section 8. A
+bare <a> in this slot is styled by marketing.css (label voice, muted ink,
+never UA default blue, BR-BW-MKT-002); {% bw_button %} carries the CTA
+weight.
 
 Content measure: the marketing content wrapper uses
 --bw-component-content-max-width-marketing (80rem), wider than the app

@@ -153,6 +153,47 @@ def test_landing_features_and_stats_and_testimonial_fill_from_context() -> None:
     assert "It just works." in html and "Ada Lovelace" in html
 
 
+def test_landing_flat_hero_cta_names_drive_the_hero() -> None:
+    # #98 at page level: the extends path accepts the flat names too.
+    html = _render(
+        "brickwork_marketing/pages/marketing/landing.html",
+        title="Landing",
+        heading="Ship faster",
+        primary_cta_label="Get started",
+        primary_cta_url="/start/",
+    )
+    assert "bw-hero__actions" in html
+    assert "Get started" in html and 'href="/start/"' in html
+
+
+def test_landing_flat_hero_cta_names_do_not_bleed_into_the_cta_band() -> None:
+    # A plain {% include %} keeps the whole page context visible, so the
+    # hero's flat page-level names would leak into the CTA band's include
+    # unless the page shadows them with the cta_-prefixed set; the band must
+    # stay absent when only hero CTAs are set (its required heading is absent
+    # anyway, so assert on the actions cluster of every later section).
+    html = _render(
+        "brickwork_marketing/pages/marketing/landing.html",
+        title="Landing",
+        cta_heading="Ready?",
+        primary_cta_label="Get started",
+        primary_cta_url="/start/",
+    )
+    assert "bw-cta__actions" not in html
+
+
+def test_landing_flat_cta_band_names_drive_the_cta_band() -> None:
+    html = _render(
+        "brickwork_marketing/pages/marketing/landing.html",
+        title="Landing",
+        cta_heading="Ready?",
+        cta_primary_label="Get started",
+        cta_primary_url="/start/",
+    )
+    assert "bw-cta__actions" in html
+    assert 'href="/start/"' in html
+
+
 # --- pricing.html --------------------------------------------------------
 
 
@@ -270,6 +311,61 @@ def test_hero_default_align_is_start() -> None:
     assert "bw-hero--start" in html
 
 
+# --- components/_hero.html: flat CTA kwargs (#98) ---------------------------
+
+
+def test_hero_flat_cta_kwargs_render_identically_to_the_dict_shape() -> None:
+    # #98: a template-authored caller cannot build a dict inline, so the CTAs
+    # accept flat kwargs; both shapes must produce the same output.
+    dict_html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        primary_cta={"label": "Get started", "url": "/start/"},
+        secondary_cta={"label": "Learn more", "url": "/learn/"},
+    )
+    flat_html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        primary_cta_label="Get started",
+        primary_cta_url="/start/",
+        secondary_cta_label="Learn more",
+        secondary_cta_url="/learn/",
+    )
+    assert dict_html == flat_html
+
+
+def test_hero_flat_primary_cta_alone_renders_the_actions_row() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        primary_cta_label="Get started",
+        primary_cta_url="/start/",
+    )
+    assert "bw-hero__actions" in html
+    assert "Get started" in html and 'href="/start/"' in html
+
+
+def test_hero_dict_wins_outright_when_both_shapes_are_supplied() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        primary_cta={"label": "Dict label", "url": "/dict/"},
+        primary_cta_label="Flat label",
+        primary_cta_url="/flat/",
+    )
+    assert "Dict label" in html and 'href="/dict/"' in html
+    assert "Flat label" not in html and "/flat/" not in html
+
+
+def test_hero_flat_kwargs_forwarded_unset_render_no_actions() -> None:
+    # The standing {% include ... with %} pass-through rule (the no_tint
+    # precedent): an absent page-level variable forwards as an empty string,
+    # which must read as "no CTA", never as an empty button.
+    html = Template(
+        "{% include 'brickwork_marketing/components/_hero.html' with heading=heading"
+        " primary_cta_label=absent_a primary_cta_url=absent_b %}"
+    ).render(Context({"heading": "Ship faster"}))
+    assert "bw-hero__actions" not in html
+
+
 # --- components/_feature_grid.html -----------------------------------------
 
 
@@ -308,6 +404,66 @@ def test_feature_grid_item_without_icon_renders_no_icon() -> None:
         items=[{"heading": "Simple", "body": "No fuss."}],
     )
     assert "bw-feature-card__icon" not in html
+
+
+# --- components/_feature_grid.html: linkable items (#99) --------------------
+
+
+def test_feature_grid_item_with_url_renders_the_card_as_an_anchor() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "Fast", "body": "Really fast.", "url": "/fast/"}],
+    )
+    assert '<a class="bw-feature-card bw-feature-card--link" href="/fast/">' in html
+    assert "</a>" in html
+    assert '<div class="bw-feature-card">' not in html
+
+
+def test_feature_grid_item_without_url_renders_the_plain_div_unchanged() -> None:
+    # The _stat.html href contract: no destination means no anchor, never a
+    # clickable-looking card that goes nowhere.
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "Simple", "body": "No fuss."}],
+    )
+    assert '<div class="bw-feature-card">' in html
+    assert "<a" not in html
+    assert "bw-feature-card--link" not in html
+
+
+def test_feature_grid_linked_item_aria_label_overrides_the_accessible_name() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[
+            {
+                "heading": "Fast",
+                "body": "Really fast.",
+                "url": "/fast/",
+                "aria_label": "Read about speed",
+            }
+        ],
+    )
+    assert 'aria-label="Read about speed"' in html
+
+
+def test_feature_grid_aria_label_without_url_is_ignored() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "Fast", "body": "Really fast.", "aria_label": "Ignored"}],
+    )
+    assert "aria-label" not in html
+
+
+def test_feature_grid_mixes_linked_and_plain_items() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[
+            {"heading": "Fast", "body": "Really fast.", "url": "/fast/"},
+            {"heading": "Simple", "body": "No fuss."},
+        ],
+    )
+    assert '<a class="bw-feature-card bw-feature-card--link" href="/fast/">' in html
+    assert '<div class="bw-feature-card">' in html
 
 
 # --- components/_pricing_tier.html -----------------------------------------
@@ -355,6 +511,39 @@ def test_pricing_tier_badge_only_renders_when_highlighted() -> None:
     assert "Most popular" not in html
 
 
+def test_pricing_tier_flat_cta_kwargs_render_identically_to_the_dict_shape() -> None:
+    # #98: cta accepts the flat cta_label/cta_url pair for template-authored
+    # callers; both shapes must produce the same output.
+    dict_html = _include(
+        "brickwork_marketing/components/_pricing_tier.html",
+        name="Pro",
+        price="$29",
+        cta={"label": "Choose Pro", "url": "/pro/"},
+    )
+    flat_html = _include(
+        "brickwork_marketing/components/_pricing_tier.html",
+        name="Pro",
+        price="$29",
+        cta_label="Choose Pro",
+        cta_url="/pro/",
+    )
+    assert dict_html == flat_html
+    assert "Choose Pro" in flat_html and 'href="/pro/"' in flat_html
+
+
+def test_pricing_tier_dict_cta_wins_outright_when_both_shapes_are_supplied() -> None:
+    html = _include(
+        "brickwork_marketing/components/_pricing_tier.html",
+        name="Pro",
+        price="$29",
+        cta={"label": "Dict label", "url": "/dict/"},
+        cta_label="Flat label",
+        cta_url="/flat/",
+    )
+    assert "Dict label" in html and 'href="/dict/"' in html
+    assert "Flat label" not in html and "/flat/" not in html
+
+
 # --- components/_pricing_table.html ----------------------------------------
 
 
@@ -389,6 +578,16 @@ def test_pricing_table_empty_tiers_renders_intro_alone() -> None:
 def test_pricing_table_fully_empty_renders_nothing() -> None:
     html = _render("brickwork_marketing/components/_pricing_table.html")
     assert html.strip() == ""
+
+
+def test_pricing_table_tier_dicts_accept_the_flat_cta_keys() -> None:
+    # #98: the per-tier loop forwards cta_label/cta_url, so a view-built tier
+    # dict may carry the flat pair instead of a nested cta dict.
+    html = _include(
+        "brickwork_marketing/components/_pricing_table.html",
+        tiers=[{"name": "Pro", "price": "$29", "cta_label": "Choose Pro", "cta_url": "/pro/"}],
+    )
+    assert "Choose Pro" in html and 'href="/pro/"' in html
 
 
 # --- components/_cta.html: no_tint is an opt-out (04-interfaces.md 4d) ------
@@ -437,6 +636,36 @@ def test_cta_optional_context_renders_every_region() -> None:
     assert "Join thousands of teams already using it." in html
     assert "Get started" in html and 'href="/start/"' in html
     assert "Talk to sales" in html and 'href="/sales/"' in html
+
+
+def test_cta_flat_cta_kwargs_render_identically_to_the_dict_shape() -> None:
+    # #98: the CTA band's buttons accept the same flat kwargs as the hero's.
+    dict_html = _include(
+        "brickwork_marketing/components/_cta.html",
+        heading="Ready to start?",
+        primary_cta={"label": "Get started", "url": "/start/"},
+        secondary_cta={"label": "Talk to sales", "url": "/sales/"},
+    )
+    flat_html = _include(
+        "brickwork_marketing/components/_cta.html",
+        heading="Ready to start?",
+        primary_cta_label="Get started",
+        primary_cta_url="/start/",
+        secondary_cta_label="Talk to sales",
+        secondary_cta_url="/sales/",
+    )
+    assert dict_html == flat_html
+
+
+def test_cta_flat_kwargs_forwarded_unset_render_no_actions() -> None:
+    # Same pass-through rule as the hero: an absent page-level variable
+    # forwarded by {% include ... with %} arrives as an empty string and must
+    # not render an empty button.
+    html = Template(
+        "{% include 'brickwork_marketing/components/_cta.html' with heading=heading"
+        " primary_cta_label=absent_a primary_cta_url=absent_b %}"
+    ).render(Context({"heading": "Ready to start?"}))
+    assert "bw-cta__actions" not in html
 
 
 # --- components/_testimonial.html ------------------------------------------
@@ -710,3 +939,37 @@ def test_brand_wrappers_do_not_grow_or_shrink_and_collapse_when_empty() -> None:
     )
     assert empties is not None
     assert "display:none" in empties.group(1).replace(" ", "")
+
+
+# --- shell/marketing.html: auth-aware marketing_actions (#85) ---------------
+
+
+def test_marketing_shell_actions_block_branches_on_auth_state() -> None:
+    # The documented pattern (INTEGRATION.md section 8, the shell's own header
+    # comment): brickwork never reads auth itself; the consumer branches its
+    # marketing_actions block on request.user.is_authenticated. Prove the
+    # branch renders both ways through the shell.
+    from django.contrib.auth.models import AnonymousUser, User
+    from django.test import RequestFactory
+
+    source = (
+        "{% extends 'brickwork_marketing/shell/marketing.html' %}"
+        "{% block marketing_actions %}"
+        "{% if request.user.is_authenticated %}"
+        '<a href="/dashboard/">Dashboard</a>'
+        "{% else %}"
+        '<a href="/login/">Sign in</a>'
+        "{% endif %}"
+        "{% endblock %}"
+    )
+    request = RequestFactory().get("/")
+
+    request.user = AnonymousUser()
+    anon_html = Template(source).render(Context({"request": request}))
+    assert "Sign in" in anon_html
+    assert "Dashboard" not in anon_html
+
+    request.user = User(username="ada")  # unsaved: is_authenticated is always True
+    authed_html = Template(source).render(Context({"request": request}))
+    assert "Dashboard" in authed_html
+    assert "Sign in" not in authed_html
