@@ -64,6 +64,7 @@ const RENAMES = new Map([
   ["bw-content-max-width", "bw-component-content-max-width"],
   ["bw-content-max-width-marketing", "bw-component-content-max-width-marketing"],
   ["bw-section-gap-marketing", "bw-component-section-gap-marketing"],
+  ["bw-logo-height", "bw-component-logo-height"],
   ["bw-topbar-position", "bw-component-topbar-position"],
   ["bw-disabled-opacity", "bw-component-disabled-opacity"],
   ["bw-menu-min-width", "bw-component-menu-min-width"],

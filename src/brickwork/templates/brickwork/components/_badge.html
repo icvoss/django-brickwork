@@ -2,7 +2,8 @@
 {% comment %}
 A small status/label badge (neutral information only, never error comms, STA-008).
 An optional leading icon is decorative by default (ICO-009): the badge text
-already conveys the status.
+already conveys the status. Every documented variant, including the "neutral"
+default, has a matching .bw-badge--<variant> rule in the shipped CSS (#100).
 
 Dismissible (04-interfaces 4b Dismissible section, 0.9.0, CMP-012): with the
 tag's dismissible=True the root gains x-data="bwDismissible()" (semver-public,

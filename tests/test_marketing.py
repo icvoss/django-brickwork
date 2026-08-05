@@ -15,10 +15,15 @@ context, mirroring test_pages.py's idiom exactly.
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import pytest
 from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
+
+_DIST = Path(__file__).resolve().parent.parent / "src" / "brickwork" / "static" / "brickwork" / "dist"
 
 
 def _render(template: str, request=None, **ctx: object) -> str:
@@ -836,6 +841,104 @@ def test_faq_without_single_open_shares_no_name() -> None:
         ],
     )
     assert "name=" not in html
+
+
+# --- #86: the testimonial must not zero the composed section rhythm ---------
+# These assert on the shipped dist CSS (the package product, the same idiom
+# test_slide_over.py uses for the zero-footprint root): the defect was a
+# cascade tie the render tests cannot see.
+
+
+def test_testimonial_root_carries_no_blanket_margin_reset() -> None:
+    # #86: `margin: 0` on .bw-testimonial tied on specificity with the shell's
+    # `.bw-marketing__content > * + *` section-gap rule and, sitting later in
+    # source order, won the tie, permanently zeroing the gap above any composed
+    # testimonial. The class-specificity rule must not touch block margins.
+    css = (_DIST / "brickwork.css").read_text()
+    rule = re.search(r"\.bw-testimonial\{([^}]*)\}", css)
+    assert rule is not None, "expected a .bw-testimonial rule in dist/brickwork.css"
+    body = rule.group(1).replace(" ", "")
+    assert "margin:0" not in body, "blanket margin reset regressed (#86)"
+    assert "margin-block" not in body
+    assert "margin-inline:auto" in body
+
+
+def test_testimonial_ua_figure_margins_neutralised_at_zero_specificity() -> None:
+    # The UA <figure> block margins are reset in a :where() rule (specificity
+    # zero), so the shell's section-gap rule always wins when the testimonial
+    # is composed as a marketing section.
+    css = (_DIST / "brickwork.css").read_text()
+    rule = re.search(r":where\(\.bw-testimonial\)\{([^}]*)\}", css)
+    assert rule is not None, "expected a zero-specificity :where(.bw-testimonial) reset (#86)"
+    assert "margin-block:0" in rule.group(1).replace(" ", "")
+
+
+def test_marketing_section_gap_rule_composes_the_rhythm() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    assert re.search(
+        r"\.bw-marketing__content>\*\+\*\{margin-block-start:var\(--bw-component-section-gap-marketing\)\}",
+        css.replace(" ", ""),
+    ), "the marketing section-gap rule must remain in dist/brickwork.css"
+
+
+# --- #83: brand slot default sizing (--bw-component-logo-height) ------------
+
+
+def test_marketing_shell_wraps_brand_blocks_in_brickwork_owned_elements() -> None:
+    # #83 (the app shell's brickwork#93 wrapper precedent): brand_logo and
+    # brand_wordmark are wrapped so the shell can constrain a dropped-in
+    # mark/lockup without knowing the consumer's inner markup or classes.
+    html = _extend(
+        "brickwork_marketing/shell/marketing.html",
+        "{% block brand_logo %}<svg viewBox='0 0 400 400'></svg>{% endblock %}"
+        "{% block brand_wordmark %}Acme{% endblock %}",
+    )
+    assert '<span class="bw-marketing-header__brand-mark"><svg' in html
+    assert '<span class="bw-marketing-header__brand-wordmark">Acme</span>' in html
+
+
+def test_marketing_shell_unfilled_brand_blocks_leave_empty_wrappers() -> None:
+    # An unfilled block leaves an :empty wrapper (collapsed by the CSS), so
+    # the header's gap never renders a phantom slot.
+    html = _extend("brickwork_marketing/shell/marketing.html", "")
+    assert '<span class="bw-marketing-header__brand-mark"></span>' in html
+    assert '<span class="bw-marketing-header__brand-wordmark"></span>' in html
+
+
+def test_logo_height_token_is_emitted_with_its_default() -> None:
+    tokens = (_DIST / "tokens.css").read_text()
+    assert "--bw-component-logo-height: 2rem;" in tokens
+
+
+def test_brand_slot_caps_a_dropped_in_logo_via_the_token_at_zero_specificity() -> None:
+    # The img/svg leg is :where() (zero specificity), so a one-class consumer
+    # rule overrides the default cap.
+    css = (_DIST / "brickwork.css").read_text()
+    rule = re.search(
+        r"\.bw-marketing-header__brand-mark :where\(img,\s*svg\),\s*"
+        r"\.bw-marketing-header__brand-wordmark :where\(img,\s*svg\)\{([^}]*)\}",
+        css,
+    )
+    assert rule is not None, "expected the brand-slot logo cap rule in dist/brickwork.css (#83)"
+    body = rule.group(1).replace(" ", "")
+    assert "block-size:var(--bw-component-logo-height)" in body
+    assert "inline-size:auto" in body
+
+
+def test_brand_wrappers_do_not_grow_or_shrink_and_collapse_when_empty() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    wrappers = re.search(
+        r"\.bw-marketing-header__brand-mark,\s*\.bw-marketing-header__brand-wordmark\{([^}]*)\}",
+        css,
+    )
+    assert wrappers is not None
+    assert "flex:00auto" in wrappers.group(1).replace(" ", "")
+    empties = re.search(
+        r"\.bw-marketing-header__brand-mark:empty,\s*\.bw-marketing-header__brand-wordmark:empty\{([^}]*)\}",
+        css,
+    )
+    assert empties is not None
+    assert "display:none" in empties.group(1).replace(" ", "")
 
 
 # --- shell/marketing.html: auth-aware marketing_actions (#85) ---------------

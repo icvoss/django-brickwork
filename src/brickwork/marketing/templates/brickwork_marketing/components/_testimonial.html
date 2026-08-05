@@ -14,6 +14,11 @@ Optional context:
   logo    (safe string): a company logo, pre-rendered safe HTML. The caller
           owns escaping, matching _stat.html's sparkline convention.
 
+Layout note (#86): the root carries no block margins of its own (the UA
+<figure> margins are neutralised at zero specificity in the CSS), so the
+marketing shell's section rhythm (.bw-marketing__content > * + *) owns the
+gap above a composed testimonial.
+
 Every input here is already a flat string (#98): this component is fully
 template-authorable via {% include ... with %} as-is; nothing dict-shaped
 or list-shaped exists in its contract.

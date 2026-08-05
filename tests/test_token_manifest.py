@@ -94,6 +94,13 @@ def test_overridable_names_includes_the_012_feedback_component_tokens() -> None:
     assert "--bw-component-stat-tile-sparkline-height" in names
 
 
+def test_overridable_names_includes_the_marketing_logo_height_token() -> None:
+    # #83: the marketing brand-slot logo cap must be overridable under its
+    # canonical component-tier name.
+    names = overridable_names()
+    assert "--bw-component-logo-height" in names
+
+
 def test_is_overridable_true_for_accent_false_for_primitive() -> None:
     assert is_overridable("--bw-color-accent") is True
     assert is_overridable("--bw-primitive-gray-0") is False
