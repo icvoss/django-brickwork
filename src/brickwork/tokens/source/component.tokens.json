@@ -121,6 +121,13 @@
     "$value": "4rem",
     "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens): the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA and so on), larger than the app's --bw-density-section-gap (2rem comfortable) since marketing pages read as fewer, more generous blocks rather than a dense workspace. Named distinctly from the density-scoped section-gap (not itself density-varying: marketing pages are not scoped by the density axis)."
   },
+  "logo": {
+    "height": {
+      "$type": "dimension",
+      "$value": "{size.space.8}",
+      "$description": "Marketing brand-slot logo height (#83, ADR-054 beautiful-by-default): the default cap the marketing shell applies to an img/svg dropped into brand_logo or brand_wordmark, so an unconstrained mark/lockup renders at a sensible header size (2rem, the 32px end of the conventional 28-32px header-logo range) with width following the intrinsic ratio, out of the box. A consumer overrides the token to resize, or targets the zero-specificity shell rule directly."
+    }
+  },
   "topbar": {
     "position": {
       "$type": "other",

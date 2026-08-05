@@ -12,8 +12,19 @@ page (BR-BW-PAGE-001 at marketing scope), never {% include %}d.
 Named blocks (semver-public, BR-BW-TPL-001), all empty-graceful:
   marketing_header    default: a header row with brand_logo/brand_wordmark at
                        the inline start and marketing_nav at the end.
-  brand_logo
-  brand_wordmark
+  brand_logo           wrapped in the brickwork-owned
+                       .bw-marketing-header__brand-mark element (#83, the
+                       app shell's brickwork#93 wrapper precedent): an
+                       img/svg dropped in is capped at
+                       --bw-component-logo-height (2rem) with width following
+                       the intrinsic ratio, and the wrapper stays
+                       flex: 0 0 auto so the nav/actions keep the remaining
+                       width. Override the token (or the zero-specificity
+                       rule) to resize; an unfilled block leaves an :empty
+                       wrapper that collapses to nothing.
+  brand_wordmark       wrapped in .bw-marketing-header__brand-wordmark, the
+                       same treatment as brand_logo (a text wordmark is
+                       unaffected: the height cap targets only img/svg).
   marketing_nav        the primary public nav: a plain list of links, no
                        active-route resolver dependency (a marketing site's
                        nav is a small fixed set, unlike the app shell's
@@ -43,8 +54,8 @@ canvas wants a wider column than a console (04-interfaces.md 4d).
     <div class="bw-marketing-header__inner">
       <div class="bw-marketing-header__brand">
         {% block marketing_header %}
-          {% block brand_logo %}{% endblock %}
-          {% block brand_wordmark %}{% endblock %}
+          <span class="bw-marketing-header__brand-mark">{% block brand_logo %}{% endblock %}</span>
+          <span class="bw-marketing-header__brand-wordmark">{% block brand_wordmark %}{% endblock %}</span>
           <nav class="bw-marketing-header__nav" aria-label="{% translate 'Primary' %}">
             {% block marketing_nav %}{% endblock %}
           </nav>

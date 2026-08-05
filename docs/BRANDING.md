@@ -284,6 +284,28 @@ If you cannot yet adopt the emitter, the inline fallback is the same `<style>`
 block hand-written against the load-bearing names in this document, but you then
 own validation and drift against the token contract. Prefer the service.
 
+## The marketing brand slot: logo sizing out of the box (brickwork#83)
+
+The marketing shell's `brand_logo` / `brand_wordmark` blocks are wrapped in
+brickwork-owned elements (`.bw-marketing-header__brand-mark` /
+`.bw-marketing-header__brand-wordmark`), and any `img`/`svg` dropped into
+either slot is capped at `--bw-component-logo-height` (default `2rem`) with
+width following the intrinsic ratio. Drop your mark or lockup straight into the
+block and it renders at a sensible header size; an unconstrained SVG can no
+longer render full-height and push the nav off-screen. A text wordmark is
+unaffected (the cap targets only `img`/`svg`).
+
+To resize, override the token once:
+
+```css
+:root {
+  --bw-component-logo-height: 1.75rem; /* the 28px end of the header range */
+}
+```
+
+The shell rule is zero-specificity (`:where`), so any one-class rule of your
+own also wins if a single logo needs bespoke treatment.
+
 ## Where the values live
 
 Author your overrides in your own stylesheet or, if you run a build, in a DTCG

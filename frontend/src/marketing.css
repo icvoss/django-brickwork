@@ -45,6 +45,35 @@
   gap: var(--bw-space-6);
 }
 
+/* Brand slot default sizing (#83, ADR-054 beautiful-by-default): brand_logo
+ * and brand_wordmark are wrapped in brickwork-owned elements (the app
+ * shell's brickwork#93 precedent), so a mark/lockup dropped into either slot
+ * is constrained WITHOUT knowing the consumer's own inner markup or classes.
+ * Any img/svg inside a wrapper caps at --bw-component-logo-height with width
+ * following the intrinsic ratio, so an unconstrained SVG can never render as
+ * a banner and push the nav off-screen; the wrappers stay flex: 0 0 auto so
+ * the nav and actions clusters keep the remaining width. The img/svg leg is
+ * zero-specificity (:where), so a one-class consumer rule overrides the cap.
+ * An unfilled block leaves an :empty wrapper, which takes no space (no
+ * phantom header gap). */
+.bw-marketing-header__brand-mark,
+.bw-marketing-header__brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.bw-marketing-header__brand-mark:empty,
+.bw-marketing-header__brand-wordmark:empty {
+  display: none;
+}
+
+.bw-marketing-header__brand-mark :where(img, svg),
+.bw-marketing-header__brand-wordmark :where(img, svg) {
+  block-size: var(--bw-component-logo-height);
+  inline-size: auto;
+}
+
 .bw-marketing-header__nav {
   display: flex;
   align-items: center;
@@ -495,8 +524,18 @@
 
 /* --- Testimonial ---------------------------------------------------------------- */
 
+/* No blanket `margin: 0` on the root (#86): that reset ties with the shell's
+ * `.bw-marketing__content > * + *` section-gap rule on specificity and, being
+ * later in source order, wins the tie, permanently zeroing the section gap
+ * above any composed testimonial (the stat-band/testimonial collision). The
+ * UA <figure> block margins are neutralised at ZERO specificity instead, so
+ * the shell's section rhythm always wins when the testimonial is composed as
+ * a marketing section, and a one-class consumer override still wins here. */
+:where(.bw-testimonial) {
+  margin-block: 0;
+}
+
 .bw-testimonial {
-  margin: 0;
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-6);

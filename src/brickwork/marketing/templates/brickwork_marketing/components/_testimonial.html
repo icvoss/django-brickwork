@@ -13,6 +13,11 @@ Optional context:
           renders a text-only quote card, never a broken image.
   logo    (safe string): a company logo, pre-rendered safe HTML. The caller
           owns escaping, matching _stat.html's sparkline convention.
+
+Layout note (#86): the root carries no block margins of its own (the UA
+<figure> margins are neutralised at zero specificity in the CSS), so the
+marketing shell's section rhythm (.bw-marketing__content > * + *) owns the
+gap above a composed testimonial.
 {% endcomment %}
 {% if quote %}
 <figure class="bw-testimonial">
