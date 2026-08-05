@@ -188,3 +188,29 @@ class ToastActionView(View):
 
     def post(self, request, *args, **kwargs):
         return render(request, "consumer/_toast_oob.html", {"message": "Surface action recorded."})
+
+
+class ComponentsView(TemplateView):
+    """The coexisting-component-framework page (brickwork#75, ADOPTION.md).
+
+    Simulates a SECOND component framework (django-components shaped) living
+    inside the shell's content block, without depending on the framework
+    itself: a domain widget include stands in for {% component "..." %}, and
+    hand-placed <link>/<script> tags in head_extra/body_js stand in for
+    {% component_css_dependencies %} / {% component_js_dependencies %}. The
+    smoke tests assert the shell and the widget coexist and that the injected
+    dependency tags land in the documented cascade order.
+    """
+
+    template_name = "consumer/components.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(
+            {
+                "title": "Domain components",
+                # what a django_components get_context_data would have computed:
+                "price": {"amount": "42.50", "currency": "EUR", "symbol": "€"},
+            }
+        )
+        return ctx

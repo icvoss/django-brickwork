@@ -1,0 +1,13 @@
+{% comment %}
+The simulated second-framework domain component (brickwork#75). Stands in for a
+django_components {% component "price_display" %}: domain markup on the
+framework's OWN classes (dc-*), styled by the framework's injected stylesheet,
+never reaching into .bw-* internals. Required context: price (a dict with
+symbol, amount, currency). No blocks; included as a fragment inside a brickwork
+body slot, per the ADOPTION.md coexistence contract.
+{% endcomment %}
+<div class="dc-price-display" data-dc-component="price_display">
+  <span class="dc-price-display__symbol">{{ price.symbol }}</span>
+  <span class="dc-price-display__amount">{{ price.amount }}</span>
+  <span class="dc-price-display__currency">{{ price.currency }}</span>
+</div>

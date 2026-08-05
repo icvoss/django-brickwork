@@ -105,6 +105,60 @@ def test_validate_false_skips_all_checks() -> None:
     assert "--bw-color-accent: oklch(0.86 0.06 350);" in css
 
 
+# --- the per-role accent shape (#76, BRANDING.md recipe 3) -----------------
+#
+# N accents selected by a request attribute, one emitter call per role: each
+# role carries its own light and dark accent with its own verified
+# fg-on-accent (the #35 trap applied per accent). Two roles are enough to pin
+# the shape: per-role blocks emit independently, validation runs per role, and
+# the emitted overrides touch only load-bearing names so the shipped
+# color-mix() derivations keep recolouring the accent family downstream.
+
+_ROLE_BRANDS: dict[str, tuple[dict[str, str], dict[str, str]]] = {
+    "club": (
+        {"color-accent": _AUBERGINE_ACCENT, "color-fg-on-accent": _WHITE},
+        {"color-accent": _LOW_CONTRAST_ACCENT, "color-fg-on-accent": _DARK_INK},
+    ),
+    "coach": (
+        {"color-accent": "oklch(0.45 0.15 150)", "color-fg-on-accent": _WHITE},
+        {"color-accent": "oklch(0.8 0.1 150)", "color-fg-on-accent": _DARK_INK},
+    ),
+}
+
+
+@pytest.mark.parametrize("role", sorted(_ROLE_BRANDS))
+def test_each_role_accent_emits_its_own_light_and_dark_blocks(role: str) -> None:
+    light, dark = _ROLE_BRANDS[role]
+    css = render_brand_css(light, dark)
+    assert ":root {" in css
+    assert '[data-theme="dark"] {' in css
+    assert f"--bw-color-accent: {light['color-accent']};" in css
+    assert f"--bw-color-accent: {dark['color-accent']};" in css.split('[data-theme="dark"]')[1]
+
+
+def test_a_role_with_a_bad_fg_on_accent_pairing_fails_independently() -> None:
+    # Per-accent validation: one role's wrong pairing (white on a light accent)
+    # raises for THAT role's emitter call; the other roles are unaffected.
+    with pytest.raises(BrandValidationError, match="fails contrast"):
+        render_brand_css({"color-accent": _LOW_CONTRAST_ACCENT, "color-fg-on-accent": _WHITE})
+    for role in _ROLE_BRANDS:
+        light, dark = _ROLE_BRANDS[role]
+        assert render_brand_css(light, dark)
+
+
+def test_role_overrides_set_only_load_bearing_names_so_the_family_derives() -> None:
+    # The recipe's derivation guarantee: the per-role override carries only the
+    # authored load-bearing values, never flat copies of the derived family, so
+    # -accent-hover / -accent-subtle / -focus-ring keep deriving live from the
+    # per-request accent (see also the dist-side guard in
+    # test_token_derivations.py).
+    light, dark = _ROLE_BRANDS["club"]
+    css = render_brand_css(light, dark)
+    assert "--bw-color-accent-hover" not in css
+    assert "--bw-color-accent-subtle" not in css
+    assert "--bw-color-focus-ring" not in css
+
+
 def test_non_oklch_value_warns_instead_of_raising() -> None:
     # a value that is not a plain oklch literal cannot be contrast-checked; this
     # must warn (the check cannot run), never raise (an unrelated CSS syntax

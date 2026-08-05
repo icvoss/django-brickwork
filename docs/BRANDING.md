@@ -195,7 +195,7 @@ positive actions read correctly.
 <h2 id="dynamic-theming">Dynamic theming: per-request axes and per-tenant runtime brand (brickwork#36)</h2>
 
 The four axes and the live oklab derivation are not just build-time knobs; both
-can be driven per request. Two recipes unlock capabilities the token
+can be driven per request. Three recipes unlock capabilities the token
 architecture already supports.
 
 ### Recipe 1: per-user density / theme / direction toggle
@@ -283,6 +283,95 @@ expressed as an API.
 If you cannot yet adopt the emitter, the inline fallback is the same `<style>`
 block hand-written against the load-bearing names in this document, but you then
 own validation and drift against the token contract. Prefer the service.
+
+### Recipe 3: per-role accent within one session (brickwork#76)
+
+First, the contract, stated so it is a guarantee and not an accident:
+**`BRICKWORK_THEME_RESOLVER` may derive its result from ANY request state.**
+The resolver is a `Callable[[HttpRequest], ThemeAttributes]` and nothing in the
+resolution path privileges tenant or host: session values, an active role a
+middleware resolved onto the request, the user, the host, a tenant, all are
+equally supported keys. A per-request, session-keyed resolution that flips
+within one authenticated user's browsing (the user switches role mid-session)
+is a supported path, exercised by the brickwork test suite.
+
+The shape this recipe covers: a single-brand product whose application accent
+changes by the user's **active role** (say player / coach / club / supplier),
+switchable mid-session. The role accent is information architecture (it tells
+the user which hat they are wearing), so it must flip per request with no
+tenant or host involved.
+
+When the N accents are known at build time, the lightest wiring is the brand
+axis plus a static stylesheet; no per-request CSS emission at all. The resolver
+keys the brand slug on the role:
+
+```python
+# yourapp/theming.py
+def role_accent_resolver(request):
+    role = getattr(request, "active_role", None)  # your middleware sets this from the session
+    if role is None:
+        return {}
+    return {"brand": role}  # "player" | "coach" | "club" | "supplier"
+```
+
+```python
+# settings.py
+BRICKWORK_THEME_RESOLVER = "yourapp.theming.role_accent_resolver"
+```
+
+The slug renders as `data-bw-brand` on the shell root `<html>` (0.10.0 brand
+hook), so your brand stylesheet scopes one accent block per role. The overrides
+sit on the root element, which is where the derived `color-mix()` family
+computes, so overriding `--bw-color-accent` alone recolours the whole accent
+family (hover, subtle tint, focus ring, nav active state) for that role,
+per request, with no rebuild:
+
+```css
+/* your brand.css, loaded after brickwork's tokens.css */
+[data-bw-brand="player"] {
+  --bw-color-accent:       oklch(0.55 0.17 255);
+  --bw-color-fg-on-accent: oklch(0.99 0 0);      /* verified against THIS accent */
+}
+[data-bw-brand="player"][data-theme="dark"] {
+  --bw-color-accent:       oklch(0.72 0.13 255);
+  --bw-color-fg-on-accent: oklch(0.22 0.02 255); /* the flip trap, per role */
+}
+[data-bw-brand="coach"] {
+  --bw-color-accent:       oklch(0.50 0.14 150);
+  --bw-color-fg-on-accent: oklch(0.99 0 0);
+}
+[data-bw-brand="coach"][data-theme="dark"] {
+  --bw-color-accent:       oklch(0.70 0.12 150);
+  --bw-color-fg-on-accent: oklch(0.20 0.03 150);
+}
+/* ...club, supplier... */
+```
+
+Points to hold:
+
+- **fg-on-accent is a per-accent decision.** Four roles times two themes is
+  eight authored `--bw-color-fg-on-accent` values, each verified at 4.5:1
+  against its own accent (the brickwork#35 trap applied per accent). Do not
+  copy white across roles or from light into dark on reflex.
+- **Dark composes per role.** `data-bw-brand` and `data-theme` are independent
+  attributes on the same root element, so the compound
+  `[data-bw-brand="coach"][data-theme="dark"]` block gives every role its own
+  authored dark accent, and player-dark, coach-dark and so on all derive their
+  families correctly. Author the compound block after the role's light block;
+  its higher specificity is what keeps the role's light values out of dark.
+- **Theme and density still compose.** The role only sets `brand`; the user's
+  theme / density / direction preferences resolve exactly as in recipe 1, in
+  the same resolver or a chained one (return the merged dict).
+
+When the accents are data rather than code (roles configured per deployment,
+say), swap the static stylesheet for the recipe 2 emitter keyed on the role
+instead of the tenant: `render_brand_css` validates each role's
+fg-on-accent pairing per theme, and the per-request `<style>` block carries
+only that role's load-bearing values. Either way the derivation guarantee is
+the same, and it is pinned by tests: the shipped stylesheet keeps the accent
+family (`-accent-hover`, `-accent-subtle`, `-focus-ring`) derived live over
+`var(--bw-color-accent)` in every theme scope, so an accent that arrives per
+request recolours everything downstream of it.
 
 ## The marketing brand slot: logo sizing out of the box (brickwork#83)
 
