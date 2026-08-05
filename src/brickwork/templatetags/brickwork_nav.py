@@ -43,6 +43,7 @@ class RenderedNavItem:
     is_section_header: bool
     is_external: bool
     is_disabled: bool  # a bad url_name under the "disabled" fallback
+    opens_in_new_tab: bool  # target=_blank, independent of is_external (NAV-020)
     children: tuple[RenderedNavItem, ...]
 
 
@@ -71,7 +72,20 @@ def _effective_kwargs(item: NavItem, resolver_match) -> dict:
     return kwargs
 
 
-def _prepare(item: NavItem, active: NavItem | None, fallback: str, resolver_match) -> RenderedNavItem | None:
+def _resolve_new_tab(opens_in_new_tab: bool | None, is_external: bool) -> bool:
+    """Resolve the tri-state NavItem.opens_in_new_tab to a concrete bool.
+
+    ``None`` keeps the historical default (external links open a new tab, internal
+    links do not, so existing configs are byte-identical); an explicit bool wins.
+    """
+    if opens_in_new_tab is None:
+        return is_external
+    return opens_in_new_tab
+
+
+def _prepare(
+    item: NavItem, active: NavItem | None, fallback: str, resolver_match, current_path: str | None = None
+) -> RenderedNavItem | None:
     """Prepare one item for render, or None if it should be omitted entirely."""
     href: str | None = None
     is_disabled = False
@@ -97,6 +111,10 @@ def _prepare(item: NavItem, active: NavItem | None, fallback: str, resolver_matc
         href = None
     elif is_external:
         href = item.external_url
+    elif item.href is not None:
+        # A raw, already-resolved internal path (NAV-019): rendered as-is, no
+        # reverse, no external affordance. Active state is by path match below.
+        href = item.href
     elif item.url_name is not None:
         href = safe_reverse(item.url_name, _effective_kwargs(item, resolver_match))
         if href is None:
@@ -111,12 +129,21 @@ def _prepare(item: NavItem, active: NavItem | None, fallback: str, resolver_matc
     children = tuple(
         prepared
         for child in item.children
-        if (prepared := _prepare(child, active, fallback, resolver_match)) is not None
+        if (prepared := _prepare(child, active, fallback, resolver_match, current_path)) is not None
     )
 
     # a section header with no surviving children renders nothing
     if item.section_header and not children:
         return None
+
+    # Active state: normally by the resolved `active` NavItem (key match). A raw
+    # `href` item cannot participate in that resolution (it has no url_name for
+    # resolve_active_item to match), so it falls back to a direct path match
+    # against the current request path (NAV-019). The key match still wins when
+    # present, so an href item explicitly passed as `active` is honoured too.
+    is_active = active is not None and item.key == active.key
+    if not is_active and item.href is not None and current_path is not None:
+        is_active = item.href == current_path
 
     return RenderedNavItem(
         key=item.key,
@@ -124,11 +151,15 @@ def _prepare(item: NavItem, active: NavItem | None, fallback: str, resolver_matc
         href=href,
         icon=item.icon,
         badge=item.badge,
-        is_active=active is not None and item.key == active.key,
+        is_active=is_active,
         is_active_ancestor=is_ancestor_of_active(item, active) and (active is None or item.key != active.key),
         is_section_header=item.section_header,
         is_external=is_external,
         is_disabled=is_disabled,
+        # New-tab is its own axis (NAV-020), tri-state: None keeps the historical
+        # default (external links open a new tab, internal links do not), an
+        # explicit bool overrides either way. Never on a section header (no link).
+        opens_in_new_tab=_resolve_new_tab(item.opens_in_new_tab, is_external) and not item.section_header,
         children=children,
     )
 
@@ -147,9 +178,15 @@ def bw_nav(
     (``NavItem.url_kwargs_from_request``); it defaults to the current request's
     ``resolver_match`` from the template context, so a consumer rarely passes it
     explicitly."""
+    request = context.get("request")
     if resolver_match is None:
-        request = context.get("request")
         resolver_match = getattr(request, "resolver_match", None)
+    # The current path drives active state for raw-`href` items (NAV-019), which
+    # cannot be matched via resolver_match. None when there is no request (a
+    # context-free render), in which case href items simply never read active.
+    current_path = getattr(request, "path", None)
     fallback = get_setting("BRICKWORK_NAV_FALLBACK")
-    prepared = tuple(p for item in items if (p := _prepare(item, active, fallback, resolver_match)) is not None)
+    prepared = tuple(
+        p for item in items if (p := _prepare(item, active, fallback, resolver_match, current_path)) is not None
+    )
     return {"bw_nav_tree": prepared}

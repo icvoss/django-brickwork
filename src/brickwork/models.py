@@ -86,9 +86,37 @@ class NavItem:
     like any unresolvable URL, never a 500 (BR-BW-NAV-003)."""
 
     external_url: str | None = None
-    """An off-site URL (NAV-018). Mutually exclusive with ``url_name``: an
-    external link is rendered as an ordinary anchor and never participates in
-    active-route resolution (resolver_match cannot match an external href)."""
+    """An off-site URL (NAV-018). Mutually exclusive with ``url_name`` and
+    ``href``: an external link is rendered with the external-link affordance (an
+    icon) and never participates in active-route resolution (resolver_match
+    cannot match an external href). "External" is about the URL being off-site;
+    whether it opens in a new tab is the separate ``opens_in_new_tab`` axis
+    below (an external link no longer forces a new tab)."""
+
+    href: str | None = None
+    """A raw, already-resolved INTERNAL path (e.g. ``"/docs/getting-started/"``),
+    for a same-site link the consumer holds as a path rather than a Django URL
+    name. Mutually exclusive with ``url_name`` and ``external_url``. Unlike
+    ``external_url`` it renders as an ordinary on-site anchor (no external icon,
+    same tab by default) and DOES participate in active state, matched by path
+    against the current ``request.path`` (not by ``resolver_match``, which a raw
+    path cannot drive). This is the seam for a CMS-managed menu whose items only
+    expose ``page.get_absolute_url()`` paths, never route names (NAV-019)."""
+
+    opens_in_new_tab: bool | None = None
+    """Whether this item's link opens in a new browser tab (``target="_blank"``
+    with ``rel="noopener noreferrer"``), as an axis INDEPENDENT of whether the
+    link is external (NAV-020). Tri-state:
+
+    - ``None`` (default): use the historical default for the link kind, so
+      existing configs are unchanged: an ``external_url`` item opens in a new
+      tab, an internal (``url_name``/``href``) item stays in the same tab.
+    - ``True`` / ``False``: force the behaviour regardless of link kind, so an
+      internal item can open in a new tab and an external link can stay in the
+      same tab.
+
+    Mirrors a CMS menu item's own ``open_in_new_window`` flag, which is likewise
+    independent of the link target. Ignored for a section header (no link)."""
 
     section_header: bool = False
     """True marks this a non-navigable grouping label (NAV-002), rendered as a
