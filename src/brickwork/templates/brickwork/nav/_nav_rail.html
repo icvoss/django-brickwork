@@ -1,0 +1,77 @@
+{% load brickwork_icons %}
+{% comment %}
+Compact rail renderer (brickwork#82): an icon+label primary-navigation
+column over the SAME prepared NavItem tree the sidebar renderer consumes
+(one nav data model, several renderers). This is tier one of the
+capability-rail + contextual-sidebar (two-tier) layout: every rail entry is
+a REAL link that navigates (never a JS-only trigger); the contextual second
+tier is an ordinary {% bw_nav %} beside it, fed by the consumer from the
+same tree (typically the active area's children).
+
+Contract:
+  Consumption  This is the private render target of {% bw_nav_rail %}
+               (load brickwork_nav): call the tag, never include this
+               partial. Items arrive prepared (URL resolved via
+               safe_reverse per BR-BW-NAV-003, active/ancestor state
+               computed, visibility filtered upstream), so this template is
+               pure presentation.
+  Landmark     Emits a <ul> only, never a <nav>: callers place the tag
+               inside a labelled <nav> landmark. The app shell's sidebar
+               block already sits inside one.
+  Pairing      Wrap the rail and the contextual {% bw_nav %} in a
+               .bw-nav-two-tier container inside {% block sidebar %};
+               widen --bw-density-sidebar-width in your brand CSS to seat
+               both tiers. In the mobile drawer, render the full tree
+               through a plain {% bw_nav %} (the drawer keeps the no-JS
+               floor fully navigable, NAV-016/BR-BW-HTMX-001).
+  Labels       Stay VISIBLE at caption size, unlike the collapsed
+               sidebar's clipped labels (SHL-004): the rail is a designed
+               compact state, not a collapsed one.
+  Flat by design
+               A section header contributes its children as rail entries
+               and its own label is not rendered (the collapsed-rail
+               precedent, SHL-004). A link item's own children are NOT
+               rendered here: they belong to the contextual second tier,
+               and the rail entry carries the active treatment whenever it
+               or any descendant is the current route. No flyout ships
+               (this package's standing rule); a consumer wanting one
+               layers it as their own progressive enhancement
+               (BR-BW-TPL-002), never as a requirement.
+  A11y         Real anchors only, fully navigable with no JS. The exact
+               active item carries aria-current="page"; an active ancestor
+               gets the visual treatment only. Disabled fallback items
+               (BRICKWORK_NAV_FALLBACK="disabled") render as
+               aria-disabled spans. Icons are decorative: the visible
+               label is the accessible name. External links keep the
+               external glyph and new-tab affordance.
+{% endcomment %}
+
+{% partialdef nav_rail_item %}
+  {% comment %} `item` is a RenderedNavItem. {% endcomment %}
+  {% if item.is_section_header %}
+    {% for item in item.children %}{% partial nav_rail_item %}{% endfor %}
+  {% else %}
+    <li class="bw-nav-rail__item">
+      {% if item.is_disabled %}
+        <span class="bw-nav-rail__link bw-nav-rail__link--disabled" aria-disabled="true">
+          {% if item.icon %}{% bw_icon item.icon decorative=True css_class="bw-nav-rail__icon" %}{% endif %}
+          <span class="bw-nav-rail__label">{{ item.label }}</span>
+        </span>
+      {% else %}
+        <a class="bw-nav-rail__link{% if item.is_active %} bw-nav-rail__link--active{% endif %}{% if item.is_active_ancestor %} bw-nav-rail__link--active-ancestor{% endif %}"
+           href="{{ item.href|default:'#' }}"
+           {% if item.is_active %}aria-current="page"{% endif %}
+           {% if item.opens_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+          {% if item.icon %}{% bw_icon item.icon decorative=True css_class="bw-nav-rail__icon" %}{% endif %}
+          <span class="bw-nav-rail__label">{{ item.label }}</span>
+          {% if item.is_external %}{% bw_icon "external-link" size="sm" decorative=True css_class="bw-nav-rail__external" %}{% endif %}
+          {% if item.badge is not None %}<span class="bw-nav-rail__badge">{{ item.badge }}</span>{% endif %}
+        </a>
+      {% endif %}
+    </li>
+  {% endif %}
+{% endpartialdef %}
+
+<ul class="bw-nav-rail__list" role="list">
+  {% for item in bw_nav_tree %}{% partial nav_rail_item %}{% endfor %}
+</ul>

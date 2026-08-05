@@ -138,6 +138,25 @@ test.describe("no-JS floor", () => {
       await expect(page.locator(".bw-marketing-header__actions a").first()).toBeVisible();
     });
 
+    // The nav renderers (#102/#82): both sibling renderers are real-anchor
+    // renders over the same NavItem tree (no JS-only triggers), the compact
+    // renderers light the active AREA, and the exact aria-current lives in
+    // the contextual tier's ordinary bw_nav render.
+    test(`nav renderers are real anchors with JS disabled (${theme})`, async ({ page }) => {
+      await page.goto(pathToFileURL(join(FIXTURES, `nav-renderers-${theme}.html`)).href);
+      await expect(page.locator("a.bw-nav-header__link").first()).toBeVisible();
+      await expect(page.locator("a.bw-nav-rail__link").first()).toBeVisible();
+      // ancestor-active treatments on the compact renderers (child route active)
+      await expect(page.locator(".bw-nav-header__link--active-ancestor")).toHaveCount(1);
+      await expect(page.locator(".bw-nav-rail__link--active-ancestor")).toHaveCount(1);
+      // exactly one exact-active marker, in the contextual tier
+      await expect(page.locator('[aria-current="page"]')).toHaveCount(1);
+      await expect(page.locator('.bw-nav-two-tier .bw-nav__link[aria-current="page"]')).toHaveCount(1);
+      // the rail badge chip and the external affordance render server-side
+      await expect(page.locator(".bw-nav-rail__badge")).toHaveText("2");
+      await expect(page.locator(".bw-nav-header__external")).toHaveCount(1);
+    });
+
     test(`pricing page's FAQ accordion works with JS disabled (${theme})`, async ({ page }) => {
       await page.goto(pathToFileURL(join(FIXTURES, `pricing-${theme}.html`)).href);
       // the pricing table rendered its tiers server-side

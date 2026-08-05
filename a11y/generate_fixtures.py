@@ -1479,6 +1479,104 @@ def render_about(theme: str) -> str:
     return _inline_css(render_to_string("brickwork_testapp/marketing/about.html", ctx, request=request))
 
 
+# --- the nav renderers (#102/#82) ---------------------------------------------
+#
+# nav-renderers-<theme>.html   a standalone page (mirrors render_feedback's
+#                              self-contained shape) composing BOTH sibling
+#                              renderers over one NavItem tree: the
+#                              marketing-header row ({% bw_nav_header %})
+#                              inside the real .bw-marketing-header strip, and
+#                              the two-tier pairing ({% bw_nav_rail %} beside
+#                              a contextual {% bw_nav %} in the
+#                              .bw-nav-two-tier wrapper). The request is a
+#                              CHILD area's route, so axe examines the
+#                              ancestor-active treatments (header underline,
+#                              rail tint) plus the contextual tier's exact
+#                              aria-current in both themes; every entry is a
+#                              real anchor (the no-JS floor), and the rail's
+#                              corner badge chip and the external glyph are
+#                              both present.
+
+_NAV_RENDERERS_SOURCE = (
+    "{% load brickwork_nav %}"
+    '<header class="bw-marketing-header">'
+    '<div class="bw-marketing-header__inner">'
+    '<div class="bw-marketing-header__brand">'
+    '<nav class="bw-marketing-header__nav" aria-label="Primary">'
+    "{% bw_nav_header items=items active=active %}"
+    "</nav>"
+    "</div>"
+    "</div>"
+    "</header>"
+    '<main id="bw-main">'
+    "<h1>Nav renderers</h1>"
+    '<nav aria-label="Main navigation">'
+    '<div class="bw-nav-two-tier">'
+    "{% bw_nav_rail items=items active=active %}"
+    "{% bw_nav items=contextual_items active=active %}"
+    "</div>"
+    "</nav>"
+    "</main>"
+)
+
+_NAV_RENDERERS_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nav renderers (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+__BODY__
+</body>
+</html>
+"""
+
+
+def render_nav_renderers(theme: str) -> str:
+    from django.urls import resolve
+
+    from brickwork.models import NavItem
+    from brickwork.services.navigation import resolve_active_item
+
+    # A purpose-built two-tier tree: top-level areas (one with children, one
+    # with a badge, one external) so every renderer affordance is on the page.
+    tree = (
+        NavItem(key="fx-nr-dashboard", label="Dashboard", url_name="testapp:dashboard", icon="home"),
+        NavItem(
+            key="fx-nr-widgets",
+            label="Widgets",
+            url_name="testapp:widget-list",
+            icon="folder",
+            children=(
+                NavItem(key="fx-nr-overview", label="Overview", url_name="testapp:interactions", icon="info"),
+                NavItem(key="fx-nr-activity", label="Activity", url_name="testapp:toast-demo", icon="bell"),
+            ),
+        ),
+        NavItem(key="fx-nr-settings", label="Settings", url_name="testapp:settings-index", icon="settings", badge=2),
+        NavItem(key="fx-nr-docs", label="Docs", external_url="https://example.com/docs", icon="file"),
+    )
+    # the CHILD area's route: the parent lights as ancestor in both compact
+    # renderers, the contextual tier carries the exact aria-current
+    request = RequestFactory().get("/interactions/")
+    request.resolver_match = resolve("/interactions/")
+    active = resolve_active_item(tree, request.resolver_match)
+    ctx = {
+        "request": request,
+        "items": tree,
+        "contextual_items": tree[1].children,
+        "active": active,
+    }
+    body = engines["django"].from_string(_NAV_RENDERERS_SOURCE).render(ctx)
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _NAV_RENDERERS_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__BODY__", body)
+    )
+
+
 def main() -> None:
     written = []
     projection_css = build_projection_css()
@@ -1548,6 +1646,9 @@ def main() -> None:
         (OUT / f"landing-{theme}.html").write_text(render_landing(theme))
         (OUT / f"pricing-{theme}.html").write_text(render_pricing(theme))
         (OUT / f"about-{theme}.html").write_text(render_about(theme))
+        # the nav renderers (#102/#82): the marketing-header row and the
+        # two-tier rail + contextual pairing, ancestor-active states lit
+        (OUT / f"nav-renderers-{theme}.html").write_text(render_nav_renderers(theme))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -1586,6 +1687,7 @@ def main() -> None:
             f"landing-{theme}",
             f"pricing-{theme}",
             f"about-{theme}",
+            f"nav-renderers-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())
