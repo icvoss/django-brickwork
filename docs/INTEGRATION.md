@@ -344,6 +344,11 @@ route brickwork's static through your bundler.
 If you run Alpine yourself (host-owned `Alpine.start()`), brickwork's interaction
 components register against your Alpine instance; do not start Alpine twice.
 
+The same boundary covers a second **component framework** (django-components
+and the like) rendering inside `{% block content %}`: that is a supported
+arrangement, stated as an explicit contract with a do/do-not list in
+[ADOPTION.md](ADOPTION.md) (brickwork#75).
+
 ## 6. The htmx version floor (brickwork#48)
 
 brickwork's interaction contracts (the 422 form swap, toast delivery via

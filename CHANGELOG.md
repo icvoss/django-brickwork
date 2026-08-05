@@ -23,6 +23,17 @@ versioning contract).
   chrome-name list matches the shipped templates so it cannot rot. The bulk
   `register_icons` recipe now shows inner paint markup, correcting an example
   that registered full `<svg>` wrappers the tag would have nested.
+- **The coexisting-component-framework contract**
+  (icvoss/django-brickwork#75). `docs/ADOPTION.md` now states explicitly that
+  a second component framework (django-components as the named case) rendering
+  inside `{% block content %}`, form bodies and card bodies is a supported end
+  state, with the migration boundary (generic chrome to brickwork, domain
+  components stay put, mounted in brickwork slots) and a do/do-not list
+  covering dependency-injection ordering against the shell's assets, the
+  one-Alpine rule, and CSP nonce pass-through. The consumer smoke harness
+  gains a fixture simulating a second framework's component and dependency
+  tags inside the shell, keeping the promise executable without depending on
+  django-components.
 ### Fixed
 
 - **`docs/INTEGRATION.md` section 4 now documents the htmx SUCCESS contract**

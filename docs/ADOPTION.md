@@ -83,7 +83,7 @@ a brickwork release you have pinned and validated across the migrated app, ideal
 the tree (even with no screens using it) costs nothing and preserves the escape
 hatch.
 
-## Two wrinkles a real brownfield cutover hits (brickwork#49)
+## Three wrinkles a real brownfield cutover hits (brickwork#49, brickwork#75)
 
 ### Multi-host projects (the shell branches per host)
 
@@ -113,6 +113,65 @@ bundler, and your bundler never needs to touch brickwork's static. Points to hol
 - If you run Alpine yourself (host-owned `Alpine.start()`), brickwork registers
   its interaction components against your instance; keep a single Alpine start,
   not one per kit.
+
+### A second component framework in the content block (brickwork#75)
+
+Some adopters do not strangle a hand-built kit; their in-app component layer is
+itself a framework (django-components is the named case: `@register(...)`
+components consumed via `{% component "name" %}`). The contract, stated
+explicitly so the migration boundary can be drawn with confidence:
+
+**A second component framework rendering inside `{% block content %}` (and
+inside form bodies and card bodies) is supported and safe, the same way
+app-owned charts are.** brickwork's components are plain template tags and
+`{% include %}` partials; they claim no ownership of what renders inside the
+body slots, and nothing in the shell inspects or interferes with markup another
+framework produces there. This is a legitimate END STATE, not just a migration
+phase: brickwork owns the shell, nav, forms scaffolding and generic components;
+your component framework owns the domain components, mounted in brickwork
+slots, indefinitely.
+
+The boundary rule that follows: **generic chrome migrates to brickwork; domain
+components with real Python logic stay on your framework.** A calendar grid
+that builds availability matrices in `get_context_data`, a price display doing
+currency formatting, a rating widget: these have no brickwork equivalent and
+domain-specific rendering is a declared brickwork non-goal. Do not rewrite them
+as brickwork tags; mount them where they are.
+
+Do:
+
+- Mount framework components inside `{% block content %}`, card bodies, and
+  form bodies exactly as you would app-owned markup.
+- Keep ONE Alpine: the host owns the single `Alpine.start()`; brickwork
+  registers against it, and a component framework's JS must not boot a second
+  Alpine (or a second htmx) instance.
+- Emit the framework's dependency tags (django-components'
+  `{% component_css_dependencies %}` / `{% component_js_dependencies %}`,
+  which inject `<link>`/`<script>` from a component registry) through the
+  shell's blocks: stylesheets in `head_extra` after `{{ block.super }}`, so
+  brickwork's stylesheet and your brand override keep their documented cascade
+  order (a component stylesheet that overrides `--bw-*` tokens then wins only
+  where it should); scripts in `body_js`. Two independent dependency systems
+  on one page is correct, not a smell (the same ruling as the asset-pipeline
+  wrinkle above).
+- If you run a nonce-based CSP, confirm the framework's injected tags carry
+  your nonce; brickwork's shell blocks are ordinary template blocks, so
+  whatever nonce discipline your templates use passes through unchanged.
+
+Do not:
+
+- Do not rewrite domain components as brickwork tags (the boundary rule above).
+- Do not route brickwork's static through the framework's dependency system
+  (the mirror of the "do not route brickwork.css through Vite" rule).
+- Do not mount a framework component that renders its own `<html>` document or
+  page shell inside a brickwork slot; body slots take fragments.
+- Do not reach from a framework component into `.bw-*` class internals; style
+  your components on your own classes plus the `--bw-*` tokens.
+
+The brickwork suite keeps this promise executable: the consumer smoke harness
+(`tests/consumer/`) renders a simulated second-framework component, with its
+own injected stylesheet and script dependencies, inside the shell's content
+block, without depending on django-components itself.
 
 ## The htmx floor, if you are brownfield on htmx 1.9 (brickwork#48)
 
