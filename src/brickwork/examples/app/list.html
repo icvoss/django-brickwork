@@ -1,0 +1,80 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+An index page: filter bar, table of records, pagination.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056); copying is the only way to use it.
+
+What your view must supply, and nothing else:
+    invoices    a page of records (a Django Page object from Paginator)
+    filter_form your own filter form (any form; the bar renders its fields)
+The rest of this page is content typed directly into the template, which is
+where you change it.
+
+This example extends the shipped app shell, which stays a supported importable
+part of the package. Swap the extends line for your own base.html (see
+examples/base.html) if you would rather own the document skeleton too.
+{% endcomment %}
+{% load brickwork_components brickwork_nav %}
+
+{% block page_title %}Invoices - Northwind{% endblock %}
+
+{% comment %}
+The sidebar. bw_nav renders your NavItem tree and resolves the active item from
+the current request. Build the tree once in your own nav config module and put
+the visibility-filtered items plus the active item into context from a context
+processor, so every page gets them without repeating the wiring:
+
+    nav_items   visible_items(MY_NAV, request)
+    nav_active  resolve_active_item(MY_NAV, request)
+
+Rendered twice on purpose: once for the desktop sidebar and once inside the
+shell's mobile drawer. One nav definition, two containers.
+{% endcomment %}
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Invoices" description="Every invoice raised against your accounts, newest first." %}
+{% endblock %}
+
+{% comment %}
+Actions sit in the shell's own page_actions block, beside the header rather
+than inside it. Point href at your own {% templatetag openblock %} url
+{% templatetag closeblock %}.
+{% endcomment %}
+{% block page_actions %}
+  {% bw_button "New invoice" variant="primary" icon="plus" href="/invoices/new/" %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  The filter bar is a plain <form method="get">, so it filters with zero JS.
+  Passing hx_get and hx_target progressively enhances it to swap just the table
+  instead of navigating. Both work; the htmx path is an addition, never a
+  requirement.
+  {% endcomment %}
+  {% include "brickwork/components/_filter_bar.html" with fields=filter_form submit_label="Filter" clear_href="/invoices/" hx_get="/invoices/" hx_target="#invoices-table" %}
+
+  {% comment %}
+  The table renders structure only: your view decides the ordering and hands
+  back the ordered rows. Sortable columns need sort_key (the ascending key);
+  the component derives the descending key and the next-click toggle itself.
+
+  Each row's cells are pre-rendered strings you build in the view, so a cell
+  can carry whatever markup that record needs.
+  {% endcomment %}
+  {% include "brickwork/components/_data_table.html" with table_id="invoices-table" columns=invoice_columns rows=invoice_rows current_sort=current_sort empty_heading="No invoices yet" empty_body="Invoices you raise will appear here. Create your first one to get started." %}
+
+  {% comment %}
+  Renders nothing at all when there is only one page, so there is no condition
+  to write here. It keeps the current sort and filters across a page change.
+  {% endcomment %}
+  {% include "brickwork/components/_pagination.html" with page_obj=invoices %}
+
+</div>
+{% endblock %}

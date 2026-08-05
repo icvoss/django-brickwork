@@ -1,0 +1,55 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A tabbed settings area.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    active_tab  the key of the section being shown, from ?tab= in the URL
+    form        the active section's form
+    nav_items / nav_active  as in list.html
+
+The tabs are REAL LINKS to ?tab=<key> on this same URL, and the server decides
+which is current. So switching sections is an ordinary navigation that works
+with no JS at all, is bookmarkable, and survives a refresh. That is why
+active_tab comes from your view rather than from a client-side tab widget.
+{% endcomment %}
+{% load brickwork_components brickwork_forms brickwork_interactions brickwork_nav %}
+
+{% block page_title %}Settings - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Settings" description="Manage your organisation, billing, and notification preferences." %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  bw_tabs raises at render time if active_tab does not match one of the keys,
+  rather than silently rendering a tablist with nothing selected. Supply the
+  tab list from your view (settings_tabs below) so the section names live in
+  one place with your URLs.
+  {% endcomment %}
+  {% bw_tabs settings_tabs active=active_tab id="settings" %}
+
+  {% comment %}
+  The active section's body. Branch on active_tab, or (usually cleaner) give
+  each section its own template and include the right one from the view. The
+  form pattern is identical to app/form.html: you own the <form>.
+  {% endcomment %}
+  <form method="post" action="{{ request.path }}?tab={{ active_tab }}">
+    {% csrf_token %}
+    {% bw_form form %}
+    <div class="bw-form__actions">
+      {% bw_button "Save changes" type="submit" variant="primary" %}
+    </div>
+  </form>
+
+</div>
+{% endblock %}

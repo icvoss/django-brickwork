@@ -1,8 +1,10 @@
-"""CRUD + dashboard views rendering through brickwork's shell and patterns.
+"""CRUD + dashboard views rendering through brickwork's shell and components.
 
-The list and dashboard pages route through the shipped 0.5.0 page patterns
-(patterns/list.html, patterns/dashboard.html) via the base_parent context var
-the shared testapp base extends, proving the patterns against real content.
+The list and dashboard pages are composed from the shell plus the shipped
+components in their own templates: 2.0.0 (ADR-056) retired the page and pattern
+tier, so a whole page is the consumer's own file rather than a shipped template
+to extend. These views supply only the data those components read, which is
+what a consumer's views supply too.
 The create/edit views implement the 422 HTMX validation-swap contract
 (BR-BW-HTMX-003): an htmx-driven invalid POST responds 422 with ONLY the form
 section re-rendered (the hx-swap target); a non-htmx invalid POST gets a normal
@@ -75,13 +77,12 @@ class WidgetListView(ListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        # Route the page through the shipped list pattern; the pattern's
-        # page_header default is wired from title/description.
-        ctx["base_parent"] = "brickwork/patterns/list.html"
+        # The page's own _page_header.html include is wired from
+        # title/description.
         ctx["title"] = "Widgets"
         ctx["description"] = "Everything in the harness."
         ctx["filter_form"] = WidgetFilterForm(self.request.GET or None)
-        # The pattern's list_body default (patterns/_table_card.html) reads
+        # The page's card-wrapped _data_table.html reads
         # columns/rows/table_id/current_sort/empty_* straight from context.
         ctx["table_id"] = "widgets-table"
         ctx["columns"] = _COLUMNS
@@ -105,7 +106,8 @@ class WidgetListView(ListView):
 
 class DashboardView(TemplateView):
     """The dashboard page: three stat tiles fed by real aggregates plus the
-    widgets table as the recent-activity region (patterns/dashboard.html)."""
+    widgets table as the recent-activity region, composed in the template from
+    the shell and the shipped components (ADR-056)."""
 
     template_name = "brickwork_testapp/dashboard.html"
 
@@ -114,11 +116,10 @@ class DashboardView(TemplateView):
         recent = Widget.objects.order_by("-created_at")[:5]
         ctx.update(
             {
-                "base_parent": "brickwork/patterns/dashboard.html",
                 "title": "Dashboard",
                 "description": "The workspace at a glance.",
                 "stats": _widget_counts(),
-                # the pattern's dashboard_activity default reads these from context
+                # the page's recent-activity table card reads these from context
                 "table_id": "activity-table",
                 "columns": _ACTIVITY_COLUMNS,
                 "rows": [

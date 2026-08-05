@@ -1,0 +1,118 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+A product landing page.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+THIS IS THE PAGE THAT MOTIVATED ADR-056. Before 2.0.0 brickwork shipped a
+landing page you extended and fed a flat context bag: heading, lede,
+cta_heading, logo_cloud_heading, features_heading, and so on. That inverted
+ownership of your own landing page (a pin bump could reorder your sections) and
+forced prefix soup, because one page cannot use "heading" for six sections.
+
+Here instead every section carries its own content, scoped to its own include.
+There is no page-level bag, no prefix soup, and reordering, dropping, or
+duplicating a section is editing this file, which is yours.
+
+What your view must supply: nothing at all for the copy. Two sections take
+lists, which a Django template cannot build inline, so they come from context:
+    features  [{icon, heading, body, url?}]
+    logos     the logo cloud's items
+Everything else below is typed straight into the template.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}Northwind - invoicing that chases itself{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% comment %}
+A marketing nav is a small fixed set of links, so it is plain anchors rather
+than the app's NavItem resolver. If you want active states and permission
+gating here, bw_nav_header renders the same NavItem tree in this row.
+{% endcomment %}
+{% block marketing_nav %}
+  <a href="/features/">Features</a>
+  <a href="/pricing/">Pricing</a>
+  <a href="/customers/">Customers</a>
+  <a href="/docs/">Docs</a>
+{% endblock %}
+
+{% comment %}
+Auth-aware header actions. brickwork never reads auth state itself, so this is
+your branch, not a package feature. Note Django's logout is POST-only.
+{% endcomment %}
+{% block marketing_actions %}
+  {% if request.user.is_authenticated %}
+    <a href="/app/">Go to app</a>
+  {% else %}
+    <a href="/accounts/login/">Sign in</a>
+    {% bw_button "Start free trial" variant="primary" href="/accounts/signup/" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+  {% comment %}
+  The hero. CTAs take flat label/url pairs, so a plain template can drive them
+  with no view involvement. (They also accept {label, url} dicts if the data
+  already exists in your context; the dict wins when both are given.)
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Invoicing" heading="Invoicing that chases itself" lede="Northwind raises your invoices, sends the reminders, and tells you who is about to pay late. You do the work. It does the asking." primary_cta_label="Start free trial" primary_cta_url="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_url="/demo/" %}
+
+  {% comment %}
+  Logo cloud. List-shaped, so logos comes from context.
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_logo_cloud.html" with heading="Trusted by finance teams at" logos=logos greyscale=True %}
+
+  {% comment %}
+  Feature grid. Also list-shaped: build features in your view as
+  [{icon, heading, body, url}]. Give an item a url and the whole card becomes
+  a link; leave it off and the card stays a plain non-interactive block, never
+  a clickable-looking card with nowhere to go.
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_feature_grid.html" with heading="Everything the chasing needs" lede="The parts of getting paid that nobody wants to do by hand." items=features columns=3 %}
+
+  {% comment %}
+  Stats. The band takes a list too, but a three-number band is often clearer
+  written straight into your view as [{value, label}].
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_stat_band.html" with heading="What changes in the first quarter" stats=stats %}
+
+  {% comment %}
+  A testimonial. All flat strings, so it is fully template-authorable.
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_testimonial.html" with quote="We cut our average days-to-pay from 38 to 21 without hiring anyone. The reminders just go out." author="Priya Raman" role="Finance Director, Halden Group" %}
+
+  {% comment %}
+  The closing CTA. Its own heading and CTA names are scoped to this include,
+  so they cannot collide with the hero's above. That is the whole argument for
+  composing pages this way rather than feeding one page a flat bag.
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_cta.html" with heading="Stop writing chase emails" body="Free for 30 days. No card, no setup call, no data import to sit through." primary_cta_label="Start free trial" primary_cta_url="/accounts/signup/" secondary_cta_label="Talk to us" secondary_cta_url="/contact/" %}
+
+{% endblock %}
+
+{% block marketing_footer %}
+  {% comment %}
+  Your own footer link groups. brickwork ships the container and the styling,
+  never the links: it does not know your site map.
+  {% endcomment %}
+  <div>
+    <h2>Product</h2>
+    <a href="/features/">Features</a>
+    <a href="/pricing/">Pricing</a>
+    <a href="/changelog/">Changelog</a>
+  </div>
+  <div>
+    <h2>Company</h2>
+    <a href="/about/">About</a>
+    <a href="/careers/">Careers</a>
+    <a href="/contact/">Contact</a>
+  </div>
+{% endblock %}
+
+{% block footer_legal %}
+  <p>Copyright 2026 Northwind Software Ltd. <a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></p>
+{% endblock %}

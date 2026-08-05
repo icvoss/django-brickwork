@@ -1,0 +1,38 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A blank slate: a section that has no data in it yet.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    nav_items / nav_active  as in list.html
+
+The empty state distinguishes "nothing has ever been created here" (no_data,
+which offers an onboarding action) from "your filter matched nothing"
+(no_results, which offers a way to clear the filter). Use the right one: they
+are different situations and a user reads them differently.
+
+Its heading and body are REQUIRED and have no defaults, deliberately. brickwork
+will not invent copy about a feature it knows nothing about, and a generic "No
+items" helps nobody.
+{% endcomment %}
+{% load brickwork_nav %}
+
+{% block page_title %}Reports - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Reports" description="Saved reports you can re-run and share." %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% include "brickwork/components/_empty_state.html" with variant="no_data" icon="file" heading="No saved reports yet" body="Build a report from any list view and save it here to re-run it later or share it with your team." action_label="Create a report" action_href="/reports/new/" %}
+
+</div>
+{% endblock %}

@@ -87,6 +87,7 @@ django-brickwork/
         conftest.py
         test_*.py
     pyproject.toml      # package metadata, dependencies, tool config
+    changelog.d/        # one changelog fragment per change (see its README)
     CHANGELOG.md
     README.md
     RELEASING.md
@@ -119,6 +120,17 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 Push feature branches and open a pull request against `main`. CI must pass
 before merging. Prefer small, focused commits over large ones.
 
+### Changelog fragments (not CHANGELOG.md)
+
+A feature branch **never edits `CHANGELOG.md`**. Add one file per change under
+`changelog.d/` named `<issue-or-slug>.<added|changed|fixed|removed>.md`, whose
+body is the entry as markdown list items. See `changelog.d/README.md`.
+
+Parallel branches all editing one `[Unreleased]` block conflict on every merge
+and get union-resolved into the wrong sections
+(icvoss/django-brickwork#113); separate fragment files cannot conflict. The
+release PR assembles them.
+
 ---
 
 ## Releasing
@@ -127,7 +139,8 @@ See [RELEASING.md](RELEASING.md) for the full release process. The short
 version:
 
 1. Bump the version in `pyproject.toml` and `src/brickwork/__init__.py`.
-2. Update `CHANGELOG.md`: rename `[Unreleased]` to `[<version>] - <YYYY-MM-DD>`.
+2. Assemble the changelog: `python scripts/assemble_changelog.py <version>`,
+   then edit the generated section by hand.
 3. Open a PR, get it reviewed, and merge to `main`.
 4. Tag the merged commit and push the tag:
 

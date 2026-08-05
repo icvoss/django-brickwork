@@ -1,0 +1,59 @@
+{% extends "brickwork/shell/auth.html" %}
+{% comment %}
+Sign in.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    form  your login form
+
+brickwork ships NO authentication view, form, model, or URL, and names no
+field. That is deliberate: allauth calls the identifier field "login",
+django.contrib.auth calls it "username", and a template that hard-coded either
+would break the other. bw_form renders whatever fields your form has, so this
+same file works with allauth, django.contrib.auth, or your own backend without
+edits.
+
+Which means the URL names below are PLACEHOLDERS. Replace them with your own,
+or the page will 500 on render for a name that does not exist in your project.
+For allauth they are account_login / account_signup / account_reset_password;
+for django.contrib.auth, login / password_reset.
+{% endcomment %}
+{% load brickwork_components brickwork_forms %}
+
+{% block page_title %}Sign in - Northwind{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  <h1>Sign in</h1>
+
+  {% comment %}
+  You own the <form>; only you know your action URL. Non-field errors ("that
+  password is not right") render automatically through bw_form, so there is
+  nothing to wire for the failure case.
+  {% endcomment %}
+  <form method="post" action="/accounts/login/">
+    {% csrf_token %}
+    {% bw_form form %}
+    <div class="bw-form__actions">
+      {% bw_button "Sign in" type="submit" variant="primary" %}
+    </div>
+  </form>
+
+  {% comment %}
+  Secondary links. If you use allauth's social providers, their buttons go
+  here too.
+  {% endcomment %}
+  <p>
+    <a href="/accounts/password/reset/">Forgotten your password?</a>
+  </p>
+  <p>
+    New here? <a href="/accounts/signup/">Create an account</a>
+  </p>
+
+</div>
+{% endblock %}

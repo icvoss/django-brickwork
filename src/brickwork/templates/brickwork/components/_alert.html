@@ -16,9 +16,19 @@ stays host-owned (CMP-012). Exit at --bw-duration-fast/--bw-ease-in
 (BR-BW-TOK-009). REGRESSION NOTE: with dismissible=False (the default) the
 rendered output is byte-identical to the 0.8.0 template; the conditional
 blocks below are laid out so the False path adds not even whitespace.
+DIRECT INCLUDE (2.0.0): {% bw_alert %} derives `icon` from `variant` before
+rendering, but a plain {% include %} with only variant/title/message (the
+copy-paste example shape this package now documents, ADR-056) supplies no
+`icon` at all, and passing that undefined value to {% bw_icon %} raised
+IconNotFoundError for the empty name. The variant-to-icon mapping is therefore
+resolved HERE as a fallback, so both call shapes work. The tag path is
+unaffected: it still passes an explicit `icon`, which {% firstof %} takes
+ahead of the fallback, so its output is byte-identical to 1.x. The chain sits
+at the template's top level on purpose: an `{% ... as %}` assignment made
+inside an `{% if %}` body would fall out of scope before the icon line.
 {% endcomment %}
-<div class="bw-alert bw-alert--{{ variant }}" role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
-  {% bw_icon icon size="md" decorative=True css_class="bw-alert__icon" %}
+{% if variant == "success" %}{% firstof icon "success" as bw_alert_icon %}{% elif variant == "warning" %}{% firstof icon "alert-triangle" as bw_alert_icon %}{% elif variant == "error" %}{% firstof icon "alert-circle" as bw_alert_icon %}{% else %}{% firstof icon "info" as bw_alert_icon %}{% endif %}<div class="bw-alert bw-alert--{% firstof variant 'info' %}" role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
+  {% bw_icon bw_alert_icon size="md" decorative=True css_class="bw-alert__icon" %}
   <div class="bw-alert__body">
     {% if title %}<p class="bw-alert__title">{{ title }}</p>{% endif %}
     {% if message %}<p class="bw-alert__message">{{ message }}</p>{% endif %}

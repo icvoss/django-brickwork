@@ -1,16 +1,21 @@
-{% extends base_parent|default:"brickwork/shell/app.html" %}
+{% extends "brickwork/shell/app.html" %}
 {% load brickwork_icons brickwork_nav %}
 {% comment %}
 The testapp's shared page shell (consuming-project shape): fills the nav,
 breadcrumbs, account-menu, and nav-slot blocks once so every page, the
-integration suite, and the a11y fixture generator exercise them. The parent is
-variable so a page can route through a shipped pattern (the view supplies
-base_parent="brickwork/patterns/list.html" or ".../dashboard.html") while this
-stays the single chrome home; with no base_parent the chain falls back to
-shell/app.html directly (the form pages). breadcrumb_trail and
-account_menu_items come from the testapp context processor; account_menu_open
-is unset by default and passed by the fixture generator for the open-menu
-fixtures.
+integration suite, and the a11y fixture generator exercise them.
+
+It extends brickwork/shell/app.html directly, and every page extending it
+composes its own body from the shipped components. Before 2.0.0 the parent was
+a variable (base_parent), so a page could route through a shipped page pattern
+instead; ADR-056 retired the page and pattern tier in the 2.0.0 clean break, so
+a whole page is now something the consumer owns and composes, exactly as the
+copy-paste examples do (src/brickwork/examples/app/). This template stays the
+single chrome home, which is what a real consumer does with its own base.html.
+
+breadcrumb_trail and account_menu_items come from the testapp context
+processor; account_menu_open is unset by default and passed by the fixture
+generator for the open-menu fixtures.
 {% endcomment %}
 
 {% comment %} The nav slot (brickwork#21, BR-BW-NAV-007): the switcher is the testapp's

@@ -1,16 +1,23 @@
-"""Render tests for the marketing kit (`brickwork.marketing`, v1.2.0, spec 04
+"""Render tests for the marketing kit (`brickwork.marketing`, 2.0.0, spec 04
 section 4d, business rules section 9, BR-BW-MKT-001..005).
 
-BR-BW-MKT-005 / BR-BW-PAGE-002 at marketing scope: each of the three pages
-renders a complete valid document when a consumer extends it with only
-``title``, and every documented block fills in document order when supplied.
+As of 2.0.0 (ADR-056) the kit ships COMPONENTS and a SHELL, and no pages: the
+three marketing page templates a consumer used to {% extends %} and feed a
+flat page-level context bag are retired, and the copy-paste examples that
+replace them are package data covered by test_examples.py. So the contracts
+under test here are the two surfaces that remain semver-public:
+
+BR-BW-MKT-005 / BR-BW-PAGE-002 at marketing scope: the marketing shell renders
+a complete valid document with nothing but its own blocks, carries the public
+header/footer chrome and never the app shell's, and every block empties
+gracefully.
 BR-BW-MKT-004 (reuse, not reimplementation): the FAQ composes
 ``_disclosure.html`` and the stat band composes ``_stat.html``'s tile shape.
 BR-BW-MKT-001: the sub-app ships no models, migrations, views, or URLs.
 
-These tests drive the pages the way a consumer does: {% extends %} plus block
-overrides, and the components the way a page does: {% include %} plus
-context, mirroring test_pages.py's idiom exactly.
+These tests drive the shell the way a consumer's own page does ({% extends %}
+plus block overrides) and each component the way that page's body does
+({% include %} plus context), mirroring the examples' composition exactly.
 """
 
 from __future__ import annotations
@@ -45,11 +52,7 @@ def _assert_complete_document(html: str) -> None:
     assert 'id="bw-main"' in html
 
 
-_MARKETING_PAGES = (
-    "brickwork_marketing/pages/marketing/landing.html",
-    "brickwork_marketing/pages/marketing/pricing.html",
-    "brickwork_marketing/pages/marketing/about.html",
-)
+_MARKETING_SHELL = "brickwork_marketing/shell/marketing.html"
 
 
 # --- BR-BW-MKT-001: sub-app ships no models/migrations/views/urls -----------
@@ -68,199 +71,72 @@ def test_marketing_sub_app_ships_no_models_or_urls() -> None:
         importlib.import_module("brickwork.marketing.models")
 
 
-# --- Pages: empty-graceful + shell chrome (BR-BW-MKT-005/BR-BW-PAGE-002) ----
+# --- shell/marketing.html: empty-graceful + chrome (BR-BW-MKT-005) ----------
 
 
-def test_each_marketing_page_with_only_title_renders_a_complete_document() -> None:
-    for template in _MARKETING_PAGES:
-        html = _render(template, title="A marketing page")
-        _assert_complete_document(html)
+def test_the_marketing_shell_with_no_blocks_filled_renders_a_complete_document() -> None:
+    # BR-BW-PAGE-002 at marketing scope: the shell is what a consumer's own
+    # page extends, so it must stand up as a valid document before that page
+    # has filled a single block.
+    html = _extend(_MARKETING_SHELL, "")
+    _assert_complete_document(html)
 
 
-def test_each_marketing_page_extends_the_marketing_shell_not_the_app_shell() -> None:
-    for template in _MARKETING_PAGES:
-        html = _render(template, title="A marketing page")
-        assert "bw-marketing" in html
-        assert "bw-marketing-header" in html
-        assert "bw-marketing-footer" in html
-        # never the app shell's chrome
-        assert "bw-sidebar" not in html
-        assert "bw-topbar" not in html
-        assert "bw-app" not in html
+def test_the_marketing_shell_carries_the_public_chrome_not_the_app_shell_s() -> None:
+    html = _extend(_MARKETING_SHELL, "")
+    assert "bw-marketing" in html
+    assert "bw-marketing-header" in html
+    assert "bw-marketing-footer" in html
+    # never the app shell's chrome
+    assert "bw-sidebar" not in html
+    assert "bw-topbar" not in html
+    assert "bw-app" not in html
 
 
-def test_each_marketing_page_renders_no_optional_section_markup_when_empty() -> None:
-    # An all-empty page must not fabricate placeholder marketing copy for any
-    # of its component sections (BR-BW-TPL-006 / BR-BW-PAGE-002 at marketing
-    # scope): none of the section wrapper classes should appear at all.
-    for template in _MARKETING_PAGES:
-        html = _render(template, title="A marketing page")
-        assert "bw-feature-card" not in html
-        assert "bw-pricing-tier" not in html
-        assert 'class="bw-cta' not in html
-        assert 'class="bw-testimonial"' not in html
-        assert "bw-logo-cloud__grid" not in html
-        assert 'bw-stat-band"' not in html and "bw-stat-band " not in html
-        assert "<details" not in html  # no FAQ disclosures rendered
+def test_the_marketing_shell_fabricates_no_marketing_copy_of_its_own() -> None:
+    # BR-BW-TPL-006: the shell owns chrome, never content. An unfilled shell
+    # must not invent a hero, a pricing table, or any other section: the page
+    # body is entirely the consumer's, so none of the component wrapper
+    # classes may appear until that consumer composes one.
+    html = _extend(_MARKETING_SHELL, "")
+    assert "bw-hero" not in html
+    assert "bw-feature-card" not in html
+    assert "bw-pricing-tier" not in html
+    assert 'class="bw-cta' not in html
+    assert 'class="bw-testimonial"' not in html
+    assert "bw-logo-cloud__grid" not in html
+    assert 'bw-stat-band"' not in html and "bw-stat-band " not in html
+    assert "<details" not in html  # no FAQ disclosures rendered
 
 
-# --- landing.html ------------------------------------------------------------
+def test_the_marketing_shell_content_block_lands_inside_the_main_region() -> None:
+    # The one region a page fills. It must land inside #bw-main (the skip
+    # link's target), not in the header or footer chrome.
+    html = _extend(_MARKETING_SHELL, "{% block content %}CONTENT-SENTINEL{% endblock %}")
+    main_start = html.index('id="bw-main"')
+    footer_start = html.index("bw-marketing-footer")
+    assert main_start < html.index("CONTENT-SENTINEL") < footer_start
 
 
-def test_landing_hero_fills_from_context() -> None:
-    html = _render(
-        "brickwork_marketing/pages/marketing/landing.html",
-        title="Landing",
-        heading="Ship faster",
-        lede="The all-in-one platform.",
-    )
-    assert "Ship faster" in html
-    assert "The all-in-one platform." in html
+# --- Accessibility invariant: the hero owns the single <h1> -----------------
 
 
-def test_landing_blocks_fill_in_document_order() -> None:
+def test_a_shell_composed_hero_heading_is_the_page_s_only_h1() -> None:
+    # The hero renders its heading as h1 and the shell contributes none of its
+    # own, so a page composing one hero has exactly one h1. This is the whole
+    # of the "one h1 per page" invariant brickwork can hold: section count and
+    # order are the consumer's own file now (ADR-056).
     html = _extend(
-        "brickwork_marketing/pages/marketing/landing.html",
-        "{% block hero %}HERO-SENTINEL{% endblock %}"
-        "{% block logo_cloud %}LOGOCLOUD-SENTINEL{% endblock %}"
-        "{% block features %}FEATURES-SENTINEL{% endblock %}"
-        "{% block stats %}STATS-SENTINEL{% endblock %}"
-        "{% block testimonial %}TESTIMONIAL-SENTINEL{% endblock %}"
-        "{% block cta %}CTA-SENTINEL{% endblock %}",
+        _MARKETING_SHELL,
+        "{% block content %}"
+        "{% include 'brickwork_marketing/components/_hero.html' with heading=heading %}"
+        "{% include 'brickwork_marketing/components/_feature_grid.html' with heading=features_heading %}"
+        "{% endblock %}",
+        heading="The one heading",
+        features_heading="Why us",
     )
-    positions = [
-        html.index("HERO-SENTINEL"),
-        html.index("LOGOCLOUD-SENTINEL"),
-        html.index("FEATURES-SENTINEL"),
-        html.index("STATS-SENTINEL"),
-        html.index("TESTIMONIAL-SENTINEL"),
-        html.index("CTA-SENTINEL"),
-    ]
-    assert positions == sorted(positions), f"landing sections out of documented order: {positions}"
-
-
-def test_landing_features_and_stats_and_testimonial_fill_from_context() -> None:
-    html = _render(
-        "brickwork_marketing/pages/marketing/landing.html",
-        title="Landing",
-        features=[{"heading": "Fast", "body": "Really fast."}],
-        stats=[{"value": "99.9%", "label": "Uptime"}],
-        quote="It just works.",
-        author="Ada Lovelace",
-    )
-    assert "Fast" in html and "Really fast." in html
-    assert "99.9%" in html and "Uptime" in html
-    assert "It just works." in html and "Ada Lovelace" in html
-
-
-def test_landing_flat_hero_cta_names_drive_the_hero() -> None:
-    # #98 at page level: the extends path accepts the flat names too.
-    html = _render(
-        "brickwork_marketing/pages/marketing/landing.html",
-        title="Landing",
-        heading="Ship faster",
-        primary_cta_label="Get started",
-        primary_cta_url="/start/",
-    )
-    assert "bw-hero__actions" in html
-    assert "Get started" in html and 'href="/start/"' in html
-
-
-def test_landing_flat_hero_cta_names_do_not_bleed_into_the_cta_band() -> None:
-    # A plain {% include %} keeps the whole page context visible, so the
-    # hero's flat page-level names would leak into the CTA band's include
-    # unless the page shadows them with the cta_-prefixed set; the band must
-    # stay absent when only hero CTAs are set (its required heading is absent
-    # anyway, so assert on the actions cluster of every later section).
-    html = _render(
-        "brickwork_marketing/pages/marketing/landing.html",
-        title="Landing",
-        cta_heading="Ready?",
-        primary_cta_label="Get started",
-        primary_cta_url="/start/",
-    )
-    assert "bw-cta__actions" not in html
-
-
-def test_landing_flat_cta_band_names_drive_the_cta_band() -> None:
-    html = _render(
-        "brickwork_marketing/pages/marketing/landing.html",
-        title="Landing",
-        cta_heading="Ready?",
-        cta_primary_label="Get started",
-        cta_primary_url="/start/",
-    )
-    assert "bw-cta__actions" in html
-    assert 'href="/start/"' in html
-
-
-# --- pricing.html --------------------------------------------------------
-
-
-def test_pricing_blocks_fill_in_document_order() -> None:
-    html = _extend(
-        "brickwork_marketing/pages/marketing/pricing.html",
-        "{% block hero %}HERO-SENTINEL{% endblock %}"
-        "{% block pricing %}PRICING-SENTINEL{% endblock %}"
-        "{% block faq %}FAQ-SENTINEL{% endblock %}"
-        "{% block cta %}CTA-SENTINEL{% endblock %}",
-    )
-    positions = [
-        html.index("HERO-SENTINEL"),
-        html.index("PRICING-SENTINEL"),
-        html.index("FAQ-SENTINEL"),
-        html.index("CTA-SENTINEL"),
-    ]
-    assert positions == sorted(positions), f"pricing sections out of documented order: {positions}"
-
-
-def test_pricing_tiers_and_faq_fill_from_context() -> None:
-    html = _render(
-        "brickwork_marketing/pages/marketing/pricing.html",
-        title="Pricing",
-        tiers=[{"name": "Starter", "price": "$9"}],
-        faq_items=[{"question": "Can I cancel?", "answer": "Any time."}],
-    )
-    assert "Starter" in html and "$9" in html
-    assert "Can I cancel?" in html and "Any time." in html
-
-
-# --- about.html ------------------------------------------------------------
-
-
-def test_about_blocks_fill_in_document_order() -> None:
-    html = _extend(
-        "brickwork_marketing/pages/marketing/about.html",
-        "{% block hero %}HERO-SENTINEL{% endblock %}"
-        "{% block about_body %}ABOUT-BODY-SENTINEL{% endblock %}"
-        "{% block stats %}STATS-SENTINEL{% endblock %}"
-        "{% block testimonial %}TESTIMONIAL-SENTINEL{% endblock %}"
-        "{% block cta %}CTA-SENTINEL{% endblock %}",
-    )
-    positions = [
-        html.index("HERO-SENTINEL"),
-        html.index("ABOUT-BODY-SENTINEL"),
-        html.index("STATS-SENTINEL"),
-        html.index("TESTIMONIAL-SENTINEL"),
-        html.index("CTA-SENTINEL"),
-    ]
-    assert positions == sorted(positions), f"about sections out of documented order: {positions}"
-
-
-def test_about_body_has_no_default_component_of_its_own() -> None:
-    # about_body has no default per 04-interfaces.md; an unfilled about_body
-    # renders the wrapping bw-section-stack with nothing inside.
-    html = _render("brickwork_marketing/pages/marketing/about.html", title="About")
-    assert "bw-section-stack" in html
-
-
-# --- Accessibility invariant: exactly one <h1> per page (in the hero) -------
-
-
-def test_each_marketing_page_renders_exactly_one_h1_when_hero_heading_is_set() -> None:
-    for template in _MARKETING_PAGES:
-        html = _render(template, title="A page", heading="The one heading")
-        assert html.count("<h1") == 1
+    assert html.count("<h1") == 1
+    assert "The one heading" in html and "Why us" in html
 
 
 def test_hero_with_no_heading_renders_no_h1() -> None:
@@ -879,6 +755,34 @@ def test_marketing_section_gap_rule_composes_the_rhythm() -> None:
         r"\.bw-marketing__content>\*\+\*\{margin-block-start:var\(--bw-component-section-gap-marketing\)\}",
         css.replace(" ", ""),
     ), "the marketing section-gap rule must remain in dist/brickwork.css"
+
+
+# --- #111: the first content child needs its own block-start spacing --------
+
+
+def test_the_first_marketing_section_gets_block_start_spacing() -> None:
+    # #111: the section-gap rule above only spaces BETWEEN children, so a page
+    # opening on a non-hero section (a page header, a feature grid) rendered
+    # flush against the header's hairline and consumers were patching it with
+    # their own padding wrapper.
+    css = (_DIST / "brickwork.css").read_text().replace(" ", "")
+    assert re.search(
+        r"\.bw-marketing__content>\*:first-child:not\(\.bw-hero\)\{"
+        r"margin-block-start:var\(--bw-component-section-gap-marketing\)\}",
+        css,
+    ), "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
+
+
+def test_the_hero_opts_out_of_the_first_child_spacing() -> None:
+    # The hero owns its own vertical rhythm (padding-block), so applying the
+    # first-child rule to it too would double the space on the canonical
+    # landing page. The :not(.bw-hero) is load-bearing, not decoration.
+    css = (_DIST / "brickwork.css").read_text().replace(" ", "")
+    first_child_rules = re.findall(r"\.bw-marketing__content>\*:first-child([^{]*)\{", css)
+    assert first_child_rules, "expected a first-child rule to exist at all"
+    assert all(":not(.bw-hero)" in selector for selector in first_child_rules), (
+        "every .bw-marketing__content first-child rule must exclude the hero (#111)"
+    )
 
 
 # --- #83: brand slot default sizing (--bw-component-logo-height) ------------

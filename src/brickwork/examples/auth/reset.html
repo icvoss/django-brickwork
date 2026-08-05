@@ -1,0 +1,52 @@
+{% extends "brickwork/shell/auth.html" %}
+{% comment %}
+Request a password reset.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    form  the reset form for whichever step this is
+
+NOTE THAT A RESET IS TWO PAGES, not one: "email me a link" and "set a new
+password" are different forms at different URLs, sharing this shape. Copy this
+file twice and change the heading, the copy, and the action URL, rather than
+trying to branch one template across both steps.
+
+The URL below is a PLACEHOLDER; replace it with your own.
+{% endcomment %}
+{% load brickwork_components brickwork_forms %}
+
+{% block page_title %}Reset your password - Northwind{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  <h1>Reset your password</h1>
+
+  <p>Tell us the email address you signed up with and we will send you a link to set a new password.</p>
+
+  <form method="post" action="/accounts/password/reset/">
+    {% csrf_token %}
+    {% bw_form form %}
+    <div class="bw-form__actions">
+      {% bw_button "Send reset link" type="submit" variant="primary" %}
+    </div>
+  </form>
+
+  {% comment %}
+  After a successful POST, show the confirmation rather than the form again.
+  Say the same thing whether or not the address is on file, so the page cannot
+  be used to discover who has an account:
+
+    {% include "brickwork/components/_alert.html" with variant="success" title="Check your email" message="If that address has an account, a reset link is on its way." %}
+  {% endcomment %}
+
+  <p>
+    <a href="/accounts/login/">Back to sign in</a>
+  </p>
+
+</div>
+{% endblock %}

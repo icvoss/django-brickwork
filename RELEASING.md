@@ -80,11 +80,42 @@ Every published version needs a dated section in `CHANGELOG.md`. CI enforces
 this: the publish workflow will fail if no matching `## [<version>]` heading
 exists.
 
-[Keep a Changelog](https://keepachangelog.com/) format. Accumulate entries
-under `## [Unreleased]` as you work; at release time, rename that heading to
-`## [<version>] - <YYYY-MM-DD>`. Subsections: Added / Changed / Fixed /
-Removed. Call out behaviour changes explicitly, including ones that are
-"safer", because a consumer relying on the old behaviour still needs to know.
+[Keep a Changelog](https://keepachangelog.com/) format. Subsections: Added /
+Changed / Fixed / Removed. Call out behaviour changes explicitly, including
+ones that are "safer", because a consumer relying on the old behaviour still
+needs to know.
+
+### Feature branches write fragments, not CHANGELOG.md
+
+**A feature branch never edits `CHANGELOG.md`.** It adds one file under
+`changelog.d/` instead:
+
+```
+changelog.d/<issue-or-slug>.<added|changed|fixed|removed>.md
+```
+
+The file body is the entry as it should appear, as markdown list items, with no
+section heading. Full rules and examples: `changelog.d/README.md`.
+
+This exists because the 1.4.0 wave ran six parallel branches that all appended
+to the same `## [Unreleased]` block, so every merge hit a conflict in a file
+where nothing had actually disagreed, and union-resolving those conflicts
+silently filed new capabilities under `Fixed`
+(icvoss/django-brickwork#113). Two fragments are two different files, so they
+merge without ever being compared.
+
+### The release PR assembles them
+
+In the release PR only:
+
+```bash
+python scripts/assemble_changelog.py <version>
+```
+
+That groups every fragment by type, writes the dated `## [<version>]` section
+into `CHANGELOG.md`, and deletes the fragments it consumed. **Edit the
+generated section by hand afterwards**: it is a starting point, and a release
+usually wants a summary paragraph that no individual fragment could write.
 
 The GitHub release body is auto-generated from the tag, but that is **not** a
 substitute for the curated CHANGELOG entry. Write the CHANGELOG by hand so
@@ -131,8 +162,11 @@ after release. The gate moves those to "caught before the tag".
 
 Before pushing the tag (the irreversible step):
 
-- [ ] **CHANGELOG has a `[<version>] - <date>` entry** (renamed from
-      `[Unreleased]`). This is mandatory.
+- [ ] **CHANGELOG has a `[<version>] - <date>` entry** (assembled from
+      `changelog.d/` via `scripts/assemble_changelog.py`, then edited by hand).
+      This is mandatory.
+- [ ] `changelog.d/` holds no leftover fragments for this release (the
+      assembler deletes what it consumes; anything still there was missed).
 - [ ] Behaviour changes and breaking changes called out in that CHANGELOG entry.
 - [ ] Version bumped in `pyproject.toml` **and** `src/brickwork/__init__.py`,
       and they match.

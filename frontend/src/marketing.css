@@ -184,6 +184,22 @@
   margin-block-start: var(--bw-component-section-gap-marketing);
 }
 
+/* The FIRST section needs its own block-start spacing (#111). The rule above
+ * only spaces BETWEEN children, so a page whose opening section is not a hero
+ * (a page header, a feature grid, a docs index) rendered flush against the
+ * header's hairline, and consumers were wrapping their first child in a
+ * padding div to compensate. The app shell has no equivalent problem because
+ * it owns a page-header slot; the marketing shell has no such slot, so the
+ * spacing has to come from the content region itself.
+ *
+ * The hero opts out: it already owns its vertical rhythm via its own
+ * padding-block, so applying this to it as well would double the space on the
+ * canonical landing page. Landed in 2.0.0 because it changes a visual default
+ * for any consumer already compensating with their own top padding. */
+.bw-marketing__content > *:first-child:not(.bw-hero) {
+  margin-block-start: var(--bw-component-section-gap-marketing);
+}
+
 /* --- Hero -------------------------------------------------------------------- */
 
 .bw-hero {

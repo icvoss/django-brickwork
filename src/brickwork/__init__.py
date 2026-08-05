@@ -17,4 +17,4 @@ sub-module; a separate ``brickwork_tokens`` package is deferred until a
 non-Django consumer earns the split.
 """
 
-__version__ = "1.4.0"
+__version__ = "2.0.0"

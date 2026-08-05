@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-brickwork"
-version = "1.4.0"
+version = "2.0.0"
 description = "Brand-agnostic, app-facing professional UI substrate for server-rendered Django (Tailwind 4, Alpine 3, HTMX 2). Accessible by construction; not a Django-admin skin."
 readme = "README.md"
 license = "MIT"
@@ -70,7 +70,12 @@ dev = [
     "pytest-django>=4.8",
     "pytest-cov>=5.0",
     "django-htmx>=1.28",
-    "ruff>=0.5.0",
+    # Pinned EXACTLY to the version .github/workflows/ci.yml installs
+    # (icvoss/django-brickwork#110). A range here let a local `ruff format`
+    # reformat files a newer release formats differently, so `ruff format
+    # --check` passed locally and failed on CI (or vice versa) with no source
+    # change between them. Bump this and the CI pin in the same commit.
+    "ruff==0.15.22",
     "mypy>=1.10",
 ]
 
@@ -87,6 +92,15 @@ brickwork = [
     "static/**/*",
     "icons/vendor/**/*.svg",
     "tokens/source/**/*.json",
+    # The copy-paste example pages (2.0.0, ADR-056). Shipped as package DATA
+    # under examples/, deliberately NOT under templates/: APP_DIRS only walks
+    # <app>/templates/, so no consumer configuration can make the loader
+    # resolve an example, and the only way to use one is to open it and copy
+    # it. Read from an installed package via brickwork.examples.
+    # The tree's own README ships too: it is the copy-paste instructions, and
+    # someone reading the examples in an installed wheel needs them there.
+    "examples/**/*.html",
+    "examples/README.md",
 ]
 # brickwork.marketing (1.2.0, ADR-055): the opt-in marketing kit sub-app.
 # Templates only, in their own brickwork_marketing/ namespace; it compiles

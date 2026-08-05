@@ -633,9 +633,13 @@ Notes on the shape:
   with a hover transition, never UA default blue), so plain links clear the
   marketing kit's contrast gate in both themes; reach for `{% bw_button %}`
   only where you want CTA weight.
-- **Put this branch in your own base marketing page** (the one your
-  landing/pricing/about pages extend), so the header is auth-aware
-  everywhere without repeating the block.
+- **Put this branch in your own base marketing template**, the one your
+  landing, pricing and about pages all extend from
+  `brickwork_marketing/shell/marketing.html`, so the header is auth-aware
+  everywhere without repeating the block. If you started from the shipped
+  `marketing/landing.html` example (copied, not extended: see the README's
+  [Example pages](../README.md#example-pages) section), this is that file's
+  own `{% extends %}` target.
 - brickwork's *app* nav has a richer mechanism for the same need
   (`NavItem` with `required_permissions` / `visibility_policy`, filtered by
   `visible_items`); the marketing header is a small fixed set of links, so

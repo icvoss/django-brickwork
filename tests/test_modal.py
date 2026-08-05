@@ -1,6 +1,7 @@
 """Modal chrome contract tests (04-interfaces section 4b).
 
-_modal.html is consumed by EXTENDING (like patterns/): a consumer partial
+_modal.html is consumed by EXTENDING (unlike most components, which are
+{% include %}d): a consumer partial
 opens with {% extends "brickwork/components/_modal.html" %} and fills the
 named blocks (modal_title, modal_body, modal_footer, all semver-public per
 BR-BW-TPL-001). These tests render inline consumer partials through the
