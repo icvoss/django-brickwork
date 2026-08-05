@@ -1,0 +1,38 @@
+{% extends "consumer/base.html" %}
+{% comment %}
+The coexisting-component-framework page (brickwork#75, ADOPTION.md "A second
+component framework in the content block"). Simulates the django_components
+arrangement without depending on the framework: the _domain_widget.html include
+stands in for {% component "price_display" %}, and the hand-placed <link> /
+<script> tags stand in for {% component_css_dependencies %} /
+{% component_js_dependencies %}. Contract exercised: dependency stylesheets go
+in head_extra AFTER block.super (brickwork.css and the brand override keep the
+documented cascade order); dependency scripts go in body_js; the widget mounts
+inside a brickwork body slot untouched. Required context: price (see the
+widget). The referenced assets are never fetched by the smoke tests; only their
+placement in the document is asserted.
+{% endcomment %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  {# what {% component_css_dependencies %} would inject, after brickwork.css #}
+  <link rel="stylesheet" href="/static/consumer/components.css" data-dc-dependency="css">
+{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title=title %}
+{% endblock %}
+
+{% block content %}
+  <div class="bw-card">
+    {% include "consumer/_domain_widget.html" %}
+  </div>
+{% endblock %}
+
+{% block body_js %}
+  {{ block.super }}
+  {# what {% component_js_dependencies %} would inject #}
+  <script src="/static/consumer/components.js" data-dc-dependency="js"></script>
+{% endblock %}
