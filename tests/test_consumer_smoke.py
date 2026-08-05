@@ -202,3 +202,38 @@ def test_surface_toast_action_returns_the_oob_wrapper(client: Client) -> None:
     assert 'hx-swap-oob="afterbegin:#bw-toast-region"' in html
     assert "bw-toast--success" in html
     assert 'id="surface-toast-status"' in html
+
+
+# --- a second component framework inside the content block (brickwork#75) ----
+#
+# The ADOPTION.md coexistence contract made executable without depending on
+# django_components: /components/ mounts a simulated framework component (its
+# own dc-* classes) inside a brickwork body slot and injects its dependency
+# <link>/<script> through the shell's head_extra/body_js blocks.
+
+
+def test_domain_component_renders_inside_the_shell_content_block(client: Client) -> None:
+    html = client.get("/components/", SERVER_NAME=ACME_HOST).content.decode()
+    assert "bw-app" in html  # the brickwork shell is intact around it
+    assert 'data-dc-component="price_display"' in html
+    # the widget's own markup arrives untouched, on its own classes
+    assert "dc-price-display__amount" in html
+    assert "42.50" in html
+
+
+def test_component_framework_stylesheet_lands_after_brickwork_css(client: Client) -> None:
+    # The documented cascade order (ADOPTION.md): brickwork.css first, then
+    # whatever the framework's css-dependencies injection emits via head_extra
+    # after block.super, so a component stylesheet overriding --bw-* tokens
+    # wins only where intended.
+    html = client.get("/components/", SERVER_NAME=ACME_HOST).content.decode()
+    brickwork_css = html.index("brickwork/dist/brickwork.css")
+    component_css = html.index("consumer/components.css")
+    assert brickwork_css < component_css
+
+
+def test_component_framework_script_is_injected_once_via_body_js(client: Client) -> None:
+    html = client.get("/components/", SERVER_NAME=ACME_HOST).content.decode()
+    assert html.count('data-dc-dependency="js"') == 1  # one injection, no double boot
+    # the script sits in the body block, after the shell's content region
+    assert html.index('data-dc-component="price_display"') < html.index('data-dc-dependency="js"')

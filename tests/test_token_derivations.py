@@ -202,3 +202,27 @@ def test_frontend_css_only_references_emitted_token_names() -> None:
             if terminator == ")" and name not in emitted:
                 missing.setdefault(css_path.name, set()).add(name)
     assert not missing, f"frontend CSS references token names tokens.css does not emit: {missing}"
+
+
+@pytest.mark.parametrize(
+    "family_name", ["--bw-color-accent-hover", "--bw-color-accent-subtle", "--bw-color-focus-ring"]
+)
+def test_accent_family_stays_derived_from_var_accent_in_every_theme_scope(family_name: str) -> None:
+    """The per-request accent guarantee (brickwork#76, BRANDING.md recipe 3).
+
+    A resolver-driven accent (per role, per tenant, per any request state)
+    only works with no rebuild if the shipped stylesheet keeps the accent
+    family derived LIVE over var(--bw-color-accent) rather than baking any
+    theme scope's value to a literal. Every emitted declaration of each family
+    member, in every scope (:root and the [data-theme] blocks alike), must
+    reference the accent variable, so an override on the root element
+    recolours the family in light and dark both.
+    """
+    css = (_DIST / "tokens.css").read_text()
+    declarations = re.findall(rf"{family_name}:\s*([^;]+);", css)
+    assert declarations, f"{family_name} must be emitted in dist/tokens.css"
+    for value in declarations:
+        assert "var(--bw-color-accent)" in value, (
+            f"{family_name} is baked to {value!r} in some scope; it must derive "
+            f"from var(--bw-color-accent) so a per-request accent recolours it"
+        )
