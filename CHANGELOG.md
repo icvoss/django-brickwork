@@ -8,6 +8,19 @@ versioning contract).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`docs/INTEGRATION.md` section 4 now documents the htmx SUCCESS contract**
+  (icvoss/django-brickwork#84). The worked 422 form previously said "valid
+  submissions redirect (302) as always" inside an `hx-target="this"` /
+  `hx-swap="outerHTML"` example, which is exactly the full-page-into-partial
+  trap: htmx follows the bare 302 and swaps the redirected full page (shell,
+  nav, sidebar) into the form's slot. The section now works the success path
+  end to end: `HX-Redirect` (a client-side full navigation) when success
+  navigates elsewhere, a 200 region partial plus `HX-Trigger` / `HX-Push-Url`
+  when success stays in place, and the plain `redirect()` kept for the
+  non-htmx no-JS floor, with the trap and its symptom named.
+
 ## [1.3.1] - 2026-08-05
 
 ### Fixed
