@@ -7,6 +7,9 @@ ICO-013 (missing name fails loudly), plus ICO-014 (directional RTL flip).
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import pytest
 from django.template import Context, Template
 from django.template.exceptions import TemplateSyntaxError
@@ -171,3 +174,62 @@ def test_register_icons_merges_and_can_flag_directional() -> None:
     assert get_icon("myapp-widget")
     assert is_directional("myapp-widget")
     assert "myapp-widget" in icons.ICON_NAMES
+
+
+def test_reregistering_a_seed_name_overrides_and_keeps_the_directional_flag() -> None:
+    # Override semantics (#77): re-registering an existing name is the supported
+    # whole-glyph swap, and a seed-directional name stays directional when its
+    # glyph is swapped (the flag set only accumulates), so a family swap keeps
+    # the RTL mirror working with no extra wiring.
+    original = get_icon("chevron-forward")
+    assert is_directional("chevron-forward")
+    try:
+        register_icons({"chevron-forward": '<path d="M2 2l10 10" />'})
+        assert get_icon("chevron-forward") == '<path d="M2 2l10 10" />'
+        assert is_directional("chevron-forward")
+    finally:
+        register_icons({"chevron-forward": original})  # revert = register back
+
+
+# --- the chrome-internal name list is documented and cannot rot (#77) ------
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_SHIPPED_TEMPLATES = _REPO_ROOT / "src" / "brickwork" / "templates"
+_INTEGRATION_DOC = _REPO_ROOT / "docs" / "INTEGRATION.md"
+
+# The literal-name grammar the shipped templates use; a variable-valued
+# {% bw_icon item.icon %} is consumer data, not a chrome dependency, and is
+# deliberately not matched.
+_TEMPLATE_ICON_LITERAL = re.compile(r'bw_icon\s+"([a-z0-9-]+)"')
+_DOC_MARKED_REGION = re.compile(
+    r"<!-- chrome-icon-names:start -->(.*?)<!-- chrome-icon-names:end -->",
+    re.DOTALL,
+)
+
+
+def _chrome_names_from_templates() -> set[str]:
+    names: set[str] = set()
+    for path in sorted(_SHIPPED_TEMPLATES.rglob("*.html")):
+        names.update(_TEMPLATE_ICON_LITERAL.findall(path.read_text(encoding="utf-8")))
+    return names
+
+
+def _chrome_names_from_doc() -> set[str]:
+    match = _DOC_MARKED_REGION.search(_INTEGRATION_DOC.read_text(encoding="utf-8"))
+    assert match is not None, "INTEGRATION.md must keep the chrome-icon-names markers (#77)"
+    return set(re.findall(r"`([a-z0-9-]+)`", match.group(1)))
+
+
+def test_documented_chrome_icon_list_matches_the_shipped_templates() -> None:
+    # The drift guard (#77): the minimum-set list INTEGRATION.md publishes for
+    # alternate-family consumers must equal the names the shipped templates
+    # actually hard-reference. A template gaining or losing a chrome icon
+    # without the doc moving fails here, so the published contract cannot rot.
+    assert _chrome_names_from_doc() == _chrome_names_from_templates()
+
+
+def test_every_chrome_referenced_name_is_registered_in_the_seed() -> None:
+    # The chrome must render out of the box: every name a shipped template
+    # hard-references resolves against the seed with no consumer registration.
+    for name in sorted(_chrome_names_from_templates()):
+        assert get_icon(name)

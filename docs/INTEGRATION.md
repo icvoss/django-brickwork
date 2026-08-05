@@ -358,7 +358,7 @@ A brownfield app on htmx 1.9 should treat the htmx 1 -> 2 upgrade as a
 prerequisite workstream before the brickwork cutover, not something to reconcile
 mid-migration. See [ADOPTION.md](ADOPTION.md) for sequencing.
 
-## 7. Icons: bulk-registering a project set (brickwork#49)
+## 7. Icons: bulk-registering a project set (brickwork#49, brickwork#77)
 
 `{% bw_icon %}` renders from a name registry seeded with canonical Lucide names.
 To vendor your own project set (your app carries more glyphs than the seed, or
@@ -375,18 +375,115 @@ class YourAppConfig(AppConfig):
         from brickwork.icons.registry import register_icons
         register_icons(
             {
-                "invoice": '<svg viewBox="0 0 24 24">...</svg>',
-                "shipment": '<svg viewBox="0 0 24 24">...</svg>',
+                # values are the INNER paint markup only, no <svg> wrapper:
+                "invoice": '<path d="M4 2h12l4 4v16H4z" /><path d="M8 10h8" />',
+                "shipment": '<path d="M3 7h13v10H3z" /><path d="M16 10h5v7h-5" />',
             },
             # names whose glyph should mirror under dir="rtl":
             directional=("shipment",),
         )
 ```
 
-`register_icons(mapping, *, directional=())` takes a `{name: svg_markup}` dict
-and merges it into the registry; `directional` lists names that should flip under
-RTL. Registering once at `ready()` makes every name available to `{% bw_icon %}`
-across your templates.
+`register_icons(mapping, *, directional=())` takes a `{name: inner_svg_markup}`
+dict and merges it into the registry; `directional` lists names that should flip
+under RTL. Registering once at `ready()` makes every name available to
+`{% bw_icon %}` across your templates.
+
+Registry values are the paint content only (`<path>` / `<circle>` elements),
+never a full `<svg>` document: the tag re-wraps every glyph in brickwork's own
+`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ...>` wrapper,
+which is where the size token, `aria` attributes, and RTL class are applied.
+Strip the outer `<svg>` from whatever you vendor; a registered wrapper would
+nest one `<svg>` inside another.
+
+### Registration timing and collision semantics (brickwork#77)
+
+- The registry is module-level and seeds itself at import from the vendored
+  Lucide subset. `AppConfig.ready()` runs after imports resolve, so a `ready()`
+  registration can never race the seed: the seed is always in place first, and
+  your merge lands on top deterministically.
+- **Re-registering an existing name overrides it.** That is the supported
+  whole-glyph swap, not an error. Registering a new name augments the
+  vocabulary. There is no unregister; to revert a swap, register the previous
+  markup back.
+- The directional flag only ever accumulates: a name the seed marks directional
+  (`chevron-back`, `chevron-forward`, `external-link` and friends) stays
+  directional when you override its glyph, so swap in artwork drawn for LTR and
+  the RTL mirror keeps working.
+- Register once at `ready()`, never per request: the registry is process-global
+  shared state.
+
+### The names brickwork's own chrome references (the minimum set)
+
+brickwork's shipped templates hard-reference these registry names internally
+(the nav collapse control, table sort affordances, dropzone, empty state,
+alerts, and so on). Whatever family your app standardises on, these names must
+stay registered (they are, out of the box, via the seed) for the chrome itself
+to render:
+
+<!-- chrome-icon-names:start -->
+`arrow-down`, `arrow-up`, `check`, `chevron-back`, `chevron-down`,
+`chevron-forward`, `close`, `external-link`, `folder`, `info`, `minus`,
+`search`, `sidebar`, `sort`, `upload`
+<!-- chrome-icon-names:end -->
+
+Plus whatever names your own `NavItem.icon` values reference. A drift-guard
+test in the brickwork suite asserts this list matches the shipped templates,
+so it cannot rot silently.
+
+### Heroicons, Lucide, and mixing families (brickwork#77)
+
+The registry is a flat `name -> markup` mapping; nothing in brickwork cares
+which family drew a glyph. Three supported shapes, in increasing effort:
+
+1. **Mix families** (the low-effort default for a Heroicons app): keep the
+   Lucide seed for the chrome names above, and register your app's set under
+   its own names (`register_icons({"academic-cap": "..."})`), Heroicons names
+   included. `{% bw_icon "academic-cap" %}` then renders your Heroicon while
+   the nav chevron stays Lucide. Mixing is a visual-consistency judgement, not
+   a mechanical constraint.
+2. **Whole-family swap**: additionally re-register each chrome name in the
+   list above with your family's glyph (override semantics, previous section).
+   After that, every icon on the page, chrome included, is your family.
+3. **Name-mapping**: there is no separate translation layer, and none is
+   needed; registering your family's glyph under a brickwork chrome name IS
+   the map. For the chrome set, the nearest Heroicons (v2, outline) names are:
+
+   | brickwork chrome name | nearest Heroicons name |
+   |---|---|
+   | `arrow-down` / `arrow-up` | `arrow-down` / `arrow-up` |
+   | `check` | `check` |
+   | `chevron-back` / `chevron-forward` | `chevron-left` / `chevron-right` |
+   | `chevron-down` | `chevron-down` |
+   | `close` | `x-mark` |
+   | `external-link` | `arrow-top-right-on-square` |
+   | `folder` | `folder` |
+   | `info` | `information-circle` |
+   | `minus` | `minus` |
+   | `search` | `magnifying-glass` |
+   | `sidebar` | no direct equivalent; keep the seed glyph or draw your own |
+   | `sort` | `arrows-up-down` |
+   | `upload` | `arrow-up-tray` |
+
+Two family-specific gotchas when vendoring Heroicons:
+
+- brickwork's wrapper is **stroke-based** (`fill="none" stroke="currentColor"`,
+  width from `--bw-component-icon-stroke-width`, default 2). Vendor the
+  **outline** (24x24 stroke) family; it drops in directly. The solid and mini
+  families are fill-based and would render invisible under a `fill="none"`
+  wrapper unless you add explicit `fill="currentColor"` attributes to their
+  paths; prefer outline.
+- Heroicons outline is drawn at stroke-width 1.5, Lucide at 2. Registered
+  Heroicons therefore render slightly heavier than their native weight. If you
+  do the whole-family swap and want the native Heroicons weight, override
+  `--bw-component-icon-stroke-width: 1.5` in your brand stylesheet; if you mix
+  families, leaving it at 2 keeps the page's line weight uniform.
+
+Licences: the shipped seed is Lucide (`lucide-static`, ISC; the Feather-derived
+subset is MIT; both notices are in `NOTICE` at the repo root). Heroicons is MIT;
+glyphs you vendor through `register_icons` are your project's vendoring, so
+carry the family's licence attribution in your own project. brickwork never
+ships Heroicons and does not pick a family for you.
 
 Every `{% bw_icon %}` call must pass exactly one of `decorative=True` (the glyph
 is purely decorative, hidden from assistive tech) or `label="..."` (a

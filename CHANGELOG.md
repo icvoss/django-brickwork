@@ -8,6 +8,21 @@ versioning contract).
 
 ## [Unreleased]
 
+### Added
+
+- **Icon family guidance and the chrome-name contract**
+  (icvoss/django-brickwork#77). `docs/INTEGRATION.md` section 7 now states the
+  registration timing and collision semantics (module-level registry, register
+  in `AppConfig.ready()`, no race with the seed, re-register overrides, the
+  directional flag survives a glyph swap), publishes the list of icon names
+  brickwork's own shipped templates hard-reference (the minimum set an
+  alternate-family consumer must keep registered), and adds
+  Heroicons-vs-Lucide family guidance: mixing families, the whole-family swap,
+  the chrome-name Heroicons map, the stroke-based-wrapper and stroke-width
+  gotchas, and the licence notes. A drift-guard test asserts the documented
+  chrome-name list matches the shipped templates so it cannot rot. The bulk
+  `register_icons` recipe now shows inner paint markup, correcting an example
+  that registered full `<svg>` wrappers the tag would have nested.
 ### Fixed
 
 - **`docs/INTEGRATION.md` section 4 now documents the htmx SUCCESS contract**
