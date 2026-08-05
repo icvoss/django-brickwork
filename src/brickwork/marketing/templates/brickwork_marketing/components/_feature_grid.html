@@ -9,12 +9,28 @@ Required context: none.
 Optional context:
   heading  (str): the section intro heading.
   lede     (str): the section intro body.
-  items    (list of dicts): {icon?, heading, body}. icon is a registry name
-           rendered via {% bw_icon %} decorative=True (the icon reinforces
-           the heading/body text, which already carries the meaning). An
-           empty (or omitted) items list renders the section intro alone
-           (or nothing at all if that too is empty), never a fabricated
-           placeholder card.
+  items    (list of dicts): {icon?, heading, body, url?, aria_label?}. icon
+           is a registry name rendered via {% bw_icon %} decorative=True
+           (the icon reinforces the heading/body text, which already
+           carries the meaning). An empty (or omitted) items list renders
+           the section intro alone (or nothing at all if that too is
+           empty), never a fabricated placeholder card. List-shaped, so it
+           has no flat-kwarg spelling (#98): a Django template cannot
+           build a list inline, so supply items from context (the view, or
+           a wrapper template's own data); the scalar intro context
+           (heading, lede, columns) is flat and template-authorable as-is.
+  item.url (str, optional, #99): when present the whole card renders as an
+           anchor (bw-feature-card--link) so a feature card can navigate
+           to its subject, taking the marketing kit's link hover
+           affordance (the heading ink moves to accent on hover, with the
+           standard colour transition; the focus ring comes from the
+           global :focus-visible rule). Absent, the card stays the plain
+           non-interactive <div>, byte-identical to before #99: never a
+           clickable-looking card with no destination (the same contract
+           as _stat.html's href).
+  item.aria_label (str, optional, #99): overrides a linked card's
+           accessible name; omitted, the name is the card's own text
+           content. Ignored without item.url.
   columns  (2|3|4, default 3): responsive down to one column on narrow
            viewports (bw-feature-grid--<n> selects the CSS grid template).
 {% endcomment %}
@@ -29,11 +45,11 @@ Optional context:
   {% if items %}
     <div class="bw-feature-grid bw-feature-grid--{{ columns|default:3 }}">
       {% for item in items %}
-        <div class="bw-feature-card">
+        {% if item.url %}<a class="bw-feature-card bw-feature-card--link" href="{{ item.url }}"{% if item.aria_label %} aria-label="{{ item.aria_label }}"{% endif %}>{% else %}<div class="bw-feature-card">{% endif %}
           {% if item.icon %}{% bw_icon item.icon size="lg" decorative=True css_class="bw-feature-card__icon" %}{% endif %}
           <h3 class="bw-feature-card__heading">{{ item.heading }}</h3>
           <p class="bw-feature-card__body">{{ item.body }}</p>
-        </div>
+        {% if item.url %}</a>{% else %}</div>{% endif %}
       {% endfor %}
     </div>
   {% endif %}

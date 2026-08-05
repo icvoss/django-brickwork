@@ -4,10 +4,10 @@ A seam-by-seam cookbook for wiring a real Django app onto brickwork, in the
 order you hit each seam. [BRANDING.md](BRANDING.md) covers *theming* (overriding
 tokens); [DESIGN.md](DESIGN.md) is the authoritative token reference; this guide
 covers *plumbing*: the settings, the nav config, the context processor, a
-worked HTMX form (the 422 loop and the success redirect), and the "brickwork
-owns the chrome, you own the body" boundary for JS-bearing pages. It is the
-greenfield companion to [ADOPTION.md](ADOPTION.md) (strangling an existing kit
-onto brickwork).
+worked HTMX form (the 422 loop and the success redirect), the "brickwork owns
+the chrome, you own the body" boundary for JS-bearing pages, and the auth-aware
+marketing header. It is the greenfield companion to
+[ADOPTION.md](ADOPTION.md) (strangling an existing kit onto brickwork).
 
 Every code snippet here is a real seam a consuming app must wire; each maps to a
 finding from a pilot integration, so this is the walkthrough that would have
@@ -548,6 +548,62 @@ non-decorative glyph, given an accessible name). Omitting both, or passing both,
 raises `TemplateSyntaxError` by design (WCAG enforcement). `bw_button` / `bw_nav`
 handle this internally; you only supply it when reaching for `{% bw_icon %}`
 directly in a page template.
+
+## 8. The marketing header: auth-aware actions (brickwork#85)
+
+A real marketing site's header changes with auth state: anonymous visitors
+see "Sign in / Get started", logged-in users see "Dashboard / Log out". The
+marketing shell (`brickwork_marketing/shell/marketing.html`, opt-in via the
+`brickwork.marketing` sub-app) deliberately ships no logged-in default:
+brickwork never reads auth state itself (state is host-injected, the same
+responsibility model as the app nav's `visible_items` gating), so the
+supported pattern is your page branching the `marketing_actions` block on
+`request.user.is_authenticated`.
+
+Prerequisite: `django.template.context_processors.request` in your
+`TEMPLATES` options (a Django default; section 1 keeps it), so `request` is
+in template context.
+
+```django
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% load brickwork_components %}
+
+{% block marketing_nav %}
+  <a href="{% url 'features' %}">Features</a>
+  <a href="{% url 'pricing' %}">Pricing</a>
+  <a href="{% url 'about' %}">About</a>
+{% endblock %}
+
+{% block marketing_actions %}
+  {% if request.user.is_authenticated %}
+    <a href="{% url 'dashboard' %}">Dashboard</a>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      {% bw_button "Log out" type="submit" variant="secondary" %}
+    </form>
+  {% else %}
+    <a href="{% url 'login' %}">Sign in</a>
+    {% bw_button "Get started" variant="primary" href="/signup/" %}
+  {% endif %}
+{% endblock %}
+```
+
+Notes on the shape:
+
+- **Log out is a POST form**, not a link: Django's `LogoutView` rejects GET
+  (since Django 5.0), so the authed branch carries a one-button form with
+  `{% csrf_token %}`, styled through `{% bw_button type="submit" %}`.
+- **A bare `<a>` in either slot is styled for you** (label voice, muted ink
+  with a hover transition, never UA default blue), so plain links clear the
+  marketing kit's contrast gate in both themes; reach for `{% bw_button %}`
+  only where you want CTA weight.
+- **Put this branch in your own base marketing page** (the one your
+  landing/pricing/about pages extend), so the header is auth-aware
+  everywhere without repeating the block.
+- brickwork's *app* nav has a richer mechanism for the same need
+  (`NavItem` with `required_permissions` / `visibility_policy`, filtered by
+  `visible_items`); the marketing header is a small fixed set of links, so
+  the plain template branch above is the supported marketing-shell shape.
 
 ## Contribute back
 

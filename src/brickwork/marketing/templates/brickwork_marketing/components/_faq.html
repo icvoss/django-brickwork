@@ -20,6 +20,15 @@ Optional context:
 
 An empty (or omitted) items list renders the heading alone (or nothing, if
 that too is empty).
+
+items is list-shaped, so it has no flat-kwarg spelling (#98): a Django
+template cannot build a list inline, so supply it from context (the view,
+or a wrapper template's own data). A template-authored page with static
+questions (the ADR-056 compose-it-yourself shape) instead includes
+brickwork/components/_disclosure.html directly once per question (its
+contract is flat strings: label=question, content=answer, plus a shared
+name for the single-open behaviour); stacking disclosures is all this
+wrapper does.
 {% endcomment %}
 {% if heading or items %}
 <section class="bw-faq-section">

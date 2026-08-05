@@ -19,6 +19,14 @@ Optional context:
 
 An empty (or omitted) stats list renders the heading alone (or nothing, if
 that too is empty).
+
+stats is list-shaped, so it has no flat-kwarg spelling (#98): a Django
+template cannot build a list inline, so supply it from context (the view,
+or a wrapper template's own data). A template-authored page with static
+stat content (the ADR-056 compose-it-yourself shape) instead includes
+brickwork/components/_stat.html directly once per stat: its contract is
+already flat strings (label, value, trend, trend_label), which is exactly
+what this band forwards per item.
 {% endcomment %}
 {% if heading or stats %}
 <section class="bw-stat-band-section">

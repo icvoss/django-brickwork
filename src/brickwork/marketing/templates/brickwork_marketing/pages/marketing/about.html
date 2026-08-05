@@ -6,7 +6,9 @@ shell/marketing.html (BR-BW-MKT-005/BR-BW-PAGE-001 at marketing scope).
 
 Blocks (semver-public, BR-BW-TPL-001), in document order:
   hero        default: _hero.html wired from eyebrow/heading/lede/
-              primary_cta/secondary_cta/media/align context.
+              primary_cta/secondary_cta/media/align context; the CTAs also
+              accept the flat page-level names primary_cta_label/
+              primary_cta_url/secondary_cta_label/secondary_cta_url (#98).
   about_body  default: empty. A prose/section stack the consumer fills
               (e.g. _card includes, or plain prose relying on the shell's
               own content typography floor). This block has no default
@@ -18,7 +20,11 @@ Blocks (semver-public, BR-BW-TPL-001), in document order:
   testimonial default: _testimonial.html wired from quote/author/role/
               avatar/testimonial_logo.
   cta         default: _cta.html wired from cta_heading/cta_body/
-              cta_primary/cta_secondary/cta_no_tint.
+              cta_primary/cta_secondary/cta_no_tint; the CTAs also accept
+              the flat page-level names cta_primary_label/cta_primary_url/
+              cta_secondary_label/cta_secondary_url (#98), shadowed into
+              the include so the hero's flat names never bleed into this
+              band.
 
 Every block empties gracefully (BR-BW-PAGE-002 at marketing scope). Required
 context: none. Optional: see each component's own context contract in
@@ -27,7 +33,7 @@ context: none. Optional: see each component's own context contract in
 
 {% block content %}
 {% block hero %}
-{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta secondary_cta=secondary_cta media=media align=align %}
+{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta primary_cta_label=primary_cta_label primary_cta_url=primary_cta_url secondary_cta=secondary_cta secondary_cta_label=secondary_cta_label secondary_cta_url=secondary_cta_url media=media align=align %}
 {% endblock %}
 
 <div class="bw-section-stack">
@@ -43,6 +49,6 @@ context: none. Optional: see each component's own context contract in
 {% endblock %}
 
 {% block cta %}
-{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary no_tint=cta_no_tint %}
+{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary primary_cta_label=cta_primary_label primary_cta_url=cta_primary_url secondary_cta=cta_secondary secondary_cta_label=cta_secondary_label secondary_cta_url=cta_secondary_url no_tint=cta_no_tint %}
 {% endblock %}
 {% endblock %}
