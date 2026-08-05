@@ -8,6 +8,8 @@ versioning contract).
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-08-05
+
 ### Fixed
 
 - **The collapsed app sidebar now hides the brand wordmark and keeps the brand
