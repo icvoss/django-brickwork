@@ -34,6 +34,18 @@ versioning contract).
   gains a fixture simulating a second framework's component and dependency
   tags inside the shell, keeping the promise executable without depending on
   django-components.
+- **The per-role accent recipe** (icvoss/django-brickwork#76).
+  `docs/BRANDING.md` dynamic theming gains recipe 3: `BRICKWORK_THEME_RESOLVER`
+  is now explicitly guaranteed to accept ANY request state as its key (session
+  values, an active role, user, host, tenant), so a single-brand product whose
+  accent flips by the user's active role mid-session is a stated supported
+  path, not an off-label accident. The recipe covers the brand-slug wiring
+  with per-role `[data-bw-brand]` accent blocks, per-accent fg-on-accent
+  verification per theme, dark composition per role, and the emitter variant
+  for data-driven accents. Tests pin the session-keyed resolver guarantee, the
+  per-role emitter shape, and that the shipped stylesheet keeps the accent
+  family derived live over `var(--bw-color-accent)` in every theme scope.
+
 ### Fixed
 
 - **`docs/INTEGRATION.md` section 4 now documents the htmx SUCCESS contract**
