@@ -8,6 +8,26 @@ versioning contract).
 
 ## [Unreleased]
 
+### Added
+
+- **`NavItem.href`** (NAV-019): a raw, already-resolved internal path as a third
+  URL source alongside `url_name` and `external_url`. Unlike `external_url` it
+  renders as an ordinary on-site anchor (no external-link icon, same tab by
+  default) and participates in active state by matching the current
+  `request.path`. This is the seam for a CMS-managed menu whose items only expose
+  `page.get_absolute_url()` paths, never Django route names.
+- **`NavItem.opens_in_new_tab`** (NAV-020): a tri-state (`None`/`True`/`False`)
+  new-tab flag, now an axis INDEPENDENT of whether a link is external. `None`
+  (default) keeps the historical behaviour byte-for-byte (external links open a
+  new tab, internal links do not); an explicit bool forces either way, so an
+  internal link can open a new tab and an external link can stay in the same one.
+  Mirrors a CMS menu item's own `open_in_new_window` flag. The external-link
+  ICON stays tied to genuine externality (`external_url`), decoupled from the
+  new-tab decision.
+- `validate_nav_config` now rejects an item that sets more than one of
+  `url_name` / `external_url` / `href` (previously the "mutually exclusive"
+  contract was documented but unenforced).
+
 ### Fixed
 
 - **`{% bw_nav %}` now validates a `NavItem.icon` at prepare time** and raises a
