@@ -1,15 +1,27 @@
-"""The ``{% bw_nav %}`` tag: render a filtered, active-aware nav tree.
+"""The nav renderers: filtered, active-aware renders over one NavItem tree.
+
+Three tags share one prepare pipeline (URL resolution via safe_reverse,
+honouring BRICKWORK_NAV_FALLBACK for a bad url_name per BR-BW-NAV-003, and
+the active/ancestor-active state per NAV-008); each renders a different
+template over the SAME prepared tree, so there is never a second nav data
+model (brickwork#82's founding constraint):
+
+- ``{% bw_nav %}``: the recursive sidebar/tree renderer (nav/_nav.html).
+  One render is shared by the desktop sidebar and the mobile drawer
+  (NAV-016).
+- ``{% bw_nav_header %}`` (brickwork#102): the horizontal marketing-header
+  row (nav/_nav_header.html), plain-anchor visual weight with active state,
+  for the marketing shell's ``marketing_nav`` block and menu-driven header
+  navs on the NAV-019 href seam.
+- ``{% bw_nav_rail %}`` (brickwork#82): the compact icon+label rail
+  (nav/_nav_rail.html), tier one of the capability-rail + contextual-sidebar
+  layout, paired with an ordinary ``{% bw_nav %}`` as tier two.
 
 Usage (in a shell block, after a context processor has run visible_items +
 resolve_active_item)::
 
     {% load brickwork_nav %}
     {% bw_nav items=bw_nav_items active=bw_active_nav_item %}
-
-The tag resolves each item's URL via safe_reverse (honouring
-BRICKWORK_NAV_FALLBACK for a bad url_name, BR-BW-NAV-003), computes the
-active/ancestor-active state (NAV-008), and renders the recursive nav partial.
-One nav render is shared by the desktop sidebar and the mobile drawer (NAV-016).
 """
 
 from __future__ import annotations
@@ -168,6 +180,29 @@ def _prepare(
     )
 
 
+def _prepare_tree(
+    context,
+    items: tuple[NavItem, ...],
+    active: NavItem | None,
+    resolver_match,
+) -> tuple[RenderedNavItem, ...]:
+    """The shared prepare step behind every renderer tag: resolve the request's
+    resolver_match and path from the template context, then prepare each item.
+    One pipeline, several renderers (brickwork#82/#102), so the three tags can
+    never drift in URL resolution, fallback handling, or active-state rules."""
+    request = context.get("request")
+    if resolver_match is None:
+        resolver_match = getattr(request, "resolver_match", None)
+    # The current path drives active state for raw-`href` items (NAV-019), which
+    # cannot be matched via resolver_match. None when there is no request (a
+    # context-free render), in which case href items simply never read active.
+    current_path = getattr(request, "path", None)
+    fallback = get_setting("BRICKWORK_NAV_FALLBACK")
+    return tuple(
+        p for item in items if (p := _prepare(item, active, fallback, resolver_match, current_path)) is not None
+    )
+
+
 @register.inclusion_tag("brickwork/nav/_nav.html", takes_context=True)
 def bw_nav(
     context,
@@ -182,15 +217,34 @@ def bw_nav(
     (``NavItem.url_kwargs_from_request``); it defaults to the current request's
     ``resolver_match`` from the template context, so a consumer rarely passes it
     explicitly."""
-    request = context.get("request")
-    if resolver_match is None:
-        resolver_match = getattr(request, "resolver_match", None)
-    # The current path drives active state for raw-`href` items (NAV-019), which
-    # cannot be matched via resolver_match. None when there is no request (a
-    # context-free render), in which case href items simply never read active.
-    current_path = getattr(request, "path", None)
-    fallback = get_setting("BRICKWORK_NAV_FALLBACK")
-    prepared = tuple(
-        p for item in items if (p := _prepare(item, active, fallback, resolver_match, current_path)) is not None
-    )
-    return {"bw_nav_tree": prepared}
+    return {"bw_nav_tree": _prepare_tree(context, items, active, resolver_match)}
+
+
+@register.inclusion_tag("brickwork/nav/_nav_header.html", takes_context=True)
+def bw_nav_header(
+    context,
+    items: tuple[NavItem, ...],
+    active: NavItem | None = None,
+    resolver_match=None,
+) -> dict:
+    """Render the horizontal marketing-header row over the same NavItem tree
+    (brickwork#102): plain-anchor visual weight matching the marketing shell's
+    own header links, with the active state and visibility gating plain anchors
+    lose. Same arguments and preparation as ``{% bw_nav %}``; only the render
+    target differs. Flat by design: see nav/_nav_header.html's own contract."""
+    return {"bw_nav_tree": _prepare_tree(context, items, active, resolver_match)}
+
+
+@register.inclusion_tag("brickwork/nav/_nav_rail.html", takes_context=True)
+def bw_nav_rail(
+    context,
+    items: tuple[NavItem, ...],
+    active: NavItem | None = None,
+    resolver_match=None,
+) -> dict:
+    """Render the compact icon+label rail over the same NavItem tree
+    (brickwork#82): tier one of the capability-rail + contextual-sidebar
+    layout, paired with an ordinary ``{% bw_nav %}`` as the contextual second
+    tier. Same arguments and preparation as ``{% bw_nav %}``; only the render
+    target differs. See nav/_nav_rail.html's own contract."""
+    return {"bw_nav_tree": _prepare_tree(context, items, active, resolver_match)}

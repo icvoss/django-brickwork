@@ -53,6 +53,28 @@ versioning contract).
   the same defaults; the consumer smoke leg now runs under `string_if_invalid`
   to keep it guarded. No contract change.
 
+- **`{% bw_nav_header %}`**, a horizontal marketing-header renderer over the
+  same `NavItem` tree (icvoss/django-brickwork#102). Plain-anchor visual
+  weight matching the marketing shell's own header links, plus the active
+  state plain anchors lose (accent underline, full ink, `aria-current="page"`
+  on the exact item, the active-ancestor treatment when a descendant is
+  current). Works with the 1.3.0 `href` seam, so a CMS-menu-driven header nav
+  keeps active state and visibility gating with no consumer CSS against
+  renderer internals. Flat by design: section headers contribute their
+  children to the row (labels not rendered) and link items' children are not
+  rendered. `bw_nav` and `nav/_nav.html` are unchanged for existing callers.
+- **`{% bw_nav_rail %}`**, a compact icon+label rail renderer over the same
+  `NavItem` tree, tier one of the capability-rail + contextual-sidebar
+  (two-tier) layout (icvoss/django-brickwork#82). Every rail entry is a real
+  link (never a JS-only trigger); labels stay visible at caption size;
+  children belong to the paired contextual `{% bw_nav %}` and the rail entry
+  lights whenever it or any descendant is the current route. The
+  `.bw-nav-two-tier` wrapper pairs the tiers inside the sidebar block,
+  hairline-divided; no flyout ships (the no-JS floor stays free), and the
+  mobile drawer keeps the full tree navigable through a plain `{% bw_nav %}`.
+  All three renderers share one prepare pipeline, so URL resolution, the
+  `BRICKWORK_NAV_FALLBACK` handling, and active state can never drift.
+
 - **Icon family guidance and the chrome-name contract**
   (icvoss/django-brickwork#77). `docs/INTEGRATION.md` section 7 now states the
   registration timing and collision semantics (module-level registry, register

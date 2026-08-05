@@ -212,3 +212,249 @@
   padding-block-end: 0;
   margin-inline: var(--bw-space-2);
 }
+
+/* --- Marketing-header renderer ({% bw_nav_header %}, brickwork#102) --------- */
+
+/* A horizontal row of plain-weight links over the same prepared NavItem tree,
+ * matching the visual weight the marketing shell already gives plain anchors
+ * (.bw-marketing-header__nav :where(a) in marketing.css: label type role,
+ * muted resting ink, ink on hover), plus the active treatment plain anchors
+ * cannot express. Flat by design: the template renders no nested lists, so no
+ * dropdown CSS exists here (BR-BW-HTMX-001; a consumer layering a disclosure
+ * does so as progressive enhancement, BR-BW-TPL-002).
+ *
+ * Every link rule is scoped under .bw-nav-header__list (the renderer's own
+ * markup guarantees the ancestor): marketing.css's
+ * `.bw-marketing-header__nav :where(a)` rule shares single-class specificity
+ * and sits LATER in the compiled bundle, so a bare .bw-nav-header__link rule
+ * would lose the cascade inside the marketing header (notably the active
+ * underline against its `text-decoration: none`). The descendant scope keeps
+ * these rules winning wherever the row is placed.
+ */
+.bw-nav-header__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* the same gap the marketing shell gives its plain-anchor nav row */
+  gap: var(--bw-space-4);
+}
+
+.bw-nav-header__item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.bw-nav-header__list .bw-nav-header__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-1);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  line-height: var(--bw-text-label-line-height);
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-nav-header__list .bw-nav-header__link:hover {
+  color: var(--bw-color-fg);
+}
+
+/* Active: full ink plus an accent underline marker, so the current page is
+ * signalled by more than colour alone (the horizontal counterpart of the
+ * sidebar's inline-start marker, NAV-007). The exact active item carries
+ * aria-current="page"; an ancestor of the active route (whose children this
+ * flat renderer does not show) gets the same visual treatment. */
+.bw-nav-header__list .bw-nav-header__link--active,
+.bw-nav-header__list .bw-nav-header__link--active-ancestor {
+  color: var(--bw-color-fg);
+  text-decoration-line: underline;
+  text-decoration-color: var(--bw-color-accent);
+  text-decoration-thickness: var(--bw-size-border-nav-marker);
+  text-underline-offset: var(--bw-space-1-5);
+}
+
+/* The colour token alone dims the entry (the documented nav exception); the
+ * hover override keeps a disabled entry inert under the pointer. */
+.bw-nav-header__list .bw-nav-header__link--disabled,
+.bw-nav-header__list .bw-nav-header__link--disabled:hover {
+  color: var(--bw-component-nav-item-disabled-text);
+  cursor: not-allowed;
+}
+
+/* The same quiet bordered count chip as the sidebar renderer's badge. */
+.bw-nav-header__badge {
+  flex-shrink: 0;
+  min-inline-size: var(--bw-space-5);
+  padding-block: var(--bw-space-0-5);
+  padding-inline: var(--bw-space-1);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--bw-font-line-height-none);
+  text-align: center;
+}
+
+.bw-nav-header__external {
+  flex-shrink: 0;
+  color: var(--bw-color-fg-muted);
+  transition: var(--bw-transition-colors);
+}
+
+.bw-nav-header__list .bw-nav-header__link:hover .bw-nav-header__external {
+  color: inherit;
+}
+
+/* --- Compact rail renderer ({% bw_nav_rail %}, brickwork#82) ---------------- */
+
+/* Tier one of the capability-rail + contextual-sidebar (two-tier) layout: a
+ * compact icon+label column over the same prepared NavItem tree. Labels stay
+ * VISIBLE at caption size (a designed compact state, not the collapsed
+ * sidebar's clipped labels, SHL-004), every entry is a real link, and the
+ * template renders no nested lists: children belong to the paired contextual
+ * {% bw_nav %}, so no flyout CSS exists (BR-BW-HTMX-001). */
+.bw-nav-rail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
+  /* compact by construction: as wide as the widest entry, floored at the
+   * collapsed-sidebar width so a short label set still reads as a rail */
+  inline-size: max-content;
+  min-inline-size: var(--bw-density-sidebar-width-collapsed);
+}
+
+.bw-nav-rail__link {
+  position: relative; /* seats the badge on the entry's corner */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bw-space-0-5);
+  padding-block: var(--bw-space-2);
+  padding-inline: var(--bw-space-2);
+  border-radius: var(--bw-radius-md);
+  color: var(--bw-color-fg);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  line-height: var(--bw-text-caption-line-height);
+  text-align: center;
+  text-decoration: none;
+  border-inline-start: var(--bw-size-border-nav-marker) solid transparent;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-nav-rail__link:hover {
+  background-color: var(--bw-state-hover-overlay);
+}
+
+.bw-nav-rail__link:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
+}
+
+/* Active state mirrors the sidebar treatment (NAV-007): tint, active ink, the
+ * inline-start marker. The rail highlights its AREA: the exact active entry
+ * and an ancestor of the active route (whose children live in the contextual
+ * tier) read the same; aria-current sits on the exact item only. */
+.bw-nav-rail__link--active,
+.bw-nav-rail__link--active-ancestor {
+  background-color: var(--bw-component-nav-item-active-bg);
+  color: var(--bw-component-nav-item-active-text);
+  border-inline-start-color: var(--bw-component-nav-item-active-border);
+  font-weight: var(--bw-font-weight-semibold);
+}
+
+/* Re-assert background-color under the transient overlays, exactly as the
+ * sidebar renderer does: the persistent tint composes, never vanishes. */
+.bw-nav-rail__link--active:hover,
+.bw-nav-rail__link--active-ancestor:hover {
+  background-color: var(--bw-component-nav-item-active-bg);
+  background-image: linear-gradient(
+    var(--bw-state-hover-overlay),
+    var(--bw-state-hover-overlay)
+  );
+}
+
+.bw-nav-rail__link--active:active,
+.bw-nav-rail__link--active-ancestor:active {
+  background-color: var(--bw-component-nav-item-active-bg);
+  background-image: linear-gradient(
+    var(--bw-state-active-overlay),
+    var(--bw-state-active-overlay)
+  );
+  transition-duration: var(--bw-duration-instant);
+}
+
+/* Colour token alone dims the entry (the documented nav exception); the hover
+ * override keeps a disabled entry inert under the pointer. */
+.bw-nav-rail__link--disabled,
+.bw-nav-rail__link--disabled:hover {
+  background-color: transparent;
+  color: var(--bw-component-nav-item-disabled-text);
+  cursor: not-allowed;
+}
+
+/* Wraps rather than truncates: a rail entry's visible name IS the accessible
+ * name and the destination, so it never ellipsises away. */
+.bw-nav-rail__label {
+  overflow-wrap: anywhere;
+}
+
+/* The count chip seats on the entry's top trailing corner, the standard rail
+ * badge affordance; same quiet bordered treatment as the sidebar badge. */
+.bw-nav-rail__badge {
+  position: absolute;
+  inset-block-start: var(--bw-space-1);
+  inset-inline-end: var(--bw-space-1);
+  min-inline-size: var(--bw-space-5);
+  padding-block: var(--bw-space-0-5);
+  padding-inline: var(--bw-space-1);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--bw-font-line-height-none);
+  text-align: center;
+}
+
+.bw-nav-rail__external {
+  color: var(--bw-color-fg-muted);
+  transition: var(--bw-transition-colors);
+}
+
+.bw-nav-rail__link:hover .bw-nav-rail__external,
+.bw-nav-rail__link--active .bw-nav-rail__external {
+  color: inherit;
+}
+
+/* --- The two-tier pairing container (brickwork#82) -------------------------- */
+
+/* A consumer-placed wrapper inside {% block sidebar %}: the rail (tier one)
+ * beside a contextual {% bw_nav %} (tier two), hairline-divided. The sidebar's
+ * own width token seats the pair: widen --bw-density-sidebar-width in the
+ * brand CSS to fit both tiers; the wrapper imposes no width of its own. */
+.bw-nav-two-tier {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--bw-space-3);
+  align-items: start;
+  block-size: 100%;
+}
+
+.bw-nav-two-tier > .bw-nav-rail__list {
+  block-size: 100%;
+  padding-inline-end: var(--bw-space-2);
+  border-inline-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
