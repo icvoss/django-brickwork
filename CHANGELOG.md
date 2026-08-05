@@ -8,6 +8,14 @@ versioning contract).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-05
+
+The drop-in maturity wave: every silent wiring trap now fails loudly, the
+marketing sections are drivable from plain templates, the NavItem tree gains
+two more renderers, and the consumer-seam contracts are documented and
+executable. Additive and backwards compatible throughout; no shipped contract
+was renamed or removed.
+
 ### Added
 
 - **System check for the missing theme context processor**
@@ -17,6 +25,7 @@ versioning contract).
   `brickwork` is installed but no DjangoTemplates backend lists the processor.
   A deliberate non-shell consumer (components or marketing layers only)
   silences it with `SILENCED_SYSTEM_CHECKS = ["brickwork.W001"]`.
+
 - **A console warning when `registerBrickworkComponents(Alpine)` was never
   called** (icvoss/django-brickwork#87). Registration now stamps
   `data-bw-js-registered` on `<html>`, and with `DEBUG = True` the shell
@@ -28,30 +37,6 @@ versioning contract).
   consumer can override the new `bw_js_registration_check` block (e.g. for a
   nonce-strict dev CSP). A new `assertBrickworkRegistered()` export offers the
   opt-in hard check.
-
-### Changed
-
-- **`IconNotFoundError` no longer subclasses `KeyError`**
-  (icvoss/django-brickwork#74). Django's `{% partialdef %}` machinery catches
-  a bare `KeyError`, so an unknown icon name raised inside a template partial
-  (e.g. the nav's recursive `nav_item`) was masked as a misleading
-  "Partial ... is not defined". The exception now subclasses `BrickworkError`
-  and `LookupError`, so the real error surfaces naming the icon; unknown-icon
-  messages also gain a did-you-mean hint for near-miss names. Code catching
-  `IconNotFoundError` (or `LookupError`) is unaffected; code that caught it AS
-  `KeyError` must catch `IconNotFoundError` itself.
-
-### Fixed
-
-- **Shipped templates no longer leak `string_if_invalid` markers**
-  (icvoss/django-brickwork#80). `|default:` only substitutes for a
-  defined-but-falsy value, so a genuinely undefined optional variable (the app
-  shell's `layout`, the toast region's `position`, component variant/size/label
-  defaults) rendered a consumer's `string_if_invalid` marker instead of the
-  documented default. Every optional-by-design variable in the shipped
-  templates now resolves via `{% firstof %}` (immune, failures ignored), with
-  the same defaults; the consumer smoke leg now runs under `string_if_invalid`
-  to keep it guarded. No contract change.
 
 - **`--bw-component-logo-height`: the marketing brand slot now sizes a
   dropped-in logo out of the box** (icvoss/django-brickwork#83). The marketing
@@ -65,26 +50,6 @@ versioning contract).
   remaining width, and an unfilled block leaves an `:empty` wrapper that
   collapses to nothing. The cap is applied at zero specificity (`:where`), so
   one consumer rule (or a token override) resizes it.
-
-### Fixed
-
-- **`bw_badge`'s documented default variant `neutral` now has a real CSS
-  rule** (icvoss/django-brickwork#100). The tag's no-args default is
-  `variant="neutral"`, but the shipped CSS carried rules only for
-  `info`/`success`/`warning`/`danger`, so the default badge's look was left
-  implicit in the `.bw-badge` base class with no `.bw-badge--neutral` rule
-  behind the contract. The rule now ships explicitly (sunken surface, muted
-  fg, transparent hairline border: the token-derived neutral chip treatment,
-  AA in both themes), so the contract and the CSS agree.
-- **A testimonial no longer zeroes the marketing section gap above itself**
-  (icvoss/django-brickwork#86). `.bw-testimonial`'s blanket `margin: 0` reset
-  tied on specificity with the marketing shell's
-  `.bw-marketing__content > * + *` section-gap rule and, sitting later in
-  source order, won the tie, collapsing the rhythm above any composed
-  testimonial (the stat-band/testimonial collision). The blanket reset is
-  gone: the UA `<figure>` block margins are neutralised at zero specificity
-  (`:where(.bw-testimonial)`) instead, so the shell's section rhythm always
-  applies when a testimonial is composed as a marketing section.
 
 - **Flat CTA kwargs on the marketing section components**
   (icvoss/django-brickwork#98). Every dict-shaped CTA in the marketing kit now
@@ -107,6 +72,7 @@ versioning contract).
   the flat names per section (`cta_primary_label` et al for the CTA band),
   shadowed into each include so the hero's flat names never bleed into a
   later section's context.
+
 - **Feature-grid items can link** (icvoss/django-brickwork#99). A
   `_feature_grid.html` item now takes an optional `url`: when present the
   whole card renders as an anchor (`bw-feature-card--link`, content ink
@@ -116,6 +82,7 @@ versioning contract).
   the linked card's accessible name. Items without `url` render the plain
   non-interactive card byte-identically to before, mirroring `_stat.html`'s
   `href` contract.
+
 - **The auth-aware marketing header recipe** (icvoss/django-brickwork#85).
   The supported anonymous-vs-logged-in `marketing_actions` pattern (branch on
   `request.user.is_authenticated`; log out as a POST form; bare `<a>` links
@@ -134,6 +101,7 @@ versioning contract).
   renderer internals. Flat by design: section headers contribute their
   children to the row (labels not rendered) and link items' children are not
   rendered. `bw_nav` and `nav/_nav.html` are unchanged for existing callers.
+
 - **`{% bw_nav_rail %}`**, a compact icon+label rail renderer over the same
   `NavItem` tree, tier one of the capability-rail + contextual-sidebar
   (two-tier) layout (icvoss/django-brickwork#82). Every rail entry is a real
@@ -159,6 +127,7 @@ versioning contract).
   chrome-name list matches the shipped templates so it cannot rot. The bulk
   `register_icons` recipe now shows inner paint markup, correcting an example
   that registered full `<svg>` wrappers the tag would have nested.
+
 - **The coexisting-component-framework contract**
   (icvoss/django-brickwork#75). `docs/ADOPTION.md` now states explicitly that
   a second component framework (django-components as the named case) rendering
@@ -170,6 +139,7 @@ versioning contract).
   gains a fixture simulating a second framework's component and dependency
   tags inside the shell, keeping the promise executable without depending on
   django-components.
+
 - **The per-role accent recipe** (icvoss/django-brickwork#76).
   `docs/BRANDING.md` dynamic theming gains recipe 3: `BRICKWORK_THEME_RESOLVER`
   is now explicitly guaranteed to accept ANY request state as its key (session
@@ -181,8 +151,6 @@ versioning contract).
   for data-driven accents. Tests pin the session-keyed resolver guarantee, the
   per-role emitter shape, and that the shipped stylesheet keeps the accent
   family derived live over `var(--bw-color-accent)` in every theme scope.
-
-### Fixed
 
 - **`docs/INTEGRATION.md` section 4 now documents the htmx SUCCESS contract**
   (icvoss/django-brickwork#84). The worked 422 form previously said "valid
@@ -207,6 +175,49 @@ versioning contract).
   text-lines artwork the generic `file` already renders. No `pdf` name is
   seeded: Lucide ships no PDF glyph, so a consumer wanting one registers
   its own via `register_icons()`.
+
+### Changed
+
+- **`IconNotFoundError` no longer subclasses `KeyError`**
+  (icvoss/django-brickwork#74). Django's `{% partialdef %}` machinery catches
+  a bare `KeyError`, so an unknown icon name raised inside a template partial
+  (e.g. the nav's recursive `nav_item`) was masked as a misleading
+  "Partial ... is not defined". The exception now subclasses `BrickworkError`
+  and `LookupError`, so the real error surfaces naming the icon; unknown-icon
+  messages also gain a did-you-mean hint for near-miss names. Code catching
+  `IconNotFoundError` (or `LookupError`) is unaffected; code that caught it AS
+  `KeyError` must catch `IconNotFoundError` itself.
+
+### Fixed
+
+- **Shipped templates no longer leak `string_if_invalid` markers**
+  (icvoss/django-brickwork#80). `|default:` only substitutes for a
+  defined-but-falsy value, so a genuinely undefined optional variable (the app
+  shell's `layout`, the toast region's `position`, component variant/size/label
+  defaults) rendered a consumer's `string_if_invalid` marker instead of the
+  documented default. Every optional-by-design variable in the shipped
+  templates now resolves via `{% firstof %}` (immune, failures ignored), with
+  the same defaults; the consumer smoke leg now runs under `string_if_invalid`
+  to keep it guarded. No contract change.
+
+- **`bw_badge`'s documented default variant `neutral` now has a real CSS
+  rule** (icvoss/django-brickwork#100). The tag's no-args default is
+  `variant="neutral"`, but the shipped CSS carried rules only for
+  `info`/`success`/`warning`/`danger`, so the default badge's look was left
+  implicit in the `.bw-badge` base class with no `.bw-badge--neutral` rule
+  behind the contract. The rule now ships explicitly (sunken surface, muted
+  fg, transparent hairline border: the token-derived neutral chip treatment,
+  AA in both themes), so the contract and the CSS agree.
+
+- **A testimonial no longer zeroes the marketing section gap above itself**
+  (icvoss/django-brickwork#86). `.bw-testimonial`'s blanket `margin: 0` reset
+  tied on specificity with the marketing shell's
+  `.bw-marketing__content > * + *` section-gap rule and, sitting later in
+  source order, won the tie, collapsing the rhythm above any composed
+  testimonial (the stat-band/testimonial collision). The blanket reset is
+  gone: the UA `<figure>` block margins are neutralised at zero specificity
+  (`:where(.bw-testimonial)`) instead, so the shell's section rhythm always
+  applies when a testimonial is composed as a marketing section.
 
 ## [1.3.1] - 2026-08-05
 
