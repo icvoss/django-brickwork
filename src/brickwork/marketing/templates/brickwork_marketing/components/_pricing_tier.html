@@ -13,8 +13,18 @@ Required context: name, price.
 Optional context:
   period      (str, e.g. "/month").
   description (str).
-  features    (list of str): each a ticked line.
+  features    (list of str): each a ticked line. List-shaped, so it has no
+              flat-kwarg spelling (#98): a Django template cannot build a
+              list inline, so supply it from context (the view, or a
+              wrapper template's own data). Every other input on this card
+              is a flat string, so a tier is otherwise fully
+              template-authorable.
   cta         ({label, url}).
+  cta_label / cta_url (str, #98): the same CTA as flat strings, for a
+              template-authored caller (the ADR-056 compose-it-yourself
+              shape). When both shapes are supplied the dict wins outright
+              (the flat kwargs are ignored); a dict-shaped caller renders
+              byte-identically to before the flat shape existed.
   highlighted (bool, default False): the recommended tier; raised elevation
               plus an accent border.
   badge       (str, e.g. "Most popular"): rendered via {% bw_badge %} when
@@ -40,9 +50,9 @@ Optional context:
       {% endfor %}
     </ul>
   {% endif %}
-  {% if cta %}
+  {% if cta or cta_label %}
     <div class="bw-pricing-tier__cta">
-      {% bw_button cta.label variant=highlighted|yesno:"primary,secondary" size="lg" href=cta.url %}
+      {% if cta %}{% bw_button cta.label variant=highlighted|yesno:"primary,secondary" size="lg" href=cta.url %}{% else %}{% bw_button cta_label variant=highlighted|yesno:"primary,secondary" size="lg" href=cta_url %}{% endif %}
     </div>
   {% endif %}
 </div>

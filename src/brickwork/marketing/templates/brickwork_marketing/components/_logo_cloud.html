@@ -16,6 +16,12 @@ Optional context:
 
 An empty (or omitted) logos list renders the heading alone (or nothing, if
 that too is empty), never a fabricated placeholder logo.
+
+logos is list-shaped, so it has no flat-kwarg spelling (#98): a Django
+template cannot build a list inline, so supply it from context (the view,
+or a wrapper template's own data). The scalar context (heading, greyscale)
+is flat and template-authorable as-is; brickwork does not invent a flat
+shape for the list itself.
 {% endcomment %}
 {% if heading or logos %}
 <section class="bw-logo-cloud{% if greyscale %} bw-logo-cloud--greyscale{% endif %}">

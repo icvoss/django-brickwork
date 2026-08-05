@@ -9,7 +9,9 @@ scope).
 
 Blocks (semver-public, BR-BW-TPL-001), in document order:
   hero        default: _hero.html wired from eyebrow/heading/lede/
-              primary_cta/secondary_cta/media/align context.
+              primary_cta/secondary_cta/media/align context; the CTAs also
+              accept the flat page-level names primary_cta_label/
+              primary_cta_url/secondary_cta_label/secondary_cta_url (#98).
   logo_cloud  default: _logo_cloud.html wired from logo_cloud_heading/logos.
   features    default: _feature_grid.html wired from features_heading/
               features_lede/features/features_columns.
@@ -17,7 +19,11 @@ Blocks (semver-public, BR-BW-TPL-001), in document order:
   testimonial default: _testimonial.html wired from quote/author/role/
               avatar/logo.
   cta         default: _cta.html wired from cta_heading/cta_body/
-              cta_primary/cta_secondary/cta_tint.
+              cta_primary/cta_secondary/cta_tint; the CTAs also accept the
+              flat page-level names cta_primary_label/cta_primary_url/
+              cta_secondary_label/cta_secondary_url (#98), shadowed into
+              the include so the hero's flat names never bleed into this
+              band.
 
 Every block empties gracefully (BR-BW-PAGE-002 at marketing scope): a page
 extending this template with only a title in context renders a complete,
@@ -30,7 +36,7 @@ in 04-interfaces.md section 4d.
 
 {% block content %}
 {% block hero %}
-{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta secondary_cta=secondary_cta media=media align=align %}
+{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta primary_cta_label=primary_cta_label primary_cta_url=primary_cta_url secondary_cta=secondary_cta secondary_cta_label=secondary_cta_label secondary_cta_url=secondary_cta_url media=media align=align %}
 {% endblock %}
 
 {% block logo_cloud %}
@@ -50,6 +56,6 @@ in 04-interfaces.md section 4d.
 {% endblock %}
 
 {% block cta %}
-{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary no_tint=cta_no_tint %}
+{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary primary_cta_label=cta_primary_label primary_cta_url=cta_primary_url secondary_cta=cta_secondary secondary_cta_label=cta_secondary_label secondary_cta_url=cta_secondary_url no_tint=cta_no_tint %}
 {% endblock %}
 {% endblock %}

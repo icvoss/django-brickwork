@@ -301,6 +301,27 @@
   line-height: var(--bw-text-body-md-line-height);
 }
 
+/* Linked feature card (#99): the whole card is an anchor (a.bw-card's
+ * contract: content keeps its own ink, no underline smears across the card;
+ * the focus ring comes from the global :focus-visible rule). The card is
+ * chrome-less, so the hover affordance is the marketing kit's link ink
+ * treatment rather than a card shadow raise: the heading moves to accent
+ * ink with the standard colour transition. Colour is reinforcement only;
+ * the pointer cursor and focus ring carry the interactivity signal. */
+.bw-feature-card--link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bw-feature-card--link .bw-feature-card__heading {
+  transition: var(--bw-transition-colors);
+}
+
+.bw-feature-card--link:hover .bw-feature-card__heading,
+.bw-feature-card--link:focus-visible .bw-feature-card__heading {
+  color: var(--bw-color-accent);
+}
+
 /* --- Pricing ------------------------------------------------------------------ */
 
 .bw-pricing-table-section__intro {
