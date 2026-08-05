@@ -14,4 +14,5 @@ urlpatterns = [
     path("surface/confirm/", views.TicketConfirmView.as_view(), name="surface-confirm"),
     path("surface/panel/", views.TicketPanelView.as_view(), name="surface-panel"),
     path("surface/toast/", views.ToastActionView.as_view(), name="surface-toast"),
+    path("components/", views.ComponentsView.as_view(), name="components"),
 ]
