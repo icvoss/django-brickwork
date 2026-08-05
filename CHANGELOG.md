@@ -32,6 +32,19 @@ versioning contract).
   All three renderers share one prepare pipeline, so URL resolution, the
   `BRICKWORK_NAV_FALLBACK` handling, and active state can never drift.
 
+- **File-type icons in the registry** (icvoss/django-brickwork#88): six new
+  seeded names, `video`, `audio`, `document`, `image`, `archive` and
+  `spreadsheet`, so media libraries, attachment lists and file managers can
+  show a per-type badge instead of falling back to the generic `file` glyph
+  for every non-image asset. All resolve file-badge artwork (file outline
+  plus a type marker) from the pinned lucide-static v1.28.0 seed
+  (`file-play`, `file-music`, `file-text`, `file-image`, `file-archive`,
+  `file-spreadsheet`), so a mixed listing reads as one family beside the
+  existing `file` and `folder`. `document` deliberately shares the
+  text-lines artwork the generic `file` already renders. No `pdf` name is
+  seeded: Lucide ships no PDF glyph, so a consumer wanting one registers
+  its own via `register_icons()`.
+
 ## [1.3.1] - 2026-08-05
 
 ### Fixed
