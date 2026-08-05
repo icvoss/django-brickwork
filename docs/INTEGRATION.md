@@ -167,6 +167,58 @@ parameter from the **active route's** kwargs. Two ergonomics tiers:
           url_kwargs_from_request=project_kwargs)
   ```
 
+### Three renderers over one tree (brickwork#82, brickwork#102)
+
+One `NavItem` tree feeds every renderer; the tags differ only in the render
+target, so URL resolution, visibility gating, the fallback handling, and
+active state can never drift between them. All three take the same arguments
+(`items`, `active`, `resolver_match`) and all emit a `<ul>` only: place each
+inside a labelled `<nav>` landmark (the shells already provide one per slot).
+
+- **`{% bw_nav %}`**: the recursive sidebar/tree render. One render is shared
+  by the desktop sidebar and the mobile drawer, and the shell's
+  `data-layout="topbar"` and collapsed-sidebar states restyle this same DOM.
+- **`{% bw_nav_header %}`**: the horizontal marketing-header row. Plain-anchor
+  visual weight matching the marketing shell's own header links, plus the
+  active state (an accent underline and full ink; `aria-current="page"` on the
+  exact item) that plain anchors lose. This is the supported path for a
+  menu-driven header nav, including CMS menus on the `href` seam:
+
+  ```django
+  {% block marketing_nav %}
+    {% bw_nav_header items=bw_nav_items active=bw_active_nav_item %}
+  {% endblock %}
+  ```
+
+  Flat by design: a section header's children join the row (its label is not
+  rendered) and a link item's own children are not rendered; the item carries
+  the active-ancestor treatment when a descendant is the current route.
+- **`{% bw_nav_rail %}`**: the compact icon+label rail, tier one of the
+  capability-rail + contextual-sidebar (two-tier) layout. Every rail entry is
+  a real link; children are never rendered by the rail: they belong to the
+  contextual second tier, an ordinary `{% bw_nav %}` you feed from the same
+  tree (typically the active area's children). Pair the tiers in the sidebar
+  block with the shipped wrapper, and widen the sidebar to seat both:
+
+  ```django
+  {% block sidebar %}
+    <div class="bw-nav-two-tier">
+      {% bw_nav_rail items=bw_nav_items active=bw_active_nav_item %}
+      {% bw_nav items=contextual_items active=bw_active_nav_item %}
+    </div>
+  {% endblock %}
+  ```
+
+  ```css
+  /* brand.css: seat both tiers */
+  :root { --bw-density-sidebar-width: 22rem; }
+  ```
+
+  In the mobile drawer, render the full tree through a plain `{% bw_nav %}`
+  (`{% block mobile_nav %}`), so every child stays reachable on the no-JS
+  floor. Neither compact renderer ships a flyout: hover/flyout enhancement is
+  consumer-owned progressive enhancement, never a requirement.
+
 ## 3. The context processor (the sharp edge, brickwork#22)
 
 The shell reads its `<html>` axis attributes from the context variables

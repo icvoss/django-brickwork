@@ -1,0 +1,70 @@
+{% load brickwork_icons %}
+{% comment %}
+Marketing-header nav renderer (brickwork#102): a horizontal row of
+plain-weight links over the SAME prepared NavItem tree the sidebar renderer
+consumes (one nav data model, several renderers, brickwork#82). The visual
+weight matches the marketing shell's own plain-anchor header links
+(.bw-marketing-header__nav), plus the active treatment plain anchors cannot
+express, so a menu-driven header nav (the NAV-019 href seam for CMS menus)
+keeps active state and visibility gating without consumer CSS against
+renderer internals.
+
+Contract:
+  Consumption  This is the private render target of {% bw_nav_header %}
+               (load brickwork_nav): call the tag, never include this
+               partial. Items arrive prepared (URL resolved via
+               safe_reverse per BR-BW-NAV-003, active/ancestor state
+               computed, visibility filtered upstream), so this template is
+               pure presentation.
+  Landmark     Emits a <ul> only, never a <nav>: callers place the tag
+               inside a labelled <nav> landmark. The marketing shell's
+               marketing_nav block already is one.
+  Flat by design
+               A section header contributes its children as top-level row
+               items and its own label is not rendered (a one-line header
+               has no place for a group label). A link item's own children
+               are NOT rendered: the item itself carries the
+               active-ancestor treatment when a descendant is the current
+               route. Nested menus in a horizontal header need a
+               disclosure, which this renderer deliberately does not ship
+               (BR-BW-HTMX-001's no-JS floor); pair with {% bw_nav %} in a
+               drawer or page body for the deep tree, or layer a
+               disclosure as your own progressive enhancement
+               (BR-BW-TPL-002).
+  A11y         Real anchors only, fully navigable with no JS. The exact
+               active item carries aria-current="page"; an active ancestor
+               gets the visual treatment only. Disabled fallback items
+               (BRICKWORK_NAV_FALLBACK="disabled") render as
+               aria-disabled spans. Icons are decorative; the label text
+               is always visible.
+{% endcomment %}
+
+{% partialdef nav_header_item %}
+  {% comment %} `item` is a RenderedNavItem. {% endcomment %}
+  {% if item.is_section_header %}
+    {% for item in item.children %}{% partial nav_header_item %}{% endfor %}
+  {% else %}
+    <li class="bw-nav-header__item">
+      {% if item.is_disabled %}
+        <span class="bw-nav-header__link bw-nav-header__link--disabled" aria-disabled="true">
+          {% if item.icon %}{% bw_icon item.icon size="sm" decorative=True css_class="bw-nav-header__icon" %}{% endif %}
+          <span class="bw-nav-header__label">{{ item.label }}</span>
+        </span>
+      {% else %}
+        <a class="bw-nav-header__link{% if item.is_active %} bw-nav-header__link--active{% endif %}{% if item.is_active_ancestor %} bw-nav-header__link--active-ancestor{% endif %}"
+           href="{{ item.href|default:'#' }}"
+           {% if item.is_active %}aria-current="page"{% endif %}
+           {% if item.opens_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+          {% if item.icon %}{% bw_icon item.icon size="sm" decorative=True css_class="bw-nav-header__icon" %}{% endif %}
+          <span class="bw-nav-header__label">{{ item.label }}</span>
+          {% if item.badge is not None %}<span class="bw-nav-header__badge">{{ item.badge }}</span>{% endif %}
+          {% if item.is_external %}{% bw_icon "external-link" size="sm" decorative=True css_class="bw-nav-header__external" %}{% endif %}
+        </a>
+      {% endif %}
+    </li>
+  {% endif %}
+{% endpartialdef %}
+
+<ul class="bw-nav-header__list" role="list">
+  {% for item in bw_nav_tree %}{% partial nav_header_item %}{% endfor %}
+</ul>
