@@ -2,7 +2,8 @@
 
 Covers the CORE bricks: ICO-001 (registry + seed), ICO-003 (name-not-raw-SVG,
 injection-safe), ICO-004 (sizing), ICO-007 (decorative-vs-meaningful enforced),
-ICO-013 (missing name fails loudly), plus ICO-014 (directional RTL flip).
+ICO-013 (missing name fails loudly), plus ICO-014 (directional RTL flip) and
+the #88 file-type seed set (video/audio/document/image/archive/spreadsheet).
 """
 
 from __future__ import annotations
@@ -158,6 +159,44 @@ def test_symmetric_icon_does_not_flip() -> None:
     assert not is_directional("search")
     out = _render('{% bw_icon "search" label="Search" %}')
     assert "bw-icon-directional" not in out
+
+
+# --- file-type icons (#88, grown-on-demand seed per ICO-001) ---------------
+
+_FILE_TYPE_NAMES = ("video", "audio", "document", "image", "archive", "spreadsheet")
+
+
+@pytest.mark.parametrize("name", _FILE_TYPE_NAMES)
+def test_file_type_icon_is_seeded(name: str) -> None:
+    inner = get_icon(name)
+    assert "<path" in inner  # inner paint markup, not a full <svg> wrapper
+    assert "<svg" not in inner
+    assert name in icons.ICON_NAMES
+
+
+def test_file_type_icons_render_distinct_artwork() -> None:
+    # The point of #88: a mixed media listing must be able to show a distinct
+    # per-type badge, not one generic glyph for every non-image asset.
+    glyphs = {get_icon(name) for name in ("video", "audio", "image", "archive", "spreadsheet")}
+    assert len(glyphs) == 5
+
+
+def test_document_shares_the_generic_file_artwork() -> None:
+    # Deliberate alias: the text-lines glyph is the document icon, and the
+    # generic "file" seeded that same artwork before the typed set existed.
+    assert get_icon("document") == get_icon("file")
+
+
+@pytest.mark.parametrize("name", _FILE_TYPE_NAMES)
+def test_file_type_icons_are_not_directional(name: str) -> None:
+    # File badges are symmetric glyphs; none flip under RTL (ICO-014).
+    assert not is_directional(name)
+
+
+def test_file_type_icon_renders_through_the_tag() -> None:
+    out = _render('{% bw_icon "video" label="Video file" %}')
+    assert 'role="img"' in out
+    assert 'aria-label="Video file"' in out
 
 
 # --- swap / project-merge (ICO-002 / ICO-012) -----------------------------
