@@ -49,8 +49,17 @@ project's own template, never a brickwork-shipped default (AC-BW-078).
   {# just never sees data-bw-collapsed toggle, the no-JS floor per SHL-005). #}
   <aside class="bw-sidebar" id="bw-sidebar" aria-label="{% translate 'Primary' %}" x-data="bwSidebarCollapse()">
     <div class="bw-sidebar__header">
-      {% block brand_logo %}{% endblock %}
-      {% block brand_wordmark %}{% endblock %}
+      {% comment %}
+      brand_logo (the mark) and brand_wordmark (the text) are wrapped in
+      brickwork-owned elements so the collapsed rail can keep the mark and hide
+      the wordmark WITHOUT knowing the consumer's own inner markup or classes
+      (SHL-004: "narrows, hides text, keeps icons", brickwork#93). The wordmark
+      wrapper is visually hidden on collapse; the mark wrapper stays and the
+      header centres it. An unfilled block leaves an :empty wrapper, which the
+      CSS collapses to nothing.
+      {% endcomment %}
+      <span class="bw-sidebar__brand-mark">{% block brand_logo %}{% endblock %}</span>
+      <span class="bw-sidebar__brand-wordmark">{% block brand_wordmark %}{% endblock %}</span>
       {% block sidebar_toggle %}
         {% translate "Collapse sidebar" as bw_sidebar_collapse_label %}
         {% translate "Expand sidebar" as bw_sidebar_expand_label %}

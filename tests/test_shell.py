@@ -145,6 +145,40 @@ def test_app_shell_named_blocks_render_content() -> None:
     assert html.index('id="bw-main"') < html.index("id='probe'")
 
 
+def test_app_shell_wraps_brand_blocks_for_collapse(  # brickwork#93
+) -> None:
+    # brand_logo and brand_wordmark render inside brickwork-owned wrapper
+    # elements (.bw-sidebar__brand-mark / __brand-wordmark) so the collapsed
+    # rail can keep the mark and hide the wordmark without knowing the
+    # consumer's own inner markup or classes. The wrappers must contain the
+    # filled block content.
+    from django.template import Context, Template
+
+    child = Template(
+        "{% extends 'brickwork/shell/app.html' %}"
+        "{% block brand_logo %}<img id='mark' src='/m.svg'>{% endblock %}"
+        "{% block brand_wordmark %}<span id='word'>Acme</span>{% endblock %}"
+    )
+    html = child.render(Context({}))
+    assert "<span class=\"bw-sidebar__brand-mark\"><img id='mark' src='/m.svg'></span>" in html
+    assert "<span class=\"bw-sidebar__brand-wordmark\"><span id='word'>Acme</span></span>" in html
+    # both wrappers sit inside the sidebar header, before the toggle
+    assert html.index("bw-sidebar__header") < html.index("bw-sidebar__brand-mark")
+    assert html.index("bw-sidebar__brand-mark") < html.index("bw-sidebar__brand-wordmark")
+    assert html.index("bw-sidebar__brand-wordmark") < html.index("bw-sidebar__toggle")
+
+
+def test_app_shell_brand_wrappers_exist_even_when_blocks_unfilled(  # brickwork#93
+) -> None:
+    # The wrappers are always emitted (empty when a block is unfilled); the CSS
+    # collapses an :empty wrapper to nothing, so a consumer filling neither
+    # block still gets a clean header. Structural guarantee: both wrappers are
+    # present in the default shell render.
+    html = _render("brickwork/shell/app.html")
+    assert 'class="bw-sidebar__brand-mark"' in html
+    assert 'class="bw-sidebar__brand-wordmark"' in html
+
+
 def test_layout_arg_selects_sidebar_vs_topbar(  # SHL-001
 ) -> None:
     sidebar = _render("brickwork/shell/app.html", layout="sidebar")
