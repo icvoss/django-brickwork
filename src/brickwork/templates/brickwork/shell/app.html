@@ -42,7 +42,13 @@ project's own template, never a brickwork-shipped default (AC-BW-078).
 {% block shell_variant %}app{% endblock %}
 
 {% block shell %}
-<div class="bw-app" data-layout="{{ layout|default:'sidebar' }}">
+{% comment %}
+data-layout resolves via {% firstof %}, not |default (brickwork#80): with a
+consumer's string_if_invalid set, an undefined `layout` bypasses |default and
+leaks the invalid marker into the attribute; firstof ignores the failure and
+falls back to "sidebar" as documented.
+{% endcomment %}
+<div class="bw-app" data-layout="{% firstof layout 'sidebar' %}">
 
   {# --- Sidebar (primary nav container on desktop) --- #}
   {# x-data mounts bwSidebarCollapse (optional; a page with no Alpine loaded  #}

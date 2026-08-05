@@ -176,6 +176,12 @@ The theme service, `resolve_theme_attributes`, returns a dict keyed
 and carries no language. Dropping the service output straight into context gives
 you a silently unstyled shell.
 
+This edge is no longer silent (brickwork#101): a Django system check,
+`brickwork.W001`, warns at startup when `brickwork` is installed but no
+DjangoTemplates backend lists `brickwork.context_processors.theme`. If your
+project deliberately uses only the component or marketing layers and never
+renders a shell, silence it with `SILENCED_SYSTEM_CHECKS = ["brickwork.W001"]`.
+
 Do not hand-map it. Add the shipped processor and the mapping is done for you:
 
 ```python
@@ -296,6 +302,30 @@ route brickwork's static through your bundler.
 If you run Alpine yourself (host-owned `Alpine.start()`), brickwork's interaction
 components register against your Alpine instance; do not start Alpine twice.
 
+### Forgetting `registerBrickworkComponents(Alpine)` is no longer silent (brickwork#87)
+
+The classic trap: your bundle calls `Alpine.start()` but never
+`registerBrickworkComponents(Alpine)` first, and every interactive brickwork
+component (sidebar collapse, dropdowns, modals, tabs) renders as dead markup
+with no error at all. Three aids now exist:
+
+- `registerBrickworkComponents(Alpine)` stamps `data-bw-js-registered` on
+  `<html>` when it runs.
+- With `DEBUG = True`, the shell appends a small inline detector script (gated
+  on the `bw_debug` context variable the theme context processor sets from
+  `settings.DEBUG`): if interactive `x-data="bw..."` markup is present, Alpine
+  is running, and the stamp is absent, it emits a console warning naming the
+  fix. Production pages (`DEBUG = False`) ship no script at all. If your dev
+  CSP forbids un-nonced inline scripts, override the
+  `{% block bw_js_registration_check %}` block to add your nonce, or empty the
+  block to opt out.
+- `assertBrickworkRegistered()` (exported beside `registerBrickworkComponents`)
+  throws unless registration has run, for consumers who want a hard check in
+  their own bundle or smoke tests.
+
+The correct wiring remains unchanged: `Alpine.plugin(focus)`, then
+`registerBrickworkComponents(Alpine)`, then `Alpine.start()`.
+
 ## 6. The htmx version floor (brickwork#48)
 
 brickwork's interaction contracts (the 422 form swap, toast delivery via
@@ -346,6 +376,12 @@ non-decorative glyph, given an accessible name). Omitting both, or passing both,
 raises `TemplateSyntaxError` by design (WCAG enforcement). `bw_button` / `bw_nav`
 handle this internally; you only supply it when reaching for `{% bw_icon %}`
 directly in a page template.
+
+An unknown icon name raises `IconNotFoundError` naming the icon, with a
+did-you-mean hint for a near miss (brickwork#74). The exception subclasses
+`BrickworkError` and `LookupError`, deliberately not `KeyError`, so Django's
+template machinery (notably the `{% partialdef %}` mechanism's bare
+`except KeyError`) can never swallow it and report a phantom missing partial.
 
 ## Contribute back
 

@@ -9,7 +9,7 @@ package-supplied default copy, STA-003).
 Required context: heading, body. Optional: variant ("no_data" default or
 "no_results"), icon (registry name), action_href, action_label.
 {% endcomment %}
-<div class="bw-empty-state bw-empty-state--{{ variant|default:'no_data' }}">
+<div class="bw-empty-state bw-empty-state--{% firstof variant 'no_data' %}">
   {% if icon %}
     {% bw_icon icon size="xl" decorative=True css_class="bw-empty-state__icon" %}
   {% elif variant == "no_results" %}

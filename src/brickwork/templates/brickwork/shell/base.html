@@ -7,12 +7,19 @@ filenames, no django-vite), and the theme/density/direction attributes on <html>
 No-JS floor (BR-BW-HTMX-001): nothing here requires Alpine or htmx. The
 {% block head_js %} / {% block body_js %} blocks are where a JS-enabled consumer
 loads the host-owned Alpine + htmx singletons; a consumer that loads neither
-still gets a fully working document.
+still gets a fully working document. The one <script> this shell can emit is
+the DEBUG-only registration detector at the end of <body> (brickwork#87,
+gated on bw_debug so production pages ship nothing); it is diagnostic only,
+never load-bearing, so the floor is unchanged.
 
 The theme attributes come from a consuming project's context (typically via
 brickwork.services.tokens.resolve_theme_attributes in a context processor); they
 default to the documented BRICKWORK_DEFAULT_* here so the shell renders unbranded
-out of the box.
+out of the box. Optional-by-design variables resolve via {% firstof %}, never
+the |default filter (brickwork#80): |default only substitutes for a
+defined-but-falsy value, so a genuinely undefined variable renders a consumer's
+string_if_invalid marker instead of the default; firstof resolves with failures
+ignored and is immune.
 
 Brand hook (0.10.0, 03-services amendment): a non-empty bw_brand renders
 data-bw-brand on <html>, NEVER on body or a link tag, because the derived
@@ -22,15 +29,15 @@ unset the output is byte-identical to 0.9.0. This is the first-class version of
 the site-level base.html override icvlocal carried from 0.6.0 (BR-BW-TPL-002
 demand evidence, resolved here).
 {% endcomment %}<!doctype html>
-<html lang="{{ bw_lang|default:'en' }}"
-      dir="{{ bw_dir|default:'ltr' }}"
-      data-theme="{{ bw_theme|default:'light' }}"
-      data-density="{{ bw_density|default:'comfortable' }}"{% if bw_brand %}
+<html lang="{% firstof bw_lang 'en' %}"
+      dir="{% firstof bw_dir 'ltr' %}"
+      data-theme="{% firstof bw_theme 'light' %}"
+      data-density="{% firstof bw_density 'comfortable' %}"{% if bw_brand %}
       data-bw-brand="{{ bw_brand }}"{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block page_title %}{{ bw_page_title|default:'' }}{% endblock %}</title>
+  <title>{% block page_title %}{% firstof bw_page_title '' %}{% endblock %}</title>
   {# Stable-named artefacts, referenced by plain {% static %} (no manifest). #}
   <link rel="stylesheet" href="{% static 'brickwork/dist/brickwork.css' %}">
   {% block head_extra %}{% endblock %}
@@ -50,9 +57,13 @@ OOB append target (hx-swap-oob="afterbegin:#bw-toast-region",
 BR-BW-HTMX-003/007). Included once here from 0.9.0 so every shell page has
 a working toast target out of the box; an empty region renders nothing
 visible. position defaults to top-end; a consuming project sets
-bw_toast_position in context (the bw_theme pattern) to move it.
+bw_toast_position in context (the bw_theme pattern) to move it. The default
+is resolved HERE via {% firstof %} before the include (brickwork#80): passing
+an undefined bw_toast_position straight through `with position=...` would
+hand the region a string_if_invalid marker instead of an undefined variable.
 {% endcomment %}
-{% include "brickwork/components/_toast_region.html" with position=bw_toast_position %}
+{% firstof bw_toast_position 'top-end' as bw_toast_position_resolved %}
+{% include "brickwork/components/_toast_region.html" with position=bw_toast_position_resolved %}
 {% comment %}
 htmx modal target (BR-BW-HTMX-005): a stable swap root for server-rendered
 modal fragments; zero-footprint when empty (display: contents) so an OOB
@@ -68,5 +79,50 @@ sits beside content while a confirm modal opens over it). Zero-footprint
 when empty (display: contents), matching the modal root.
 {% endcomment %}
 <div id="bw-slide-over-root"></div>
+{% comment %}
+Registration detector (brickwork#87): interactive bw markup with Alpine
+running but registerBrickworkComponents(Alpine) never called renders as dead
+markup with zero signal (the brickworkui.com trap). This DEBUG-only inline
+script turns that silence into a console warning. Gated on bw_debug (set by
+brickwork.context_processors.theme from settings.DEBUG), so production pages
+ship no script at all and the no-JS floor is untouched (the script is
+diagnostic, never load-bearing). Detection: registerBrickworkComponents
+stamps data-bw-js-registered on <html>; if bw x-data markup exists, Alpine
+signals presence (the alpine:init event, or a window.Alpine global), and the
+stamp is absent, warn. A consumer whose dev CSP forbids un-nonced inline
+scripts overrides {% block bw_js_registration_check %} to add its nonce or to
+empty the block (documented in INTEGRATION.md).
+{% endcomment %}
+{% if bw_debug %}{% block bw_js_registration_check %}
+<script data-bw-registration-check>
+(function () {
+  "use strict";
+  var alpineStarted = false;
+  var warned = false;
+  function checkRegistration() {
+    if (warned) return;
+    if (document.documentElement.hasAttribute("data-bw-js-registered")) return;
+    if (!document.querySelector('[x-data^="bw"]')) return;
+    if (!alpineStarted && !window.Alpine) return;
+    warned = true;
+    console.warn(
+      "brickwork: this page contains interactive brickwork markup (x-data=\"bw...\") " +
+      "and Alpine is running, but registerBrickworkComponents(Alpine) was never " +
+      "called, so those components are inert. Call registerBrickworkComponents(Alpine) " +
+      "before Alpine.start(); see django-brickwork's INTEGRATION.md. " +
+      "(This check only renders when DEBUG is on.)"
+    );
+  }
+  document.addEventListener("alpine:init", function () { alpineStarted = true; });
+  document.addEventListener("alpine:initialized", function () {
+    alpineStarted = true;
+    checkRegistration();
+  });
+  window.addEventListener("load", function () {
+    window.setTimeout(checkRegistration, 0);
+  });
+})();
+</script>
+{% endblock %}{% endif %}
 </body>
 </html>

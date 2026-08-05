@@ -17,7 +17,10 @@ Into `src/brickwork/static/brickwork/dist/` (committed and shipped in the wheel)
 - `brickwork.css` : the compiled component/shell CSS (Vite + `@tailwindcss/vite`).
 - `brickwork.js` : the compiled Alpine component registrations (wrapping
   `@alpinejs/ui` + `@alpinejs/focus`), which register behaviour and never call
-  `Alpine.start()`.
+  `Alpine.start()`. Exports `registerBrickworkComponents(Alpine)` (which also
+  stamps `data-bw-js-registered` on `<html>` for the shell's DEBUG-only
+  forgot-to-register detector, brickwork#87) and the opt-in
+  `assertBrickworkRegistered()` hard check.
 
 ## The pipeline
 

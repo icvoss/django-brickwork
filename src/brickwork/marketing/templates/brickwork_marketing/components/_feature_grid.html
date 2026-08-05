@@ -27,7 +27,7 @@ Optional context:
     </div>
   {% endif %}
   {% if items %}
-    <div class="bw-feature-grid bw-feature-grid--{{ columns|default:3 }}">
+    <div class="bw-feature-grid bw-feature-grid--{% firstof columns 3 %}">
       {% for item in items %}
         <div class="bw-feature-card">
           {% if item.icon %}{% bw_icon item.icon size="lg" decorative=True css_class="bw-feature-card__icon" %}{% endif %}

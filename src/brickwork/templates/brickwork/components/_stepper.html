@@ -40,7 +40,7 @@ Reduced motion: no transition is load-bearing here (the stepper has no
 open/close state), but any hover/focus colour transition still follows
 the reduced-motion floor via the shared --bw-transition-colors token.
 {% endcomment %}
-<ol class="bw-stepper bw-stepper--{{ orientation|default:'horizontal' }}">
+<ol class="bw-stepper bw-stepper--{% firstof orientation 'horizontal' %}">
   {% for step in steps %}
     <li class="bw-stepper__step bw-stepper__step--{{ step.status }}"
         {% if step.status == "current" %}aria-current="step"{% endif %}>

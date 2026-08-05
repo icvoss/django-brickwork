@@ -12,7 +12,14 @@ field is dimmed and out of the tab order. This renders the field widget via
 Django's own rendering; it does not reimplement widgets.
 
 Required context: field. Optional: readonly (bool).
+
+readonly resolves via a {% firstof %} hoist (brickwork#80): this partial is
+documented for direct {% include ... with field=field %} use, where readonly
+is genuinely undefined and a consumer's string_if_invalid would otherwise
+substitute a truthy marker string into the bw_field_widget call, silently
+rendering every field readonly.
 {% endcomment %}
+{% firstof readonly '' as readonly_resolved %}
 {% with errors=field.errors help_id=field.auto_id|add:"_help" error_id=field.auto_id|add:"_errors" %}
 <div class="bw-field{% if errors %} bw-field--invalid{% endif %}">
   <label class="bw-field__label" for="{{ field.id_for_label }}">
@@ -22,7 +29,7 @@ Required context: field. Optional: readonly (bool).
   {% comment %}The widget, rendered with aria-invalid + aria-describedby ON THE
   INPUT (they must sit on the control itself to be announced, not a wrapper).{% endcomment %}
   <div class="bw-field__control">
-    {% bw_field_widget field readonly=readonly %}
+    {% bw_field_widget field readonly=readonly_resolved %}
   </div>
 
   {% if field.help_text %}

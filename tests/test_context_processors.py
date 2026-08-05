@@ -59,3 +59,11 @@ def test_no_logo_key_when_resolver_supplies_none() -> None:
     # default (no resolver): no logo, and the key is absent (not a None value)
     ctx = theme(_request())
     assert "bw_logo" not in ctx
+
+
+def test_bw_debug_follows_settings_debug() -> None:
+    # brickwork#87: bw_debug gates the shell's dev-only registration detector;
+    # it must track settings.DEBUG so production pages ship no detector script.
+    assert theme(_request())["bw_debug"] is False  # test settings run DEBUG=False
+    with override_settings(DEBUG=True):
+        assert theme(_request())["bw_debug"] is True

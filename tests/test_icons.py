@@ -73,6 +73,56 @@ def test_tag_with_unknown_name_raises_not_blank() -> None:
         _render('{% bw_icon "definitely-not-real" decorative=True %}')
 
 
+# --- the exception hierarchy is mask-proof (brickwork#74) ------------------
+
+
+def test_icon_not_found_error_is_not_a_keyerror() -> None:
+    # Django 6's {% partialdef %}/{% partial %} machinery catches a bare
+    # KeyError and re-reports it as "Partial ... is not defined", so the
+    # exception must never be a KeyError or a typoed icon name inside a partial
+    # points the consumer at a phantom missing partial (#74).
+    assert not issubclass(IconNotFoundError, KeyError)
+
+
+def test_icon_not_found_error_is_a_lookuperror_and_a_brickworkerror() -> None:
+    from brickwork.exceptions import BrickworkError
+
+    assert issubclass(IconNotFoundError, LookupError)
+    assert issubclass(IconNotFoundError, BrickworkError)
+
+
+def test_unknown_name_close_to_a_registered_one_gets_a_suggestion() -> None:
+    with pytest.raises(IconNotFoundError) as exc:
+        get_icon("chevron-dwn")
+    msg = str(exc.value)
+    assert "chevron-dwn" in msg
+    assert "Did you mean" in msg
+    assert "chevron-down" in msg
+
+
+def test_unknown_name_with_no_near_miss_gets_no_suggestion() -> None:
+    with pytest.raises(IconNotFoundError) as exc:
+        get_icon("zzz-completely-unrelated")
+    assert "Did you mean" not in str(exc.value)
+
+
+def test_icon_error_inside_a_template_partial_is_not_masked() -> None:
+    # The #74 repro: an unknown icon raised INSIDE a {% partialdef %} body. With
+    # a KeyError-based exception, Django's partial machinery swallowed it and
+    # re-raised "Partial 'probe' is not defined in the current template"; the
+    # real error must surface instead, naming the icon.
+    template = Template(
+        "{% load brickwork_icons %}"
+        "{% partialdef probe %}{% bw_icon 'chevron-dwn' decorative=True %}{% endpartialdef %}"
+        "{% partial probe %}"
+    )
+    with pytest.raises(IconNotFoundError) as exc:
+        template.render(Context({}))
+    msg = str(exc.value)
+    assert "chevron-dwn" in msg
+    assert "Partial" not in msg
+
+
 # --- accessibility pairing enforced (ICO-007) -----------------------------
 
 

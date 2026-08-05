@@ -28,6 +28,12 @@ import sidebarCollapse from "./sidebar_collapse.js";
 import slideOver from "./slide_over.js";
 import tableSelection from "./table_selection.js";
 
+// The registered-marker attribute (brickwork#87): registerBrickworkComponents
+// stamps it on <html> at call time, so the shell's dev-only inline detector
+// (shell/base.html) and assertBrickworkRegistered() below can tell "brickwork
+// markup present but registration never ran" apart from a correct wiring.
+const REGISTERED_ATTR = "data-bw-js-registered";
+
 /**
  * Register brickwork's Alpine.data() components on a host-owned Alpine
  * instance. Never calls Alpine.start(); the host owns initialisation
@@ -44,6 +50,12 @@ export function registerBrickworkComponents(Alpine) {
         "(with Alpine.plugin(focus) already applied).",
     );
   }
+  // Stamp the marker before the Alpine.data calls: guarded so a non-DOM
+  // environment (a bundler's SSR pass, a JS test runner without a document)
+  // can still import and call this module.
+  if (typeof document !== "undefined" && document.documentElement) {
+    document.documentElement.setAttribute(REGISTERED_ATTR, "true");
+  }
   Alpine.data("bwDropdown", dropdown);
   Alpine.data("bwTabs", tabs);
   Alpine.data("bwModal", modal);
@@ -57,6 +69,28 @@ export function registerBrickworkComponents(Alpine) {
   Alpine.data("bwSidebarCollapse", sidebarCollapse);
   Alpine.data("bwSlideOver", slideOver);
   Alpine.data("bwTableSelection", tableSelection);
+}
+
+/**
+ * Throw unless registerBrickworkComponents() has run in this document
+ * (brickwork#87). An opt-in hard check for consumers who want their bundle to
+ * fail fast on the silent-dead-UI trap (interactive bw markup rendering inert
+ * because registration was forgotten before Alpine.start()), rather than rely
+ * on the shell's DEBUG-only console warning. Call it after your registration
+ * line, or from a smoke test that boots the bundle.
+ */
+export function assertBrickworkRegistered() {
+  const registered =
+    typeof document !== "undefined" &&
+    document.documentElement &&
+    document.documentElement.hasAttribute(REGISTERED_ATTR);
+  if (!registered) {
+    throw new Error(
+      "brickwork: registerBrickworkComponents(Alpine) has not been called in " +
+        "this document. Interactive bw components render as dead markup " +
+        "without it; call it before starting Alpine. See INTEGRATION.md.",
+    );
+  }
 }
 
 export default registerBrickworkComponents;

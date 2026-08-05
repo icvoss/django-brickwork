@@ -65,7 +65,8 @@ Optional:
   <div class="bw-bulk-actions-bar__actions">
     {% block bulk_actions_buttons %}{% endblock %}
     {% if select_all_href %}
-      <a class="bw-bulk-actions-bar__select-all" href="{{ select_all_href }}">{{ select_all_label|default:_("Select all") }}</a>
+      {% translate "Select all" as default_select_all_label %}
+      <a class="bw-bulk-actions-bar__select-all" href="{{ select_all_href }}">{% firstof select_all_label default_select_all_label %}</a>
     {% endif %}
   </div>
 </div>

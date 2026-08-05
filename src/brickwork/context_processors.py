@@ -28,6 +28,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from django.conf import settings
 from django.utils.module_loading import import_string
 from django.utils.translation import get_language
 
@@ -43,10 +44,11 @@ def theme(request: HttpRequest) -> dict:
 
     Returns ``bw_theme`` / ``bw_density`` / ``bw_dir`` (from
     ``resolve_theme_attributes``, honouring a ``BRICKWORK_THEME_RESOLVER`` if
-    set), ``bw_lang`` (the active language), ``bw_logo`` when the resolver
-    supplied one, and ``bw_brand`` when the resolved brand is non-empty
-    (0.10.0: rendered as ``data-bw-brand`` on the shell root <html>). Does NOT
-    set ``bw_page_title`` (view-owned).
+    set), ``bw_lang`` (the active language), ``bw_debug`` (``settings.DEBUG``;
+    gates the shell's dev-only registration detector, brickwork#87), ``bw_logo``
+    when the resolver supplied one, and ``bw_brand`` when the resolved brand is
+    non-empty (0.10.0: rendered as ``data-bw-brand`` on the shell root <html>).
+    Does NOT set ``bw_page_title`` (view-owned).
     """
     resolver_path = get_setting("BRICKWORK_THEME_RESOLVER")
     theme_resolver = import_string(resolver_path) if resolver_path else None
@@ -58,6 +60,7 @@ def theme(request: HttpRequest) -> dict:
         "bw_density": attrs.get("density"),
         "bw_dir": attrs.get("dir"),
         "bw_lang": get_language() or "en",
+        "bw_debug": settings.DEBUG,
     }
     if attrs.get("logo"):
         context["bw_logo"] = attrs["logo"]

@@ -112,7 +112,7 @@ the remaining corners. Enter: scrim fades, panel slides in from the
 anchored edge at --bw-duration-normal/--bw-ease-out. Reduced motion: enter
 and exit render instantly (BR-BW-TOK-009).
 {% endcomment %}{% firstof slide_over_id "bw-slide-over" as bw_slide_over_instance_id %}
-<div class="bw-slide-over bw-slide-over--{{ size|default:'md' }} bw-slide-over--{{ placement|default:'end' }}"
+<div class="bw-slide-over bw-slide-over--{% firstof size 'md' %} bw-slide-over--{% firstof placement 'end' %}"
      id="{{ bw_slide_over_instance_id }}"
      x-data="bwSlideOver({ backdropDismiss: {% if backdrop_dismiss == False %}false{% else %}true{% endif %} })">
   <div class="bw-slide-over__scrim" data-bw-slide-over-scrim aria-hidden="true"></div>

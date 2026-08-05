@@ -46,7 +46,7 @@ stacking scale, DESIGN.md section 6.5) over --bw-color-surface-raised,
 --bw-elevation-2, radius --bw-radius-md. Motion, when present, follows the
 BR-BW-TOK-009 reduced-motion floor like every other overlay in the set.
 {% endcomment %}
-<span class="bw-tooltip bw-tooltip--{{ placement|default:'top' }}"
+<span class="bw-tooltip bw-tooltip--{% firstof placement 'top' %}"
       id="{{ id }}-root"
       x-data="bwTooltip({ id: '{{ id|escapejs }}' })">
   <span data-bw-tooltip-trigger aria-describedby="{{ id }}" title="{{ text }}">
