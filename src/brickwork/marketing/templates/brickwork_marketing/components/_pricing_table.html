@@ -9,8 +9,14 @@ Optional context:
   heading (str): the section intro heading.
   lede    (str): the section intro body.
   tiers   (list of dicts): each the context _pricing_tier.html accepts
-          (name, price, period, description, features, cta, highlighted,
-          badge). A single tier renders centred (bw-pricing-table--single).
+          (name, price, period, description, features, cta or the flat
+          cta_label/cta_url pair, highlighted, badge). A single tier
+          renders centred (bw-pricing-table--single). List-shaped, so it
+          has no flat-kwarg spelling (#98): supply it from context, or,
+          for a template-authored pricing section (the ADR-056
+          compose-it-yourself shape), skip this wrapper and include
+          _pricing_tier.html directly once per plan; looping tier cards is
+          all this wrapper does.
   note    (str): a fine-print line under the table (e.g. a monthly/annual
           caveat).
 
@@ -28,7 +34,7 @@ too is empty), never a fabricated placeholder plan.
   {% if tiers %}
     <div class="bw-pricing-table{% if tiers|length == 1 %} bw-pricing-table--single{% endif %}">
       {% for tier in tiers %}
-        {% include "brickwork_marketing/components/_pricing_tier.html" with name=tier.name price=tier.price period=tier.period description=tier.description features=tier.features cta=tier.cta highlighted=tier.highlighted badge=tier.badge %}
+        {% include "brickwork_marketing/components/_pricing_tier.html" with name=tier.name price=tier.price period=tier.period description=tier.description features=tier.features cta=tier.cta cta_label=tier.cta_label cta_url=tier.cta_url highlighted=tier.highlighted badge=tier.badge %}
       {% endfor %}
     </div>
     {% if note %}<p class="bw-pricing-table__note">{{ note }}</p>{% endif %}

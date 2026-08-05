@@ -53,6 +53,44 @@ versioning contract).
   the same defaults; the consumer smoke leg now runs under `string_if_invalid`
   to keep it guarded. No contract change.
 
+- **Flat CTA kwargs on the marketing section components**
+  (icvoss/django-brickwork#98). Every dict-shaped CTA in the marketing kit now
+  also accepts flat string kwargs, generalising `_stat.html`'s flat-string
+  shape so a template-authored page (the ADR-056 compose-it-yourself model)
+  can drive the sections through `{% include ... with %}`, which cannot build
+  a dict inline: `_hero.html` and `_cta.html` take
+  `primary_cta_label`/`primary_cta_url` and
+  `secondary_cta_label`/`secondary_cta_url` alongside `primary_cta`/
+  `secondary_cta`, and `_pricing_tier.html` takes `cta_label`/`cta_url`
+  alongside `cta` (a tier dict passed to `_pricing_table.html` may carry the
+  flat pair too). Additive and backwards compatible: a dict-shaped caller
+  renders byte-identically, and when both shapes are supplied the dict wins
+  outright. List-shaped context (`items`, `stats`, `tiers`, `logos`,
+  `faq` items, `features`) has no flat spelling, a Django template cannot
+  build a list inline, so each template header now documents the honest
+  template-authored pattern instead (supply the list from context, or compose
+  the per-item primitive, `_stat.html`/`_pricing_tier.html`/
+  `_disclosure.html`, directly). The three shipped marketing pages forward
+  the flat names per section (`cta_primary_label` et al for the CTA band),
+  shadowed into each include so the hero's flat names never bleed into a
+  later section's context.
+- **Feature-grid items can link** (icvoss/django-brickwork#99). A
+  `_feature_grid.html` item now takes an optional `url`: when present the
+  whole card renders as an anchor (`bw-feature-card--link`, content ink
+  preserved, no underline smear, heading moves to accent ink on hover/focus
+  with the standard colour transition), so a marketing feature band's cards
+  can navigate to their subjects. An optional per-item `aria_label` overrides
+  the linked card's accessible name. Items without `url` render the plain
+  non-interactive card byte-identically to before, mirroring `_stat.html`'s
+  `href` contract.
+- **The auth-aware marketing header recipe** (icvoss/django-brickwork#85).
+  The supported anonymous-vs-logged-in `marketing_actions` pattern (branch on
+  `request.user.is_authenticated`; log out as a POST form; bare `<a>` links
+  styled by the shell, `{% bw_button %}` for CTA weight) is now documented as
+  INTEGRATION.md section 8 and in `shell/marketing.html`'s own header
+  comment. brickwork still never reads auth state itself: the state is
+  host-injected, matching the app nav's visibility model.
+
 - **`{% bw_nav_header %}`**, a horizontal marketing-header renderer over the
   same `NavItem` tree (icvoss/django-brickwork#102). Plain-anchor visual
   weight matching the marketing shell's own header links, plus the active

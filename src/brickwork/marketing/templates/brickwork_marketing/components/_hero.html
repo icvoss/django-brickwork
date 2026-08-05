@@ -14,7 +14,19 @@ Optional context:
                 page composing this include owns exactly one hero per page.
   lede          (str): the subhead paragraph.
   primary_cta   ({label, url}): rendered via {% bw_button %} primary.
+  primary_cta_label / primary_cta_url (str, #98): the same primary CTA as
+                flat strings, generalising _stat.html's flat-string shape. A
+                Django template cannot build a dict inline, so a page
+                composing this include directly (the ADR-056 shape) passes
+                the flat kwargs instead:
+                {% include "..._hero.html" with heading="Ship faster" primary_cta_label="Get started" primary_cta_url="/signup/" %}
+                Both shapes are supported on every CTA in this kit; when
+                both are supplied the dict wins outright (the flat kwargs
+                are ignored), and a dict-shaped caller renders
+                byte-identically to before the flat shape existed.
   secondary_cta ({label, url}): rendered via {% bw_button %} secondary.
+  secondary_cta_label / secondary_cta_url (str, #98): the flat form of
+                secondary_cta, same precedence.
   media         (safe string): pre-rendered HTML for an image/illustration
                 slot. Omitted renders a text-only hero, never a broken image
                 box. The caller owns escaping (mark it safe at the call
@@ -29,10 +41,10 @@ section-rhythm token for its own block spacing.
     {% if eyebrow %}<p class="bw-hero__eyebrow">{{ eyebrow }}</p>{% endif %}
     {% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}
     {% if lede %}<p class="bw-hero__lede">{{ lede }}</p>{% endif %}
-    {% if primary_cta or secondary_cta %}
+    {% if primary_cta or secondary_cta or primary_cta_label or secondary_cta_label %}
       <div class="bw-hero__actions">
-        {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% endif %}
-        {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% endif %}
+        {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% elif primary_cta_label %}{% bw_button primary_cta_label variant="primary" size="lg" href=primary_cta_url %}{% endif %}
+        {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% elif secondary_cta_label %}{% bw_button secondary_cta_label variant="secondary" size="lg" href=secondary_cta_url %}{% endif %}
       </div>
     {% endif %}
   </div>

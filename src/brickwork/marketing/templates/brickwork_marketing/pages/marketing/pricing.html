@@ -6,7 +6,9 @@ shell/marketing.html (BR-BW-MKT-005/BR-BW-PAGE-001 at marketing scope).
 
 Blocks (semver-public, BR-BW-TPL-001), in document order:
   hero     default: _hero.html wired from eyebrow/heading/lede/primary_cta/
-           secondary_cta/media/align context.
+           secondary_cta/media/align context; the CTAs also accept the
+           flat page-level names primary_cta_label/primary_cta_url/
+           secondary_cta_label/secondary_cta_url (#98).
   pricing  default: _pricing_table.html wired from pricing_heading/
            pricing_lede/tiers/pricing_note. This is the page's REASON TO
            EXIST (BR-BW-PAGE-002's documented exception): a pricing page
@@ -17,7 +19,10 @@ Blocks (semver-public, BR-BW-TPL-001), in document order:
   faq      default: _faq.html wired from faq_heading/faq_items/
            faq_single_open.
   cta      default: _cta.html wired from cta_heading/cta_body/cta_primary/
-           cta_secondary/cta_no_tint.
+           cta_secondary/cta_no_tint; the CTAs also accept the flat
+           page-level names cta_primary_label/cta_primary_url/
+           cta_secondary_label/cta_secondary_url (#98), shadowed into the
+           include so the hero's flat names never bleed into this band.
 
 Required context: none from this template itself (see the pricing note
 above for the practical exception). Optional: see each component's own
@@ -26,7 +31,7 @@ context contract in 04-interfaces.md section 4d.
 
 {% block content %}
 {% block hero %}
-{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta secondary_cta=secondary_cta media=media align=align %}
+{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta primary_cta_label=primary_cta_label primary_cta_url=primary_cta_url secondary_cta=secondary_cta secondary_cta_label=secondary_cta_label secondary_cta_url=secondary_cta_url media=media align=align %}
 {% endblock %}
 
 {% block pricing %}
@@ -38,6 +43,6 @@ context contract in 04-interfaces.md section 4d.
 {% endblock %}
 
 {% block cta %}
-{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary no_tint=cta_no_tint %}
+{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary primary_cta_label=cta_primary_label primary_cta_url=cta_primary_url secondary_cta=cta_secondary secondary_cta_label=cta_secondary_label secondary_cta_url=cta_secondary_url no_tint=cta_no_tint %}
 {% endblock %}
 {% endblock %}
