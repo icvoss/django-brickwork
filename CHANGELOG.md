@@ -8,6 +8,8 @@ versioning contract).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-05
+
 ### Added
 
 - **`NavItem.href`** (NAV-019): a raw, already-resolved internal path as a third
