@@ -42,13 +42,15 @@ def validate_nav_config(nav_items: Iterable[NavItem]) -> None:
 
     Called once at import time by the consuming project (BR-BW-NAV-002), so a
     nav-config bug fails loudly on startup, never silently keeps one entry and
-    never surfaces at request time. Two rules:
+    never surfaces at request time. Three rules:
 
     - ``key`` must be unique across the WHOLE tree, not just per level, since
       ``key`` is how a consumer's context targets an item (BR-BW-NAV-002).
     - ``active_url_names`` requires ``url_name``: only a LINK item participates
       in active-route resolution, so widened names on a link-less item (e.g. a
       section header) can never match and would otherwise be a silent no-op.
+    - at most one URL source (``url_name`` / ``external_url`` / ``href``) per
+      item: more than one is ambiguous (NAV-018/019).
     """
     seen: set[str] = set()
     for item in _walk(nav_items):
@@ -64,6 +66,17 @@ def validate_nav_config(nav_items: Iterable[NavItem]) -> None:
                 f"url_name. Only a link item participates in active-route "
                 f"resolution, so these names could never match; move them onto "
                 f"the link item they widen."
+            )
+        # A link item names exactly one URL source (NAV-018/019): a Django
+        # url_name, an off-site external_url, or a raw internal href. More than
+        # one is ambiguous (the render picks external_url > href > url_name and
+        # silently drops the rest), so fail loudly at config time.
+        url_sources = sum(source is not None for source in (item.url_name, item.external_url, item.href))
+        if url_sources > 1:
+            raise NavConfigError(
+                f"Nav item {item.key!r} sets more than one of url_name / "
+                f"external_url / href. A link item has exactly one URL source "
+                f"(NAV-018/019); pick one."
             )
 
 

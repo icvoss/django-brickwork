@@ -144,6 +144,17 @@ def get_icon(name: str) -> str:
         ) from exc
 
 
+def has_icon(name: str) -> bool:
+    """Whether ``name`` is a registered icon.
+
+    A non-raising companion to :func:`get_icon`, for callers that want to
+    validate a name up front (e.g. {% bw_nav %} checking a NavItem.icon before
+    the item reaches its recursive render template) rather than let the miss
+    surface deep inside a render.
+    """
+    return name in _ICONS
+
+
 def is_directional(name: str) -> bool:
     """Whether ``name`` flips horizontally under RTL (ICO-014)."""
     return name in _DIRECTIONAL_NAMES

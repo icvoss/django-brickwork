@@ -33,7 +33,7 @@ permission logic (visibility was filtered upstream).
         <a class="bw-nav__link{% if item.is_active %} bw-nav__link--active{% endif %}{% if item.is_active_ancestor %} bw-nav__link--active-ancestor{% endif %}"
            href="{{ item.href|default:'#' }}"
            {% if item.is_active %}aria-current="page"{% endif %}
-           {% if item.is_external %}target="_blank" rel="noopener noreferrer"{% endif %}>
+           {% if item.opens_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
           {% if item.icon %}{% bw_icon item.icon decorative=True css_class="bw-nav__icon" %}{% endif %}
           <span class="bw-nav__label">{{ item.label }}</span>
           {% if item.badge is not None %}<span class="bw-nav__badge">{{ item.badge }}</span>{% endif %}
