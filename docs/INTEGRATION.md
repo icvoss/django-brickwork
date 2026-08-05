@@ -4,9 +4,10 @@ A seam-by-seam cookbook for wiring a real Django app onto brickwork, in the
 order you hit each seam. [BRANDING.md](BRANDING.md) covers *theming* (overriding
 tokens); [DESIGN.md](DESIGN.md) is the authoritative token reference; this guide
 covers *plumbing*: the settings, the nav config, the context processor, a
-worked HTMX 422 form, and the "brickwork owns the chrome, you own the body"
-boundary for JS-bearing pages. It is the greenfield companion to
-[ADOPTION.md](ADOPTION.md) (strangling an existing kit onto brickwork).
+worked HTMX form (the 422 loop and the success redirect), and the "brickwork
+owns the chrome, you own the body" boundary for JS-bearing pages. It is the
+greenfield companion to [ADOPTION.md](ADOPTION.md) (strangling an existing kit
+onto brickwork).
 
 Every code snippet here is a real seam a consuming app must wire; each maps to a
 finding from a pilot integration, so this is the walkthrough that would have
@@ -203,7 +204,7 @@ To drive theme / density / direction / brand per user or per tenant, point
 Per-request density and RTL, and per-tenant runtime brand-token injection, are
 worked recipes in [BRANDING.md](BRANDING.md#dynamic-theming) (brickwork#36).
 
-## 4. A worked HTMX 422 form, end to end (brickwork#24)
+## 4. A worked HTMX form, end to end: the 422 loop and the success path (brickwork#24, brickwork#84)
 
 brickwork ships the field renderer (`forms/_field.html`), the per-field error
 container (`id="{{ field.auto_id }}_errors"`, `role="alert"`), and the
@@ -241,16 +242,30 @@ floor and must keep working (BR-BW-HTMX-001).
 {% endblock %}
 ```
 
-**The view branches in `form_invalid`** on `is_htmx_validation_request`: 422 +
-the partial for an htmx submission (the targeted `outerHTML` swap re-renders just
-the form region with its errors), a normal 200 full page otherwise (the no-JS
-floor). Valid submissions redirect (302) as always:
+**The view branches twice**: in `form_invalid` on `is_htmx_validation_request`
+(the 422 loop: 422 + the partial for an htmx submission, so the targeted
+`outerHTML` swap re-renders just the form region with its errors; a normal 200
+full page otherwise, the no-JS floor), and in `form_valid` on `is_htmx_request`
+(the success path). A valid non-htmx submission redirects (302) as always; a
+valid htmx submission must NOT return that bare 302, it returns `HX-Redirect`
+instead (the trap this avoids is worked through below):
 
 ```python
-from brickwork.services.forms import is_htmx_validation_request
+from django.http import HttpResponse
+
+from brickwork.services.forms import is_htmx_request, is_htmx_validation_request
 
 class ProjectUpdateView(UpdateView):
     template_name = "yourapp/project_form.html"
+
+    def form_valid(self, form):
+        response = super().form_valid(form)  # saves; a 302 to the success URL
+        if is_htmx_request(self.request):
+            # htmx success: a client-side full navigation, never a swapped 302.
+            htmx_response = HttpResponse(status=204)
+            htmx_response["HX-Redirect"] = response["Location"]
+            return htmx_response
+        return response  # non-htmx: plain POST-redirect-GET (the no-JS floor)
 
     def form_invalid(self, form):
         if is_htmx_validation_request(self.request):
@@ -263,12 +278,45 @@ class ProjectUpdateView(UpdateView):
         return super().form_invalid(form)  # 200, full page
 ```
 
-That is the complete contract: htmx invalid returns 422 and swaps the region,
-non-htmx invalid returns a working 200 full page, valid returns 302.
-`is_htmx_validation_request` currently delegates to `is_htmx_request` (the
-`HX-Request` header, or a duck-typed `request.htmx` when you run django-htmx);
-what stays yours is everything above: the shared partial, the `hx-*` attributes,
-the region id, and the branch. See section 6 for the htmx version floor.
+That is the complete contract, all four legs: htmx invalid returns 422 and
+swaps the region; non-htmx invalid returns a working 200 full page; non-htmx
+valid returns a plain 302; htmx valid returns `HX-Redirect` so htmx performs a
+full client navigation to the success URL. `is_htmx_validation_request`
+currently delegates to `is_htmx_request` (the `HX-Request` header, or a
+duck-typed `request.htmx` when you run django-htmx); what stays yours is
+everything above: the shared partial, the `hx-*` attributes, the region id, and
+both branches. See section 6 for the htmx version floor.
+
+### The success path: never let htmx swap a redirect's full page (brickwork#84)
+
+The natural Django idiom for a valid POST is `return redirect(...)`
+(POST-redirect-GET), and under a partial-targeted htmx form it is exactly
+wrong. With `hx-target="this"` / `hx-swap="outerHTML"` on the form, the
+browser's fetch follows the 302 transparently, htmx receives the redirected
+**full page**, and swaps the whole document (shell, nav, sidebar, topbar) into
+the form element's slot. The symptom is unmistakable: after "Save", the entire
+app shell renders nested inside the content region, two sidebars, two "Log
+out"s. This is the full-page-into-partial trap, and it is easy to hit
+precisely because the 422 half above works: wiring the documented invalid loop
+and finishing it with a plain `redirect()` feels complete, and is not.
+
+The rules:
+
+- **Success navigates elsewhere** (the normal POST-redirect-GET shape): under
+  htmx, return a response carrying the **`HX-Redirect`** header, as in
+  `form_valid` above. htmx sees the header and performs a full client-side
+  navigation to that URL instead of swapping. If you run django-htmx,
+  `django_htmx.http.HttpResponseClientRedirect(url)` is the same thing
+  ready-made. Non-htmx submissions keep the plain `redirect()`; the no-JS
+  floor (BR-BW-HTMX-001) never changes.
+- **Success stays in place** (an inline edit, save-and-continue): return the
+  form region partial at 200 with the saved state, so the same targeted swap
+  that renders errors renders the success. Add an `HX-Trigger` response header
+  for any toast (the server-authoritative toast contract, BR-BW-HTMX-007), and
+  `HX-Push-Url` when the URL should change without a navigation.
+- **Never** return a bare `redirect()` to a full page on the htmx branch of a
+  partial-targeted form. If you see the shell nested inside itself after a
+  save, this is why.
 
 ## 5. A JS-bearing page: the chrome/body boundary and asset coexistence (brickwork#33)
 
@@ -301,6 +349,11 @@ route brickwork's static through your bundler.
 
 If you run Alpine yourself (host-owned `Alpine.start()`), brickwork's interaction
 components register against your Alpine instance; do not start Alpine twice.
+
+The same boundary covers a second **component framework** (django-components
+and the like) rendering inside `{% block content %}`: that is a supported
+arrangement, stated as an explicit contract with a do/do-not list in
+[ADOPTION.md](ADOPTION.md) (brickwork#75).
 
 ### Forgetting `registerBrickworkComponents(Alpine)` is no longer silent (brickwork#87)
 
@@ -340,7 +393,7 @@ A brownfield app on htmx 1.9 should treat the htmx 1 -> 2 upgrade as a
 prerequisite workstream before the brickwork cutover, not something to reconcile
 mid-migration. See [ADOPTION.md](ADOPTION.md) for sequencing.
 
-## 7. Icons: bulk-registering a project set (brickwork#49)
+## 7. Icons: bulk-registering a project set (brickwork#49, brickwork#77)
 
 `{% bw_icon %}` renders from a name registry seeded with canonical Lucide names.
 To vendor your own project set (your app carries more glyphs than the seed, or
@@ -357,18 +410,115 @@ class YourAppConfig(AppConfig):
         from brickwork.icons.registry import register_icons
         register_icons(
             {
-                "invoice": '<svg viewBox="0 0 24 24">...</svg>',
-                "shipment": '<svg viewBox="0 0 24 24">...</svg>',
+                # values are the INNER paint markup only, no <svg> wrapper:
+                "invoice": '<path d="M4 2h12l4 4v16H4z" /><path d="M8 10h8" />',
+                "shipment": '<path d="M3 7h13v10H3z" /><path d="M16 10h5v7h-5" />',
             },
             # names whose glyph should mirror under dir="rtl":
             directional=("shipment",),
         )
 ```
 
-`register_icons(mapping, *, directional=())` takes a `{name: svg_markup}` dict
-and merges it into the registry; `directional` lists names that should flip under
-RTL. Registering once at `ready()` makes every name available to `{% bw_icon %}`
-across your templates.
+`register_icons(mapping, *, directional=())` takes a `{name: inner_svg_markup}`
+dict and merges it into the registry; `directional` lists names that should flip
+under RTL. Registering once at `ready()` makes every name available to
+`{% bw_icon %}` across your templates.
+
+Registry values are the paint content only (`<path>` / `<circle>` elements),
+never a full `<svg>` document: the tag re-wraps every glyph in brickwork's own
+`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ...>` wrapper,
+which is where the size token, `aria` attributes, and RTL class are applied.
+Strip the outer `<svg>` from whatever you vendor; a registered wrapper would
+nest one `<svg>` inside another.
+
+### Registration timing and collision semantics (brickwork#77)
+
+- The registry is module-level and seeds itself at import from the vendored
+  Lucide subset. `AppConfig.ready()` runs after imports resolve, so a `ready()`
+  registration can never race the seed: the seed is always in place first, and
+  your merge lands on top deterministically.
+- **Re-registering an existing name overrides it.** That is the supported
+  whole-glyph swap, not an error. Registering a new name augments the
+  vocabulary. There is no unregister; to revert a swap, register the previous
+  markup back.
+- The directional flag only ever accumulates: a name the seed marks directional
+  (`chevron-back`, `chevron-forward`, `external-link` and friends) stays
+  directional when you override its glyph, so swap in artwork drawn for LTR and
+  the RTL mirror keeps working.
+- Register once at `ready()`, never per request: the registry is process-global
+  shared state.
+
+### The names brickwork's own chrome references (the minimum set)
+
+brickwork's shipped templates hard-reference these registry names internally
+(the nav collapse control, table sort affordances, dropzone, empty state,
+alerts, and so on). Whatever family your app standardises on, these names must
+stay registered (they are, out of the box, via the seed) for the chrome itself
+to render:
+
+<!-- chrome-icon-names:start -->
+`arrow-down`, `arrow-up`, `check`, `chevron-back`, `chevron-down`,
+`chevron-forward`, `close`, `external-link`, `folder`, `info`, `minus`,
+`search`, `sidebar`, `sort`, `upload`
+<!-- chrome-icon-names:end -->
+
+Plus whatever names your own `NavItem.icon` values reference. A drift-guard
+test in the brickwork suite asserts this list matches the shipped templates,
+so it cannot rot silently.
+
+### Heroicons, Lucide, and mixing families (brickwork#77)
+
+The registry is a flat `name -> markup` mapping; nothing in brickwork cares
+which family drew a glyph. Three supported shapes, in increasing effort:
+
+1. **Mix families** (the low-effort default for a Heroicons app): keep the
+   Lucide seed for the chrome names above, and register your app's set under
+   its own names (`register_icons({"academic-cap": "..."})`), Heroicons names
+   included. `{% bw_icon "academic-cap" %}` then renders your Heroicon while
+   the nav chevron stays Lucide. Mixing is a visual-consistency judgement, not
+   a mechanical constraint.
+2. **Whole-family swap**: additionally re-register each chrome name in the
+   list above with your family's glyph (override semantics, previous section).
+   After that, every icon on the page, chrome included, is your family.
+3. **Name-mapping**: there is no separate translation layer, and none is
+   needed; registering your family's glyph under a brickwork chrome name IS
+   the map. For the chrome set, the nearest Heroicons (v2, outline) names are:
+
+   | brickwork chrome name | nearest Heroicons name |
+   |---|---|
+   | `arrow-down` / `arrow-up` | `arrow-down` / `arrow-up` |
+   | `check` | `check` |
+   | `chevron-back` / `chevron-forward` | `chevron-left` / `chevron-right` |
+   | `chevron-down` | `chevron-down` |
+   | `close` | `x-mark` |
+   | `external-link` | `arrow-top-right-on-square` |
+   | `folder` | `folder` |
+   | `info` | `information-circle` |
+   | `minus` | `minus` |
+   | `search` | `magnifying-glass` |
+   | `sidebar` | no direct equivalent; keep the seed glyph or draw your own |
+   | `sort` | `arrows-up-down` |
+   | `upload` | `arrow-up-tray` |
+
+Two family-specific gotchas when vendoring Heroicons:
+
+- brickwork's wrapper is **stroke-based** (`fill="none" stroke="currentColor"`,
+  width from `--bw-component-icon-stroke-width`, default 2). Vendor the
+  **outline** (24x24 stroke) family; it drops in directly. The solid and mini
+  families are fill-based and would render invisible under a `fill="none"`
+  wrapper unless you add explicit `fill="currentColor"` attributes to their
+  paths; prefer outline.
+- Heroicons outline is drawn at stroke-width 1.5, Lucide at 2. Registered
+  Heroicons therefore render slightly heavier than their native weight. If you
+  do the whole-family swap and want the native Heroicons weight, override
+  `--bw-component-icon-stroke-width: 1.5` in your brand stylesheet; if you mix
+  families, leaving it at 2 keeps the page's line weight uniform.
+
+Licences: the shipped seed is Lucide (`lucide-static`, ISC; the Feather-derived
+subset is MIT; both notices are in `NOTICE` at the repo root). Heroicons is MIT;
+glyphs you vendor through `register_icons` are your project's vendoring, so
+carry the family's licence attribution in your own project. brickwork never
+ships Heroicons and does not pick a family for you.
 
 Every `{% bw_icon %}` call must pass exactly one of `decorative=True` (the glyph
 is purely decorative, hidden from assistive tech) or `label="..."` (a

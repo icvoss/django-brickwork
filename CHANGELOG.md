@@ -53,6 +53,55 @@ versioning contract).
   the same defaults; the consumer smoke leg now runs under `string_if_invalid`
   to keep it guarded. No contract change.
 
+- **Icon family guidance and the chrome-name contract**
+  (icvoss/django-brickwork#77). `docs/INTEGRATION.md` section 7 now states the
+  registration timing and collision semantics (module-level registry, register
+  in `AppConfig.ready()`, no race with the seed, re-register overrides, the
+  directional flag survives a glyph swap), publishes the list of icon names
+  brickwork's own shipped templates hard-reference (the minimum set an
+  alternate-family consumer must keep registered), and adds
+  Heroicons-vs-Lucide family guidance: mixing families, the whole-family swap,
+  the chrome-name Heroicons map, the stroke-based-wrapper and stroke-width
+  gotchas, and the licence notes. A drift-guard test asserts the documented
+  chrome-name list matches the shipped templates so it cannot rot. The bulk
+  `register_icons` recipe now shows inner paint markup, correcting an example
+  that registered full `<svg>` wrappers the tag would have nested.
+- **The coexisting-component-framework contract**
+  (icvoss/django-brickwork#75). `docs/ADOPTION.md` now states explicitly that
+  a second component framework (django-components as the named case) rendering
+  inside `{% block content %}`, form bodies and card bodies is a supported end
+  state, with the migration boundary (generic chrome to brickwork, domain
+  components stay put, mounted in brickwork slots) and a do/do-not list
+  covering dependency-injection ordering against the shell's assets, the
+  one-Alpine rule, and CSP nonce pass-through. The consumer smoke harness
+  gains a fixture simulating a second framework's component and dependency
+  tags inside the shell, keeping the promise executable without depending on
+  django-components.
+- **The per-role accent recipe** (icvoss/django-brickwork#76).
+  `docs/BRANDING.md` dynamic theming gains recipe 3: `BRICKWORK_THEME_RESOLVER`
+  is now explicitly guaranteed to accept ANY request state as its key (session
+  values, an active role, user, host, tenant), so a single-brand product whose
+  accent flips by the user's active role mid-session is a stated supported
+  path, not an off-label accident. The recipe covers the brand-slug wiring
+  with per-role `[data-bw-brand]` accent blocks, per-accent fg-on-accent
+  verification per theme, dark composition per role, and the emitter variant
+  for data-driven accents. Tests pin the session-keyed resolver guarantee, the
+  per-role emitter shape, and that the shipped stylesheet keeps the accent
+  family derived live over `var(--bw-color-accent)` in every theme scope.
+
+### Fixed
+
+- **`docs/INTEGRATION.md` section 4 now documents the htmx SUCCESS contract**
+  (icvoss/django-brickwork#84). The worked 422 form previously said "valid
+  submissions redirect (302) as always" inside an `hx-target="this"` /
+  `hx-swap="outerHTML"` example, which is exactly the full-page-into-partial
+  trap: htmx follows the bare 302 and swaps the redirected full page (shell,
+  nav, sidebar) into the form's slot. The section now works the success path
+  end to end: `HX-Redirect` (a client-side full navigation) when success
+  navigates elsewhere, a 200 region partial plus `HX-Trigger` / `HX-Push-Url`
+  when success stays in place, and the plain `redirect()` kept for the
+  non-htmx no-JS floor, with the trap and its symptom named.
+
 - **File-type icons in the registry** (icvoss/django-brickwork#88): six new
   seeded names, `video`, `audio`, `document`, `image`, `archive` and
   `spreadsheet`, so media libraries, attachment lists and file managers can
