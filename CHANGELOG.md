@@ -8,6 +8,19 @@ versioning contract).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`{% bw_nav %}` now validates a `NavItem.icon` at prepare time** and raises a
+  clear `IconNotFoundError` naming the offending icon, instead of letting an
+  unregistered name reach `{% bw_icon %}` inside `nav/_nav.html`'s recursive
+  `{% partialdef %}` (icvoss/django-brickwork#89). Django's template-partials
+  machinery swallowed the `IconNotFoundError` raised mid-partialdef and
+  re-surfaced it as a misleading `Partial 'nav_item' is not defined in the
+  current template.`, pointing consumers at the wrong cause entirely. A
+  registered icon is unaffected; only a bad name changes behaviour (from a
+  misleading error to an accurate one). Adds `brickwork.icons.has_icon(name)`, a
+  non-raising companion to `get_icon`.
+
 ## [1.2.0] - 2026-08-03
 
 The marketing kit: an opt-in `brickwork.marketing` sub-app (ADR-055) that brings

@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 from django import template
 
 from brickwork.conf import get_setting
+from brickwork.icons.registry import IconNotFoundError, has_icon
 from brickwork.services.navigation import is_ancestor_of_active, safe_reverse
 
 if TYPE_CHECKING:
@@ -75,6 +76,22 @@ def _prepare(item: NavItem, active: NavItem | None, fallback: str, resolver_matc
     href: str | None = None
     is_disabled = False
     is_external = item.external_url is not None
+
+    # Validate the icon name here, at prepare time, rather than letting an
+    # unregistered name reach {% bw_icon %} inside the recursive {% partialdef %}
+    # in nav/_nav.html. A get_icon() miss raised mid-partialdef is swallowed by
+    # Django's template-partials machinery and re-surfaces as a misleading
+    # "Partial 'nav_item' is not defined in the current template." (icvoss/
+    # django-brickwork#89), which points a consumer at the wrong thing entirely.
+    # Raising IconNotFoundError up front gives the accurate "no icon named ..."
+    # message at the point the nav config is prepared. Mirrors the eager
+    # url_name resolution below (both catch a bad NavItem before render).
+    if item.icon is not None and not has_icon(item.icon):
+        raise IconNotFoundError(
+            f"NavItem {item.key!r} has icon {item.icon!r}, which is not a registered "
+            f"brickwork icon. Use a registered name (brickwork.icons.ICON_NAMES) or "
+            f"register it via brickwork.icons.register_icons()."
+        )
 
     if item.section_header:
         href = None
