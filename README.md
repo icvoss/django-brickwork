@@ -200,7 +200,11 @@ every call site; a purely structural component is an include the consumer fills
 with context.
 
 - **Tags** (load the library first): `{% bw_icon %}`, `{% bw_button %}`,
-  `{% bw_badge %}`, `{% bw_alert %}`, `{% bw_nav %}`, `{% bw_field_widget %}`.
+  `{% bw_badge %}`, `{% bw_alert %}`, `{% bw_nav %}`, `{% bw_nav_header %}`,
+  `{% bw_nav_rail %}`, `{% bw_field_widget %}`. The three nav tags are sibling
+  renderers over the same `NavItem` tree: the sidebar/tree render, the
+  horizontal marketing-header row, and the compact two-tier rail (see
+  [INTEGRATION.md](docs/INTEGRATION.md) section 2).
 
   ```django
   {% load brickwork_components brickwork_icons brickwork_nav %}
