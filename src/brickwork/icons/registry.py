@@ -80,6 +80,20 @@ _SEED: dict[str, str] = {
     "more-vertical": "ellipsis-vertical",
     "sidebar": "panel-left",
     "spinner": "loader-circle",
+    # file types (#88): per-type badges for media libraries, attachment lists
+    # and file managers, in the file-badge form (file outline plus a type
+    # marker) so a mixed listing reads as one family beside file/folder.
+    # "document" deliberately shares the file-text artwork with "file": the
+    # text-lines glyph IS the document icon, and the generic "file" seeded
+    # that same artwork before the typed set existed. There is no "pdf":
+    # Lucide ships no PDF glyph (no format/brand icons), so a consumer
+    # wanting one merges its own via register_icons().
+    "video": "file-play",
+    "audio": "file-music",
+    "document": "file-text",
+    "image": "file-image",
+    "archive": "file-archive",
+    "spreadsheet": "file-spreadsheet",
 }
 
 # Icons whose meaning is direction-dependent: they flip horizontally under RTL
