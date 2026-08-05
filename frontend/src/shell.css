@@ -88,7 +88,8 @@
 .bw-sidebar[data-bw-collapsed] .bw-nav__badge,
 .bw-sidebar[data-bw-collapsed] .bw-nav__external,
 .bw-sidebar[data-bw-collapsed] .bw-sidebar__switcher,
-.bw-sidebar[data-bw-collapsed] .bw-sidebar__footer {
+.bw-sidebar[data-bw-collapsed] .bw-sidebar__footer,
+.bw-sidebar[data-bw-collapsed] .bw-sidebar__brand-wordmark {
   position: absolute;
   inline-size: var(--bw-space-px);
   block-size: var(--bw-space-px);
@@ -135,14 +136,36 @@
   padding-block-end: var(--bw-density-stack-gap);
 }
 
+/* The brand wrappers (app.html) give the collapsed rail a stable element to
+ * hide (the wordmark) and one to keep (the mark), independent of the
+ * consumer's own inner markup or classes. They are inline-flex so they sit in
+ * the header's flex row exactly where the bare blocks did (the consumer's
+ * inner anchor/mark/text is unchanged); an unfilled block leaves an :empty
+ * wrapper, which takes no space. Note: NOT `display: contents` here, because
+ * the collapsed rule below clips the wordmark via position/clip-path, which a
+ * box-less `display: contents` element cannot honour. */
+.bw-sidebar__brand-mark,
+.bw-sidebar__brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+}
+.bw-sidebar__brand-mark:empty,
+.bw-sidebar__brand-wordmark:empty {
+  display: none;
+}
+
 /* The collapse toggle seats at the row end regardless of whether
  * brand_logo/brand_wordmark are filled (brickwork#58). */
 .bw-sidebar__toggle {
   margin-inline-start: auto;
   flex-shrink: 0;
 }
-/* Collapsed: the header holds only the toggle (logo/wordmark clip like the
- * nav labels above), so it centres instead of pinning to a now-empty end. */
+/* Collapsed: the wordmark clips like the nav labels above (SHL-004), but the
+ * MARK stays visible (brickwork#93: an icon-only rail keeps its brand mark,
+ * the standard collapsed-sidebar affordance), so the header centres the
+ * remaining mark and toggle instead of pinning the toggle to a now-empty
+ * end. The mark wrapper needs no collapsed override: it keeps its base
+ * inline-flex box and simply is not in the clip group above. */
 .bw-sidebar[data-bw-collapsed] .bw-sidebar__toggle {
   margin-inline-start: 0;
 }

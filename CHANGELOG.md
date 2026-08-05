@@ -8,6 +8,21 @@ versioning contract).
 
 ## [Unreleased]
 
+### Fixed
+
+- **The collapsed app sidebar now hides the brand wordmark and keeps the brand
+  mark** (icvoss/django-brickwork#93). The collapsed rail narrows and hides its
+  text labels, but the brand wordmark was left visible, so a consumer that
+  filled the `brand_wordmark` block got a full-width wordmark overflowing the
+  narrowed rail and clipping against the viewport edge. `shell/app.html` now
+  wraps `brand_logo` in `.bw-sidebar__brand-mark` and `brand_wordmark` in
+  `.bw-sidebar__brand-wordmark` (brickwork-owned wrappers, so the behaviour is
+  independent of the consumer's own inner markup or classes); the collapsed CSS
+  visually-hides the wordmark wrapper alongside the nav labels and keeps the
+  mark, the standard icon-only-rail affordance. The expanded header layout is
+  unchanged, and an unfilled block leaves an `:empty` wrapper that collapses to
+  nothing.
+
 ## [1.3.0] - 2026-08-05
 
 ### Added
