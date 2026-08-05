@@ -70,6 +70,7 @@
   --bw-component-content-max-width: 72rem;
   --bw-component-content-max-width-marketing: 80rem;
   --bw-component-section-gap-marketing: 4rem;
+  --bw-component-logo-height: 2rem;
   --bw-component-topbar-position: sticky;
   --bw-component-drawer-width: min(20rem, 80vw);
   --bw-component-toast-max-width: 24rem;
@@ -472,6 +473,7 @@
   --bw-icon-size-sm: var(--bw-component-icon-size-sm);
   --bw-icon-size-xl: var(--bw-component-icon-size-xl);
   --bw-icon-stroke-width: var(--bw-component-icon-stroke-width);
+  --bw-logo-height: var(--bw-component-logo-height);
   --bw-menu-min-width: var(--bw-component-menu-min-width);
   --bw-progress-track-height: var(--bw-component-progress-track-height);
   --bw-section-gap-marketing: var(--bw-component-section-gap-marketing);

@@ -99,6 +99,7 @@
     "--bw-component-icon-size-sm",
     "--bw-component-icon-size-xl",
     "--bw-component-icon-stroke-width",
+    "--bw-component-logo-height",
     "--bw-component-menu-min-width",
     "--bw-component-nav-item-active-bg",
     "--bw-component-nav-item-active-border",

@@ -59,6 +59,7 @@ export const tokens = Object.freeze({
   "component_icon_size_sm": "var(--bw-component-icon-size-sm)",
   "component_icon_size_xl": "var(--bw-component-icon-size-xl)",
   "component_icon_stroke_width": "var(--bw-component-icon-stroke-width)",
+  "component_logo_height": "var(--bw-component-logo-height)",
   "component_menu_min_width": "var(--bw-component-menu-min-width)",
   "component_nav_item_active_bg": "var(--bw-component-nav-item-active-bg)",
   "component_nav_item_active_border": "var(--bw-component-nav-item-active-border)",

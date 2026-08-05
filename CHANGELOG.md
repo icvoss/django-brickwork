@@ -10,6 +10,39 @@ versioning contract).
 
 ### Added
 
+- **`--bw-component-logo-height`: the marketing brand slot now sizes a
+  dropped-in logo out of the box** (icvoss/django-brickwork#83). The marketing
+  shell's `brand_logo` / `brand_wordmark` blocks were bare holes with no
+  default sizing, so an unconstrained SVG rendered full-height and pushed the
+  nav off-screen. The blocks are now wrapped in brickwork-owned elements
+  (`.bw-marketing-header__brand-mark` / `.bw-marketing-header__brand-wordmark`,
+  the app shell's #93 wrapper precedent); any `img`/`svg` inside caps at the
+  new component token (default `2rem`) with width following the intrinsic
+  ratio, the wrappers stay `flex: 0 0 auto` so nav and actions keep the
+  remaining width, and an unfilled block leaves an `:empty` wrapper that
+  collapses to nothing. The cap is applied at zero specificity (`:where`), so
+  one consumer rule (or a token override) resizes it.
+
+### Fixed
+
+- **`bw_badge`'s documented default variant `neutral` now has a real CSS
+  rule** (icvoss/django-brickwork#100). The tag's no-args default is
+  `variant="neutral"`, but the shipped CSS carried rules only for
+  `info`/`success`/`warning`/`danger`, so the default badge's look was left
+  implicit in the `.bw-badge` base class with no `.bw-badge--neutral` rule
+  behind the contract. The rule now ships explicitly (sunken surface, muted
+  fg, transparent hairline border: the token-derived neutral chip treatment,
+  AA in both themes), so the contract and the CSS agree.
+- **A testimonial no longer zeroes the marketing section gap above itself**
+  (icvoss/django-brickwork#86). `.bw-testimonial`'s blanket `margin: 0` reset
+  tied on specificity with the marketing shell's
+  `.bw-marketing__content > * + *` section-gap rule and, sitting later in
+  source order, won the tie, collapsing the rhythm above any composed
+  testimonial (the stat-band/testimonial collision). The blanket reset is
+  gone: the UA `<figure>` block margins are neutralised at zero specificity
+  (`:where(.bw-testimonial)`) instead, so the shell's section rhythm always
+  applies when a testimonial is composed as a marketing section.
+
 - **Flat CTA kwargs on the marketing section components**
   (icvoss/django-brickwork#98). Every dict-shaped CTA in the marketing kit now
   also accepts flat string kwargs, generalising `_stat.html`'s flat-string

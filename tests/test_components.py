@@ -86,6 +86,23 @@ def test_badge_renders_with_variant() -> None:
     assert "bw-badge--success" in out and "Active" in out
 
 
+def test_badge_default_variant_is_neutral() -> None:
+    out = _render('{% bw_badge "Draft" %}')
+    assert "bw-badge--neutral" in out and "Draft" in out
+
+
+def test_badge_neutral_variant_has_a_shipped_css_rule() -> None:
+    # #100: the documented no-args default is variant="neutral", so the shipped
+    # CSS must carry a real .bw-badge--neutral rule (the neutral chip treatment,
+    # token-derived), never a look left implicit in the .bw-badge base class.
+    css = (_DIST_JS.parent / "brickwork.css").read_text()
+    rule = re.search(r"\.bw-badge--neutral\{([^}]*)\}", css)
+    assert rule is not None, "dist/brickwork.css must ship a .bw-badge--neutral rule (#100)"
+    body = rule.group(1).replace(" ", "")
+    assert "background:var(--bw-color-surface-sunken)" in body
+    assert "color:var(--bw-color-fg-muted)" in body
+
+
 def test_badge_with_icon() -> None:
     out = _render('{% bw_badge "New" icon="info" %}')
     assert "bw-icon" in out and "New" in out

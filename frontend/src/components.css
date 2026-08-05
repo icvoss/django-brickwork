@@ -160,6 +160,19 @@
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg-muted);
 }
+/* The documented default variant (#100): bw_badge's no-args default is
+ * variant="neutral", so the contract needs a real .bw-badge--neutral rule,
+ * not a look left implicit in the base class. The values restate the base's
+ * neutral chip treatment (sunken surface, muted fg, the transparent hairline
+ * that keeps every variant on the same geometry); fg-muted on surface-sunken
+ * measures AA in both themes (the same pairing muted body text already
+ * relies on). Neutral is the correct default per the badge-vs-alert rule
+ * (STA-008): a badge carries neutral information, never error communication. */
+.bw-badge--neutral {
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg-muted);
+  border-color: transparent;
+}
 .bw-badge--success {
   background: var(--bw-color-success-subtle);
   color: var(--bw-color-success-fg);
