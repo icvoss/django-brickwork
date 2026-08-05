@@ -28,8 +28,43 @@ def _render(template: str, **context: object) -> str:
 def test_shell_emits_no_script_tag(template: str) -> None:
     # The shell itself loads no JS. A consumer adds Alpine/htmx via the head_js/
     # body_js blocks; the bare shell must be script-free so the no-JS floor holds.
+    # (The one exception is the DEBUG-only registration detector, brickwork#87,
+    # gated on bw_debug and absent here; see the detector tests below.)
     html = _render(template)
     assert "<script" not in html.lower(), f"{template} emitted a <script> tag"
+
+
+# --- the DEBUG-only registration detector (brickwork#87) --------------------
+
+
+def test_registration_detector_absent_without_bw_debug() -> None:
+    # Production posture: bw_debug unset (or False) ships zero script bytes,
+    # so the no-JS floor and CSP posture of a production page are untouched.
+    assert "data-bw-registration-check" not in _render("brickwork/shell/app.html")
+    assert "data-bw-registration-check" not in _render("brickwork/shell/app.html", bw_debug=False)
+
+
+@pytest.mark.parametrize("template", SHELLS)
+def test_registration_detector_renders_with_bw_debug(template: str) -> None:
+    # With bw_debug on (the theme context processor maps settings.DEBUG onto
+    # it), every shell carries the inline detector that turns the silent
+    # dead-components trap into a console warning.
+    html = _render(template, bw_debug=True)
+    assert "data-bw-registration-check" in html
+    assert "registerBrickworkComponents(Alpine)" in html
+    assert "console.warn" in html
+    # it keys on the marker registerBrickworkComponents stamps on <html>
+    assert "data-bw-js-registered" in html
+
+
+def test_registration_detector_block_can_be_overridden_away() -> None:
+    # The documented CSP escape hatch: a consumer overrides the block (to add
+    # a nonce or to empty it) without forking the shell.
+    from django.template import Context, Template
+
+    child = Template("{% extends 'brickwork/shell/app.html' %}{% block bw_js_registration_check %}{% endblock %}")
+    html = child.render(Context({"bw_debug": True}))
+    assert "data-bw-registration-check" not in html
 
 
 @pytest.mark.parametrize("template", SHELLS)

@@ -10,6 +10,49 @@ versioning contract).
 
 ### Added
 
+- **System check for the missing theme context processor**
+  (icvoss/django-brickwork#101). The top documented support trap (#22, a
+  silently unstyled shell when `brickwork.context_processors.theme` is absent
+  from TEMPLATES) now warns at startup: `brickwork.W001` fires when
+  `brickwork` is installed but no DjangoTemplates backend lists the processor.
+  A deliberate non-shell consumer (components or marketing layers only)
+  silences it with `SILENCED_SYSTEM_CHECKS = ["brickwork.W001"]`.
+- **A console warning when `registerBrickworkComponents(Alpine)` was never
+  called** (icvoss/django-brickwork#87). Registration now stamps
+  `data-bw-js-registered` on `<html>`, and with `DEBUG = True` the shell
+  appends a small inline detector (gated on the new `bw_debug` context
+  variable the theme context processor sets from `settings.DEBUG`): interactive
+  `x-data="bw..."` markup plus a running Alpine with no stamp emits a console
+  warning pointing at INTEGRATION.md, turning the silent dead-components trap
+  into an actionable message. Production pages ship no script at all; a
+  consumer can override the new `bw_js_registration_check` block (e.g. for a
+  nonce-strict dev CSP). A new `assertBrickworkRegistered()` export offers the
+  opt-in hard check.
+
+### Changed
+
+- **`IconNotFoundError` no longer subclasses `KeyError`**
+  (icvoss/django-brickwork#74). Django's `{% partialdef %}` machinery catches
+  a bare `KeyError`, so an unknown icon name raised inside a template partial
+  (e.g. the nav's recursive `nav_item`) was masked as a misleading
+  "Partial ... is not defined". The exception now subclasses `BrickworkError`
+  and `LookupError`, so the real error surfaces naming the icon; unknown-icon
+  messages also gain a did-you-mean hint for near-miss names. Code catching
+  `IconNotFoundError` (or `LookupError`) is unaffected; code that caught it AS
+  `KeyError` must catch `IconNotFoundError` itself.
+
+### Fixed
+
+- **Shipped templates no longer leak `string_if_invalid` markers**
+  (icvoss/django-brickwork#80). `|default:` only substitutes for a
+  defined-but-falsy value, so a genuinely undefined optional variable (the app
+  shell's `layout`, the toast region's `position`, component variant/size/label
+  defaults) rendered a consumer's `string_if_invalid` marker instead of the
+  documented default. Every optional-by-design variable in the shipped
+  templates now resolves via `{% firstof %}` (immune, failures ignored), with
+  the same defaults; the consumer smoke leg now runs under `string_if_invalid`
+  to keep it guarded. No contract change.
+
 - **`--bw-component-logo-height`: the marketing brand slot now sizes a
   dropped-in logo out of the box** (icvoss/django-brickwork#83). The marketing
   shell's `brand_logo` / `brand_wordmark` blocks were bare holes with no

@@ -32,7 +32,7 @@ reduced-motion floor (BR-BW-TOK-009), same as every other component transition.
          role="switch"
          id="{{ id }}"
          name="{{ name }}"
-         value="{{ value|default:'on' }}"
+         value="{% firstof value 'on' %}"
          {% if checked %}checked{% endif %}
          {% if disabled %}disabled{% endif %}>
   <span class="bw-toggle-field__label">{{ label }}</span>

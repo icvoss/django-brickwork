@@ -22,4 +22,4 @@
 
 import "./index.css";
 
-export { registerBrickworkComponents, default } from "./js/index.js";
+export { registerBrickworkComponents, assertBrickworkRegistered, default } from "./js/index.js";

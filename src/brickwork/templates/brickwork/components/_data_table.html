@@ -81,13 +81,22 @@ data-label="<column label>" (read from ``columns`` by position via the
 ``list_item`` filter, BR-BW-TPL-005: no data reshaping, just a positional
 read) so a narrow-viewport CSS rule can render each row as a labelled card.
 {% endcomment %}
-<div id="{{ table_id|default:'bw-data-table' }}" class="bw-data-table-wrap{% if scroll_container or sticky_header %} bw-data-table-wrap--sticky{% endif %}{% if responsive == "stack" %} bw-data-table-wrap--stack{% endif %}">
+{% comment %}
+Optional-by-design context resolves via {% firstof %} hoists, never the
+|default filter (brickwork#80): |default is bypassed for a genuinely
+undefined variable under a consumer's string_if_invalid, leaking the invalid
+marker into ids and attributes; firstof resolves with failures ignored.
+{% endcomment %}
+{% firstof table_id 'bw-data-table' as table_id %}
+<div id="{{ table_id }}" class="bw-data-table-wrap{% if scroll_container or sticky_header %} bw-data-table-wrap--sticky{% endif %}{% if responsive == "stack" %} bw-data-table-wrap--stack{% endif %}">
   {% if loading %}
     <div class="bw-data-table__skeleton" aria-hidden="true">
       {% for _ in "xxxxx" %}<div class="bw-skeleton bw-skeleton--row"></div>{% endfor %}
     </div>
   {% elif not rows %}
-    {% include "brickwork/components/_empty_state.html" with variant="no_data" heading=empty_heading|default:"" body=empty_body|default:"" %}
+    {% firstof empty_heading '' as empty_heading_resolved %}
+    {% firstof empty_body '' as empty_body_resolved %}
+    {% include "brickwork/components/_empty_state.html" with variant="no_data" heading=empty_heading_resolved body=empty_body_resolved %}
   {% elif variant == "definition" %}
     <table class="bw-data-table bw-data-table--definition">
       <tbody>
@@ -114,9 +123,9 @@ read) so a narrow-viewport CSS rule can render each row as a labelled card.
             behaviour once Alpine is present.
             {% endcomment %}
             <th scope="col" class="bw-data-table__th bw-data-table__th--select">
-              <label class="bw-visually-hidden" for="{{ table_id|default:'bw-data-table' }}-select-all">{% translate "Select all rows" %}</label>
+              <label class="bw-visually-hidden" for="{{ table_id }}-select-all">{% translate "Select all rows" %}</label>
               <input type="checkbox" class="bw-checkbox"
-                     id="{{ table_id|default:'bw-data-table' }}-select-all"
+                     id="{{ table_id }}-select-all"
                      data-bw-select-all
                      aria-label="{% translate 'Select all rows' %}">
             </th>
@@ -154,7 +163,8 @@ read) so a narrow-viewport CSS rule can render each row as a labelled card.
                   </a>
                 {% else %}
                   {# not the current sort -> first click sorts ascending #}
-                  <a class="bw-data-table__sort" href="{% if request %}{% querystring sort=col.next_sort|default:col.sort_key page=None %}{% else %}?sort={{ col.next_sort|default:col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
+                  {% firstof col.next_sort col.sort_key as col_next_sort %}
+                  <a class="bw-data-table__sort" href="{% if request %}{% querystring sort=col_next_sort page=None %}{% else %}?sort={{ col_next_sort }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
                     {{ col.label }}{% bw_icon "sort" size="sm" decorative=True css_class="bw-data-table__sort-idle" %}
                   </a>
                 {% endif %}
@@ -167,7 +177,7 @@ read) so a narrow-viewport CSS rule can render each row as a labelled card.
       </thead>
       <tbody>
         {% for row in rows %}
-          <tr id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}{% if row.selected %} bw-data-table__row--selected{% endif %}">
+          <tr id="{{ table_id }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}{% if row.selected %} bw-data-table__row--selected{% endif %}">
             {% if selectable %}
               {% comment %}
               #54: the selection contract. name="selected" value="{{ row.id }}"
@@ -177,9 +187,9 @@ read) so a narrow-viewport CSS rule can render each row as a labelled card.
               count/indeterminate wiring; absent Alpine it is just a checkbox.
               {% endcomment %}
               <td class="bw-data-table__td bw-data-table__td--select">
-                <label class="bw-visually-hidden" for="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}-select">{% blocktranslate with row_id=row.id %}Select row {{ row_id }}{% endblocktranslate %}</label>
+                <label class="bw-visually-hidden" for="{{ table_id }}-row-{{ row.id }}-select">{% blocktranslate with row_id=row.id %}Select row {{ row_id }}{% endblocktranslate %}</label>
                 <input type="checkbox" class="bw-checkbox" name="selected" value="{{ row.id }}"
-                       id="{{ table_id|default:'bw-data-table' }}-row-{{ row.id }}-select"
+                       id="{{ table_id }}-row-{{ row.id }}-select"
                        data-bw-row-select>
               </td>
             {% endif %}

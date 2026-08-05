@@ -43,7 +43,7 @@ Optional context:
     </div>
   {% endif %}
   {% if items %}
-    <div class="bw-feature-grid bw-feature-grid--{{ columns|default:3 }}">
+    <div class="bw-feature-grid bw-feature-grid--{% firstof columns 3 %}">
       {% for item in items %}
         {% if item.url %}<a class="bw-feature-card bw-feature-card--link" href="{{ item.url }}"{% if item.aria_label %} aria-label="{{ item.aria_label }}"{% endif %}>{% else %}<div class="bw-feature-card">{% endif %}
           {% if item.icon %}{% bw_icon item.icon size="lg" decorative=True css_class="bw-feature-card__icon" %}{% endif %}

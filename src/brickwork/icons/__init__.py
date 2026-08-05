@@ -17,7 +17,9 @@ Public surface:
 - ``get_icon(name)`` -> the inner SVG markup for a registered name.
 - ``is_directional(name)`` -> whether the icon flips under RTL (ICO-014).
 - ``register_icons(mapping, *, directional=())`` -> merge extra icons in.
-- ``IconNotFoundError`` -> raised on an unknown name (ICO-013, fail loudly).
+- ``IconNotFoundError`` -> raised on an unknown name (ICO-013, fail loudly). A
+  ``BrickworkError`` and ``LookupError``, deliberately NOT a ``KeyError``, so
+  Django's template-partials machinery cannot mask it (brickwork#74).
 - ``ICON_NAMES`` -> the sorted tuple of registered names (the contract surface).
 """
 

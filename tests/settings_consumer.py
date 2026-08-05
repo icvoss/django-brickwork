@@ -65,6 +65,12 @@ TEMPLATES = [
                 "brickwork.context_processors.theme",
                 "consumer.context_processors.consumer_context",
             ],
+            # brickwork#80: run the whole consumer smoke leg with the dev aid a
+            # real adopter is told to use, so a shipped template whose
+            # optional-by-design variable resolution regresses to a
+            # string_if_invalid bypass (|default on a genuinely undefined
+            # variable) fails this leg instead of leaking markers in the field.
+            "string_if_invalid": "INVALID_VARIABLE: %s",
         },
     }
 ]

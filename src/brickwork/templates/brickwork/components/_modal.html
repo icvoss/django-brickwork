@@ -95,7 +95,7 @@ title heading-sm. Enter: scrim fades, panel scales 96% -> 100% at
 --bw-duration-fast/--bw-ease-in. Reduced motion: enter and exit render
 instantly (BR-BW-TOK-009).
 {% endcomment %}{% firstof modal_id "bw-modal" as bw_modal_instance_id %}
-<div class="bw-modal bw-modal--{{ size|default:'md' }}"
+<div class="bw-modal bw-modal--{% firstof size 'md' %}"
      id="{{ bw_modal_instance_id }}"
      x-data="bwModal({ backdropDismiss: {% if backdrop_dismiss == False %}false{% else %}true{% endif %} })">
   <div class="bw-modal__scrim" data-bw-modal-scrim aria-hidden="true"></div>

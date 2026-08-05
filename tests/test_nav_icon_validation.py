@@ -59,3 +59,13 @@ def test_none_icon_is_fine():
 def test_has_icon_predicate():
     assert has_icon("file") is True
     assert has_icon("file-text") is False
+
+
+def test_prepare_time_error_suggests_the_nearest_registered_name():
+    # #74's did-you-mean: the classic "file-text" near-miss should point at the
+    # canonical "file" so the consumer's next attempt is the right one.
+    with pytest.raises(IconNotFoundError) as exc:
+        _render((NavItem(key="a", label="A", external_url="https://a.test", icon="file-text"),))
+    msg = str(exc.value)
+    assert "Did you mean" in msg
+    assert "'file'" in msg

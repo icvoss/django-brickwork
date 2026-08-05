@@ -26,7 +26,7 @@ Optional:
 {% endcomment %}
 <form class="bw-filter-bar"
       {% if filter_bar_id %}id="{{ filter_bar_id }}"{% endif %}
-      method="get" action="{{ action|default:'' }}"
+      method="get" action="{% firstof action '' %}"
       {% if hx_get %}hx-get="{{ hx_get }}"{% if hx_target %} hx-target="{{ hx_target }}"{% endif %} hx-trigger="submit"{% endif %}>
   <div class="bw-filter-bar__fields">
     {% for field in fields %}
@@ -35,10 +35,10 @@ Optional:
   </div>
   <div class="bw-filter-bar__actions">
     {% translate "Filter" as default_submit_label %}
-    <button type="submit" class="bw-btn bw-btn--primary bw-btn--md">{{ submit_label|default:default_submit_label }}</button>
+    <button type="submit" class="bw-btn bw-btn--primary bw-btn--md">{% firstof submit_label default_submit_label %}</button>
     {% if clear_href %}
       {% translate "Clear" as default_clear_label %}
-      <a class="bw-btn bw-btn--ghost bw-btn--md" href="{{ clear_href }}">{{ clear_label|default:default_clear_label }}</a>
+      <a class="bw-btn bw-btn--ghost bw-btn--md" href="{{ clear_href }}">{% firstof clear_label default_clear_label %}</a>
     {% endif %}
   </div>
 </form>

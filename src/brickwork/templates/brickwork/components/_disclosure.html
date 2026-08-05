@@ -35,7 +35,7 @@ clip), the caret rotates on the same pair, and both sit under the global
 prefers-reduced-motion floor (MOT-003, DESIGN.md section 8.4). No z-index,
 no elevation: in-flow content, not an overlay.
 {% endcomment %}
-<details class="bw-disclosure bw-disclosure--{{ style|default:'divided' }}"{% if name %} name="{{ name }}"{% endif %}{% if open %} open{% endif %}>
+<details class="bw-disclosure bw-disclosure--{% firstof style 'divided' %}"{% if name %} name="{{ name }}"{% endif %}{% if open %} open{% endif %}>
   <summary class="bw-disclosure__trigger">
     <span class="bw-disclosure__label">{{ label }}</span>
     {% if trigger_meta %}<span class="bw-disclosure__meta">{{ trigger_meta }}</span>{% endif %}

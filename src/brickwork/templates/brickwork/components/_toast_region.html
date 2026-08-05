@@ -36,7 +36,7 @@ Tokens, elevation, motion (CSS lane): toasts stack at --bw-z-toast (above the
 modal, the z scale's deliberate ordering); the region itself paints nothing.
 {% endcomment %}
 <div id="bw-toast-region"
-     class="bw-toast-region bw-toast-region--{{ position|default:'top-end' }}"
+     class="bw-toast-region bw-toast-region--{% firstof position 'top-end' %}"
      x-data="bwToastRegion()"
      aria-live="polite"
      data-bw-toast-region>

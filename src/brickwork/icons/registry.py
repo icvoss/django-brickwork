@@ -15,8 +15,11 @@ paint content, never a fixed-size standalone icon.
 
 from __future__ import annotations
 
+import difflib
 import re
 from pathlib import Path
+
+from brickwork.exceptions import BrickworkError
 
 _VENDOR_DIR = Path(__file__).parent / "vendor" / "lucide"
 
@@ -114,12 +117,40 @@ _DIRECTIONAL: frozenset[str] = frozenset(
 _SVG_INNER = re.compile(r"<svg\b[^>]*>(.*)</svg>", re.DOTALL)
 
 
-class IconNotFoundError(KeyError):
+class IconNotFoundError(BrickworkError, LookupError):
     """Raised when an icon name is not in the registry (ICO-013: fail loudly).
 
     A missing icon is a bug in the calling template, surfaced at render time with
     the offending name, never a silently-blank ``<svg>``.
+
+    Deliberately NOT a ``KeyError`` (brickwork#74): Django 6's template-partials
+    machinery (``PartialNode.render``) catches a bare ``KeyError`` around its
+    partial-name lookup, so an ``IconNotFoundError`` raised inside a
+    ``{% partialdef %}`` body (e.g. nav/_nav.html's recursive ``nav_item``) was
+    swallowed and re-reported as a misleading "Partial ... is not defined".
+    ``LookupError`` keeps the failed-lookup semantics without the masking;
+    ``BrickworkError`` makes it catchable alongside every other brickwork error.
     """
+
+
+def _suggest(name: str) -> str | None:
+    """The closest registered icon name to ``name``, or None if nothing is close.
+
+    Powers the did-you-mean hint in the unknown-icon messages (brickwork#74).
+    Prefix containment is checked before difflib because the classic miss is a
+    Lucide filename stem typed instead of the shorter canonical name
+    ("file-text" for "file"), where pure edit-distance ranks an unrelated but
+    letter-dense name ("filter") above the intended one. Ties on containment go
+    to the longest (most specific) candidate; anything else falls back to
+    difflib's closest match ("chevron-dwn" -> "chevron-down").
+    """
+    if not name:
+        return None
+    contained = [n for n in _ICONS if name.startswith(n) or n.startswith(name)]
+    if contained:
+        return max(contained, key=len)
+    matches = difflib.get_close_matches(name, _ICONS, n=1)
+    return matches[0] if matches else None
 
 
 def _extract_inner(svg_text: str, *, name: str) -> str:
@@ -152,8 +183,10 @@ def get_icon(name: str) -> str:
     try:
         return _ICONS[name]
     except KeyError as exc:
+        suggestion = _suggest(name)
+        hint = f" Did you mean {suggestion!r}?" if suggestion else ""
         raise IconNotFoundError(
-            f"No icon named {name!r} in the brickwork registry. "
+            f"No icon named {name!r} in the brickwork registry.{hint} "
             f"Register it with brickwork.icons.register_icons() or check the name."
         ) from exc
 

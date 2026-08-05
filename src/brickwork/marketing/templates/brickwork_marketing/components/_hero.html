@@ -36,7 +36,7 @@ Optional context:
 Uses the display type role (--bw-text-heading-display-*) and the marketing
 section-rhythm token for its own block spacing.
 {% endcomment %}
-<section class="bw-hero bw-hero--{{ align|default:'start' }}">
+<section class="bw-hero bw-hero--{% firstof align 'start' %}">
   <div class="bw-hero__copy">
     {% if eyebrow %}<p class="bw-hero__eyebrow">{{ eyebrow }}</p>{% endif %}
     {% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}
