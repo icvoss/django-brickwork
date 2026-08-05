@@ -14,34 +14,32 @@ theme axes (brand x theme x density x direction). Applications provide data,
 permissions and business behaviour; the substrate provides structure,
 presentation and interaction conventions.
 
-> Status: **1.2.0 on public PyPI** (`pip install django-brickwork`). The five semver-governed
-> public-API contracts (token, template, navigation, interaction, JavaScript)
-> are live, and every component passes two hard gates: is it accessible
-> (axe-core WCAG 2.2 AA in CI) and is it beautiful by default. The surface is
-> complete: the application shell and nav, the beautiful-by-default token system
-> (elevation, state overlays, type roles, motion, borders, with fine colours
-> derived live from a small load-bearing brand set via `color-mix()`), the
-> interaction set (modal, toast, dropdown, combobox, tabs, disclosure, tooltip,
-> slide-over), forms with the whole-form renderer and the HTMX 422 loop, the
-> data table with sortable and selectable modes, the feedback and input-chrome
-> primitives, the wizard/stepper, and a machine-readable token contract with a
-> per-tenant brand-CSS emitter. The design of record is the spec and brief in
-> the icvoss/oss umbrella:
-> - Spec: `docs/specs/django-brickwork/` (the five versioned public-API contracts).
-> - Design + branding + integration: `docs/DESIGN.md`, `docs/BRANDING.md`,
->   `docs/INTEGRATION.md`, `docs/ADOPTION.md`.
-> - Changelog: `CHANGELOG.md` (0.1.0 through 1.2.0).
+> Status: **stable 1.x on public PyPI** (`pip install django-brickwork`);
+> [CHANGELOG.md](CHANGELOG.md) records the current release. The five
+> semver-governed public-API contracts (token, template, navigation,
+> interaction, JavaScript) are live, and every component passes two hard gates
+> in CI: is it accessible (axe-core WCAG 2.2 AA, light and dark themes) and is
+> it beautiful by default. The surface covers the application shell and nav,
+> the beautiful-by-default token system (elevation, state overlays, type
+> roles, motion, borders, with fine colours derived live from a small
+> load-bearing brand set via `color-mix()`), the interaction set (modal,
+> toast, dropdown, combobox, tabs, disclosure, tooltip, slide-over), forms
+> with the whole-form renderer and the HTMX 422 loop, the data table with
+> sortable and selectable modes, the feedback and input-chrome primitives, the
+> wizard/stepper, and a machine-readable token contract with a per-tenant
+> brand-CSS emitter.
 >
-> **Marketing pages (v1.2.0).** brickwork also ships an opt-in
+> **See it running:** [brickwork.icvoss.com](https://brickwork.icvoss.com) is
+> the live interactive demo and template gallery, and
+> [icvoss.com/packages/django-brickwork](https://icvoss.com/packages/django-brickwork)
+> hosts the package documentation page.
+>
+> **Marketing pages (1.2.0+).** brickwork also ships an opt-in
 > `brickwork.marketing` sub-app (landing/pricing/about page templates, a
 > marketing shell, and eight marketing components: hero, feature grid,
 > pricing tier/table, CTA, testimonial, logo cloud, stat band, FAQ) on the
 > same `--bw-*` token and accessibility contract, so a consumer can build
-> its public marketing pages on brickwork alongside its console. See
-> ADR-055 in the umbrella
-> (`oss/docs/adrs/ADR-055-brickwork-marketing-kit-opt-in-subapp.md`) and the
-> wider templates-catalogue trajectory this opens
-> (`oss/docs/plans/brickwork-templates-catalogue-direction.md`).
+> its public marketing pages on brickwork alongside its console.
 
 ## Documentation
 
@@ -61,8 +59,10 @@ presentation and interaction conventions.
 
 ## Install
 
+From public PyPI:
+
 ```
-pip install django-brickwork        # from pypi.icvoss.com (private index)
+uv add django-brickwork             # or: pip install django-brickwork
 ```
 
 ```python
@@ -79,6 +79,16 @@ imposed on consumers. Consumers provide their own Alpine 3 +
 registers behaviour onto the host Alpine instance and never calls
 `Alpine.start()`.
 
+### Supported versions
+
+| Dependency | Supported |
+|------------|-----------|
+| Python | 3.12+ |
+| Django | 6.0 (the CI-tested matrix; later majors are not yet asserted, and the dependency pin is deliberately floor-only) |
+| htmx | >= 2.0 for the interaction contracts (see below); not required otherwise |
+| Alpine.js | 3.x plus `@alpinejs/focus`, provided by the host app |
+| Browsers | evergreen; the interaction suite is CI-tested on Chromium (Playwright) |
+
 ### htmx floor: htmx >= 2.0
 
 brickwork's interaction contracts (the HTMX 422 form-swap loop, toast delivery
@@ -90,12 +100,94 @@ ever exercise htmx 2. A brownfield app on htmx 1.9 should upgrade htmx to 2.x as
 prerequisite before adopting brickwork's interaction primitives; see
 [docs/ADOPTION.md](docs/ADOPTION.md).
 
+## Quickstart: a first console page
+
+Five minutes from install to a themed, accessible console page. Wire the app
+and the shell context processor:
+
+```python
+# settings.py
+INSTALLED_APPS = [
+    "brickwork",
+    # ...
+]
+TEMPLATES = [{
+    "BACKEND": "django.template.backends.django.DjangoTemplates",
+    "APP_DIRS": True,
+    "OPTIONS": {"context_processors": [
+        # ... Django's defaults ...
+        "brickwork.context_processors.theme",   # wires theme/density/dir onto <html>
+        "yourapp.context_processors.nav",
+    ]},
+}]
+```
+
+Declare the nav once, validated at import:
+
+```python
+# yourapp/nav.py
+from brickwork.models import NavItem
+from brickwork.services.navigation import validate_nav_config
+
+NAV = [
+    NavItem(label="Dashboard", url_name="dashboard"),
+]
+validate_nav_config(NAV)
+```
+
+```python
+# yourapp/context_processors.py
+from brickwork.services.navigation import resolve_active_item, visible_items
+from yourapp.nav import NAV
+
+def nav(request):
+    return {
+        "nav_items": visible_items(NAV, request),
+        "nav_active": resolve_active_item(NAV, request),
+    }
+```
+
+Extend the shell and fill its blocks:
+
+```django
+{# yourapp/templates/yourapp/dashboard.html #}
+{% extends "brickwork/shell/app.html" %}
+{% load brickwork_nav %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Dashboard" %}
+{% endblock %}
+
+{% block content %}
+  {% include "brickwork/components/_empty_state.html" with heading="Nothing here yet" body="Create your first project to get going." %}
+{% endblock %}
+```
+
+```python
+# yourapp/views.py
+from django.shortcuts import render
+
+def dashboard(request):
+    return render(request, "yourapp/dashboard.html", {"bw_page_title": "Dashboard"})
+```
+
+Run `collectstatic` and open the page: shell, sidebar nav with active-route
+highlighting, skip link, dark mode and density axes, all on the default theme.
+Branding it is a handful of `--bw-*` token overrides
+([docs/BRANDING.md](docs/BRANDING.md)); the full seam-by-seam walkthrough is
+[docs/INTEGRATION.md](docs/INTEGRATION.md).
+
 ## Contracts
 
-brickwork's public API is five versioned contracts (see the spec): **token**,
-**template**, **navigation**, **interaction (HTMX)**, and **JavaScript
-(Alpine)**. Template block names, HTMX target IDs, Alpine component names,
-event names and token names are semver-governed.
+brickwork's public API is five versioned contracts: **token**, **template**,
+**navigation**, **interaction (HTMX)**, and **JavaScript (Alpine)**. Template
+block names, HTMX target IDs, Alpine component names, event names and token
+names are semver-governed. [docs/DESIGN.md](docs/DESIGN.md) enumerates the
+token contract, [docs/INTEGRATION.md](docs/INTEGRATION.md) walks the template,
+navigation and interaction seams, and [CHANGELOG.md](CHANGELOG.md) records
+every contract change release by release.
 
 ## Usage
 
