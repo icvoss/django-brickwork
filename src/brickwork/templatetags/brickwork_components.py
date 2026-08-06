@@ -50,9 +50,20 @@ def bw_button(
     loading: bool = False,
     disabled: bool = False,
     aria_label: str = "",
+    name: str = "",
+    value: str = "",
 ) -> dict:
     """A button or link-button. ICO-008: an icon-only button REQUIRES an
-    accessible name (aria_label), else it is a render error (WCAG 4.1.2)."""
+    accessible name (aria_label), else it is a render error (WCAG 4.1.2).
+
+    ``name``/``value`` (icvoss/django-brickwork#119) carry WHICH submit was
+    pressed back to the server, which is the whole mechanism a bulk-actions bar
+    runs on (_bulk_actions_bar.html's own docstring documents exactly this
+    call). They apply to the ``<button>`` branch only: ``name``/``value`` on an
+    ``<a>`` are meaningless, so pairing them with ``href`` is a render error
+    rather than a silent drop, which is the failure mode that let #119 sit
+    undetected.
+    """
     if variant not in _BUTTON_VARIANTS:
         raise TemplateSyntaxError(f"bw_button variant must be one of {sorted(_BUTTON_VARIANTS)}, got {variant!r}")
     if size not in _SIZES:
@@ -61,6 +72,17 @@ def bw_button(
         raise TemplateSyntaxError(
             "bw_button icon_only=True requires aria_label= (an icon-only button "
             "with no accessible name is a WCAG 4.1.2 failure, ICO-008)."
+        )
+    if href and (name or value):
+        raise TemplateSyntaxError(
+            "bw_button name=/value= apply to the <button> branch only, but href= "
+            "was given, which renders an <a>. A link carries its data in the URL, "
+            "so drop name/value or drop href."
+        )
+    if value and not name:
+        raise TemplateSyntaxError(
+            "bw_button value= requires name= (a submit value with no name is "
+            "never sent by the browser, so the server would see nothing)."
         )
     return {
         "label": label,
@@ -73,6 +95,8 @@ def bw_button(
         "loading": loading,
         "disabled": disabled,
         "aria_label": aria_label,
+        "name": name,
+        "value": value,
     }
 
 
