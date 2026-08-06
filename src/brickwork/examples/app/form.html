@@ -1,0 +1,64 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A create/edit page: one form on a page.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    form         your own Django form (bound on POST)
+    nav_items / nav_active  as in list.html
+
+THE ONE RULE HERE: you own the <form> element, brickwork never emits it.
+That is not a limitation, it is the only sound arrangement: only your project
+knows its own action URL, and a template that wrapped your fields in its own
+<form> would put your submit button outside it. So the <form>, the csrf_token,
+and the submit all live together in this file, which you own.
+{% endcomment %}
+{% load brickwork_components brickwork_forms brickwork_nav %}
+
+{% block page_title %}New invoice - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="New invoice" description="Raise an invoice against one of your accounts." %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  Point the action at your own URL. {{ request.path }} posts back to this same
+  page, which is the usual shape for a create/edit view: on success the view
+  redirects, on failure it re-renders this page with the bound, invalid form
+  and the errors appear inline automatically.
+
+  bw_form renders form.visible_fields() generically, so it works with any
+  form: ModelForm, plain Form, allauth's, your own. It also includes the
+  non-field error region itself, so never include _form_errors.html a second
+  time beside it.
+
+  No JS is needed for any of this. If you add htmx, a validation failure
+  should return 422 with this same page re-rendered; htmx 2 needs the 422
+  status opted in to swap (see INTEGRATION.md), which is the one line people
+  miss.
+  {% endcomment %}
+  <form method="post" action="{{ request.path }}">
+    {% csrf_token %}
+    {% bw_form form %}
+
+    {% comment %}
+    The submit sits INSIDE the form, beside the fields. A cancel link beside
+    it is an ordinary anchor, not a button: it navigates, it does not submit.
+    {% endcomment %}
+    <div class="bw-form__actions">
+      {% bw_button "Save invoice" type="submit" variant="primary" %}
+      {% bw_button "Cancel" variant="ghost" href="/invoices/" %}
+    </div>
+  </form>
+
+</div>
+{% endblock %}

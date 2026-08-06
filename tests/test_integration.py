@@ -3,10 +3,10 @@
 Runs only under the settings_seams leg (see conftest.py). Exercises the full
 vertical slice through real views/URLs/forms: the shell renders with the nav
 (active state, badge, external link, section header), the list and dashboard
-pages route through the shipped 0.5.0 patterns (list.html / dashboard.html)
-with real filter, stat, and activity content, the nav slot carries the
-testapp's own property switcher, and the 422 HTMX form-validation contract
-works in both HTMX and no-JS modes.
+pages compose the shell and components directly (the 2.0.0 consumption model,
+ADR-056, replacing the retired 0.5.0 pattern tier) with real filter, stat, and
+activity content, the nav slot carries the testapp's own property switcher, and
+the 422 HTMX form-validation contract works in both HTMX and no-JS modes.
 """
 
 from __future__ import annotations
@@ -131,13 +131,13 @@ def test_account_menu_renders_without_aria_menu_semantics(client: Client, widget
     assert 'role="menuitem"' not in html
 
 
-# --- the list page routes through patterns/list.html (0.5.0) ----------------
+# --- the list page composes filter bar + table card + pagination ------------
 
 
-def test_list_page_routes_through_the_list_pattern(client: Client, widgets) -> None:
+def test_list_page_composes_the_filter_bar_table_and_pagination(client: Client, widgets) -> None:
     html = client.get("/widgets/").content.decode()
-    assert "bw-filter-bar" in html  # the filled filter_bar region
-    assert "bw-card" in html  # the pattern-shaped table card
+    assert "bw-filter-bar" in html  # the page composes the filter bar itself
+    assert "bw-card" in html  # the table sits in a card the page wraps itself
     # documented region order: filter bar above the table card
     assert html.index("bw-filter-bar") < html.index('id="widgets-table"')
 
@@ -158,10 +158,10 @@ def test_list_pagination_appears_beyond_one_page(client: Client) -> None:
     for i in range(12):
         Widget.objects.create(name=f"W{i:02d}", status="draft")
     html = client.get("/widgets/").content.decode()
-    assert "bw-pagination" in html  # the pattern's list_pagination default, wired from page_obj
+    assert "bw-pagination" in html  # _pagination.html, included by the page and wired from page_obj
 
 
-# --- the dashboard routes through patterns/dashboard.html (0.5.0) -----------
+# --- the dashboard composes stat tiles + activity table ---------------------
 
 
 def test_dashboard_renders_stat_tiles_from_real_aggregates(client: Client, widgets) -> None:
@@ -186,8 +186,8 @@ def test_dashboard_marks_its_nav_item_active(client: Client, widgets) -> None:
 
 
 def test_form_page_still_extends_the_plain_shell(client: Client) -> None:
-    # The form pages keep the default base parent (shell/app.html): no pattern
-    # regions leak into them.
+    # A form page composes only what it needs on top of shell/app.html, so
+    # nothing from the list page's composition (its filter bar) leaks in.
     html = client.get("/widgets/new/").content.decode()
     assert "bw-app" in html
     assert "bw-filter-bar" not in html

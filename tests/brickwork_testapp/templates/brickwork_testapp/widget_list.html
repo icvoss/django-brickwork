@@ -1,27 +1,34 @@
 {% extends "brickwork_testapp/base.html" %}
 {% load brickwork_components %}
 {% comment %}
-The widget list, rebuilt on patterns/list.html (0.5.0): the view supplies
-base_parent="brickwork/patterns/list.html", so the chain runs
-widget_list -> base (chrome) -> patterns/list.html -> shell/app.html. The
-pattern's page_header default is wired from the title/description context
-vars (no override here); filter_bar is filled with the real filter form; and
-list_body is overridden to keep the a11y fixtures' previous coverage (the
-titled alert, the badge legend, the definition-variant summary table) around
-the card-wrapped records table.
+The widget list, composed from the shell and the shipped components directly:
+2.0.0 (ADR-056) retired the page and pattern tier, so patterns/list.html is
+gone and an index page is something the consumer writes and owns. This file is
+that page, following examples/app/list.html: a page header, a filter bar, the
+records table in a card, and pagination, in a bw-section-stack.
+
+The chain is widget_list -> base (chrome) -> shell/app.html. The page header is
+wired from the title/description context vars; the filter bar carries the real
+filter form; and the alert, the badge legend, and the definition-variant
+summary table keep the a11y fixtures' coverage around the card-wrapped records
+table.
 {% endcomment %}
 
 {% block page_title %}Widgets{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" %}
+{% endblock %}
 
 {% block page_actions %}
   {% bw_button "New widget" href="/widgets/new/" icon="plus" variant="primary" %}
 {% endblock %}
 
-{% block filter_bar %}
-  {% include "brickwork/components/_filter_bar.html" with fields=filter_form filter_bar_id="widget-filters" clear_href="/widgets/" %}
-{% endblock %}
+{% block content %}
+<div class="bw-section-stack">
 
-{% block list_body %}
+  {% include "brickwork/components/_filter_bar.html" with fields=filter_form filter_bar_id="widget-filters" clear_href="/widgets/" %}
+
   {% comment %} A titled banner alert so the a11y fixtures cover the loud page-level
      status surface with BOTH a title and a message, in both themes. {% endcomment %}
   {% bw_alert "Widget exports are paused while storage is upgraded. Existing widgets are unaffected." variant="warning" title="Planned maintenance" %}
@@ -35,13 +42,23 @@ the card-wrapped records table.
     {% bw_badge "Deprecated" variant="danger" %}
   </p>
 
-  {% comment %} block.super renders the pattern's OWN default table card (fed by the
-     rows/columns/table_id/empty_* context the view supplies), so the shipped
-     default is exercised end-to-end rather than re-implemented here. {% endcomment %}
-  {{ block.super }}
+  {% comment %} The records table in a card. The retired pattern wrapped the table in a
+     card for you (patterns/_table_card.html); the card element now lives here,
+     in the page, wrapping the real shipped _data_table.html fed by the
+     rows/columns/table_id/current_sort/empty_* context the view supplies. {% endcomment %}
+  <div class="bw-card">
+    <div class="bw-card__body">
+      {% include "brickwork/components/_data_table.html" %}
+    </div>
+  </div>
 
   {% comment %} The definition-variant facts table (the row-header, one-entity shape) so
      the a11y fixtures cover it alongside the records table. {% endcomment %}
   <h2>Workspace summary</h2>
   {% include "brickwork/components/_data_table.html" with table_id="workspace-facts" variant="definition" rows=summary_facts empty_heading="No summary yet" empty_body="Create a widget to populate the workspace summary." %}
+
+  {% comment %} Renders nothing at one page (STA-014) or when page_obj is absent. {% endcomment %}
+  {% include "brickwork/components/_pagination.html" %}
+
+</div>
 {% endblock %}

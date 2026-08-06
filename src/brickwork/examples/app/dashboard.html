@@ -1,0 +1,64 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A dashboard: a row of KPI tiles, a content region, and recent activity.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    activity_rows / activity_columns  the recent-activity table data
+    nav_items / nav_active            as in list.html
+The stat tiles below carry real values typed into the template so you can see
+the page; replace them with your own context variables.
+{% endcomment %}
+{% load brickwork_components brickwork_nav %}
+
+{% block page_title %}Overview - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Overview" description="How the last 30 days compare with the 30 before." %}
+{% endblock %}
+
+{% block page_actions %}
+  {% bw_button "Export" variant="secondary" icon="download" href="/reports/export/" %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  The stat row. bw-stat-grid is a responsive grid that reflows on narrow
+  viewports, so you add tiles rather than manage columns.
+
+  On trends: whenever you pass trend, the tile ALWAYS renders a direction glyph
+  plus visually hidden text ("increased" / "decreased" / "unchanged"), so the
+  direction never rides on colour alone. trend_label refines that text and
+  shows beside the glyph. Format the value yourself; the tile uses tabular
+  numerals so a column of them never jitters as digits change.
+  {% endcomment %}
+  <div class="bw-stat-grid">
+    {% include "brickwork/components/_stat.html" with label="Revenue" value="£48,290" trend="up" trend_label="12% up on last month" icon="arrow-up" %}
+    {% include "brickwork/components/_stat.html" with label="Invoices raised" value="317" trend="up" trend_label="24 more than last month" %}
+    {% include "brickwork/components/_stat.html" with label="Overdue" value="£3,140" trend="down" trend_label="8% down on last month" %}
+    {% include "brickwork/components/_stat.html" with label="Average days to pay" value="21.4" trend="flat" trend_label="unchanged" %}
+  </div>
+
+  {% comment %}
+  Your own content region: charts, cards, whatever this dashboard is for.
+  brickwork ships no charting (a declared non-goal), and makes no claim over
+  what renders here. Bring your own chart library, or a second component
+  framework; the shell's asset loading will not fight it.
+  {% endcomment %}
+
+  {% comment %}
+  Recent activity. Rows with a url become clickable rows, keyboard-reachable
+  through the first cell's anchor.
+  {% endcomment %}
+  {% include "brickwork/components/_data_table.html" with table_id="recent-activity" columns=activity_columns rows=activity_rows empty_heading="Nothing yet" empty_body="Activity across your account will show up here." %}
+
+</div>
+{% endblock %}

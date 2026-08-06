@@ -1,17 +1,22 @@
 """Render brickwork pages to standalone HTML fixtures for the axe + no-JS suite.
 
-Renders the testapp's real pages (list, dashboard, form, form-with-errors)
-through the full shell, with list and dashboard routed through the shipped
-0.5.0 page patterns, in both light and dark themes, inlines the compiled
+Renders whole pages (list, dashboard, form, form-with-errors, wizard,
+settings, console, confirm, auth, the three marketing pages) through the
+shipped shells in both light and dark themes, inlines the compiled
 brickwork.css, and writes self-contained HTML files under a11y/fixtures/.
 Playwright then loads each file:// and runs axe-core (WCAG 2.2 AA) plus a
 no-JS assertion.
 
-Rendering the REAL pages (not a hand-written sample) means the a11y gate tests
-exactly what a consumer ships, and it catches a contrast regression from a bad
-token or a missing aria wiring on any shipped component.
+Every page here is composed from a SHELL plus the shipped COMPONENTS, which
+is what a consumer now does: 2.0.0 (ADR-056) retired the page and pattern
+tier, so whole pages are copy-paste examples the consumer owns (see
+src/brickwork/examples/, deliberately off the template loader path) rather
+than templates to extend. The shells, components, forms, and nav are all
+unchanged and still shipped, so rendering the REAL components in their real
+compositions still means the a11y gate catches a contrast regression from a
+bad token or a missing aria wiring on any shipped component.
 
-Run: DJANGO_SETTINGS_MODULE=tests.settings_seams PYTHONPATH=src:tests \
+Run: DJANGO_SETTINGS_MODULE=tests.settings_seams PYTHONPATH=src:.:tests \
      python a11y/generate_fixtures.py
 """
 
@@ -70,6 +75,61 @@ def _base_context(request, theme: str, *, layout: str = "sidebar"):
     }
 
 
+# The list page composition. 2.0.0 (ADR-056) retired the page/pattern tier:
+# patterns/list.html is gone, so the fixture composes the shell and the
+# components directly, the same shape a consumer now copies from
+# examples/app/list.html. It extends the testapp's own chrome template (nav,
+# breadcrumbs, account menu, switcher slots) so the fixture keeps exactly the
+# page it had before: populated filter bar, titled alert, badge legend,
+# card-wrapped records table, definition-variant summary table.
+_LIST_SOURCE = (
+    '{% extends "brickwork_testapp/base.html" %}'
+    "{% load brickwork_components %}"
+    "{% block page_title %}Widgets{% endblock %}"
+    "{% block page_header %}"
+    '{% include "brickwork/components/_page_header.html" %}'
+    "{% endblock %}"
+    "{% block page_actions %}"
+    '{% bw_button "New widget" href="/widgets/new/" icon="plus" variant="primary" %}'
+    "{% endblock %}"
+    "{% block content %}"
+    '<div class="bw-section-stack">'
+    # the filter bar, wired from the real filter form
+    '{% include "brickwork/components/_filter_bar.html" with fields=filter_form'
+    ' filter_bar_id="widget-filters" clear_href="/widgets/" %}'
+    # a titled banner alert so the axe gate covers the loud page-level status
+    # surface with BOTH a title and a message, in both themes. Included rather
+    # than called through {% bw_alert %}: the plain include is the shape the
+    # copy-paste examples use (see examples/app/confirm.html).
+    '{% include "brickwork/components/_alert.html" with variant="warning"'
+    ' title="Planned maintenance" message="Widget exports are paused while'
+    ' storage is upgraded. Existing widgets are unaffected." %}'
+    # the widget lifecycle legend: all four intent badges, so the gate sees
+    # every badge tint pair against both theme backgrounds
+    '<p class="widget-status-legend">'
+    '{% bw_badge "Active" variant="success" icon="check" %}'
+    '{% bw_badge "Draft" variant="info" %}'
+    '{% bw_badge "Archived" variant="warning" %}'
+    '{% bw_badge "Deprecated" variant="danger" %}'
+    "</p>"
+    # the records table in a card: the pattern's old default table card,
+    # inlined here as the card element wrapping the real _data_table.html
+    '<div class="bw-card">'
+    '<div class="bw-card__body">'
+    '{% include "brickwork/components/_data_table.html" %}'
+    "</div>"
+    "</div>"
+    # the definition-variant facts table (the row-header, one-entity shape)
+    "<h2>Workspace summary</h2>"
+    '{% include "brickwork/components/_data_table.html" with table_id="workspace-facts"'
+    ' variant="definition" rows=summary_facts empty_heading="No summary yet"'
+    ' empty_body="Create a widget to populate the workspace summary." %}'
+    '{% include "brickwork/components/_pagination.html" %}'
+    "</div>"
+    "{% endblock %}"
+)
+
+
 def render_list(theme: str, *, menu_open: bool = False, layout: str = "sidebar") -> str:
     from brickwork_testapp.forms import WidgetFilterForm
     from django.urls import resolve
@@ -97,12 +157,11 @@ def render_list(theme: str, *, menu_open: bool = False, layout: str = "sidebar")
     ctx = _base_context(request, theme, layout=layout)
     ctx.update(
         {
-            # route through patterns/list.html, exactly as the view does, so
-            # the axe gate examines the fully-composed pattern page
-            # (AC-BW-077): populated filter bar, table card, badges, titled
-            # alert, definition table, selected row. columns/rows/table_id/
-            # empty_* feed the pattern's own default table card.
-            "base_parent": "brickwork/patterns/list.html",
+            # _LIST_SOURCE composes the page from the shell and the
+            # components, so the axe gate still examines the fully-composed
+            # list page (AC-BW-077): populated filter bar, table card,
+            # badges, titled alert, definition table, selected row.
+            # columns/rows/table_id/empty_* feed the card-wrapped table.
             "title": "Widgets",
             "description": "Everything in the harness.",
             "filter_form": WidgetFilterForm(),
@@ -119,7 +178,46 @@ def render_list(theme: str, *, menu_open: bool = False, layout: str = "sidebar")
         # render the account-menu disclosure initially open so axe examines the
         # open panel (colour contrast, landmark labelling) in this theme
         ctx["account_menu_open"] = True
-    return _inline_css(render_to_string("brickwork_testapp/widget_list.html", ctx, request=request))
+    html = engines["django"].from_string(_LIST_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
+
+
+# The dashboard composition. As with _LIST_SOURCE, patterns/dashboard.html
+# went with the 2.0.0 clean break (ADR-056), so the fixture composes the shell
+# and the components directly, following examples/app/dashboard.html: the stat
+# row in its own bw-stat-grid, a content card, and the recent-activity table
+# card.
+_DASHBOARD_SOURCE = (
+    '{% extends "brickwork_testapp/base.html" %}'
+    "{% block page_title %}Dashboard{% endblock %}"
+    "{% block page_header %}"
+    '{% include "brickwork/components/_page_header.html" %}'
+    "{% endblock %}"
+    "{% block content %}"
+    '<div class="bw-section-stack">'
+    # three stat tiles: up and down deltas so the glyph plus accessible-text
+    # pairing is examined in both themes (BR-BW-TPL-007)
+    '<div class="bw-stat-grid">'
+    '{% include "brickwork/components/_stat.html" with label="Total widgets"'
+    ' value=stats.total icon="folder" href="/widgets/" %}'
+    '{% include "brickwork/components/_stat.html" with label="Active"'
+    ' value=stats.active trend="up" trend_label="One more than last week" %}'
+    '{% include "brickwork/components/_stat.html" with label="Draft"'
+    ' value=stats.draft trend="down" trend_label="One fewer than last week" %}'
+    "</div>"
+    # the general-purpose content region
+    '{% include "brickwork_testapp/_panel_card.html" with panel_title="Getting started"'
+    ' panel_body="Create widgets, file them by status, and watch the workspace numbers move." %}'
+    # the recent-activity table card, inlined the same way as on the list page
+    "<h2>Recent activity</h2>"
+    '<div class="bw-card">'
+    '<div class="bw-card__body">'
+    '{% include "brickwork/components/_data_table.html" %}'
+    "</div>"
+    "</div>"
+    "</div>"
+    "{% endblock %}"
+)
 
 
 def render_dashboard(theme: str) -> str:
@@ -131,11 +229,11 @@ def render_dashboard(theme: str) -> str:
     ctx = _base_context(request, theme)
     ctx.update(
         {
-            # route through patterns/dashboard.html, exactly as the view does:
-            # three stat tiles (up + down deltas so the glyph + accessible-text
-            # pairing is examined in both themes, BR-BW-TPL-007), the content
-            # card, and the recent-activity table card (AC-BW-077).
-            "base_parent": "brickwork/patterns/dashboard.html",
+            # _DASHBOARD_SOURCE composes the same page the pattern used to
+            # build: three stat tiles (up + down deltas so the glyph +
+            # accessible-text pairing is examined in both themes,
+            # BR-BW-TPL-007), the content card, and the recent-activity
+            # table card (AC-BW-077).
             "title": "Dashboard",
             "description": "The workspace at a glance.",
             "stats": {"total": 2, "active": 1, "draft": 1},
@@ -153,7 +251,8 @@ def render_dashboard(theme: str) -> str:
             "empty_body": "Create a widget to see it appear here.",
         }
     )
-    return _inline_css(render_to_string("brickwork_testapp/dashboard.html", ctx, request=request))
+    html = engines["django"].from_string(_DASHBOARD_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
 
 
 def render_form(theme: str, *, with_errors: bool) -> str:
@@ -943,8 +1042,34 @@ def render_stepper(theme: str) -> str:
     )
 
 
+# The wizard step composition. patterns/wizard.html was retired with the rest
+# of the page tier in 2.0.0 (ADR-056), so this composes the shell and the
+# components directly, following examples/app/wizard.html: page header,
+# stepper, the step's own form, and the back-link nav row.
+_WIZARD_SOURCE = (
+    '{% extends "brickwork/shell/app.html" %}'
+    "{% block page_title %}Set up your store{% endblock %}"
+    "{% block page_header %}"
+    '{% include "brickwork/components/_page_header.html" %}'
+    "{% endblock %}"
+    "{% block content %}"
+    '<div class="bw-section-stack">'
+    '{% include "brickwork/components/_stepper.html" with orientation=stepper_orientation %}'
+    '<div class="bw-wizard__step">'
+    '<form id="fx-wizard-form"><label for="fx-wizard-input">Business name'
+    '<input id="fx-wizard-input" name="business_name" data-bw-autofocus></label>'
+    '<button type="submit">Continue</button></form>'
+    "</div>"
+    '<nav class="bw-wizard__nav" aria-label="Wizard navigation">'
+    '<a class="bw-btn bw-btn--ghost" href="{{ back_url }}">Back</a>'
+    "</nav>"
+    "</div>"
+    "{% endblock %}"
+)
+
+
 def render_wizard(theme: str) -> str:
-    """patterns/wizard.html rendered through the full shell, mirroring
+    """A wizard step rendered through the full shell, mirroring
     render_list/render_dashboard: a minimal step form plus a back link, so
     axe examines the composed page (stepper + step body + nav)."""
     from django.urls import resolve
@@ -960,16 +1085,7 @@ def render_wizard(theme: str) -> str:
             "back_url": "/interactions/",
         }
     )
-    body_source = (
-        "{% extends 'brickwork/patterns/wizard.html' %}"
-        "{% block page_title %}Set up your store{% endblock %}"
-        "{% block wizard_step %}"
-        '<form id="fx-wizard-form"><label for="fx-wizard-input">Business name'
-        '<input id="fx-wizard-input" name="business_name" data-bw-autofocus></label>'
-        '<button type="submit">Continue</button></form>'
-        "{% endblock %}"
-    )
-    html = engines["django"].from_string(body_source).render(ctx)
+    html = engines["django"].from_string(_WIZARD_SOURCE).render(ctx)
     return _inline_css(html)
 
 
@@ -1109,24 +1225,29 @@ def render_bw_form_fixture(theme: str) -> str:
 # --- the 1.1.0 page-templates kit fixtures (#73's account-menu sign-out is
 # fixtured alongside them since both ship in the same release) -------------
 #
-# form-page-<theme>.html         pages/form_page.html extended with a real
-#                                 consumer <form> wrapping {% bw_form form %}
-#                                 plus a submit button in form_body.
-# settings-<theme>.html          pages/settings.html with a non-empty
-#                                 settings_tabs + active_tab (the real tabs
-#                                 floor) and a settings_body filled with a
-#                                 _card wrapping {% bw_form %}.
-# console-<theme>.html           pages/console.html with heading+body for
-#                                 the default empty-state body.
-# confirm-<theme>.html           pages/confirm.html with a warning _alert in
-#                                 confirm_body and a POST form + cancel link
-#                                 in confirm_actions.
-# auth-signin-<theme>.html       pages/auth_signin.html extended with a
-#                                 consumer <form> wrapping {% bw_form form %}
-#                                 (a small login-shaped form), a submit, an
-#                                 auth_secondary link, and the auth shell's
-#                                 brand_logo/brand_wordmark filled so axe sees
-#                                 the branded panel.
+# Every page below composes a shell plus components directly. The shipped
+# page tier (brickwork/pages/*.html) was retired in 2.0.0 (ADR-056): whole
+# pages are now copy-paste examples the consumer owns, so these fixtures
+# follow the same compositions the shipped examples carry (see
+# src/brickwork/examples/app/*.html and examples/auth/signin.html) rather
+# than extending a package-supplied page.
+#
+# form-page-<theme>.html         the app shell plus a real consumer <form>
+#                                 wrapping {% bw_form form %} and a submit
+#                                 button.
+# settings-<theme>.html          the app shell plus {% bw_tabs %} over a
+#                                 non-empty settings_tabs + active_tab (the
+#                                 real tabs floor) and a _card wrapping
+#                                 {% bw_form %}.
+# console-<theme>.html           the app shell plus _empty_state.html, wired
+#                                 from heading+body.
+# confirm-<theme>.html           the centred shell plus a warning _alert and
+#                                 a POST form + cancel link.
+# auth-signin-<theme>.html       the auth shell plus a consumer <form>
+#                                 wrapping {% bw_form form %} (a small
+#                                 login-shaped form), a submit, a secondary
+#                                 link, and the shell's brand_wordmark filled
+#                                 so axe sees the branded panel.
 # account-menu-post-<theme>.html a standalone page (mirrors render_feedback's
 #                                 self-contained shape) rendering
 #                                 _account_menu.html OPEN with a normal link
@@ -1134,16 +1255,25 @@ def render_bw_form_fixture(theme: str) -> str:
 #                                 item, rendered with a request+CSRF context
 #                                 so the token renders.
 
+# Composes the app shell and the components directly: the page tier was
+# retired in 2.0.0 (ADR-056). Follows examples/app/form.html, where the
+# consumer owns the <form> element and the submit sits inside it beside the
+# fields.
 _FORM_PAGE_SOURCE = (
-    "{% extends 'brickwork/pages/form_page.html' %}"
+    "{% extends 'brickwork/shell/app.html' %}"
     "{% load brickwork_forms brickwork_components %}"
     "{% block page_title %}New widget{% endblock %}"
-    "{% block form_body %}"
+    "{% block page_header %}"
+    '{% include "brickwork/components/_page_header.html" %}'
+    "{% endblock %}"
+    "{% block content %}"
+    '<div class="bw-section-stack">'
     '<form method="post" action="/widgets/new/">'
     "{% csrf_token %}"
     "{% bw_form form %}"
     '{% bw_button label="Save" type="submit" variant="primary" %}'
     "</form>"
+    "</div>"
     "{% endblock %}"
 )
 
@@ -1165,14 +1295,24 @@ _SETTINGS_TABS = [
     {"key": "billing", "label": "Billing"},
 ]
 
+# Composes the app shell and the components directly: the page tier was
+# retired in 2.0.0 (ADR-056). Follows examples/app/settings.html: {% bw_tabs %}
+# over the server-selected active_tab (each tab a real ?tab= link, so the
+# no-JS floor is free), then the active section's body.
 _SETTINGS_BODY_SOURCE = (
-    "{% extends 'brickwork/pages/settings.html' %}"
-    "{% load brickwork_forms %}"
+    "{% extends 'brickwork/shell/app.html' %}"
+    "{% load brickwork_forms brickwork_interactions %}"
     "{% block page_title %}Settings{% endblock %}"
-    "{% block settings_body %}"
+    "{% block page_header %}"
+    '{% include "brickwork/components/_page_header.html" %}'
+    "{% endblock %}"
+    "{% block content %}"
+    '<div class="bw-section-stack">'
+    "{% bw_tabs settings_tabs active=active_tab id='settings' %}"
     '<div class="bw-card">'
     '<div class="bw-card__body">'
     "{% bw_form form %}"
+    "</div>"
     "</div>"
     "</div>"
     "{% endblock %}"
@@ -1198,6 +1338,23 @@ def render_settings(theme: str) -> str:
     return _inline_css(html)
 
 
+# Composes the app shell and the components directly: the page tier was
+# retired in 2.0.0 (ADR-056). Follows examples/app/console.html: a blank-slate
+# section whose body is _empty_state.html, wired from the heading and body the
+# fixture supplies (the component ships no default copy, STA-003).
+_CONSOLE_SOURCE = (
+    "{% extends 'brickwork/shell/app.html' %}"
+    "{% block page_header %}"
+    '{% include "brickwork/components/_page_header.html" %}'
+    "{% endblock %}"
+    "{% block content %}"
+    '<div class="bw-section-stack">'
+    '{% include "brickwork/components/_empty_state.html" %}'
+    "</div>"
+    "{% endblock %}"
+)
+
+
 def render_console(theme: str) -> str:
     from django.urls import resolve
 
@@ -1212,14 +1369,20 @@ def render_console(theme: str) -> str:
             "body": "Generate your first report to see it appear here.",
         }
     )
-    return _inline_css(render_to_string("brickwork/pages/console.html", ctx, request=request))
+    html = engines["django"].from_string(_CONSOLE_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
 
 
+# Composes the CENTRED shell and the components directly: the page tier was
+# retired in 2.0.0 (ADR-056). Follows examples/app/confirm.html, which drops
+# the sidebar and topbar so a confirmation is a deliberate interruption; the
+# destructive action is a POST form and cancel is a plain anchor.
 _CONFIRM_SOURCE = (
-    "{% extends 'brickwork/pages/confirm.html' %}"
+    "{% extends 'brickwork/shell/centred.html' %}"
     "{% load brickwork_components %}"
     "{% block page_title %}Delete this widget?{% endblock %}"
-    "{% block confirm_body %}"
+    "{% block content %}"
+    '<div class="bw-section-stack">'
     "<h1>Delete this widget?</h1>"
     '<div class="bw-alert bw-alert--warning" role="alert">'
     '<div class="bw-alert__body">'
@@ -1227,13 +1390,12 @@ _CONFIRM_SOURCE = (
     '<p class="bw-alert__message">This cannot be undone.</p>'
     "</div>"
     "</div>"
-    "{% endblock %}"
-    "{% block confirm_actions %}"
     '<form method="post" action="/widgets/1/delete/">'
     "{% csrf_token %}"
     '{% bw_button label="Delete" type="submit" variant="danger" %}'
     "</form>"
     '{% bw_button label="Cancel" href="/widgets/" variant="ghost" %}'
+    "</div>"
     "{% endblock %}"
 )
 
@@ -1254,20 +1416,25 @@ class _DemoSigninForm(forms.Form):
     password = forms.CharField(label="Password", widget=forms.PasswordInput)
 
 
+# Composes the AUTH shell and the components directly: the page tier was
+# retired in 2.0.0 (ADR-056). Follows examples/auth/signin.html: brickwork
+# ships no auth view, form, or URL and names no field, so the heading, the
+# <form>, and the secondary link all live here, in the page the consumer owns.
 _AUTH_SIGNIN_SOURCE = (
-    "{% extends 'brickwork/pages/auth_signin.html' %}"
+    "{% extends 'brickwork/shell/auth.html' %}"
     "{% load brickwork_forms brickwork_components %}"
     "{% block page_title %}Sign in{% endblock %}"
     '{% block brand_wordmark %}<span class="bw-auth__brand">Acme</span>{% endblock %}'
-    "{% block auth_body %}"
+    "{% block content %}"
+    '<div class="bw-section-stack">'
+    "<h1>Sign in</h1>"
     '<form method="post" action="/accounts/login/">'
     "{% csrf_token %}"
     "{% bw_form form %}"
     '{% bw_button label="Sign in" type="submit" variant="primary" %}'
     "</form>"
-    "{% endblock %}"
-    "{% block auth_secondary %}"
     '{% bw_button label="Forgot password?" href="/accounts/password/reset/" variant="ghost" size="sm" %}'
+    "</div>"
     "{% endblock %}"
 )
 
@@ -1325,23 +1492,105 @@ def render_account_menu_post(theme: str) -> str:
 
 # --- the 1.2.0 marketing kit fixtures (brickwork.marketing, BR-BW-MKT-002) ---
 #
-# landing-<theme>.html   brickwork_testapp/marketing/landing.html: a
-#                        consumer-shaped extension of the shipped landing
-#                        page (hero, logo cloud, feature grid, stat band,
-#                        testimonial, CTA), all filled with representative
-#                        content, so axe examines the fully composed page,
-#                        mirroring how render_list/render_dashboard route
-#                        through the real shipped patterns rather than a
-#                        hand-written sample.
-# pricing-<theme>.html   brickwork_testapp/marketing/pricing.html: hero,
-#                        a 3-tier pricing table (one highlighted, "Most
+# The three marketing pages went the same way as the app page tier in 2.0.0
+# (ADR-056), so each fixture below composes the marketing shell and the
+# marketing section components directly, filling every band with
+# representative content so axe still examines the fully composed page.
+#
+# landing-<theme>.html   hero, logo cloud, feature grid, stat band,
+#                        testimonial, CTA.
+# pricing-<theme>.html   hero, a 3-tier pricing table (one highlighted, "Most
 #                        popular" badge), FAQ, CTA.
-# about-<theme>.html     brickwork_testapp/marketing/about.html: hero, a
-#                        prose about_body, stat band, testimonial, CTA.
+# about-<theme>.html     hero, a prose about body, stat band, testimonial,
+#                        CTA.
 #
 # None of the three needs a resolver_match: the marketing shell's nav is a
 # plain list of links with no active-route resolver dependency
 # (04-interfaces.md 4d), unlike the app shell's {% bw_nav %}.
+#
+# The header, footer, and legal chrome is identical across the three, so it is
+# shared here rather than repeated in each source string.
+_MARKETING_CHROME = (
+    "{% load brickwork_components %}"
+    "{% block marketing_nav %}"
+    '<a href="#features">Features</a>'
+    '<a href="#pricing">Pricing</a>'
+    '<a href="#about">About</a>'
+    "{% endblock %}"
+    "{% block marketing_actions %}"
+    '<a href="#signin">Sign in</a>'
+    '{% bw_button "Get started" href="#start" variant="primary" size="sm" %}'
+    "{% endblock %}"
+    "{% block footer_legal %}&copy; 2026 Acme Ltd. All rights reserved.{% endblock %}"
+)
+
+# The section includes, each wired from the same context names the retired
+# marketing pages wired them from, so every fixture's context data is unchanged.
+_MKT_HERO = (
+    '{% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow'
+    " heading=heading lede=lede primary_cta=primary_cta secondary_cta=secondary_cta"
+    " media=media align=align %}"
+)
+_MKT_STATS = '{% include "brickwork_marketing/components/_stat_band.html" with heading=stats_heading stats=stats %}'
+_MKT_TESTIMONIAL = (
+    '{% include "brickwork_marketing/components/_testimonial.html" with quote=quote'
+    " author=author role=role avatar=avatar logo=testimonial_logo %}"
+)
+_MKT_CTA = (
+    '{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading'
+    " body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary"
+    " no_tint=cta_no_tint %}"
+)
+
+_LANDING_SOURCE = (
+    '{% extends "brickwork_marketing/shell/marketing.html" %}'
+    + _MARKETING_CHROME
+    + "{% block content %}"
+    + _MKT_HERO
+    + '{% include "brickwork_marketing/components/_logo_cloud.html" with'
+    " heading=logo_cloud_heading logos=logos greyscale=logo_cloud_greyscale %}"
+    '{% include "brickwork_marketing/components/_feature_grid.html" with'
+    " heading=features_heading lede=features_lede items=features"
+    " columns=features_columns %}" + _MKT_STATS + _MKT_TESTIMONIAL + _MKT_CTA + "{% endblock %}"
+    "{% block marketing_footer %}"
+    '<div class="bw-marketing-footer__group">'
+    "<h3>Product</h3>"
+    '<a href="#features">Features</a>'
+    '<a href="#pricing">Pricing</a>'
+    "</div>"
+    '<div class="bw-marketing-footer__group">'
+    "<h3>Company</h3>"
+    '<a href="#about">About</a>'
+    '<a href="#contact">Contact</a>'
+    "</div>"
+    "{% endblock %}"
+)
+
+_PRICING_SOURCE = (
+    '{% extends "brickwork_marketing/shell/marketing.html" %}'
+    + _MARKETING_CHROME
+    + "{% block content %}"
+    + _MKT_HERO
+    + '{% include "brickwork_marketing/components/_pricing_table.html" with'
+    " heading=pricing_heading lede=pricing_lede tiers=tiers note=pricing_note %}"
+    '{% include "brickwork_marketing/components/_faq.html" with heading=faq_heading'
+    " items=faq_items single_open=faq_single_open %}" + _MKT_CTA + "{% endblock %}"
+)
+
+_ABOUT_SOURCE = (
+    '{% extends "brickwork_marketing/shell/marketing.html" %}'
+    + _MARKETING_CHROME
+    + "{% block content %}"
+    + _MKT_HERO
+    + '<div class="bw-section-stack">'
+    "<h2>Our story</h2>"
+    "<p>Acme was founded in 2019 to make widget management simple for teams of"
+    " every size. What started as a weekend project is now trusted by teams"
+    " across the world.</p>"
+    "<p>We believe software should be fast, accessible, and beautiful by"
+    " default, so every team can focus on their work, not their tools.</p>"
+    "</div>" + _MKT_STATS + _MKT_TESTIMONIAL + _MKT_CTA + "{% endblock %}"
+)
 
 _MARKETING_LOGOS = [
     {"src": "/static/demo/acme.svg", "alt": "Acme Corp"},
@@ -1433,7 +1682,8 @@ def render_landing(theme: str) -> str:
         **_MARKETING_TESTIMONIAL,
         **_MARKETING_CTA,
     }
-    return _inline_css(render_to_string("brickwork_testapp/marketing/landing.html", ctx, request=request))
+    html = engines["django"].from_string(_LANDING_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
 
 
 def render_pricing(theme: str) -> str:
@@ -1456,7 +1706,8 @@ def render_pricing(theme: str) -> str:
         "faq_single_open": True,
         **_MARKETING_CTA,
     }
-    return _inline_css(render_to_string("brickwork_testapp/marketing/pricing.html", ctx, request=request))
+    html = engines["django"].from_string(_PRICING_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
 
 
 def render_about(theme: str) -> str:
@@ -1476,7 +1727,8 @@ def render_about(theme: str) -> str:
         **_MARKETING_TESTIMONIAL,
         **_MARKETING_CTA,
     }
-    return _inline_css(render_to_string("brickwork_testapp/marketing/about.html", ctx, request=request))
+    html = engines["django"].from_string(_ABOUT_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
 
 
 # --- the nav renderers (#102/#82) ---------------------------------------------

@@ -1,10 +1,13 @@
-{% extends "brickwork_marketing/pages/marketing/pricing.html" %}
+{% extends "brickwork_marketing/shell/marketing.html" %}
 {% load brickwork_components %}
 {% comment %}
-The marketing pricing demo page (1.2.0, brickwork.marketing a11y fixtures):
-a consumer-shaped extension of the shipped pricing page, filling hero,
-pricing table (three tiers, one highlighted), FAQ, and CTA with
-representative content, so axe examines the fully composed page.
+The marketing pricing demo page, composed from the marketing shell and the
+marketing section components directly: 2.0.0 (ADR-056) retired the page tier,
+so the shipped pricing page is gone and this file is the consumer's own (see
+examples/marketing/pricing.html).
+
+Hero, pricing table (three tiers, one highlighted), FAQ, and CTA are all filled
+with representative content, so axe examines the fully composed page.
 {% endcomment %}
 
 {% block marketing_nav %}
@@ -16,6 +19,13 @@ representative content, so axe examines the fully composed page.
 {% block marketing_actions %}
   <a href="#signin">Sign in</a>
   {% bw_button "Get started" href="#start" variant="primary" size="sm" %}
+{% endblock %}
+
+{% block content %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta secondary_cta=secondary_cta media=media align=align %}
+  {% include "brickwork_marketing/components/_pricing_table.html" with heading=pricing_heading lede=pricing_lede tiers=tiers note=pricing_note %}
+  {% include "brickwork_marketing/components/_faq.html" with heading=faq_heading items=faq_items single_open=faq_single_open %}
+  {% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary no_tint=cta_no_tint %}
 {% endblock %}
 
 {% block footer_legal %}

@@ -1,0 +1,96 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+An about page.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    stats  [{value, label}] for the numbers band
+
+An about page is mostly prose, which is exactly why it is a copy-paste example
+and not a configurable template: there is no data shape to fill in, only your
+own words. The narrative below is a worked placeholder. Replace all of it.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}About - Northwind{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block marketing_nav %}
+  <a href="/features/">Features</a>
+  <a href="/pricing/">Pricing</a>
+  <a href="/customers/">Customers</a>
+  <a href="/docs/">Docs</a>
+{% endblock %}
+
+{% block marketing_actions %}
+  {% if request.user.is_authenticated %}
+    <a href="/app/">Go to app</a>
+  {% else %}
+    <a href="/accounts/login/">Sign in</a>
+    {% bw_button "Start free trial" variant="primary" href="/accounts/signup/" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="About us" heading="We built the thing we kept doing by hand" lede="Northwind started as a spreadsheet and a calendar reminder. It turned out everybody had the same spreadsheet." align="center" %}
+
+  {% comment %}
+  The prose body. The marketing shell gives content typography a sensible
+  floor, so plain headings and paragraphs read correctly with no classes.
+
+  Wrapped in bw-section-stack so the sections space consistently with the
+  component sections above and below.
+  {% endcomment %}
+  <div class="bw-section-stack">
+    <h2>Why we started</h2>
+    <p>
+      We ran a small consultancy for six years. Every month ended the same way:
+      an evening spent raising invoices, then three weeks of politely asking
+      about them. The asking was the part that never got done, because nobody
+      wants to chase a client they like.
+    </p>
+    <p>
+      So we automated the asking. Not the relationship, just the reminder. It
+      turned out that was the whole problem: the money was not missing, it was
+      waiting for somebody to be brave enough to bring it up.
+    </p>
+
+    <h2>How we work</h2>
+    <p>
+      We are eleven people across four countries. We do not take outside
+      investment, so the only thing we optimise for is customers renewing.
+      That makes the roadmap simple: fix what annoys people, then build what
+      they ask for twice.
+    </p>
+  </div>
+
+  {% include "brickwork_marketing/components/_stat_band.html" with heading="Where we are now" stats=stats %}
+
+  {% include "brickwork_marketing/components/_testimonial.html" with quote="They shipped the feature I asked for in a fortnight, then emailed to check I actually used it. Nobody does that." author="Tom Whitfield" role="Founder, Marlowe Studio" %}
+
+  {% include "brickwork_marketing/components/_cta.html" with heading="Come and try it" body="Thirty days free, and a real person answers the support email." primary_cta_label="Start free trial" primary_cta_url="/accounts/signup/" secondary_cta_label="Read the docs" secondary_cta_url="/docs/" %}
+
+{% endblock %}
+
+{% block marketing_footer %}
+  <div>
+    <h2>Product</h2>
+    <a href="/features/">Features</a>
+    <a href="/pricing/">Pricing</a>
+    <a href="/changelog/">Changelog</a>
+  </div>
+  <div>
+    <h2>Company</h2>
+    <a href="/about/">About</a>
+    <a href="/careers/">Careers</a>
+    <a href="/contact/">Contact</a>
+  </div>
+{% endblock %}
+
+{% block footer_legal %}
+  <p>Copyright 2026 Northwind Software Ltd. <a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></p>
+{% endblock %}

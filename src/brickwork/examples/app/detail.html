@@ -1,0 +1,67 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A detail page: the record's facts, related sections, and a danger zone.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    invoice        the record being shown
+    invoice_facts  its facts as [{label, value}] for the definition table
+    nav_items / nav_active  as in list.html
+{% endcomment %}
+{% load brickwork_components brickwork_nav %}
+
+{% block page_title %}Invoice INV-2417 - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% comment %}
+Breadcrumbs are a list of {label, url} dicts, last item current. Build them in
+the view or a context processor; hard-coded here so the example reads.
+{% endcomment %}
+{% block breadcrumbs %}
+  {% include "brickwork/components/_breadcrumbs.html" with items=breadcrumb_items %}
+{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Invoice INV-2417" description="Raised 14 July 2026 against Acme Corp." %}
+{% endblock %}
+
+{% block page_actions %}
+  {% bw_button "Download PDF" variant="secondary" icon="download" href="/invoices/INV-2417/pdf/" %}
+  {% bw_button "Edit" variant="primary" icon="edit" href="/invoices/INV-2417/edit/" %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  The definition variant is the <dl>-shaped facts table for ONE record: each
+  row is {label, value}, the label rendered as a row header. No sorting, no
+  column headers, because those make no sense for one entity's facts.
+  {% endcomment %}
+  {% include "brickwork/components/_data_table.html" with table_id="invoice-facts" variant="definition" rows=invoice_facts %}
+
+  {% comment %}
+  Related records. An {% templatetag openblock %} include {% templatetag closeblock %}
+  cannot fill another template's blocks, so a card that needs a header and body
+  is written as a tiny template of your own that EXTENDS _card.html and fills
+  them, which you then include here. That is the one piece of card mechanics
+  worth knowing; see _card.html's own header comment for the shape.
+  {% endcomment %}
+  {% include "brickwork/components/_data_table.html" with table_id="invoice-lines" columns=line_columns rows=line_rows empty_heading="No line items" empty_body="This invoice has no line items yet." %}
+
+  {% comment %}
+  The danger zone. Nothing is shipped here by default: brickwork will not
+  fabricate a warning about an action it knows nothing about. Give the region
+  its own visual weight with an alert, and point the button at your own
+  confirmation page (see app/confirm.html).
+  {% endcomment %}
+  {% include "brickwork/components/_alert.html" with variant="warning" title="Void this invoice" message="Voiding cannot be undone. The invoice stays on record but is no longer payable." %}
+  {% bw_button "Void invoice" variant="danger" href="/invoices/INV-2417/void/" %}
+
+</div>
+{% endblock %}

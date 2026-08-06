@@ -1,0 +1,74 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+One step of a multi-step flow.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056). In practice you copy it once per step,
+or copy it once and vary the step content by template.
+
+What your view must supply:
+    form   this step's own form
+    steps  [{label, status}] where status is "complete" | "current" | "upcoming"
+    nav_items / nav_active  as in list.html
+
+HOW THE FLOW WORKS, because this trips people up: brickwork ships the progress
+indicator and nothing else. There is no client-side wizard state machine, no
+session key, no step cookie. Each step is an ordinary Django page at its own
+URL:
+
+    /onboarding/company/   ->  /onboarding/team/  ->  /onboarding/billing/
+
+Each step POSTs to itself. On valid, your view saves and redirects to the next
+step's URL. On invalid, it re-renders this same step with the bound form and
+the errors show inline. "Back" is a plain link to the previous URL, not a state
+rewind: the previous step's data was already saved when it succeeded, so going
+back and forward again is safe and needs no client memory.
+
+Your view computes each step's status by comparing its position against the
+current step. brickwork does not track it.
+{% endcomment %}
+{% load brickwork_components brickwork_forms brickwork_nav %}
+
+{% block page_title %}Add your team - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Add your team" description="Step 2 of 3. Invite the people who will use Northwind with you." %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  The progress indicator. It is an ordered list, so a screen reader announces
+  position natively, and each step's status is carried by a glyph plus hidden
+  text as well as colour. Pass orientation="vertical" for a narrow column.
+  {% endcomment %}
+  {% include "brickwork/components/_stepper.html" with steps=steps %}
+
+  {% comment %}
+  This step's own content. As with the form example, you own the <form>: the
+  submit lives inside it, beside the fields.
+  {% endcomment %}
+  <div class="bw-wizard__step">
+    <form method="post" action="{{ request.path }}">
+      {% csrf_token %}
+      {% bw_form form %}
+      <div class="bw-form__actions">
+        {% bw_button "Continue" type="submit" variant="primary" %}
+      </div>
+    </form>
+  </div>
+
+  {% comment %}
+  Back is an ordinary anchor to the previous step's URL. Omit it on step one.
+  {% endcomment %}
+  <nav class="bw-wizard__nav" aria-label="Wizard navigation">
+    <a class="bw-btn bw-btn--ghost" href="/onboarding/company/">Back</a>
+  </nav>
+
+</div>
+{% endblock %}

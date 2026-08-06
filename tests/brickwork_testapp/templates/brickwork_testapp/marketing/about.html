@@ -1,10 +1,15 @@
-{% extends "brickwork_marketing/pages/marketing/about.html" %}
+{% extends "brickwork_marketing/shell/marketing.html" %}
 {% load brickwork_components %}
 {% comment %}
-The marketing about demo page (1.2.0, brickwork.marketing a11y fixtures):
-a consumer-shaped extension of the shipped about page, filling hero,
-about_body (plain prose, since the page ships no default of its own), stat
-band, testimonial, and CTA with representative content.
+The marketing about demo page, composed from the marketing shell and the
+marketing section components directly: 2.0.0 (ADR-056) retired the page tier,
+so the shipped about page is gone and this file is the consumer's own (see
+examples/marketing/about.html).
+
+Hero, the prose body, stat band, testimonial, and CTA are all filled with
+representative content. The prose body was always the consumer's own words (the
+retired page shipped no default for it), which is exactly the argument for
+whole pages being copy-paste examples rather than templates to extend.
 {% endcomment %}
 
 {% block marketing_nav %}
@@ -18,13 +23,21 @@ band, testimonial, and CTA with representative content.
   {% bw_button "Get started" href="#start" variant="primary" size="sm" %}
 {% endblock %}
 
-{% block about_body %}
-  <h2>Our story</h2>
-  <p>Acme was founded in 2019 to make widget management simple for teams of
-  every size. What started as a weekend project is now trusted by teams
-  across the world.</p>
-  <p>We believe software should be fast, accessible, and beautiful by
-  default, so every team can focus on their work, not their tools.</p>
+{% block content %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow=eyebrow heading=heading lede=lede primary_cta=primary_cta secondary_cta=secondary_cta media=media align=align %}
+
+  <div class="bw-section-stack">
+    <h2>Our story</h2>
+    <p>Acme was founded in 2019 to make widget management simple for teams of
+    every size. What started as a weekend project is now trusted by teams
+    across the world.</p>
+    <p>We believe software should be fast, accessible, and beautiful by
+    default, so every team can focus on their work, not their tools.</p>
+  </div>
+
+  {% include "brickwork_marketing/components/_stat_band.html" with heading=stats_heading stats=stats %}
+  {% include "brickwork_marketing/components/_testimonial.html" with quote=quote author=author role=role avatar=avatar logo=testimonial_logo %}
+  {% include "brickwork_marketing/components/_cta.html" with heading=cta_heading body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary no_tint=cta_no_tint %}
 {% endblock %}
 
 {% block footer_legal %}

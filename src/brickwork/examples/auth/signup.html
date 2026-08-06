@@ -1,0 +1,52 @@
+{% extends "brickwork/shell/auth.html" %}
+{% comment %}
+Create an account.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    form  your signup form
+
+As with signin.html, brickwork names no field and ships no view or URL: allauth
+uses email/password1/password2, django.contrib.auth's UserCreationForm uses
+username, and bw_form renders either without this file knowing the difference.
+The URL below is a PLACEHOLDER; replace it with your own.
+{% endcomment %}
+{% load brickwork_components brickwork_forms %}
+
+{% block page_title %}Create your account - Northwind{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  <h1>Create your account</h1>
+
+  <p>Free for 30 days. No card needed.</p>
+
+  <form method="post" action="/accounts/signup/">
+    {% csrf_token %}
+    {% bw_form form %}
+    <div class="bw-form__actions">
+      {% bw_button "Create account" type="submit" variant="primary" %}
+    </div>
+  </form>
+
+  <p>
+    Already have an account? <a href="/accounts/login/">Sign in</a>
+  </p>
+
+  {% comment %}
+  Your terms line, if you have one. Keep it as text near the submit rather
+  than as a pre-ticked checkbox.
+  {% endcomment %}
+  <p>
+    By creating an account you agree to our
+    <a href="/terms/">terms of service</a> and
+    <a href="/privacy/">privacy policy</a>.
+  </p>
+
+</div>
+{% endblock %}

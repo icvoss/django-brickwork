@@ -8,6 +8,132 @@ versioning contract).
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-08-06
+
+brickwork's contract is components, shells, and tokens. Whole pages are
+examples you own.
+
+That is the whole of this release. The page and pattern template tiers, the
+only part of the package a consumer imported and extended to get a whole
+screen, are removed and re-cast as copy-paste examples shipped in the wheel
+where the template loader deliberately cannot reach them. Everything else,
+which is to say every component, tag, shell, token, CSS rule, Alpine name and
+HTMX id, is untouched.
+
+**If you compose brickwork components into your own pages, this release is a
+no-op for you.** If you extended a shipped page or pattern, there is exactly
+one migration and it is mechanical: copy the matching file out of
+`brickwork/examples/` into your own templates tree. See the Removed section
+for the mapping and the reasoning.
+
+### Added
+
+- **Copy-paste example pages, shipped in the wheel off the template loader
+  path** (ADR-056). Fifteen complete, working pages built from the tokens,
+  components, and shells, each carrying real content rather than placeholders:
+  an annotated `base.html`, the app set (list, detail, dashboard, form, wizard,
+  settings, console, confirm), the auth trio, and the marketing set (landing,
+  pricing, about). They live in `brickwork/examples/` as package DATA, not
+  under an app `templates/` directory, so Django's `APP_DIRS` loader
+  structurally cannot resolve them: the only way to use one is to open it and
+  copy it into your own tree, where you own it outright.
+
+- **`brickwork.examples`, a small read accessor for that tree**
+  (`list_examples()`, `read_example(name)`, `examples_root()`). It lets tooling
+  read example source straight from the installed package, so the gallery and
+  the wheel cannot drift. It reads no settings and touches no template engine,
+  so it is safe to import before `django.setup()`.
+
+- **`examples/base.html`, annotated line by line.** Every load-bearing line in
+  the document skeleton is explained where it sits: the skip link and why it
+  must be first, the modal and slide-over swap roots and why the empty divs
+  cannot be deleted, the four `<html>` attributes carrying the theme, density,
+  direction, and brand axes, and why `{% firstof %}` rather than `|default`.
+  Copy it to own your skeleton, or keep extending `brickwork/shell/base.html`
+  and receive improvements automatically; both remain supported.
+
+### Changed
+
+- **Changelog entries are now one fragment file per change**
+  (icvoss/django-brickwork#113). A feature branch adds
+  `changelog.d/<slug>.<type>.md` rather than editing `CHANGELOG.md`, and the
+  release PR assembles the fragments with
+  `python scripts/assemble_changelog.py <version>`. Parallel branches editing
+  one shared `[Unreleased]` block conflicted on every merge in the 1.4.0 wave,
+  and union-resolving those conflicts silently filed new capabilities under
+  `Fixed`; two fragments are two files, so they merge without being compared.
+  This is a contributor-workflow change only, with no effect on the installed
+  package.
+
+### Fixed
+
+- **The dev extra now pins ruff to exactly the version CI installs**
+  (icvoss/django-brickwork#110). The `[dev]` extra allowed any `ruff>=0.5.0`
+  while `.github/workflows/ci.yml` installed `ruff==0.15.22`, so a local
+  `ruff format` run under a newer ruff reformatted files the pinned version
+  formats differently and produced phantom drift with no source change behind
+  it. Both pins now move together, by construction.
+
+- **The marketing shell now spaces its first content section**
+  (icvoss/django-brickwork#111). The section rhythm was applied only BETWEEN
+  children, so a page whose opening section was not a hero (a page header, a
+  feature grid, a docs index) rendered flush against the header's hairline, and
+  consumers were wrapping their first child in a padding div to compensate. The
+  hero opts out, since it already owns its own vertical rhythm. This changes a
+  visual default: a page that already compensates with its own top padding will
+  gain doubled space until that workaround is removed, which is why it lands in
+  a major.
+
+- **`_alert.html` renders correctly when included directly.** The component
+  derived its status icon in the `{% bw_alert %}` tag, so a plain
+  `{% include "brickwork/components/_alert.html" with variant="warning"
+  title="..." message="..." %}`, which is the composition shape the examples
+  now document, passed an empty icon name and raised `IconNotFoundError`. The
+  variant-to-icon mapping is resolved in the template as a fallback, so both
+  call shapes work. The tag path still passes an explicit icon, which wins, so
+  its output is byte-identical to 1.x.
+
+### Removed
+
+- **BREAKING: the shipped page and pattern template tiers are removed from the
+  template loader path** (ADR-056). These templates no longer exist as
+  loadable templates:
+
+  - `brickwork/pages/{form_page,settings,console,confirm}.html`
+  - `brickwork/pages/{auth_signin,auth_signup,auth_reset}.html`
+  - `brickwork/patterns/{list,detail,dashboard,wizard,_table_card}.html`
+  - `brickwork_marketing/pages/marketing/{landing,pricing,about}.html`
+
+  Their block contracts (`BR-BW-PAGE-001` to `BR-BW-PAGE-005`, the pattern
+  block sets, and the marketing page blocks within `BR-BW-MKT`) are retired
+  rather than deprecated in place. All were `[v1-single-consumer]` and none
+  was ever ratified by a second consumer, which is precisely the licence to
+  unwind cleanly.
+
+  **Migration, and it is the only one in this release:** if you wrote
+  `{% extends "brickwork/pages/..." %}`, `{% extends "brickwork/patterns/..." %}`,
+  or `{% extends "brickwork_marketing/pages/marketing/..." %}`, copy the
+  equivalent file from `brickwork/examples/` in the installed package into your
+  own `templates/` tree and point your `{% extends %}` at your own base or at a
+  brickwork shell. The examples compose the same components, so the rendered
+  page is the same; you now own the file. There is a one-to-one mapping for
+  every removed template.
+
+  **Nothing else moved.** The components, the template tags, the shells
+  (`shell/base`, `shell/app`, `shell/auth`, `shell/centred`,
+  `shell/marketing`), the CSS, the `--bw-*` token contract, the Alpine
+  component names, the HTMX target ids, and the icon registry are all
+  unchanged. A project that composed components into its own pages, which is
+  most of them, needs no change at all.
+
+  **Why a whole page could not stay an extendable contract:** a page is the
+  most project-specific thing you own, and importing one hands a dependency
+  the power to reshape your own landing page on a pin bump. It also forced a
+  flat page-level context bag, which is why the old landing page needed
+  `cta_heading`, `logo_cloud_heading`, and `features_heading` to avoid
+  collisions between its own sections. Composing scoped
+  `{% include ... with %}` calls has neither problem.
+
 ## [1.4.0] - 2026-08-05
 
 The drop-in maturity wave: every silent wiring trap now fails loudly, the

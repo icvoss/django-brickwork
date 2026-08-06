@@ -1,0 +1,222 @@
+{% comment %}
+=============================================================================
+ base.html: your own document skeleton, annotated line by line
+=============================================================================
+
+COPY THIS FILE into your project as templates/base.html, then edit it freely.
+It is yours from that moment. brickwork does not ship it to you as a template
+you extend; this file is not on the template loader path and never will be
+(ADR-056).
+
+WHEN TO USE THIS instead of {% templatetag openblock %} extends
+"brickwork/shell/base.html" {% templatetag closeblock %}:
+you want to own the document outright, add your own meta tags, analytics, CSP
+nonces, or a second CSS bundle without fighting a block contract. brickwork's
+shipped shells stay importable and are the other first-class option
+(ADR-056 section 1): extend brickwork/shell/base.html and you receive future
+improvements automatically; copy this file and you receive them as a visible,
+opt-in diff you choose to apply. Both are supported. Neither is required.
+
+WHAT YOU STILL GET FROM THE PACKAGE after copying:
+the accessibility floor lives in brickwork.css (focus rings, contrast,
+reduced-motion) and in the components themselves (focus trap, ARIA wiring),
+NOT in this markup. So a brickwork upgrade still improves your pages even
+though you own this file. What you no longer receive automatically is
+structural change to the skeleton below, which is the point.
+
+EVERY LOAD-BEARING LINE IS ANNOTATED. If you remove a line marked LOAD-BEARING
+something will break, and the comment says what.
+=============================================================================
+{% endcomment %}
+{% load static i18n %}<!doctype html>
+
+{% comment %}
+LOAD-BEARING: the four attributes on <html>.
+
+brickwork's entire visual system is driven from :root, so these four axes MUST
+sit on the <html> element. Putting them on <body> or on a wrapper div silently
+half-works: the derived color-mix tokens compute at :root and a lower hook
+cannot recolour them.
+
+  data-theme    "light" | "dark". Selects the token set.
+  data-density  "comfortable" | "compact". Scales spacing and control sizes.
+  dir           "ltr" | "rtl". brickwork uses CSS logical properties
+                throughout, so this attribute alone flips the whole layout.
+                You do not need RTL-specific CSS.
+  data-bw-brand your brand slug, when you have registered brand tokens.
+                OMIT THE ATTRIBUTE ENTIRELY when there is no brand: an empty
+                data-bw-brand="" is not the same as absent, and would select a
+                brand block that does not exist.
+
+The bw_* context variables come from brickwork.context_processors.theme. Add
+it to your TEMPLATES OPTIONS context_processors or these all fall back to the
+defaults below and your theming will never apply. (brickwork.W001 warns at
+startup if you forget; that check exists because this was the single most
+common support trap.)
+
+{% templatetag openblock %} firstof {% templatetag closeblock %}, never the
+|default filter: |default only substitutes for a defined-but-falsy value, so
+with a genuinely undefined variable it renders your string_if_invalid marker
+into the attribute. firstof ignores the resolution failure and is immune.
+{% endcomment %}
+<html lang="{% firstof bw_lang 'en' %}"
+      dir="{% firstof bw_dir 'ltr' %}"
+      data-theme="{% firstof bw_theme 'light' %}"
+      data-density="{% firstof bw_density 'comfortable' %}"{% if bw_brand %}
+      data-bw-brand="{{ bw_brand }}"{% endif %}>
+<head>
+  <meta charset="utf-8">
+  {% comment %}
+  LOAD-BEARING: the viewport meta. brickwork's responsive layouts, and the
+  mobile drawer in particular, assume it. Without it a phone renders the
+  desktop layout scaled down.
+  {% endcomment %}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{% block page_title %}{% firstof bw_page_title '' %}{% endblock %}</title>
+
+  {% comment %}
+  LOAD-BEARING: the stylesheet. This one file carries the tokens, every
+  component's styling, and the accessibility floor. brickwork ships STABLE
+  (non-hashed) asset filenames, so a plain {% templatetag openblock %} static
+  {% templatetag closeblock %} resolves it: there is no Vite manifest and you
+  do not need django-vite.
+
+  Load YOUR OWN stylesheet AFTER this one if you have one, so your overrides
+  win on equal specificity.
+  {% endcomment %}
+  <link rel="stylesheet" href="{% static 'brickwork/dist/brickwork.css' %}">
+
+  {# Your own head content: meta description, favicons, your own CSS. #}
+  {% block head_extra %}{% endblock %}
+
+  {% comment %}
+  Alpine and htmx are HOST-OWNED singletons: brickwork never loads them for
+  you, because a library that ships its own copy guarantees a duplicate when
+  the host also loads one. Load them here (deferred) or at the end of <body>.
+
+  brickwork works with NEITHER loaded (the no-JS floor): every interactive
+  component degrades to a working native equivalent. Add them when you want
+  the enhancements.
+
+  If you load Alpine you MUST call registerBrickworkComponents(Alpine) before
+  Alpine.start(), or brickwork's interactive markup renders inert with no
+  error. With DEBUG on, the diagnostic at the end of this file catches that.
+  {% endcomment %}
+  {% block head_js %}{% endblock %}
+</head>
+
+<body class="bw-body bw-shell--{% block shell_variant %}base{% endblock %}">
+
+  {% comment %}
+  LOAD-BEARING: the skip link, and it must be the FIRST focusable element in
+  the document. A keyboard user landing on your page otherwise has to tab
+  through the whole navigation before reaching content, on every page.
+
+  Its href MUST match the id on your <main> element below. brickwork's CSS
+  keeps it visually hidden until it takes focus; you do not need to style it.
+  (An audit of five real apps found 0 of 5 had one. Keep it.)
+  {% endcomment %}
+  <a class="bw-skip-link" href="#bw-main">{% translate "Skip to main content" %}</a>
+
+  {% comment %}
+  ---------------------------------------------------------------------------
+  YOUR LAYOUT GOES HERE.
+  ---------------------------------------------------------------------------
+  This example ships the bare document only, so it suits any layout. For a
+  full application chrome (sidebar, topbar, workspace) you have two options:
+
+    1. Extend the shipped shell instead of copying this file:
+       {% templatetag openblock %} extends "brickwork/shell/app.html"
+       {% templatetag closeblock %}
+       and fill its blocks. You keep receiving shell improvements.
+
+    2. Keep this file and compose the chrome yourself from components. See the
+       app/ examples beside this one for worked pages.
+
+  LOAD-BEARING: whatever you put here, your main content element needs
+  id="bw-main" (the skip link's target) and tabindex="-1" (so the skip link
+  can actually move focus to it; without tabindex the browser moves the
+  viewport but not the focus, and the next Tab returns to the top of the page).
+  {% endcomment %}
+  <main id="bw-main" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block body_js %}{% endblock %}
+
+  {% comment %}
+  LOAD-BEARING (if you use toasts): the toast region.
+
+  This is the stable live region AND the out-of-band swap target that server
+  responses append to (hx-swap-oob="afterbegin:#bw-toast-region"). Its id is
+  the contract: a server response naming that target has nowhere to land if
+  this element is missing, and the swap silently does nothing.
+
+  It renders nothing visible when empty, so there is no cost to keeping it.
+  Move its position by setting bw_toast_position in context ("top-end" is the
+  default; resolve it BEFORE the include, as here, so an undefined value never
+  reaches the component as a string_if_invalid marker).
+  {% endcomment %}
+  {% firstof bw_toast_position 'top-end' as bw_toast_position_resolved %}
+  {% include "brickwork/components/_toast_region.html" with position=bw_toast_position_resolved %}
+
+  {% comment %}
+  LOAD-BEARING (if you use modals or slide-overs): these two empty divs.
+
+  They look removable. They are not. They are the stable swap roots that
+  server-rendered modal and slide-over fragments target. Both use
+  display: contents, so an empty root occupies zero space and never shifts
+  your layout.
+
+  They are SEPARATE roots on purpose, so a slide-over and a modal can be open
+  at the same time (a detail panel beside content, with a confirm dialog over
+  it). Do not merge them into one.
+  {% endcomment %}
+  <div id="bw-modal-root"></div>
+  <div id="bw-slide-over-root"></div>
+
+  {% comment %}
+  DIAGNOSTIC ONLY, and only when DEBUG is on: warns in the console if this
+  page contains brickwork interactive markup and Alpine is running but
+  registerBrickworkComponents(Alpine) was never called, which otherwise
+  renders as dead markup with no signal at all.
+
+  Production ships no script (bw_debug is False), so this never affects the
+  no-JS floor. Delete it if you prefer; you lose only the warning. If your dev
+  CSP forbids un-nonced inline scripts, add your nonce to the <script> tag.
+
+  This block is intentionally the LAST thing in <body>: it needs the rest of
+  the document to have parsed before it can look for brickwork markup.
+  {% endcomment %}
+  {% if bw_debug %}
+  <script data-bw-registration-check>
+  (function () {
+    "use strict";
+    var alpineStarted = false;
+    var warned = false;
+    function checkRegistration() {
+      if (warned) return;
+      if (document.documentElement.hasAttribute("data-bw-js-registered")) return;
+      if (!document.querySelector('[x-data^="bw"]')) return;
+      if (!alpineStarted && !window.Alpine) return;
+      warned = true;
+      console.warn(
+        "brickwork: this page contains interactive brickwork markup and Alpine " +
+        "is running, but registerBrickworkComponents(Alpine) was never called, " +
+        "so those components are inert. See INTEGRATION.md."
+      );
+    }
+    document.addEventListener("alpine:init", function () { alpineStarted = true; });
+    document.addEventListener("alpine:initialized", function () {
+      alpineStarted = true;
+      checkRegistration();
+    });
+    window.addEventListener("load", function () {
+      window.setTimeout(checkRegistration, 0);
+    });
+  })();
+  </script>
+  {% endif %}
+</body>
+</html>

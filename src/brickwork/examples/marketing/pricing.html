@@ -1,0 +1,91 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+A pricing page: tiers, an FAQ, and a closing CTA.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    faq_items  [{question, answer}]
+The tiers below are written straight into this template on purpose: see the
+note above the pricing section.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}Pricing - Northwind{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block marketing_nav %}
+  <a href="/features/">Features</a>
+  <a href="/pricing/" aria-current="page">Pricing</a>
+  <a href="/customers/">Customers</a>
+  <a href="/docs/">Docs</a>
+{% endblock %}
+
+{% block marketing_actions %}
+  {% if request.user.is_authenticated %}
+    <a href="/app/">Go to app</a>
+  {% else %}
+    <a href="/accounts/login/">Sign in</a>
+    {% bw_button "Start free trial" variant="primary" href="/accounts/signup/" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+  {% include "brickwork_marketing/components/_hero.html" with heading="Simple pricing" lede="Every plan includes unlimited invoices and automatic reminders. Pay for the people, not the paperwork." align="center" %}
+
+  {% comment %}
+  THE TIERS.
+
+  _pricing_table.html loops tier dicts from context, which suits a pricing
+  page driven by your billing system. But a tier's feature list is the one
+  thing you most want to edit as words, so when your prices are static the
+  clearer shape is to skip the wrapper and include _pricing_tier.html once per
+  plan, as here: everything except the feature list is a flat string, so the
+  whole section is readable and editable in place.
+
+  The feature lists still come from context, because a Django template cannot
+  build a list inline. Define them in your view as plain lists of strings.
+
+  Exactly one tier should be highlighted, and a highlighted tier is the only
+  one whose badge renders.
+  {% endcomment %}
+  <section class="bw-pricing-table-section">
+    <div class="bw-pricing-table">
+      {% include "brickwork_marketing/components/_pricing_tier.html" with name="Solo" price="£9" period="/month" description="For one person invoicing a handful of clients." features=solo_features cta_label="Start free trial" cta_url="/accounts/signup/?plan=solo" %}
+      {% include "brickwork_marketing/components/_pricing_tier.html" with name="Team" price="£29" period="/month" description="For a finance function of two to ten." features=team_features cta_label="Start free trial" cta_url="/accounts/signup/?plan=team" highlighted=True badge="Most popular" %}
+      {% include "brickwork_marketing/components/_pricing_tier.html" with name="Scale" price="£89" period="/month" description="Multi-entity, multi-currency, audit trails." features=scale_features cta_label="Talk to sales" cta_url="/contact/" %}
+    </div>
+    <p class="bw-pricing-table__note">Prices exclude VAT. Annual billing saves two months.</p>
+  </section>
+
+  {% comment %}
+  The FAQ. single_open=True makes the answers mutually exclusive using the
+  native <details name> group, so only one is open at a time with no JS.
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_faq.html" with heading="Questions people ask before signing up" items=faq_items single_open=True %}
+
+  {% include "brickwork_marketing/components/_cta.html" with heading="Try it on this month's invoices" body="Thirty days free. If it has not paid for itself by then, do not keep it." primary_cta_label="Start free trial" primary_cta_url="/accounts/signup/" %}
+
+{% endblock %}
+
+{% block marketing_footer %}
+  <div>
+    <h2>Product</h2>
+    <a href="/features/">Features</a>
+    <a href="/pricing/">Pricing</a>
+    <a href="/changelog/">Changelog</a>
+  </div>
+  <div>
+    <h2>Company</h2>
+    <a href="/about/">About</a>
+    <a href="/careers/">Careers</a>
+    <a href="/contact/">Contact</a>
+  </div>
+{% endblock %}
+
+{% block footer_legal %}
+  <p>Copyright 2026 Northwind Software Ltd. <a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></p>
+{% endblock %}

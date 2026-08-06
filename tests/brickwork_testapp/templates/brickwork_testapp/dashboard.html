@@ -1,28 +1,46 @@
 {% extends "brickwork_testapp/base.html" %}
 {% comment %}
-The dashboard page (0.5.0): routes through patterns/dashboard.html via
-base_parent (see DashboardView). The three stat tiles are fed by real Widget
-aggregates from the view; the trend/trend_label pairs on the Active and Draft
-tiles are fixed showcase values so the a11y fixtures exercise the delta
-surface (directional glyph + accessible text, BR-BW-TPL-007) in both themes.
-The activity region reuses the shared table card with the latest widgets.
+The dashboard page, composed from the shell and the shipped components
+directly: 2.0.0 (ADR-056) retired the page and pattern tier, so
+patterns/dashboard.html is gone and the page is the consumer's own. This file
+follows examples/app/dashboard.html: the stat row in its own bw-stat-grid, a
+content region, and the recent-activity table card.
+
+The three stat tiles are fed by real Widget aggregates from the view; the
+trend/trend_label pairs on the Active and Draft tiles are fixed showcase values
+so the a11y fixtures exercise the delta surface (directional glyph + accessible
+text, BR-BW-TPL-007) in both themes.
 {% endcomment %}
 
 {% block page_title %}Dashboard{% endblock %}
 
-{% block dashboard_stats %}
-  {% include "brickwork/components/_stat.html" with label="Total widgets" value=stats.total icon="folder" href="/widgets/" %}
-  {% include "brickwork/components/_stat.html" with label="Active" value=stats.active trend="up" trend_label="One more than last week" %}
-  {% include "brickwork/components/_stat.html" with label="Draft" value=stats.draft trend="down" trend_label="One fewer than last week" %}
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" %}
 {% endblock %}
 
-{% block dashboard_content %}
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %} The stat row: bw-stat-grid is the responsive container the retired pattern
+     supplied; the tile count and content are the page's own. {% endcomment %}
+  <div class="bw-stat-grid">
+    {% include "brickwork/components/_stat.html" with label="Total widgets" value=stats.total icon="folder" href="/widgets/" %}
+    {% include "brickwork/components/_stat.html" with label="Active" value=stats.active trend="up" trend_label="One more than last week" %}
+    {% include "brickwork/components/_stat.html" with label="Draft" value=stats.draft trend="down" trend_label="One fewer than last week" %}
+  </div>
+
+  {% comment %} The general-purpose content region. {% endcomment %}
   {% include "brickwork_testapp/_panel_card.html" with panel_title="Getting started" panel_body="Create widgets, file them by status, and watch the workspace numbers move." %}
-{% endblock %}
 
-{% block dashboard_activity %}
+  {% comment %} The recent-activity table card, wrapped the same way as the list page's
+     records table, fed by the rows/columns/table_id/empty_* context the view
+     supplies. {% endcomment %}
   <h2>Recent activity</h2>
-  {% comment %} block.super renders the pattern's own default activity table card, fed by
-     the rows/columns/table_id/empty_* context the view supplies. {% endcomment %}
-  {{ block.super }}
+  <div class="bw-card">
+    <div class="bw-card__body">
+      {% include "brickwork/components/_data_table.html" %}
+    </div>
+  </div>
+
+</div>
 {% endblock %}

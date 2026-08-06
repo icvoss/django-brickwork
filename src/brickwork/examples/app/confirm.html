@@ -1,0 +1,43 @@
+{% extends "brickwork/shell/centred.html" %}
+{% comment %}
+A destructive-action confirmation screen.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+This one extends the CENTRED shell, not the app shell: a confirmation is a
+deliberate interruption, so it drops the sidebar and topbar rather than letting
+the user carry on navigating mid-decision.
+
+Name exactly what is about to happen and to what. "Are you sure?" is not a
+confirmation, it is a speed bump. The example below names the record and states
+what is irreversible.
+
+No JS is involved: the confirm is a POST form and the cancel is a link. If you
+would rather confirm in a modal, brickwork ships one, but keep a real URL like
+this behind it so the action still works without JS.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}Delete project - Northwind{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% include "brickwork/components/_alert.html" with variant="warning" title="Delete the Q3 Migration project?" message="This deletes the project, its 47 tasks, and their attachments. It cannot be undone." %}
+
+  {% comment %}
+  The destructive action is a POST, never a link: a GET that deletes something
+  will eventually be triggered by a crawler or a prefetch. Cancel is a plain
+  anchor back to where the user came from.
+  {% endcomment %}
+  <div class="bw-form__actions">
+    <form method="post" action="{{ request.path }}">
+      {% csrf_token %}
+      {% bw_button "Delete project" type="submit" variant="danger" %}
+    </form>
+    {% bw_button "Cancel" variant="ghost" href="/projects/q3-migration/" %}
+  </div>
+
+</div>
+{% endblock %}

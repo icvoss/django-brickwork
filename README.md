@@ -34,12 +34,14 @@ presentation and interaction conventions.
 > [icvoss.com/packages/django-brickwork](https://icvoss.com/packages/django-brickwork)
 > hosts the package documentation page.
 >
-> **Marketing pages (1.2.0+).** brickwork also ships an opt-in
-> `brickwork.marketing` sub-app (landing/pricing/about page templates, a
-> marketing shell, and eight marketing components: hero, feature grid,
-> pricing tier/table, CTA, testimonial, logo cloud, stat band, FAQ) on the
-> same `--bw-*` token and accessibility contract, so a consumer can build
-> its public marketing pages on brickwork alongside its console.
+> **Marketing kit (1.2.0+).** brickwork also ships an opt-in
+> `brickwork.marketing` sub-app (a marketing shell and eight marketing
+> components: hero, feature grid, pricing tier/table, CTA, testimonial, logo
+> cloud, stat band, FAQ) on the same `--bw-*` token and accessibility
+> contract, so a consumer can build its public marketing pages on brickwork
+> alongside its console. Worked landing/pricing/about pages are shipped as
+> copy-paste examples, not importable templates: see
+> [Example pages](#example-pages) below.
 
 ## Documentation
 
@@ -54,6 +56,9 @@ presentation and interaction conventions.
 - [docs/ADOPTION.md](docs/ADOPTION.md): the strangle guide for migrating an
   existing app onto brickwork cluster by cluster (multi-host, asset coexistence,
   the htmx floor).
+- [src/brickwork/examples/README.md](src/brickwork/examples/README.md): the
+  copy-paste example pages, what each one is, and how to use one (see
+  [Example pages](#example-pages) below).
 - [frontend/README.md](frontend/README.md): the in-repo build that compiles
   the shipped static assets.
 
@@ -178,6 +183,34 @@ highlighting, skip link, dark mode and density axes, all on the default theme.
 Branding it is a handful of `--bw-*` token overrides
 ([docs/BRANDING.md](docs/BRANDING.md)); the full seam-by-seam walkthrough is
 [docs/INTEGRATION.md](docs/INTEGRATION.md).
+
+## Example pages
+
+A whole page is the most project-specific thing you own, so brickwork does not
+ship one as a template you extend. Instead it ships fifteen complete, working
+pages built from its tokens, components and shells, as copy-paste examples in
+`src/brickwork/examples/` (`base.html`; `app/list`, `detail`, `dashboard`,
+`form`, `wizard`, `settings`, `console`, `confirm`; `auth/signin`, `signup`,
+`reset`; `marketing/landing`, `pricing`, `about`).
+
+They cannot be extended, by construction: the directory is package data, not
+an app `templates/` folder, so Django's `APP_DIRS` loader cannot see it and
+`{% extends "brickwork/examples/..." %}` raises `TemplateDoesNotExist`. That
+is deliberate (ADR-056): a page you import is a page a dependency can reshape
+on your next pin bump; a page you copy is yours outright.
+
+To use one: open it (in the repo, or via `brickwork.examples.read_example()`),
+copy it into your own `templates/` tree, and edit it. Each example is
+annotated with what your view must supply and stays real, specific content
+throughout, never `Lorem ipsum`. See
+[src/brickwork/examples/README.md](src/brickwork/examples/README.md) for the
+full list and how they are tested.
+
+Extending a shell directly (`brickwork/shell/app.html`,
+`brickwork_marketing/shell/marketing.html`, and friends) remains fully
+supported and is the option that keeps receiving improvements automatically;
+copying an example is the alternative for a project that wants to own its
+page outright from day one.
 
 ## Contracts
 
