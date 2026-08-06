@@ -47,7 +47,7 @@ generator injects the host-app Alpine/htmx boot for the JS-leg fixtures only.
   <section id="disclosure-demo" aria-labelledby="disclosure-demo-heading">
     <h2 id="disclosure-demo-heading">Frequently asked questions</h2>
     {% for item in disclosure_items %}
-      {% include "brickwork/components/_disclosure.html" with label=item.label content=item.content name="itx-faq" open=item.open trigger_meta=item.meta style="bordered" %}
+      {% include "brickwork/components/_disclosure.html" with label=item.label content=item.content name="itx-faq" open=item.open trigger_meta=item.meta variant="bordered" %}
     {% endfor %}
   </section>
 {% endblock %}

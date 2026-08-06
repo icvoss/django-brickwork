@@ -203,9 +203,9 @@ def test_hero_flat_cta_kwargs_render_identically_to_the_dict_shape() -> None:
         "brickwork_marketing/components/_hero.html",
         heading="Ship faster",
         primary_cta_label="Get started",
-        primary_cta_url="/start/",
+        primary_cta_href="/start/",
         secondary_cta_label="Learn more",
-        secondary_cta_url="/learn/",
+        secondary_cta_href="/learn/",
     )
     assert dict_html == flat_html
 
@@ -214,7 +214,7 @@ def test_hero_flat_primary_cta_alone_renders_the_actions_row() -> None:
     html = _include(
         "brickwork_marketing/components/_hero.html",
         primary_cta_label="Get started",
-        primary_cta_url="/start/",
+        primary_cta_href="/start/",
     )
     assert "bw-hero__actions" in html
     assert "Get started" in html and 'href="/start/"' in html
@@ -225,19 +225,19 @@ def test_hero_dict_wins_outright_when_both_shapes_are_supplied() -> None:
         "brickwork_marketing/components/_hero.html",
         primary_cta={"label": "Dict label", "url": "/dict/"},
         primary_cta_label="Flat label",
-        primary_cta_url="/flat/",
+        primary_cta_href="/flat/",
     )
     assert "Dict label" in html and 'href="/dict/"' in html
     assert "Flat label" not in html and "/flat/" not in html
 
 
 def test_hero_flat_kwargs_forwarded_unset_render_no_actions() -> None:
-    # The standing {% include ... with %} pass-through rule (the no_tint
+    # The standing {% include ... with %} pass-through rule (the band
     # precedent): an absent page-level variable forwards as an empty string,
     # which must read as "no CTA", never as an empty button.
     html = Template(
         "{% include 'brickwork_marketing/components/_hero.html' with heading=heading"
-        " primary_cta_label=absent_a primary_cta_url=absent_b %}"
+        " primary_cta_label=absent_a primary_cta_href=absent_b %}"
     ).render(Context({"heading": "Ship faster"}))
     assert "bw-hero__actions" not in html
 
@@ -388,7 +388,7 @@ def test_pricing_tier_badge_only_renders_when_highlighted() -> None:
 
 
 def test_pricing_tier_flat_cta_kwargs_render_identically_to_the_dict_shape() -> None:
-    # #98: cta accepts the flat cta_label/cta_url pair for template-authored
+    # #98: cta accepts the flat cta_label/cta_href pair for template-authored
     # callers; both shapes must produce the same output.
     dict_html = _include(
         "brickwork_marketing/components/_pricing_tier.html",
@@ -401,7 +401,7 @@ def test_pricing_tier_flat_cta_kwargs_render_identically_to_the_dict_shape() -> 
         name="Pro",
         price="$29",
         cta_label="Choose Pro",
-        cta_url="/pro/",
+        cta_href="/pro/",
     )
     assert dict_html == flat_html
     assert "Choose Pro" in flat_html and 'href="/pro/"' in flat_html
@@ -414,7 +414,7 @@ def test_pricing_tier_dict_cta_wins_outright_when_both_shapes_are_supplied() -> 
         price="$29",
         cta={"label": "Dict label", "url": "/dict/"},
         cta_label="Flat label",
-        cta_url="/flat/",
+        cta_href="/flat/",
     )
     assert "Dict label" in html and 'href="/dict/"' in html
     assert "Flat label" not in html and "/flat/" not in html
@@ -466,7 +466,7 @@ def test_pricing_table_tier_dicts_accept_the_flat_cta_keys() -> None:
     assert "Choose Pro" in html and 'href="/pro/"' in html
 
 
-# --- components/_cta.html: no_tint is an opt-out (04-interfaces.md 4d) ------
+# --- components/_cta.html: band selects the tint treatment (04-interfaces.md 4d, ADR-057) ---
 
 
 def test_cta_required_heading_renders() -> None:
@@ -479,25 +479,35 @@ def test_cta_default_renders_the_tint_class() -> None:
     assert "bw-cta--tint" in html
 
 
-def test_cta_no_tint_true_omits_the_tint_class() -> None:
+def test_cta_band_plain_omits_the_tint_class() -> None:
     html = _include(
         "brickwork_marketing/components/_cta.html",
         heading="Ready to start?",
-        no_tint=True,
+        band="plain",
     )
     assert "bw-cta--tint" not in html
 
 
-def test_cta_no_tint_unset_at_the_page_level_leaves_the_tint_on() -> None:
-    # The documented reason no_tint is an opt-out, not tint=True: an absent
-    # page-level context variable piped through {% include ... with %}
-    # resolves to an empty string, not None, so a default-True flag could
-    # never be turned off from the page level. Prove the pass-through case
-    # explicitly: a page-level variable that was never set in context still
-    # leaves the tint ON when forwarded as no_tint.
+def test_cta_band_unset_at_the_page_level_still_tints() -> None:
+    # ADR-057 section 1a: band replaced the negated no_tint boolean precisely
+    # because an absent page-level context variable piped through
+    # {% include ... with %} resolves to an empty string, not None, so a
+    # default-True flag could never be turned off from the page level. band's
+    # three-valued string has no such ambiguity: {% firstof band 'tint' %}
+    # treats the empty string as unset and falls back to "tint" correctly.
+    # Prove the pass-through case explicitly: a page-level variable that was
+    # never set in context still leaves the tint ON when forwarded as band.
     html = Template(
-        "{% include 'brickwork_marketing/components/_cta.html' with heading=heading no_tint=absent_var %}"
+        "{% include 'brickwork_marketing/components/_cta.html' with heading=heading band=absent_var %}"
     ).render(Context({"heading": "Ready to start?"}))
+    assert "bw-cta--tint" in html
+
+
+def test_cta_band_omitted_entirely_still_tints() -> None:
+    # The same guarantee holds when band is never mentioned in the include at
+    # all, not merely forwarded from an absent variable: the omitted-flag
+    # trap the old negated no_tint boolean was retired to fix.
+    html = _include("brickwork_marketing/components/_cta.html", heading="Ready to start?")
     assert "bw-cta--tint" in html
 
 
@@ -526,9 +536,9 @@ def test_cta_flat_cta_kwargs_render_identically_to_the_dict_shape() -> None:
         "brickwork_marketing/components/_cta.html",
         heading="Ready to start?",
         primary_cta_label="Get started",
-        primary_cta_url="/start/",
+        primary_cta_href="/start/",
         secondary_cta_label="Talk to sales",
-        secondary_cta_url="/sales/",
+        secondary_cta_href="/sales/",
     )
     assert dict_html == flat_html
 
@@ -539,7 +549,7 @@ def test_cta_flat_kwargs_forwarded_unset_render_no_actions() -> None:
     # not render an empty button.
     html = Template(
         "{% include 'brickwork_marketing/components/_cta.html' with heading=heading"
-        " primary_cta_label=absent_a primary_cta_url=absent_b %}"
+        " primary_cta_label=absent_a primary_cta_href=absent_b %}"
     ).render(Context({"heading": "Ready to start?"}))
     assert "bw-cta__actions" not in html
 
@@ -877,3 +887,33 @@ def test_marketing_shell_actions_block_branches_on_auth_state() -> None:
     authed_html = Template(source).render(Context({"request": request}))
     assert "Dashboard" in authed_html
     assert "Sign in" not in authed_html
+
+
+# --- #120: documented default values need a CSS rule, not just a class name -
+
+# The option-grammar convergence (ADR-060) added rules for defaults that
+# previously emitted a modifier class with no matching CSS: a component
+# rendered its documented default fine because there was nothing to style
+# beyond the base class, but the class itself was a broken promise (#120).
+
+
+def test_slide_over_default_size_md_has_a_css_rule() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    assert ".bw-slide-over--md .bw-slide-over__panel{" in css
+
+
+def test_tabs_default_variant_underline_has_a_css_rule() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    assert ".bw-tabs--underline .bw-tabs__list{" in css
+
+
+def test_hero_default_align_start_has_a_css_rule() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    assert ".bw-hero--start{" in css.replace(" ", "")
+
+
+def test_hero_align_end_has_a_css_rule() -> None:
+    # New in this convergence: "end" was a documented align value with no
+    # class before now (#120's mirror case for the hero).
+    css = (_DIST / "brickwork.css").read_text()
+    assert ".bw-hero--end{" in css.replace(" ", "")

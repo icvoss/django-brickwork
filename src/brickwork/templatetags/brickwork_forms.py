@@ -30,6 +30,9 @@ if TYPE_CHECKING:
 register = template.Library()
 
 _FORM_LAYOUTS = {"stacked", "grid"}
+# ADR-060 rule 2: density reached data-density unvalidated while its two sibling
+# arguments on this same tag validated. The set is the global density axis's.
+_FORM_DENSITIES = {"compact", "comfortable", "spacious"}
 
 
 def _widget_css_class(widget: Widget) -> str:
@@ -208,6 +211,8 @@ def bw_form(
     include on a 422, with every field's ``{{ field.auto_id }}_errors``
     container intact.
     """
+    if density and density not in _FORM_DENSITIES:
+        raise TemplateSyntaxError(f"bw_form density must be one of {sorted(_FORM_DENSITIES)}, got {density!r}")
     if layout not in _FORM_LAYOUTS:
         raise TemplateSyntaxError(f"bw_form layout must be one of {sorted(_FORM_LAYOUTS)}, got {layout!r}")
     if not isinstance(grid_columns, int) or grid_columns < 1:

@@ -32,9 +32,14 @@ def list_item(sequence, index):
 
 
 _BUTTON_VARIANTS = {"primary", "secondary", "ghost", "danger"}
-_ALERT_VARIANTS = {"info", "success", "warning", "error"}
+_ALERT_VARIANTS = {"info", "success", "warning", "danger"}
 _SIZES = {"sm", "md", "lg"}
 _SKELETON_VARIANTS = {"text", "title", "row", "block"}
+# ADR-060 rule 2: bw_badge was the one tag with a documented closed set and no
+# enforcement, so a typo emitted a .bw-badge--<typo> class that does not exist
+# and failed silently. brickworkui.com shipped variant="error" against it for
+# exactly that reason.
+_BADGE_VARIANTS = {"neutral", "info", "success", "warning", "danger"}
 
 
 @register.inclusion_tag("brickwork/components/_button.html")
@@ -107,6 +112,8 @@ def bw_badge(label: str, *, variant: str = "neutral", icon: str = "", dismissibl
     (04-interfaces 4b Dismissible section, CMP-012) adds the bwDismissible wiring
     and a hidden-until-init close control; False renders byte-identical to the
     pre-0.9.0 output."""
+    if variant not in _BADGE_VARIANTS:
+        raise TemplateSyntaxError(f"bw_badge variant must be one of {sorted(_BADGE_VARIANTS)}, got {variant!r}")
     return {"label": label, "variant": variant, "icon": icon, "dismissible": bool(dismissible)}
 
 
@@ -119,7 +126,7 @@ def bw_alert(message: str = "", *, variant: str = "info", title: str = "", dismi
     pre-0.9.0 output."""
     if variant not in _ALERT_VARIANTS:
         raise TemplateSyntaxError(f"bw_alert variant must be one of {sorted(_ALERT_VARIANTS)}, got {variant!r}")
-    icon = {"info": "info", "success": "success", "warning": "alert-triangle", "error": "alert-circle"}[variant]
+    icon = {"info": "info", "success": "success", "warning": "alert-triangle", "danger": "alert-circle"}[variant]
     return {"message": message, "variant": variant, "title": title, "icon": icon, "dismissible": bool(dismissible)}
 
 

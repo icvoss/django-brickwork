@@ -105,9 +105,9 @@ def test_badge_renders_including_zero() -> None:
     assert "bw-tabs__badge" not in none
 
 
-def test_style_variants() -> None:
+def test_variant_variants() -> None:
     assert "bw-tabs--underline" in _render()  # the default (CMP-024)
-    assert "bw-tabs--pill" in _render("{% bw_tabs tabs=tabs active=active id='demo' style='pill' %}")
+    assert "bw-tabs--pill" in _render("{% bw_tabs tabs=tabs active=active id='demo' variant='pill' %}")
 
 
 def test_alpine_component_and_behaviour_args_are_wired() -> None:
@@ -152,7 +152,7 @@ def test_duplicate_tab_key_raises() -> None:
         (_TAG, {"active": "missing"}),  # active must match a tab key
         (_TAG, {"active": ""}),
         ("{% bw_tabs tabs=tabs active=active id='1-leading-digit' %}", {}),  # id not id-safe
-        ("{% bw_tabs tabs=tabs active=active id='demo' style='sideways' %}", {}),
+        ("{% bw_tabs tabs=tabs active=active id='demo' variant='sideways' %}", {}),
     ],
 )
 def test_invalid_arguments_raise(src: str, ctx: dict) -> None:

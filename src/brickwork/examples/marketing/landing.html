@@ -59,7 +59,7 @@ your branch, not a package feature. Note Django's logout is POST-only.
   with no view involvement. (They also accept {label, url} dicts if the data
   already exists in your context; the dict wins when both are given.)
   {% endcomment %}
-  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Invoicing" heading="Invoicing that chases itself" lede="Northwind raises your invoices, sends the reminders, and tells you who is about to pay late. You do the work. It does the asking." primary_cta_label="Start free trial" primary_cta_url="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_url="/demo/" %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Invoicing" heading="Invoicing that chases itself" lede="Northwind raises your invoices, sends the reminders, and tells you who is about to pay late. You do the work. It does the asking." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_href="/demo/" %}
 
   {% comment %}
   Logo cloud. List-shaped, so logos comes from context.
@@ -90,7 +90,7 @@ your branch, not a package feature. Note Django's logout is POST-only.
   so they cannot collide with the hero's above. That is the whole argument for
   composing pages this way rather than feeding one page a flat bag.
   {% endcomment %}
-  {% include "brickwork_marketing/components/_cta.html" with heading="Stop writing chase emails" body="Free for 30 days. No card, no setup call, no data import to sit through." primary_cta_label="Start free trial" primary_cta_url="/accounts/signup/" secondary_cta_label="Talk to us" secondary_cta_url="/contact/" %}
+  {% include "brickwork_marketing/components/_cta.html" with heading="Stop writing chase emails" body="Free for 30 days. No card, no setup call, no data import to sit through." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Talk to us" secondary_cta_href="/contact/" %}
 
 {% endblock %}
 

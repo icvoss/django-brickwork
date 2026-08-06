@@ -36,7 +36,7 @@ Optional:
 {% translate "Account" as default_trigger_label %}
 {% firstof trigger_label default_trigger_label as bw_account_menu_label %}
 {% firstof trigger_icon "user" as bw_account_menu_icon %}
-<details class="bw-account-menu bw-account-menu--{% firstof align 'end' %}"{% if menu_open %} open{% endif %}>
+<details class="bw-account-menu bw-account-menu--{% firstof placement 'end' %}"{% if menu_open %} open{% endif %}>
   <summary class="bw-account-menu__trigger">
     {% bw_icon bw_account_menu_icon size="md" decorative=True %}
     <span class="bw-account-menu__trigger-label">{{ bw_account_menu_label }}</span>

@@ -138,7 +138,7 @@ class TicketConfirmView(TemplateView):
             {
                 "title": "Clear demo tickets",
                 "modal_id": self.MODAL_ID,
-                "close_url": reverse("consumer:surface"),
+                "close_href": reverse("consumer:surface"),
                 "backdrop_dismiss": True,
             }
         )
@@ -176,7 +176,7 @@ class TicketPanelView(TemplateView):
             {
                 "title": "Ticket details",
                 "slide_over_id": self.SLIDE_OVER_ID,
-                "close_url": reverse("consumer:surface"),
+                "close_href": reverse("consumer:surface"),
             }
         )
         return ctx

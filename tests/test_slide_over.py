@@ -68,8 +68,8 @@ def test_close_control_is_always_rendered_as_an_icon_only_button() -> None:
     assert "bw-btn--icon-only" in html
 
 
-def test_close_url_turns_the_close_control_into_a_real_anchor_floor() -> None:
-    html = _render(close_url="/interactions/")
+def test_close_href_turns_the_close_control_into_a_real_anchor_floor() -> None:
+    html = _render(close_href="/interactions/")
     assert re.search(r'<a class="bw-slide-over__close[^>]*href="/interactions/"', html)
     default = _render()
     assert '<button class="bw-slide-over__close' in default

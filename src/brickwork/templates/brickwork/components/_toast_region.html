@@ -28,7 +28,7 @@ ever renders server-redirect pages' zero toasts anyway); activating it
 expands the collapsed stack.
 
 Context (validated nowhere at include level, matching include doctrine):
-  position ("top-end"|"top-start"|"bottom-end"|"bottom-start", default
+  placement ("top-end"|"top-start"|"bottom-end"|"bottom-start", default
       "top-end"): logical values so RTL mirrors for free (CBH-010). Set once
       per page; the CSS keys the fixed placement on the modifier class.
 
@@ -36,7 +36,7 @@ Tokens, elevation, motion (CSS lane): toasts stack at --bw-z-toast (above the
 modal, the z scale's deliberate ordering); the region itself paints nothing.
 {% endcomment %}
 <div id="bw-toast-region"
-     class="bw-toast-region bw-toast-region--{% firstof position 'top-end' %}"
+     class="bw-toast-region bw-toast-region--{% firstof placement 'top-end' %}"
      x-data="bwToastRegion()"
      aria-live="polite"
      data-bw-toast-region>

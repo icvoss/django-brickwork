@@ -3,9 +3,9 @@
 Toast (04-interfaces section 4b, 0.9.0). PRIVATE render target of the
 {% bw_toast %} tag (templatetags/brickwork_interactions.py): never
 {% include %} this file directly; the tag carries the render-time enforcement
-(intent validated against success|warning|danger|info with "neutral" raising,
-CMP-022; duration validated, CBH-009; action_label/action_url paired,
-CMP-023; instance id derived) and maps the intent to its registry icon.
+(variant validated against success|warning|danger|info with "neutral" raising,
+CMP-022; duration validated, CBH-009; action_label/action_href paired,
+CMP-023; instance id derived) and maps the variant to its registry icon.
 
 Server-rendered ONLY (BR-BW-HTMX-007): there is no client-side toast-creation
 API. An htmx response appends a toast out of band by rendering the tag inside
@@ -26,7 +26,7 @@ region. bwToast (semver-public, BR-BW-JS-004; props { duration }, state
 resolving --bw-duration-toast-{short,normal,long} ("persistent" never
 auto-dismisses) and pausing while the toast is hovered or contains focus
 (WCAG 2.2.1). It toggles data-bw-visible on the root as the visibility
-marker the CSS keys enter/exit on, and emits bw:toast:show { id, intent } /
+marker the CSS keys enter/exit on, and emits bw:toast:show { id, variant } /
 bw:toast:dismiss { id, reason: "timeout"|"dismiss" } (notifications only,
 never a creation path, BR-BW-HTMX-004).
 
@@ -36,19 +36,19 @@ tag's duration argument.
 
 Tokens, elevation, motion (CSS lane): --bw-z-toast, --bw-elevation-5 (the
 reserved toast row), radius --bw-radius-xl, background
---bw-color-surface-raised, intent edge and icon from the --bw-color-X-*
-intent tiers. Enter at --bw-duration-normal/--bw-ease-out translating in
+--bw-color-surface-raised, variant edge and icon from the --bw-color-X-*
+variant tiers. Enter at --bw-duration-normal/--bw-ease-out translating in
 from the region's edge; exit at --bw-duration-fast/--bw-ease-in (MOT-007).
 Reduced motion: instant swap, timers unchanged (BR-BW-TOK-009).
 {% endcomment %}
-<div class="bw-toast bw-toast--{{ intent }}"
+<div class="bw-toast bw-toast--{{ variant }}"
      id="{{ id }}"
      x-data='bwToast({ duration: "{{ duration }}" })'
-     {% if intent == "danger" %}role="alert"{% endif %}
+     {% if variant == "danger" %}role="alert"{% endif %}
      data-bw-toast>
   {% bw_icon icon size="md" decorative=True css_class="bw-toast__icon" %}
   <p class="bw-toast__message">{{ message }}</p>
-  {% if action_label %}<a class="bw-toast__action" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
+  {% if action_label %}<a class="bw-toast__action" href="{{ action_href }}">{{ action_label }}</a>{% endif %}
   {% translate "Dismiss" as bw_toast_close_label %}
   <button class="bw-toast__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
           type="button"

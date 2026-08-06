@@ -34,7 +34,7 @@ too is empty), never a fabricated placeholder plan.
   {% if tiers %}
     <div class="bw-pricing-table{% if tiers|length == 1 %} bw-pricing-table--single{% endif %}">
       {% for tier in tiers %}
-        {% include "brickwork_marketing/components/_pricing_tier.html" with name=tier.name price=tier.price period=tier.period description=tier.description features=tier.features cta=tier.cta cta_label=tier.cta_label cta_url=tier.cta_url highlighted=tier.highlighted badge=tier.badge %}
+        {% include "brickwork_marketing/components/_pricing_tier.html" with name=tier.name price=tier.price period=tier.period description=tier.description features=tier.features cta=tier.cta cta_label=tier.cta_label cta_href=tier.cta_url highlighted=tier.highlighted badge=tier.badge %}
       {% endfor %}
     </div>
     {% if note %}<p class="bw-pricing-table__note">{{ note }}</p>{% endif %}

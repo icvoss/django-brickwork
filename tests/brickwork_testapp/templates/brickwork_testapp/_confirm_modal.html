@@ -4,8 +4,8 @@ The consumer's modal partial (04-interfaces 4b): extends the shipped chrome
 and fills the named blocks. One partial, two render paths: the view returns
 this alone on an htmx GET (swapped into #bw-modal-root) and includes it in a
 full page (interaction_confirm.html) on a plain GET, so the no-JS floor is a
-working page with a real POST form and a real close anchor (close_url).
-The view supplies title, modal_id, close_url, and backdrop_dismiss.
+working page with a real POST form and a real close anchor (close_href).
+The view supplies title, modal_id, close_href, and backdrop_dismiss.
 {% endcomment %}
 
 {% block modal_body %}

@@ -337,7 +337,7 @@ def _rewire_interactions(html: str, theme: str) -> str:
         # keyboard suite can assert close-on-select + focus return
         ('href="/widgets/new/?via=dropdown"', 'href="#dd-new-widget"'),
         ('href="/widgets/?status=draft"', 'href="#dd-draft-widgets"'),
-        # the nav entry and the modal's close_url both lead back to the page
+        # the nav entry and the modal's close_href both lead back to the page
         ('href="/interactions/"', f'href="interactions-{theme}.html"'),
     ]
     for old, new in replacements:
@@ -383,7 +383,7 @@ def render_modal_page(theme: str) -> str:
         {
             "title": "Reset demo data",
             "modal_id": "confirm-reset",
-            "close_url": "/interactions/",
+            "close_href": "/interactions/",
             "backdrop_dismiss": True,
         }
     )
@@ -401,7 +401,7 @@ def render_modal_fragment() -> str:
     ctx = {
         "title": "Reset demo data",
         "modal_id": "confirm-reset",
-        "close_url": "/interactions/",
+        "close_href": "/interactions/",
         "backdrop_dismiss": True,
     }
     return render_to_string("brickwork_testapp/_confirm_modal.html", ctx, request=request)
@@ -542,7 +542,7 @@ def _stack_toast_html(toast_id: str, intent: str, *, hidden: bool) -> str:
     from django.template import Context, Template
 
     tag = Template(
-        '{% load brickwork_interactions %}{% bw_toast message intent=intent duration="persistent" id=toast_id %}'
+        '{% load brickwork_interactions %}{% bw_toast message variant=intent duration="persistent" id=toast_id %}'
     )
     html = tag.render(Context({"message": _TOAST_MESSAGE, "intent": intent, "toast_id": toast_id}))
     settled = "data-bw-toast data-bw-visible hidden>" if hidden else "data-bw-toast data-bw-visible>"
@@ -583,8 +583,8 @@ def render_toast_action_fragment() -> str:
     tag = Template(
         "{% load brickwork_interactions %}"
         '<div hx-swap-oob="afterbegin:#bw-toast-region">'
-        '{% bw_toast message intent="info" duration="persistent" '
-        'action_label="View widgets" action_url="#toast-action-target" id="toast-with-action" %}'
+        '{% bw_toast message variant="info" duration="persistent" '
+        'action_label="View widgets" action_href="#toast-action-target" id="toast-with-action" %}'
         "</div>\n"
         '<p id="toast-demo-status">Sent an action toast.</p>'
     )
@@ -1539,7 +1539,7 @@ _MKT_TESTIMONIAL = (
 _MKT_CTA = (
     '{% include "brickwork_marketing/components/_cta.html" with heading=cta_heading'
     " body=cta_body primary_cta=cta_primary secondary_cta=cta_secondary"
-    " no_tint=cta_no_tint %}"
+    " band=cta_band %}"
 )
 
 _LANDING_SOURCE = (

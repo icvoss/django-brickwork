@@ -177,12 +177,26 @@ def test_badge_with_icon() -> None:
     assert "bw-icon" in out and "New" in out
 
 
+def test_badge_invalid_variant_raises() -> None:
+    # ADR-060 rule 2: bw_badge was the one tag with a documented closed set
+    # and no enforcement (icvoss/django-brickwork's brickworkui.com shipped
+    # variant="error" against it for exactly this reason).
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_badge "Active" variant="error" %}')
+
+
+@pytest.mark.parametrize("variant", ["neutral", "info", "success", "warning", "danger"])
+def test_badge_every_valid_variant_renders_its_class(variant: str) -> None:
+    out = _render(f'{{% bw_badge "Active" variant="{variant}" %}}')
+    assert f"bw-badge--{variant}" in out
+
+
 # --- alert ----------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
     "variant,icon_marker",
-    [("info", "info"), ("success", "success"), ("warning", "alert-triangle"), ("error", "alert-circle")],
+    [("info", "info"), ("success", "success"), ("warning", "alert-triangle"), ("danger", "alert-circle")],
 )
 def test_alert_variant_picks_the_right_icon(variant: str, icon_marker: str) -> None:
     out = _render(f'{{% bw_alert "msg" variant="{variant}" %}}')
@@ -198,7 +212,7 @@ def test_alert_invalid_variant_raises() -> None:
 
 
 def test_alert_with_title() -> None:
-    out = _render('{% bw_alert "the message" variant="error" title="Oops" %}')
+    out = _render('{% bw_alert "the message" variant="danger" title="Oops" %}')
     assert "Oops" in out and "the message" in out
 
 

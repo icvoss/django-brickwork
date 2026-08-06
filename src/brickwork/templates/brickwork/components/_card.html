@@ -48,7 +48,7 @@ for a linked card, a <div> otherwise) because a named block may appear only
 once per template, so the regions cannot be duplicated across two branches
 the way _button.html duplicates its label.
 {% endcomment %}
-{% if href %}<a class="bw-card bw-card--interactive{% if bordered %} bw-card--bordered{% endif %}{% if padding %} bw-card--padding-{{ padding }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-card{% if interactive %} bw-card--interactive{% endif %}{% if bordered %} bw-card--bordered{% endif %}{% if padding %} bw-card--padding-{{ padding }}{% endif %}">{% endif %}
+{% if href %}<a class="bw-card bw-card--interactive{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-card{% if interactive %} bw-card--interactive{% endif %}{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}">{% endif %}
 {% block card_header %}{% endblock %}
 {% block card_title %}{% endblock %}
 {% block card_actions %}{% endblock %}

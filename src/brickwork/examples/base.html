@@ -159,7 +159,7 @@ into the attribute. firstof ignores the resolution failure and is immune.
   reaches the component as a string_if_invalid marker).
   {% endcomment %}
   {% firstof bw_toast_position 'top-end' as bw_toast_position_resolved %}
-  {% include "brickwork/components/_toast_region.html" with position=bw_toast_position_resolved %}
+  {% include "brickwork/components/_toast_region.html" with placement=bw_toast_position_resolved %}
 
   {% comment %}
   LOAD-BEARING (if you use modals or slide-overs): these two empty divs.

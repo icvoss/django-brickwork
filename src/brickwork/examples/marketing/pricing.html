@@ -54,9 +54,9 @@ note above the pricing section.
   {% endcomment %}
   <section class="bw-pricing-table-section">
     <div class="bw-pricing-table">
-      {% include "brickwork_marketing/components/_pricing_tier.html" with name="Solo" price="£9" period="/month" description="For one person invoicing a handful of clients." features=solo_features cta_label="Start free trial" cta_url="/accounts/signup/?plan=solo" %}
-      {% include "brickwork_marketing/components/_pricing_tier.html" with name="Team" price="£29" period="/month" description="For a finance function of two to ten." features=team_features cta_label="Start free trial" cta_url="/accounts/signup/?plan=team" highlighted=True badge="Most popular" %}
-      {% include "brickwork_marketing/components/_pricing_tier.html" with name="Scale" price="£89" period="/month" description="Multi-entity, multi-currency, audit trails." features=scale_features cta_label="Talk to sales" cta_url="/contact/" %}
+      {% include "brickwork_marketing/components/_pricing_tier.html" with name="Solo" price="£9" period="/month" description="For one person invoicing a handful of clients." features=solo_features cta_label="Start free trial" cta_href="/accounts/signup/?plan=solo" %}
+      {% include "brickwork_marketing/components/_pricing_tier.html" with name="Team" price="£29" period="/month" description="For a finance function of two to ten." features=team_features cta_label="Start free trial" cta_href="/accounts/signup/?plan=team" highlighted=True badge="Most popular" %}
+      {% include "brickwork_marketing/components/_pricing_tier.html" with name="Scale" price="£89" period="/month" description="Multi-entity, multi-currency, audit trails." features=scale_features cta_label="Talk to sales" cta_href="/contact/" %}
     </div>
     <p class="bw-pricing-table__note">Prices exclude VAT. Annual billing saves two months.</p>
   </section>
@@ -67,7 +67,7 @@ note above the pricing section.
   {% endcomment %}
   {% include "brickwork_marketing/components/_faq.html" with heading="Questions people ask before signing up" items=faq_items single_open=True %}
 
-  {% include "brickwork_marketing/components/_cta.html" with heading="Try it on this month's invoices" body="Thirty days free. If it has not paid for itself by then, do not keep it." primary_cta_label="Start free trial" primary_cta_url="/accounts/signup/" %}
+  {% include "brickwork_marketing/components/_cta.html" with heading="Try it on this month's invoices" body="Thirty days free. If it has not paid for itself by then, do not keep it." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" %}
 
 {% endblock %}
 

@@ -99,13 +99,7 @@ def test_sticky_header_adds_the_sticky_wrap_class() -> None:
     assert "bw-data-table-wrap--sticky" in out
 
 
-def test_scroll_container_adds_the_sticky_wrap_class_too() -> None:
-    # either name wires the same CSS treatment
-    out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS, scroll_container=True)
-    assert "bw-data-table-wrap--sticky" in out
-
-
-def test_without_sticky_or_scroll_container_no_sticky_class() -> None:
+def test_without_sticky_header_no_sticky_class() -> None:
     out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
     assert "bw-data-table-wrap--sticky" not in out
 

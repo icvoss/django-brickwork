@@ -42,9 +42,9 @@ def test_ships_no_javascript_at_all() -> None:
     assert "<script" not in html.lower()
 
 
-def test_style_variants() -> None:
+def test_variant_variants() -> None:
     assert "bw-disclosure--divided" in _render()  # the default
-    assert "bw-disclosure--bordered" in _render(style="bordered")
+    assert "bw-disclosure--bordered" in _render(variant="bordered")
 
 
 def test_name_attribute_forms_a_native_accordion_group() -> None:

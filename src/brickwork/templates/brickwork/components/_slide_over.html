@@ -71,7 +71,7 @@ Optional context:
   slide_over_id (str, default "bw-slide-over"): the instance identity
          carried in bw:slide-over:open/close event details and matched by
          the HX-Trigger server-close header.
-  close_url (str): the no-JS floor's exit for the always-rendered close
+  close_href (str): the no-JS floor's exit for the always-rendered close
          control; when set the control is a real anchor (typically back
          to the page that linked here), so the floor never shows a dead
          trigger. With JS running bwSlideOver intercepts it and closes in
@@ -124,13 +124,13 @@ and exit render instantly (BR-BW-TOK-009).
     <header class="bw-slide-over__header">
       <h2 class="bw-slide-over__title" id="{{ bw_slide_over_instance_id }}-title">{% block slide_over_title %}{{ title }}{% endblock %}</h2>
       {% translate "Close" as bw_slide_over_close_label %}
-      {% if close_url %}
+      {% if close_href %}
         {# The anchor is the floor's real exit; with JS running the x-on   #}
         {# .prevent stops the navigation and closes in place instead. It   #}
         {# deliberately does NOT carry data-bw-slide-over-close: bwSlideOver's #}
         {# own listener would close without preventing the navigation.     #}
         <a class="bw-slide-over__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
-           href="{{ close_url }}"
+           href="{{ close_href }}"
            aria-label="{{ bw_slide_over_close_label }}"
            x-on:click.prevent="close('close-button')">
           {% bw_icon "close" size="sm" decorative=True %}
