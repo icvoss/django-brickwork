@@ -8,6 +8,24 @@ versioning contract).
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-08-06
+
+### Fixed
+
+- **`{% bw_button %}` accepts `name` and `value`, so the documented
+  bulk-actions wiring works** (icvoss/django-brickwork#119).
+  `_bulk_actions_bar.html`'s own header comment documented
+  `{% bw_button label="Archive" type="submit" name="bulk_action" value="archive" %}`
+  as the way to fill its actions block, but the tag accepted neither keyword, so
+  that exact call raised `TemplateSyntaxError`. A bulk-actions bar exists to tell
+  the server which action was pressed, which is what `name`/`value` carry, so the
+  component's whole purpose was unreachable through the supported API.
+
+  Both apply to the `<button>` branch only. Passing them alongside `href` (which
+  renders an `<a>`, where they are meaningless) is a render error rather than a
+  silent drop, as is a `value` with no `name`, which the browser never sends.
+  A button given neither renders byte-identically to before.
+
 ## [2.0.0] - 2026-08-06
 
 brickwork's contract is components, shells, and tokens. Whole pages are
