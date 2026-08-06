@@ -8,6 +8,79 @@ versioning contract).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-08-06
+
+One option name per concept, across every component.
+
+An inventory of all 40 component templates and the 16 registered tags found the
+package spelling one concept up to four ways: `variant`/`style`/`intent` for
+treatment, six names for arrangement, three for scale, four for a link
+destination. The consequence was that knowing one component taught you nothing
+about the next, which is the opposite of what a substrate is for.
+
+**Migration is mechanical and the table below is complete.** Rename the option
+at each call site; no behaviour changed and no component was removed. There are
+no aliases or deprecation warnings, so a missed spelling raises rather than
+failing quietly, which is the intended way to find them.
+
+Nothing outside the option names moved: every component, tag, shell, token,
+Alpine name, HTMX id and the icon registry are unchanged from 2.0.1.
+
+### Added
+
+- **Every closed option vocabulary is now enforced** (ADR-060 rule 2).
+  `{% bw_badge %}` had a documented variant set and no validation at all, so a
+  typo emitted a `.bw-badge--<typo>` class that does not exist and failed
+  silently; `{% bw_form %}`'s `density` reached `data-density` unvalidated while
+  its two sibling arguments on the same tag validated. Both now raise on an
+  unknown value.
+
+- **`{% bw_dropdown %}` gains `placement`** (`start` default, `end`), closing
+  icvoss/django-brickwork#120. `.bw-dropdown--end` had shipped in every
+  consumer's stylesheet since 0.8.0 with no code path able to emit it.
+
+- **A test asserts every documented option value resolves to a real CSS rule**
+  (`tests/test_option_vocabularies.py`, ADR-060 rule 3). This is the systematic
+  version of the #120 check, and it immediately found three more defects in the
+  opposite direction, where a documented DEFAULT emitted a class the stylesheet
+  never matched: `.bw-tabs--underline`, `.bw-slide-over--md` and
+  `.bw-hero--start` now ship real rules. `.bw-hero--end` is added alongside, so
+  the hero's alignment axis is complete (ADR-057 section 1a).
+
+### Changed
+
+- **BREAKING: one option name per concept, across every component** (ADR-060).
+  The package spelled one concept up to four ways, so knowing one component
+  taught you nothing about the next. Every rename below is mechanical, and there
+  are no aliases or deprecation shims: brickwork has no external consumers.
+
+  | Component | Was | Now |
+  |---|---|---|
+  | `bw_alert` | `variant="error"` | `variant="danger"` |
+  | `bw_tabs` | `style=` | `variant=` |
+  | `_disclosure.html` | `style=` | `variant=` |
+  | `bw_toast` | `intent=`, `action_url=` | `variant=`, `action_href=` |
+  | `bw_dropdown` items | `intent` | `variant` |
+  | `_card.html` | `padding=` | `size=` |
+  | `_account_menu.html` | `align=` | `placement=` |
+  | `_toast_region.html` | `position=` | `placement=` |
+  | `_modal.html`, `_slide_over.html` | `close_url` | `close_href` |
+  | `_data_table.html` | `scroll_container` (alias) | `sticky_header` only |
+  | `_cta.html` | `no_tint=True` | `band="plain"` (default `"tint"`) |
+  | `_hero.html`, `_cta.html` | `primary_cta_url`, `secondary_cta_url` | `*_cta_href` |
+  | `_pricing_tier.html` | `cta_url` | `cta_href` |
+
+  `bw_alert`'s `"error"` was the sharpest case: every sibling component and the
+  whole token layer use `danger`, and because both closed sets were validated,
+  each spelling raised on the other component.
+
+  CSS moved in lockstep: `.bw-alert--error` to `.bw-alert--danger`, and
+  `.bw-card--padding-*` to `.bw-card--size-*`.
+
+  Deliberately unchanged: `url` inside per-item dicts (nav, dropdown, tabs,
+  crumbs, CTA dicts) is consumer data rather than an emitted attribute, and
+  `trigger_variant` qualifies a named sub-element rather than the component.
+
 ## [2.0.1] - 2026-08-06
 
 ### Fixed
