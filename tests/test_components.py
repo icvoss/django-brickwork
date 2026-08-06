@@ -78,6 +78,75 @@ def test_button_invalid_size_raises() -> None:
         _render('{% bw_button "X" size="huge" %}')
 
 
+# --- button name/value (#119) ----------------------------------------------
+
+
+def test_button_emits_name_and_value_on_the_button_branch() -> None:
+    # #119: a form with several submits needs to tell the server which one was
+    # pressed, which is what name/value carry.
+    out = _render('{% bw_button "Archive" type="submit" name="bulk_action" value="archive" %}')
+    assert 'name="bulk_action"' in out
+    assert 'value="archive"' in out
+    assert 'type="submit"' in out
+
+
+def test_button_omits_name_and_value_when_not_given() -> None:
+    # The attributes must not appear at all by default, so an ordinary button's
+    # output is unchanged from before #119.
+    out = _render('{% bw_button "Save" %}')
+    assert "name=" not in out
+    assert "value=" not in out
+
+
+def test_button_output_is_byte_identical_to_pre_119_for_ordinary_callers() -> None:
+    # #119 must be purely additive: an existing caller that never passes
+    # name/value gets exactly the pre-119 markup, not just "no name=/value=
+    # substring" (a whitespace-only regression from new {% if %} lines inside
+    # the <button ...> opening tag would pass the substring check above while
+    # still changing every existing render).
+    out = _render('{% bw_button "Save" %}')
+    assert out == (
+        '<button class="bw-btn bw-btn--primary bw-btn--md"\n'
+        '        type="button"\n'
+        "        \n"
+        "        \n"
+        '        ><span class="bw-btn__label">Save</span></button>\n'
+    )
+
+
+def test_the_documented_bulk_actions_wiring_renders() -> None:
+    """The exact call _bulk_actions_bar.html's docstring documents (#119).
+
+    This is the regression that was missing: the documented example raised
+    TemplateSyntaxError because bw_button had no name/value, and nothing
+    rendered it. A documented option needs a test that proves it works, or the
+    documentation is only a claim.
+    """
+    out = _render(
+        '{% bw_button label="Archive" type="submit" name="bulk_action" '
+        'value="archive" variant="secondary" size="sm" %}'
+        '{% bw_button label="Delete" type="submit" name="bulk_action" '
+        'value="delete" variant="danger" size="sm" %}'
+    )
+    assert out.count('name="bulk_action"') == 2
+    assert 'value="archive"' in out
+    assert 'value="delete"' in out
+
+
+def test_button_rejects_name_alongside_href() -> None:
+    # name/value on an <a> are meaningless. Raising beats silently dropping
+    # them, which is precisely how #119 went unnoticed.
+    with pytest.raises(TemplateSyntaxError, match="<button> branch only"):
+        _render('{% bw_button "Go" href="/x/" name="action" %}')
+
+
+def test_button_rejects_value_without_name() -> None:
+    # A value with no name is never sent by the browser, so the server would
+    # see nothing: a silent no-op the caller almost certainly did not intend.
+    with pytest.raises(TemplateSyntaxError, match="requires name="):
+        _render('{% bw_button "X" type="submit" value="archive" %}')
+
+
 # --- badge ----------------------------------------------------------------
 
 

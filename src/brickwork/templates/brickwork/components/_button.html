@@ -3,6 +3,14 @@
 Button or link-button. icon_only renders the icon alone with the aria_label as
 its accessible name (enforced non-empty by bw_button, ICO-008). loading mounts
 the spinner and marks aria-busy. Renders as <a> when href is set, else <button>.
+
+name/value (icvoss/django-brickwork#119) ride on the <button> branch only, so a
+form with several submits can tell the server which one was pressed:
+
+  {% bw_button label="Archive" type="submit" name="bulk_action" value="archive" %}
+
+read server-side as request.POST["bulk_action"]. bw_button rejects name/value
+alongside href rather than dropping them silently.
 {% endcomment %}
 {% if href %}
 <a class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}{% if disabled %} bw-btn--disabled{% endif %}"
@@ -14,7 +22,7 @@ the spinner and marks aria-busy. Renders as <a> when href is set, else <button>.
 </a>
 {% else %}
 <button class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}"
-        type="{{ type }}"
+        type="{{ type }}"{% if name %} name="{{ name }}"{% endif %}{% if value %} value="{{ value }}"{% endif %}
         {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
         {% if disabled %}disabled{% endif %}
         {% if loading %}aria-busy="true" disabled{% endif %}>
