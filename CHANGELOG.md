@@ -8,6 +8,57 @@ versioning contract).
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-08-07
+
+The first wave of the examples library: **sections**, the band-sized unit a
+real page is actually assembled from, plus the long-form prose floor the blog
+and docs layouts to come depend on. Additive throughout; nothing in 3.0.0's
+option grammar moves.
+
+The three defects fixed below were all found by a new mobile-first gate that
+runs the sections at 360, 375 and 414px in both themes. Every one of them
+passed axe and the full test suite beforehand, because nothing in this repo
+previously measured viewport width. Two of them were in shipped 1.x code, not
+in the new sections.
+
+### Added
+
+- **Example sections: the copy-paste unit is now a band, not a whole page.**
+  Thirteen section variants ship under `examples/sections/<type>/<variant>.html`
+  across four types (hero, features, cta, content). Previously every example was
+  a complete page, so a consumer who wanted a pricing band had to copy a pricing
+  page and delete most of it. Sections are package data off the template-loader
+  path exactly as the page examples are (ADR-056), and each carries its copy
+  inline, so all but one render from an empty context.
+- **A long-form prose floor, `bw-prose`.** One class on a wrapper styles bare
+  `h1` to `h6`, paragraphs, lists, blockquotes, inline code, code blocks,
+  tables, figures and rules, at the 65ch reading measure, entirely from the
+  existing text-role and colour tokens. It is the shape a rendered Markdown body
+  or a CMS rich-text field actually arrives in: no classes on any child. Every
+  descendant rule sits inside `:where()`, so a consumer's own class on any
+  element wins without `!important`. Both themes are covered by the token layer
+  rather than by theme-specific rules.
+
+### Fixed
+
+- **The hero no longer scrolls the page sideways on a phone.** Three separate
+  causes, all found by the new mobile-first gate and all invisible to the
+  existing suites. `.bw-hero__copy` sized to its content rather than its
+  container, because `.bw-hero` sets `align-items` to something other than
+  `stretch`; the display heading was a fixed 3.75rem, at which a single
+  unbreakable word ("Documentation") measures 406px and cannot wrap, overflowing
+  any viewport narrower than that; and neither had a wrap fallback. The heading
+  is now fluid, capped at the display token so a brand retuning the type scale
+  still governs the ceiling. A multi-word heading hid this by wrapping between
+  words, which is why the shipped marketing pages never tripped it.
+- **A code block no longer widens the page it sits in.** The `<pre>` scrolled
+  its own overflow correctly while its `<code>` child painted straight through
+  the scroll container, so the document itself scrolled horizontally.
+- **`.bw-callout--note` had no CSS rule.** It is the default kind and the
+  documented spelling, so it rendered unstyled: the
+  icvoss/django-brickwork#120 defect class, caught this time by a test that
+  asserts every class an example emits exists in the compiled stylesheet.
+
 ## [3.0.0] - 2026-08-06
 
 One option name per concept, across every component.
