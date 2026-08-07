@@ -1,0 +1,124 @@
+{% comment %}
+CONTENT / prose block: long-form text with no classes on it.
+
+THIS IS THE SECTION THAT MATTERS FOR BLOG AND DOCS PAGES, and the one to copy
+if you render Markdown, a rich-text field, or anything a CMS produced.
+
+HOW IT WORKS. One class, .bw-prose, on the wrapper. Everything inside is bare
+HTML: h2, p, ul, blockquote, code, pre, table. You do not put a class on any of
+it, because content out of a CMS or a Markdown renderer does not have any.
+
+If you are rendering a body field, that is exactly this shape:
+
+    <div class="bw-prose">{{ post.body|safe }}</div>
+
+(|safe only if you trust the source. If you do not, sanitise it first: brickwork
+styles markup, it does not clean it.)
+
+WHAT .bw-prose DOES NOT DO. It does not constrain where it sits or add a band.
+It sets the reading measure (65ch), the vertical rhythm, and the type and colour
+of every element above, from the same tokens the rest of the page uses. Wrap it
+in a section if you want a band.
+
+Every rule is written at zero specificity, so putting your own class on any
+child beats the floor without needing !important.
+{% endcomment %}
+<section class="bw-content-section">
+  <div class="bw-prose">
+    <h2>What actually happens when an invoice goes late</h2>
+
+    <p class="bw-prose__lede">
+      Most late payments are not disputes. They are invoices that reached the
+      wrong inbox, sat in an approval queue, or were simply forgotten by someone
+      who fully intended to pay.
+    </p>
+
+    <p>
+      That distinction matters, because the three causes need different
+      responses and only one of them is a conversation about money. Chasing all
+      three the same way is why chasing feels adversarial when it rarely needs
+      to be.
+    </p>
+
+    <h3>The three causes, in the order they cost you</h3>
+
+    <ol>
+      <li><strong>Wrong recipient.</strong> The invoice went to a person, and the person left.</li>
+      <li><strong>Stuck in approval.</strong> It arrived, it is queued, nobody has signed it.</li>
+      <li>
+        <strong>Genuinely disputed.</strong> Something about the work or the
+        amount is contested. This is the rarest and the only one worth a call.
+      </li>
+    </ol>
+
+    <blockquote>
+      We assumed we had a collections problem. We had an addressing problem. Two
+      thirds of what we were chasing had never reached a person who could pay it.
+    </blockquote>
+
+    <h3>What to change first</h3>
+
+    <p>
+      Send to a role, not a person: <code>accounts@</code> rather than a named
+      individual who may have moved on. Then make the reminder schedule
+      automatic, so the first nudge does not depend on anyone remembering.
+    </p>
+
+    <p>A minimal schedule that works for most businesses:</p>
+
+    <pre><code>due_date - 7d   first reminder, friendly
+due_date        due today
+due_date + 3d   overdue, cc the account owner
+due_date + 14d  final notice before escalation</code></pre>
+
+    <h3>What each stage recovers</h3>
+
+    <div class="bw-prose__table-wrap" tabindex="0" role="region" aria-label="Recovery rate by reminder stage">
+      <table>
+        <caption>Median recovery across 400 Northwind accounts, 2025 to 2026.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Stage</th>
+            <th scope="col">Paid within 7 days</th>
+            <th scope="col">Needed a call</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Before due date</td>
+            <td>61%</td>
+            <td>2%</td>
+          </tr>
+          <tr>
+            <td>Due today</td>
+            <td>19%</td>
+            <td>4%</td>
+          </tr>
+          <tr>
+            <td>Overdue, cc owner</td>
+            <td>14%</td>
+            <td>21%</td>
+          </tr>
+          <tr>
+            <td>Final notice</td>
+            <td>6%</td>
+            <td>73%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The pattern is consistent: nearly two thirds of what you are owed can be
+      collected before it is ever late, by an email nobody had to write. The
+      rest is where a human should spend their afternoon.
+    </p>
+
+    <hr>
+
+    <p>
+      Further reading: <a href="/docs/reminders/">configuring reminder schedules</a>
+      and <a href="/docs/predictions/">how late-payment prediction works</a>.
+    </p>
+  </div>
+</section>

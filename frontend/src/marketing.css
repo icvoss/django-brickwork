@@ -233,7 +233,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-4);
-  max-inline-size: var(--bw-size-max-width-prose);
+  /* .bw-hero is a column flex with align-items other than stretch (--start and
+   * --end both set it), which sizes this child to its CONTENT rather than to
+   * the container. A lede longer than the viewport therefore pushed the whole
+   * hero wider than the page and scrolled the document sideways on a phone.
+   * 100% caps it at the container's content box, restoring the mobile-first
+   * floor (ADR-057 section 1: a section that only works at desktop width is not
+   * a shipped section).
+   *
+   * Found at 375px by the plan's Phase 6 gate 3 while stacking two heroes in
+   * one fixture; the shipped marketing pages never tripped it because their
+   * ledes happen to be shorter. */
+  max-inline-size: min(var(--bw-size-max-width-prose), 100%);
 }
 
 .bw-hero--center .bw-hero__copy {
@@ -253,10 +264,24 @@
 .bw-hero__heading {
   margin: 0;
   font-family: var(--bw-text-heading-display-family);
-  font-size: var(--bw-text-heading-display-size);
+  /* Fluid, capped at the display token. The token is a fixed 3.75rem (60px),
+   * at which a single long word ("Documentation") measures 406px and cannot
+   * wrap, so it overflowed a 375px viewport and scrolled the whole document
+   * sideways. A multi-word heading hid the bug by wrapping between words.
+   *
+   * clamp() keeps the designed size from ~40rem up and scales down below it,
+   * so the mobile-first floor holds for any heading (ADR-057 section 1). The
+   * token still sets the ceiling, so a brand retuning the display scale
+   * retunes this with it.
+   *
+   * Found at 375px by the plan's Phase 6 gate 3. */
+  font-size: clamp(2.25rem, 8vw, var(--bw-text-heading-display-size));
   font-weight: var(--bw-text-heading-display-weight);
   line-height: var(--bw-text-heading-display-line-height);
   letter-spacing: var(--bw-text-heading-display-tracking);
+  /* Last-resort safety net: a single word longer than the viewport (a URL, a
+   * long compound) still has no wrap opportunity even at the small end. */
+  overflow-wrap: break-word;
 }
 
 .bw-hero__lede {
@@ -756,4 +781,520 @@
 .bw-faq-section__list {
   display: flex;
   flex-direction: column;
+}
+
+/* --- Example-section variants (3.1.0, plan Phase 6a) -------------------------- */
+
+/* These style the hand-written variants under examples/sections/. They exist
+ * because the shipped components cannot yet express the arrangement (the hero
+ * has exactly one media placement, icvoss/django-brickwork#118), so the example
+ * owns the markup and the package owns the look. When the component grows the
+ * option, the example collapses back to an {% include %} and its rules here go
+ * with it.
+ *
+ * Note what is NOT done here: no root `margin: 0`. That reset ties with the
+ * shell's `.bw-marketing__content > * + *` section-gap rule on specificity and,
+ * being later in source order, wins, permanently zeroing the gap above the
+ * section. That is the #86 testimonial defect; see the note above .bw-testimonial.
+ */
+
+/* Hero / split-media ------------------------------------------------------- */
+
+.bw-hero-split {
+  display: grid;
+  /* Mobile-first: one column, copy first. The two-column form starts at 48rem. */
+  grid-template-columns: 1fr;
+  gap: var(--bw-space-8);
+  align-items: center;
+  padding-block: var(--bw-space-8) 0;
+}
+
+.bw-hero-split__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-4);
+  align-items: flex-start;
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+
+.bw-hero-split__eyebrow {
+  margin: 0;
+  color: var(--bw-color-accent);
+  font-family: var(--bw-text-overline-family);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  letter-spacing: var(--bw-text-overline-tracking);
+  line-height: var(--bw-text-overline-line-height);
+  text-transform: uppercase;
+}
+
+.bw-hero-split__heading {
+  margin: 0;
+  font-family: var(--bw-text-heading-display-family);
+  /* One step down from the centred hero's display size: a split hero shares the
+   * line with its media, so the full display scale would crowd it on tablet.
+   * Fluid below that for the same reason .bw-hero__heading is: a long single
+   * word cannot wrap, and a fixed size overflows a narrow viewport. */
+  font-size: clamp(2rem, 7vw, var(--bw-font-size-4xl));
+  overflow-wrap: break-word;
+  font-weight: var(--bw-text-heading-display-weight);
+  line-height: var(--bw-text-heading-display-line-height);
+  letter-spacing: var(--bw-text-heading-display-tracking);
+  text-wrap: balance;
+}
+
+.bw-hero-split__lede {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-lg-size);
+  line-height: var(--bw-text-body-lg-line-height);
+  text-wrap: pretty;
+}
+
+.bw-hero-split__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-3);
+  margin-block-start: var(--bw-space-2);
+}
+
+.bw-hero-split__media :where(img, svg) {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--bw-radius-lg);
+}
+
+@media (min-width: 48rem) {
+  .bw-hero-split {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--bw-space-12);
+  }
+}
+
+/* Hero / media-behind ------------------------------------------------------ */
+
+/* The band carries its OWN surface rather than inheriting the page's, so it
+ * renders identically in both themes. That is deliberate: the copy's contrast
+ * is then a property of this section alone and cannot be broken by a brand
+ * retuning the page surface. */
+.bw-hero-behind {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-block-size: 24rem;
+  padding-block: var(--bw-space-16);
+  padding-inline: var(--bw-space-8);
+  border-radius: var(--bw-radius-2xl);
+  overflow: hidden;
+  background-color: var(--bw-color-surface-inverse);
+  /* Replace this gradient with your own image. Keep a background-color behind
+   * it: it is what the text contrasts against while the image loads, and if the
+   * image 404s the copy stays readable instead of landing on bare white. */
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--bw-color-accent) 55%, var(--bw-color-surface-inverse)),
+    var(--bw-color-surface-inverse) 70%
+  );
+  background-size: cover;
+  background-position: center;
+  color: var(--bw-color-fg-on-inverse);
+}
+
+/* The scrim. Part of the contrast contract, not decoration: it is what keeps
+ * the copy legible over a light photograph. Sits between the backdrop and the
+ * copy via z-index, so it darkens the image without dimming the text. */
+.bw-hero-behind::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  /* Vertical, not horizontal: a directional scrim would need mirroring under
+   * RTL, and `to inline-end` is not a gradient keyword (gradients take physical
+   * directions only, so a logical value there is invalid and drops the whole
+   * declaration, taking the contrast guarantee with it). Top-to-bottom is
+   * direction-agnostic and needs no [dir="rtl"] rule. */
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--bw-color-surface-inverse) 45%, transparent),
+    color-mix(in oklab, var(--bw-color-surface-inverse) 75%, transparent)
+  );
+}
+
+.bw-hero-behind__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--bw-space-4);
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+
+.bw-hero-behind__eyebrow {
+  margin: 0;
+  /* Not --bw-color-accent here: the accent is tuned to sit on the PAGE surface,
+   * and this band is inverse. The on-inverse foreground is the checked pair. */
+  color: var(--bw-color-fg-on-inverse);
+  opacity: 0.85;
+  font-family: var(--bw-text-overline-family);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
+}
+
+.bw-hero-behind__heading {
+  margin: 0;
+  color: var(--bw-color-fg-on-inverse);
+  font-family: var(--bw-text-heading-display-family);
+  font-size: clamp(2rem, 7vw, var(--bw-font-size-4xl));
+  overflow-wrap: break-word;
+  font-weight: var(--bw-text-heading-display-weight);
+  line-height: var(--bw-text-heading-display-line-height);
+  letter-spacing: var(--bw-text-heading-display-tracking);
+  text-wrap: balance;
+}
+
+.bw-hero-behind__lede {
+  margin: 0;
+  color: var(--bw-color-fg-on-inverse);
+  opacity: 0.9;
+  font-size: var(--bw-text-body-lg-size);
+  line-height: var(--bw-text-body-lg-line-height);
+  text-wrap: pretty;
+}
+
+.bw-hero-behind__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-3);
+  margin-block-start: var(--bw-space-2);
+}
+
+/* Features / simple list --------------------------------------------------- */
+
+.bw-feature-list-section__heading {
+  margin: 0 0 var(--bw-space-6);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+}
+
+.bw-feature-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--bw-space-3);
+  margin: 0;
+  /* The list markup stays a <ul> for its semantics; the bullets go because the
+   * tick icon is the marker. */
+  padding: 0;
+  list-style: none;
+}
+
+.bw-feature-list__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bw-space-3);
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+}
+
+.bw-feature-list__marker {
+  color: var(--bw-color-success);
+  /* Optical alignment: the tick centres on the first LINE of a wrapping item
+   * rather than on the item box, which would drift down as the text wraps. */
+  margin-block-start: 0.15em;
+}
+
+@media (min-width: 40rem) {
+  .bw-feature-list {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--bw-space-4) var(--bw-space-8);
+  }
+}
+
+/* Features / alternating rows ---------------------------------------------- */
+
+.bw-feature-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-12);
+}
+
+.bw-feature-rows__heading {
+  margin: 0;
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+  text-wrap: balance;
+}
+
+.bw-feature-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--bw-space-6);
+  align-items: center;
+}
+
+.bw-feature-row__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-3);
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+
+.bw-feature-row__title {
+  margin: 0;
+  font-size: var(--bw-text-heading-lg-size);
+  font-weight: var(--bw-text-heading-lg-weight);
+  line-height: var(--bw-text-heading-lg-line-height);
+}
+
+.bw-feature-row__body {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  line-height: var(--bw-text-body-lg-line-height);
+  text-wrap: pretty;
+}
+
+.bw-feature-row__media :where(img, svg) {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--bw-radius-lg);
+}
+
+@media (min-width: 48rem) {
+  .bw-feature-row {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--bw-space-12);
+  }
+
+  /* The zig-zag. Applied ONLY at this breakpoint and above, and done with grid
+   * placement rather than by reordering the markup, so the DOM order (copy,
+   * then media) is the reading and tab order on every row. Below this width
+   * every row stacks copy-first, because a media-first stack would drop a
+   * picture between a heading and its own paragraph. */
+  .bw-feature-row:nth-child(even) .bw-feature-row__copy {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .bw-feature-row:nth-child(even) .bw-feature-row__media {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+/* CTA / split -------------------------------------------------------------- */
+
+.bw-cta-split {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--bw-space-6);
+  padding: var(--bw-space-8);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-xl);
+  background: var(--bw-color-surface-sunken);
+}
+
+.bw-cta-split__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+
+.bw-cta-split__heading {
+  margin: 0;
+  font-size: var(--bw-text-heading-lg-size);
+  font-weight: var(--bw-text-heading-lg-weight);
+  line-height: var(--bw-text-heading-lg-line-height);
+}
+
+.bw-cta-split__body {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  text-wrap: pretty;
+}
+
+.bw-cta-split__actions {
+  flex-shrink: 0;
+}
+
+@media (min-width: 48rem) {
+  .bw-cta-split {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--bw-space-8);
+  }
+}
+
+/* CTA / full-bleed --------------------------------------------------------- */
+
+/* The escape. The marketing shell caps every direct child at the marketing
+ * max-width and adds a page gutter; this undoes both so the band spans the
+ * viewport. The 50vw/50% pair is the standard full-bleed idiom: push the edges
+ * out to half the viewport beyond the container's own half-width.
+ *
+ * max-inline-size: 100vw rather than none, so the band cannot itself become a
+ * source of horizontal page scroll. */
+.bw-cta-bleed {
+  inline-size: 100vw;
+  max-inline-size: 100vw;
+  margin-inline: calc(50% - 50vw);
+  padding-block: var(--bw-space-16);
+  /* Its own gutter: having escaped the shell's, the copy would otherwise touch
+   * the viewport edge on a phone. */
+  padding-inline: var(--bw-density-page-gutter-inline);
+  background: var(--bw-color-surface-inverse);
+  color: var(--bw-color-fg-on-inverse);
+}
+
+.bw-cta-bleed__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bw-space-4);
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.bw-cta-bleed__heading {
+  margin: 0;
+  color: var(--bw-color-fg-on-inverse);
+  font-family: var(--bw-text-heading-display-family);
+  font-size: clamp(1.75rem, 6vw, var(--bw-font-size-3xl));
+  overflow-wrap: break-word;
+  font-weight: var(--bw-text-heading-display-weight);
+  line-height: var(--bw-text-heading-display-line-height);
+  letter-spacing: var(--bw-text-heading-display-tracking);
+  text-wrap: balance;
+}
+
+.bw-cta-bleed__body {
+  margin: 0;
+  color: var(--bw-color-fg-on-inverse);
+  opacity: 0.9;
+  font-size: var(--bw-text-body-lg-size);
+  text-wrap: pretty;
+}
+
+.bw-cta-bleed__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bw-space-5);
+  margin-block-start: var(--bw-space-2);
+}
+
+/* The quiet second action. A plain link rather than a secondary button: the
+ * secondary button's border colour is tuned for the page surface and reads as
+ * a smudge on the inverse band. Underlined, so it is not colour-only. */
+.bw-cta-bleed__link {
+  color: var(--bw-color-fg-on-inverse);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  font-weight: var(--bw-font-weight-medium);
+}
+
+/* Content / media and text ------------------------------------------------- */
+
+.bw-media-text {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--bw-space-8);
+  align-items: center;
+}
+
+.bw-media-text__figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+}
+
+.bw-media-text__figure :where(img, svg) {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--bw-radius-lg);
+}
+
+.bw-media-text__figure :where(figcaption) {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
+
+@media (min-width: 48rem) {
+  .bw-media-text {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--bw-space-12);
+  }
+}
+
+/* Content / callout -------------------------------------------------------- */
+
+.bw-callout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  padding: var(--bw-space-5);
+  border-inline-start: var(--bw-size-border-nav-marker) solid var(--bw-color-accent);
+  border-radius: var(--bw-radius-md);
+  background: var(--bw-color-accent-subtle);
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+
+.bw-callout + .bw-callout {
+  margin-block-start: var(--bw-space-5);
+}
+
+.bw-callout__title {
+  margin: 0;
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-font-weight-semibold);
+  /* The kind is carried by this TEXT, not by the tint alone: colour-only
+   * signalling fails WCAG 1.4.1. */
+  color: var(--bw-color-fg);
+}
+
+/* The body opts out of .bw-prose's own measure: the callout already sets one,
+ * and nesting two would narrow the text twice. */
+.bw-callout__body {
+  max-inline-size: none;
+}
+
+/* --note is the DEFAULT kind and the example emits it explicitly, so it needs a
+ * real rule rather than relying on the base (the icvoss/django-brickwork#120
+ * defect class: a documented option value whose CSS does not exist). It
+ * restates the base treatment, which also gives the other kinds something
+ * symmetrical to sit against. */
+.bw-callout--note {
+  border-inline-start-color: var(--bw-color-accent);
+  background: var(--bw-color-accent-subtle);
+}
+
+.bw-callout--warning {
+  border-inline-start-color: var(--bw-color-warning);
+  background: var(--bw-color-warning-subtle);
+}
+
+.bw-callout--success {
+  border-inline-start-color: var(--bw-color-success);
+  background: var(--bw-color-success-subtle);
+}
+
+/* Content / prose section -------------------------------------------------- */
+
+.bw-content-section > .bw-prose {
+  margin-inline: auto;
 }

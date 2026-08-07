@@ -2892,6 +2892,250 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 /* Firefox draws its own affordance INSIDE the field box; the field's own
  * padding-inline-end already gives it breathing room, no extra rule needed. */
 
+/* --- Long-form prose floor (3.1.0, plan Phase 6 gate 2) --------------------- */
+
+/* Blog posts and documentation pages are mostly text a CMS, a Markdown render,
+ * or a rich-text field produced, so the markup arrives WITHOUT classes: bare
+ * h2, ul, blockquote, code, table. Before this block the package styled none of
+ * those (no element-level selector existed anywhere in frontend/src), so that
+ * content fell back to UA defaults inside an otherwise themed page: Times-ish
+ * headings, a 100%-wide table with no rules, and a blockquote with nothing but
+ * a browser indent.
+ *
+ * .bw-prose is the opt-in wrapper that gives that content a floor. It is a
+ * CLASS rather than element styling on the content region for two reasons: it
+ * cannot bleed into a consumer's own markup, and a copied section (ADR-056)
+ * carries its formatting with it. The shells apply it where long-form content
+ * belongs, so the common case needs no opt-in at the call site.
+ *
+ * Everything below resolves through the text-role and colour tokens, so a brand
+ * that retunes the type scale or palette retunes prose with it, and dark theme
+ * needs no rules of its own. Descendants are matched with :where() so every rule
+ * lands at zero specificity: a consumer's own class on any child always wins
+ * without needing !important, which is the property that keeps this a FLOOR
+ * rather than a style the consumer has to fight.
+ */
+
+.bw-prose {
+  max-inline-size: var(--bw-size-max-width-prose);
+  color: var(--bw-color-fg);
+  font-family: var(--bw-text-body-md-family);
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-lg-line-height);
+}
+
+/* Rhythm: space between flow siblings rather than margins on each element, so
+ * the first and last child never introduce stray outer space the section band
+ * then has to cancel. */
+.bw-prose > * + * {
+  margin-block-start: var(--bw-space-5);
+}
+
+.bw-prose :where(h1, h2, h3, h4, h5, h6) {
+  margin: 0;
+  color: var(--bw-color-fg);
+  font-family: var(--bw-text-heading-lg-family);
+  text-wrap: balance;
+}
+
+/* Headings pull toward the text they introduce: a heading belongs to what
+ * follows it, so its leading space is larger than its trailing space. */
+.bw-prose > :where(h2, h3, h4, h5, h6) + * {
+  margin-block-start: var(--bw-space-3);
+}
+.bw-prose > * + :where(h2, h3, h4, h5, h6) {
+  margin-block-start: var(--bw-space-10);
+}
+
+.bw-prose :where(h1) {
+  font-family: var(--bw-text-heading-2xl-family);
+  font-size: var(--bw-text-heading-2xl-size);
+  font-weight: var(--bw-text-heading-2xl-weight);
+  line-height: var(--bw-text-heading-2xl-line-height);
+  letter-spacing: var(--bw-text-heading-2xl-tracking);
+}
+.bw-prose :where(h2) {
+  font-family: var(--bw-text-heading-xl-family);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+}
+.bw-prose :where(h3) {
+  font-size: var(--bw-text-heading-lg-size);
+  font-weight: var(--bw-text-heading-lg-weight);
+  line-height: var(--bw-text-heading-lg-line-height);
+}
+.bw-prose :where(h4, h5, h6) {
+  font-size: var(--bw-text-heading-md-size);
+  font-weight: var(--bw-text-heading-md-weight);
+  line-height: var(--bw-text-heading-md-line-height);
+}
+
+.bw-prose :where(p) {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+/* A lede: the standfirst paragraph a post opens with. */
+.bw-prose :where(.bw-prose__lede) {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-lg-size);
+  line-height: var(--bw-text-body-lg-line-height);
+}
+
+.bw-prose :where(a) {
+  color: var(--bw-color-accent);
+  /* Underlined, not colour-only: WCAG 1.4.1 does not accept hue alone as the
+   * signal that a run of text inside a paragraph is a link. */
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.bw-prose :where(a):hover {
+  color: var(--bw-color-accent-hover);
+}
+
+.bw-prose :where(strong, b) {
+  color: var(--bw-color-fg);
+  font-weight: var(--bw-font-weight-semibold);
+}
+
+.bw-prose :where(ul, ol) {
+  margin: 0;
+  padding-inline-start: var(--bw-space-6);
+}
+.bw-prose :where(li)::marker {
+  color: var(--bw-color-fg-subtle);
+}
+.bw-prose :where(li) + :where(li) {
+  margin-block-start: var(--bw-space-2);
+}
+/* A nested list belongs to its parent item, so it sits tighter than a sibling. */
+.bw-prose :where(li) > :where(ul, ol) {
+  margin-block-start: var(--bw-space-2);
+}
+
+.bw-prose :where(blockquote) {
+  margin: 0;
+  padding-inline-start: var(--bw-space-5);
+  border-inline-start: var(--bw-size-border-nav-marker) solid var(--bw-color-border-strong);
+  color: var(--bw-color-fg-muted);
+  font-style: italic;
+}
+
+.bw-prose :where(code) {
+  padding: var(--bw-space-0-5) var(--bw-space-1-5);
+  border-radius: var(--bw-radius-sm);
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg);
+  font-family: var(--bw-font-family-mono);
+  /* Relative, so inline code tracks whichever role it is nested in (a heading,
+   * a table cell, body text) rather than pinning to one absolute size. */
+  font-size: 0.9em;
+  /* An unbreakable token (a long identifier, a URL) has no wrap opportunity, so
+   * without this it pushes its paragraph wider than a phone viewport. Applied
+   * only to inline code: inside a <pre> the whole point is to preserve lines,
+   * which the block's own scroll region handles instead. */
+  overflow-wrap: break-word;
+}
+
+.bw-prose :where(pre) {
+  margin: 0;
+  /* A grid/flex or block child sizes to its content by default, so a long code
+   * line made the <pre> itself wider than the page instead of scrolling inside
+   * it, and the whole document scrolled sideways on a phone. Capping the inline
+   * size at the container makes overflow-x below actually take effect.
+   * Found at 375px by the plan's Phase 6 gate 3. */
+  max-inline-size: 100%;
+  padding: var(--bw-space-4);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  background: var(--bw-color-surface-sunken);
+  /* A long code line scrolls its own block instead of widening the page: the
+   * mobile-first floor ADR-057 section 1 requires. */
+  overflow-x: auto;
+  font-family: var(--bw-font-family-mono);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-font-line-height-normal);
+}
+/* A code element inside a pre is the block's own text: the inline chip
+ * treatment (background, padding, radius) must not apply twice. */
+.bw-prose :where(pre) :where(code) {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  font-size: inherit;
+  /* display:block so the code is laid out as the pre's scrollable content
+   * rather than as an inline box that paints past the scroll container and
+   * drags the whole document wider. Without it the <pre> scrolls correctly in
+   * isolation while the page still scrolls sideways on a phone: the pre
+   * reported 327px wide with a 388px inline child spilling out of it.
+   * The inline-code overflow-wrap above is deliberately NOT inherited here,
+   * because preserving long lines is what a code block is for. */
+  display: block;
+  overflow-wrap: normal;
+}
+
+/* Tables scroll rather than overflow. The wrapper is tabindex="0" in the
+ * examples so a keyboard user can reach the scroll region (axe scrollable-region
+ * -focusable), matching the shipped _data_table.html contract. */
+.bw-prose :where(.bw-prose__table-wrap) {
+  overflow-x: auto;
+}
+
+.bw-prose :where(table) {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--bw-text-body-sm-size);
+  text-align: start;
+}
+.bw-prose :where(th, td) {
+  padding: var(--bw-space-3) var(--bw-space-4);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  text-align: start;
+  vertical-align: top;
+}
+.bw-prose :where(th) {
+  color: var(--bw-color-fg);
+  font-weight: var(--bw-font-weight-semibold);
+}
+.bw-prose :where(caption) {
+  margin-block-end: var(--bw-space-2);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  text-align: start;
+}
+
+.bw-prose :where(img, video) {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--bw-radius-lg);
+}
+
+.bw-prose :where(figure) {
+  margin: 0;
+}
+.bw-prose :where(figcaption) {
+  margin-block-start: var(--bw-space-2);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+}
+
+.bw-prose :where(hr) {
+  margin-block: var(--bw-space-10);
+  border: 0;
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-prose :where(dt) {
+  font-weight: var(--bw-font-weight-semibold);
+}
+.bw-prose :where(dd) {
+  margin-inline-start: 0;
+  color: var(--bw-color-fg-muted);
+}
+
 /* --- Dark-theme resets for the light-only top-light (0.7.0 craft) ----------- */
 
 /* The card family's inset top-light is a LIGHT-theme treatment (white sheen on

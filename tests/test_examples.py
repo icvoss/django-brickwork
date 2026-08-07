@@ -18,6 +18,7 @@ Two things are under test, and they pull in opposite directions on purpose:
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import pytest
 from django import forms
@@ -26,6 +27,14 @@ from django.template.backends.django import get_installed_libraries as get_defau
 from django.template.loader import get_template
 
 from brickwork import examples
+
+# The COMPILED stylesheet, not the frontend source: the source is the build's
+# input, and it is the built artefact that reaches a consumer's page. A rule
+# present in frontend/src but absent here (a build not re-run before commit) is
+# exactly the drift these tests exist to catch.
+_COMPILED_CSS = (
+    Path(__file__).resolve().parent.parent / "src" / "brickwork" / "static" / "brickwork" / "dist" / "brickwork.css"
+).read_text(encoding="utf-8")
 
 # Every example, with the context its own header comment says the view must
 # supply. The examples deliberately carry their copy inline (that is the whole
@@ -128,6 +137,52 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     },
 }
 
+# --- The example SECTIONS (3.1.0, plan Phase 6a) ----------------------------
+#
+# A section is a fragment, not a document: it is the band a consumer copies
+# into a page they already own. So sections are held to a different contract
+# from the whole-page examples above (no doctype, no <html>, no #bw-main), and
+# are listed separately rather than folded into _EXAMPLE_CONTEXTS.
+#
+# Only _feature_grid.html needs context, for the same reason the landing page
+# does: a Django template cannot build a list of dicts inline. Every other
+# section carries its copy inline and renders from an empty context, which is
+# the property that makes it genuinely copy-paste.
+_SECTION_FEATURES = [
+    {
+        "icon": "bell",
+        "heading": "Automatic reminders",
+        "body": "Chase on your schedule, not when you remember.",
+        "url": "/features/reminders/",
+    },
+    {
+        "icon": "calendar",
+        "heading": "Late-payment prediction",
+        "body": "Know which accounts slip before they do.",
+    },
+    {
+        "icon": "check",
+        "heading": "Reconciliation",
+        "body": "Payments matched to invoices automatically.",
+    },
+]
+
+_SECTION_CONTEXTS: dict[str, dict[str, object]] = {
+    "sections/content/callout.html": {},
+    "sections/content/media-and-text.html": {},
+    "sections/content/prose-block.html": {},
+    "sections/cta/centred-band.html": {},
+    "sections/cta/full-bleed.html": {},
+    "sections/cta/split.html": {},
+    "sections/features/alternating-rows.html": {},
+    "sections/features/icon-grid.html": {"features": _SECTION_FEATURES},
+    "sections/features/simple-list.html": {},
+    "sections/hero/centred.html": {},
+    "sections/hero/media-behind.html": {},
+    "sections/hero/minimal.html": {},
+    "sections/hero/split-media.html": {},
+}
+
 
 def _example_engine() -> Engine:
     """A standalone engine that CAN see the examples.
@@ -214,7 +269,113 @@ def test_no_example_leaks_an_unresolved_template_variable(name: str) -> None:
 
 def test_the_shipped_example_set_matches_what_the_tests_cover() -> None:
     """A new example with no context entry would otherwise be silently untested."""
-    assert set(examples.list_examples()) == set(_EXAMPLE_CONTEXTS)
+    assert set(examples.list_examples()) == set(_EXAMPLE_CONTEXTS) | set(_SECTION_CONTEXTS)
+
+
+# --- 3. The example sections (3.1.0, plan Phase 6a) -------------------------
+
+
+@pytest.mark.parametrize("name", sorted(_SECTION_CONTEXTS))
+def test_every_section_renders(name: str) -> None:
+    html = _example_engine().get_template(name).render(Context(_SECTION_CONTEXTS[name]))
+    assert html.strip(), f"{name} rendered empty"
+
+
+@pytest.mark.parametrize("name", sorted(_SECTION_CONTEXTS))
+def test_a_section_is_a_fragment_not_a_document(name: str) -> None:
+    """The contract that separates a section from a whole-page example.
+
+    A section is dropped INTO a page the consumer already owns, so emitting a
+    doctype or an <html> element would produce a nested document the moment it
+    was used as intended.
+    """
+    html = _example_engine().get_template(name).render(Context(_SECTION_CONTEXTS[name]))
+    lowered = html.lower()
+    assert "<!doctype" not in lowered
+    assert "<html" not in lowered
+    assert "<body" not in lowered
+
+
+@pytest.mark.parametrize("name", sorted(_SECTION_CONTEXTS))
+def test_no_section_leaks_an_unresolved_template_variable(name: str) -> None:
+    html = _example_engine().get_template(name).render(Context(_SECTION_CONTEXTS[name]))
+    assert "{{" not in html
+    assert "{%" not in html
+
+
+@pytest.mark.parametrize("name", sorted(_SECTION_CONTEXTS))
+def test_the_loader_cannot_resolve_a_section_either(name: str) -> None:
+    """ADR-056 applies to sections exactly as it does to pages."""
+    with pytest.raises(TemplateDoesNotExist):
+        get_template(f"brickwork/examples/{name}")
+
+
+@pytest.mark.parametrize("name", sorted(_SECTION_CONTEXTS))
+def test_every_section_class_it_emits_is_actually_styled(name: str) -> None:
+    """The icvoss/django-brickwork#120 defect class, applied to sections.
+
+    A section whose markup names a class the shipped stylesheet does not define
+    renders unstyled in the consumer's project while passing every "does it
+    render" test. Catching that needs the compiled CSS, not the source, because
+    the source is what the build consumes rather than what ships.
+
+    Structural hooks with no styling of their own are exempt by name: block
+    roots whose children carry every rule. They are listed explicitly so a
+    genuinely dead class cannot hide among them.
+    """
+    unstyled_by_design = {
+        # Block roots positioned entirely by their own children's rules.
+        "bw-btn__label",
+        "bw-feature-grid-section",
+        "bw-feature-list-section",
+        "bw-content-section",
+    }
+    html = _example_engine().get_template(name).render(Context(_SECTION_CONTEXTS[name]))
+    used: set[str] = set()
+    for attr in re.findall(r'class="([^"]+)"', html):
+        used.update(token for token in attr.split() if token.startswith("bw-"))
+
+    styled = set(re.findall(r"\.(bw-[a-zA-Z0-9_-]+)", _COMPILED_CSS))
+    missing = sorted(used - styled - unstyled_by_design)
+    assert not missing, f"{name} emits classes with no rule in the shipped CSS: {missing}"
+
+
+def test_the_prose_floor_styles_the_elements_long_form_content_actually_uses() -> None:
+    """Plan Phase 6 gate 2: blog and docs pages are mostly unclassed markup.
+
+    Before 3.1.0 the package shipped no element-level rule at all, so a rendered
+    Markdown body fell back to UA defaults inside an otherwise themed page. Each
+    element below appears in a real shipped section, so a regression here is a
+    visible defect on a page a consumer copied.
+    """
+    for selector in (
+        "blockquote",
+        "code",
+        "pre",
+        "table",
+        "th",
+        "caption",
+        "figcaption",
+        "hr",
+    ):
+        assert f".bw-prose :where({selector}" in _COMPILED_CSS or f", {selector}" in _COMPILED_CSS, (
+            f"the prose floor does not style <{selector}>"
+        )
+
+
+def test_the_prose_floor_lands_at_zero_specificity() -> None:
+    """Every descendant rule is wrapped in :where() so a consumer's own class on
+    any child wins without !important. That is what makes it a floor rather than
+    a style to fight."""
+    assert ".bw-prose :where(" in _COMPILED_CSS
+    # The block itself must never resort to !important to hold its ground.
+    prose_block = _COMPILED_CSS[_COMPILED_CSS.index(".bw-prose") :]
+    prose_block = (
+        prose_block[: prose_block.index("/* --- Dark-theme resets")]
+        if "/* --- Dark-theme resets" in prose_block
+        else prose_block[:6000]
+    )
+    assert "!important" not in prose_block
 
 
 # --- CTA hrefs actually reach the rendered anchors (ADR-060 spelling hunt) ---

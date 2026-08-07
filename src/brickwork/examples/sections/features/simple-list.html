@@ -1,0 +1,45 @@
+{% load brickwork_icons %}
+{% comment %}
+FEATURES / simple list: a scannable checklist, no cards, no grid.
+
+WHEN TO USE THIS INSTEAD OF THE ICON GRID. When the items are short and the
+point is completeness rather than depth ("what is included"), a list reads
+faster than a grid of cards and does not pretend each item deserves equal
+visual weight.
+
+WHY IT IS A <ul> AND NOT A ROW OF DIVS. It is a list, so it is marked up as
+one: a screen reader then announces "list, 6 items" and the user can skip it.
+The tick icons are decorative (the list semantics already carry the meaning),
+so they are hidden from assistive tech rather than announced six times.
+
+Everything here is inline. No view involvement.
+{% endcomment %}
+<section class="bw-feature-list-section">
+  <h2 class="bw-feature-list-section__heading">What is included</h2>
+  <ul class="bw-feature-list">
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>Unlimited invoices and credit notes</span>
+    </li>
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>Automatic reminders on your own schedule</span>
+    </li>
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>Late-payment prediction on every account</span>
+    </li>
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>Bank reconciliation with Open Banking feeds</span>
+    </li>
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>VAT returns prepared and filed</span>
+    </li>
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>Export to CSV, or the API if you would rather</span>
+    </li>
+  </ul>
+</section>

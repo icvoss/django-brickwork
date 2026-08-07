@@ -1,0 +1,46 @@
+{% comment %}
+CONTENT / media and text: a figure beside a paragraph or two.
+
+WHEN TO USE THIS. Inside a long page, when one idea needs a picture. It is not
+a hero (no h1, no CTA) and not a feature row (it is prose, not a capability
+pitch).
+
+THE FIGURE IS A <figure> WITH A <figcaption>, not a div with a caption class,
+so the caption is programmatically tied to the image rather than merely sitting
+under it.
+
+THIS MEDIA IS NOT DECORATIVE, so unlike the hero illustrations it carries a
+real accessible name: role="img" plus a <title> on the svg. The rule is about
+whether the media adds information the copy does not, not about what element it
+happens to be. A chart always does.
+
+The copy uses .bw-prose so its paragraphs and lists get the same floor as any
+other long-form text, at a narrower measure because the column is narrower.
+{% endcomment %}
+<section class="bw-media-text">
+  <div class="bw-prose">
+    <h2>Where the time actually goes</h2>
+    <p>
+      Finance teams told us they spent most of their week on collections. When
+      we measured it, the chasing itself was under four hours. The rest went on
+      working out <em>who</em> to chase, and finding out somebody already had.
+    </p>
+    <p>
+      Automating the sending saves the four hours. Keeping one shared record of
+      what was sent, and what came back, saves the other two days.
+    </p>
+  </div>
+  <figure class="bw-media-text__figure">
+    <svg viewBox="0 0 360 240" width="360" height="240" role="img" aria-labelledby="media-text-chart-title">
+      <title id="media-text-chart-title">Weekly hours: four on chasing, fourteen on coordination</title>
+      <rect x="0" y="0" width="360" height="240" rx="12" fill="var(--bw-color-surface-sunken)" />
+      <rect x="56" y="152" width="72" height="56" rx="6" fill="var(--bw-color-accent)" />
+      <rect x="152" y="64" width="72" height="144" rx="6" fill="var(--bw-color-border-strong)" />
+      <rect x="248" y="104" width="72" height="104" rx="6" fill="var(--bw-color-border-strong)" />
+      <line x1="40" y1="208" x2="336" y2="208" stroke="var(--bw-color-border)" stroke-width="2" />
+    </svg>
+    <figcaption>
+      Hours per week, self-reported (n=120). Chasing is the small bar.
+    </figcaption>
+  </figure>
+</section>

@@ -1,0 +1,14 @@
+{% comment %}
+HERO / centred: the default opening band. Copy this into your own page.
+
+Everything here is typed inline, so this section needs NOTHING from your view.
+Drop it into a marketing shell's {% block content %} and change the words.
+
+This one is the shipped _hero.html component with align="center": when the
+component already does what you want, the honest example is the include, not a
+hand-rolled copy of its markup. The variants that follow do own their markup,
+and each says why.
+
+The eyebrow is optional. Drop it if the heading stands alone.
+{% endcomment %}
+{% include "brickwork_marketing/components/_hero.html" with align="center" eyebrow="Invoicing" heading="Invoicing that chases itself" lede="Northwind raises your invoices, sends the reminders, and tells you who is about to pay late. You do the work. It does the asking." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_href="/demo/" %}

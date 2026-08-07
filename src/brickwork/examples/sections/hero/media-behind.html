@@ -1,0 +1,39 @@
+{% load brickwork_components %}
+{% comment %}
+HERO / media-behind: copy over a full-bleed backdrop.
+
+WHY THIS OWNS ITS MARKUP. Same reason as split-media: _hero.html has one media
+placement, beside/below the copy, never behind it (icvoss/django-brickwork#118).
+
+THE CONTRAST TRAP, AND WHY THIS SECTION IS BUILT THE WAY IT IS. Text over an
+image is the single most common way a themed page fails WCAG 1.4.3, because the
+contrast depends on the IMAGE, which the design system cannot see. Two rules
+this section follows, and you should keep if you swap the backdrop:
+
+  1. The copy sits on an explicit inverse surface, not directly on the image,
+     and the colours come from the inverse token pair (--bw-color-surface-inverse
+     and --bw-color-fg-on-inverse) which is contrast-checked in both themes.
+  2. A scrim sits between the image and the text, so a light photograph cannot
+     wash the copy out. The scrim is part of the contract here, not decoration.
+
+If you replace the gradient below with a photograph, re-run the contrast check.
+A backdrop that looks fine in light theme can still fail: this band renders the
+same in both themes by design, because it carries its own surface rather than
+inheriting the page's.
+
+The backdrop is decorative (it says nothing the copy does not), so it is a CSS
+background rather than an <img>, which keeps it out of the accessibility tree
+without needing aria-hidden.
+{% endcomment %}
+<section class="bw-hero-behind">
+  <div class="bw-hero-behind__copy">
+    <p class="bw-hero-behind__eyebrow">Northwind 3.0</p>
+    <h1 class="bw-hero-behind__heading">Every invoice, chased on time</h1>
+    <p class="bw-hero-behind__lede">
+      Reminders that go out whether or not you remembered to send them.
+    </p>
+    <div class="bw-hero-behind__actions">
+      {% bw_button "Start free trial" variant="primary" size="lg" href="/accounts/signup/" %}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,39 @@
+{% comment %}
+CONTENT / callout: a note pulled out of the flow of a docs or blog page.
+
+WHY THIS IS NOT {% bw_alert %}. An alert is a STATUS message about the current
+state of the application ("your export failed"). A callout is editorial: part
+of the document, true whenever the page is read, and not a response to anything
+the reader did. They look similar and mean different things, so a callout is
+NOT given role="alert" or aria-live: announcing a permanent note as if it just
+happened is wrong, and it would interrupt a screen-reader user mid-sentence.
+
+The heading carries the kind ("Note", "Warning") as TEXT, not colour alone.
+Colour-only signalling fails WCAG 1.4.1, and this section is styled per kind.
+
+Kinds available: --note (default, accent), --warning, --success. Change the
+modifier class to switch. Each pairs a subtle background with its own checked
+foreground token, in both themes.
+{% endcomment %}
+<div class="bw-callout bw-callout--note">
+  <p class="bw-callout__title">Note</p>
+  <div class="bw-prose bw-callout__body">
+    <p>
+      Reminder schedules are evaluated in the account's own timezone, not the
+      server's. An invoice due on the 30th in Sydney is chased on the 30th in
+      Sydney.
+    </p>
+  </div>
+</div>
+
+<div class="bw-callout bw-callout--warning">
+  <p class="bw-callout__title">Before you enable this</p>
+  <div class="bw-prose bw-callout__body">
+    <p>
+      Turning on automatic reminders sends to every account with an open
+      invoice, including ones already overdue. Run
+      <a href="/docs/reminders/#preview">the preview</a> first to see exactly
+      who would be contacted.
+    </p>
+  </div>
+</div>

@@ -29,7 +29,60 @@ improvements automatically, extend `brickwork/shell/base.html` (or
 `brickwork_marketing/shell/marketing.html`) instead: the shells remain a
 supported, importable part of the package.
 
-## What is here
+## Two units: sections and pages
+
+A **section** is a single band (a hero, a pricing table, a call to action). It
+is the unit you actually reuse, because a real page is a stack of them. Copy a
+section into a page you already own.
+
+A **page** is a whole document. Copy one when you are starting a page from
+nothing.
+
+Sections came first in 3.1.0 for a reason: before them, wanting a pricing band
+meant copying a pricing page and deleting most of it.
+
+## The sections
+
+Under `sections/<type>/<variant>.html`. Each file's header comment says what it
+is for, when to reach for it over its siblings, and whether it needs anything
+from your view.
+
+| Type | Variants |
+|---|---|
+| `hero` | `centred`, `split-media`, `media-behind`, `minimal` |
+| `features` | `icon-grid`, `alternating-rows`, `simple-list` |
+| `cta` | `centred-band`, `split`, `full-bleed` |
+| `content` | `prose-block`, `media-and-text`, `callout` |
+
+Only `features/icon-grid.html` needs anything from your view (a list of dicts,
+which a Django template cannot build inline). Everything else renders from an
+empty context, because the copy is typed into the file.
+
+Some variants are a one-line `{% include %}` of a shipped component, because
+the component already does the job and the honest example is the include. The
+rest own their markup, and each says why in its header comment: usually that
+the arrangement is one the component cannot yet express.
+
+### Long-form text: `bw-prose`
+
+Blog posts and documentation are mostly unclassed markup, whether they came
+from a Markdown renderer, a CMS, or a rich-text field. Wrap that content in one
+class:
+
+```html
+<div class="bw-prose">{{ post.body|safe }}</div>
+```
+
+`bw-prose` styles bare headings, paragraphs, lists, blockquotes, inline code,
+code blocks, tables, figures and rules from the same tokens as everything else,
+at a 65ch reading measure. You put no classes on the content itself. Every rule
+is written at zero specificity, so your own class on any element beats the floor
+without `!important`.
+
+(`|safe` only if you trust the source. brickwork styles markup; it does not
+sanitise it.)
+
+## The pages
 
 | File | Shape |
 |---|---|

@@ -1,0 +1,65 @@
+{% comment %}
+FEATURES / alternating media rows: each capability gets a row of its own.
+
+WHEN TO USE THIS. When three cards' worth of text is not enough. A row gives a
+feature a paragraph and a picture instead of a sentence, so use it for the two
+or three things that actually sell the product, not for a list of twelve.
+
+WHY THIS OWNS ITS MARKUP. _feature_grid.html is a grid of equal cards; this is
+a stack of unequal rows with media. Different composition, not a different
+option on the same one.
+
+HOW THE ALTERNATION WORKS, AND WHY IT IS CSS. The second row reverses via
+:nth-child(even) in marketing.css, NOT by reordering the markup. That matters:
+reading order stays copy-then-media for every row, so a screen reader and a
+keyboard user get a consistent sequence while sighted users get the zig-zag.
+Reversing in the markup would make row two announce backwards.
+
+On narrow screens the reversal is switched off entirely and every row stacks
+copy-first. An "even" row that stacked media-first would put a picture between
+a heading and its own body text.
+{% endcomment %}
+<section class="bw-feature-rows">
+  <h2 class="bw-feature-rows__heading">Built for the boring half of getting paid</h2>
+
+  <div class="bw-feature-row">
+    <div class="bw-feature-row__copy">
+      <h3 class="bw-feature-row__title">Reminders that go out without you</h3>
+      <p class="bw-feature-row__body">
+        Set the schedule once. Northwind sends the first nudge before the due
+        date, the firm one after it, and stops the moment the money lands, so
+        nobody gets chased for an invoice they have already paid.
+      </p>
+    </div>
+    <div class="bw-feature-row__media">
+      <svg viewBox="0 0 400 260" width="400" height="260" aria-hidden="true" focusable="false">
+        <rect x="16" y="16" width="368" height="228" rx="12" fill="var(--bw-color-surface-sunken)" stroke="var(--bw-color-border)" />
+        <rect x="44" y="52" width="140" height="12" rx="6" fill="var(--bw-color-fg-subtle)" />
+        <rect x="44" y="88" width="312" height="8" rx="4" fill="var(--bw-color-border-strong)" />
+        <rect x="44" y="112" width="268" height="8" rx="4" fill="var(--bw-color-border-strong)" />
+        <rect x="44" y="164" width="96" height="28" rx="14" fill="var(--bw-color-accent)" />
+        <rect x="156" y="164" width="96" height="28" rx="14" fill="var(--bw-color-border)" />
+      </svg>
+    </div>
+  </div>
+
+  <div class="bw-feature-row">
+    <div class="bw-feature-row__copy">
+      <h3 class="bw-feature-row__title">Know who is about to run late</h3>
+      <p class="bw-feature-row__body">
+        Every account carries a prediction based on how it has actually paid you
+        before, not on its stated terms. The ones worth a phone call surface a
+        fortnight before they become a problem.
+      </p>
+    </div>
+    <div class="bw-feature-row__media">
+      <svg viewBox="0 0 400 260" width="400" height="260" aria-hidden="true" focusable="false">
+        <rect x="16" y="16" width="368" height="228" rx="12" fill="var(--bw-color-surface-sunken)" stroke="var(--bw-color-border)" />
+        <polyline points="48,196 112,168 176,180 240,120 304,96 352,64" fill="none" stroke="var(--bw-color-accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="240" cy="120" r="7" fill="var(--bw-color-accent)" />
+        <circle cx="352" cy="64" r="7" fill="var(--bw-color-success)" />
+        <rect x="44" y="216" width="312" height="1" fill="var(--bw-color-border)" />
+      </svg>
+    </div>
+  </div>
+</section>
