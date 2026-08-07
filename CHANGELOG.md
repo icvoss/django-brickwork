@@ -8,6 +8,79 @@ versioning contract).
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-08-07
+
+The second and final wave of example sections. With `pricing`, `testimonial`,
+`faq`, `stats` and `listing`, the catalogue is complete at **26 sections across
+nine types**: every variant on the original list, none added to fill a grid and
+none dropped. Additive throughout; nothing in 3.0.0's option grammar moves.
+
+The `listing` variants existed to answer a question rather than to fill a row in
+a table. A card grid is composed by four of the planned layouts and by this
+section type, and the package ships one card with no grid, so the plan
+deliberately deferred "should a grid be a component" until two variants had been
+written. The answer is no: what the variants share is the ENTRY CONTRACT, not a
+layout. A card grid is multiple columns of vertical stacks and a media list is a
+single column of horizontal rows, and they have no layout declaration in common.
+
+As in 3.1.0, the defects below were found by the gates rather than by the test
+suite, which stayed green throughout. One of them is worth reading even if you
+never touch this package: the a11y fixture had been supplying context to exactly
+one section, so every other section that needs view data was stacking into the
+fixture EMPTY and clearing both axe and the mobile gate while testing nothing at
+all. A blank section violates no assertion.
+
+### Added
+
+- **Thirteen more example sections, completing the catalogue's nine types.**
+  `pricing` (three-tier, single-plan, comparison-table), `testimonial`
+  (single-quote, quote-grid, logo-and-quote), `faq` (single-column, two-column),
+  `stats` (inline-band, card-row) and `listing` (card-grid, media-list,
+  compact-table) join the four types that shipped in 3.1.0, for 26 sections in
+  total. Every one clears the same gates as wave 1: axe WCAG 2.2 AA in both
+  themes, the no-JS floor, and no horizontal scroll at 360, 375 or 414px.
+- **A card grid is still not a component, now on evidence rather than
+  assumption.** The plan deferred the decision until the first two `listing`
+  variants existed. They now do, and what they share turned out to be the ENTRY
+  CONTRACT (`title`, `summary`, `url`, `meta`), not a grid: the card grid is a
+  multi-column layout of vertical stacks and the media list is a single column
+  of horizontal rows, and the two share no layout declaration. Promoting a grid
+  component would have abstracted the half they do not have in common, so the
+  four declarations stay in each example where a consumer can change them.
+- **Two sections deliberately take no context where a looping wrapper would
+  have.** `pricing/single-plan` includes `_pricing_tier.html` once and `faq/*`
+  include `_disclosure.html` once per question, both with flat strings, because
+  a consumer copying a static pricing or FAQ band wants to edit words in the
+  template rather than wire up a view. Each file documents the list-shaped route
+  as the alternative for data-driven content.
+
+### Fixed
+
+- **The a11y fixture rendered every context-taking section empty, so the axe and
+  mobile gates were measuring nothing.** `a11y/generate_fixtures.py` supplied
+  context to exactly one section (`features/icon-grid`) via an inline
+  `if "icon-grid" in name` test, so any other section needing view data stacked
+  into the fixture as an empty wrapper and passed every gate while being wholly
+  untested. The generator now imports `_SECTION_CONTEXTS` from
+  `tests/test_examples.py`, the one place that list is already declared and kept
+  exhaustive, and raises rather than writing a fixture if a section renders
+  empty. Found by screenshotting the fixture rather than by any test: the
+  suite was green throughout, because a blank section violates no assertion.
+- **A wide table painted outside its own scroll container, so the PAGE scrolled
+  sideways on a phone instead of the table.** `overflow-x: auto` sized and
+  scrolled the container correctly (scrollWidth 687 against clientWidth 310 at
+  360px) while the table still rendered to its full intrinsic width, putting the
+  document 224px past the viewport. Both the pricing comparison table and the
+  listing compact table now `contain: paint`, which clips the overflow to the
+  container that already owns the scroll. The listing table was not yet tripping
+  the mobile gate, so it was fixed as the latent case of the same defect rather
+  than left until a longer title surfaced it.
+- **Small print in five new sections used `--bw-color-fg-subtle` and failed AA
+  contrast** at 2.36:1 against a 4.5:1 requirement. That token is for decorative
+  ink whose meaning is carried by adjacent text; every one of these was
+  meaningful prose, so they now use `--bw-color-fg-muted` like the rest of the
+  kit's captions and notes.
+
 ## [3.1.0] - 2026-08-07
 
 The first wave of the examples library: **sections**, the band-sized unit a
