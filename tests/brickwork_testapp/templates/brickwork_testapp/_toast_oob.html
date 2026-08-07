@@ -7,6 +7,6 @@ exactly the reserved non-field-scoped OOB use BR-BW-HTMX-003 names, and it
 needs zero event listeners (BR-BW-HTMX-004).
 {% endcomment %}
 <div hx-swap-oob="afterbegin:#bw-toast-region">
-  {% bw_toast message intent=intent duration=duration %}
+  {% bw_toast message variant=intent duration=duration %}
 </div>
 <p id="toast-demo-status">Sent a {{ intent }} toast.</p>

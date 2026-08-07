@@ -20,7 +20,7 @@ Optional context:
               is a flat string, so a tier is otherwise fully
               template-authorable.
   cta         ({label, url}).
-  cta_label / cta_url (str, #98): the same CTA as flat strings, for a
+  cta_label / cta_href (str, #98): the same CTA as flat strings, for a
               template-authored caller (the ADR-056 compose-it-yourself
               shape). When both shapes are supplied the dict wins outright
               (the flat kwargs are ignored); a dict-shaped caller renders
@@ -52,7 +52,7 @@ Optional context:
   {% endif %}
   {% if cta or cta_label %}
     <div class="bw-pricing-tier__cta">
-      {% if cta %}{% bw_button cta.label variant=highlighted|yesno:"primary,secondary" size="lg" href=cta.url %}{% else %}{% bw_button cta_label variant=highlighted|yesno:"primary,secondary" size="lg" href=cta_url %}{% endif %}
+      {% if cta %}{% bw_button cta.label variant=highlighted|yesno:"primary,secondary" size="lg" href=cta.url %}{% else %}{% bw_button cta_label variant=highlighted|yesno:"primary,secondary" size="lg" href=cta_href %}{% endif %}
     </div>
   {% endif %}
 </div>

@@ -190,7 +190,7 @@ INTERACTION_DROPDOWN_ITEMS = [
         "label": "Reset demo data",
         "url": "/interactions/confirm/",
         "icon": "trash",
-        "intent": "danger",
+        "variant": "danger",
         "attrs": {"data-demo-action": "reset"},
     },
 ]
@@ -325,7 +325,7 @@ class InteractionConfirmView(TemplateView):
             {
                 "title": "Reset demo data",
                 "modal_id": self.MODAL_ID,
-                "close_url": reverse("testapp:interactions"),
+                "close_href": reverse("testapp:interactions"),
                 "backdrop_dismiss": True,
             }
         )

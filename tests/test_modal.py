@@ -72,10 +72,10 @@ def test_close_control_is_always_rendered_as_an_icon_only_button() -> None:
     assert "bw-btn--icon-only" in html
 
 
-def test_close_url_turns_the_close_control_into_a_real_anchor_floor() -> None:
-    # AC-BW-086: the floor never shows a dead trigger; with close_url the
+def test_close_href_turns_the_close_control_into_a_real_anchor_floor() -> None:
+    # AC-BW-086: the floor never shows a dead trigger; with close_href the
     # control is a real link out (the full-page path's exit).
-    html = _render(close_url="/interactions/")
+    html = _render(close_href="/interactions/")
     assert re.search(r'<a class="bw-modal__close[^>]*href="/interactions/"', html)
     default = _render()
     assert '<button class="bw-modal__close' in default

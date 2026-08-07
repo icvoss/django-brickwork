@@ -37,13 +37,13 @@ in the tab_panel partial below, e.g.
     {% include "brickwork/components/_tabs.html#tab_panel" with tabs_id="settings" key="profile" active=active_tab content=profile_panel %}
 
 Tokens and motion (CSS lane): labels use the label type role; the active
-marker is --bw-size-border-thick in --bw-color-accent (underline style) or
-a --bw-state-selected-bg fill at --bw-radius-full (pill style);
+marker is --bw-size-border-thick in --bw-color-accent (underline variant) or
+a --bw-state-selected-bg fill at --bw-radius-full (pill variant);
 indicator movement animates translateX at
 --bw-duration-fast/--bw-ease-standard (MOT-013) under the reduced-motion
 floor (BR-BW-TOK-009). No elevation, no z-index: in-flow chrome.
 {% endcomment %}
-<div class="bw-tabs bw-tabs--{{ style }}"
+<div class="bw-tabs bw-tabs--{{ variant }}"
      x-data="bwTabs({ id: '{{ id|escapejs }}', active: '{{ active|escapejs }}', urlSync: {{ url_sync|yesno:'true,false' }}, lazyLoad: {{ lazy_load|yesno:'true,false' }} })">
   <nav class="bw-tabs__list" data-bw-tablist>
     {% for tab in tabs %}

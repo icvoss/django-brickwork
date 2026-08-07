@@ -6,7 +6,7 @@ semantics (role="menu" mandates arrow-key handling a no-JS page cannot
 provide). bwDropdown upgrades the markup at init, so menu roles must be
 absent from the server-rendered output (the _account_menu.html doctrine run
 forwards, BR-BW-HTMX-006). Render-time enforcement (ICO-008 icon-only
-aria_label, item intent validation, the attrs seam's name validation) raises
+aria_label, item variant validation, the attrs seam's name validation) raises
 TemplateSyntaxError exactly as bw_button does.
 """
 
@@ -24,7 +24,7 @@ _ITEMS = [
     {"label": "New widget", "url": "/widgets/new/", "icon": "plus"},
     {"label": "Draft widgets", "url": "/widgets/?status=draft"},
     {"divider": True},
-    {"label": "Delete demo data", "url": "/reset/", "intent": "danger"},
+    {"label": "Delete demo data", "url": "/reset/", "variant": "danger"},
 ]
 
 
@@ -72,9 +72,27 @@ def test_divider_renders_as_a_non_link_separator() -> None:
     assert 'class="bw-dropdown__divider"' in html
 
 
-def test_danger_intent_takes_the_danger_modifier() -> None:
+def test_danger_variant_takes_the_danger_modifier() -> None:
     html = _render()
     assert html.count("bw-dropdown__item--danger") == 1
+
+
+# --- placement (ADR-060 rule 1, closes #120) ---------------------------------
+
+
+def test_placement_default_emits_no_end_modifier() -> None:
+    html = _render()
+    assert "bw-dropdown--end" not in html
+
+
+def test_placement_end_emits_the_end_modifier() -> None:
+    html = _render("{% bw_dropdown items=items trigger_label='Actions' placement='end' %}")
+    assert "bw-dropdown--end" in html
+
+
+def test_placement_invalid_raises() -> None:
+    with pytest.raises(TemplateSyntaxError):
+        _render("{% bw_dropdown items=items trigger_label='Actions' placement='middle' %}")
 
 
 def test_item_icon_renders_decorative() -> None:
@@ -151,7 +169,7 @@ def test_invalid_arguments_raise(src: str, ctx: dict) -> None:
     [
         [{"label": "No url"}],
         [{"url": "/no-label/"}],
-        [{"label": "Bad intent", "url": "/x/", "intent": "warning"}],
+        [{"label": "Bad variant", "url": "/x/", "variant": "warning"}],
         [{"divider": True, "label": "dividers carry no other keys"}],
         [{"label": "Bad attrs", "url": "/x/", "attrs": "not-a-mapping"}],
         [{"label": "Bad attr name", "url": "/x/", "attrs": {'onclick="x" data-y': "v"}}],

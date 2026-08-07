@@ -3,8 +3,8 @@
 ``{% bw_dropdown %}`` and ``{% bw_tabs %}`` (0.8.0) and ``{% bw_toast %}``
 and ``{% bw_combobox %}`` (0.9.0) are tags, not includes, per the
 tag-vs-include doctrine: each carries render-time a11y or shape enforcement
-(the ICO-008 icon-only accessible-name rule, item intent validation, the
-duplicate tab-key raise mirroring BR-BW-NAV-002, the CMP-022 toast-intent
+(the ICO-008 icon-only accessible-name rule, item variant validation, the
+duplicate tab-key raise mirroring BR-BW-NAV-002, the CMP-022 toast-variant
 raise, the CBH-019 options_url requirement), raising TemplateSyntaxError
 at render time exactly as ``bw_button`` does. The disclosure and the toast
 region stay plain ``{% include %}`` (structure only, no enforcement) and
@@ -34,16 +34,20 @@ from django.utils.translation import gettext
 register = template.Library()
 
 _TRIGGER_VARIANTS = {"primary", "secondary", "ghost", "danger"}
-_ITEM_INTENTS = {"default", "danger"}
+_ITEM_VARIANTS = {"default", "danger"}
 _TRIGGER_MODES = {"click", "hover"}
-_TAB_STYLES = {"underline", "pill"}
-# CMP-022: "neutral" is deliberately NOT a toast intent; a toast always
+# ADR-060 rule 1: `placement` is the settled name for edge anchoring across
+# slide_over, tooltip, account_menu and now dropdown. The .bw-dropdown--end rule
+# shipped from 0.8.0 with no way to reach it (icvoss/django-brickwork#120).
+_DROPDOWN_PLACEMENTS = {"start", "end"}
+_TAB_VARIANTS = {"underline", "pill"}
+# CMP-022: "neutral" is deliberately NOT a toast variant; a toast always
 # carries a real outcome.
-_TOAST_INTENTS = {"success", "warning", "danger", "info"}
+_TOAST_VARIANTS = {"success", "warning", "danger", "info"}
 _TOAST_DURATIONS = {"short", "normal", "long", "persistent"}
 # Intent -> registry icon, mirroring bw_alert's variant map (danger takes the
 # alert-circle glyph exactly as the alert's "error" variant does).
-_TOAST_INTENT_ICONS = {"success": "success", "warning": "alert-triangle", "danger": "alert-circle", "info": "info"}
+_TOAST_VARIANT_ICONS = {"success": "success", "warning": "alert-triangle", "danger": "alert-circle", "info": "info"}
 _FILTER_MODES = {"server", "client"}
 
 # Keys and instance ids flow into HTML id attributes (the stable
@@ -66,7 +70,7 @@ class RenderedMenuItem:
     label: str
     url: str
     icon: str
-    intent: str
+    variant: str
     is_divider: bool
     attrs_html: SafeString  # "" or a leading-space run of escaped attributes
 
@@ -109,19 +113,19 @@ def _shape_menu_item(raw: object) -> RenderedMenuItem:
             raise TemplateSyntaxError(
                 f"bw_dropdown divider items carry no other keys (04-interfaces 4b), got extra {sorted(extra)}"
             )
-        return RenderedMenuItem(label="", url="", icon="", intent="default", is_divider=True, attrs_html=mark_safe(""))
+        return RenderedMenuItem(label="", url="", icon="", variant="default", is_divider=True, attrs_html=mark_safe(""))
     label = raw.get("label")
     url = raw.get("url")
     if not label or not url:
         raise TemplateSyntaxError(f'bw_dropdown items require "label" and "url" (04-interfaces 4b), got {dict(raw)!r}')
-    intent = raw.get("intent", "default")
-    if intent not in _ITEM_INTENTS:
-        raise TemplateSyntaxError(f"bw_dropdown item intent must be one of {sorted(_ITEM_INTENTS)}, got {intent!r}")
+    variant = raw.get("variant", "default")
+    if variant not in _ITEM_VARIANTS:
+        raise TemplateSyntaxError(f"bw_dropdown item variant must be one of {sorted(_ITEM_VARIANTS)}, got {variant!r}")
     return RenderedMenuItem(
         label=str(label),
         url=str(url),
         icon=str(raw.get("icon", "") or ""),
-        intent=intent,
+        variant=variant,
         is_divider=False,
         attrs_html=_rendered_attrs("bw_dropdown", raw.get("attrs")),
     )
@@ -137,6 +141,7 @@ def bw_dropdown(
     icon_only: bool = False,
     aria_label: str = "",
     trigger_mode: str = "click",
+    placement: str = "start",
     close_on_select: bool = True,
 ) -> dict:
     """A dropdown menu button (04-interfaces 4b). The rendered floor is a
@@ -149,6 +154,10 @@ def bw_dropdown(
     if trigger_variant not in _TRIGGER_VARIANTS:
         raise TemplateSyntaxError(
             f"bw_dropdown trigger_variant must be one of {sorted(_TRIGGER_VARIANTS)}, got {trigger_variant!r}"
+        )
+    if placement not in _DROPDOWN_PLACEMENTS:
+        raise TemplateSyntaxError(
+            f"bw_dropdown placement must be one of {sorted(_DROPDOWN_PLACEMENTS)}, got {placement!r}"
         )
     if trigger_mode not in _TRIGGER_MODES:
         raise TemplateSyntaxError(
@@ -169,6 +178,7 @@ def bw_dropdown(
         "icon_only": icon_only,
         "aria_label": aria_label,
         "trigger_mode": trigger_mode,
+        "placement": placement,
         "close_on_select": bool(close_on_select),
     }
 
@@ -205,7 +215,7 @@ def bw_tabs(
     *,
     active: str,
     id: str,  # noqa: A002 - the documented argument name (04-interfaces 4b)
-    style: str = "underline",
+    variant: str = "underline",
     url_sync: bool = True,
     lazy_load: bool = False,
 ) -> dict:
@@ -223,8 +233,8 @@ def bw_tabs(
             "bw_tabs requires id=, an id-safe token (letters, digits, hyphen, underscore): "
             "the bw-tabpanel-<id>-<key> panel convention derives from it (BR-BW-HTMX-005)."
         )
-    if style not in _TAB_STYLES:
-        raise TemplateSyntaxError(f"bw_tabs style must be one of {sorted(_TAB_STYLES)}, got {style!r}")
+    if variant not in _TAB_VARIANTS:
+        raise TemplateSyntaxError(f"bw_tabs variant must be one of {sorted(_TAB_VARIANTS)}, got {variant!r}")
     request = context.get("request")
     current_path = request.path if request is not None else ""
     rendered = [_shape_tab(raw, tabs_id=id, active=str(active), current_path=current_path) for raw in tabs]
@@ -245,7 +255,7 @@ def bw_tabs(
         "tabs": rendered,
         "active": str(active),
         "id": id,
-        "style": style,
+        "variant": variant,
         "url_sync": bool(url_sync),
         "lazy_load": bool(lazy_load),
     }
@@ -255,10 +265,10 @@ def bw_tabs(
 def bw_toast(
     message: str,
     *,
-    intent: str,
+    variant: str,
     duration: str = "normal",
     action_label: str = "",
-    action_url: str = "",
+    action_href: str = "",
     id: str = "",  # noqa: A002 - the documented argument name (04-interfaces 4b)
 ) -> dict:
     """One toast notification (04-interfaces 4b). Server-rendered ONLY
@@ -266,21 +276,21 @@ def bw_toast(
     this tag inside a wrapper carrying
     hx-swap-oob="afterbegin:#bw-toast-region"; the no-JS floor is the same
     feedback as a django.contrib.messages banner rendered via _alert.html
-    (STA-008). intent is validated (CMP-022: anything outside the four
+    (STA-008). variant is validated (CMP-022: anything outside the four
     outcome intents, including "neutral", raises); the close control is
     ALWAYS rendered by the template (CBH-012, WCAG 2.2.1)."""
     if not message:
         raise TemplateSyntaxError("bw_toast requires message= (04-interfaces 4b)")
-    if intent not in _TOAST_INTENTS:
+    if variant not in _TOAST_VARIANTS:
         raise TemplateSyntaxError(
-            f"bw_toast intent must be one of {sorted(_TOAST_INTENTS)}, got {intent!r} "
-            '("neutral" is deliberately not a toast intent, CMP-022).'
+            f"bw_toast variant must be one of {sorted(_TOAST_VARIANTS)}, got {variant!r} "
+            '("neutral" is deliberately not a toast variant, CMP-022).'
         )
     if duration not in _TOAST_DURATIONS:
         raise TemplateSyntaxError(f"bw_toast duration must be one of {sorted(_TOAST_DURATIONS)}, got {duration!r}")
-    if bool(action_label) != bool(action_url):
+    if bool(action_label) != bool(action_href):
         raise TemplateSyntaxError(
-            "bw_toast takes action_label= and action_url= together or not at all "
+            "bw_toast takes action_label= and action_href= together or not at all "
             "(the single optional inline action, CMP-023)."
         )
     if id:
@@ -296,12 +306,12 @@ def bw_toast(
         id = f"bw-toast-{uuid4().hex[:10]}"
     return {
         "message": message,
-        "intent": intent,
+        "variant": variant,
         "duration": duration,
         "action_label": action_label,
-        "action_url": action_url,
+        "action_href": action_href,
         "id": id,
-        "icon": _TOAST_INTENT_ICONS[intent],
+        "icon": _TOAST_VARIANT_ICONS[variant],
     }
 
 

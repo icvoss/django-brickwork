@@ -302,6 +302,30 @@ def test_bw_form_default_no_rows_is_one_field_per_row() -> None:
     assert "bw-field-row--grouped" not in out
 
 
+# --- density (FRM-018, ADR-060 rule 2) --------------------------------------
+
+
+def test_bw_form_omitted_density_does_not_raise_and_carries_no_attribute() -> None:
+    # density is optional: the empty default must not be validated against
+    # _FORM_DENSITIES (it is not itself a density value).
+    form = _ContactForm()
+    out = _render_bw_form(form)
+    assert "data-density" not in out
+
+
+@pytest.mark.parametrize("density", ["compact", "comfortable", "spacious"])
+def test_bw_form_valid_density_reaches_data_density(density: str) -> None:
+    form = _ContactForm()
+    out = _render_bw_form(form, density=density)
+    assert f'data-density="{density}"' in out
+
+
+def test_bw_form_invalid_density_raises() -> None:
+    form = _ContactForm()
+    with pytest.raises(TemplateSyntaxError):
+        _render_bw_form(form, density="cosy")
+
+
 # --- 422 preservation via bw_form ------------------------------------------
 
 

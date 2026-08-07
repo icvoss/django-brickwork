@@ -13,41 +13,43 @@ extended with no cta_heading in context must not still emit an empty CTA band.
 Optional context:
   body          (str).
   primary_cta   ({label, url}): rendered via {% bw_button %} primary.
-  primary_cta_label / primary_cta_url (str, #98): the same primary CTA as
+  primary_cta_label / primary_cta_href (str, #98): the same primary CTA as
                 flat strings, for a template-authored caller (a Django
                 template cannot build a dict inline, so the ADR-056
                 compose-it-yourself shape passes
-                {% include ... with heading="Ready?" primary_cta_label="Get started" primary_cta_url="/signup/" %}).
+                {% include ... with heading="Ready?" primary_cta_label="Get started" primary_cta_href="/signup/" %}).
                 When both shapes are supplied the dict wins outright (the
                 flat kwargs are ignored); a dict-shaped caller renders
                 byte-identically to before the flat shape existed.
   secondary_cta ({label, url}): rendered via {% bw_button %} secondary
                 (styled to read on the tinted band, see marketing.css).
-  secondary_cta_label / secondary_cta_url (str, #98): the flat form of
+  secondary_cta_label / secondary_cta_href (str, #98): the flat form of
                 secondary_cta, same precedence.
-  no_tint       (bool, default False): opts OUT of the tinted band
-                background (composed from --bw-color-surface-marketing-tint,
-                contrast-checked in both themes per BR-BW-MKT-002), for a
-                CTA that should render on the page's own surface instead of
-                standing out as its own band. Named as an opt-out (default
-                False) rather than a tint=True default: a plain {% include %}
-                forwarding an omitted page-level context variable resolves
-                it to an empty string, not None, so a default-True flag
-                combined with Django's |default filter cannot distinguish
-                "the caller never set this" from "the caller explicitly
-                turned it off" and would silently re-enable the tint either
-                way. A default-False flag has no such ambiguity: omitted and
-                explicitly-False both correctly mean "tint stays on".
+  band          ("tint" default | "plain", ADR-057 section 1a): the section's
+                background treatment. "tint" composes
+                --bw-color-surface-marketing-tint (contrast-checked in both
+                themes per BR-BW-MKT-002); "plain" renders on the page's own
+                surface instead of standing out as its own band.
+
+                This replaced a negated `no_tint` boolean in 3.0.0. The
+                negation existed because a plain {% include %} forwarding an
+                omitted page-level variable resolves it to an empty string
+                rather than None, so a default-True boolean could not tell
+                "never set" from "explicitly off". A three-valued string has
+                no such ambiguity: {% firstof band 'tint' %} treats the empty
+                string as unset and falls back correctly, so the option can
+                finally be named for what it selects rather than what it
+                switches off.
 {% endcomment %}
 {% if heading %}
-<section class="bw-cta{% if not no_tint %} bw-cta--tint{% endif %}">
+<section class="bw-cta{% if band != 'plain' %} bw-cta--tint{% endif %}">
   <div class="bw-cta__inner">
     <h2 class="bw-cta__heading">{{ heading }}</h2>
     {% if body %}<p class="bw-cta__body">{{ body }}</p>{% endif %}
     {% if primary_cta or secondary_cta or primary_cta_label or secondary_cta_label %}
       <div class="bw-cta__actions">
-        {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% elif primary_cta_label %}{% bw_button primary_cta_label variant="primary" size="lg" href=primary_cta_url %}{% endif %}
-        {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% elif secondary_cta_label %}{% bw_button secondary_cta_label variant="secondary" size="lg" href=secondary_cta_url %}{% endif %}
+        {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% elif primary_cta_label %}{% bw_button primary_cta_label variant="primary" size="lg" href=primary_cta_href %}{% endif %}
+        {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% elif secondary_cta_label %}{% bw_button secondary_cta_label variant="secondary" size="lg" href=secondary_cta_href %}{% endif %}
       </div>
     {% endif %}
   </div>

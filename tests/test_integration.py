@@ -311,7 +311,7 @@ def test_confirm_route_plain_get_is_a_full_working_page(client: Client) -> None:
     assert "bw-app" in html  # rendered through the shell
     assert "Reset demo data" in html
     assert 'method="post"' in html and 'action="/interactions/confirm/"' in html
-    # the close control is a real anchor back out (close_url), never a dead
+    # the close control is a real anchor back out (close_href), never a dead
     # trigger (AC-BW-086)
     assert re.search(r'<a class="bw-modal__close[^>]*href="/interactions/"', html)
 

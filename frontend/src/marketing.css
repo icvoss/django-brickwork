@@ -210,6 +210,20 @@
   text-align: start;
 }
 
+/* --start is the DOCUMENTED DEFAULT and the template emits it unconditionally
+ * via {% firstof align 'start' %}, so it needs a real rule (#120 defect class).
+ * It restates the .bw-hero base alignment explicitly, which also gives
+ * align="end" below something symmetrical to sit against. */
+.bw-hero--start {
+  align-items: flex-start;
+  text-align: start;
+}
+
+.bw-hero--end {
+  align-items: flex-end;
+  text-align: end;
+}
+
 .bw-hero--center {
   align-items: center;
   text-align: center;

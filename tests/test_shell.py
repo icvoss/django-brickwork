@@ -116,6 +116,27 @@ def test_shell_is_a_complete_document(template: str) -> None:
     assert "</body>" in html
 
 
+# --- toast region wiring (BR-BW-HTMX-005) -----------------------------------
+
+
+@pytest.mark.parametrize("template", SHELLS)
+def test_shell_toast_region_defaults_to_top_end(template: str) -> None:
+    # _toast_region.html renders its placement modifier off a `placement`
+    # context variable (the ADR-060 rename). shell/base.html resolves
+    # bw_toast_position and must include with placement=, not the old
+    # `position=` key, or every shell page silently loses the ability to
+    # move the toast region and always renders the top-end default.
+    html = _render(template)
+    assert "bw-toast-region--top-end" in html
+
+
+@pytest.mark.parametrize("template", SHELLS)
+def test_shell_bw_toast_position_context_var_moves_the_region(template: str) -> None:
+    html = _render(template, bw_toast_position="bottom-start")
+    assert "bw-toast-region--bottom-start" in html
+    assert "bw-toast-region--top-end" not in html
+
+
 # --- theme / density / direction attributes (four axes) --------------------
 
 

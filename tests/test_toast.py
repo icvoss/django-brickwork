@@ -24,7 +24,7 @@ from django.template.loader import render_to_string
 
 _DIST_JS = Path(__file__).resolve().parent.parent / "src/brickwork/static/brickwork/dist/brickwork.js"
 
-_TAG = '{% bw_toast "Widget saved." intent="success" %}'
+_TAG = '{% bw_toast "Widget saved." variant="success" %}'
 
 
 def _render(src: str = _TAG, **ctx: object) -> str:
@@ -44,7 +44,7 @@ def _root_tag(html: str) -> str:
 # --- one toast: markup and hooks ----------------------------------------------
 
 
-def test_root_carries_the_intent_class_and_data_hook() -> None:
+def test_root_carries_the_variant_class_and_data_hook() -> None:
     html = _render()
     assert "bw-toast bw-toast--success" in _root_tag(html)
     assert "data-bw-toast" in _root_tag(html)
@@ -67,29 +67,29 @@ def test_component_config_defaults_to_normal_duration() -> None:
 
 @pytest.mark.parametrize("duration", ["short", "long", "persistent"])
 def test_duration_flows_into_the_component_config(duration: str) -> None:
-    html = _render(f'{{% bw_toast "Saved." intent="info" duration="{duration}" %}}')
+    html = _render(f'{{% bw_toast "Saved." variant="info" duration="{duration}" %}}')
     assert re.search(rf"duration:\s*['\"]{duration}['\"]", html)
 
 
 def test_danger_toast_announces_assertively() -> None:
-    assert 'role="alert"' in _render('{% bw_toast "Failed." intent="danger" %}')
+    assert 'role="alert"' in _render('{% bw_toast "Failed." variant="danger" %}')
 
 
-@pytest.mark.parametrize("intent", ["success", "warning", "info"])
-def test_non_danger_toasts_stay_polite(intent: str) -> None:
+@pytest.mark.parametrize("variant", ["success", "warning", "info"])
+def test_non_danger_toasts_stay_polite(variant: str) -> None:
     # the region's aria-live="polite" carries the announcement; only danger
     # escalates to role="alert"
-    assert 'role="alert"' not in _render(f'{{% bw_toast "msg" intent="{intent}" %}}')
+    assert 'role="alert"' not in _render(f'{{% bw_toast "msg" variant="{variant}" %}}')
 
 
-def test_intent_icon_is_decorative() -> None:
+def test_variant_icon_is_decorative() -> None:
     html = _render()
     assert "bw-toast__icon" in html
     assert 'aria-hidden="true"' in html
 
 
 def test_message_renders_in_the_message_slot_and_is_escaped() -> None:
-    html = _render('{% bw_toast message intent="info" %}', message="<b>bold</b>")
+    html = _render('{% bw_toast message variant="info" %}', message="<b>bold</b>")
     assert "bw-toast__message" in html
     assert "<b>bold</b>" not in html
     assert "&lt;b&gt;bold&lt;/b&gt;" in html
@@ -97,7 +97,7 @@ def test_message_renders_in_the_message_slot_and_is_escaped() -> None:
 
 def test_close_control_is_always_rendered_with_an_accessible_name() -> None:
     # CBH-012: even a persistent toast can always be dismissed.
-    for src in (_TAG, '{% bw_toast "Sticky." intent="warning" duration="persistent" %}'):
+    for src in (_TAG, '{% bw_toast "Sticky." variant="warning" duration="persistent" %}'):
         html = _render(src)
         close = re.search(r"<button[^>]*bw-toast__close[^>]*>", html)
         assert close
@@ -105,7 +105,7 @@ def test_close_control_is_always_rendered_with_an_accessible_name() -> None:
 
 
 def test_action_renders_as_a_single_link() -> None:
-    html = _render('{% bw_toast "Archived." intent="success" action_label="Undo" action_url="/undo/" %}')
+    html = _render('{% bw_toast "Archived." variant="success" action_label="Undo" action_href="/undo/" %}')
     action = re.search(r"<a[^>]*bw-toast__action[^>]*>", html)
     assert action and 'href="/undo/"' in action.group(0)
     assert "Undo" in html
@@ -132,14 +132,14 @@ def test_missing_required_arguments_are_parse_errors() -> None:
     "src",
     [
         # CMP-022: the whitelist rejects "neutral" explicitly, and anything unknown
-        '{% bw_toast "msg" intent="neutral" %}',
-        '{% bw_toast "msg" intent="error" %}',
-        '{% bw_toast "msg" intent="loud" %}',
+        '{% bw_toast "msg" variant="neutral" %}',
+        '{% bw_toast "msg" variant="error" %}',
+        '{% bw_toast "msg" variant="loud" %}',
         # duration whitelist (CBH-009)
-        '{% bw_toast "msg" intent="info" duration="forever" %}',
+        '{% bw_toast "msg" variant="info" duration="forever" %}',
         # CMP-023: the inline action is a pair; half an action is an authoring error
-        '{% bw_toast "msg" intent="info" action_label="Undo" %}',
-        '{% bw_toast "msg" intent="info" action_url="/undo/" %}',
+        '{% bw_toast "msg" variant="info" action_label="Undo" %}',
+        '{% bw_toast "msg" variant="info" action_href="/undo/" %}',
     ],
 )
 def test_invalid_arguments_raise(src: str) -> None:
@@ -158,14 +158,14 @@ def test_region_carries_the_stable_id_live_region_and_hooks() -> None:
     assert 'x-data="bwToastRegion()"' in html
 
 
-def test_region_position_defaults_to_top_end() -> None:
+def test_region_placement_defaults_to_top_end() -> None:
     assert "bw-toast-region--top-end" in _render_region()
 
 
-@pytest.mark.parametrize("position", ["top-start", "bottom-end", "bottom-start"])
-def test_region_position_variants(position: str) -> None:
+@pytest.mark.parametrize("placement", ["top-start", "bottom-end", "bottom-start"])
+def test_region_placement_variants(placement: str) -> None:
     # logical positions (CBH-010) so RTL mirrors for free
-    assert f"bw-toast-region--{position}" in _render_region(position=position)
+    assert f"bw-toast-region--{placement}" in _render_region(placement=placement)
 
 
 def test_region_ships_the_collapse_control_hidden() -> None:

@@ -163,10 +163,10 @@ def test_card_css_pads_via_the_density_token() -> None:
     )
 
 
-def test_padding_argument_maps_to_modifier_classes() -> None:
-    # The card's own padding arg composes WITH the density axis (a size step,
+def test_size_argument_maps_to_modifier_classes() -> None:
+    # The card's own size arg composes WITH the density axis (a size step,
     # not an override of the density token). The modifier is emitted only when
     # supplied: the unadorned default pads straight from the density token.
-    assert "bw-card--padding-sm" in _render(padding="sm")
-    assert "bw-card--padding-lg" in _render(padding="lg")
-    assert "bw-card--padding-" not in _render()
+    assert "bw-card--size-sm" in _render(size="sm")
+    assert "bw-card--size-lg" in _render(size="lg")
+    assert "bw-card--size-" not in _render()

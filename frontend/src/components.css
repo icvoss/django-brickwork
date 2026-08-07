@@ -251,14 +251,14 @@
 .bw-alert--warning .bw-alert__title {
   color: var(--bw-color-warning-fg);
 }
-.bw-alert--error {
+.bw-alert--danger {
   background: var(--bw-color-danger-subtle);
   border-color: var(--bw-color-danger-border);
 }
-.bw-alert--error .bw-alert__icon {
+.bw-alert--danger .bw-alert__icon {
   color: var(--bw-color-danger);
 }
-.bw-alert--error .bw-alert__title {
+.bw-alert--danger .bw-alert__title {
   color: var(--bw-color-danger-fg);
 }
 
@@ -546,7 +546,7 @@ input.bw-toggle:disabled {
   font-weight: var(--bw-text-caption-weight);
   line-height: var(--bw-text-caption-line-height);
 }
-/* The summary border is the decorative tint tier, matching .bw-alert--error
+/* The summary border is the decorative tint tier, matching .bw-alert--danger
  * (the tinted bg and danger-fg title identify the box; the invalid input keeps
  * its full danger border for the 1.4.11 control boundary). */
 .bw-form-errors {
@@ -1340,13 +1340,13 @@ button.bw-account-menu__item {
 }
 /* padding arg (04-interfaces): md restates the density default so an explicit
    padding="md" and the bare card always agree. */
-.bw-card--padding-sm {
+.bw-card--size-sm {
   padding: var(--bw-space-3);
 }
-.bw-card--padding-md {
+.bw-card--size-md {
   padding: var(--bw-density-card-padding);
 }
-.bw-card--padding-lg {
+.bw-card--size-lg {
   padding: var(--bw-space-6);
 }
 /* Card-as-link (CMP-017): the whole card is an anchor; content keeps its own
@@ -1834,6 +1834,14 @@ a.bw-stat:hover {
  * at radius-full. Hover/pressed take the overlay physics because a pill is
  * a shape, not a rail position. The active pill's hover layers the overlay
  * over the persistent fill (DESIGN.md 4.6 stacking). */
+/* --underline is the DOCUMENTED DEFAULT. It previously had no rule at all, so
+ * the default variant emitted a class the stylesheet never matched (#120 defect
+ * class). The underline treatment is the base .bw-tabs__tab marker, so this
+ * rule states that relationship rather than inventing a second look. */
+.bw-tabs--underline .bw-tabs__list {
+  gap: var(--bw-space-1);
+}
+
 .bw-tabs--pill .bw-tabs__list {
   border-block-end: 0;
 }
@@ -2159,6 +2167,13 @@ a.bw-stat:hover {
 /* Size modifiers: reuse the modal's own width ramp. */
 .bw-slide-over--sm .bw-slide-over__panel {
   max-inline-size: var(--bw-size-max-width-modal-sm);
+}
+/* --md is the DOCUMENTED DEFAULT and the template emits it unconditionally, so
+ * it needs a real rule: without one the default size resolved to the panel's
+ * base width by accident rather than by declaration (the #120 defect class,
+ * found in the 3.0.0 options audit). */
+.bw-slide-over--md .bw-slide-over__panel {
+  max-inline-size: var(--bw-size-max-width-modal-md);
 }
 .bw-slide-over--lg .bw-slide-over__panel {
   max-inline-size: var(--bw-size-max-width-modal-lg);

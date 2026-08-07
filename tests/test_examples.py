@@ -217,6 +217,27 @@ def test_the_shipped_example_set_matches_what_the_tests_cover() -> None:
     assert set(examples.list_examples()) == set(_EXAMPLE_CONTEXTS)
 
 
+# --- CTA hrefs actually reach the rendered anchors (ADR-060 spelling hunt) ---
+
+# _hero.html and _cta.html accept the flat kwargs as *_href (#98); the
+# marketing examples once passed the pre-#98 *_url spelling, which the
+# templates never read, so the CTA buttons silently rendered with no href.
+# This pins that every documented CTA link in the shipped examples is real.
+_EXAMPLE_CTA_HREFS: dict[str, list[str]] = {
+    "marketing/landing.html": ["/accounts/signup/", "/demo/", "/contact/"],
+    "marketing/pricing.html": ["/accounts/signup/"],
+    "marketing/about.html": ["/accounts/signup/", "/docs/"],
+}
+
+
+@pytest.mark.parametrize("name,hrefs", sorted(_EXAMPLE_CTA_HREFS.items()))
+def test_example_marketing_cta_hrefs_reach_the_rendered_button(name: str, hrefs: list[str]) -> None:
+    template = _example_engine().get_template(name)
+    html = template.render(Context(_EXAMPLE_CONTEXTS[name]))
+    for href in hrefs:
+        assert f'href="{href}"' in html, f"{name} lost its CTA href={href!r} (flat kwarg must be *_href, not *_url)"
+
+
 # --- The base example carries every load-bearing line -----------------------
 
 # examples/base.html is a STANDALONE document a consumer copies, so it cannot

@@ -47,9 +47,9 @@ def test_danger_item_carries_the_danger_class() -> None:
     assert html.count("bw-account-menu__item--danger") == 1  # only the danger item
 
 
-def test_align_variant_class() -> None:
+def test_placement_variant_class() -> None:
     assert "bw-account-menu--end" in _render()
-    assert "bw-account-menu--start" in _render(align="start")
+    assert "bw-account-menu--start" in _render(placement="start")
 
 
 def test_menu_open_flag_renders_the_open_attribute() -> None:
