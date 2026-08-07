@@ -1,0 +1,13 @@
+{% comment %}
+CTA / centred band: the tinted band that closes a page.
+
+The shipped _cta.html already is this, so the example is the include.
+
+band="tint" is the default and composes --bw-color-surface-marketing-tint,
+which is contrast-checked in both themes. Pass band="plain" to sit the same
+content on the page surface instead, when the page already has enough bands.
+
+A heading is REQUIRED: with no heading the component renders nothing at all
+rather than an empty band. That is deliberate across this kit.
+{% endcomment %}
+{% include "brickwork_marketing/components/_cta.html" with heading="Stop writing chase emails" body="Free for 30 days. No card, no setup call, no data import to sit through." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Talk to us" secondary_cta_href="/contact/" %}

@@ -1,0 +1,28 @@
+{% load brickwork_components %}
+{% comment %}
+CTA / split: copy on one side, the action on the other.
+
+WHEN TO USE THIS INSTEAD OF THE CENTRED BAND. Mid-page. A centred band reads as
+an ending, so dropping one halfway down a long page tells the reader they have
+reached the bottom when they have not. This one sits in the flow without
+closing it.
+
+WHY IT OWNS ITS MARKUP. _cta.html centres its content; this is a two-column
+arrangement of the same parts.
+
+The action column comes SECOND in the markup, which is also the order it is
+read and tabbed in. Keep it that way: the button should be reached after the
+sentence explaining what it does.
+{% endcomment %}
+<section class="bw-cta-split">
+  <div class="bw-cta-split__copy">
+    <h2 class="bw-cta-split__heading">Try it on last month's invoices</h2>
+    <p class="bw-cta-split__body">
+      Import a CSV and Northwind shows you what it would have chased, and when.
+      No account needed.
+    </p>
+  </div>
+  <div class="bw-cta-split__actions">
+    {% bw_button "Run the demo" variant="primary" size="lg" href="/demo/" %}
+  </div>
+</section>

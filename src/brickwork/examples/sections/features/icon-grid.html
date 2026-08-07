@@ -1,0 +1,27 @@
+{% comment %}
+FEATURES / icon grid: the standard three-across capability grid.
+
+WHAT YOUR VIEW MUST SUPPLY. This is one of the few sections that genuinely
+needs context: a Django template cannot build a list of dicts inline. Pass
+
+    features = [
+        {"icon": "bell", "heading": "Automatic reminders",
+         "body": "Chase on your schedule, not when you remember.",
+         "url": "/features/reminders/"},
+        {"icon": "calendar", "heading": "Late-payment prediction",
+         "body": "Know which accounts slip before they do."},
+        {"icon": "check", "heading": "Reconciliation",
+         "body": "Payments matched to invoices automatically."},
+    ]
+
+`url` is optional per item. Give an item a url and the whole card becomes a
+link; leave it off and the card stays a plain block rather than something that
+looks clickable and goes nowhere.
+
+`icon` must name an icon brickwork ships, or the render raises (deliberately:
+a silently missing icon is worse than a loud failure).
+
+columns takes 2, 3 or 4. The grid is mobile-first regardless: one column on
+small screens, widening at the breakpoints the component owns.
+{% endcomment %}
+{% include "brickwork_marketing/components/_feature_grid.html" with heading="Everything the chasing needs" lede="The parts of getting paid that nobody wants to do by hand." items=features columns=3 %}

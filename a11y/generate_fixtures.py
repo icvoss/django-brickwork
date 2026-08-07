@@ -1731,6 +1731,96 @@ def render_about(theme: str) -> str:
     return _inline_css(html)
 
 
+# --- the example sections (3.1.0, plan Phase 6a) ------------------------------
+#
+# Gate 3 of the plan's Phase 6: every section variant clears axe WCAG 2.2 AA in
+# BOTH themes, the no-JS floor, and mobile-first behaviour. A catalogue is
+# exactly where a11y rots fastest, because each new variant is hand-written
+# markup that no existing fixture covers.
+#
+# The sections are rendered through the standalone examples Engine, not the
+# configured one: they are package data off the template-loader path (ADR-056),
+# so `engines["django"]` cannot see them by construction. The `libraries=`
+# argument is load-bearing and non-obvious, exactly as in tests/test_examples.py.
+#
+# They are stacked into ONE fixture per theme inside a real marketing shell.
+# That is deliberate: a section is used in a document, so its heading order and
+# landmark nesting are only meaningful in one. Stacking also catches a section
+# that is individually fine but collides with its neighbour.
+
+_SECTION_FEATURES_FIXTURE = [
+    {
+        "icon": "bell",
+        "heading": "Automatic reminders",
+        "body": "Chase on your schedule, not when you remember.",
+        "url": "#reminders",
+    },
+    {
+        "icon": "calendar",
+        "heading": "Late-payment prediction",
+        "body": "Know which accounts slip before they do.",
+    },
+    {
+        "icon": "check",
+        "heading": "Reconciliation",
+        "body": "Payments matched to invoices automatically.",
+    },
+]
+
+
+def _sections_engine():
+    """The standalone engine that can see the examples tree (ADR-056)."""
+    from django.template import Engine
+    from django.template.backends.django import get_installed_libraries
+
+    from brickwork import examples
+
+    return Engine(
+        dirs=[str(examples.examples_root())],
+        app_dirs=True,
+        libraries=get_installed_libraries(),
+    )
+
+
+def render_sections(theme: str) -> str:
+    """Every example section, stacked in a marketing shell, in one theme."""
+    from django.template import Context
+
+    from brickwork import examples
+
+    engine = _sections_engine()
+    names = [name for name in examples.list_examples() if name.startswith("sections/")]
+
+    rendered = []
+    for name in sorted(names):
+        context = {"features": _SECTION_FEATURES_FIXTURE} if "icon-grid" in name else {}
+        rendered.append(engine.get_template(name).render(Context(context)))
+
+    request = RequestFactory().get("/sections/")
+    # The stacked sections are already-rendered HTML, so they go into the shell
+    # through a context variable marked safe rather than by string-building a
+    # template source: the section markup is ours, but re-parsing it as template
+    # source would make any literal {% or {{ in an example's prose explode.
+    from django.utils.safestring import mark_safe
+
+    source = (
+        '{% extends "brickwork_marketing/shell/marketing.html" %}'
+        + _MARKETING_CHROME
+        + "{% block content %}{{ sections }}{% endblock %}"
+    )
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Sections",
+        "bw_page_title": "Example sections, Northwind",
+        "sections": mark_safe("".join(rendered)),  # noqa: S308 - our own rendered templates
+    }
+    html = engines["django"].from_string(source).render(ctx, request=request)
+    return _inline_css(html)
+
+
 # --- the nav renderers (#102/#82) ---------------------------------------------
 #
 # nav-renderers-<theme>.html   a standalone page (mirrors render_feedback's
@@ -1901,6 +1991,9 @@ def main() -> None:
         # the nav renderers (#102/#82): the marketing-header row and the
         # two-tier rail + contextual pairing, ancestor-active states lit
         (OUT / f"nav-renderers-{theme}.html").write_text(render_nav_renderers(theme))
+        # every example section (3.1.0, plan Phase 6a gate 3), stacked in a
+        # real marketing shell so heading order and landmarks are meaningful
+        (OUT / f"sections-{theme}.html").write_text(render_sections(theme))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -1940,6 +2033,7 @@ def main() -> None:
             f"pricing-{theme}",
             f"about-{theme}",
             f"nav-renderers-{theme}",
+            f"sections-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())

@@ -1,0 +1,12 @@
+{% comment %}
+HERO / minimal: heading and one action, nothing else.
+
+The right opening for a page whose job is not conversion: a docs index, a
+changelog, a section landing page. A lede and a second CTA are both omissions
+here rather than removals, because _hero.html renders only what it is given.
+
+Uses align="start" (the component default) so the heading sits against the same
+inline edge as the content below it. Centre it only if the whole page is
+centred; a centred heading above left-aligned prose reads as a mistake.
+{% endcomment %}
+{% include "brickwork_marketing/components/_hero.html" with heading="Documentation" lede="Guides, reference, and the answers to what people ask us most." primary_cta_label="Read the quickstart" primary_cta_href="/docs/quickstart/" %}

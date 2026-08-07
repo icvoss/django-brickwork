@@ -187,3 +187,54 @@ for (const theme of THEMES) {
     expect(focusedHref).toBe("#bw-main");
   });
 }
+
+// The mobile-first floor for the example sections (3.1.0, plan Phase 6a gate 3).
+//
+// ADR-057 section 1: "a section that only works at desktop width is not a
+// shipped section". axe does not measure this, and neither does a render test,
+// so a section that scrolls the page sideways on a phone passes every other
+// gate in this repo.
+//
+// It caught three real defects on the way in, all of which passed axe and the
+// full pytest suite:
+//   - .bw-hero__copy sized to its content instead of its container, because
+//     .bw-hero sets align-items other than stretch.
+//   - a <pre>'s <code> child painted outside its own scroll container.
+//   - a one-word hero heading ("Documentation") at the fixed 60px display size
+//     measured 406px and had no wrap opportunity.
+//
+// 320px is deliberately NOT asserted: the shipped marketing header overflows a
+// 320px viewport by 6px today (identical on landing-*.html, so it predates
+// these sections) and that is tracked separately rather than papered over here.
+const MOBILE_WIDTHS = [360, 375, 414];
+
+for (const theme of THEMES) {
+  for (const width of MOBILE_WIDTHS) {
+    test(`sections do not scroll the page sideways at ${width}px (${theme})`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(pathToFileURL(join(FIXTURES, `sections-${theme}.html`)).href);
+
+      const result = await page.evaluate(() => ({
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+        // Name the culprits, so a failure is actionable rather than a bare
+        // number. Only elements whose parent is NOT itself overflowing are
+        // reported: those are the root causes, not the cascade above them.
+        offenders: [...document.querySelectorAll("*")]
+          .filter((el) => {
+            const rect = el.getBoundingClientRect();
+            if (rect.right <= window.innerWidth + 1) return false;
+            const parent = el.parentElement?.getBoundingClientRect();
+            return !parent || parent.right <= window.innerWidth + 1;
+          })
+          .slice(0, 5)
+          .map((el) => `${el.tagName}.${typeof el.className === "string" ? el.className.split(" ")[0] : ""}`),
+      }));
+
+      expect(
+        result.documentWidth,
+        `page scrolls horizontally at ${width}px; root causes: ${JSON.stringify(result.offenders)}`,
+      ).toBeLessThanOrEqual(result.viewportWidth + 1);
+    });
+  }
+}
