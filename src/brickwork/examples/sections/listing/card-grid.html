@@ -1,0 +1,56 @@
+{% comment %}
+LISTING / card grid: the browsable index, the shape a catalogue or blog list
+lands on.
+
+WHAT YOUR VIEW MUST SUPPLY. A Django template cannot build a list of dicts
+inline, so this is one of the sections that genuinely needs context. Pass
+
+    entries = [
+        {"title": "Chasing without the awkwardness",
+         "summary": "How to write a reminder that gets paid without costing "
+                    "you the relationship.",
+         "url": "/blog/chasing-without-the-awkwardness/",
+         "meta": "14 July 2026",
+         "tag": "Guides"},
+        ...
+    ]
+
+`url` is what makes the whole card clickable. `meta` and `tag` are both
+optional: a card with neither renders as a plain title-and-summary block
+rather than leaving empty chrome behind.
+
+WHY THIS OWNS ITS GRID. brickwork ships _card.html (one card) and no grid
+component. The grid here is four declarations of clean-room markup on the
+same auto-fit idiom the package already uses for .bw-stat-grid and
+.bw-stat-band, so a component would save a consumer four lines and cost them
+the ability to change the column floor. If a third listing shape ever wants
+the identical grid, that is the evidence for promoting it; two is not.
+
+WHY THE CARD IS A LINK RATHER THAN A "READ MORE". The whole card carries the
+href, so the click target is the card and there is one link per entry instead
+of two pointing at the same place. That is fewer tab stops and a much larger
+target on a phone. It also means the title must say where the link goes, so
+resist the temptation to make it a teaser.
+
+The grid is mobile-first: one column until a card can hold its own width,
+then as many columns as fit. No breakpoint is hard-coded, so the section
+behaves correctly inside a narrow container as well as a wide one.
+{% endcomment %}
+<section class="bw-listing-section" aria-labelledby="listing-card-grid-heading">
+  <div class="bw-listing-section__intro">
+    <h2 class="bw-listing-section__heading" id="listing-card-grid-heading">From the blog</h2>
+    <p class="bw-listing-section__lede">
+      What we have learned watching thousands of invoices get paid, and not paid.
+    </p>
+  </div>
+  <div class="bw-listing-grid">
+    {% for entry in entries %}
+      <a class="bw-listing-card" href="{{ entry.url }}">
+        {% if entry.tag %}<span class="bw-listing-card__tag">{{ entry.tag }}</span>{% endif %}
+        <h3 class="bw-listing-card__title">{{ entry.title }}</h3>
+        {% if entry.summary %}<p class="bw-listing-card__summary">{{ entry.summary }}</p>{% endif %}
+        {% if entry.meta %}<span class="bw-listing-card__meta">{{ entry.meta }}</span>{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+</section>

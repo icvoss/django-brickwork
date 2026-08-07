@@ -1,0 +1,63 @@
+{% load brickwork_icons %}
+{% comment %}
+PRICING / single plan: one price, stated plainly.
+
+WHEN TO USE THIS INSTEAD OF THE THREE-TIER TABLE. When there is only one
+product. A three-column table with two columns removed still reads as a
+comparison and leaves the reader hunting for the option you did not build.
+One card, centred, says "this is the price" and asks nothing else of them.
+
+It also suits a product with one plan and a bespoke enterprise conversation:
+put the plan here and the conversation in a CTA band underneath, rather than
+inventing a second tier priced "Contact us".
+
+NO VIEW CONTEXT NEEDED. _pricing_tier.html takes flat strings for everything
+except its `features` list, and that list is the one thing you most want to
+edit as words. So this example includes the card WITHOUT features and puts
+what is included in its own list below, which keeps the whole section
+editable in the template. If you would rather have the ticks inside the card,
+pass `features` as a plain list of strings from your view.
+
+The wrapper _pricing_table.html can also render a single tier, centred, via
+bw-pricing-table--single. Prefer that when the plans come from data and one
+of them happens to be alone; prefer this when the price is static copy.
+
+The tick icons on the list are decorative: the list semantics already say
+these are items, so announcing "check" six times adds nothing.
+{% endcomment %}
+<section class="bw-single-plan">
+  <div class="bw-single-plan__intro">
+    <h2 class="bw-single-plan__heading">One plan, everything in it</h2>
+    <p class="bw-single-plan__lede">
+      Northwind is priced per person on your finance team. No feature gates, no
+      invoice limits, no charge for the accountant who logs in twice a year.
+    </p>
+  </div>
+
+  <div class="bw-single-plan__card">
+    {% include "brickwork_marketing/components/_pricing_tier.html" with name="Northwind" price="£19" period="/user/month" description="Billed monthly. Cancel from the billing page, not by email." cta_label="Start the 30-day trial" cta_href="/accounts/signup/" highlighted=True %}
+  </div>
+
+  <ul class="bw-feature-list bw-single-plan__includes">
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>Unlimited invoices, credit notes and reminder schedules</span>
+    </li>
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>Late-payment prediction on every account</span>
+    </li>
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>Open Banking reconciliation, matched daily</span>
+    </li>
+    <li class="bw-feature-list__item">
+      {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+      <span>CSV export and a read-write API on every account</span>
+    </li>
+  </ul>
+
+  <p class="bw-single-plan__note">
+    Prices exclude VAT. Pay annually and the twelfth month is free.
+  </p>
+</section>

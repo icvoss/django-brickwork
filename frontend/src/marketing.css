@@ -1298,3 +1298,533 @@
 .bw-content-section > .bw-prose {
   margin-inline: auto;
 }
+
+/* --- Pricing / single plan ---------------------------------------------------- */
+
+/* The one-plan shape: no table, because there is nothing to compare. The card
+ * is capped at prose width and centred so it does not stretch into a banner on
+ * a wide viewport. */
+.bw-single-plan__intro {
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-inline: auto;
+  margin-block-end: var(--bw-space-8);
+  text-align: center;
+}
+
+.bw-single-plan__heading {
+  margin: 0;
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+}
+
+.bw-single-plan__lede {
+  margin: var(--bw-space-3) 0 0;
+  color: var(--bw-color-fg-muted);
+  text-wrap: pretty;
+}
+
+.bw-single-plan__card {
+  max-inline-size: 26rem;
+  margin-inline: auto;
+}
+
+/* The "what is included" list sits under the card rather than inside it, so the
+ * card stays a price and an action while the list can run two-up on a wide
+ * screen (the base .bw-feature-list already does that at 48rem). */
+.bw-single-plan__includes {
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-block-start: var(--bw-space-8);
+  margin-inline: auto;
+}
+
+.bw-single-plan__note {
+  margin: var(--bw-space-6) 0 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  text-align: center;
+}
+
+/* --- Pricing / comparison table ------------------------------------------------ */
+
+.bw-pricing-comparison__heading {
+  margin: 0;
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+}
+
+.bw-pricing-comparison__lede {
+  margin: var(--bw-space-3) 0 var(--bw-space-8);
+  max-inline-size: var(--bw-size-max-width-prose);
+  color: var(--bw-color-fg-muted);
+  text-wrap: pretty;
+}
+
+/* A comparison table cannot reflow to one column and stay a comparison, so it
+ * scrolls inside its own container instead of pushing the page sideways on a
+ * phone. The container is focusable in the markup so a keyboard can reach the
+ * scroll; its focus ring comes free from the global :focus-visible rule, whose
+ * selector already includes [tabindex]. */
+.bw-pricing-comparison__scroll {
+  overflow-x: auto;
+  /* contain: paint is load-bearing, not an optimisation. overflow-x alone does
+   * NOT stop a wide <table> painting outside this container: the box scrolls
+   * correctly (scrollWidth 687 against clientWidth 310 at 360px) while the
+   * table still renders to its full intrinsic width, so the PAGE gains a
+   * horizontal scrollbar even though the container has one. Containing paint
+   * clips it to this box, which is the behaviour overflow-x is assumed to have.
+   * Same class of defect as the 3.1.0 <pre>/<code> fix. Verified at 360, 375
+   * and 414px in both themes; the table keeps its full width and scrolls. */
+  contain: paint;
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+}
+
+.bw-pricing-comparison__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--bw-text-body-md-size);
+}
+
+.bw-pricing-comparison__caption {
+  padding: var(--bw-space-4) var(--bw-space-4) 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  text-align: start;
+  caption-side: top;
+}
+
+.bw-pricing-comparison__table th,
+.bw-pricing-comparison__table td {
+  padding: var(--bw-space-3) var(--bw-space-4);
+  text-align: start;
+  vertical-align: middle;
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-pricing-comparison__table thead th {
+  color: var(--bw-color-fg);
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  white-space: nowrap;
+}
+
+/* The capability column: it is the row's label, so it stays legible at body
+ * weight and gets the width it needs rather than being squeezed by the plans. */
+.bw-pricing-comparison__row-header {
+  font-weight: var(--bw-text-body-md-weight);
+  min-inline-size: 14rem;
+}
+
+.bw-pricing-comparison__table tbody tr:last-child th,
+.bw-pricing-comparison__table tbody tr:last-child td {
+  border-block-end: none;
+}
+
+/* Colour is reinforcement only: every cell also carries a visually-hidden
+ * "Included" or "Not included", so the meaning survives without it. */
+.bw-pricing-comparison__yes {
+  color: var(--bw-color-success);
+}
+
+.bw-pricing-comparison__no {
+  color: var(--bw-color-icon-muted);
+}
+
+.bw-pricing-comparison__note {
+  margin: var(--bw-space-6) 0 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+}
+
+/* --- FAQ / two column ----------------------------------------------------------- */
+
+.bw-faq-columns__heading {
+  margin: 0 0 var(--bw-space-8);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+}
+
+/* One column on a phone, two from 48rem. Each column is its own exclusive
+ * <details> group in the markup, so opening a question on the right cannot
+ * close one off-screen on the left. */
+.bw-faq-columns__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--bw-space-4) var(--bw-space-8);
+  align-items: start;
+}
+
+@media (min-width: 48rem) {
+  .bw-faq-columns__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.bw-faq-columns__column {
+  display: grid;
+  gap: var(--bw-space-4);
+  align-content: start;
+}
+
+/* --- Testimonial / quote grid ---------------------------------------------------- */
+
+.bw-testimonial-grid-section__heading {
+  margin: 0 0 var(--bw-space-8);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+}
+
+.bw-testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: var(--bw-space-6);
+  align-items: start;
+}
+
+/* .bw-testimonial caps itself at prose width and centres, which is right for a
+ * lone quote and wrong inside a grid track: it would leave gaps between the
+ * cards. The track is the constraint here. */
+.bw-testimonial-grid .bw-testimonial {
+  max-inline-size: none;
+  margin-inline: 0;
+  block-size: 100%;
+}
+
+/* --- Testimonial / logo and quote ------------------------------------------------ */
+
+.bw-testimonial-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bw-space-6);
+}
+
+/* The mark carries a viewBox and no intrinsic width, so the cap lives here.
+ * currentColor in the SVG resolves through this rule's inherited ink, which is
+ * what lets one file work in both themes. */
+.bw-testimonial-logo__mark {
+  color: var(--bw-color-fg-muted);
+  inline-size: 100%;
+  max-inline-size: 10rem;
+}
+
+.bw-testimonial-logo__mark svg {
+  inline-size: 100%;
+  block-size: auto;
+}
+
+/* --- Stats / card row ------------------------------------------------------------ */
+
+.bw-stat-cards-section__heading {
+  margin: 0 0 var(--bw-space-8);
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+}
+
+.bw-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: var(--bw-space-6);
+}
+
+/* The card treatment the bare .bw-stat-band deliberately does not carry: this
+ * variant exists for pages with no other card content, where a naked number
+ * band reads as unfinished. */
+.bw-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  padding: var(--bw-space-8);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  background: var(--bw-color-surface-raised);
+  box-shadow: var(--bw-elevation-1);
+}
+
+.bw-stat-card__value {
+  margin: 0;
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  /* Lining figures so a column of numbers aligns on the digit, not the glyph. */
+  font-variant-numeric: tabular-nums;
+}
+
+.bw-stat-card__label {
+  margin: 0;
+  color: var(--bw-color-fg);
+  text-wrap: pretty;
+}
+
+/* Pushed to the bottom so the notes sit on one baseline across a row whose
+ * labels wrap to different heights. */
+.bw-stat-card__note {
+  margin: 0;
+  margin-block-start: auto;
+  padding-block-start: var(--bw-space-2);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+}
+
+/* --- Listing ------------------------------------------------------------------ */
+
+/* The three listing variants (card grid, media list, compact table) share this
+ * section wrapper and NOTHING else: the shared thing between them turned out
+ * to be the entry contract, not the layout, which is why no grid component was
+ * promoted out of them. See the comment in examples/sections/listing/
+ * media-list.html for that reasoning in full. */
+.bw-listing-section__intro {
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-block-end: var(--bw-space-6);
+}
+
+.bw-listing-section__heading {
+  margin: 0;
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+}
+
+.bw-listing-section__lede {
+  margin: var(--bw-space-2) 0 0;
+  color: var(--bw-color-fg-muted);
+  text-wrap: pretty;
+}
+
+/* Listing / card grid ------------------------------------------------------ */
+
+/* The same auto-fit idiom as .bw-stat-grid and .bw-stat-band, with a wider
+ * floor: a card carrying a title and a summary paragraph stops reading as a
+ * card below about 18rem. min() keeps a single column on viewports narrower
+ * than one card, which is what makes this mobile-first with no breakpoint. */
+.bw-listing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: var(--bw-space-6);
+}
+
+/* The whole card is an anchor, so it follows a.bw-card's contract exactly as
+ * .bw-feature-card--link does: content keeps its own ink, no underline smears
+ * across the card, and the focus ring comes from the global :focus-visible
+ * rule. Unlike the chrome-less feature card this one has a surface, so the
+ * hover affordance is the elevation raise (shadow only, never a transform,
+ * per MOT-010). */
+.bw-listing-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--bw-space-2);
+  padding: var(--bw-space-6);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  background: var(--bw-color-surface-raised);
+  box-shadow: var(--bw-elevation-1);
+  color: inherit;
+  text-decoration: none;
+  transition: var(--bw-transition-shadow);
+}
+
+.bw-listing-card:hover,
+.bw-listing-card:focus-visible {
+  box-shadow: var(--bw-elevation-2);
+}
+
+.bw-listing-card__tag {
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  line-height: var(--bw-text-overline-line-height);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
+  color: var(--bw-color-accent);
+}
+
+.bw-listing-card__title {
+  margin: 0;
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+  transition: var(--bw-transition-colors);
+}
+
+.bw-listing-card:hover .bw-listing-card__title,
+.bw-listing-card:focus-visible .bw-listing-card__title {
+  color: var(--bw-color-accent);
+}
+
+.bw-listing-card__summary {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+  text-wrap: pretty;
+}
+
+/* Pushed to the bottom so meta lines sit on one baseline across a row of
+ * cards whose summaries differ in length. */
+.bw-listing-card__meta {
+  margin-block-start: auto;
+  padding-block-start: var(--bw-space-2);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+}
+
+/* Listing / media list ----------------------------------------------------- */
+
+.bw-listing-list {
+  display: grid;
+  gap: var(--bw-space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Stacked on a phone (image first, matching the reading order), a media row
+ * from 40rem up. The image column is fixed rather than fractional so a short
+ * entry and a long one present the same thumbnail size. */
+.bw-listing-list__item {
+  display: grid;
+  gap: var(--bw-space-4);
+  align-items: start;
+}
+
+/* 12rem, not wider: at a 3:2 ratio the thumbnail sets the row height, and a
+ * wider column leaves a two-line summary floating in dead space beside it. */
+@media (min-width: 40rem) {
+  .bw-listing-list__item {
+    grid-template-columns: 12rem 1fr;
+    gap: var(--bw-space-6);
+  }
+}
+
+/* Sized for either shape: the shipped placeholder is an inline <svg>, and the
+ * documented swap is an <img>. object-fit only bites on the img, and the
+ * aspect-ratio keeps the row height stable across both so swapping one for the
+ * other does not reflow the list. */
+.bw-listing-list__media {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--bw-radius-lg);
+}
+
+.bw-listing-list__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  align-items: flex-start;
+}
+
+.bw-listing-list__title {
+  margin: 0;
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+
+/* Only the title is the link here, not the whole row: the row is wide enough
+ * that a full-row target would swallow the surrounding whitespace. */
+.bw-listing-list__link {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-listing-list__link:hover,
+.bw-listing-list__link:focus-visible {
+  color: var(--bw-color-accent);
+  text-decoration: underline;
+}
+
+.bw-listing-list__summary {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  text-wrap: pretty;
+}
+
+.bw-listing-list__meta {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+}
+
+/* Listing / compact table -------------------------------------------------- */
+
+/* A table cannot reflow into one column without ceasing to be a table, so it
+ * scrolls inside its own container rather than pushing the page sideways on a
+ * phone. The container is focusable in the markup (tabindex="0") because a
+ * scroll region reachable only by mouse or touch is unusable by keyboard; the
+ * focus ring comes free from the global :focus-visible rule, whose selector
+ * already includes [tabindex]. */
+.bw-listing-table__scroll {
+  overflow-x: auto;
+  /* See the note on .bw-pricing-comparison__scroll: overflow-x alone does not
+   * clip a wide table's paint, so the page scrolls sideways instead of the
+   * container. This table's columns happen to be narrow enough not to trip the
+   * mobile gate today, which makes it a latent version of the same defect
+   * rather than a different case: one longer document title would surface it. */
+  contain: paint;
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+}
+
+.bw-listing-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--bw-text-body-md-size);
+}
+
+/* Visible on purpose: the caption names the table for everyone, not only for
+ * a screen reader. */
+.bw-listing-table__caption {
+  padding: var(--bw-space-4) var(--bw-space-4) 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  text-align: start;
+  caption-side: top;
+}
+
+.bw-listing-table th,
+.bw-listing-table td {
+  padding: var(--bw-space-3) var(--bw-space-4);
+  text-align: start;
+  vertical-align: top;
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-listing-table thead th {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  white-space: nowrap;
+}
+
+/* The row header carries the entry title, so it stays at body weight rather
+ * than inheriting the thead treatment. */
+.bw-listing-table tbody th {
+  font-weight: var(--bw-text-body-md-weight);
+}
+
+.bw-listing-table tbody tr:last-child th,
+.bw-listing-table tbody tr:last-child td {
+  border-block-end: none;
+}
+
+.bw-listing-table__link {
+  color: var(--bw-color-accent);
+  text-decoration: none;
+}
+
+.bw-listing-table__link:hover,
+.bw-listing-table__link:focus-visible {
+  text-decoration: underline;
+}

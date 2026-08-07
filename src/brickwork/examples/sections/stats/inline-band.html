@@ -1,0 +1,41 @@
+{% comment %}
+STATS / inline band: a row of display-scale numbers with nothing around them.
+
+WHEN TO USE THIS INSTEAD OF THE CARD ROW. When the page already has cards on it.
+A band of bare numbers sits quietly between two sections of prose; a row of
+cards competes with every other card on the page for attention. Use the band as
+punctuation, the cards when the numbers ARE the section.
+
+The shipped _stat_band.html already is this shape, so the example is the include.
+
+WHAT YOUR VIEW MUST SUPPLY. This is one of the few sections that genuinely needs
+context: `stats` is a list of dicts and a Django template cannot build one
+inline. Pass
+
+    stats = [
+        {"value": "21 days", "label": "Average time to pay",
+         "trend": "down", "trend_label": "17 days faster than before"},
+        {"value": "£1.4m", "label": "Chased and collected this quarter",
+         "trend": "up", "trend_label": "up 12% on last quarter"},
+        {"value": "94%", "label": "Invoices paid without a phone call"},
+    ]
+
+`value` is PRE-FORMATTED by you. The component prints it as given (in tabular
+numerals, so a column of tiles does not jitter), which means the currency
+symbol, the thousands separators and the units are your decision, not a
+formatting guess made inside a template.
+
+A TREND WITHOUT A trend_label IS A DEFECT. Whenever you set `trend`, set
+`trend_label` too. `trend` alone renders an arrow and a hidden "increased" or
+"decreased", which is enough to keep it off colour-alone, but it tells a sighted
+reader a direction with no magnitude: up from what, by how much? _stat.html
+enforces the accessibility floor; the pairing is on you. Note also that "good"
+and "up" are not the same thing. Time-to-pay going DOWN is the win, so it takes
+trend="down" and reads as a success on the tile. Do not flip the direction to
+make it look positive.
+
+Omit `trend` entirely for a number that is a standing fact rather than a change,
+like the 94% above. Not every stat has a delta, and inventing one is worse than
+leaving it out.
+{% endcomment %}
+{% include "brickwork_marketing/components/_stat_band.html" with heading="What changes in the first quarter" stats=stats %}

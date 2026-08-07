@@ -1,0 +1,64 @@
+{% comment %}
+LISTING / compact table: entries as rows, for when the FACTS are what the
+reader is comparing.
+
+WHEN TO USE THIS INSTEAD OF THE OTHER TWO. When every entry has the same
+handful of attributes and the reader is scanning down a column rather than
+reading across an entry. A release history, a specification index, a document
+register. If your entries have a summary paragraph, you want the media list;
+if they have three short facts each, you want this.
+
+WHAT YOUR VIEW MUST SUPPLY.
+
+    entries = [
+        {"title": "Reminder scheduling",
+         "url": "/docs/reminders/",
+         "category": "Chasing",
+         "updated": "14 July 2026"},
+        ...
+    ]
+
+WHY NOT _data_table.html. That component is the application-grade table: it
+carries sorting, selection, sticky headers and a row-actions contract, all of
+which need a view behind them. This is a public-page index with none of that,
+so it is a plain semantic table instead of a component configured to switch
+almost everything off. Reach for _data_table.html the moment you want sorting.
+
+ACCESSIBILITY AND NARROW SCREENS. A table cannot reflow into one column
+without ceasing to be a table, so on a phone this one SCROLLS sideways inside
+its own container rather than forcing the whole page to. That container is
+focusable (tabindex="0") and labelled, because a scrollable region that only
+a mouse or a touch can reach is unusable by keyboard. The <caption> is the
+table's accessible name and is deliberately visible: it tells everyone what
+they are looking at, not just screen-reader users.
+
+<th scope="row"> on the title cell is what makes each row announce itself with
+its own title as the row header, so a screen-reader user reading the "Updated"
+column hears which entry each date belongs to.
+{% endcomment %}
+<section class="bw-listing-section" aria-labelledby="listing-compact-table-heading">
+  <div class="bw-listing-section__intro">
+    <h2 class="bw-listing-section__heading" id="listing-compact-table-heading">Documentation index</h2>
+  </div>
+  <div class="bw-listing-table__scroll" tabindex="0" role="region" aria-labelledby="listing-compact-table-heading">
+    <table class="bw-listing-table">
+      <caption class="bw-listing-table__caption">Every page in the handbook, most recently updated first.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Page</th>
+          <th scope="col">Category</th>
+          <th scope="col">Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+          <tr>
+            <th scope="row"><a class="bw-listing-table__link" href="{{ entry.url }}">{{ entry.title }}</a></th>
+            <td>{{ entry.category }}</td>
+            <td>{{ entry.updated }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

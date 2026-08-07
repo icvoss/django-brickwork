@@ -1,0 +1,25 @@
+{% comment %}
+TESTIMONIAL / single quote: one customer, said well, on its own.
+
+WHEN TO USE THIS INSTEAD OF THE GRID. When you have one quote that is genuinely
+good. Three mediocre quotes read as filler; one specific one that names a number
+does more work than all three. Reach for the grid only when each quote covers a
+different objection.
+
+WHAT YOUR VIEW MUST SUPPLY: nothing. That is the point of this one. Every input
+_testimonial.html takes is a flat string, so the whole thing is authorable from
+the template with {% include ... with %} and renders from an empty context. If a
+marketing page needs a quote, it does not need a view to get one.
+
+WHY THERE IS NO avatar. The component accepts one (an image URL, given an alt
+implied from the author), and this example deliberately leaves it off. A copied
+example carrying a path to an image that only existed in this repository renders
+as a broken image on the page that copied it, which is worse than no photograph
+at all. Add one when you have the file: pass avatar="/static/img/priya.jpg" and
+the component does the rest.
+
+Pick a quote that says what changed and by how much. "Great product, highly
+recommend" is worth nothing to the reader, because everybody's testimonials say
+that.
+{% endcomment %}
+{% include "brickwork_marketing/components/_testimonial.html" with quote="We cut our average days-to-pay from 38 to 21 without hiring anyone. The reminders just go out, and the ones that would have been awkward phone calls now happen before anybody is annoyed." author="Priya Raman" role="Finance Director, Halden Group" %}

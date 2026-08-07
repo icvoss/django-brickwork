@@ -1,0 +1,52 @@
+{% comment %}
+STATS / card row: the same three numbers, given cards of their own.
+
+WHEN TO USE THIS INSTEAD OF THE INLINE BAND. On a page with no other card
+content, where the numbers are the section rather than an aside inside it.
+Cards give each number an edge and a surface, which makes three of them read as
+a deliberate block. Drop this onto a page that already has a feature grid or a
+pricing table and you have two competing rows of cards; use the band there.
+
+WHY THIS OWNS ITS MARKUP, AND WHY IT DOES NOT INCLUDE _stat.html. _stat_band.html
+takes a list of dicts, so it needs a view. The tiles it composes each take flat
+strings, so a template CAN include brickwork/components/_stat.html once per stat
+without any context, and that is a perfectly good thing to do. This example goes
+one step further and writes the three cards out by hand, for one reason: it is
+the version you can copy, paste and then edit freely, including the card
+chrome. If you want the shipped tile treatment instead (tabular numerals, the
+trend glyph, the visually hidden direction text), include _stat.html three times
+rather than copying this.
+
+WHAT YOUR VIEW MUST SUPPLY: nothing. The numbers are typed in. Replace them with
+yours, and keep them honest: a made-up number on a marketing page is a claim you
+will be asked about.
+
+EVERY NUMBER NEEDS A LABEL THAT SAYS WHAT IT MEASURES. "94%" on its own is
+noise. "94% of invoices paid without a phone call" is an argument. The value is
+the headline and the label is the sentence it belongs to, so write the label
+first and check the number still answers it.
+
+Headings: this is a stacked section, so the section heading is an <h2> and each
+card's label is a plain <p>, not a heading. Three <h3>s of card labels would put
+"Average time to pay" into the document outline as if it were a subsection.
+{% endcomment %}
+<section class="bw-stat-cards-section">
+  <h2 class="bw-stat-cards-section__heading">What changes in the first quarter</h2>
+  <div class="bw-stat-cards">
+    <div class="bw-stat-card">
+      <p class="bw-stat-card__value">21 days</p>
+      <p class="bw-stat-card__label">Average time to pay, across every open account</p>
+      <p class="bw-stat-card__note">Down from 38 before Northwind</p>
+    </div>
+    <div class="bw-stat-card">
+      <p class="bw-stat-card__value">£1.4m</p>
+      <p class="bw-stat-card__label">Chased and collected in the last quarter</p>
+      <p class="bw-stat-card__note">Across 2,100 invoices</p>
+    </div>
+    <div class="bw-stat-card">
+      <p class="bw-stat-card__value">94%</p>
+      <p class="bw-stat-card__label">Invoices paid without anyone making a phone call</p>
+      <p class="bw-stat-card__note">The rest get flagged a fortnight early</p>
+    </div>
+  </div>
+</section>

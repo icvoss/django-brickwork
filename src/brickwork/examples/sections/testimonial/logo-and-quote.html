@@ -1,0 +1,44 @@
+{% comment %}
+TESTIMONIAL / logo and quote: the named-customer shape, quote plus company mark.
+
+WHEN TO USE THIS INSTEAD OF THE PLAIN SINGLE QUOTE. When the company name is
+the proof. A logo the reader recognises does the persuading before they read a
+word, so this shape earns its extra weight only for a customer worth naming. If
+the reader has never heard of them, the plain quote is the better section.
+
+WHY THE LOGO IS LAID OUT HERE AND NOT PASSED TO THE COMPONENT. _testimonial.html
+does accept a `logo`, but it takes PRE-RENDERED SAFE HTML: the caller owns the
+escaping, the same convention _stat.html uses for its sparkline. A Django
+template cannot build a safe HTML string inline, so passing it would mean a view
+supplying mark_safe(...) markup, and this example would stop being copy-paste.
+Laying the mark out beside a text-only include keeps the whole section
+context-free, and you can still switch to the component's `logo` argument the
+day your logos come out of a database.
+
+  # in your view, if you go that way
+  context["logo"] = mark_safe(render_to_string("brand/halden.svg"))
+  # then: {% include ".../_testimonial.html" with quote=... logo=logo %}
+  # mark_safe means YOU have vouched for that markup. Never mark_safe anything
+  # a user typed.
+
+WHAT YOUR VIEW MUST SUPPLY: nothing.
+
+THE LOGO IS DECORATIVE, DELIBERATELY. It is aria-hidden and unfocusable, because
+the company name is already in the attribution text underneath it. Labelling the
+mark as well would make a screen reader announce "Halden Group" twice in a row.
+If you ever show a mark with NO text attribution beside it, that swap makes it
+meaningful: give it role="img" and an <title>, and drop the aria-hidden.
+
+Swap in your customer's real mark. Keep the viewBox and let the CSS size it:
+a fixed pixel width is what makes a logo hang off the edge at 360px.
+{% endcomment %}
+<section class="bw-testimonial-logo">
+  <div class="bw-testimonial-logo__mark">
+    <svg viewBox="0 0 160 40" aria-hidden="true" focusable="false">
+      <rect x="0" y="8" width="24" height="24" rx="6" fill="var(--bw-color-accent)" />
+      <rect x="8" y="16" width="8" height="8" rx="2" fill="var(--bw-color-surface)" />
+      <text x="36" y="27" font-size="18" font-weight="600" fill="currentColor" font-family="inherit">Halden Group</text>
+    </svg>
+  </div>
+  {% include "brickwork_marketing/components/_testimonial.html" with quote="We cut our average days-to-pay from 38 to 21 without hiring anyone. Two people used to spend most of Friday on the ledger; now nobody does." author="Priya Raman" role="Finance Director, Halden Group" %}
+</section>

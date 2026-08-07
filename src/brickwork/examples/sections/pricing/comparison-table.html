@@ -1,0 +1,175 @@
+{% load brickwork_icons %}
+{% comment %}
+PRICING / comparison table: what each plan actually includes, row by row.
+
+WHEN TO USE THIS. Underneath the tier cards, not instead of them. The cards
+sell; this answers the reader who has narrowed it to two plans and wants to
+know precisely what the cheaper one gives up. Do not lead a pricing page with
+it: a grid of twenty ticks is a reference document, not a pitch.
+
+WHY IT OWNS ITS MARKUP. No component does this, and it should not: a real
+comparison is tabular data, and tabular data belongs in a <table>. Building
+it out of divs and a grid would look identical and tell a screen-reader user
+nothing about which plan a tick belongs to.
+
+WHAT MAKES IT READABLE TO ASSISTIVE TECH:
+  - <caption> names the table, so it is announced on entry and listed in a
+    screen reader's table index.
+  - <th scope="col"> on each plan and <th scope="row"> on each capability, so
+    a cell in the middle of the grid is announced as "Team, Multi-currency,
+    Included" rather than just "Included".
+  - Every cell says whether it is included in WORDS. The tick and dash are
+    decorative icons sitting next to visually hidden text, because a tick
+    alone is meaning carried by shape and colour, which fails WCAG 1.4.1.
+
+WHY THE SCROLL CONTAINER. Four columns of real words do not fit a 360px
+phone, and a table that overflows makes the whole PAGE scroll sideways, which
+is the thing WCAG 1.4.10 is about. So the table scrolls inside its own box
+instead. That box is focusable (tabindex="0") and named (role="region" plus
+aria-labelledby), because a scrollable area a mouse user can drag must also
+be reachable and operable by keyboard, and a focusable region needs an
+accessible name to be worth landing on.
+
+The heading id is referenced by aria-labelledby, so if you copy this section
+twice into one page, change the id on both ends of that pair.
+
+No view context needed. The plans and rows are written inline on purpose:
+this is the part of a pricing page that gets edited by whoever writes the
+copy, not by whoever writes the view.
+{% endcomment %}
+<section class="bw-pricing-comparison">
+  <h2 class="bw-pricing-comparison__heading" id="bw-pricing-comparison-heading">
+    Compare the plans
+  </h2>
+  <p class="bw-pricing-comparison__lede">
+    Everything below is per account, not per invoice. The trial gives you Scale
+    for thirty days whichever plan you end up on.
+  </p>
+
+  <div
+    class="bw-pricing-comparison__scroll"
+    role="region"
+    aria-labelledby="bw-pricing-comparison-heading"
+    tabindex="0"
+  >
+    <table class="bw-pricing-comparison__table">
+      <caption class="bw-pricing-comparison__caption">
+        Northwind plan comparison. Scroll sideways to see every plan.
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col" class="bw-pricing-comparison__row-header">Capability</th>
+          <th scope="col">Solo, £9 a month</th>
+          <th scope="col">Team, £29 a month</th>
+          <th scope="col">Scale, £89 a month</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">Invoices a month</th>
+          <td>Unlimited</td>
+          <td>Unlimited</td>
+          <td>Unlimited</td>
+        </tr>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">People with a login</th>
+          <td>1</td>
+          <td>Up to 10</td>
+          <td>Unlimited</td>
+        </tr>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">Automatic reminders</th>
+          <td>
+            {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+            <span class="bw-visually-hidden">Included</span>
+          </td>
+          <td>
+            {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+            <span class="bw-visually-hidden">Included</span>
+          </td>
+          <td>
+            {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+            <span class="bw-visually-hidden">Included</span>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">Late-payment prediction</th>
+          <td>
+            {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+            <span class="bw-visually-hidden">Not included</span>
+          </td>
+          <td>
+            {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+            <span class="bw-visually-hidden">Included</span>
+          </td>
+          <td>
+            {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+            <span class="bw-visually-hidden">Included</span>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">Shared chasing inbox</th>
+          <td>
+            {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+            <span class="bw-visually-hidden">Not included</span>
+          </td>
+          <td>
+            {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+            <span class="bw-visually-hidden">Included</span>
+          </td>
+          <td>
+            {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+            <span class="bw-visually-hidden">Included</span>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">Currencies</th>
+          <td>Sterling only</td>
+          <td>Sterling and euro</td>
+          <td>Any, with daily rates</td>
+        </tr>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">Legal entities</th>
+          <td>1</td>
+          <td>1</td>
+          <td>Unlimited</td>
+        </tr>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">SAML sign-in</th>
+          <td>
+            {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+            <span class="bw-visually-hidden">Not included</span>
+          </td>
+          <td>
+            {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+            <span class="bw-visually-hidden">Not included</span>
+          </td>
+          <td>
+            {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+            <span class="bw-visually-hidden">Included</span>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">Audit trail export</th>
+          <td>
+            {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+            <span class="bw-visually-hidden">Not included</span>
+          </td>
+          <td>90 days</td>
+          <td>7 years</td>
+        </tr>
+        <tr>
+          <th scope="row" class="bw-pricing-comparison__row-header">Support</th>
+          <td>Email, next working day</td>
+          <td>Email, same working day</td>
+          <td>Email and phone, one hour</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="bw-pricing-comparison__note">
+    Prices exclude VAT. Changing plan takes effect on the next invoice, and we
+    credit the unused part of the current one.
+  </p>
+</section>

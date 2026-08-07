@@ -53,10 +53,28 @@ from your view.
 | `features` | `icon-grid`, `alternating-rows`, `simple-list` |
 | `cta` | `centred-band`, `split`, `full-bleed` |
 | `content` | `prose-block`, `media-and-text`, `callout` |
+| `pricing` | `three-tier`, `single-plan`, `comparison-table` |
+| `testimonial` | `single-quote`, `quote-grid`, `logo-and-quote` |
+| `faq` | `single-column`, `two-column` |
+| `stats` | `inline-band`, `card-row` |
+| `listing` | `card-grid`, `media-list`, `compact-table` |
 
-Only `features/icon-grid.html` needs anything from your view (a list of dicts,
-which a Django template cannot build inline). Everything else renders from an
-empty context, because the copy is typed into the file.
+Most sections render from an EMPTY context, because the copy is typed into the
+file. That is what makes them genuinely copy-paste. The exceptions are the ones
+whose content is a list of dicts, which a Django template cannot build inline:
+
+| Section | Needs from your view |
+|---|---|
+| `features/icon-grid` | `features` |
+| `pricing/three-tier` | `tiers` |
+| `stats/inline-band` | `stats` |
+| `listing/*` (all three) | `entries` |
+
+Each of those files documents the exact shape to pass in its header comment.
+Where a zero-context alternative exists, the file says so: `pricing/single-plan`
+and `faq/*` deliberately include their component once per item with flat
+strings rather than looping a list, so the whole section stays editable in the
+template.
 
 Some variants are a one-line `{% include %}` of a shipped component, because
 the component already does the job and the honest example is the include. The

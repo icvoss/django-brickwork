@@ -1748,24 +1748,8 @@ def render_about(theme: str) -> str:
 # landmark nesting are only meaningful in one. Stacking also catches a section
 # that is individually fine but collides with its neighbour.
 
-_SECTION_FEATURES_FIXTURE = [
-    {
-        "icon": "bell",
-        "heading": "Automatic reminders",
-        "body": "Chase on your schedule, not when you remember.",
-        "url": "#reminders",
-    },
-    {
-        "icon": "calendar",
-        "heading": "Late-payment prediction",
-        "body": "Know which accounts slip before they do.",
-    },
-    {
-        "icon": "check",
-        "heading": "Reconciliation",
-        "body": "Payments matched to invoices automatically.",
-    },
-]
+# The per-section context lives in tests/test_examples.py (_SECTION_CONTEXTS)
+# and is imported in render_sections below, rather than being duplicated here.
 
 
 def _sections_engine():
@@ -1791,10 +1775,25 @@ def render_sections(theme: str) -> str:
     engine = _sections_engine()
     names = [name for name in examples.list_examples() if name.startswith("sections/")]
 
+    # The context each section needs comes from tests/test_examples.py, the one
+    # place it is already declared and kept exhaustive (a section missing from
+    # _SECTION_CONTEXTS fails test_the_shipped_example_set_matches_what_the_tests_cover).
+    #
+    # This used to be an inline `{"features": ...} if "icon-grid" in name else {}`,
+    # which silently rendered EVERY other context-taking section empty: the
+    # listing variants stacked as three empty <div>s and the axe and mobile
+    # gates were measuring nothing. A section that renders blank here passes
+    # every gate while being completely untested, so the two lists must not be
+    # allowed to drift apart again.
+    from test_examples import _SECTION_CONTEXTS
+
     rendered = []
     for name in sorted(names):
-        context = {"features": _SECTION_FEATURES_FIXTURE} if "icon-grid" in name else {}
-        rendered.append(engine.get_template(name).render(Context(context)))
+        context = _SECTION_CONTEXTS.get(name, {})
+        html = engine.get_template(name).render(Context(context))
+        if not html.strip():
+            raise SystemExit(f"section {name} rendered empty into the a11y fixture; it needs a context entry")
+        rendered.append(html)
 
     request = RequestFactory().get("/sections/")
     # The stacked sections are already-rendered HTML, so they go into the shell
