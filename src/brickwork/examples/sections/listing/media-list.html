@@ -1,0 +1,79 @@
+{% comment %}
+LISTING / media list: a vertical list of entries, each pairing a thumbnail
+with its copy.
+
+WHEN TO USE THIS INSTEAD OF THE CARD GRID. When the summary matters more than
+the browse. A grid optimises for scanning many titles at once; this optimises
+for reading a few. Use it for a search-results page, a news index where recency
+beats breadth, or any list where entries differ in importance rather than
+sitting as equals. A grid of three implies "pick one of these"; a list implies
+"here they are, in order".
+
+WHAT YOUR VIEW MUST SUPPLY. Same entry shape as the card grid:
+
+    entries = [
+        {"title": "Chasing without the awkwardness",
+         "summary": "How to write a reminder that gets paid without costing "
+                    "you the relationship.",
+         "url": "/blog/chasing-without-the-awkwardness/",
+         "meta": "14 July 2026",
+         "image": "/static/blog/chasing.jpg",
+         "image_alt": "A printed invoice on a desk beside a phone"},
+        ...
+    ]
+
+THE THUMBNAIL IS A PLACEHOLDER SVG, NOT AN <img>, for the same reason
+hero/split-media.html uses one: an example shipping a path to an image the
+package does not contain renders as a broken-image box in the consumer's
+project the moment they copy it. Swap it for your own markup:
+
+    {% if entry.image %}
+      <img class="bw-listing-list__media" src="{{ entry.image }}"
+           alt="{{ entry.image_alt }}" loading="lazy" width="240" height="160">
+    {% endif %}
+
+If you make that swap, `image_alt` is NOT optional. These thumbnails are
+content, not decoration, so an empty alt would hide the entry from a screen
+reader scanning the list by its images. Keep the width and height attributes:
+they reserve the space before the image loads, so the list does not jump.
+Wrapping it in the {% templatetag openblock %} if {% templatetag closeblock %}
+above also keeps an entry with no image rendering copy at full width rather
+than a gap where a picture should be.
+
+WHY THIS OWNS ITS MARKUP RATHER THAN REUSING THE CARD GRID. It is a different
+arrangement of the same data, not the same arrangement at a different size:
+the media list is a single column of horizontal rows, and the grid is multiple
+columns of vertical stacks. The two share no layout declaration. That is the
+answer to the "should a grid be a component" question this pair was written to
+settle: the shared thing between the two listing variants turned out to be the
+ENTRY CONTRACT, not the grid, so promoting a grid component would abstract the
+half they do not have in common.
+
+Each row collapses to a stack on a phone, image first, which keeps the reading
+order identical to the visual order at every width.
+{% endcomment %}
+<section class="bw-listing-section" aria-labelledby="listing-media-list-heading">
+  <div class="bw-listing-section__intro">
+    <h2 class="bw-listing-section__heading" id="listing-media-list-heading">Latest posts</h2>
+  </div>
+  <ul class="bw-listing-list">
+    {% for entry in entries %}
+      <li class="bw-listing-list__item">
+        <svg class="bw-listing-list__media" viewBox="0 0 240 160" width="240" height="160" aria-hidden="true" focusable="false">
+          <rect x="0" y="0" width="240" height="160" rx="12" fill="var(--bw-color-surface-sunken)" stroke="var(--bw-color-border)" />
+          <rect x="20" y="28" width="112" height="10" rx="5" fill="var(--bw-color-border-strong)" />
+          <rect x="20" y="52" width="160" height="8" rx="4" fill="var(--bw-color-border)" />
+          <rect x="20" y="72" width="136" height="8" rx="4" fill="var(--bw-color-border)" />
+          <rect x="20" y="112" width="64" height="20" rx="10" fill="var(--bw-color-accent)" />
+        </svg>
+        <div class="bw-listing-list__body">
+          <h3 class="bw-listing-list__title">
+            <a class="bw-listing-list__link" href="{{ entry.url }}">{{ entry.title }}</a>
+          </h3>
+          {% if entry.summary %}<p class="bw-listing-list__summary">{{ entry.summary }}</p>{% endif %}
+          {% if entry.meta %}<span class="bw-listing-list__meta">{{ entry.meta }}</span>{% endif %}
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+</section>

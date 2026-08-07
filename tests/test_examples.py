@@ -167,6 +167,102 @@ _SECTION_FEATURES = [
     },
 ]
 
+# The listing entry contract (3.2.0, plan Phase 6a wave 2). One list serves all
+# three listing variants, which is the whole finding those variants produced:
+# what they share is the ENTRY SHAPE, not a grid, so no grid component was
+# promoted out of them. A fourth variant that cannot render from this list is
+# evidence the contract is wrong, not a reason to add a second list here.
+_SECTION_ENTRIES = [
+    {
+        "title": "Chasing without the awkwardness",
+        "summary": "How to write a reminder that gets paid without costing you the relationship.",
+        "url": "/blog/chasing-without-the-awkwardness/",
+        "meta": "14 July 2026",
+        "tag": "Guides",
+        "image": "/static/blog/chasing.jpg",
+        "image_alt": "A printed invoice on a desk beside a phone",
+        "category": "Chasing",
+        "updated": "14 July 2026",
+    },
+    {
+        "title": "What thirty days actually means",
+        "summary": "Payment terms are a negotiation, not a setting. Here is how to pick yours.",
+        "url": "/blog/what-thirty-days-means/",
+        "meta": "2 July 2026",
+        "tag": "Cashflow",
+        "image": "/static/blog/terms.jpg",
+        "image_alt": "A calendar with a payment date circled",
+        "category": "Terms",
+        "updated": "2 July 2026",
+    },
+    {
+        "title": "Reconciliation, and why it is nobody's favourite",
+        "summary": "Matching payments to invoices by hand is the tax you pay for getting paid.",
+        "url": "/blog/reconciliation/",
+        "meta": "20 June 2026",
+        "tag": "Operations",
+        "image": "/static/blog/reconciliation.jpg",
+        "image_alt": "A bank statement beside a stack of invoices",
+        "category": "Accounting",
+        "updated": "20 June 2026",
+    },
+]
+
+# The pricing tiers, in the shape sections/pricing/three-tier.html documents.
+# Note the key is cta_url even though the kwarg _pricing_table.html forwards is
+# cta_href: that asymmetry is deliberate (consumer data vs an emitted
+# attribute), documented in the plan, and pinned by the CTA-href test below.
+_SECTION_TIERS = [
+    {
+        "name": "Solo",
+        "price": "£9",
+        "period": "/month",
+        "description": "For one person invoicing a handful of clients.",
+        "features": ["Unlimited invoices", "Automatic reminders"],
+        "cta_label": "Start free trial",
+        "cta_url": "/accounts/signup/?plan=solo",
+    },
+    {
+        "name": "Team",
+        "price": "£29",
+        "period": "/month",
+        "description": "For a finance function of two to ten.",
+        "features": ["Everything in Solo", "Up to 10 users"],
+        "cta_label": "Start free trial",
+        "cta_url": "/accounts/signup/?plan=team",
+        "highlighted": True,
+        "badge": "Most popular",
+    },
+    {
+        "name": "Scale",
+        "price": "£89",
+        "period": "/month",
+        "description": "Multi-entity, multi-currency, audit trails.",
+        "features": ["Everything in Team", "Multi-currency"],
+        "cta_label": "Talk to sales",
+        "cta_url": "/contact/",
+    },
+]
+
+# Every trend carries a trend_label: a trend without one is a template-authoring
+# defect _stat.html enforces at its own render (VIZ-002 / BR-BW-TPL-007), and the
+# third stat omits both because not every number has a delta worth showing.
+_SECTION_STATS = [
+    {
+        "value": "21 days",
+        "label": "Average time to pay",
+        "trend": "down",
+        "trend_label": "17 days faster than before",
+    },
+    {
+        "value": "£1.4m",
+        "label": "Chased and collected this quarter",
+        "trend": "up",
+        "trend_label": "up 12% on last quarter",
+    },
+    {"value": "94%", "label": "Invoices paid without a phone call"},
+]
+
 _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/content/callout.html": {},
     "sections/content/media-and-text.html": {},
@@ -181,6 +277,19 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/hero/media-behind.html": {},
     "sections/hero/minimal.html": {},
     "sections/hero/split-media.html": {},
+    "sections/listing/card-grid.html": {"entries": _SECTION_ENTRIES},
+    "sections/listing/compact-table.html": {"entries": _SECTION_ENTRIES},
+    "sections/listing/media-list.html": {"entries": _SECTION_ENTRIES},
+    "sections/faq/single-column.html": {},
+    "sections/faq/two-column.html": {},
+    "sections/pricing/comparison-table.html": {},
+    "sections/pricing/single-plan.html": {},
+    "sections/pricing/three-tier.html": {"tiers": _SECTION_TIERS},
+    "sections/stats/card-row.html": {},
+    "sections/stats/inline-band.html": {"stats": _SECTION_STATS},
+    "sections/testimonial/logo-and-quote.html": {},
+    "sections/testimonial/quote-grid.html": {},
+    "sections/testimonial/single-quote.html": {},
 }
 
 
@@ -329,6 +438,19 @@ def test_every_section_class_it_emits_is_actually_styled(name: str) -> None:
         "bw-feature-grid-section",
         "bw-feature-list-section",
         "bw-content-section",
+        # Shared by all three listing variants, which have no layout in common:
+        # every rule lives on __intro/__heading/__lede and the per-variant roots.
+        "bw-listing-section",
+        # Wave 2 (3.2.0). Each is a section root whose children carry every
+        # rule, verified individually: none has a bare rule and all have styled
+        # descendants. bw-pricing-table-section is the shipped component's own
+        # root, in the same position as bw-feature-grid-section above.
+        "bw-pricing-table-section",
+        "bw-pricing-comparison",
+        "bw-single-plan",
+        "bw-faq-columns",
+        "bw-testimonial-grid-section",
+        "bw-stat-cards-section",
     }
     html = _example_engine().get_template(name).render(Context(_SECTION_CONTEXTS[name]))
     used: set[str] = set()

@@ -1,0 +1,51 @@
+{% comment %}
+PRICING / three tiers: the standard good-better-best table.
+
+WHEN TO USE THIS INSTEAD OF THE SINGLE PLAN. When the plans differ by SIZE
+(how many people, how many entities, how much volume) rather than by kind.
+Three columns invite a comparison, so only use three when a comparison is
+actually the decision the reader has to make. One product with one price is
+better served by sections/pricing/single-plan.html, and a long list of
+differing capabilities by sections/pricing/comparison-table.html.
+
+WHAT YOUR VIEW MUST SUPPLY. `tiers` is a list of dicts, and a Django template
+cannot build a list inline, so it comes from context. This is the shape to
+pass when your prices are driven by your billing system:
+
+    tiers = [
+        {"name": "Solo", "price": "£9", "period": "/month",
+         "description": "For one person invoicing a handful of clients.",
+         "features": ["Unlimited invoices", "Automatic reminders",
+                      "Open Banking reconciliation"],
+         "cta_label": "Start free trial",
+         "cta_url": "/accounts/signup/?plan=solo"},
+        {"name": "Team", "price": "£29", "period": "/month",
+         "description": "For a finance function of two to ten.",
+         "features": ["Everything in Solo", "Up to 10 users",
+                      "Late-payment prediction", "Shared chasing inbox"],
+         "cta_label": "Start free trial",
+         "cta_url": "/accounts/signup/?plan=team",
+         "highlighted": True, "badge": "Most popular"},
+        {"name": "Scale", "price": "£89", "period": "/month",
+         "description": "Multi-entity, multi-currency, audit trails.",
+         "features": ["Everything in Team", "Unlimited users",
+                      "Multi-currency", "SAML sign-in", "Audit export"],
+         "cta_label": "Talk to sales", "cta_url": "/contact/"},
+    ]
+
+MIND THE KEY NAME. The CTA link is `cta_url` in YOUR data, even though the
+kwarg the tier card takes is `cta_href`. The wrapper maps one to the other
+(`cta_href=tier.cta_url`), and a missing link fails silently as an empty
+href rather than loudly, so it is worth getting right first time. If you
+prefer the dict form, `{"cta": {"label": ..., "url": ...}}` also works and
+wins outright over the flat pair when both are present.
+
+Highlight exactly one tier. `badge` renders only on the highlighted one, and
+two highlighted tiers recommend nothing.
+
+WHEN TO SKIP THE WRAPPER. If your prices are static words rather than data,
+include _pricing_tier.html once per plan instead: every input except the
+feature list is a flat string, so the whole section stays editable in the
+template. Looping tier cards is all this wrapper does.
+{% endcomment %}
+{% include "brickwork_marketing/components/_pricing_table.html" with heading="Pay for the people, not the paperwork" lede="Every plan includes unlimited invoices and automatic reminders." tiers=tiers note="Prices exclude VAT. Annual billing saves two months." %}

@@ -1,0 +1,30 @@
+{% comment %}
+TESTIMONIAL / quote grid: three quotes across, one column on mobile.
+
+WHEN TO USE THIS INSTEAD OF THE SINGLE QUOTE. When each quote answers a
+DIFFERENT doubt. The three below are chosen that way on purpose: one says it
+works, one says the setup is not a project, one says it did not damage a
+customer relationship. Three quotes all saying the reminders are good is a
+single quote padded out to fill a row.
+
+WHY THIS OWNS ITS MARKUP. _testimonial.html is one card. Nothing in the kit
+arranges several of them, so the wrapper is the example's own: a grid of three
+that collapses to one column on narrow screens. The cards themselves are still
+the shipped component, so they keep improving with the package.
+
+WHAT YOUR VIEW MUST SUPPLY: nothing. Each include takes flat strings, so all
+three quotes are typed into the file. If you would rather drive them from a
+model, loop over your own queryset and pass the same four arguments per item.
+
+KEEP THE QUOTES A SIMILAR LENGTH. The cards sit on a shared row, so one quote
+three times the length of its neighbours leaves two short cards with a lot of
+empty space beside a wall of text. Edit for length before you reach for CSS.
+{% endcomment %}
+<section class="bw-testimonial-grid-section">
+  <h2 class="bw-testimonial-grid-section__heading">What finance teams say after a quarter</h2>
+  <div class="bw-testimonial-grid">
+    {% include "brickwork_marketing/components/_testimonial.html" with quote="We cut our average days-to-pay from 38 to 21 without hiring anyone. The reminders just go out." author="Priya Raman" role="Finance Director, Halden Group" %}
+    {% include "brickwork_marketing/components/_testimonial.html" with quote="I imported two years of invoices on a Tuesday afternoon and the first reminders went out that evening. There was no implementation project." author="Daniel Okoro" role="Head of Operations, Cransley Freight" %}
+    {% include "brickwork_marketing/components/_testimonial.html" with quote="The thing I was worried about was sounding aggressive to customers I like. It stops the moment they pay, so nobody has been chased for an invoice they already settled." author="Marta Lindqvist" role="Owner, Lindqvist Joinery" %}
+  </div>
+</section>

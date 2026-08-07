@@ -1,0 +1,47 @@
+{% comment %}
+FAQ / two columns: the same questions, side by side on a wide screen.
+
+WHEN TO USE THIS INSTEAD OF THE SINGLE COLUMN. When there are enough
+questions that one column runs longer than the screen and pushes whatever
+follows it out of sight. Eight or more is roughly where a single stack starts
+to feel like a wall. Below that, use sections/faq/single-column.html: two
+columns of three items each just makes the reader's eye work harder for no
+gain.
+
+One column on narrow screens, two from the medium breakpoint up. The columns
+are a CSS concern, not a markup one, so the reading and tab order stays the
+order the questions are written in.
+
+WHY THE TWO COLUMNS ARE SEPARATE GROUPS. Each column shares its own
+<details name>, "bw-faq-a" and "bw-faq-b", so only one answer is open per
+column. Using one name across both would mean opening a question on the right
+silently closes one on the left, out of the reader's view, which reads as the
+page losing its place. On narrow screens the two groups stack, and the worst
+that happens is two answers open at once, which is fine.
+
+NO VIEW CONTEXT IS NEEDED. Each question includes brickwork/components/
+_disclosure.html directly with flat strings, so the copy is edited here in
+the template rather than in a view. Use _faq.html with an `items` list
+instead when the questions come from a database or a CMS.
+
+WHY IT OWNS ITS WRAPPER. _faq.html renders one stack. This is two stacks in
+a responsive pair, which is a layout the wrapper does not have and should not
+grow an option for.
+{% endcomment %}
+<section class="bw-faq-columns">
+  <h2 class="bw-faq-columns__heading">Everything else people ask</h2>
+  <div class="bw-faq-columns__grid">
+    <div class="bw-faq-columns__column">
+      {% include "brickwork/components/_disclosure.html" with name="bw-faq-a" label="Can I cancel whenever I want?" content="Yes, from the billing page, and it takes effect at the end of the month you have already paid for. There is no notice period." %}
+      {% include "brickwork/components/_disclosure.html" with name="bw-faq-a" label="Do you charge per invoice?" content="No. You pay per person with a login, and the number of invoices you raise or chase makes no difference to the bill." %}
+      {% include "brickwork/components/_disclosure.html" with name="bw-faq-a" label="Will my customers know you are involved?" content="Only if you want them to. Reminders go out from your own domain once you have verified it, signed in your business name." %}
+      {% include "brickwork/components/_disclosure.html" with name="bw-faq-a" label="How long does setup take?" content="About twenty minutes for a Xero or QuickBooks account, most of which is you deciding how aggressive the reminder schedule should be. The import itself runs in the background." %}
+    </div>
+    <div class="bw-faq-columns__column">
+      {% include "brickwork/components/_disclosure.html" with name="bw-faq-b" label="Which accounting systems do you connect to?" content="Xero, QuickBooks Online, FreeAgent and Sage Business Cloud, both ways. Anything else can use the CSV import or the API." %}
+      {% include "brickwork/components/_disclosure.html" with name="bw-faq-b" label="Can I stop a reminder going out?" content="Yes. Put an account on hold and nothing leaves for it until you take the hold off, and a payment landing cancels the rest of that invoice's schedule automatically." %}
+      {% include "brickwork/components/_disclosure.html" with name="bw-faq-b" label="What happens to my data if I leave?" content="You can export every invoice, contact and chase record as CSV on the way out. We delete the lot thirty days after cancellation unless you ask us to do it sooner." %}
+      {% include "brickwork/components/_disclosure.html" with name="bw-faq-b" label="Where is our data held?" content="In London, on infrastructure inside the UK and the EU only. The subprocessor list is on the security page and we give thirty days' notice before adding to it." %}
+    </div>
+  </div>
+</section>

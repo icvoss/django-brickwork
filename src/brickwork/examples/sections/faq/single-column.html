@@ -1,0 +1,41 @@
+{% comment %}
+FAQ / single column: a stack of questions, one open at a time.
+
+WHEN TO USE THIS. At the bottom of a pricing or signup page, answering the
+objections that stop someone buying. Keep it to the questions people actually
+ask before paying; a general help centre is a different page and belongs in
+docs, not in an accordion under a price.
+
+WHY THIS BYPASSES _faq.html. The wrapper takes `items` as a list of dicts,
+which means the questions live in your view. That is right when they come
+from a CMS, and wrong for a section like this one: somebody copying a FAQ
+into their own project wants to edit the words in the template, not open a
+views.py to change a sentence. So this includes brickwork/components/
+_disclosure.html directly once per question, whose contract is flat strings.
+Stacking disclosures is all the wrapper does. NO VIEW CONTEXT IS NEEDED.
+
+If your answers are drawn from a database, use _faq.html with `items` and
+`single_open=True` instead.
+
+WHAT name="bw-faq" DOES. Disclosures sharing a name form a native exclusive
+group, so opening one closes the others and the section never grows into a
+wall of open text. It is the <details name> attribute doing this, not
+JavaScript: the whole section works with scripting off. Drop the name from
+every item if you would rather readers open several at once, and note that
+mixing named and unnamed items in one stack just makes the behaviour look
+broken.
+
+The answers here are plain text, which Django escapes for you. If an answer
+needs a link, render it as safe HTML at the call site.
+{% endcomment %}
+<section class="bw-faq-section">
+  <h2 class="bw-faq-section__heading">Questions people ask before signing up</h2>
+  <div class="bw-faq-section__list">
+    {% include "brickwork/components/_disclosure.html" with name="bw-faq" label="Can I cancel whenever I want?" content="Yes, from the billing page, and it takes effect at the end of the month you have already paid for. There is no notice period and nobody will ring you to talk you out of it." %}
+    {% include "brickwork/components/_disclosure.html" with name="bw-faq" label="Do you charge per invoice?" content="No. You pay per person with a login, and the number of invoices you raise or chase makes no difference to the bill. A quiet January costs the same as a busy December." %}
+    {% include "brickwork/components/_disclosure.html" with name="bw-faq" label="Will my customers know you are involved?" content="Only if you want them to. Reminders go out from your own domain once you have verified it, signed in your business name. Until then they come from a Northwind address with your name in the reply-to." %}
+    {% include "brickwork/components/_disclosure.html" with name="bw-faq" label="Which accounting systems do you connect to?" content="Xero, QuickBooks Online, FreeAgent and Sage Business Cloud, both ways: invoices come in, payments and reminder history go back. Anything else can use the CSV import or the API." %}
+    {% include "brickwork/components/_disclosure.html" with name="bw-faq" label="What happens to my data if I leave?" content="You can export every invoice, contact and chase record as CSV on the way out, and the API stays open until the account closes. We delete the lot thirty days after cancellation unless you ask us to do it sooner." %}
+    {% include "brickwork/components/_disclosure.html" with name="bw-faq" label="Is there a discount for annual billing?" content="Pay for a year up front and the twelfth month is free. You can switch to annual at any point and we credit whatever is left of the current month." %}
+  </div>
+</section>
