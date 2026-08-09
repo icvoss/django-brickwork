@@ -10,11 +10,10 @@ name: CI
 #     and a page composing the wider component/interaction set), run as its own
 #     step in the test job under settings_consumer, alongside the existing
 #     settings_seams leg.
-#   - Frontend build + accessibility (axe-core/Playwright) + no-JS browser jobs
-#     are STUBBED: the spec makes the WCAG 2.2 AA gate and the no-JS floor
-#     load-bearing, so the jobs exist from day one but are filled in Phase 0
-#     when there are real components to test. They must not silently pass as if
-#     coverage exists, so they announce themselves and exit 0 until wired.
+#   - Frontend build (tokens + Vite assets) and the accessibility gate
+#     (axe-core/Playwright WCAG 2.2 AA, light and dark, plus the no-JS floor
+#     and keyboard suite) are fully wired and blocking, not stubs: see the
+#     frontend-build and a11y-gate jobs below.
 
 on:
   push:

@@ -14,13 +14,14 @@ theme axes (brand x theme x density x direction). Applications provide data,
 permissions and business behaviour; the substrate provides structure,
 presentation and interaction conventions.
 
-> Status: **stable 1.x on public PyPI** (`pip install django-brickwork`);
+> Status: **stable, on public PyPI at 3.2.0** (`pip install django-brickwork`);
 > [CHANGELOG.md](CHANGELOG.md) records the current release. The five
 > semver-governed public-API contracts (token, template, navigation,
-> interaction, JavaScript) are live, and every component passes two hard gates
-> in CI: is it accessible (axe-core WCAG 2.2 AA, light and dark themes) and is
-> it beautiful by default. The surface covers the application shell and nav,
-> the beautiful-by-default token system (elevation, state overlays, type
+> interaction, JavaScript) are live, and CI runs a WCAG 2.2 AA accessibility
+> gate (axe-core, light and dark themes) against 78 rendered fixtures covering
+> the shipped shells, components and interaction set. The surface covers the
+> application shell and nav, the beautiful-by-default token system
+> (elevation, state overlays, type
 > roles, motion, borders, with fine colours derived live from a small
 > load-bearing brand set via `color-mix()`), the interaction set (modal,
 > toast, dropdown, combobox, tabs, disclosure, tooltip, slide-over), forms
@@ -35,12 +36,12 @@ presentation and interaction conventions.
 > hosts the package documentation page.
 >
 > **Marketing kit (1.2.0+).** brickwork also ships an opt-in
-> `brickwork.marketing` sub-app (a marketing shell and eight marketing
-> components: hero, feature grid, pricing tier/table, CTA, testimonial, logo
-> cloud, stat band, FAQ) on the same `--bw-*` token and accessibility
-> contract, so a consumer can build its public marketing pages on brickwork
-> alongside its console. Worked landing/pricing/about pages are shipped as
-> copy-paste examples, not importable templates: see
+> `brickwork.marketing` sub-app (a marketing shell and nine marketing
+> components: hero, feature grid, pricing tier, pricing table, CTA,
+> testimonial, logo cloud, stat band, FAQ) on the same `--bw-*` token and
+> accessibility contract, so a consumer can build its public marketing pages
+> on brickwork alongside its console. Worked landing/pricing/about pages are
+> shipped as copy-paste examples, not importable templates: see
 > [Example pages](#example-pages) below.
 
 ## Documentation
