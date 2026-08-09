@@ -215,6 +215,16 @@
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   margin-block-end: var(--bw-density-stack-gap);
 }
+/* The text region between the icon and the optional close button
+ * (icvoss/django-brickwork#137): without a flex-grow rule of its own it
+ * collapses to content width instead of filling the row, matching
+ * .bw-toast__message and .bw-modal__body's own flex: 1 1 auto. min-inline-size:
+ * 0 lets it actually shrink below its content's natural width (the row is
+ * horizontal, so the inline axis is what needs to give). */
+.bw-alert__body {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
 .bw-alert__title {
   margin: 0;
   font-size: var(--bw-text-heading-sm-size);
@@ -271,6 +281,14 @@
 }
 .bw-alert--danger .bw-alert__title {
   color: var(--bw-color-danger-fg);
+}
+/* The dismiss control (icvoss/django-brickwork#137): flex-shrink: 0 so it
+ * does not compress, matching .bw-modal__close/.bw-slide-over__close/
+ * .bw-toast__close. No margin-inline-start: auto needed here: .bw-alert__body
+ * already carries flex: 1 1 auto, so it fills the remaining row space and
+ * pushes the close button to the trailing edge on its own. */
+.bw-alert__close {
+  flex-shrink: 0;
 }
 
 /* --- Form fields ----------------------------------------------------------- */
@@ -878,6 +896,21 @@ input.bw-toggle:disabled {
   white-space: nowrap;
   text-align: center;
   vertical-align: middle;
+}
+
+/* loading=True skeleton (icvoss/django-brickwork#137): without padding of its
+ * own the placeholder bars sit flush to the wrap's card border, then jump
+ * inward once real rows arrive with their __td/__th row-density padding. Uses
+ * the same row-density tokens as the real cells so the loading and loaded
+ * states share one inset, and .bw-skeleton-group's own stack-with-gap shape
+ * (flex column, --bw-space-2 gap) so the bars read as the same house pattern
+ * for stacked skeletons rather than a one-off. */
+.bw-data-table__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  padding-block: var(--bw-density-row-padding-block);
+  padding-inline: var(--bw-density-row-padding-inline);
 }
 
 /* scroll_container / sticky_header: the wrap keeps its own scroll (unchanged

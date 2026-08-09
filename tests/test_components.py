@@ -16,6 +16,8 @@ from django import forms
 from django.template import Context, Template, engines
 from django.template.exceptions import TemplateSyntaxError
 
+from tests._class_contract import UNSTYLED_BY_DESIGN, unstyled_classes
+
 _DIST_JS = Path(__file__).resolve().parent.parent / "src/brickwork/static/brickwork/dist/brickwork.js"
 _COMPILED_CSS = _DIST_JS.parent / "brickwork.css"
 
@@ -282,32 +284,10 @@ class _RegressionFilterForm(forms.Form):
     search = forms.CharField(label="Search", required=False)
 
 
-def _classes_used(html: str) -> set[str]:
-    return {token for attr in re.findall(r'class="([^"]+)"', html) for token in attr.split() if token.startswith("bw-")}
-
-
-def _classes_styled() -> set[str]:
-    css = _COMPILED_CSS.read_text(encoding="utf-8")
-    return set(re.findall(r"\.(bw-[a-zA-Z0-9_-]+)", css))
-
-
-# Structural hooks and label/root elements a parent rule positions and styles
-# entirely by descendant selector, carrying no rule of their own by design.
-# This is the SAME exemption test_examples.py already keeps for bw-btn__label
-# etc: listed explicitly so a genuinely unstyled class cannot hide among them.
-# None of these are part of icvoss/django-brickwork#130 (that issue names
-# exactly bw-btn--md, bw-field__control and bw-card__body); they are
-# pre-existing out-of-scope BEM leaves this sweep also surfaced.
-_UNSTYLED_BY_DESIGN = {
-    "bw-card__body",  # positioning-only hook; see _card.html's header comment.
-    "bw-btn__label",  # already exempt in test_examples.py; sized by the button.
-    "bw-dropdown__item-label",  # text leaf inside a styled flex row.
-    "bw-dropzone__label",  # text leaf inside the styled dropzone surface.
-    "bw-empty-state--no_data",  # variant carries no visual distinction (STA-002).
-    "bw-empty-state--no_results",  # ditto: the icon/copy alone differ, by design.
-    "bw-tag-input",  # enhanced-state root; the .bw-input classes carry the look.
-    "bw-tag-input__floor",  # ditto: the floor control borrows .bw-input's rules.
-}
+# The unstyled-by-design allowlist is the SINGLE canonical copy at
+# tests/_class_contract.py (icvoss/django-brickwork#137): this file and
+# test_component_class_contract.py both import it rather than keeping their
+# own, so a justification can go stale in only one place, not two.
 
 
 @pytest.mark.parametrize(
@@ -370,6 +350,5 @@ def test_shipped_component_classes_it_emits_are_actually_styled(name: str, rende
     the classes under test.
     """
     html = render()
-    used = _classes_used(html)
-    missing = sorted(used - _classes_styled() - _UNSTYLED_BY_DESIGN)
+    missing = unstyled_classes(html, allowlist=UNSTYLED_BY_DESIGN)
     assert not missing, f"{name} emits classes with no rule in the shipped CSS: {missing}"
