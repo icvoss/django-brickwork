@@ -16,6 +16,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from django.utils.functional import Promise
+
 if TYPE_CHECKING:
     from django.http import HttpRequest
     from django.urls import ResolverMatch
@@ -41,8 +43,18 @@ class NavItem:
     """Unique identifier within the enclosing nav configuration. Duplicate keys
     raise NavConfigError at startup (BR-BW-NAV-002), never silently overwrite."""
 
-    label: str
-    """Display text. The consumer supplies its own i18n-wrapped string."""
+    label: str | Promise
+    """Display text. The consumer supplies its own i18n-wrapped string.
+
+    Typed to accept ``django.utils.functional.Promise`` alongside ``str``
+    (icvoss/django-brickwork#131): the correct way to supply a nav label is
+    ``gettext_lazy(...)``, which returns a lazy promise, not a ``str``. The
+    promise is only ever interpolated into a template, which resolves it at
+    render time in the active request's language; forcing ``str()`` at the
+    call site to satisfy a narrower annotation would evaluate the translation
+    once at import time and break per-request language switching. Using the
+    real runtime class keeps this dependency-free (no ``django-stubs-ext``
+    requirement) while accepting exactly what the correct call site passes."""
 
     url_name: str | None = None
     """A Django URL name, resolved via {% url %} at render time (never a raw path
@@ -126,9 +138,13 @@ class NavItem:
     """A brickwork icon registry name (ICO-011), resolved through {% bw_icon %};
     an opaque identifier here."""
 
-    badge: str | int | None = None
+    badge: str | Promise | int | None = None
     """An optional count or tag shown alongside the label (NAV-010), e.g. an
-    unread count "12" or a "New" tag. Display-only; carries no behaviour."""
+    unread count "12" or a "New" tag. Display-only; carries no behaviour.
+
+    Accepts a lazy translation the same way ``label`` does
+    (icvoss/django-brickwork#131): a tag such as "New" is user-facing text and
+    is commonly wrapped ``gettext_lazy``."""
 
     children: tuple[NavItem, ...] = ()
     """Nested nav items, for a grouped/expandable section."""
