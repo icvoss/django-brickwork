@@ -203,10 +203,12 @@ for (const theme of THEMES) {
 //   - a one-word hero heading ("Documentation") at the fixed 60px display size
 //     measured 406px and had no wrap opportunity.
 //
-// 320px is deliberately NOT asserted: the shipped marketing header overflows a
-// 320px viewport by 6px today (identical on landing-*.html, so it predates
-// these sections) and that is tracked separately rather than papered over here.
-const MOBILE_WIDTHS = [360, 375, 414];
+// 320px is included (icvoss/django-brickwork#125 fixed it): the shipped
+// marketing header used to overflow a 320px viewport by 6px (identical on
+// landing-*.html, so it predated these sections). Widened here per the
+// issue's own suggested follow-up once the header wraps instead of
+// overflowing.
+const MOBILE_WIDTHS = [320, 360, 375, 414];
 
 for (const theme of THEMES) {
   for (const width of MOBILE_WIDTHS) {
@@ -237,4 +239,35 @@ for (const theme of THEMES) {
       ).toBeLessThanOrEqual(result.viewportWidth + 1);
     });
   }
+}
+
+// icvoss/django-brickwork#125 regression: the marketing header specifically,
+// on the landing-*.html fixtures the issue itself reproduced against (326px
+// scrollWidth at a 320px viewport, from .bw-marketing-header__actions and its
+// bw_button both sitting at right edge 326). Asserted directly against the
+// header element, not just the document, so a future regression here fails
+// on this test rather than only on the broader sweep above.
+for (const theme of THEMES) {
+  test(`marketing header does not overflow a 320px viewport (${theme})`, async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await page.goto(pathToFileURL(join(FIXTURES, `landing-${theme}.html`)).href);
+
+    const result = await page.evaluate(() => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+      headerRight: document.querySelector(".bw-marketing-header")?.getBoundingClientRect().right ?? 0,
+      actionsRight: document.querySelector(".bw-marketing-header__actions")?.getBoundingClientRect().right ?? 0,
+    }));
+
+    expect(result.documentWidth, "marketing header scrolls the page sideways at 320px").toBeLessThanOrEqual(
+      result.viewportWidth + 1,
+    );
+    expect(result.headerRight, ".bw-marketing-header overflows the 320px viewport").toBeLessThanOrEqual(
+      result.viewportWidth + 1,
+    );
+    expect(
+      result.actionsRight,
+      ".bw-marketing-header__actions overflows the 320px viewport",
+    ).toBeLessThanOrEqual(result.viewportWidth + 1);
+  });
 }

@@ -12,10 +12,12 @@ import re
 from pathlib import Path
 
 import pytest
-from django.template import Context, Template
+from django import forms
+from django.template import Context, Template, engines
 from django.template.exceptions import TemplateSyntaxError
 
 _DIST_JS = Path(__file__).resolve().parent.parent / "src/brickwork/static/brickwork/dist/brickwork.js"
+_COMPILED_CSS = _DIST_JS.parent / "brickwork.css"
 
 
 def _render(snippet: str, **ctx: object) -> str:
@@ -262,3 +264,112 @@ def test_bundle_registers_bwdismissible_and_its_event() -> None:
     bundle = _DIST_JS.read_text()
     assert "bwDismissible" in bundle
     assert "bw:dismiss" in bundle
+
+
+# --- icvoss/django-brickwork#130: every class a SHIPPED component template ---
+# --- emits must have a matching rule in the compiled CSS ---------------------
+
+
+class _RegressionFilterForm(forms.Form):
+    """A real, non-empty form for the filter-bar/field regression fixtures.
+
+    A fixture that renders a component with an EMPTY context (no fields, no
+    items) can pass every class-coverage check without ever emitting the
+    classes under test, which is exactly how bw-field__control escaped
+    detection before. Every fixture below supplies real field/item data.
+    """
+
+    search = forms.CharField(label="Search", required=False)
+
+
+def _classes_used(html: str) -> set[str]:
+    return {token for attr in re.findall(r'class="([^"]+)"', html) for token in attr.split() if token.startswith("bw-")}
+
+
+def _classes_styled() -> set[str]:
+    css = _COMPILED_CSS.read_text(encoding="utf-8")
+    return set(re.findall(r"\.(bw-[a-zA-Z0-9_-]+)", css))
+
+
+# Structural hooks and label/root elements a parent rule positions and styles
+# entirely by descendant selector, carrying no rule of their own by design.
+# This is the SAME exemption test_examples.py already keeps for bw-btn__label
+# etc: listed explicitly so a genuinely unstyled class cannot hide among them.
+# None of these are part of icvoss/django-brickwork#130 (that issue names
+# exactly bw-btn--md, bw-field__control and bw-card__body); they are
+# pre-existing out-of-scope BEM leaves this sweep also surfaced.
+_UNSTYLED_BY_DESIGN = {
+    "bw-card__body",  # positioning-only hook; see _card.html's header comment.
+    "bw-btn__label",  # already exempt in test_examples.py; sized by the button.
+    "bw-dropdown__item-label",  # text leaf inside a styled flex row.
+    "bw-dropzone__label",  # text leaf inside the styled dropzone surface.
+    "bw-empty-state--no_data",  # variant carries no visual distinction (STA-002).
+    "bw-empty-state--no_results",  # ditto: the icon/copy alone differ, by design.
+    "bw-tag-input",  # enhanced-state root; the .bw-input classes carry the look.
+    "bw-tag-input__floor",  # ditto: the floor control borrows .bw-input's rules.
+}
+
+
+@pytest.mark.parametrize(
+    ("name", "render"),
+    [
+        (
+            "_empty_state.html (with an action link, bw-btn--md on the CTA)",
+            lambda: Template(
+                '{% include "brickwork/components/_empty_state.html" with '
+                'heading="No widgets yet" body="Create your first one." '
+                'action_href="/widgets/new/" action_label="Create widget" %}'
+            ).render(Context({})),
+        ),
+        (
+            "_filter_bar.html (with a bound field and a clear link)",
+            lambda: Template(
+                "{% include \"brickwork/components/_filter_bar.html\" with fields=fields clear_href='/widgets/' %}"
+            ).render(Context({"fields": [_RegressionFilterForm()["search"]]})),
+        ),
+        (
+            "bw_dropdown (secondary trigger variant, real items)",
+            lambda: (
+                engines["django"]
+                .from_string("{% load brickwork_interactions %}{% bw_dropdown items=items trigger_label='Actions' %}")
+                .render({"items": [{"label": "Edit", "url": "/edit/"}, {"divider": True}]})
+            ),
+        ),
+        (
+            "forms/_field.html (a bound, non-empty field)",
+            lambda: Template('{% include "brickwork/forms/_field.html" with field=field %}').render(
+                Context({"field": _RegressionFilterForm()["search"]})
+            ),
+        ),
+        (
+            "_dropzone.html (with help text)",
+            lambda: Template(
+                '{% include "brickwork/components/_dropzone.html" with '
+                'label="Upload receipt" id="receipt" name="receipt" '
+                'help_text="PDF or image, up to 10MB." %}'
+            ).render(Context({})),
+        ),
+        (
+            "_tag_input.html (with a pre-filled value)",
+            lambda: Template(
+                '{% include "brickwork/components/_tag_input.html" with '
+                'label="Tags" id="tags" name="tags" value="alpha,beta" %}'
+            ).render(Context({})),
+        ),
+    ],
+)
+def test_shipped_component_classes_it_emits_are_actually_styled(name: str, render) -> None:
+    """The icvoss/django-brickwork#130 defect, generalised beyond examples.
+
+    #120/#130 both slipped past test_examples.py's equivalent check because it
+    only sweeps the copy-paste example pages, not brickwork's OWN shipped
+    component templates. bw-btn--md, bw-field__control and (by the same
+    mechanism) any future emitted-but-unstyled class are caught here instead,
+    against the six render paths #130 named. Every fixture supplies real
+    context so the emitted markup is not a bare skeleton that happens to skip
+    the classes under test.
+    """
+    html = render()
+    used = _classes_used(html)
+    missing = sorted(used - _classes_styled() - _UNSTYLED_BY_DESIGN)
+    assert not missing, f"{name} emits classes with no rule in the shipped CSS: {missing}"

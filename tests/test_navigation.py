@@ -278,3 +278,42 @@ def test_safe_reverse_does_not_raise(monkeypatch) -> None:
 
     monkeypatch.setattr(navigation, "reverse", boom)
     assert navigation.safe_reverse("anything") is None  # caught, not raised
+
+
+# --- icvoss/django-brickwork#131: label/badge accept lazy translations -----
+
+
+def test_navitem_accepts_a_lazy_translated_label() -> None:
+    # The correct way to supply a nav label is gettext_lazy(...), which
+    # returns a django.utils.functional.Promise, not a str. Constructing a
+    # NavItem with one must not raise, and the promise must resolve to the
+    # real text on demand (str()), never forced eagerly at construction time.
+    from django.utils.translation import gettext_lazy as _
+
+    lazy_label = _("Dashboard")
+    item = NavItem(key="dash", label=lazy_label, url_name="dashboard")
+    assert item.label is lazy_label  # stored lazily, not eagerly resolved to str
+    assert str(item.label) == "Dashboard"
+
+
+def test_navitem_accepts_a_lazy_translated_badge() -> None:
+    from django.utils.translation import gettext_lazy as _
+
+    lazy_badge = _("New")
+    item = NavItem(key="feat", label="Feature", url_name="feat", badge=lazy_badge)
+    assert item.badge is lazy_badge
+    assert str(item.badge) == "New"
+
+
+def test_navitem_lazy_label_renders_correctly_through_bw_nav() -> None:
+    # The end-to-end proof: a lazy label survives all the way through
+    # {% bw_nav %} rendering to real text in the output, exactly as a plain
+    # str label does, so the widened annotation has not changed behaviour.
+    # href (a raw resolved path, NAV-019) is used rather than url_name so this
+    # needs no urlconf entry: only the label's resolution is under test here.
+    from django.template import Context, Template
+    from django.utils.translation import gettext_lazy as _
+
+    nav = (NavItem(key="dash", label=_("Dashboard"), href="/dashboard/"),)
+    html = Template("{% load brickwork_nav %}{% bw_nav items=nav %}").render(Context({"nav": nav}))
+    assert "Dashboard" in html
