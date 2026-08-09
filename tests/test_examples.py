@@ -27,6 +27,7 @@ from django.template.backends.django import get_installed_libraries as get_defau
 from django.template.loader import get_template
 
 from brickwork import examples
+from tests._class_contract import unstyled_classes
 
 # The COMPILED stylesheet, not the frontend source: the source is the build's
 # input, and it is the built artefact that reaches a consumer's page. A rule
@@ -453,12 +454,7 @@ def test_every_section_class_it_emits_is_actually_styled(name: str) -> None:
         "bw-stat-cards-section",
     }
     html = _example_engine().get_template(name).render(Context(_SECTION_CONTEXTS[name]))
-    used: set[str] = set()
-    for attr in re.findall(r'class="([^"]+)"', html):
-        used.update(token for token in attr.split() if token.startswith("bw-"))
-
-    styled = set(re.findall(r"\.(bw-[a-zA-Z0-9_-]+)", _COMPILED_CSS))
-    missing = sorted(used - styled - unstyled_by_design)
+    missing = unstyled_classes(html, allowlist=unstyled_by_design)
     assert not missing, f"{name} emits classes with no rule in the shipped CSS: {missing}"
 
 

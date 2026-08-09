@@ -108,24 +108,25 @@ def test_without_sticky_header_no_sticky_class() -> None:
 
 
 def test_responsive_stack_stamps_data_label_on_cells() -> None:
+    # bw-data-table-wrap--stack was removed (icvoss/django-brickwork#137): it
+    # duplicated bw-data-table--stack on the <table> under the identical
+    # condition, and all stack behaviour keys off the table-level class only.
     out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS, responsive="stack")
     assert 'data-label="Name"' in out
     assert 'data-label="Status"' in out
-    assert "bw-data-table-wrap--stack" in out
     assert "bw-data-table--stack" in out
 
 
 def test_responsive_scroll_default_has_no_data_label() -> None:
     out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
     assert "data-label=" not in out
-    assert "bw-data-table-wrap--stack" not in out
     assert "bw-data-table--stack" not in out
 
 
 def test_responsive_scroll_explicit_matches_default() -> None:
     out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS, responsive="scroll")
     assert "data-label=" not in out
-    assert "bw-data-table-wrap--stack" not in out
+    assert "bw-data-table--stack" not in out
 
 
 # --- list_item filter (brickwork_components.py) -----------------------------
