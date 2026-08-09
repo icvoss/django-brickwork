@@ -6,7 +6,7 @@ semantic versioning. Template block names, HTMX target IDs, Alpine component
 names, event names and token names are treated as public API (see the spec's
 versioning contract).
 
-## [Unreleased]
+## [3.2.1] - 2026-08-09
 
 ## [3.2.0] - 2026-08-07
 
