@@ -329,10 +329,11 @@
       }
     },
     "focus-ring": {
-      "$value": "{primitive.blue.400}",
+      "$value": "oklch(0.5797 0.1353 254)",
+      "$description": "brickwork#134: derived from accent, not a flat literal. A hardcoded amber broke brand-agnosticism (see semantic.light.tokens.json for the full rationale). Derived by mixing accent (blue.400 by default) toward black, in oklab, to force a contrast-safe lightness: 82% accent, 18% black. Darkening, not lightening, is the correct direction here even though the theme is dark: surface-inverse in this theme is near-white (oklch L 0.93), so a ring lightened toward white would fail against it just as badly as the raw accent does (2.15:1). Darkening clears all three surfaces the ring is painted on at once. A tenant's `--bw-color-accent` still flows through as the ring's hue. Resolved literal for the default blue.400 dark accent, not an alias: surface 4.38:1, surface-raised (card) 3.86:1, surface-inverse (the near-white inverse/hero band) 3.50:1.",
       "$extensions": {
         "bw": {
-          "derived": "var(--bw-color-accent)"
+          "derived": "color-mix(in oklab, var(--bw-color-accent) 82%, black)"
         }
       }
     },

@@ -336,10 +336,11 @@
       }
     },
     "focus-ring": {
-      "$value": "{primitive.blue.600}",
+      "$value": "oklch(0.5187 0.1824 262)",
+      "$description": "brickwork#134: derived from accent, not a flat literal. A hardcoded amber broke brand-agnosticism: every white-label tenant would get an amber ring regardless of their brand accent, contradicting the overridable-manifest contract (this token was previously `derived: var(--bw-color-accent)`, which failed WCAG 1.4.11 at only 2.53:1 against surface). The fix keeps the accent's hue and mixes it toward black to force a contrast-safe lightness: 95% accent, 5% black, in oklab (never oklch, which rotates hue toward 0 on a tint mix). A tenant's `--bw-color-accent` still flows through as the ring's hue. Resolved literal for the default blue.600 accent, not an alias: clears 3:1 against every surface the ring is painted on (the global :focus-visible rule and the marketing hero/CTA bands) at surface/surface-raised 5.73:1 and surface-inverse (gray.900) 3.13:1.",
       "$extensions": {
         "bw": {
-          "derived": "var(--bw-color-accent)"
+          "derived": "color-mix(in oklab, var(--bw-color-accent) 95%, black)"
         }
       }
     },

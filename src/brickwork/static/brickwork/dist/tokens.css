@@ -244,7 +244,7 @@
   --bw-color-info-fg: color-mix(in oklab, var(--bw-color-info) 85%, black);
   --bw-color-info-on-fg: oklch(0.145 0.004 265);
   --bw-color-icon-muted: var(--bw-color-fg-subtle);
-  --bw-color-focus-ring: var(--bw-color-accent);
+  --bw-color-focus-ring: color-mix(in oklab, var(--bw-color-accent) 95%, black);
   --bw-component-nav-item-active-bg: var(--bw-color-accent-subtle);
   --bw-component-nav-item-active-text: var(--bw-color-accent-hover);
   --bw-component-nav-item-active-border: var(--bw-color-accent);
@@ -319,7 +319,7 @@
   --bw-color-info-fg: color-mix(in oklab, var(--bw-color-info) 85%, black);
   --bw-color-info-on-fg: oklch(0.145 0.004 265);
   --bw-color-icon-muted: var(--bw-color-fg-subtle);
-  --bw-color-focus-ring: var(--bw-color-accent);
+  --bw-color-focus-ring: color-mix(in oklab, var(--bw-color-accent) 95%, black);
   --bw-component-nav-item-active-bg: var(--bw-color-accent-subtle);
   --bw-component-nav-item-active-text: var(--bw-color-accent-hover);
   --bw-component-nav-item-active-border: var(--bw-color-accent);
@@ -383,7 +383,7 @@
   --bw-color-info-fg: color-mix(in oklab, var(--bw-color-info) 78%, white);
   --bw-color-info-on-fg: oklch(0.145 0.004 265);
   --bw-color-icon-muted: var(--bw-color-fg-subtle);
-  --bw-color-focus-ring: var(--bw-color-accent);
+  --bw-color-focus-ring: color-mix(in oklab, var(--bw-color-accent) 82%, black);
   --bw-component-nav-item-active-bg: var(--bw-color-accent-subtle);
   --bw-component-nav-item-active-text: color-mix(in oklab, var(--bw-color-accent) 25%, white);
   --bw-component-nav-item-active-border: var(--bw-color-accent);
