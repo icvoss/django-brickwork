@@ -29,6 +29,14 @@ title (heading-md voice) at the inline start and the actions cluster at the
 end; the footer is a quiet caption band under a hairline. The filler owns the
 wrapper element, so an unfilled region never leaves empty chrome behind.
 
+bw-card__body carries NO rule of its own (icvoss/django-brickwork#130): it is
+a positioning-only hook. The card's own padding already sets the inset on all
+four sides, and the header/footer margins already open the gap on their own
+edge when present, so a bare bw-card__body wrapper needs nothing beyond
+grouping the body markup under a name a consumer's own selectors can target.
+If body content ever needs spacing of its own, style it on that content's
+element, not by adding weight to this class.
+
 Required context: none. Optional:
   interactive (bool, default False): rests at --bw-elevation-1 and raises to
       --bw-elevation-2 on hover/focus-within, shadow only, never a transform
@@ -39,9 +47,10 @@ Required context: none. Optional:
       regardless of the interactive flag).
   bordered (bool, default False, CMP-015): the hairline alone carries the
       boundary (elevation-0), for a flat-design context.
-  padding ("sm"|"md"|"lg", default "md"): emitted as bw-card--padding-<value>
-      only when supplied, composing with (never overriding) the density
-      axis's --bw-density-card-padding (AC-BW-072).
+  size ("sm"|"md"|"lg", default "md"): emitted as bw-card--size-<value> only
+      when supplied, composing with (never overriding) the density axis's
+      --bw-density-card-padding (AC-BW-072). Renamed from padding in 3.0.0
+      (ADR-060 SS1b): scale is spelled size= everywhere.
 
 The root element opens and closes in matching {% if href %} branches (an <a>
 for a linked card, a <div> otherwise) because a named block may appear only

@@ -27,7 +27,9 @@ Optional:
   trigger_label (str, default "Account"): the accessible name of the toggle and
          of the panel's nav landmark.
   trigger_icon (str, a registry name, default "user").
-  align ("end" default | "start"): which edge the menu aligns to.
+  placement ("end" default | "start"): which edge the menu aligns to. Renamed
+         from align in 3.0.0 (ADR-060 SS1d): align is reserved for content
+         alignment, placement for edge anchoring.
   menu_open (bool, default False): render the disclosure initially open (also
          used by the a11y fixtures so axe sees the open panel). Named
          menu_open, not open, so an inherited page-context variable named
