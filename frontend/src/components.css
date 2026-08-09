@@ -26,6 +26,17 @@
   block-size: var(--bw-size-control-height-sm);
   padding-inline: var(--bw-space-2);
 }
+/* md is the base .bw-btn size (icvoss/django-brickwork#130): every shipped
+ * template that names a size emits bw-btn--md explicitly rather than leaving
+ * it implicit, so the class needs its own rule even though it restates the
+ * base values, exactly as .bw-btn--sm and .bw-btn--lg restate theirs relative
+ * to the base. Without this rule the class existed in markup with nothing in
+ * the stylesheet naming it, which is the defect class this issue is about:
+ * the base values happened to make it look correct by accident. */
+.bw-btn--md {
+  block-size: var(--bw-density-control-height);
+  padding-inline: var(--bw-density-control-padding-inline);
+}
 .bw-btn--lg {
   block-size: var(--bw-size-control-height-lg);
   padding-inline: var(--bw-space-4);
@@ -291,6 +302,17 @@
 .bw-field__required {
   /* danger-fg, not raw danger: the text-duty tier holds AA at caption size. */
   color: var(--bw-color-danger-fg);
+}
+/* The widget wrapper (icvoss/django-brickwork#130): every field renderer
+ * (_field.html, _combobox.html, _dropzone.html, _tag_input.html) wraps its
+ * widget in this div, but nothing named it in the stylesheet. It is a
+ * genuine layout hook, not dead structure: .bw-field is a column flexbox, and
+ * without min-inline-size: 0 a wide unbreakable child (a long select option,
+ * an unbroken token in the tag-input floor) can force the field, and the
+ * form around it, wider than its container instead of shrinking to fit. */
+.bw-field__control {
+  display: block;
+  min-inline-size: 0;
 }
 .bw-input {
   inline-size: 100%;
