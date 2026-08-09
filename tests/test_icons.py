@@ -289,7 +289,14 @@ _INTEGRATION_DOC = _REPO_ROOT / "docs" / "INTEGRATION.md"
 # The literal-name grammar the shipped templates use; a variable-valued
 # {% bw_icon item.icon %} is consumer data, not a chrome dependency, and is
 # deliberately not matched.
-_TEMPLATE_ICON_LITERAL = re.compile(r'bw_icon\s+"([a-z0-9-]+)"')
+# Two shapes count as a hard reference. The first is the direct
+# {% bw_icon "name" %} call. The second is an icon_name="name" binding on a
+# {% with %} that feeds a partial calling {% bw_icon icon_name %}: introduced by
+# the sort_link partial (#137), where the name is still a literal in the
+# template text, just bound one step earlier. Scanning only the direct form
+# would let the guard lose sight of an icon the template genuinely ships, which
+# is the exact rot #77 exists to prevent.
+_TEMPLATE_ICON_LITERAL = re.compile(r'bw_icon\s+"([a-z0-9-]+)"|icon_name="([a-z0-9-]+)"')
 _DOC_MARKED_REGION = re.compile(
     r"<!-- chrome-icon-names:start -->(.*?)<!-- chrome-icon-names:end -->",
     re.DOTALL,
@@ -299,7 +306,8 @@ _DOC_MARKED_REGION = re.compile(
 def _chrome_names_from_templates() -> set[str]:
     names: set[str] = set()
     for path in sorted(_SHIPPED_TEMPLATES.rglob("*.html")):
-        names.update(_TEMPLATE_ICON_LITERAL.findall(path.read_text(encoding="utf-8")))
+        for direct, bound in _TEMPLATE_ICON_LITERAL.findall(path.read_text(encoding="utf-8")):
+            names.add(direct or bound)
     return names
 
 

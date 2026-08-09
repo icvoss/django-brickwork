@@ -8,12 +8,18 @@ covers the end-to-end server-side sort).
 
 from __future__ import annotations
 
+from django.template import engines
 from django.template.loader import render_to_string
 from django.test import RequestFactory
 
 
 def _render(request=None, **ctx) -> str:
     return render_to_string("brickwork/components/_data_table.html", ctx, request=request)
+
+
+def _render_rows_partial(**ctx) -> str:
+    src = '{% include "brickwork/components/_data_table.html#table_rows" %}'
+    return engines["django"].from_string(src).render(ctx)
 
 
 _COLUMNS = [
@@ -201,3 +207,61 @@ def test_sort_without_request_falls_back_to_raw_querystring_var() -> None:
     out = _render(table_id="t", columns=_SORTABLE, rows=_ROWS, querystring="status=active")
     assert 'href="?sort=name&status=active"' in out
     assert "&amp;" not in out
+
+
+# --- table_rows partial (semver-public, BR-BW-TPL-001/BR-BW-HTMX-005) ------
+#
+# Completes the stable-id row contract by making the row markup itself
+# addressable, so a consumer swapping rows over HTMX reuses brickwork's own
+# selection/data-label/row-link rendering instead of hand-rebuilding it.
+
+
+def test_full_component_render_is_unchanged_by_the_inline_partialdef() -> None:
+    # The regression that matters: wrapping the row loop in a partialdef with
+    # `inline` must not alter the full component's own output one byte, since
+    # `inline` renders the partial in place exactly where the loop used to be.
+    out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
+    assert 'id="gadgets-row-1"' in out
+    assert 'id="gadgets-row-2"' in out
+    assert "Widget" in out and "Draft" in out
+    assert 'id="gadgets-tbody"' in out
+    # exactly one <tbody>: the partial did not duplicate the row markup
+    assert out.count("<tbody") == 1
+    assert out.count('id="gadgets-row-1"') == 1
+
+
+def test_table_rows_partial_renders_standalone_via_cross_file_include() -> None:
+    out = _render_rows_partial(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
+    assert 'id="gadgets-row-1"' in out
+    assert 'id="gadgets-row-2"' in out
+    assert "Widget" in out and "Draft" in out
+    # the partial is rows only: no surrounding <table>/<tbody>/<thead>, and no
+    # empty-state or skeleton markup, so a consumer's fragment view controls
+    # exactly what wraps it
+    assert "<table" not in out
+    assert "<tbody" not in out
+    assert "<thead" not in out
+    assert "bw-empty-state" not in out
+
+
+def test_table_rows_partial_matches_the_full_render_rows_byte_for_byte() -> None:
+    # The partial's output for a given context must be exactly the rows
+    # region of the full render, not a divergent re-implementation.
+    full = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
+    rows_only = _render_rows_partial(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
+    start = full.index('<tbody id="gadgets-tbody">') + len('<tbody id="gadgets-tbody">')
+    end = full.index("</tbody>")
+    full_rows_region = full[start:end]
+    assert rows_only.strip() == full_rows_region.strip()
+
+
+def test_table_rows_partial_respects_selectable_and_responsive_stack() -> None:
+    out = _render_rows_partial(table_id="gadgets", columns=_COLUMNS, rows=_ROWS, selectable=True, responsive="stack")
+    assert "data-bw-row-select" in out
+    assert 'data-label="Name"' in out
+
+
+def test_table_rows_partial_with_url_row_links_the_first_cell() -> None:
+    rows = [{"id": 1, "cells": ["Widget", "Active"], "url": "/gadgets/1/"}]
+    out = _render_rows_partial(table_id="gadgets", columns=_COLUMNS, rows=rows)
+    assert 'class="bw-data-table__row-link" href="/gadgets/1/"' in out
