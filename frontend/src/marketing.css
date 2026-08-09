@@ -39,10 +39,23 @@
   padding-block: var(--bw-space-3);
 }
 
+/* Wraps below the brand row at narrow widths (icvoss/django-brickwork#125):
+ * at 320px the brand mark/wordmark, nav and actions cluster together are
+ * wider than the content box the gutter leaves, and with no flex-wrap the
+ * row simply overflows the viewport, scrolling the whole PAGE sideways
+ * (measured 326px scrollWidth against a 320px viewport, actions/button right
+ * edge both at 326). flex-wrap alone is not the whole fix: see the
+ * min-inline-size: 0 note on __nav and __actions below, the same
+ * "flex child refuses to shrink" hazard contain: paint solves for the
+ * pricing-comparison table, but here the fix is letting the row itself wrap
+ * rather than clipping paint, since this is real inline content, not a wide
+ * table. Verify at 320px in both themes before calling this closed: a JS
+ * test can assert the layout rule, not the rendered result. */
 .bw-marketing-header__brand {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--bw-space-6);
+  gap: var(--bw-space-2) var(--bw-space-6);
 }
 
 /* Brand slot default sizing (#83, ADR-054 beautiful-by-default): brand_logo
@@ -76,9 +89,15 @@
 
 .bw-marketing-header__nav {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--bw-space-4);
   flex: 1 1 auto;
+  /* A flex item's default min-inline-size is auto (its content's intrinsic
+   * width), not 0: without this a long unbroken nav-links row refuses to
+   * shrink below its content width and forces the row wide instead of
+   * wrapping (icvoss/django-brickwork#125). */
+  min-inline-size: 0;
 }
 
 .bw-marketing-header__nav:empty {
@@ -99,7 +118,9 @@
 
 .bw-marketing-header__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--bw-space-2);
 }
 
