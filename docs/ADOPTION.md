@@ -9,11 +9,11 @@ next brownfield adopter.
 
 ## Principle: strangle, do not big-bang
 
-brickwork is pre-1.0 and releasing rapidly. A whole-app commit before 1.0 carries
-real churn risk: every rapid minor could touch a contract you depend on across
-every screen at once. Migrate incrementally so that at any moment most of the app
-still runs on the proven old kit and only the migrated cluster carries brickwork
-risk. Keep rollback trivial at every step.
+brickwork is stable (3.x) but still releases frequently, and a whole-app commit
+carries real churn risk: a fast-moving minor could touch a contract you depend on
+across every screen at once. Migrate incrementally so that at any moment most of
+the app still runs on the proven old kit and only the migrated cluster carries
+brickwork risk. Keep rollback trivial at every step.
 
 ## The sequence
 
@@ -57,9 +57,10 @@ Decide, up front and in writing, what migrates and what does not:
   "while we are in here" scope creep mid-migration). The core `brickwork` app is
   the *application* substrate. Note (ADR-055, from v1.2.0): brickwork now also
   ships an **opt-in `brickwork.marketing` sub-app** (add `"brickwork.marketing"`
-  to `INSTALLED_APPS`) with a marketing shell and eight marketing components
-  (hero, feature grid, pricing tier/table, CTA, testimonial, logo cloud, stat
-  band, FAQ) on the same `--bw-*` token / brand / accessibility contract.
+  to `INSTALLED_APPS`) with a marketing shell and nine marketing components
+  (hero, feature grid, pricing tier, pricing table, CTA, testimonial, logo
+  cloud, stat band, FAQ) on the same `--bw-*` token / brand / accessibility
+  contract.
   Worked landing/pricing/about pages built on that shell and those components
   ship as copy-paste examples (`brickwork.examples`), not importable templates
   (ADR-056, from v2.0.0): a whole page is the most project-specific thing a
@@ -81,10 +82,12 @@ here" quietly pulls non-goals into the cutover.
 
 The last step, removing the old kit entirely, is the one with no rollback. Gate
 it on a stability signal rather than doing it the moment the last screen moves:
-a brickwork release you have pinned and validated across the migrated app, ideally
-1.0 or a release-candidate you trust. Until then, keeping the old kit's code in
-the tree (even with no screens using it) costs nothing and preserves the escape
-hatch.
+a brickwork release you have pinned and validated across the migrated app. Pin to
+a major you trust with an open range, `>=3.2,<4`, so patch and minor releases
+land automatically while a major bump (which may carry a clean break, per
+brickwork's own no-deprecation-window policy on majors) requires a deliberate
+version bump on your side. Until then, keeping the old kit's code in the tree
+(even with no screens using it) costs nothing and preserves the escape hatch.
 
 ## Three wrinkles a real brownfield cutover hits (brickwork#49, brickwork#75)
 
