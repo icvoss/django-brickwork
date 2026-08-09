@@ -168,3 +168,63 @@ def test_non_oklch_value_warns_instead_of_raising() -> None:
         css = render_brand_css({"color-accent": "var(--some-other-token)", "color-fg-on-accent": _WHITE})
     assert any("cannot check" in str(w.message) for w in caught)
     assert "--bw-color-accent: var(--some-other-token);" in css
+
+
+# --- value validation (brickwork#133) -------------------------------------
+# CSS has no escaping mechanism for values: a `}` inside one IS a block
+# terminator, so a hostile value cannot be made safe on the way out and must be
+# rejected at the door. These assert the door is shut.
+
+
+@pytest.mark.parametrize(
+    ("label", "value"),
+    [
+        ("brace breakout", "red } :root{--bw-color-accent:blue} body{background:red} .x{"),
+        ("url exfiltration", "url(https://evil.example/x)"),
+        ("comment injection", "red /* } */"),
+        ("declaration chaining", "red; background: blue"),
+        ("style-element breakout", "red</style><script>alert(1)</script>"),
+        ("backslash escape", "red\\7d "),
+        ("at-rule injection", "red } @import url(https://evil.example/x); .x{"),
+        ("empty value", ""),
+        ("whitespace-only value", "   "),
+    ],
+)
+def test_hostile_value_is_rejected(label: str, value: str) -> None:
+    with pytest.raises(BrandValidationError):
+        render_brand_css(light={"color-accent": value})
+
+
+def test_hostile_value_is_rejected_even_when_validate_is_false() -> None:
+    # The value check lives in _block(), not _validate(), precisely so that the
+    # path a consumer picks when it believes its data is trusted is not the one
+    # path that emits an injection.
+    with pytest.raises(BrandValidationError):
+        render_brand_css(light={"color-accent": "red } body{background:red} .x{"}, validate=False)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "oklch(0.65 0.2 250)",
+        "oklch(0.65 0.2 250 / 0.5)",
+        "#fff",
+        "#ffffff",
+        "#ffffffcc",
+        "rgb(255, 0, 0)",
+        "rgba(255, 0, 0, 0.5)",
+        "hsl(210, 50%, 40%)",
+        "hsl(210 50% 40% / 0.8)",
+        "oklab(0.5 0.1 -0.1)",
+        "lch(50% 40 220)",
+        "transparent",
+        "currentColor",
+        "rebeccapurple",
+        "inherit",
+        "var(--bw-color-accent)",
+        "var(--brand-accent, #ffffff)",
+    ],
+)
+def test_legitimate_colour_value_is_accepted(value: str) -> None:
+    css = render_brand_css(light={"color-accent": value}, validate=False)
+    assert f"--bw-color-accent: {value};" in css

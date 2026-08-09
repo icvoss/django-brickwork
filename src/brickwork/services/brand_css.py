@@ -24,18 +24,87 @@ from brickwork.exceptions import BrickworkError
 from brickwork.services.token_manifest import load_bearing, overridable_names
 
 # A brand value must be an oklch literal (BR-BW-TOK-003: brickwork's colour
-# contract is oklch) for the contrast check to run; other CSS colour syntaxes
-# are accepted into the output but skip the numeric check with a warning.
+# contract is oklch) for the contrast check to run; the other accepted colour
+# syntaxes below are emitted but skip the numeric check with a warning.
 _OKLCH = re.compile(
     r"^oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+([\d.]+)\s*(?:/\s*([\d.]+%?)\s*)?\)$",
     re.IGNORECASE,
 )
 
+# Every value reaching the stylesheet must match one of these. CSS has no escaping
+# mechanism for values: a `}` inside one IS a block terminator, so a value cannot be
+# made safe on the way out and has to be rejected at the door. Same reasoning as the
+# brand slug in services/tokens.py and the attribute names in
+# templatetags/brickwork_interactions.py; this is the third place it applies.
+_HEX = r"\#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})"
+_NUM = r"[-+]?(?:\d*\.\d+|\d+)%?"
+_ANGLE = r"[-+]?(?:\d*\.\d+|\d+)(?:deg|grad|rad|turn)?"
+_FN_ARGS = rf"(?:\s*{_NUM}\s*[,/]?\s*){{2,4}}"
+_VALUE_PATTERNS = (
+    _OKLCH.pattern,
+    rf"^{_HEX}$",
+    rf"^rgba?\(\s*{_FN_ARGS}\)$",
+    rf"^hsla?\(\s*{_ANGLE}\s*[,\s]\s*{_NUM}\s*[,\s]\s*{_NUM}\s*(?:[,/]\s*{_NUM}\s*)?\)$",
+    rf"^(?:oklab|lab)\(\s*{_FN_ARGS}\)$",
+    rf"^(?:lch)\(\s*{_NUM}\s+{_NUM}\s+{_ANGLE}\s*(?:/\s*{_NUM}\s*)?\)$",
+    # A custom-property reference, optionally with a fallback. Documented brand input:
+    # docs/BRANDING.md:50 collapses a status hue with `var(--bw-color-accent)`. The
+    # referenced name is bounded to a custom-property identifier and the fallback to
+    # one nested level, so this stays a colour reference and cannot carry a payload.
+    r"^var\(\s*--[a-z0-9-]+\s*(?:,\s*[^(){};<>@\\]*(?:var\(\s*--[a-z0-9-]+\s*\))?[^(){};<>@\\]*)?\)$",
+    # A bare CSS identifier: named colours (rebeccapurple), CSS-wide keywords
+    # (inherit, currentColor, transparent). Deliberately not an enumerated list of
+    # the 148 named colours; the shape is what matters for safety.
+    r"^[a-z][a-z0-9-]*$",
+)
+_VALUE = re.compile("|".join(f"(?:{p})" for p in _VALUE_PATTERNS), re.IGNORECASE)
+
+# Belt and braces alongside the allowlist above: these can never appear in a valid
+# colour value, so if a future syntax addition widens _VALUE too far, the hole does
+# not silently reopen. `url(` is listed because it exfiltrates on render.
+_FORBIDDEN = ("{", "}", ";", "<", ">", "@", "/*", "*/", "\\", "url(")
+
 
 class BrandValidationError(BrickworkError):
-    """A brand override failed validation (unknown token name, or a hard contrast
-    failure on an authored-per-theme constraint). Raised only when
-    ``render_brand_css(..., validate=True)``."""
+    """A brand override failed validation (unknown token name, a value that is not a
+    recognised CSS colour, or a hard contrast failure on an authored-per-theme
+    constraint).
+
+    The value check is unconditional: unlike the name and contrast checks it is not
+    governed by ``render_brand_css(..., validate=False)``, because emitting an
+    unvalidated value is a CSS-injection sink regardless of how much the caller
+    trusts its data (brickwork#133)."""
+
+
+def _check_value(name: str, value: str) -> None:
+    """Reject any value that is not a recognised CSS colour literal.
+
+    Raises ``BrandValidationError`` rather than warning. A warning here would be
+    worse than useless: the caller has already been handed the malicious stylesheet
+    by the time it fires.
+    """
+    v = value.strip()
+    if not v:
+        raise BrandValidationError(
+            f"brickwork: empty value for {name!r}. Supply a CSS colour literal "
+            f"(oklch() preferred, see docs/BRANDING.md)."
+        )
+    lowered = v.lower()
+    for bad in _FORBIDDEN:
+        if bad in lowered:
+            raise BrandValidationError(
+                f"brickwork: value for {name!r} contains {bad!r}, which cannot appear in a "
+                f"CSS colour value. Brand values are interpolated into a stylesheet and CSS "
+                f"has no escaping mechanism, so this is rejected rather than sanitised "
+                f"(brickwork#133)."
+            )
+    if not _VALUE.match(v):
+        raise BrandValidationError(
+            f"brickwork: value {value!r} for {name!r} is not a recognised CSS colour. "
+            f"Accepted: oklch() (preferred, and the only form the contrast check can "
+            f"verify), oklab(), lab(), lch(), hex, rgb()/rgba(), hsl()/hsla(), or a bare "
+            f"keyword such as 'transparent' (docs/BRANDING.md)."
+        )
 
 
 def _normalise_name(name: str) -> str:
@@ -151,7 +220,13 @@ def _validate(values: dict[str, str], theme_label: str) -> None:
 
 
 def _block(selector: str, values: dict[str, str]) -> str:
-    lines = "\n".join(f"  {_normalise_name(k)}: {v};" for k, v in values.items())
+    # The value check lives here, not in _validate(), because _block runs on every
+    # emission path including validate=False. Checking in _validate alone would leave
+    # the injection open on exactly the path a consumer picks when it believes its
+    # data is trusted (brickwork#133).
+    for k, v in values.items():
+        _check_value(_normalise_name(k), v)
+    lines = "\n".join(f"  {_normalise_name(k)}: {v.strip()};" for k, v in values.items())
     return f"{selector} {{\n{lines}\n}}"
 
 
@@ -180,9 +255,16 @@ def render_brand_css(
       docs/BRANDING.md / brickwork#35);
     - a **status hue collapsed onto the accent** emits a warning (not an error).
 
-    Set ``validate=False`` to emit without checks (e.g. when the values are known
-    good and the call is hot). Returns the CSS as a string; the caller decides
-    where it lives (a per-request ``<style>`` in the shell head, a cached file, etc.).
+    Independently of ``validate``, **every value is checked against the accepted CSS
+    colour syntaxes** and a non-conforming one raises ``BrandValidationError``. This
+    check cannot be switched off: values are interpolated into a stylesheet, CSS has
+    no escaping mechanism for them, and a value containing ``}`` would otherwise close
+    brickwork's block and take over the rest of the sheet (brickwork#133).
+
+    Set ``validate=False`` to skip the name and contrast checks (e.g. when the values
+    are known good and the call is hot); the value check still runs. Returns the CSS
+    as a string; the caller decides where it lives (a per-request ``<style>`` in the
+    shell head, a cached file, etc.).
     """
     if validate:
         _validate(light, "light")
