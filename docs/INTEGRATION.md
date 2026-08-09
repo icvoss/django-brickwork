@@ -266,41 +266,52 @@ swappable-region id, and the partial re-rendered on 422 are yours to own. Here i
 the whole loop so you do not reverse-engineer it. The no-JS full-page POST is the
 floor and must keep working (BR-BW-HTMX-001).
 
-**Factor the form region into a shared partial** so the full-page render and the
-422 re-render reuse identical markup (no duplication):
-
-```django
-{# yourapp/partials/_project_form_region.html #}
-<form id="project-form" method="post"
-      hx-post="{{ request.path }}"
-      hx-target="this"
-      hx-swap="outerHTML">
-  {% csrf_token %}
-  {% for field in form %}
-    {% include "brickwork/forms/_field.html" with field=field %}
-  {% endfor %}
-  {% bw_button label="Save" type="submit" variant="primary" %}
-</form>
-```
-
-**The full page includes that partial:**
+**Wrap the form region in a Django 6.0 template partial** (`{% partialdef %}`,
+[Django's own built-in](https://docs.djangoproject.com/en/6.0/ref/templates/builtins/#partials)),
+so the full-page render and the 422 re-render come from the same block of
+markup in the same file. brickwork mandates Django 6.0 (BR-BW-TPL-004 refuses
+pre-6.0 compatibility), so there is no reason to hand-split the form into a
+separate `yourapp/partials/_project_form_region.html` template that the page
+and the view both have to reference and keep in sync: `{% partialdef %}`
+removes that seam entirely. The `{% partialdef %}...{% endpartialdef %}` pair
+below belongs in **your** page template, `yourapp/project_form.html`; it is
+your form, not a brickwork template, so it is not something brickwork ships or
+owns:
 
 ```django
 {# yourapp/project_form.html #}
 {% extends "brickwork/shell/app.html" %}
 {% block content %}
   <h1 class="bw-page-header__title">Edit project</h1>
-  {% include "yourapp/partials/_project_form_region.html" %}
+  {% partialdef form_region inline %}
+  <form id="project-form" method="post"
+        hx-post="{{ request.path }}"
+        hx-target="this"
+        hx-swap="outerHTML">
+    {% csrf_token %}
+    {% for field in form %}
+      {% include "brickwork/forms/_field.html" with field=field %}
+    {% endfor %}
+    {% bw_button label="Save" type="submit" variant="primary" %}
+  </form>
+  {% endpartialdef %}
 {% endblock %}
 ```
 
+`inline` makes the partial render in place, so the full page still renders
+normally on a plain GET; the same block is separately addressable by the view
+as `"yourapp/project_form.html#form_region"`. Partials take no arguments (
+`{% partial form_region with form=form %}` is a syntax error): the fragment
+inherits whatever context the view passes in, exactly like the full-page
+render does.
+
 **The view branches twice**: in `form_invalid` on `is_htmx_validation_request`
-(the 422 loop: 422 + the partial for an htmx submission, so the targeted
-`outerHTML` swap re-renders just the form region with its errors; a normal 200
-full page otherwise, the no-JS floor), and in `form_valid` on `is_htmx_request`
-(the success path). A valid non-htmx submission redirects (302) as always; a
-valid htmx submission must NOT return that bare 302, it returns `HX-Redirect`
-instead (the trap this avoids is worked through below):
+(the 422 loop: 422 + the `#form_region` fragment for an htmx submission, so the
+targeted `outerHTML` swap re-renders just the form region with its errors; a
+normal 200 full page otherwise, the no-JS floor), and in `form_valid` on
+`is_htmx_request` (the success path). A valid non-htmx submission redirects
+(302) as always; a valid htmx submission must NOT return that bare 302, it
+returns `HX-Redirect` instead (the trap this avoids is worked through below):
 
 ```python
 from django.http import HttpResponse
@@ -323,7 +334,7 @@ class ProjectUpdateView(UpdateView):
         if is_htmx_validation_request(self.request):
             return render(
                 self.request,
-                "yourapp/partials/_project_form_region.html",
+                "yourapp/project_form.html#form_region",
                 {"form": form},
                 status=422,
             )
@@ -336,8 +347,14 @@ valid returns a plain 302; htmx valid returns `HX-Redirect` so htmx performs a
 full client navigation to the success URL. `is_htmx_validation_request`
 currently delegates to `is_htmx_request` (the `HX-Request` header, or a
 duck-typed `request.htmx` when you run django-htmx); what stays yours is
-everything above: the shared partial, the `hx-*` attributes, the region id, and
-both branches. See section 6 for the htmx version floor.
+everything above: the partial, the `hx-*` attributes, the region id, and both
+branches. Because the fragment and the page are one file, there is no second
+template to keep in sync and nothing for the two renders to drift apart on.
+See section 6 for the htmx version floor.
+
+brickwork uses the same built-in for its own shipped fragments: see
+`tab_panel` in `_tabs.html`, a semver-public partial exercised cross-file by
+its test, for the pattern applied to a component rather than a consumer form.
 
 ### The success path: never let htmx swap a redirect's full page (brickwork#84)
 
