@@ -11,14 +11,26 @@ form with several submits can tell the server which one was pressed:
 
 read server-side as request.POST["bulk_action"]. bw_button rejects name/value
 alongside href rather than dropping them silently.
+
+btn_inner (private partial, dedup only, no consumer contract): the icon/
+spinner/label block is identical on the <a> and <button> branches, so it is
+written once here and called from both with {% partial btn_inner %} (partials
+take no arguments; both branches already share icon_only/loading/icon/label in
+context, so no {% with %} is needed). The root element itself stays
+duplicated across the two {% if href %} branches, same reasoning _card.html's
+docstring gives for its own href split: a named element cannot open in one
+branch and close in another, so the <a>/<button> wrapper is not a candidate
+for this dedup, only its contents are.
 {% endcomment %}
+{% partialdef btn_inner %}{% if loading %}{% include "brickwork/components/_spinner.html" %}{% elif icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
+  {% if not icon_only %}<span class="bw-btn__label">{{ label }}</span>{% endif %}
+{% endpartialdef %}
 {% if href %}
 <a class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}{% if disabled %} bw-btn--disabled{% endif %}"
    href="{{ href }}"
    {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
    {% if disabled %}aria-disabled="true"{% endif %}>
-  {% if loading %}{% include "brickwork/components/_spinner.html" %}{% elif icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
-  {% if not icon_only %}<span class="bw-btn__label">{{ label }}</span>{% endif %}
+  {% partial btn_inner %}
 </a>
 {% else %}
 <button class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}"
@@ -26,8 +38,7 @@ alongside href rather than dropping them silently.
         {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
         {% if disabled %}disabled{% endif %}
         {% if loading %}aria-busy="true" disabled{% endif %}>
-  {% if loading %}{% include "brickwork/components/_spinner.html" %}{% elif icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
-  {% if not icon_only %}<span class="bw-btn__label">{{ label }}</span>{% endif %}
+  {% partial btn_inner %}
 </button>
 {% endif %}
 {% endspaceless %}

@@ -5,7 +5,10 @@ renders columns with server-side sortable headers, rows with STABLE per-row ids
 (BR-BW-HTMX-005, so a consumer's hx-target can address a row), an empty state at
 exactly zero rows (STA-001), and a loading skeleton (STA-004). Sort/filter/
 paginate are server-driven: the view computes the order and passes the current
-sort; a header link carries the sort param, no client-side sorting.
+sort; a header link carries the sort param, no client-side sorting. The rows
+themselves are addressable as the semver-public table_rows partial, below the
+markup, so a consumer driving sort/filter/paginate over HTMX swaps brickwork's
+own row markup instead of hand-rebuilding it (see that partial's docstring).
 
 Two shapes, selected by ``variant``:
 
@@ -109,6 +112,22 @@ marker into ids and attributes; firstof resolves with failures ignored.
       </tbody>
     </table>
   {% else %}
+    {% comment %}
+    sort_link (private partial, dedup only, no consumer contract): the three
+    sortable-header states (ascending, descending, unsorted) differ ONLY in
+    the target sort key substituted into the href and the icon, so the one
+    href construction (the #41 request-aware querystring split, with its
+    documented no-request fallback) is written once and varied per state via
+    {% with %} (partials take no arguments). Context: col, current_sort,
+    request, querystring (as documented above), plus target_sort (the sort
+    key this link's href should apply), icon_name and icon_css_class (empty
+    string when the icon needs no extra class).
+    {% endcomment %}
+    {% partialdef sort_link %}
+    <a class="bw-data-table__sort" href="{% if request %}{% querystring sort=target_sort page=None %}{% else %}?sort={{ target_sort }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
+      {{ col.label }}{% bw_icon icon_name size="sm" decorative=True css_class=icon_css_class %}
+    </a>
+    {% endpartialdef %}
     <table class="bw-data-table{% if responsive == "stack" %} bw-data-table--stack{% endif %}">
       <thead>
         <tr>
@@ -153,20 +172,14 @@ marker into ids and attributes; firstof resolves with failures ignored.
               {% if col.sortable %}
                 {% if current_sort == col.sort_key %}
                   {# currently ascending on this column -> next click sorts descending #}
-                  <a class="bw-data-table__sort" href="{% if request %}{% with desc="-"|add:col.sort_key %}{% querystring sort=desc page=None %}{% endwith %}{% else %}?sort=-{{ col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
-                    {{ col.label }}{% bw_icon "arrow-up" size="sm" decorative=True %}
-                  </a>
+                  {% with target_sort="-"|add:col.sort_key icon_name="arrow-up" icon_css_class="" %}{% partial sort_link %}{% endwith %}
                 {% elif current_sort|slice:"1:" == col.sort_key and current_sort|slice:":1" == "-" %}
                   {# currently descending -> next click sorts ascending #}
-                  <a class="bw-data-table__sort" href="{% if request %}{% querystring sort=col.sort_key page=None %}{% else %}?sort={{ col.sort_key }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
-                    {{ col.label }}{% bw_icon "arrow-down" size="sm" decorative=True %}
-                  </a>
+                  {% with target_sort=col.sort_key icon_name="arrow-down" icon_css_class="" %}{% partial sort_link %}{% endwith %}
                 {% else %}
                   {# not the current sort -> first click sorts ascending #}
                   {% firstof col.next_sort col.sort_key as col_next_sort %}
-                  <a class="bw-data-table__sort" href="{% if request %}{% querystring sort=col_next_sort page=None %}{% else %}?sort={{ col_next_sort }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
-                    {{ col.label }}{% bw_icon "sort" size="sm" decorative=True css_class="bw-data-table__sort-idle" %}
-                  </a>
+                  {% with target_sort=col_next_sort icon_name="sort" icon_css_class="bw-data-table__sort-idle" %}{% partial sort_link %}{% endwith %}
                 {% endif %}
               {% else %}
                 {{ col.label }}
@@ -175,7 +188,51 @@ marker into ids and attributes; firstof resolves with failures ignored.
           {% endfor %}
         </tr>
       </thead>
-      <tbody>
+      <tbody id="{{ table_id }}-tbody">
+        {% comment %}
+        table_rows (semver-public partial, BR-BW-TPL-001): completes the
+        stable-id contract BR-BW-HTMX-005 already makes for rows by making the
+        row markup itself addressable, so a consumer driving sort/filter/
+        paginate over HTMX swaps brickwork's own row rendering (selection
+        checkboxes, data-label stacking, row-link) instead of hand-rebuilding
+        it and drifting from the shipped component. Declared inline (Django
+        6.0 partialdef) so the full component's own render is completely
+        unchanged; the partial is reached separately for a rows-only
+        response, either cross-file, e.g.
+
+          include "brickwork/components/_data_table.html#table_rows"
+
+        or from a view, e.g.
+
+          render(request, "brickwork/components/_data_table.html#table_rows", ctx)
+
+        Swap target: the tbody element above, id="<table_id>-tbody", which
+        stays on the page across swaps; use hx-target="#<table_id>-tbody"
+        hx-swap="innerHTML", never outerHTML, because the partial's root is a
+        bare run of <tr> elements with no enclosing <tbody> of its own to
+        replace it with (outerHTML on a <tbody> is unsound for exactly that
+        reason: the fragment would have to BE a <tbody>, and this one is not).
+
+        Required context (records variant only; this partial does not apply
+        to the definition variant, which has no swappable row list):
+          table_id: the same table_id passed to the full render, so ids match.
+          rows:     as documented above (id, cells, optional url/selected).
+          columns:  needed for the data-label lookup when responsive="stack".
+        Optional: selectable, responsive. Pass the same values the full
+        render used, so selection/stacking markup does not change shape
+        between a full render and a rows-only swap.
+
+        Zero-result swaps: this partial is rows only, deliberately (the empty
+        state below is a <div>, not table markup, so it cannot live inside a
+        <tbody> without breaking table semantics or duplicating the <table>
+        wrapper). A consumer whose filter narrows to zero rows has two sound
+        options: render the whole component fragment (this template's own
+        top-level output, which already selects the empty-state branch when
+        rows is empty) into a swap target that wraps the <table>, or check
+        rows in their own view and swap in _empty_state.html directly when
+        empty, only reaching for table_rows when rows is non-empty.
+        {% endcomment %}
+        {% partialdef table_rows inline %}
         {% for row in rows %}
           <tr id="{{ table_id }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}{% if row.selected %} bw-data-table__row--selected{% endif %}">
             {% if selectable %}
@@ -200,6 +257,7 @@ marker into ids and attributes; firstof resolves with failures ignored.
             {% endfor %}
           </tr>
         {% endfor %}
+        {% endpartialdef %}
       </tbody>
     </table>
   {% endif %}
