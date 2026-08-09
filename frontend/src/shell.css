@@ -364,6 +364,14 @@
   display: grid;
   gap: var(--bw-density-section-gap);
 }
+/* A grid item's default min-inline-size is auto, not 0: without this on every
+ * direct child, a wide child (a .bw-card wrapping a data table scroll wrap)
+ * refuses to shrink below its content width, blows out the track, and the
+ * scroll container inside never gets a constrained width to scroll within
+ * (icvoss/django-brickwork#136). */
+.bw-section-stack > * {
+  min-inline-size: 0;
+}
 
 /* An unfilled pattern region renders nothing, never empty chrome or a stray
    gap (BR-BW-TPL-006). */

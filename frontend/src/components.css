@@ -749,6 +749,14 @@ input.bw-toggle:disabled {
    * apparatus stays quieter than the data (decorative chrome). */
   scrollbar-width: thin;
   scrollbar-color: var(--bw-color-border) transparent;
+  /* Paint containment: without it, an ancestor that still blows out (a
+   * consumer's own wrapper, not just the .bw-card/.bw-section-stack fixed
+   * above) can let this wrap's overflow paint outside its own box instead of
+   * clipping to it, which is what let the wide table drag the PAGE sideways
+   * rather than scrolling within its own card (icvoss/django-brickwork#136).
+   * contain: paint guarantees this element is the clipping boundary for its
+   * own descendants regardless of what an ancestor does. */
+  contain: paint;
 }
 .bw-data-table {
   inline-size: 100%;
@@ -1345,6 +1353,13 @@ button.bw-account-menu__item {
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-radius: var(--bw-radius-lg);
+  /* A grid item's default min-inline-size is auto (its content's intrinsic
+   * width), not 0: without this, a card holding a wide child (a data table
+   * scroll wrap) refuses to shrink below that content width and blows out
+   * its .bw-section-stack track, so the overflow-x: auto container inside
+   * never gets a constrained width to scroll within and the whole page
+   * drags sideways instead (icvoss/django-brickwork#136). */
+  min-inline-size: 0;
   /* Ring treatment (0.7.0 craft): the hairline border stays for layout
    * stability, and a light-scoped inset top-light joins the elevation. White
    * at 60% alpha: a catch-light along the top edge (the paper sheen Radix

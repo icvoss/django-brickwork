@@ -13,13 +13,30 @@ read server-side as request.POST["bulk_action"]. bw_button rejects name/value
 alongside href rather than dropping them silently.
 {% endcomment %}
 {% if href %}
-<a class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}{% if disabled %} bw-btn--disabled{% endif %}"
+{% if disabled %}
+{% comment %}
+brickwork#135: a disabled link-button renders as a non-navigable <span>, not an
+<a>, following the precedent at _pagination.html:26 for a disabled link control.
+An anchor keeps its href, its own focusability, and its own click/Enter
+navigation regardless of aria-disabled (that attribute is announced to assistive
+tech, it does not change behaviour), so a disabled <a> looked disabled but still
+navigated. The span carries the identical classes so the visual appearance is
+unchanged, and aria-disabled keeps the state announced.
+{% endcomment %}
+<span class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %} bw-btn--disabled"
+      {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+      aria-disabled="true">
+  {% if loading %}{% include "brickwork/components/_spinner.html" %}{% elif icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
+  {% if not icon_only %}<span class="bw-btn__label">{{ label }}</span>{% endif %}
+</span>
+{% else %}
+<a class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}"
    href="{{ href }}"
-   {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
-   {% if disabled %}aria-disabled="true"{% endif %}>
+   {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
   {% if loading %}{% include "brickwork/components/_spinner.html" %}{% elif icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
   {% if not icon_only %}<span class="bw-btn__label">{{ label }}</span>{% endif %}
 </a>
+{% endif %}
 {% else %}
 <button class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}"
         type="{{ type }}"{% if name %} name="{{ name }}"{% endif %}{% if value %} value="{{ value }}"{% endif %}
