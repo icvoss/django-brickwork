@@ -8,6 +8,23 @@ versioning contract).
 
 ## [3.2.1] - 2026-08-09
 
+A fix-only patch. Everything here came out of auditing a consumer against
+3.2.0: two shipped classes with no CSS rule behind them, a marketing header
+that pushed a 320px viewport sideways, two docstrings still teaching the
+pre-3.0.0 option names, and nav typing that made lazy translations
+impossible to pass without breaking language switching. No option grammar,
+template block, event or token moves.
+
+### Fixed
+
+- **Marketing header no longer overflows a 320px viewport** (icvoss/django-brickwork#125). The header's brand/nav/actions row now wraps instead of forcing the page 6px wider than a 320px viewport. Verified against the layout constraint in an automated 320px sideways-scroll check; a real-browser visual check at 320px is still recommended before relying on the wrapped layout looking right.
+
+- **Two component docstrings documented the pre-3.0.0 option names** (icvoss/django-brickwork#129). `_account_menu.html` documented `align` where the code reads `placement`, and `_card.html` documented `padding`/`bw-card--padding-*` where the code reads `size`/`bw-card--size-*`. Both docstrings now match the shipped ADR-060 spelling.
+
+- **Three shipped classes had no CSS rule: `bw-btn--md`, `bw-field__control`, `bw-card__body`** (icvoss/django-brickwork#130). `bw-btn--md` and `bw-field__control` now carry real rules; `bw-card__body` is documented as an intentionally positioning-only hook. Widened `test_examples.py`'s emitted-class-is-styled check to also cover the shipped component templates that named these classes, not only the copy-paste examples.
+
+- **`NavItem.label` and `NavItem.badge` now accept lazy translations** (icvoss/django-brickwork#131). Both were typed `str`, which mypy rejects for a `gettext_lazy(...)` promise even though that is the correct way to supply user-facing nav text. Widened to `str | django.utils.functional.Promise` (the real runtime lazy-string base class), so no `django-stubs-ext` dependency is needed.
+
 ## [3.2.0] - 2026-08-07
 
 The second and final wave of example sections. With `pricing`, `testimonial`,
