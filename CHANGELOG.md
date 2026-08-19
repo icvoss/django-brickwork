@@ -6,6 +6,111 @@ semantic versioning. Template block names, HTMX target IDs, Alpine component
 names, event names and token names are treated as public API (see the spec's
 versioning contract).
 
+## [3.3.0] - 2026-08-19
+
+Two themes. The HTMX fragment contract becomes first-class: the data table's
+rows are a semver-public partial with a stable swap target, and the 422
+form-validation recipe now uses a Django 6.0 template partial instead of a
+hand-authored fragment file, so a consumer re-renders shipped markup rather
+than rebuilding it and letting the copy drift.
+
+The rest is verification catching what a green suite had been hiding. The
+class contract is now checked against every shipped component rather than the
+example sections alone (an unstyled default button size had shipped live
+behind a passing suite), brand values are validated on the emission path
+rather than only their token names, and three a11y defects are fixed that
+measurement found and inspection had not: a focus ring below the 3:1 WCAG
+2.2 AA floor, disabled link-buttons that were still focusable, and wide
+content that scrolled the page sideways.
+
+### Added
+
+- The class contract is now verified against every shipped component, form, nav and
+  marketing template, not just the example sections. Previously a class emitted only by
+  a component was never checked, which is how an unstyled default button size shipped
+  live on every page behind a green suite. Adds 195 cases across 33 templates and their
+  documented option vocabularies, with a non-triviality guard so a context that fails to
+  populate cannot turn the check into a silent no-op (#137).
+
+- **Django 6.1 added to the CI test matrix**, with the matching
+  `Framework :: Django :: 6.1` classifier. The matrix ran 6.0 only while the
+  package declares `Django>=6.0` with no upper bound, so 6.1 compatibility was
+  asserted but never exercised. The 6.0 floor is unchanged (BR-BW-TPL-004)
+  (#158).
+
+- The data table's rows are now a semver-public template partial. A consumer driving
+  sort, filter or pagination over HTMX can re-render just the rows from the shipped
+  component with `render(request, "brickwork/components/_data_table.html#table_rows",
+  ctx)`, or include them cross-file, instead of hand-rebuilding `<tbody>` markup and
+  duplicating the selection contract, the `data-label` stacking behaviour and the
+  row-link logic. The `<tbody>` carries a stable `id="<table_id>-tbody"` as the swap
+  target. This completes the stable-id contract BR-BW-HTMX-005 already makes for rows.
+
+### Changed
+
+- The HTMX 422 form-validation recipe in `docs/INTEGRATION.md` now uses a Django 6.0
+  template partial rather than a separate hand-authored fragment file. The form region
+  and the page it lives in are one file addressed by fragment name, so the two cannot
+  drift, and there is no `partials/` template to keep in sync. The package has mandated
+  Django 6.0 since BR-BW-TPL-004, so the previous recipe was teaching a workaround its
+  own floor had already made unnecessary.
+
+### Fixed
+
+- `render_brand_css` now validates brand **values**, not just token names. Values are
+  interpolated into a stylesheet and CSS has no escaping mechanism for them, so a value
+  containing `}` closed brickwork's block and took over the rest of the sheet. That is
+  reachable from the documented multi-tenant recipe in `docs/BRANDING.md`, where tenant
+  brand values travel from the database into a `<style>` block. Every value is now
+  checked against the accepted colour syntaxes (`oklch()`, `oklab()`, `lab()`, `lch()`,
+  hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, `var()` with an optional fallback, and bare
+  keywords such as `transparent`) and anything else raises `BrandValidationError`.
+  The check is deliberately **not** governed by `validate=False`: that flag skips the
+  name and contrast checks only, because emitting an unvalidated value is an injection
+  sink however much the caller trusts its data (#133).
+
+- The focus ring no longer aliases `--bw-color-accent` directly. Painted against the
+  surfaces it actually sits on, that alias measured 2.53:1 in light and 2.43:1 in dark
+  (1.06:1 on a dark card), well below the 3:1 that WCAG 2.2 AA 1.4.11 requires of a
+  focus indicator. It now derives from the accent through `color-mix()` in oklab with a
+  contrast-safe lightness per theme, so a tenant's brand hue still reaches their focus
+  rings while every pairing clears 3:1 (#134).
+
+- A disabled link-button (`bw_button` with `href` and `disabled`) is no longer
+  clickable or keyboard-reachable. It kept its `href` with only `aria-disabled="true"`,
+  so it announced itself as disabled to assistive tech and then navigated anyway on
+  click and on Enter. It now renders a non-navigable `<span>`, following the precedent
+  already set for disabled pagination controls, with the visual appearance unchanged
+  (#135).
+
+- Wide content inside a card no longer drags the whole page sideways. A card is a grid
+  item of the section stack, and a grid item defaults to `min-width: auto`, so a wide
+  data table blew out its track and the scroll container inside it never received a
+  width to scroll within: a 375px viewport rendered a 749px document. Cards and section
+  stack children now carry `min-inline-size: 0`, and the table scroll wrap carries
+  `contain: paint` (#136).
+
+- Three components rendered with unstyled elements. A dismissible alert's body had no
+  `flex` and its close control no `flex-shrink`, so on a flex row the text collapsed to
+  its content width and the dismiss button crowded it instead of sitting at the trailing
+  edge. A loading data table's skeleton had no padding while every real cell is inset by
+  the row-density tokens, so the loading bars ran flush to the card border and jumped
+  inward when data arrived (#137).
+- `bw-data-table-wrap--stack` is no longer emitted. It duplicated `bw-data-table--stack`
+  on the table under the identical condition, and every stack rule keys off the
+  table-level class (#137).
+
+- Front-door documentation now tells one consistent story. The README claimed "stable
+  1.x" at version 3.2.0, `pyproject.toml` classified the package as Beta, and
+  `docs/ADOPTION.md` described it as pre-1.0 and advised waiting for a 1.0 that had
+  long passed. The README also claimed CI runs a "beautiful by default" gate; no such
+  gate exists, and that phrase belongs to `docs/DESIGN.md` as a design principle. The
+  accessibility claim is kept because it is real, but narrowed from "every component"
+  to the 78 rendered fixtures the gate actually covers. Also corrects the marketing
+  component count from eight to nine and removes a stale comment in `ci.yml` describing
+  the accessibility and frontend jobs as stubbed when both are wired and blocking
+  (#138).
+
 ## [3.2.1] - 2026-08-09
 
 A fix-only patch. Everything here came out of auditing a consumer against
