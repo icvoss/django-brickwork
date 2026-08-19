@@ -39,3 +39,7 @@ npm-debug.log*
 a11y/fixtures/
 test-results/
 playwright-report/
+
+# Agent worktrees and local session state (umbrella convention: every repo
+# gitignores .claude/, so worktree files never pollute the parent checkout).
+.claude/
