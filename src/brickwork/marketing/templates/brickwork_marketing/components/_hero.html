@@ -35,18 +35,31 @@ Optional context:
 
 Uses the display type role (--bw-text-heading-display-*) and the marketing
 section-rhythm token for its own block spacing.
+
+Named blocks (semver-public, BR-BW-TPL-001), all empty by default, in
+document order: eyebrow, heading, lede, actions, media. Each wraps the
+existing conditional rendering above, so a call site supplying only the
+flat context variables (the pre-existing path) renders byte-identical
+output to before these blocks existed. These blocks exist because
+BR-BW-OPT-004 forbids a proliferating set of prose kwargs with no data
+object behind them: eyebrow/heading/lede are exactly that shape, so the
+slot is the escape hatch for a caller with structured copy (a translated
+mark, a rich lede with an inline link) that a flat string cannot carry,
+rather than adding yet another *_html kwarg per field.
 {% endcomment %}
 <section class="bw-hero bw-hero--{% firstof align 'start' %}">
   <div class="bw-hero__copy">
-    {% if eyebrow %}<p class="bw-hero__eyebrow">{{ eyebrow }}</p>{% endif %}
-    {% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}
-    {% if lede %}<p class="bw-hero__lede">{{ lede }}</p>{% endif %}
+    {% block eyebrow %}{% if eyebrow %}<p class="bw-hero__eyebrow">{{ eyebrow }}</p>{% endif %}{% endblock %}
+    {% block heading %}{% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}{% endblock %}
+    {% block lede %}{% if lede %}<p class="bw-hero__lede">{{ lede }}</p>{% endif %}{% endblock %}
+    {% block actions %}
     {% if primary_cta or secondary_cta or primary_cta_label or secondary_cta_label %}
       <div class="bw-hero__actions">
         {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% elif primary_cta_label %}{% bw_button primary_cta_label variant="primary" size="lg" href=primary_cta_href %}{% endif %}
         {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% elif secondary_cta_label %}{% bw_button secondary_cta_label variant="secondary" size="lg" href=secondary_cta_href %}{% endif %}
       </div>
     {% endif %}
+    {% endblock %}
   </div>
-  {% if media %}<div class="bw-hero__media">{{ media }}</div>{% endif %}
+  {% block media %}{% if media %}<div class="bw-hero__media">{{ media }}</div>{% endif %}{% endblock %}
 </section>

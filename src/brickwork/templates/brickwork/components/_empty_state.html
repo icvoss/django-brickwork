@@ -8,8 +8,36 @@ package-supplied default copy, STA-003).
 
 Required context: heading, body. Optional: variant ("no_data" default or
 "no_results"), icon (registry name), action_href, action_label.
+
+Named blocks (semver-public, BR-BW-TPL-001), all empty by default:
+
+  icon:        wraps the existing icon-resolution branch (CMP-032); an
+                override replaces the whole icon markup.
+  title:       wraps the existing {{ heading }} rendering (CMP-032; named
+                "title" per the-wall CMP-032, over the "heading" context
+                variable name it wraps, since the wall's block name is the
+                template's public contract).
+  description: wraps the existing {{ body }} rendering (CMP-032; named
+                "description" per the-wall CMP-032, over the "body" context
+                variable it wraps).
+  action:      the concise successor to the deprecated empty_state_action
+                block below (CMP-032). Default content is the existing
+                action_href/action_label anchor rendering, so a call site
+                filling only those two context variables renders exactly
+                what it always did.
+  empty_state_action: DEPRECATED, removed at 4.0. Kept for backwards
+                compatibility (BR-BW-TPL-001 is semver-public: renaming a
+                shipped block requires the BR-BW-VER-001 parallel-support
+                cycle, not a silent swap). Both this block and action render
+                when both are filled; a caller migrating to the concise name
+                fills action only.
+
+A call site that supplies only heading/body/variant/icon/action_href/
+action_label (the pre-existing context-variable path) renders byte-identical
+output to before these blocks existed.
 {% endcomment %}
 <div class="bw-empty-state bw-empty-state--{% firstof variant 'no_data' %}">
+  {% block icon %}
   {% if icon %}
     {% bw_icon icon size="xl" decorative=True css_class="bw-empty-state__icon" %}
   {% elif variant == "no_results" %}
@@ -17,10 +45,13 @@ Required context: heading, body. Optional: variant ("no_data" default or
   {% else %}
     {% bw_icon "folder" size="xl" decorative=True css_class="bw-empty-state__icon" %}
   {% endif %}
-  <h2 class="bw-empty-state__heading">{{ heading }}</h2>
-  <p class="bw-empty-state__body">{{ body }}</p>
+  {% endblock %}
+  <h2 class="bw-empty-state__heading">{% block title %}{{ heading }}{% endblock %}</h2>
+  <p class="bw-empty-state__body">{% block description %}{{ body }}{% endblock %}</p>
+  {% block action %}
   {% if action_href and action_label %}
     <a class="bw-btn bw-btn--primary bw-btn--md" href="{{ action_href }}">{{ action_label }}</a>
   {% endif %}
+  {% endblock %}
   {% block empty_state_action %}{% endblock %}
 </div>

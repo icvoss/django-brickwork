@@ -28,6 +28,17 @@ Optional:
   trigger_meta: optional pre-rendered HTML at the trigger's inline end (an
            icon or badge, CMP-027).
 
+Named block (semver-public, BR-BW-TPL-001), empty by default:
+
+  trigger_meta: wraps the existing conditional {{ trigger_meta }} rendering
+           (CMP-027). This component is structural, not tag-consumed (unlike
+           _dropdown.html/_tabs.html/_toast.html/_combobox.html, whose logic
+           lives in their {% bw_* %} tag; see 04-interfaces.md section 4), so
+           extending it to override the trigger meta region is safe. A call
+           site that supplies only the trigger_meta context variable (the
+           pre-existing path) renders byte-identical output to before this
+           block existed.
+
 Motion (BR-BW-TOK-009, CSS-only): the panel animates grid-template-rows
 0fr -> 1fr at --bw-duration-normal/--bw-ease-standard (MOT-008; the
 __panel/__panel-inner pair below is that animation's grid track + overflow
@@ -38,7 +49,7 @@ no elevation: in-flow content, not an overlay.
 <details class="bw-disclosure bw-disclosure--{% firstof variant 'divided' %}"{% if name %} name="{{ name }}"{% endif %}{% if open %} open{% endif %}>
   <summary class="bw-disclosure__trigger">
     <span class="bw-disclosure__label">{{ label }}</span>
-    {% if trigger_meta %}<span class="bw-disclosure__meta">{{ trigger_meta }}</span>{% endif %}
+    {% block trigger_meta %}{% if trigger_meta %}<span class="bw-disclosure__meta">{{ trigger_meta }}</span>{% endif %}{% endblock %}
     {% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-disclosure__caret" %}
   </summary>
   <div class="bw-disclosure__panel">
