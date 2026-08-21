@@ -6,6 +6,7 @@
     "actions",
     "alert_body",
     "auth_background",
+    "body",
     "body_js",
     "brand_logo",
     "brand_wordmark",
@@ -28,6 +29,7 @@
     "footer_region",
     "head_extra",
     "head_js",
+    "header",
     "heading",
     "icon",
     "lede",
@@ -67,6 +69,7 @@
     "topbar_account_menu",
     "topbar_notifications",
     "topbar_search",
+    "trigger",
     "trigger_meta"
   ],
   "partials": [
@@ -80,6 +83,21 @@
     "table_rows"
   ],
   "deprecated": [
-    "empty_state_action"
+    "alert_body",
+    "card_actions",
+    "card_body",
+    "card_footer",
+    "card_header",
+    "card_title",
+    "description",
+    "empty_state_action",
+    "modal_body",
+    "modal_footer",
+    "modal_title",
+    "slide_over_body",
+    "slide_over_footer",
+    "slide_over_title",
+    "title",
+    "tooltip_trigger"
   ]
 }

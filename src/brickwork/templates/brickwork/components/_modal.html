@@ -21,19 +21,31 @@ DUAL CONSUMPTION, one partial, two documented render paths (BR-BW-HTMX-001):
      content behind JavaScript.
 
 Named blocks (semver-public, BR-BW-TPL-001):
-  modal_title:  defaults to rendering {{ title }} inside the chrome-owned
-                heading (heading-sm type role).
-  modal_body:   the dialog content. A form inside it follows BR-BW-HTMX-003
-                unchanged (hx-target="this" hx-swap="outerHTML", 422
-                re-render with inline errors); a failed request NEVER
-                closes the modal (CBH-026). On success the view closes it
-                server-side: respond 204 (or with OOB toast content) plus
+  title:        the concise successor to the deprecated modal_title block
+                below (ADR-077 SS4). Defaults to rendering {{ title }} inside
+                the chrome-owned heading (heading-sm type role).
+  body:         the concise successor to the deprecated modal_body block
+                below (ADR-077 SS4). The dialog content. A form inside it
+                follows BR-BW-HTMX-003 unchanged (hx-target="this"
+                hx-swap="outerHTML", 422 re-render with inline errors); a
+                failed request NEVER closes the modal (CBH-026). On success
+                the view closes it server-side: respond 204 (or with OOB
+                toast content) plus
                 HX-Trigger: {"bw:modal:close": {"id": "<modal_id>"}};
                 bwModal listens for bw:modal:close at the window.
-  modal_footer: empty renders nothing; the filler owns the wrapper element
-                (write <footer class="bw-modal__footer">...</footer>),
-                matching _card.html's region convention. Sticky
-                header/footer with a scrolling body per CMP-021.
+  footer:       the concise successor to the deprecated modal_footer block
+                below (ADR-077 SS4). Empty renders nothing; the filler owns
+                the wrapper element (write
+                <footer class="bw-modal__footer">...</footer>), matching
+                _card.html's region convention. Sticky header/footer with a
+                scrolling body per CMP-021.
+  modal_title, modal_body, modal_footer: DEPRECATED, removed at 4.0
+                (ADR-077 SS4, BR-BW-TPL-001/BR-BW-VER-001). Kept as
+                additional empty extension points for backwards
+                compatibility: a shipped block name cannot be renamed
+                silently. Both a concise block and its deprecated
+                counterpart render when both are filled; a caller migrating
+                to the concise name fills title/body/footer only.
 
 Required context:
   title: the accessible name, rendered as the dialog heading and wired via
@@ -105,7 +117,7 @@ instantly (BR-BW-TOK-009).
        aria-labelledby="{{ bw_modal_instance_id }}-title"
        x-trap.inert.noscroll="isOpen">
     <header class="bw-modal__header">
-      <h2 class="bw-modal__title" id="{{ bw_modal_instance_id }}-title">{% block modal_title %}{{ title }}{% endblock %}</h2>
+      <h2 class="bw-modal__title" id="{{ bw_modal_instance_id }}-title">{% block title %}{% block modal_title %}{{ title }}{% endblock %}{% endblock %}</h2>
       {% translate "Close" as bw_modal_close_label %}
       {% if close_href %}
         {# The anchor is the floor's real exit; with JS running the x-on   #}
@@ -127,7 +139,8 @@ instantly (BR-BW-TOK-009).
         </button>
       {% endif %}
     </header>
-    <div class="bw-modal__body">{% block modal_body %}{% endblock %}</div>
+    <div class="bw-modal__body">{% block body %}{% endblock %}{% block modal_body %}{% endblock %}</div>
+    {% block footer %}{% endblock %}
     {% block modal_footer %}{% endblock %}
   </div>
 </div>

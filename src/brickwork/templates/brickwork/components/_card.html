@@ -7,21 +7,32 @@ convention), so a card with nothing filled renders a bare elevated surface
 (resting --bw-elevation-1, radius-lg, density-aware padding; AC-BW-070).
 
 Blocks (semver-public, BR-BW-TPL-001), in document order:
-  card_header, card_title, card_actions, card_body, card_footer.
+  header, title, actions, body, footer: the concise names (ADR-077 SS4; the
+      declaring template is the scope, so a component prefix carries no
+      information). Each wraps the corresponding deprecated prefixed block
+      below, so a call site filling only the concise name renders exactly
+      the same output the prefixed block always produced.
+  card_header, card_title, card_actions, card_body, card_footer: DEPRECATED,
+      removed at 4.0 (ADR-077 SS4, BR-BW-TPL-001/BR-BW-VER-001). Kept as
+      additional empty extension points for backwards compatibility: a
+      shipped block name cannot be renamed silently. Both a concise block
+      and its deprecated counterpart render when both are filled; a caller
+      migrating to the concise name fills header/title/actions/body/footer
+      only.
 
 Filling blocks from an include call site: {% include %} cannot fill a block,
 so a caller that needs a region writes a small template that EXTENDS this one
 and includes THAT (the mechanism patterns/_table_card.html uses):
 
     {% extends "brickwork/components/_card.html" %}
-    {% block card_header %}
+    {% block header %}
       <div class="bw-card__header">
         <h2 class="bw-card__title">{% translate "Members" %}</h2>
         <div class="bw-card__actions">{% bw_button label="Add" variant="secondary" size="sm" %}</div>
       </div>
     {% endblock %}
-    {% block card_body %}...{% endblock %}
-    {% block card_footer %}<div class="bw-card__footer">...</div>{% endblock %}
+    {% block body %}...{% endblock %}
+    {% block footer %}<div class="bw-card__footer">...</div>{% endblock %}
 
 The region classes (bw-card__header/__title/__actions/__body/__footer) are the
 styling hooks for that filler markup: the header row is a flex row with the
@@ -58,9 +69,14 @@ once per template, so the regions cannot be duplicated across two branches
 the way _button.html duplicates its label.
 {% endcomment %}
 {% if href %}<a class="bw-card bw-card--interactive{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-card{% if interactive %} bw-card--interactive{% endif %}{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}">{% endif %}
+{% block header %}{% endblock %}
 {% block card_header %}{% endblock %}
+{% block title %}{% endblock %}
 {% block card_title %}{% endblock %}
+{% block actions %}{% endblock %}
 {% block card_actions %}{% endblock %}
+{% block body %}{% endblock %}
 {% block card_body %}{% endblock %}
+{% block footer %}{% endblock %}
 {% block card_footer %}{% endblock %}
 {% if href %}</a>{% else %}</div>{% endif %}

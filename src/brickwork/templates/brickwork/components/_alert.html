@@ -26,12 +26,24 @@ unaffected: it still passes an explicit `icon`, which {% firstof %} takes
 ahead of the fallback, so its output is byte-identical to 1.x. The chain sits
 at the template's top level on purpose: an `{% ... as %}` assignment made
 inside an `{% if %}` body would fall out of scope before the icon line.
+
+Named blocks (semver-public, BR-BW-TPL-001):
+  body:       the concise successor to the deprecated alert_body block
+              below (ADR-077 SS4). Empty by default; a filled block adds
+              extra content under the title/message lines.
+  alert_body: DEPRECATED, removed at 4.0 (ADR-077 SS4,
+              BR-BW-TPL-001/BR-BW-VER-001). Kept as an additional empty
+              extension point for backwards compatibility: a shipped block
+              name cannot be renamed silently. Both body and alert_body
+              render when both are filled; a caller migrating to the
+              concise name fills body only.
 {% endcomment %}
 {% if variant == "success" %}{% firstof icon "success" as bw_alert_icon %}{% elif variant == "warning" %}{% firstof icon "alert-triangle" as bw_alert_icon %}{% elif variant == "danger" %}{% firstof icon "alert-circle" as bw_alert_icon %}{% else %}{% firstof icon "info" as bw_alert_icon %}{% endif %}<div class="bw-alert bw-alert--{% firstof variant 'info' %}" role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
   {% bw_icon bw_alert_icon size="md" decorative=True css_class="bw-alert__icon" %}
   <div class="bw-alert__body">
     {% if title %}<p class="bw-alert__title">{{ title }}</p>{% endif %}
     {% if message %}<p class="bw-alert__message">{{ message }}</p>{% endif %}
+    {% block body %}{% endblock %}
     {% block alert_body %}{% endblock %}
   </div>
 {% if dismissible %}{% translate "Dismiss" as bw_alert_close_label %}  <button class="bw-alert__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"

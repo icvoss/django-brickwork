@@ -151,6 +151,41 @@ def test_bundle_registers_bwslideover_with_the_documented_events_and_reasons() -
         assert reason in bundle
 
 
+# --- ADR-077 SS4: concise block names alongside their deprecated prefixed ---
+# --- counterparts (BR-BW-VER-001 parallel support) --------------------------
+
+
+def test_concise_title_body_footer_blocks_render() -> None:
+    source = (
+        '{% extends "brickwork/components/_slide_over.html" %}'
+        "{% block title %}TITLE-SENTINEL{% endblock %}"
+        "{% block body %}BODY-SENTINEL{% endblock %}"
+        "{% block footer %}FOOTER-SENTINEL{% endblock %}"
+    )
+    html = _render(source)
+    assert "TITLE-SENTINEL" in html
+    assert "BODY-SENTINEL" in html
+    assert "FOOTER-SENTINEL" in html
+
+
+def test_deprecated_slide_over_prefixed_blocks_still_render_alone() -> None:
+    html = _render()  # _CONSUMER fills slide_over_body and slide_over_footer only
+    assert "Body copy." in html
+    assert '<footer class="bw-slide-over__footer">' in html
+
+
+def test_body_and_slide_over_body_both_render_when_both_are_filled() -> None:
+    source = (
+        '{% extends "brickwork/components/_slide_over.html" %}'
+        "{% block body %}BODY-SENTINEL{% endblock %}"
+        "{% block slide_over_body %}LEGACY-SENTINEL{% endblock %}"
+    )
+    html = _render(source)
+    assert "BODY-SENTINEL" in html
+    assert "LEGACY-SENTINEL" in html
+    assert html.index("BODY-SENTINEL") < html.index("LEGACY-SENTINEL")
+
+
 # --- shell root (BR-BW-HTMX-005) --------------------------------------------
 
 
@@ -167,3 +202,28 @@ def test_slide_over_root_is_zero_footprint_in_css() -> None:
     rule = re.search(r"#bw-slide-over-root\s*\{([^}]*)\}", text)
     assert rule is not None
     assert "display:contents" in rule.group(1).replace(" ", "")
+
+
+def test_slide_over_title_successor_replaces_rather_than_appends() -> None:
+    # ADR-077 SS4 parallel support must not change what the OLD name DID.
+    # "slide_over_title" wrapped the title and replaced it, so nesting it inside the
+    # concise "title" block (rather than placing it after) is what keeps a
+    # consumer from getting "DefaultCustom" concatenated into one heading.
+    both = _render(
+        '{% extends "brickwork/components/_slide_over.html" %}'
+        "{% block title %}NEW-SENTINEL{% endblock %}"
+        "{% block slide_over_title %}OLD-SENTINEL{% endblock %}"
+        "{% block slide_over_body %}<p>Body.</p>{% endblock %}",
+        title="Ignored title",
+    )
+    assert "NEW-SENTINEL" in both
+    assert "OLD-SENTINEL" not in both
+
+    old_only = _render(
+        '{% extends "brickwork/components/_slide_over.html" %}'
+        "{% block slide_over_title %}OLD-SENTINEL{% endblock %}"
+        "{% block slide_over_body %}<p>Body.</p>{% endblock %}",
+        title="Ignored title",
+    )
+    assert "OLD-SENTINEL" in old_only
+    assert "Ignored title" not in old_only

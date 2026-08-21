@@ -170,3 +170,50 @@ def test_size_argument_maps_to_modifier_classes() -> None:
     assert "bw-card--size-sm" in _render(size="sm")
     assert "bw-card--size-lg" in _render(size="lg")
     assert "bw-card--size-" not in _render()
+
+
+# --- ADR-077 SS4: concise block names alongside their deprecated prefixed ---
+# --- counterparts (BR-BW-VER-001 parallel support) --------------------------
+
+
+def test_concise_region_names_render() -> None:
+    out = _extend(
+        "{% block header %}HEADER-SENTINEL{% endblock %}"
+        "{% block title %}TITLE-SENTINEL{% endblock %}"
+        "{% block actions %}ACTIONS-SENTINEL{% endblock %}"
+        "{% block body %}BODY-SENTINEL{% endblock %}"
+        "{% block footer %}FOOTER-SENTINEL{% endblock %}"
+    )
+    for sentinel in (
+        "HEADER-SENTINEL",
+        "TITLE-SENTINEL",
+        "ACTIONS-SENTINEL",
+        "BODY-SENTINEL",
+        "FOOTER-SENTINEL",
+    ):
+        assert sentinel in out
+
+
+def test_deprecated_prefixed_region_names_still_render_alone() -> None:
+    out = _extend(
+        "{% block card_header %}HEADER-SENTINEL{% endblock %}"
+        "{% block card_title %}TITLE-SENTINEL{% endblock %}"
+        "{% block card_actions %}ACTIONS-SENTINEL{% endblock %}"
+        "{% block card_body %}BODY-SENTINEL{% endblock %}"
+        "{% block card_footer %}FOOTER-SENTINEL{% endblock %}"
+    )
+    for sentinel in (
+        "HEADER-SENTINEL",
+        "TITLE-SENTINEL",
+        "ACTIONS-SENTINEL",
+        "BODY-SENTINEL",
+        "FOOTER-SENTINEL",
+    ):
+        assert sentinel in out
+
+
+def test_concise_and_deprecated_region_names_both_render_when_both_filled() -> None:
+    out = _extend("{% block body %}BODY-SENTINEL{% endblock %}{% block card_body %}LEGACY-SENTINEL{% endblock %}")
+    assert "BODY-SENTINEL" in out
+    assert "LEGACY-SENTINEL" in out
+    assert out.index("BODY-SENTINEL") < out.index("LEGACY-SENTINEL")

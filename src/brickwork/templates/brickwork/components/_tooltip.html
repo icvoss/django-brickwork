@@ -2,15 +2,26 @@
 Tooltip (0.12.0, #56; supersedes STA-015's title-only baseline). Consumed by
 EXTENDING, like patterns/ and _modal.html: a consumer's tooltip partial opens
 with {% extends "brickwork/components/_tooltip.html" %} and fills the
-tooltip_trigger block, e.g.
+trigger block, e.g.
 
     {% extends "brickwork/components/_tooltip.html" %}
-    {% block tooltip_trigger %}
+    {% block trigger %}
       <button type="button" class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
               aria-label="{% translate "More info" %}">
         {% bw_icon "info" size="sm" decorative=True %}
       </button>
     {% endblock %}
+
+Named blocks (semver-public, BR-BW-TPL-001):
+  trigger:         the concise successor to the deprecated tooltip_trigger
+                    block below (ADR-077 SS4). Empty by default.
+  tooltip_trigger: DEPRECATED, removed at 4.0 (ADR-077 SS4,
+                    BR-BW-TPL-001/BR-BW-VER-001). Kept as an additional
+                    empty extension point for backwards compatibility: a
+                    shipped block name cannot be renamed silently. Both
+                    trigger and tooltip_trigger render when both are
+                    filled; a caller migrating to the concise name fills
+                    trigger only.
 
 No-JS floor (BR-BW-HTMX-006): the trigger keeps a native title attribute set
 to ``text``, so a tooltip with zero JavaScript still has SOME accessible
@@ -50,6 +61,7 @@ BR-BW-TOK-009 reduced-motion floor like every other overlay in the set.
       id="{{ id }}-root"
       x-data="bwTooltip({ id: '{{ id|escapejs }}' })">
   <span data-bw-tooltip-trigger aria-describedby="{{ id }}" title="{{ text }}">
+    {% block trigger %}{% endblock %}
     {% block tooltip_trigger %}{% endblock %}
   </span>
   <span class="bw-tooltip__bubble"
