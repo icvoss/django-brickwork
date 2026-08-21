@@ -85,6 +85,11 @@ Every published version needs a dated section in `CHANGELOG.md`. CI enforces
 this: the publish workflow will fail if no matching `## [<version>]` heading
 exists.
 
+`CHANGELOG.md` is also included in both published distributions: at the sdist
+root and under `share/doc/django-brickwork/` in the wheel. The publish build
+asserts both artefacts contain it, so release notes remain available to an
+offline or pinned-version consumer.
+
 [Keep a Changelog](https://keepachangelog.com/) format. Subsections: Added /
 Changed / Fixed / Removed. Call out behaviour changes explicitly, including
 ones that are "safer", because a consumer relying on the old behaviour still
