@@ -225,15 +225,22 @@ def test_renaming_a_block_fails_the_same_way_as_removing_it(baseline: dict, curr
     # A rename is a removal of the old name plus an addition of a new one;
     # the gate only needs to catch the removal half, since the addition half
     # is never a violation on its own (checked below).
-    current["blocks"] = [entry for entry in current["blocks"] if entry["name"] != "modal_title"]
+    # Uses trigger_meta, a live non-deprecated block. A name already in the
+    # deprecation cycle (modal_title and friends, ADR-077 SS4) is deliberately
+    # exempt, so it would prove nothing here.
+    current["blocks"] = [entry for entry in current["blocks"] if entry["name"] != "trigger_meta"]
     current["blocks"].append(
-        {"name": "dialog_title", "declaredIn": ["brickwork/components/_modal.html"], "consumption": ["extend"]}
+        {
+            "name": "disclosure_meta",
+            "declaredIn": ["brickwork/components/_disclosure.html"],
+            "consumption": ["include"],
+        }
     )
 
     violations = check_contract_stability(baseline, current)
 
     assert len(violations) == 1
-    assert "modal_title" in violations[0]
+    assert "trigger_meta" in violations[0]
 
 
 def test_removing_a_partial_with_no_deprecation_entry_fails(baseline: dict, current: dict) -> None:

@@ -139,6 +139,41 @@ def test_title_context_is_escaped() -> None:
     assert "&lt;b&gt;bold&lt;/b&gt;" in html
 
 
+# --- ADR-077 SS4: concise block names alongside their deprecated prefixed ---
+# --- counterparts (BR-BW-VER-001 parallel support) --------------------------
+
+
+def test_concise_title_body_footer_blocks_render() -> None:
+    source = (
+        '{% extends "brickwork/components/_modal.html" %}'
+        "{% block title %}TITLE-SENTINEL{% endblock %}"
+        "{% block body %}BODY-SENTINEL{% endblock %}"
+        "{% block footer %}FOOTER-SENTINEL{% endblock %}"
+    )
+    html = _render(source)
+    assert "TITLE-SENTINEL" in html
+    assert "BODY-SENTINEL" in html
+    assert "FOOTER-SENTINEL" in html
+
+
+def test_deprecated_modal_prefixed_blocks_still_render_alone() -> None:
+    html = _render()  # _CONSUMER fills modal_body and modal_footer only
+    assert "Body copy." in html
+    assert '<footer class="bw-modal__footer">' in html
+
+
+def test_body_and_modal_body_both_render_when_both_are_filled() -> None:
+    source = (
+        '{% extends "brickwork/components/_modal.html" %}'
+        "{% block body %}BODY-SENTINEL{% endblock %}"
+        "{% block modal_body %}LEGACY-SENTINEL{% endblock %}"
+    )
+    html = _render(source)
+    assert "BODY-SENTINEL" in html
+    assert "LEGACY-SENTINEL" in html
+    assert html.index("BODY-SENTINEL") < html.index("LEGACY-SENTINEL")
+
+
 def test_bundle_registers_bwmodal_with_the_documented_events_and_reasons() -> None:
     bundle = _DIST_JS.read_text()
     assert "bwModal" in bundle
@@ -147,3 +182,28 @@ def test_bundle_registers_bwmodal_with_the_documented_events_and_reasons() -> No
     # every documented dismissal reason survives minification as a literal
     for reason in ("escape", "backdrop", "close-button", "server", "programmatic"):
         assert reason in bundle
+
+
+def test_modal_title_successor_replaces_rather_than_appends() -> None:
+    # ADR-077 SS4 parallel support must not change what the OLD name DID.
+    # "modal_title" wrapped the title and replaced it, so nesting it inside the
+    # concise "title" block (rather than placing it after) is what keeps a
+    # consumer from getting "DefaultCustom" concatenated into one heading.
+    both = _render(
+        '{% extends "brickwork/components/_modal.html" %}'
+        "{% block title %}NEW-SENTINEL{% endblock %}"
+        "{% block modal_title %}OLD-SENTINEL{% endblock %}"
+        "{% block modal_body %}<p>Body.</p>{% endblock %}",
+        title="Ignored title",
+    )
+    assert "NEW-SENTINEL" in both
+    assert "OLD-SENTINEL" not in both
+
+    old_only = _render(
+        '{% extends "brickwork/components/_modal.html" %}'
+        "{% block modal_title %}OLD-SENTINEL{% endblock %}"
+        "{% block modal_body %}<p>Body.</p>{% endblock %}",
+        title="Ignored title",
+    )
+    assert "OLD-SENTINEL" in old_only
+    assert "Ignored title" not in old_only

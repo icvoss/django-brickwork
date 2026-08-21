@@ -249,6 +249,191 @@ def build_manifest() -> dict:
                     "a caller migrating to the concise name fills 'action' only."
                 ),
             },
+            {
+                "kind": "block",
+                "name": "title",
+                "declaredIn": "brickwork/components/_empty_state.html",
+                "supersededBy": "heading",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by 'heading' (ADR-077 SS4): 'title' named neither "
+                    "the {{ heading }} context variable nor the "
+                    "bw-empty-state__heading class it wraps. Both render while "
+                    "deprecated (BR-BW-VER-001 parallel support); a caller "
+                    "migrating to the concise name fills 'heading' only."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "description",
+                "declaredIn": "brickwork/components/_empty_state.html",
+                "supersededBy": "body",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by 'body' (ADR-077 SS4): 'description' named "
+                    "neither the {{ body }} context variable nor the "
+                    "bw-empty-state__body class it wraps. Both render while "
+                    "deprecated (BR-BW-VER-001 parallel support); a caller "
+                    "migrating to the concise name fills 'body' only."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "card_header",
+                "declaredIn": "brickwork/components/_card.html",
+                "supersededBy": "header",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'header' block (ADR-077 SS4: a "
+                    "component prefix on a block name carries no information, "
+                    "the declaring template is already the scope). Both render "
+                    "while deprecated (BR-BW-VER-001 parallel support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "card_title",
+                "declaredIn": "brickwork/components/_card.html",
+                "supersededBy": "title",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'title' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "card_actions",
+                "declaredIn": "brickwork/components/_card.html",
+                "supersededBy": "actions",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'actions' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "card_body",
+                "declaredIn": "brickwork/components/_card.html",
+                "supersededBy": "body",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'body' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "card_footer",
+                "declaredIn": "brickwork/components/_card.html",
+                "supersededBy": "footer",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'footer' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "modal_title",
+                "declaredIn": "brickwork/components/_modal.html",
+                "supersededBy": "title",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'title' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "modal_body",
+                "declaredIn": "brickwork/components/_modal.html",
+                "supersededBy": "body",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'body' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "modal_footer",
+                "declaredIn": "brickwork/components/_modal.html",
+                "supersededBy": "footer",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'footer' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "slide_over_title",
+                "declaredIn": "brickwork/components/_slide_over.html",
+                "supersededBy": "title",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'title' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "slide_over_body",
+                "declaredIn": "brickwork/components/_slide_over.html",
+                "supersededBy": "body",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'body' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "slide_over_footer",
+                "declaredIn": "brickwork/components/_slide_over.html",
+                "supersededBy": "footer",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'footer' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "alert_body",
+                "declaredIn": "brickwork/components/_alert.html",
+                "supersededBy": "body",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'body' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
+            {
+                "kind": "block",
+                "name": "tooltip_trigger",
+                "declaredIn": "brickwork/components/_tooltip.html",
+                "supersededBy": "trigger",
+                "removedAt": "4.0.0",
+                "note": (
+                    "Superseded by the concise 'trigger' block (ADR-077 SS4). "
+                    "Both render while deprecated (BR-BW-VER-001 parallel "
+                    "support)."
+                ),
+            },
         ],
     }
 

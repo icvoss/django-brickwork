@@ -1,9 +1,13 @@
-"""Direct render tests for _empty_state.html (STA-001/002, CMP-032, SLOT wave).
+"""Direct render tests for _empty_state.html (STA-001/002, CMP-032, SLOT wave,
+ADR-077 SS4).
 
 Covers the pre-existing context-variable path (byte-identical for an
-include-only caller), the new concise blocks (icon/title/description/action),
-and the owner-mandated dual-shipping of the deprecated `empty_state_action`
-block alongside the new `action` block: both must render.
+include-only caller), the new concise blocks (icon/heading/body/action), and
+the owner-mandated dual-shipping of each deprecated block
+(title/description/empty_state_action) alongside its concise successor
+(heading/body/action): both must render. "title"/"description" are corrected
+here (ADR-077 SS4) because they named neither the context variable
+(heading/body) nor the CSS class (bw-empty-state__heading/__body) they wrap.
 """
 
 from __future__ import annotations
@@ -76,19 +80,50 @@ def test_icon_block_override_replaces_the_default_icon_markup() -> None:
     assert "bw-empty-state__icon" not in out
 
 
-# --- title / description blocks -----------------------------------------------
+# --- heading / body blocks, and deprecated title / description ---------------
 
 
-def test_title_block_override_wins_over_the_heading_context() -> None:
-    out = _extend("{% block title %}Custom title{% endblock %}")
-    assert "Custom title" in out
+def test_heading_block_override_wins_over_the_heading_context() -> None:
+    out = _extend("{% block heading %}Custom heading{% endblock %}")
+    assert "Custom heading" in out
     assert "No invoices yet" not in out
 
 
-def test_description_block_override_wins_over_the_body_context() -> None:
-    out = _extend("{% block description %}Custom description{% endblock %}")
-    assert "Custom description" in out
+def test_body_block_override_wins_over_the_body_context() -> None:
+    out = _extend("{% block body %}Custom body{% endblock %}")
+    assert "Custom body" in out
     assert "Create your first invoice to get started." not in out
+
+
+def test_the_deprecated_title_block_still_replaces_the_heading() -> None:
+    # BR-BW-VER-001 parallel support means the OLD name keeps its OLD
+    # behaviour. "title" wrapped the heading and replaced it, so a consumer
+    # filling it must still get replacement, not their text appended to the
+    # default. The deprecated block is nested INSIDE its successor for exactly
+    # this reason: overriding either one replaces the same region.
+    out = _extend("{% block title %}TITLE-SENTINEL{% endblock %}")
+    assert "TITLE-SENTINEL" in out
+    assert "No invoices yet" not in out
+
+
+def test_the_deprecated_description_block_still_replaces_the_body() -> None:
+    out = _extend("{% block description %}DESC-SENTINEL{% endblock %}")
+    assert "DESC-SENTINEL" in out
+    assert "Create your first invoice to get started." not in out
+
+
+def test_heading_wins_when_both_heading_and_title_are_filled() -> None:
+    # Filling the successor overrides the whole region, deprecated block
+    # included: one region, one winner, never both concatenated into one h2.
+    out = _extend("{% block heading %}HEADING-SENTINEL{% endblock %}{% block title %}TITLE-SENTINEL{% endblock %}")
+    assert "HEADING-SENTINEL" in out
+    assert "TITLE-SENTINEL" not in out
+
+
+def test_body_wins_when_both_body_and_description_are_filled() -> None:
+    out = _extend("{% block body %}BODY-SENTINEL{% endblock %}{% block description %}DESC-SENTINEL{% endblock %}")
+    assert "BODY-SENTINEL" in out
+    assert "DESC-SENTINEL" not in out
 
 
 # --- action / empty_state_action dual-shipping --------------------------------
