@@ -168,6 +168,14 @@ def test_render_disabled_item_via_setting() -> None:
     assert 'aria-disabled="true"' in out
 
 
+@override_settings(BRICKWORK_NAV_FALLBACK="disabled")
+def test_render_disabled_item_preserves_badge() -> None:
+    out = _render_tree((NavItem(key="bad", label="Marketplace", url_name="nope", badge="Coming soon"),))
+    assert "bw-nav__link--disabled" in out
+    assert "bw-nav__badge" in out
+    assert "Coming soon" in out
+
+
 def test_bw_nav_returns_prepared_tree_dict() -> None:
     # bw_nav is takes_context=True; pass a minimal context (no request).
     result = bw_nav({}, items=(NavItem(key="e", label="E", external_url="https://x.test"),))
