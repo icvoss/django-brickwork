@@ -1,0 +1,1410 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A date RANGE picker, and the single-date variant of the same file.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056). It is not a brickwork component: no
+{% templatetag openblock %} bw_date_picker {% templatetag closeblock %} tag
+exists and never will (BR-BW-INPUT-004 is a Fixed rule: date fields stay native
+<input type="date">, never a JS calendar widget, as a package-shipped
+component). What you are copying is EXT-006's documented slot filled in once,
+properly, so you do not have to build it yourself: the wrapper chrome is
+brickwork tokens, the popover content is entirely yours from the moment you
+copy this file (FRM-013).
+
+WHAT YOUR VIEW MUST SUPPLY, and this is deliberately small:
+    nav_items / nav_active     as in list.html
+    bw_drp_weekday_labels      7 short weekday names, MONDAY FIRST, translated.
+                                One line: list(django.utils.dates.WEEKDAYS_ABBR[i]
+                                for i in range(7))  (values, not the dict; the
+                                dict is already keyed 0=Monday regardless of
+                                locale, so no rotation is needed here).
+    bw_drp_month_labels        12 month names, JANUARY FIRST, translated.
+                                One line: list(django.utils.dates.MONTHS[i]
+                                for i in range(1, 13))
+    bw_drp_first_day           the locale's first day of the week, 0=Sunday..
+                                6=Saturday (Django's OWN convention, NOT the
+                                Monday-first convention WEEKDAYS_ABBR uses).
+                                One line: django.utils.formats.get_format(
+                                "FIRST_DAY_OF_WEEK")
+
+Both lists are Django's own lazily-translated calendar names
+(django.utils.dates), resolved through the active language exactly like every
+other string on the page. Nothing here invents an English fallback table:
+if your view forgets to pass them, the grid header renders empty text nodes
+rather than silently falling back to English, which is the honest failure
+mode for a copied example with no defaults of its own.
+
+THE FLOOR (Phase 1). Two native <input type="date"> (start, end) OR, in single
+mode below, one. They ARE the submitted form control at all times, before and
+after JS runs: the popover only ever writes ISO values into them via .value,
+exactly as the combobox module mirrors its floor <select> (frontend/src/js/
+combobox.js's own documented doctrine). Disable JS entirely and the two native
+date inputs still submit valid values; every enhancement below is additive.
+
+THE ENHANCEMENT (Phases 2-5). A calendar-icon trigger beside each native input
+opens a popover holding a hand-rolled <table> grid: full WAI-ARIA APG
+date-picker-dialog keyboard support, min/max + disabled-date + weekend-mask
+constraints, a two-month range view collapsing to one month under 48rem, hover
+and keyboard range preview, and a preset list (Today, Yesterday, Last 7 days,
+Last 30 days, This month, Last month, This year). None of this is a shipped
+brickwork behaviour: it lives entirely in the <script> block at the foot of
+this file, which you own from the moment you copy it (the same "a <script>
+block is allowed at this tier" precedent examples/base.html's registration
+diagnostic already sets).
+
+ROVING TABINDEX, not aria-activedescendant. brickwork's own combobox
+(frontend/src/js/combobox.js) deliberately uses aria-activedescendant for its
+ONE-DIMENSIONAL listbox. A month grid is TWO-DIMENSIONAL: arrow keys must move
+by row as well as column, Home/End are week-relative, PageUp/PageDown are
+month-relative and Shift+PageUp/PageDown are year-relative. The APG's own
+date-picker-dialog reference pattern moves real focus cell-to-cell for exactly
+this shape (announcing "Tuesday, 12 August" as the user arrows, which
+aria-activedescendant on a table cell announces far less reliably across
+screen readers than physically-moved focus does). So: exactly one cell in each
+open grid carries tabindex="0" (the focused/candidate day), every other cell
+carries tabindex="-1", and JS moves both the DOM focus and which cell carries
+tabindex="0" together on every arrow/Home/End/PageUp/PageDown key.
+
+EVERY <td> CARRIES role="presentation". role="gridcell" sits on the <button>
+inside each cell, not on the <td> itself (the button, not its wrapper, is
+what focus and the click/keydown handlers target). A real browser's axe run
+on the OPEN grid (not the closed-then-Escape state a partial check can hide
+behind) flags this as aria-required-parent: axe requires role="gridcell"'s
+element to have a direct parent carrying role="row", and a <td> two levels
+below <tr> does not satisfy "direct". role="presentation" on the <td>
+removes its own implicit "cell" role from that lookup so the button's
+gridcell role resolves against the real <tr> (itself already an implicit
+row inside role="grid", no change needed there); the <td> keeps its native
+table-cell rendering and layout regardless, only the accessibility-tree role
+is suppressed. Verified with axe directly on the isolated tr>td>button
+shape: removing role="gridcell" from the parent-role search entirely (a bare
+<button> with no role, wrapped in a <td role="gridcell">) also clears the
+violation, but moving the role AWAY from the interactive element the user
+actually operates is the wrong fix for a widget that depends on that role
+for its own operable-cell semantics; suppressing the <td>'s own competing
+role is the one that keeps role="gridcell" where assistive tech needs it.
+
+TIME IS EXCLUDED BY DESIGN. This is a date picker, not a datetime picker. A
+datetime floor is a different native control (<input type="datetime-local">),
+different validation (a time-zone-naive vs -aware value), and a different
+keyboard surface (an additional time spinner), so it is deliberately out of
+scope for this file rather than bolted on. Copy this file for dates; build a
+separate datetime example if you need one.
+
+TOKENS ONLY. Every colour, radius and space below is an existing --bw-* token
+(no new colour token is invented here). The CSS lives in the <style> block in
+THIS file, scoped under .bw-drp, because this is an example: it must never be
+added to frontend/src/marketing.css or components.css, which compile into the
+package's shipped stylesheet.
+
+STATE IS NEVER COLOUR-ALONE (WCAG 1.4.1). Today carries a dashed ring AND
+aria-current="date". A range endpoint (start or end) carries a filled
+background AND aria-selected="true" AND its aria-label names "Start date" or
+"End date" explicitly. In-range carries a tinted background AND its label
+text and date remain in the DOM regardless (never conveyed by tint alone: a
+screen reader arrowing through the grid announces every day's date and status
+the same way whether or not colour rendered). Disabled carries reduced
+opacity AND aria-disabled="true" AND is unreachable by keyboard AND its
+aria-label appends ", Unavailable".
+{% endcomment %}
+{% load i18n brickwork_components brickwork_icons brickwork_nav %}
+
+{% block page_title %}Invoices - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Invoices" description="Filter invoices by the date they were raised." %}
+{% endblock %}
+
+{% block head_extra %}
+{% comment %}
+Scoped to .bw-drp so nothing here leaks onto the rest of a page you paste this
+into, and every value is a --bw-* token: no new colour is invented.
+{% endcomment %}
+<style>
+  /* The closed no-JS floor's own row: start field, a separator, end field.
+     Wraps (rather than a fixed nowrap row) because the two fields plus the
+     separator do not fit a 320-414px viewport on one line (measured
+     ~465-489px against a 272-380px container): each FIELD alone (input +
+     trigger, ~200-240px) fits comfortably stacked, so wrapping to two lines
+     is the fix, not shrinking the native date input below a usable size. */
+  .bw-drp-range-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--bw-space-3);
+  }
+
+  .bw-drp-field {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--bw-space-2);
+    position: relative;
+  }
+
+  .bw-drp-field__input {
+    /* Reuses the shipped .bw-input look; this is the SAME class the field
+       renderer applies to a plain text/date input (BR-BW-INPUT-004), so a
+       native <input type="date"> already looks correct with zero extra CSS
+       here. Only the trigger button below is this example's own markup. */
+  }
+
+  .bw-drp-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--bw-size-touch-target-min);
+    height: var(--bw-size-touch-target-min);
+    border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+    border-radius: var(--bw-radius-md);
+    background: var(--bw-color-surface);
+    color: var(--bw-color-fg-muted);
+    cursor: pointer;
+    flex: none;
+  }
+
+  .bw-drp-trigger:hover {
+    background: var(--bw-state-hover-overlay);
+  }
+
+  .bw-drp-trigger:focus-visible {
+    outline: var(--bw-focus-ring-width) var(--bw-focus-ring-style) var(--bw-color-focus-ring);
+    outline-offset: var(--bw-focus-ring-offset);
+  }
+
+  .bw-drp-popover {
+    position: absolute;
+    z-index: var(--bw-z-dropdown);
+    top: calc(100% + var(--bw-space-2));
+    inset-inline-start: 0;
+    background: var(--bw-color-surface-raised);
+    border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+    border-radius: var(--bw-radius-lg);
+    box-shadow: 0 var(--bw-space-2) var(--bw-space-4) oklch(0 0 0 / 0.12);
+    padding: var(--bw-space-4);
+    width: max-content;
+    max-width: calc(100vw - var(--bw-space-8));
+  }
+
+  .bw-drp-popover[hidden] {
+    display: none;
+  }
+
+  .bw-drp-layout {
+    display: flex;
+    gap: var(--bw-space-6);
+    align-items: flex-start;
+  }
+
+  .bw-drp-presets {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bw-space-1);
+    padding-inline-end: var(--bw-space-4);
+    border-inline-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+    min-width: 10rem;
+  }
+
+  .bw-drp-preset {
+    display: block;
+    width: 100%;
+    text-align: start;
+    padding: var(--bw-space-2) var(--bw-space-3);
+    border: 0;
+    border-radius: var(--bw-radius-md);
+    background: transparent;
+    color: var(--bw-color-fg);
+    font: inherit;
+    font-size: var(--bw-font-size-sm);
+    cursor: pointer;
+  }
+
+  .bw-drp-preset:hover {
+    background: var(--bw-state-hover-overlay);
+  }
+
+  .bw-drp-preset:focus-visible {
+    outline: var(--bw-focus-ring-width) var(--bw-focus-ring-style) var(--bw-color-focus-ring);
+    outline-offset: -2px;
+  }
+
+  .bw-drp-months {
+    display: flex;
+    gap: var(--bw-space-6);
+  }
+
+  .bw-drp-month {
+    width: 17rem;
+  }
+
+  .bw-drp-month__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-block-end: var(--bw-space-3);
+  }
+
+  .bw-drp-month__label {
+    font: inherit;
+    font-size: var(--bw-font-size-sm);
+    font-weight: var(--bw-font-weight-semibold);
+    color: var(--bw-color-fg);
+  }
+
+  .bw-drp-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: var(--bw-radius-md);
+    background: transparent;
+    color: var(--bw-color-fg-muted);
+    cursor: pointer;
+  }
+
+  .bw-drp-nav-btn:hover {
+    background: var(--bw-state-hover-overlay);
+  }
+
+  .bw-drp-nav-btn:focus-visible {
+    outline: var(--bw-focus-ring-width) var(--bw-focus-ring-style) var(--bw-color-focus-ring);
+    outline-offset: var(--bw-focus-ring-offset);
+  }
+
+  .bw-drp-nav-btn[hidden] {
+    visibility: hidden;
+  }
+
+  .bw-drp-grid {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .bw-drp-grid th {
+    /* fg-subtle measured 2.61:1 (light) / 3.38:1 (dark) here too, the same
+       failure the outside-month day fix above documents: fg-muted is the
+       token that actually clears 4.5:1 in both themes. Missed in that first
+       pass because the single-month axe run (one grid, one header row) does
+       not exercise the second month's header at all; only the two-month
+       range view renders it, which is what caught this. */
+    font-size: var(--bw-font-size-xs);
+    font-weight: var(--bw-font-weight-medium);
+    color: var(--bw-color-fg-muted);
+    padding-block-end: var(--bw-space-1);
+  }
+
+  .bw-drp-grid td {
+    padding: 1px;
+    text-align: center;
+  }
+
+  .bw-drp-day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin: 0 auto;
+    border: var(--bw-size-border-hairline) solid transparent;
+    border-radius: var(--bw-radius-md);
+    background: transparent;
+    color: var(--bw-color-fg);
+    font: inherit;
+    font-size: var(--bw-font-size-sm);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .bw-drp-day:hover:not([aria-disabled="true"]) {
+    background: var(--bw-state-hover-overlay);
+  }
+
+  .bw-drp-day:focus-visible {
+    outline: var(--bw-focus-ring-width) var(--bw-focus-ring-style) var(--bw-color-focus-ring);
+    outline-offset: 1px;
+  }
+
+  /* Today: a ring, never colour alone, plus aria-current="date" in the markup. */
+  .bw-drp-day[data-bw-today] {
+    border-color: var(--bw-color-accent);
+    border-style: dashed;
+    font-weight: var(--bw-font-weight-semibold);
+  }
+
+  /* In-range: a tinted background, plus the live region announces entry. */
+  .bw-drp-day[data-bw-in-range] {
+    background: var(--bw-color-accent-subtle);
+    border-radius: 0;
+  }
+
+  /* Endpoint (start or end): filled, plus aria-selected/aria-label carry it
+     non-visually too. */
+  .bw-drp-day[data-bw-endpoint] {
+    background: var(--bw-color-accent);
+    color: var(--bw-color-fg-on-accent);
+    font-weight: var(--bw-font-weight-semibold);
+  }
+
+  .bw-drp-day[data-bw-endpoint="start"] {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .bw-drp-day[data-bw-endpoint="end"] {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+
+  /* Keyboard/hover PREVIEW of the prospective range, before the second
+     endpoint is committed: a lighter tint than the committed in-range fill,
+     so the two are visually distinct as well as behaviourally distinct. */
+  .bw-drp-day[data-bw-preview] {
+    background: color-mix(in oklab, var(--bw-color-accent-subtle) 55%, var(--bw-color-surface));
+    border-radius: 0;
+  }
+
+  /* Disabled: dimmed text/fill, aria-disabled, unreachable (tabindex -1, so
+     Tab/Shift+Tab never land on it either; arrow-key movement below
+     explicitly skips disabled cells).
+
+     Dims colour and background via color-mix, NOT the element's own opacity:
+     opacity dims the whole rendered element, including border-color, which
+     is wrong the moment a disabled day is ALSO today (a real, if unusual,
+     configuration: today falls on a masked weekend or an explicit
+     disabledDates entry). Measured with opacity: the dashed today ring fell
+     to 2.13:1 (light) / 2.57:1 (dark) against the 3:1 UI-component floor.
+     "Today" is a separate semantic layered on top of "disabled", not the
+     disabled state's own indicator, so it does not fall under the same
+     inactive-component exemption disabled TEXT gets (WCAG 1.4.3): a sighted
+     user should still be able to see which day is today even when it cannot
+     be selected. aria-current="date" already carries this for screen-reader
+     users regardless of the ring's visual strength.
+
+     calc(var(--bw-component-disabled-opacity) * 100%) turns the existing
+     scalar opacity token into the color-mix percentage, so the dimming
+     amount still comes from one token rather than a second hard-coded
+     number. */
+  .bw-drp-day[aria-disabled="true"] {
+    color: color-mix(in oklab, var(--bw-color-fg) calc(var(--bw-component-disabled-opacity) * 100%), var(--bw-color-surface-raised));
+    cursor: not-allowed;
+  }
+
+  .bw-drp-day[aria-disabled="true"][data-bw-endpoint],
+  .bw-drp-day[aria-disabled="true"][data-bw-in-range],
+  .bw-drp-day[aria-disabled="true"][data-bw-preview] {
+    background: color-mix(in oklab, var(--bw-color-accent-subtle) calc(var(--bw-component-disabled-opacity) * 100%), var(--bw-color-surface-raised));
+  }
+
+  /* The ring itself stays at full strength (border-color untouched above):
+     today's meaning survives being disabled. */
+  .bw-drp-day[aria-disabled="true"][data-bw-today] {
+    font-weight: var(--bw-font-weight-semibold);
+  }
+
+  /* fg-subtle measured 2.61:1 (light) / 3.38:1 (dark) against the popover
+     background, well under the 4.5:1 text floor: these cells are focusable
+     and interactive (adjacent-month days remain selectable), so no inactive-
+     component exemption applies. fg-muted is the next --bw-* step up and
+     clears 4.5:1 in both themes (5.82:1 light, 6.68:1 dark); no new token
+     invented. */
+  .bw-drp-day--outside {
+    color: var(--bw-color-fg-muted);
+  }
+
+  .bw-drp-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-block-start: var(--bw-space-3);
+    padding-block-start: var(--bw-space-3);
+    border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  }
+
+  .bw-drp-clear {
+    border: 0;
+    background: transparent;
+    color: var(--bw-color-fg-muted);
+    font: inherit;
+    font-size: var(--bw-font-size-sm);
+    text-decoration: underline;
+    cursor: pointer;
+    padding: var(--bw-space-1) 0;
+  }
+
+  .bw-drp-clear:focus-visible {
+    outline: var(--bw-focus-ring-width) var(--bw-focus-ring-style) var(--bw-color-focus-ring);
+    outline-offset: var(--bw-focus-ring-offset);
+  }
+
+  .bw-drp-status {
+    /* Visually hidden live region: announces the visible month/year and
+       range-preview changes without a visible element (WCAG 4.1.3). */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Two-month view is the default at rest; it collapses to one month plus
+     navigation under 48rem (the risk width the brief calls out for sideways
+     scroll: at 320-414px wide, two 17rem months plus the preset rail cannot
+     fit, so the second month is removed from the DOM flow entirely rather
+     than shrunk, and the single visible month gains its own prev/next pair
+     that already exists in the markup below). */
+  @media (max-width: 48rem) {
+    .bw-drp-layout {
+      flex-direction: column;
+    }
+
+    .bw-drp-presets {
+      flex-direction: row;
+      flex-wrap: wrap;
+      border-inline-end: 0;
+      border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+      padding-inline-end: 0;
+      padding-block-end: var(--bw-space-3);
+      min-width: 0;
+    }
+
+    .bw-drp-month--secondary {
+      display: none;
+    }
+
+    .bw-drp-popover {
+      inset-inline-start: 50%;
+      transform: translateX(-50%);
+      max-width: calc(100vw - var(--bw-space-4));
+    }
+
+    /* Shrink the single visible month itself, not just hide the second one:
+       at 320px (the narrowest tested width) a 17rem month plus the popover's
+       own padding leaves ZERO margin against max-width, a fit exact enough
+       to break from box-sizing/scrollbar variance alone. 14rem (7 columns at
+       2rem, down from 2.25rem) plus a correspondingly narrower month column
+       leaves genuine headroom at every tested width (320/360/375/414px). */
+    .bw-drp-month {
+      width: 14rem;
+    }
+
+    .bw-drp-day {
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  The localisation data as JSON, read by BOTH x-data instances below (each
+  reads the same three script tags at init, see readJsonScript in the <script>
+  block at the foot of this file). json_script is the safe route for a list
+  into a script context (BR-BW conventions use |escapejs for a single string
+  value in x-data, e.g. _tabs.html; json_script is the equivalent for a whole
+  array so the JS parses real JSON rather than this template hand-building
+  array literal syntax).
+
+  {% if var is not None %}, never |default and never {% firstof %}, for all
+  three. |default substitutes for a genuinely-supplied-but-FALSY value, which
+  matters here in a way it does not for base.html's own firstof usage (strings
+  like bw_lang): a real, supplied bw_drp_first_day of 0 (Sunday, the
+  FIRST_DAY_OF_WEEK for en-US/en-GB alike) is falsy, and an empty-but-supplied
+  label list is falsy too, so |default would discard both. {% firstof %} has
+  the SAME truthiness problem (it also picks the first TRUTHY value) and,
+  worse, it re-renders whatever it captures as a STRING before handing it to
+  json_script, which serialises a real list into a JSON string containing
+  Python's str(list) rather than a JSON array (verified: {% firstof x '' as y
+  %}{{ y|json_script }} loses the array shape entirely). {% if var is not
+  None %} avoids all three traps: it treats a real 0 or an empty list as
+  present, it treats a genuinely undefined variable as absent WITHOUT ever
+  rendering a string_if_invalid marker (unlike direct {{ var }} interpolation,
+  {% if %} resolves an undefined variable to Django's own sentinel rather than
+  string_if_invalid), and json_script only ever receives the untouched
+  original object.
+  {% endcomment %}
+  {% if bw_drp_weekday_labels is not None %}{{ bw_drp_weekday_labels|json_script:"bw-drp-weekday-labels" }}{% else %}<script id="bw-drp-weekday-labels" type="application/json">[]</script>{% endif %}
+  {% if bw_drp_month_labels is not None %}{{ bw_drp_month_labels|json_script:"bw-drp-month-labels" }}{% else %}<script id="bw-drp-month-labels" type="application/json">[]</script>{% endif %}
+  {% if bw_drp_first_day is not None %}{{ bw_drp_first_day|json_script:"bw-drp-first-day" }}{% else %}<script id="bw-drp-first-day" type="application/json">null</script>{% endif %}
+
+  {% comment %}
+  ---------------------------------------------------------------------------
+  RANGE MODE: two native <input type="date">, always the submitted controls.
+  ---------------------------------------------------------------------------
+  {% endcomment %}
+  <form method="get" action="{{ request.path }}">
+    <div class="bw-field">
+      <span class="bw-field__label" id="bw-drp-range-legend">Date raised</span>
+      {% comment %}
+      CONSTRAINTS (Phase 3), edited directly here rather than passed from the
+      view: unlike the localisation data above, min/max/disabled dates/weekend
+      masking are THIS FIELD's own business rule, not translated copy, so they
+      belong in the file you now own. All four are optional; delete any you do
+      not need.
+        min / max            ISO date strings ("2026-01-01"); either or both.
+        disabledDates         an array of ISO date strings, individually
+                               disabled (e.g. public holidays).
+        disableWeekends       true disables Saturday/Sunday throughout.
+      Every disabled day is unselectable by pointer AND keyboard-unreachable
+      (arrow-key movement skips over it entirely) AND announced ", Unavailable"
+      by its aria-label, never conveyed by dimmed colour alone (WCAG 1.4.1).
+      {% endcomment %}
+      <div class="bw-field__control bw-drp-range-row"
+           x-data="bwDateRangePicker({
+             min: '',
+             max: '',
+             disabledDates: [],
+             disableWeekends: false
+           })">
+
+        <div class="bw-drp-field">
+          <span class="bw-visually-hidden" id="bw-drp-start-label">Start date</span>
+          <input type="date"
+                 class="bw-input bw-drp-field__input"
+                 id="id_start_date"
+                 name="start_date"
+                 aria-labelledby="bw-drp-range-legend bw-drp-start-label"
+                 aria-describedby="bw-drp-range-help"
+                 x-ref="startInput"
+                 x-model="startValue"
+                 @change="onFloorChange('start')">
+          <button type="button"
+                  class="bw-drp-trigger"
+                  aria-label="Choose start date"
+                  aria-haspopup="dialog"
+                  :aria-expanded="open ? 'true' : 'false'"
+                  x-ref="startTrigger"
+                  @click="toggle('start')">
+            {% bw_icon "calendar" decorative=True %}
+          </button>
+        </div>
+
+        <span aria-hidden="true">&ndash;</span>
+
+        <div class="bw-drp-field">
+          <span class="bw-visually-hidden" id="bw-drp-end-label">End date</span>
+          <input type="date"
+                 class="bw-input bw-drp-field__input"
+                 id="id_end_date"
+                 name="end_date"
+                 aria-labelledby="bw-drp-range-legend bw-drp-end-label"
+                 aria-describedby="bw-drp-range-help"
+                 x-ref="endInput"
+                 x-model="endValue"
+                 @change="onFloorChange('end')">
+          <button type="button"
+                  class="bw-drp-trigger"
+                  aria-label="Choose end date"
+                  aria-haspopup="dialog"
+                  :aria-expanded="open ? 'true' : 'false'"
+                  x-ref="endTrigger"
+                  @click="toggle('end')">
+            {% bw_icon "calendar" decorative=True %}
+          </button>
+
+          {% comment %}
+          One popover markup, shown beside whichever trigger opened it
+          (positioned in JS by moving focus/aria only; the DOM position stays
+          here so both fields can share one instance rather than duplicating
+          the whole grid twice in markup that never both show at once).
+          {% endcomment %}
+          <div class="bw-drp-popover"
+               role="dialog"
+               aria-modal="true"
+               aria-label="Choose dates"
+               x-ref="popover"
+               x-show="open"
+               x-trap.noscroll.noautofocus="open"
+               @keydown.escape="closePopover()"
+               @click.outside="closePopover()"
+               style="display:none">
+
+            <div class="bw-drp-layout">
+              <div class="bw-drp-presets" role="group" aria-label="Date presets">
+                <template x-for="preset in presets" :key="preset.key">
+                  <button type="button"
+                          class="bw-drp-preset"
+                          :aria-label="preset.label + ': ' + preset.describe()"
+                          @click="applyPreset(preset)"
+                          x-text="preset.label"></button>
+                </template>
+              </div>
+
+              <div class="bw-drp-months">
+                <div class="bw-drp-month">
+                  <div class="bw-drp-month__header">
+                    <button type="button" class="bw-drp-nav-btn" aria-label="Previous month" @click="shiftMonth(-1)">
+                      {% bw_icon "chevron-back" decorative=True %}
+                    </button>
+                    <span class="bw-drp-month__label" x-text="monthLabel(0)"></span>
+                    <button type="button" class="bw-drp-nav-btn" :hidden="twoMonth" aria-label="Next month" @click="shiftMonth(1)">
+                      {% bw_icon "chevron-forward" decorative=True %}
+                    </button>
+                  </div>
+                  <table class="bw-drp-grid" role="grid">
+                    <thead>
+                      <tr>
+                        <template x-for="label in orderedWeekdayLabels" :key="'h0-' + label">
+                          <th scope="col" x-text="label"></th>
+                        </template>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="(week, wi) in monthWeeks(0)" :key="'w' + 0 + '-' + wi">
+                        <tr>
+                          <template x-for="day in week" :key="day.iso">
+                            <td role="presentation">
+                              <button type="button"
+                                      class="bw-drp-day"
+                                      :class="{ 'bw-drp-day--outside': day.outside }"
+                                      :data-bw-iso="day.iso"
+                                      role="gridcell"
+                                      :tabindex="day.disabled ? -1 : (day.tabbable ? 0 : -1)"
+                                      :data-bw-today="day.today ? '' : null"
+                                      :aria-current="day.today ? 'date' : null"
+                                      :aria-disabled="day.disabled ? 'true' : null"
+                                      :data-bw-endpoint="day.endpoint"
+                                      :aria-selected="day.endpoint ? 'true' : null"
+                                      :data-bw-in-range="day.inRange ? '' : null"
+                                      :data-bw-preview="day.inPreview ? '' : null"
+                                      :aria-label="day.label"
+                                      @click="onDayActivate(day.iso, day.disabled)"
+                                      @keydown="onDayKeydown($event, day.iso)"
+                                      @mouseenter="onDayHover(day.iso)"
+                                      x-text="day.dayNum"></button>
+                            </td>
+                          </template>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="bw-drp-month bw-drp-month--secondary" x-show="twoMonth">
+                  <div class="bw-drp-month__header">
+                    <button type="button" class="bw-drp-nav-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">
+                      {% bw_icon "chevron-back" decorative=True %}
+                    </button>
+                    <span class="bw-drp-month__label" x-text="monthLabel(1)"></span>
+                    <button type="button" class="bw-drp-nav-btn" aria-label="Next month" @click="shiftMonth(1)">
+                      {% bw_icon "chevron-forward" decorative=True %}
+                    </button>
+                  </div>
+                  <table class="bw-drp-grid" role="grid">
+                    <thead>
+                      <tr>
+                        <template x-for="label in orderedWeekdayLabels" :key="'h1-' + label">
+                          <th scope="col" x-text="label"></th>
+                        </template>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="(week, wi) in monthWeeks(1)" :key="'w' + 1 + '-' + wi">
+                        <tr>
+                          <template x-for="day in week" :key="day.iso">
+                            <td role="presentation">
+                              <button type="button"
+                                      class="bw-drp-day"
+                                      :class="{ 'bw-drp-day--outside': day.outside }"
+                                      :data-bw-iso="day.iso"
+                                      role="gridcell"
+                                      :tabindex="day.disabled ? -1 : (day.tabbable ? 0 : -1)"
+                                      :data-bw-today="day.today ? '' : null"
+                                      :aria-current="day.today ? 'date' : null"
+                                      :aria-disabled="day.disabled ? 'true' : null"
+                                      :data-bw-endpoint="day.endpoint"
+                                      :aria-selected="day.endpoint ? 'true' : null"
+                                      :data-bw-in-range="day.inRange ? '' : null"
+                                      :data-bw-preview="day.inPreview ? '' : null"
+                                      :aria-label="day.label"
+                                      @click="onDayActivate(day.iso, day.disabled)"
+                                      @keydown="onDayKeydown($event, day.iso)"
+                                      @mouseenter="onDayHover(day.iso)"
+                                      x-text="day.dayNum"></button>
+                            </td>
+                          </template>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="bw-drp-footer">
+              <button type="button" class="bw-drp-clear" @click="clearRange()">Clear dates</button>
+              {% comment %}
+              bw_button has no raw-attribute passthrough (EXT-012 offers
+              class="" only), so the click handler wraps it rather than
+              forking the shipped component: found by real-browser testing
+              that this button was purely decorative, doing nothing on
+              click. Range mode does not auto-close on selecting the end
+              date (a user may want to adjust an endpoint further), so Done
+              is the only affordance that closes it besides Escape/outside
+              click, and it did not work.
+              {% endcomment %}
+              <span @click="closePopover()">{% bw_button "Done" type="button" variant="primary" size="sm" %}</span>
+            </div>
+
+            <div class="bw-drp-status" role="status" aria-live="polite" x-text="statusText"></div>
+          </div>
+        </div>
+      </div>
+      <p class="bw-field__help" id="bw-drp-range-help">
+        Format YYYY-MM-DD. Leave either field blank for an open-ended range.
+      </p>
+    </div>
+
+    <div class="bw-form__actions">
+      {% bw_button "Apply filter" type="submit" variant="primary" %}
+    </div>
+  </form>
+
+  {% comment %}
+  ---------------------------------------------------------------------------
+  SINGLE-DATE MODE: most fields need exactly one date, not a range. Delete
+  the block above and keep this one if that is all you need; it is the same
+  mechanism with one input, one endpoint, and a shorter preset list (Today,
+  Yesterday, This month, Last month: a range-relative preset like "Last 7
+  days" describes a SPAN, which has no meaning for a single date).
+  ---------------------------------------------------------------------------
+  {% endcomment %}
+  <form method="get" action="{{ request.path }}">
+    <div class="bw-field">
+      <label class="bw-field__label" for="id_single_date">Payment due</label>
+      <div class="bw-field__control"
+           x-data="bwDateRangePicker({ singleMode: true })">
+        <div class="bw-drp-field">
+          <input type="date"
+                 class="bw-input bw-drp-field__input"
+                 id="id_single_date"
+                 name="due_date"
+                 aria-describedby="bw-drp-single-help"
+                 x-ref="startInput"
+                 x-model="startValue"
+                 @change="onFloorChange('start')">
+          <button type="button"
+                  class="bw-drp-trigger"
+                  aria-label="Choose payment due date"
+                  aria-haspopup="dialog"
+                  :aria-expanded="open ? 'true' : 'false'"
+                  x-ref="startTrigger"
+                  @click="toggle('start')">
+            {% bw_icon "calendar" decorative=True %}
+          </button>
+
+          <div class="bw-drp-popover"
+               role="dialog"
+               aria-modal="true"
+               aria-label="Choose a date"
+               x-ref="popover"
+               x-show="open"
+               x-trap.noscroll.noautofocus="open"
+               @keydown.escape="closePopover()"
+               @click.outside="closePopover()"
+               style="display:none">
+            <div class="bw-drp-layout">
+              <div class="bw-drp-presets" role="group" aria-label="Date presets">
+                <template x-for="preset in presets" :key="preset.key">
+                  <button type="button"
+                          class="bw-drp-preset"
+                          :aria-label="preset.label + ': ' + preset.describe()"
+                          @click="applyPreset(preset)"
+                          x-text="preset.label"></button>
+                </template>
+              </div>
+
+              <div class="bw-drp-months">
+                <div class="bw-drp-month">
+                  <div class="bw-drp-month__header">
+                    <button type="button" class="bw-drp-nav-btn" aria-label="Previous month" @click="shiftMonth(-1)">
+                      {% bw_icon "chevron-back" decorative=True %}
+                    </button>
+                    <span class="bw-drp-month__label" x-text="monthLabel(0)"></span>
+                    <button type="button" class="bw-drp-nav-btn" aria-label="Next month" @click="shiftMonth(1)">
+                      {% bw_icon "chevron-forward" decorative=True %}
+                    </button>
+                  </div>
+                  <table class="bw-drp-grid" role="grid">
+                    <thead>
+                      <tr>
+                        <template x-for="label in orderedWeekdayLabels" :key="'sh-' + label">
+                          <th scope="col" x-text="label"></th>
+                        </template>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="(week, wi) in monthWeeks(0)" :key="'w' + 0 + '-' + wi">
+                        <tr>
+                          <template x-for="day in week" :key="day.iso">
+                            <td role="presentation">
+                              <button type="button"
+                                      class="bw-drp-day"
+                                      :class="{ 'bw-drp-day--outside': day.outside }"
+                                      :data-bw-iso="day.iso"
+                                      role="gridcell"
+                                      :tabindex="day.disabled ? -1 : (day.tabbable ? 0 : -1)"
+                                      :data-bw-today="day.today ? '' : null"
+                                      :aria-current="day.today ? 'date' : null"
+                                      :aria-disabled="day.disabled ? 'true' : null"
+                                      :data-bw-endpoint="day.endpoint"
+                                      :aria-selected="day.endpoint ? 'true' : null"
+                                      :data-bw-in-range="day.inRange ? '' : null"
+                                      :data-bw-preview="day.inPreview ? '' : null"
+                                      :aria-label="day.label"
+                                      @click="onDayActivate(day.iso, day.disabled)"
+                                      @keydown="onDayKeydown($event, day.iso)"
+                                      @mouseenter="onDayHover(day.iso)"
+                                      x-text="day.dayNum"></button>
+                            </td>
+                          </template>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="bw-drp-footer">
+              <button type="button" class="bw-drp-clear" @click="clearRange()">Clear date</button>
+              {% comment %}Same fix as the range footer above: Done otherwise did nothing on click.{% endcomment %}
+              <span @click="closePopover()">{% bw_button "Done" type="button" variant="primary" size="sm" %}</span>
+            </div>
+
+            <div class="bw-drp-status" role="status" aria-live="polite" x-text="statusText"></div>
+          </div>
+        </div>
+      </div>
+      <p class="bw-field__help" id="bw-drp-single-help">Format YYYY-MM-DD.</p>
+    </div>
+
+    <div class="bw-form__actions">
+      {% bw_button "Save" type="submit" variant="primary" %}
+    </div>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block body_js %}
+{% comment %}
+This component is NOT registered through registerBrickworkComponents: it is
+not a shipped brickwork behaviour, so it never touches frontend/src/js or the
+package's Alpine registration hook. It defines its own Alpine.data() the
+moment Alpine parses this <script>, exactly like any other project-owned
+component you would write yourself. Load Alpine (with the focus plugin, for
+the popover's focus trap) BEFORE this block runs, per base.html's own
+documented load order.
+
+Everything below is plain, dependency-free JavaScript: Date arithmetic only,
+no Moment/date-fns/Luxon, no calendar widget library. Month/weekday NAMES
+never originate here: they arrive as bw_drp_month_labels / bw_drp_weekday_labels,
+already resolved server-side through django.utils.dates against the active
+language, exactly like frontend/src/js/combobox.js's own i18n doctrine.
+{% endcomment %}
+<script>
+(function () {
+  "use strict";
+
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function toISO(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function fromISO(s) {
+    if (!s) return null;
+    var parts = s.split("-");
+    if (parts.length !== 3) return null;
+    var d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function sameDay(a, b) { return !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+  function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function addDays(d, n) { var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+  function addMonths(d, n) { var r = new Date(d); r.setMonth(r.getMonth() + n); return r; }
+  function addYears(d, n) { var r = new Date(d); r.setFullYear(r.getFullYear() + n); return r; }
+
+  // Reads one of the three json_script blocks the template renders once, near
+  // the top of the page content. Server-rendered so no month/weekday name
+  // ever originates in this file (frontend/src/js/combobox.js's own i18n
+  // doctrine, applied here): a view that forgets to supply
+  // bw_drp_weekday_labels/bw_drp_month_labels gets an EMPTY array back, not an
+  // invented English fallback, which the grid then renders as blank header
+  // cells and blank month labels: an honest, visible failure rather than a
+  // silent wrong-language one.
+  function readJsonScript(id) {
+    var node = document.getElementById(id);
+    if (!node) return null;
+    try {
+      var value = JSON.parse(node.textContent);
+      return value === "" ? null : value;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  document.addEventListener("alpine:init", function () {
+    window.Alpine.data("bwDateRangePicker", function (config) {
+      config = config || {};
+      var l10nFirstDay = readJsonScript("bw-drp-first-day");
+      var l10nWeekdayLabels = readJsonScript("bw-drp-weekday-labels");
+      var l10nMonthLabels = readJsonScript("bw-drp-month-labels");
+      var firstDay = typeof l10nFirstDay === "number" ? l10nFirstDay : 0; // 0=Sunday, Django's FIRST_DAY_OF_WEEK
+      var weekdayLabelsMondayFirst = Array.isArray(l10nWeekdayLabels) && l10nWeekdayLabels.length === 7
+        ? l10nWeekdayLabels
+        : ["", "", "", "", "", "", ""];
+      var monthLabels = Array.isArray(l10nMonthLabels) && l10nMonthLabels.length === 12
+        ? l10nMonthLabels
+        : ["", "", "", "", "", "", "", "", "", "", "", ""];
+      var singleMode = config.singleMode === true;
+
+      // Rotate the fixed Monday-first array so index 0 is whatever the
+      // active locale's week actually starts on. WEEKDAYS_ABBR is Monday=0
+      // regardless of locale; FIRST_DAY_OF_WEEK (0=Sunday) says where the
+      // grid should actually begin, so the two must be combined here.
+      var mondayIndexOfFirstDay = (firstDay + 6) % 7; // Sunday(0)->6, Monday(1)->0, ...
+      var orderedLabels = weekdayLabelsMondayFirst
+        .slice(mondayIndexOfFirstDay)
+        .concat(weekdayLabelsMondayFirst.slice(0, mondayIndexOfFirstDay));
+
+      return {
+        open: false,
+        activeField: "start",
+        singleMode: singleMode,
+        twoMonth: !singleMode,
+        startValue: "",
+        endValue: "",
+        viewMonth: startOfDay(new Date()),
+        previewDate: null,
+        focusedDate: null,
+        statusText: "",
+        orderedWeekdayLabels: orderedLabels,
+        minDate: config.min ? fromISO(config.min) : null,
+        maxDate: config.max ? fromISO(config.max) : null,
+        disabledISO: Array.isArray(config.disabledDates) ? config.disabledDates : [],
+        disableWeekends: config.disableWeekends === true,
+
+        get presets() {
+          var self = this;
+          var today = startOfDay(new Date());
+          function preset(key, label, range) {
+            return {
+              key: key,
+              label: label,
+              range: range,
+              describe: function () {
+                var r = range();
+                return self.singleMode ? toISO(r[0]) : (toISO(r[0]) + " to " + toISO(r[1]));
+              },
+            };
+          }
+          var all = [
+            preset("today", "Today", function () { return [today, today]; }),
+            preset("yesterday", "Yesterday", function () { var y = addDays(today, -1); return [y, y]; }),
+            preset("last7", "Last 7 days", function () { return [addDays(today, -6), today]; }),
+            preset("last30", "Last 30 days", function () { return [addDays(today, -29), today]; }),
+            preset("thisMonth", "This month", function () {
+              return [new Date(today.getFullYear(), today.getMonth(), 1), new Date(today.getFullYear(), today.getMonth() + 1, 0)];
+            }),
+            preset("lastMonth", "Last month", function () {
+              var s = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+              return [s, new Date(s.getFullYear(), s.getMonth() + 1, 0)];
+            }),
+            preset("thisYear", "This year", function () {
+              return [new Date(today.getFullYear(), 0, 1), new Date(today.getFullYear(), 11, 31)];
+            }),
+          ];
+          // Single mode: only presets describing ONE day, plus This/Last
+          // month collapsed to their first day (a span preset has no
+          // meaning for a single-date field).
+          if (this.singleMode) {
+            return [all[0], all[1],
+              preset("thisMonthStart", "This month", function () { return [new Date(today.getFullYear(), today.getMonth(), 1)]; }),
+              preset("lastMonthStart", "Last month", function () { var s = new Date(today.getFullYear(), today.getMonth() - 1, 1); return [s]; }),
+            ];
+          }
+          return all;
+        },
+
+        init() {
+          this.startValue = this.$refs.startInput.value || "";
+          if (!this.singleMode) this.endValue = this.$refs.endInput.value || "";
+          var seed = fromISO(this.startValue) || startOfDay(new Date());
+          this.viewMonth = new Date(seed.getFullYear(), seed.getMonth(), 1);
+        },
+
+        toggle(field) {
+          this.activeField = field;
+          if (this.open) { this.closePopover(); return; }
+          var iso = field === "start" ? this.startValue : this.endValue;
+          var seed = fromISO(iso) || fromISO(this.startValue) || startOfDay(new Date());
+          this.viewMonth = new Date(seed.getFullYear(), seed.getMonth(), 1);
+          this.focusedDate = seed;
+          // Explicit, not relied-on-by-click: x-trap's own default initial
+          // focus is "the first tabbable node inside the popover", which in
+          // this markup is the FIRST PRESET BUTTON, not the day grid (the
+          // presets render before the months in DOM order): confirmed by
+          // running this in a real browser, not assumed from reading the
+          // library source. x-trap.noscroll.noautofocus="open" therefore
+          // disables the trap's own initial-focus placement entirely
+          // (options.initialFocus = false), so there is nothing left for our
+          // own focus calls to race: the trap does nothing with focus on
+          // open, only on close (its returnFocus default, see closePopover).
+          //
+          // The trigger is focused explicitly here, before opening, for the
+          // SAME reason as before: nodeFocusedBeforeActivation (what close
+          // restores focus to) is captured at trap.activate() time from
+          // whatever the browser's DOM currently has focused, and a plain
+          // click focusing the button is a Chromium default this file
+          // should not depend on (Safari's click-focus behaviour differs).
+          var trigger = field === "start" ? this.$refs.startTrigger : this.$refs.endTrigger;
+          if (trigger) trigger.focus();
+          this.open = true;
+          // Focus INTO the grid (the roving-tabindex day) after Alpine has
+          // patched the DOM for this open state. noautofocus means nothing
+          // else is competing for focus here, so a plain $nextTick is
+          // correct: no artificial delay is being tuned against the trap's
+          // internal 15ms activate() timer, because that timer no longer
+          // touches focus at all.
+          // popoverEl is captured as a PLAIN variable here, not read via
+          // this.$refs inside the deferred callback below: Alpine's $refs is
+          // a magic property injected fresh into each expression's own
+          // evaluation context, not a persistent property of the component
+          // object, so this.$refs is undefined by the time a $nextTick
+          // callback actually runs (confirmed via a real browser: this threw
+          // "Cannot read properties of undefined (reading \'querySelector\')"
+          // inside Alpine's releaseNextTicks, silently swallowed by Alpine so
+          // no error surfaced anywhere except the page's own error listener,
+          // which is exactly why the original bug looked like "focus just
+          // never moves" with no visible cause). A closed-over local plain
+          // variable has no such lifetime problem.
+          var popoverEl = this.$refs.popover;
+          this.$nextTick(function () {
+            var target = popoverEl.querySelector('.bw-drp-day[tabindex="0"]');
+            if (target) target.focus();
+          });
+        },
+
+        closePopover() {
+          // Idempotent: onDayKeydown's own Escape case calls this directly
+          // AND the popover's @keydown.escape="closePopover()" also fires
+          // from the same keypress (the day button's keydown bubbles to the
+          // popover), so this runs twice per Escape press.
+          if (!this.open) return;
+          // Focus restoration is OURS, not x-trap's, and getting here took
+          // three wrong turns in a real browser, so the reasoning for the
+          // one that actually works is recorded in full:
+          //
+          // Attempt 1: let x-trap's own releaseFocus() (its documented
+          // returnFocus default, fired from its own reactive watch on the
+          // "open" expression) restore focus. Failed even on a fresh open
+          // with no prior navigation: x-show="open" watches the SAME "open"
+          // expression on the SAME element via its OWN independent effect,
+          // with no ordering guarantee against x-trap's effect. Verified by
+          // polling document.activeElement immediately after setting
+          // open = false: focus was ALREADY <body> at the very first sample,
+          // before x-trap's deactivate() (itself a further setTimeout(0)
+          // inside the library) had any chance to run. A browser
+          // synchronously blurs a focused element the instant it is hidden
+          // (x-show sets display:none), beating x-trap's restore every time.
+          //
+          // Attempt 2: focus the trigger BEFORE setting open = false, on the
+          // theory that Alpine's effects run on the microtask queue, never
+          // synchronously inline with the assignment that triggers them, so
+          // this focus call would land before either x-show or x-trap's
+          // effects ran. This is true, but irrelevant: x-trap's OWN
+          // checkFocusIn listener is a live, synchronous `focusin` handler
+          // registered on `document` for as long as the trap is state.active
+          // (still true at this point, since open has not been reassigned
+          // yet), and the trigger button sits OUTSIDE the popover it traps.
+          // checkFocusIn saw the trigger as an out-of-container focus event
+          // and forcibly redirected focus back into the (still active) trap,
+          // onto whichever day the trap's own findNextNavNode logic picked,
+          // confirmed by logging every focus() call: the trigger WAS
+          // focused, then something else refocused a day cell 0.3ms later.
+          //
+          // What works: focus the trigger AFTER setting open = false, via
+          // $nextTick, not immediately. $nextTick's callback release is
+          // deliberately delayed past a queueMicrotask-wrapped setTimeout
+          // (see Alpine's own nextTick.js), which is specifically what makes
+          // it run after ALL of Alpine's own effects (x-show's hide AND
+          // x-trap's deactivate, both scheduled via the same
+          // queueMicrotask(flushJobs) mechanism as every other reactive
+          // effect) have already completed for this tick: by the time this
+          // callback runs, the trap is no longer state.active, so
+          // checkFocusIn no longer exists to fight this call, and x-show has
+          // already hidden the popover so there is no longer a focused
+          // element inside it to blur. Verified in a real browser across a
+          // fresh open AND after extensive prior keyboard navigation.
+          var trigger = this.activeField === "start" ? this.$refs.startTrigger : this.$refs.endTrigger;
+          this.open = false;
+          this.$nextTick(function () {
+            if (trigger) trigger.focus();
+          });
+        },
+
+        onFloorChange(field) {
+          // The native input is the source of truth even with JS running:
+          // typing a value directly must be reflected exactly like a grid
+          // click would (progressive enhancement stays two-way).
+          if (field === "start") this.startValue = this.$refs.startInput.value || "";
+          else this.endValue = this.$refs.endInput.value || "";
+        },
+
+        clearRange() {
+          this.startValue = "";
+          if (!this.singleMode) this.endValue = "";
+          this.statusText = this.singleMode ? "Date cleared" : "Dates cleared";
+        },
+
+        monthLabel(offset) {
+          var m = addMonths(this.viewMonth, offset);
+          return monthLabels[m.getMonth()] + " " + m.getFullYear();
+        },
+
+        shiftMonth(delta) {
+          this.viewMonth = addMonths(this.viewMonth, delta);
+          this.statusText = this.monthLabel(0) + (this.twoMonth ? " to " + this.monthLabel(1) : "");
+        },
+
+        _isDisabled(d) {
+          if (this.minDate && d < this.minDate) return true;
+          if (this.maxDate && d > this.maxDate) return true;
+          if (this.disableWeekends && (d.getDay() === 0 || d.getDay() === 6)) return true;
+          if (this.disabledISO.indexOf(toISO(d)) !== -1) return true;
+          return false;
+        },
+
+        _rangeBounds() {
+          var s = fromISO(this.startValue);
+          var e = this.singleMode ? null : fromISO(this.endValue);
+          if (s && e && e < s) { var t = s; s = e; e = t; } // swap on inverted selection
+          return [s, e];
+        },
+
+        // Returns one month as an array of week-arrays of plain day objects
+        // (NOT a rendered HTML string): the template loops this with x-for,
+        // keyed on day.iso, so Alpine PATCHES existing <button> elements in
+        // place when the same days re-render (moving focus within a visible
+        // month) rather than destroying and rebuilding the whole <tbody> on
+        // every keypress. That DOM-node stability is load-bearing, not a
+        // style preference: this file used to build the grid as an HTML
+        // STRING via x-html, which replaced every button on every arrow key,
+        // including the currently-focused one; @alpinejs/focus's x-trap runs
+        // a MutationObserver that detects the focused node's removal and
+        // yanks focus back to the trap's own initial-focus node, so a second
+        // keypress had nothing to reach (the DOM's real focus had silently
+        // moved to whatever x-trap picked, not the day the user last pressed
+        // an arrow on). x-for keeps the same button alive across a re-render
+        // of the SAME visible days, which is what makes focus survive.
+        monthWeeks(offset) {
+          var month = addMonths(this.viewMonth, offset);
+          var year = month.getFullYear();
+          var mi = month.getMonth();
+          var firstOfMonth = new Date(year, mi, 1);
+          var startWeekday = (firstOfMonth.getDay() - firstDay + 7) % 7;
+          var gridStart = addDays(firstOfMonth, -startWeekday);
+          var today = startOfDay(new Date());
+          var bounds = this._rangeBounds();
+          var start = bounds[0];
+          var end = bounds[1];
+          var previewEnd = this.previewDate;
+          var isDisabled = this._isDisabled.bind(this);
+          var focused = this.focusedDate;
+          var tabbableAssigned = false;
+          var weeks = [];
+          var cell = gridStart;
+          for (var week = 0; week < 6; week++) {
+            var days = [];
+            for (var day = 0; day < 7; day++) {
+              var d = cell;
+              var outside = d.getMonth() !== mi;
+              var disabled = isDisabled(d);
+              var isToday = sameDay(d, today);
+              var isStart = start && sameDay(d, start);
+              var isEnd = end && sameDay(d, end);
+              var inRange = start && end && d > start && d < end;
+              var inPreview = !inRange && !isStart && !isEnd && start && !end && previewEnd &&
+                ((d > start && d <= previewEnd) || (d < start && d >= previewEnd));
+              var iso = toISO(d);
+              var label = monthLabels[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() +
+                (isToday ? ", Today" : "") +
+                (isStart ? ", Start date" : "") +
+                (isEnd ? ", End date" : "") +
+                (disabled ? ", Unavailable" : "");
+              var tabbable = false;
+              // !outside matters here: in the two-month view the SAME
+              // calendar date is rendered twice (September's trailing days
+              // are also October's leading spillover days for grid
+              // completeness), each as its own real <button> with its own
+              // data-bw-iso. Without the outside-month guard, BOTH grids
+              // independently searched their own days for a match against
+              // focusedDate and both assigned tabindex="0" to their own
+              // copy: two live tabindex="0" cells for one calendar day,
+              // breaking the roving-tabindex widget's single-active-cell
+              // contract (confirmed in a real browser: PageDown from late
+              // August lands on 2026-09-30, which exists as an in-month
+              // cell in September's grid AND as an outside-month cell in
+              // October's grid; both received tabindex="0" before this
+              // guard). Restricting the match to the day's own in-month
+              // cell keeps exactly one tabbable cell across the whole
+              // two-grid widget, matching the single grid's own PageUp/
+              // PageDown month-shift, which always resolves focusedDate to
+              // its true month via viewMonth already.
+              if (!disabled && !outside && !tabbableAssigned) {
+                var candidateMatch = false;
+                if (focused && sameDay(d, focused)) candidateMatch = true;
+                if (!focused && isStart) candidateMatch = true;
+                if (candidateMatch) { tabbable = true; tabbableAssigned = true; }
+              }
+              days.push({
+                iso: iso,
+                dayNum: d.getDate(),
+                outside: outside,
+                disabled: disabled,
+                today: isToday,
+                endpoint: isStart ? "start" : (isEnd ? "end" : null),
+                inRange: inRange,
+                inPreview: inPreview,
+                label: label,
+                tabbable: tabbable,
+              });
+              cell = addDays(cell, 1);
+            }
+            weeks.push(days);
+            if (cell.getMonth() !== mi && week >= 3) break; // stop once the next month has fully started
+          }
+
+          return weeks;
+        },
+
+        onDayHover(iso) {
+          if (!this.singleMode && this.startValue && !this.endValue) {
+            this.previewDate = fromISO(iso);
+          }
+        },
+
+        onDayKeydown(event, iso) {
+          var current = fromISO(iso) || startOfDay(new Date());
+          var next = null;
+          switch (event.key) {
+            case "ArrowRight": next = addDays(current, 1); break;
+            case "ArrowLeft": next = addDays(current, -1); break;
+            case "ArrowDown": next = addDays(current, 7); break;
+            case "ArrowUp": next = addDays(current, -7); break;
+            case "Home": next = addDays(current, -((current.getDay() - firstDay + 7) % 7)); break;
+            case "End": next = addDays(current, 6 - ((current.getDay() - firstDay + 7) % 7)); break;
+            case "PageUp":
+              next = event.shiftKey ? addYears(current, -1) : addMonths(current, -1);
+              break;
+            case "PageDown":
+              next = event.shiftKey ? addYears(current, 1) : addMonths(current, 1);
+              break;
+            case "Enter":
+            case " ":
+              event.preventDefault();
+              this.onDayActivate(iso, this._isDisabled(current));
+              return;
+            case "Escape":
+              event.preventDefault();
+              this.closePopover();
+              return;
+            default:
+              return;
+          }
+          event.preventDefault();
+          if (this._isDisabled(next)) return; // disabled days are keyboard-unreachable
+          this.focusedDate = next;
+          if (next.getMonth() !== this.viewMonth.getMonth() || next.getFullYear() !== this.viewMonth.getFullYear()) {
+            this.viewMonth = new Date(next.getFullYear(), next.getMonth(), 1);
+          }
+          if (!this.singleMode && this.startValue && !this.endValue) this.previewDate = next;
+          this.statusText = monthLabels[next.getMonth()] + " " + next.getFullYear();
+          // THE keyboard-navigation-breaks-after-one-keypress defect lived
+          // here: this.$refs inside a $nextTick callback is undefined by the
+          // time the callback runs (see toggle()'s comment above for why),
+          // so target was never resolved, target.focus() never ran, and
+          // whichever day this replaced (removed from the DOM by the
+          // reactive re-render every keypress triggers) lost focus to the
+          // browser's own default: <body>. The SECOND keypress then reached
+          // no keydown handler at all, because nothing inside the popover
+          // had focus any more. Confirmed with a real browser: Alpine
+          // silently swallows the "Cannot read properties of undefined"
+          // this threw inside its own releaseNextTicks, so nothing surfaced
+          // except the symptom. popoverEl (a closed-over plain variable, not
+          // a $refs read inside the deferred callback) fixes it the same way
+          // toggle() is fixed above.
+          var popoverEl = this.$refs.popover;
+          this.$nextTick(function () {
+            var target = popoverEl.querySelector('[data-bw-iso="' + toISO(next) + '"]');
+            if (target) target.focus();
+          });
+        },
+
+        onDayActivate(iso, disabled) {
+          if (disabled) return;
+          var d = fromISO(iso);
+          this.focusedDate = d;
+          if (this.singleMode) {
+            this.startValue = iso;
+            this.$refs.startInput.value = iso;
+            this.$refs.startInput.dispatchEvent(new Event("change", { bubbles: true }));
+            this.statusText = "Selected " + iso;
+            this.closePopover();
+            return;
+          }
+          if (!this.startValue || (this.startValue && this.endValue)) {
+            // Fresh start: clears any prior end value.
+            this.startValue = iso;
+            this.endValue = "";
+            this.$refs.startInput.value = iso;
+            this.$refs.startInput.dispatchEvent(new Event("change", { bubbles: true }));
+            this.$refs.endInput.value = "";
+            this.statusText = "Start date " + iso + " selected. Choose an end date.";
+          } else {
+            var start = fromISO(this.startValue);
+            var end = d;
+            if (end < start) { // swap on inverted selection
+              this.endValue = this.startValue;
+              this.startValue = iso;
+            } else {
+              this.endValue = iso;
+            }
+            this.$refs.startInput.value = this.startValue;
+            this.$refs.endInput.value = this.endValue;
+            this.$refs.startInput.dispatchEvent(new Event("change", { bubbles: true }));
+            this.$refs.endInput.dispatchEvent(new Event("change", { bubbles: true }));
+            this.previewDate = null;
+            this.statusText = "Range " + this.startValue + " to " + this.endValue + " selected.";
+          }
+        },
+
+        applyPreset(preset) {
+          var range = preset.range();
+          this.startValue = toISO(range[0]);
+          this.$refs.startInput.value = this.startValue;
+          this.$refs.startInput.dispatchEvent(new Event("change", { bubbles: true }));
+          if (!this.singleMode) {
+            this.endValue = toISO(range[1]);
+            this.$refs.endInput.value = this.endValue;
+            this.$refs.endInput.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+          this.viewMonth = new Date(range[0].getFullYear(), range[0].getMonth(), 1);
+          this.statusText = preset.label + ": " + preset.describe();
+        },
+      };
+    });
+  });
+})();
+</script>
+{% endblock %}

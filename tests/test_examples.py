@@ -25,6 +25,8 @@ from django import forms
 from django.template import Context, Engine, TemplateDoesNotExist
 from django.template.backends.django import get_installed_libraries as get_default_libraries
 from django.template.loader import get_template
+from django.utils import dates as django_dates
+from django.utils.formats import get_format
 
 from brickwork import examples
 from tests._class_contract import unstyled_classes
@@ -67,6 +69,16 @@ _TABLE_ROWS = [
     {"id": 2, "cells": ["INV-2418", "Halden Group", "£880.00"]},
 ]
 
+# app/date-range-picker.html's own header comment documents this exact
+# computation as what a consumer's view supplies: django.utils.dates'
+# lazily-translated calendar names, resolved against the active language,
+# never a hand-written English list.
+_DRP_CONTEXT: dict[str, object] = {
+    "bw_drp_weekday_labels": [str(django_dates.WEEKDAYS_ABBR[i]) for i in range(7)],
+    "bw_drp_month_labels": [str(django_dates.MONTHS[i]) for i in range(1, 13)],
+    "bw_drp_first_day": get_format("FIRST_DAY_OF_WEEK"),
+}
+
 _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     "base.html": {},
     "app/list.html": {
@@ -95,6 +107,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "activity_columns": _TABLE_COLUMNS,
         "activity_rows": _TABLE_ROWS,
     },
+    "app/date-range-picker.html": {**_NAV_CONTEXT, **_DRP_CONTEXT},
     "app/form.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
     "app/wizard.html": {
         **_NAV_CONTEXT,

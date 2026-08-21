@@ -175,6 +175,57 @@ test.describe("no-JS floor", () => {
       await expect(page.locator("h1")).toHaveCount(1);
       await expect(page.locator(".bw-section-stack")).toContainText("Our story");
     });
+
+    // The date-range picker's floor (examples/app/date-range-picker.html):
+    // with JS disabled the calendar trigger buttons do nothing (they carry no
+    // href and no default type="submit" behaviour), but the two native
+    // <input type="date"> fields ARE the form, so typing a value and
+    // submitting must produce a real, correct navigation: proof by an actual
+    // browser submit rather than by asserting the markup shape alone.
+    test(`date-range picker submits real dates with JS disabled (${theme})`, async ({ page }) => {
+      // The fixture's <form action="{{ request.path }}"> bakes in a real
+      // Django path (generate_fixtures.py renders it against "/invoices/"),
+      // which does not exist as a file:// target once the page is a static
+      // snapshot. Routing the navigation lets the browser build the real GET
+      // query string from the native <input type="date"> values (the thing
+      // under test) without following it into a nonexistent file.
+      let requestedUrl = null;
+      await page.route("**/invoices/**", async (route) => {
+        requestedUrl = new URL(route.request().url());
+        await route.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><title>stub</title>" });
+      });
+
+      await page.goto(pathToFileURL(join(FIXTURES, `date-range-picker-${theme}.html`)).href);
+      const start = page.locator("#id_start_date");
+      const end = page.locator("#id_end_date");
+      await expect(start).toHaveAttribute("type", "date");
+      await expect(end).toHaveAttribute("type", "date");
+      await start.fill("2026-08-01");
+      await end.fill("2026-08-21");
+      await Promise.all([
+        page.waitForNavigation(),
+        page.locator('form:has(#id_start_date) button[type="submit"]').click(),
+      ]);
+      expect(requestedUrl.searchParams.get("start_date")).toBe("2026-08-01");
+      expect(requestedUrl.searchParams.get("end_date")).toBe("2026-08-21");
+
+      // The calendar trigger is inert without JS: clicking it must not throw,
+      // navigate, or reveal the popover (it stays HTML-hidden).
+      await page.goto(pathToFileURL(join(FIXTURES, `date-range-picker-${theme}.html`)).href);
+      await page.locator('button[aria-label="Choose start date"]').click();
+      await expect(page.locator(".bw-drp-popover").first()).toBeHidden();
+
+      // The single-date mode floor submits too.
+      requestedUrl = null;
+      const due = page.locator("#id_single_date");
+      await expect(due).toHaveAttribute("type", "date");
+      await due.fill("2026-09-01");
+      await Promise.all([
+        page.waitForNavigation(),
+        page.locator('form:has(#id_single_date) button[type="submit"]').click(),
+      ]);
+      expect(requestedUrl.searchParams.get("due_date")).toBe("2026-09-01");
+    });
   }
 });
 

@@ -1913,6 +1913,77 @@ def render_sections(theme: str) -> str:
     return _inline_css(html)
 
 
+# --- the date-range picker example (examples/app/date-range-picker.html) ----
+#
+# Unlike the marketing sections above, this is a WHOLE page (it extends
+# brickwork/shell/app.html directly), so it needs no host shell to be
+# re-embedded into: it renders straight off _sections_engine() (a generic
+# name despite the section-only docstring above; it is simply "the standalone
+# engine that can see the examples tree", reused here unchanged) with the
+# same shell context vars _base_context supplies elsewhere in this file.
+#
+# The localisation context matches tests/test_examples.py's _DRP_CONTEXT
+# exactly (django.utils.dates, not a hand-written English list), imported
+# rather than duplicated so the two cannot drift apart, mirroring
+# render_sections' own _SECTION_CONTEXTS import above.
+#
+# Two fixtures per theme, mirroring render_comboboxes exactly:
+#   date-range-picker-<theme>.html      the closed, no-JS floor: two real
+#                                        <input type="date"> inside two real
+#                                        <form method="get">, popovers absent
+#                                        from the accessibility tree (native
+#                                        hidden). This is what axe.spec.mjs
+#                                        and the no-JS suite examine.
+#   date-range-picker-js-<theme>.html   Alpine booted (the same _JS_BOOT
+#                                        combobox/toasts/feedback already use)
+#                                        so interactions2.spec.mjs can drive
+#                                        the trigger open, select a start and
+#                                        end date (reaching the two-month
+#                                        mid-selection state) and exercise the
+#                                        disabled-dates config live, the same
+#                                        division comboboxes-js draws between
+#                                        the static floor and the JS-driven
+#                                        open states.
+def render_date_range_picker(theme: str) -> str:
+    from django.template import Context
+    from test_examples import _DRP_CONTEXT
+
+    engine = _sections_engine()
+    request = RequestFactory().get("/invoices/")
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "bw_lang": "en",
+        "nav_items": (),
+        "nav_active": None,
+        **_DRP_CONTEXT,
+    }
+    html = engine.get_template("app/date-range-picker.html").render(Context(ctx))
+    return _inline_css(html)
+
+
+def render_date_range_picker_js(theme: str) -> str:
+    """The JS-booted leg: Alpine only (no htmx dependency in this example),
+    loaded exactly like _JS_BOOT's other legs. registerBrickworkComponents is
+    NOT called for bwDateRangePicker: it is not a shipped brickwork behaviour
+    (the example's own header comment states this), so it never touches the
+    package's Alpine registration hook; alpine:init alone is enough for its
+    own inline Alpine.data() registration to run."""
+    html = render_date_range_picker(theme)
+    js_boot = (
+        '<script type="module">\n'
+        '  import Alpine from "../../node_modules/alpinejs/dist/module.esm.js";\n'
+        '  import focus from "../../node_modules/@alpinejs/focus/dist/module.esm.js";\n'
+        "  Alpine.plugin(focus);\n"
+        "  window.Alpine = Alpine;\n"
+        "  Alpine.start();\n"
+        "</script>\n"
+    )
+    return html.replace("</body>", js_boot + "</body>")
+
+
 # --- the nav renderers (#102/#82) ---------------------------------------------
 #
 # nav-renderers-<theme>.html   a standalone page (mirrors render_feedback's
@@ -2090,6 +2161,12 @@ def main() -> None:
         # every example section (3.1.0, plan Phase 6a gate 3), stacked in a
         # real marketing shell so heading order and landmarks are meaningful
         (OUT / f"sections-{theme}.html").write_text(render_sections(theme))
+        # the date-range picker example (examples/app/date-range-picker.html):
+        # the closed no-JS floor plus the Alpine-booted leg
+        # interactions2.spec.mjs drives open, mid-selection and with disabled
+        # dates configured, mirroring the comboboxes/comboboxes-js split.
+        (OUT / f"date-range-picker-{theme}.html").write_text(render_date_range_picker(theme))
+        (OUT / f"date-range-picker-js-{theme}.html").write_text(render_date_range_picker_js(theme))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -2131,6 +2208,8 @@ def main() -> None:
             f"hero-placement-{theme}",
             f"nav-renderers-{theme}",
             f"sections-{theme}",
+            f"date-range-picker-{theme}",
+            f"date-range-picker-js-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())
