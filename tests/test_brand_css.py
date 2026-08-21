@@ -10,11 +10,12 @@ constraint at 4.5:1 with real oklch literals rather than the trivial extremes.
 
 from __future__ import annotations
 
+import re
 import warnings
 
 import pytest
 
-from brickwork.services.brand_css import BrandValidationError, render_brand_css
+from brickwork.services.brand_css import BrandValidationError, _contrast_ratio, render_brand_css
 
 # A light, low-contrast accent: fails fg-on-accent against white (~1.57:1, well
 # under the 4.5:1 minimum). This is the "assumed white always works" trap
@@ -75,6 +76,60 @@ def test_correct_light_pairing_passes() -> None:
     # aubergine accent + white fg: ~8.98:1, comfortably above 4.5:1.
     css = render_brand_css({"color-accent": _AUBERGINE_ACCENT, "color-fg-on-accent": _WHITE})
     assert "--bw-color-accent:" in css
+
+
+def test_accent_override_emits_a_verified_focus_ring() -> None:
+    css = render_brand_css({"color-accent": _AUBERGINE_ACCENT, "color-fg-on-accent": _WHITE})
+    match = re.search(r"--bw-color-focus-ring: (oklch\([^;]+\));", css)
+    assert match is not None
+    for surface in ("oklch(1 0 0)", "oklch(0.205 0.005 265)"):
+        assert _contrast_ratio(match.group(1), surface) >= 3
+
+
+def test_focus_ring_is_verified_against_each_supplied_surface() -> None:
+    surfaces = {
+        "color-surface": "oklch(0.98 0.003 265)",
+        "color-surface-raised": "oklch(0.84 0.01 265)",
+        "color-surface-inverse": "oklch(0.21 0.01 265)",
+    }
+    css = render_brand_css({"color-accent": _AUBERGINE_ACCENT, **surfaces})
+    match = re.search(r"--bw-color-focus-ring: (oklch\([^;]+\));", css)
+    assert match is not None
+    for surface in surfaces.values():
+        assert _contrast_ratio(match.group(1), surface) >= 3
+
+
+def test_dark_focus_ring_is_verified_against_dark_theme_surfaces() -> None:
+    css = render_brand_css(
+        {"color-accent": _AUBERGINE_ACCENT, "color-fg-on-accent": _WHITE},
+        {"color-accent": _LOW_CONTRAST_ACCENT, "color-fg-on-accent": _DARK_INK},
+    )
+    dark_css = css.split('[data-theme="dark"]', maxsplit=1)[1]
+    match = re.search(r"--bw-color-focus-ring: (oklch\([^;]+\));", dark_css)
+    assert match is not None
+    for surface in ("oklch(0.18 0.005 265)", "oklch(0.237 0.005 265)", "oklch(0.93 0.002 265)"):
+        assert _contrast_ratio(match.group(1), surface) >= 3
+
+
+@pytest.mark.parametrize(
+    "name,value",
+    [
+        ("color-accent", "#5c2a63"),
+        ("color-surface", "#ffffff"),
+        ("color-surface-raised", "var(--brand-surface)"),
+        ("color-surface-inverse", "rgb(20, 20, 20)"),
+        ("color-fg", "rebeccapurple"),
+    ],
+)
+def test_focus_relevant_override_requires_oklch_when_accent_is_set(name: str, value: str) -> None:
+    values = {"color-accent": _AUBERGINE_ACCENT, name: value}
+    with pytest.raises(BrandValidationError, match="focus ring can be verified"):
+        render_brand_css(values)
+
+
+def test_direct_focus_ring_override_is_rejected() -> None:
+    with pytest.raises(BrandValidationError, match="do not override it directly"):
+        render_brand_css({"color-focus-ring": _AUBERGINE_ACCENT})
 
 
 def test_correct_dark_pairing_passes() -> None:
@@ -147,27 +202,20 @@ def test_a_role_with_a_bad_fg_on_accent_pairing_fails_independently() -> None:
 
 
 def test_role_overrides_set_only_load_bearing_names_so_the_family_derives() -> None:
-    # The recipe's derivation guarantee: the per-role override carries only the
-    # authored load-bearing values, never flat copies of the derived family, so
-    # -accent-hover / -accent-subtle / -focus-ring keep deriving live from the
-    # per-request accent (see also the dist-side guard in
-    # test_token_derivations.py).
+    # The recipe's derivation guarantee: per-role overrides carry only authored
+    # load-bearing values, so the accent-hover and accent-subtle families keep
+    # deriving live. Focus-ring is the deliberate exception: #145 emits an
+    # explicit verified value after calculating its contrast.
     light, dark = _ROLE_BRANDS["club"]
     css = render_brand_css(light, dark)
     assert "--bw-color-accent-hover" not in css
     assert "--bw-color-accent-subtle" not in css
-    assert "--bw-color-focus-ring" not in css
+    assert "--bw-color-focus-ring: oklch(" in css
 
 
-def test_non_oklch_value_warns_instead_of_raising() -> None:
-    # a value that is not a plain oklch literal cannot be contrast-checked; this
-    # must warn (the check cannot run), never raise (an unrelated CSS syntax
-    # like a var() reference is legitimate brand input).
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
-        css = render_brand_css({"color-accent": "var(--some-other-token)", "color-fg-on-accent": _WHITE})
-    assert any("cannot check" in str(w.message) for w in caught)
-    assert "--bw-color-accent: var(--some-other-token);" in css
+def test_non_oklch_accent_is_rejected_when_focus_contrast_cannot_be_verified() -> None:
+    with pytest.raises(BrandValidationError, match="focus ring can be verified"):
+        render_brand_css({"color-accent": "var(--some-other-token)", "color-fg-on-accent": _WHITE})
 
 
 # --- value validation (brickwork#133) -------------------------------------
