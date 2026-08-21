@@ -740,6 +740,59 @@ def test_cta_flat_kwargs_forwarded_unset_render_no_actions() -> None:
     assert "bw-cta__actions" not in html
 
 
+# --- components/_cta.html: width (ADR-057 section 1a, ADR-077 section 3a) ---
+
+
+def test_cta_width_omitted_output_is_byte_identical_to_pre_width_axis() -> None:
+    # Full-string equality, matching test_hero_heading_only_output_is_byte_
+    # identical_to_pre_slot_blocks's precedent: proves width's addition is
+    # additive for every existing caller, not merely "no bleed class seen".
+    html = _render("brickwork_marketing/components/_cta.html", heading="Ready?")
+    assert html == (
+        '\n\n\n<section class="bw-cta bw-cta--tint">\n  <div class="bw-cta__inner">\n'
+        '    <h2 class="bw-cta__heading">Ready?</h2>\n    \n    \n  </div>\n</section>\n\n'
+    )
+
+
+def test_cta_width_contained_is_explicitly_the_same_as_omitted() -> None:
+    omitted = _render("brickwork_marketing/components/_cta.html", heading="Ready?")
+    explicit = _include("brickwork_marketing/components/_cta.html", heading="Ready?", width="contained")
+    assert omitted == explicit
+
+
+def test_cta_width_bleed_emits_its_modifier_class() -> None:
+    html = _include("brickwork_marketing/components/_cta.html", heading="Ready?", width="bleed")
+    assert "bw-cta--bleed" in html
+
+
+def test_cta_width_bleed_composes_with_a_tinted_band() -> None:
+    # ADR-057 section 1a: width is orthogonal to band, so a tinted full-bleed
+    # band is expressible with both classes present.
+    html = _include("brickwork_marketing/components/_cta.html", heading="Ready?", width="bleed", band="tint")
+    assert "bw-cta--tint" in html
+    assert "bw-cta--bleed" in html
+
+
+def test_cta_width_bleed_composes_with_a_plain_band() -> None:
+    html = _include("brickwork_marketing/components/_cta.html", heading="Ready?", width="bleed", band="plain")
+    assert "bw-cta--tint" not in html
+    assert "bw-cta--bleed" in html
+
+
+def test_cta_width_is_css_only_and_adds_no_markup() -> None:
+    # Matches test_hero_media_placement_is_css_only_and_adds_no_markup's
+    # invariant: only the class list on the section root changes; the inner
+    # markup is identical regardless of width.
+    contained = _include("brickwork_marketing/components/_cta.html", heading="Ready?")
+    bleed = _include("brickwork_marketing/components/_cta.html", heading="Ready?", width="bleed")
+    assert bleed.replace(" bw-cta--bleed", "") == contained
+
+
+def test_cta_width_unrecognised_value_falls_back_to_default() -> None:
+    html = _include("brickwork_marketing/components/_cta.html", heading="Ready?", width="nonsense")
+    assert "bw-cta--bleed" not in html
+
+
 # --- components/_testimonial.html ------------------------------------------
 
 
@@ -784,6 +837,89 @@ def test_testimonial_optional_context_renders_every_region() -> None:
     assert "Ada Lovelace" in html
     assert "CTO, Acme Ltd" in html
     assert "<img src='/acme-logo.svg'" in html
+
+
+# --- components/_testimonial.html: the logo block (icvoss/django-brickwork#98/#118 pattern) ---
+
+
+def test_testimonial_quote_only_output_is_byte_identical_to_pre_logo_block() -> None:
+    # Full-string equality, matching test_hero_heading_only_output_is_byte_
+    # identical_to_pre_slot_blocks's precedent: the logo block's default
+    # content is the pre-existing {% if logo %} rendering, so a call site
+    # supplying no attribution context at all renders byte-identically.
+    html = _render("brickwork_marketing/components/_testimonial.html", quote="It just works.")
+    assert html == (
+        '\n\n<figure class="bw-testimonial">\n  <blockquote class="bw-testimonial__quote">\n'
+        "    <p>It just works.</p>\n  </blockquote>\n  \n</figure>\n\n"
+    )
+
+
+def test_testimonial_logo_via_context_variable_is_byte_identical_to_pre_block() -> None:
+    # The pre-existing path (logo passed as pre-rendered safe HTML context)
+    # renders exactly as it always did once the block wraps it.
+    html = _include(
+        "brickwork_marketing/components/_testimonial.html",
+        quote="It just works.",
+        logo=mark_safe("<img src='/acme-logo.svg' alt='Acme'>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert html == (
+        '\n\n<figure class="bw-testimonial">\n  <blockquote class="bw-testimonial__quote">\n'
+        "    <p>It just works.</p>\n  </blockquote>\n  \n"
+        '    <figcaption class="bw-testimonial__attribution">\n      \n'
+        '      <div class="bw-testimonial__attribution-text">\n        \n        \n      </div>\n'
+        "      <div class=\"bw-testimonial__logo\"><img src='/acme-logo.svg' alt='Acme'></div>\n"
+        "    </figcaption>\n  \n</figure>\n\n"
+    )
+
+
+def _extend_testimonial(blocks: str, **ctx: object) -> str:
+    return _extend("brickwork_marketing/components/_testimonial.html", blocks, **ctx)
+
+
+def test_testimonial_logo_block_override_wins_over_the_logo_context() -> None:
+    # examples/sections/testimonial/logo-and-quote.html's blocker: a Django
+    # template cannot build a safe-HTML logo inline, so the block lets a
+    # caller author the mark directly instead of a view supplying
+    # mark_safe(...) markup.
+    html = _extend_testimonial(
+        "{% block logo %}<svg viewBox='0 0 160 40' aria-hidden='true'></svg>{% endblock %}",
+        quote="It just works.",
+        author="Priya Raman",
+        logo=mark_safe("<img src='/ignored.svg'>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert "<svg viewBox='0 0 160 40'" in html
+    assert "ignored.svg" not in html
+
+
+def test_testimonial_logo_block_override_renders_when_the_figcaption_gate_is_open() -> None:
+    # The figcaption only renders when author, role, avatar or logo is
+    # truthy (unchanged gate, so a quote-only caller stays byte-identical).
+    # A caller who wants to fill only the logo block still has to open that
+    # gate the same way filling only avatar or only author always has: by
+    # setting the corresponding context variable truthy.
+    html = _extend_testimonial(
+        "{% block logo %}<svg viewBox='0 0 160 40' aria-hidden='true'></svg>{% endblock %}",
+        quote="It just works.",
+        logo=" ",
+    )
+    assert "<figcaption" in html
+    assert "<svg viewBox='0 0 160 40'" in html
+
+
+def test_testimonial_logo_block_override_renders_nothing_when_the_gate_is_closed() -> None:
+    # The documented limitation (template docstring, icvoss/django-brickwork#171):
+    # filling the block alone does not open the figcaption gate, because Django
+    # cannot detect that a block was overridden. A caller who sets none of the
+    # four gate variables (author, role, avatar, logo) gets nothing at all, even
+    # though the block itself was filled. This is the expected, bounded result,
+    # not a bug: the block's markup is entirely absent, matching the pre-block
+    # {% if logo %} gate's own behaviour for an unset logo.
+    html = _extend_testimonial(
+        "{% block logo %}<svg viewBox='0 0 160 40' aria-hidden='true'></svg>{% endblock %}",
+        quote="It just works.",
+    )
+    assert "<figcaption" not in html
+    assert "<svg" not in html
 
 
 # --- components/_logo_cloud.html: alt is required, never invented ----------

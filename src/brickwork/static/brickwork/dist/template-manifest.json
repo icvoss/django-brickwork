@@ -305,6 +305,15 @@
       ]
     },
     {
+      "name": "logo",
+      "declaredIn": [
+        "brickwork_marketing/components/_testimonial.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "marketing_actions",
       "declaredIn": [
         "brickwork_marketing/shell/marketing.html"

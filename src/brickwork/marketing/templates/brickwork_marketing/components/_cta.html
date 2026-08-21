@@ -40,9 +40,20 @@ Optional context:
                 string as unset and falls back correctly, so the option can
                 finally be named for what it selects rather than what it
                 switches off.
+  width         ("contained" default | "bleed", ADR-057 section 1a): whether
+                the band wraps at the marketing shell's content measure
+                (unchanged, no modifier class) or escapes it to run edge to
+                edge. Orthogonal to band, so a tinted full-bleed band is
+                expressible. "bleed" is a CSS-only option (adds no markup):
+                it undoes the shell's per-child max-width and page gutter the
+                same way examples/sections/cta/full-bleed.html's standalone
+                .bw-cta-bleed class always has, and re-applies its own inline
+                gutter so the copy does not touch the viewport edge on a
+                phone (icvoss/django-brickwork#98/#118 pattern, ADR-077
+                section 3a).
 {% endcomment %}
 {% if heading %}
-<section class="bw-cta{% if band != 'plain' %} bw-cta--tint{% endif %}">
+<section class="bw-cta{% if band != 'plain' %} bw-cta--tint{% endif %}{% if width == 'bleed' %} bw-cta--bleed{% endif %}">
   <div class="bw-cta__inner">
     <h2 class="bw-cta__heading">{{ heading }}</h2>
     {% if body %}<p class="bw-cta__body">{{ body }}</p>{% endif %}

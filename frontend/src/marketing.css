@@ -691,6 +691,27 @@
   padding-inline: var(--bw-space-8);
 }
 
+/* width="bleed" (ADR-057 section 1a). The same escape as the standalone
+ * .bw-cta-bleed example (examples/sections/cta/full-bleed.html): the
+ * marketing shell caps every direct child at the marketing max-width and
+ * adds a page gutter, so a band that wants the full viewport width undoes
+ * both. Declared AFTER .bw-cta--tint so a tinted, full-bleed band (both
+ * classes present) takes THIS rule's own inline gutter rather than tint's
+ * --bw-space-8, the specificity-tie case the ordering rule in ADR-057
+ * section 1a exists to settle: same specificity, source order decides, and
+ * the bleed escape's gutter is the one that actually matters once the band
+ * has left the shell's own gutter behind.
+ *
+ * max-inline-size: 100vw rather than none, so the band cannot itself become
+ * a source of horizontal page scroll. */
+.bw-cta--bleed {
+  inline-size: 100vw;
+  max-inline-size: 100vw;
+  margin-inline: calc(50% - 50vw);
+  padding-inline: var(--bw-density-page-gutter-inline);
+  border-radius: 0;
+}
+
 .bw-cta__inner {
   display: flex;
   flex-direction: column;
