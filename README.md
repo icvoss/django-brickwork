@@ -259,6 +259,10 @@ with context.
   {% include "brickwork/components/_data_table.html" with table_id="gadgets" columns=columns rows=rows %}
   ```
 
+  Record rows may include a `data` mapping for consumer-owned hooks on the
+  rendered row, for example `{"data-item-id": gadget.pk}`. Only `data-*`
+  names are accepted; Brickwork's own `data-bw-*` hooks remain reserved.
+
 ### Icons: decorative or labelled, always
 
 `{% bw_icon %}` **requires** exactly one of `decorative=True` or `label="..."`,
