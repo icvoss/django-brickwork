@@ -1363,6 +1363,35 @@ language, exactly like frontend/src/js/combobox.js's own i18n doctrine.
             this.closePopover();
             return;
           }
+          // Opening from the END trigger assigns the end endpoint directly,
+          // provided a start already exists to pair it with (#188). Without
+          // this the click always fell through to the fresh-start branch
+          // below, so opening the end field and picking a day silently wrote
+          // the START date and left end empty: a control that does something
+          // other than what its label says.
+          //
+          // Inverted picks SWAP rather than reassign or reject, which is the
+          // same rule the two-click gesture below already applies. One
+          // outcome, one mechanism, whichever route the user took
+          // (BR-BW-OPT-005); rejecting would make the click silently do
+          // nothing, which is the shape of a broken control.
+          if (this.activeField === "end" && this.startValue) {
+            var startForEnd = fromISO(this.startValue);
+            if (d < startForEnd) {
+              this.endValue = this.startValue;
+              this.startValue = iso;
+              this.statusText = "Range " + this.startValue + " to " + this.endValue + " selected.";
+            } else {
+              this.endValue = iso;
+              this.statusText = "Range " + this.startValue + " to " + this.endValue + " selected.";
+            }
+            this.$refs.startInput.value = this.startValue;
+            this.$refs.endInput.value = this.endValue;
+            this.$refs.startInput.dispatchEvent(new Event("change", { bubbles: true }));
+            this.$refs.endInput.dispatchEvent(new Event("change", { bubbles: true }));
+            this.closePopover();
+            return;
+          }
           if (!this.startValue || (this.startValue && this.endValue)) {
             // Fresh start: clears any prior end value.
             this.startValue = iso;
