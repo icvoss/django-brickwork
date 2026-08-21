@@ -6,6 +6,105 @@ semantic versioning. Template block names, HTMX target IDs, Alpine component
 names, event names and token names are treated as public API (see the spec's
 versioning contract).
 
+## [3.4.0] - 2026-08-21
+
+The composition wave. Brickwork's components gained the named blocks its own
+specification had promised but never shipped, the block-name contract became
+machine-checkable rather than merely documented, and the marketing kit lost
+three arrangement gaps that had forced consumers to hand-build sections.
+
+The through-line is ADR-077, ratified during this wave: sections are a contract
+tier between components and pages, a tag's private render target never exposes
+consumer-facing blocks, and a unit that exists only because a component lacks an
+arrangement option is a gap to close, not a section to ship.
+
+### Added
+
+- **Named composition blocks on the SLOT components** (#163). `the-wall.md`
+  resolved ten components as SLOT; four shipped include-only with no blocks.
+  `_page_header` gains `breadcrumb`, `title`, `title_badge`, `description`,
+  `actions`, `tabs`; `_empty_state` gains `icon`, `heading`, `body`, `action`;
+  `_disclosure` gains `trigger_meta`; `_hero` gains `eyebrow`, `heading`, `lede`,
+  `actions`, `media`. Every block wraps the pre-existing conditional as its
+  default content, so a caller using only context variables renders
+  byte-identically.
+
+  Four wall bricks were deliberately NOT implemented as blocks. `_dropdown`,
+  `_toast`, `_tabs` and `_combobox` are private render targets of their
+  `{% bw_* %}` tags: a consumer-facing block would let a caller extend past the
+  tag and skip its render-time enforcement (icon-only `aria_label`, variant and
+  duration validation, duplicate-key validation, `filter_mode` validation). The
+  wall specified the wrong mechanism and was corrected to ARG.
+
+- **The template contract manifest and rename-detection gate** (#164), resolving
+  README Open Question 2 and CHK-BLD-005. `BR-BW-TPL-001` made every named block
+  semver-public, but nothing enforced it: `AC-BW-010` checked only that a block
+  was *documented*, never that its name was *stable*, so a rename passed CI green
+  and broke every consumer who had filled it. `template-manifest.json` plus
+  `services/template_manifest.py` now mirror the token contract's architecture,
+  generated from the compiled template tree, with a gate that fails on a removal
+  or rename lacking a deprecation and names the block, its template, and the
+  three legitimate ways forward.
+
+- **`media_placement` on `_hero`** (#118, #169): `below` (default), `behind`,
+  `beside`, per ADR-057 section 1a. `behind` stacks the media under the copy on
+  an inverse surface with a scrim, so a headline can sit over an illustration.
+
+- **`width` on `_cta`** (#173): `contained` (default) and `bleed`, filling in
+  ADR-057 section 1a's ratified vocabulary alongside the existing `band`.
+
+- **A `logo` block on `_testimonial`** (#173). The component accepted `logo` only
+  as pre-rendered safe HTML a view had to `mark_safe`, which a plain template
+  cannot build.
+
+### Changed
+
+- **Thirteen prefixed block names gained concise successors** (#165, #166), per
+  ADR-077 section 4: the declaring template is the scope, so a prefix carries no
+  information. `_card` gains `header`/`title`/`actions`/`body`/`footer`, `_modal`
+  and `_slide_over` gain `title`/`body`/`footer`, `_alert` gains `body`,
+  `_tooltip` gains `trigger`.
+
+- **`_empty_state`'s `title` and `description` blocks are deprecated** in favour
+  of `heading` and `body`, which match both the context variable and the CSS
+  class they wrap. The old names never did.
+
+- **Hero media radius now applies to `img` only**, not `svg` (#118). A photograph
+  wants a frame; a diagram or logotype has none to round, and clipping its
+  corners damaged artwork the caller drew deliberately.
+
+### Deprecated
+
+- All fourteen prefixed block names (`card_header`, `card_title`, `card_actions`,
+  `card_body`, `card_footer`, `modal_title`, `modal_body`, `modal_footer`,
+  `slide_over_title`, `slide_over_body`, `slide_over_footer`, `alert_body`,
+  `tooltip_trigger`, `empty_state_action`) plus `_empty_state`'s `title` and
+  `description`. **All keep rendering, and their behaviour is unchanged.** They
+  are removed at 4.0.
+
+### Fixed
+
+- **A contrast defect in the hero `behind` scrim, found by measurement rather
+  than by the accessibility gate** (#169). The first implementation used a
+  gradient scrim, which makes the contrast ratio depend on where a line of text
+  sits, so the guarantee changed with copy length: measured against pale media
+  the lede reached only 4.25:1, under WCAG 1.4.3's 4.5:1 floor. A uniform scrim
+  makes the floor unconditional; the same worst case now measures 8.32:1.
+
+  axe reports `incomplete` rather than a violation for text over a background
+  image, so the accessibility gate was green throughout. A Playwright test now
+  measures composited pixels, and was validated by reinstating the gradient and
+  confirming it fails.
+
+### Upgrading
+
+Nothing to do. Every change is additive, no existing caller's output changes,
+and every deprecated block still renders with its original behaviour.
+
+If you fill any deprecated block name, move to its successor before 4.0. The
+rename-detection gate added in this release means a future rename cannot happen
+silently.
+
 ## [3.3.0] - 2026-08-19
 
 Two themes. The HTMX fragment contract becomes first-class: the data table's
