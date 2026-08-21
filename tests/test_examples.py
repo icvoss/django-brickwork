@@ -395,6 +395,22 @@ def test_the_shipped_example_set_matches_what_the_tests_cover() -> None:
     assert set(examples.list_examples()) == set(_EXAMPLE_CONTEXTS) | set(_SECTION_CONTEXTS)
 
 
+@pytest.mark.parametrize(
+    ("name", "media_placement", "obsolete_class"),
+    [
+        ("sections/hero/media-behind.html", "behind", "bw-hero-behind"),
+        ("sections/hero/split-media.html", "beside", "bw-hero-split"),
+    ],
+)
+def test_hero_examples_use_the_shipped_media_placement_contract(
+    name: str, media_placement: str, obsolete_class: str
+) -> None:
+    source = examples.read_example(name)
+    assert "brickwork_marketing/components/_hero.html" in source
+    assert f'media_placement="{media_placement}"' in source
+    assert obsolete_class not in source
+
+
 # --- 3. The example sections (3.1.0, plan Phase 6a) -------------------------
 
 
