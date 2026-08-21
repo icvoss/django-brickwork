@@ -13,6 +13,7 @@ from django import template
 from django.template.exceptions import TemplateSyntaxError
 from django.utils.html import format_html
 from django.utils.safestring import SafeString, mark_safe
+from django.utils.translation import gettext
 
 register = template.Library()
 
@@ -67,6 +68,7 @@ def bw_data_attrs(attrs: object, subject: str = "data table row") -> SafeString:
             raise TemplateSyntaxError(f"{subject} data contains an invalid data-* attribute name: {name!r}")
         parts.append(format_html(' {}="{}"', name, value))
     return mark_safe("".join(parts))
+_SEARCH_SCOPE_KEYS = {"label", "name", "value", "clear_href"}
 
 
 @register.inclusion_tag("brickwork/components/_button.html")
@@ -155,6 +157,60 @@ def bw_alert(message: str = "", *, variant: str = "info", title: str = "", dismi
         raise TemplateSyntaxError(f"bw_alert variant must be one of {sorted(_ALERT_VARIANTS)}, got {variant!r}")
     icon = {"info": "info", "success": "success", "warning": "alert-triangle", "danger": "alert-circle"}[variant]
     return {"message": message, "variant": variant, "title": title, "icon": icon, "dismissible": bool(dismissible)}
+
+
+@register.inclusion_tag("brickwork/components/_search.html")
+def bw_search(
+    action: str,
+    *,
+    name: str = "q",
+    placeholder: str = "",
+    value: str = "",
+    scope: Mapping[str, str] | None = None,
+) -> dict:
+    """A topbar search form with a real GET no-JS floor.
+
+    ``action`` is the consumer-owned search URL. ``name`` (default ``"q"``),
+    ``placeholder``, and ``value`` configure the native search input. An
+    optional ``scope`` mapping makes a search pre-scoped and must contain
+    ``label``, ``name``, ``value``, and ``clear_href``. It renders both the
+    hidden submitted input and a native clear link, so widening the search
+    scope also works without JavaScript. ``clear_label`` may override the
+    clear link's accessible name.
+
+    Brickwork renders the form and its query fields only. The consumer owns
+    the endpoint, search behaviour, and construction of ``clear_href`` so it
+    preserves whichever query parameters matter to that application.
+    """
+    if not action:
+        raise TemplateSyntaxError("bw_search requires action= (the consumer-owned search URL).")
+    if not name:
+        raise TemplateSyntaxError("bw_search requires a non-empty name= for the submitted query.")
+
+    scope_context = None
+    if scope is not None:
+        if not isinstance(scope, Mapping):
+            raise TemplateSyntaxError("bw_search scope= must be a mapping with label, name, value, and clear_href.")
+        missing = _SEARCH_SCOPE_KEYS.difference(scope)
+        if missing:
+            raise TemplateSyntaxError(f"bw_search scope= is missing required keys: {sorted(missing)}.")
+        scope_context = {
+            "label": scope["label"],
+            "name": scope["name"],
+            "value": scope["value"],
+            "clear_href": scope["clear_href"],
+            "clear_label": scope.get("clear_label")
+            or gettext("Remove %(label)s search scope") % {"label": scope["label"]},
+        }
+
+    return {
+        "action": action,
+        "name": name,
+        "placeholder": placeholder or gettext("Search"),
+        "value": value,
+        "scope": scope_context,
+        "search_label": gettext("Search"),
+    }
 
 
 @register.inclusion_tag("brickwork/components/_toggle.html")

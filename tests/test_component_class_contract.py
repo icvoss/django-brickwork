@@ -203,6 +203,11 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     "bw_skeleton (sized)": lambda: _tag(
         "brickwork_components", '{% bw_skeleton variant="row" count=3 width="12rem" height="1rem" %}'
     ),
+    "bw_search (scoped)": lambda: _tag(
+        "brickwork_components",
+        '{% bw_search action="/search/" value="invoice" scope=scope %}',
+        scope={"label": "Project: Acme", "name": "project", "value": "acme", "clear_href": "/search/?q=invoice"},
+    ),
     "_card (extended, all regions, interactive+bordered)": lambda: _extend(
         "brickwork/components/_card.html",
         '{% block card_header %}<div class="bw-card__header"><h2 class="bw-card__title">Members</h2>'
@@ -708,6 +713,7 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_alert",
         "_toggle",
         "_skeleton",
+        "_search",
         "_card",
         "_stat",
         "_data_table",

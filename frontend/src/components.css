@@ -1211,6 +1211,68 @@ button.bw-account-menu__item {
   gap: var(--bw-space-2);
 }
 
+/* --- Search (#155) --------------------------------------------------------- */
+
+/* The form itself is the no-JS floor: its submit button and scope clear link
+ * stay native controls. `min-inline-size: 0` lets the input contract inside a
+ * narrow topbar instead of causing the surrounding shell to overflow. */
+.bw-search {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  min-inline-size: 0;
+}
+
+.bw-search__label {
+  display: block;
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+
+.bw-search__input {
+  inline-size: 100%;
+}
+
+.bw-search__scope {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: var(--bw-space-1);
+  min-inline-size: 0;
+  padding-inline: var(--bw-space-2);
+  border-radius: var(--bw-radius-md);
+  background: var(--bw-color-accent-subtle);
+  color: var(--bw-color-fg);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
+
+.bw-search__scope-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bw-search__scope-clear {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--bw-size-touch-target-min);
+  min-inline-size: var(--bw-size-touch-target-min);
+  margin-block: calc(var(--bw-space-2) * -1);
+  margin-inline-end: calc(var(--bw-space-2) * -1);
+  border-radius: var(--bw-radius-md);
+  color: inherit;
+  font-size: var(--bw-text-body-lg-size);
+  line-height: 1;
+  text-decoration: none;
+}
+
+.bw-search__scope-clear:hover {
+  background: var(--bw-state-hover-overlay);
+}
+
 /* --- Pagination ------------------------------------------------------------ */
 
 .bw-pagination {

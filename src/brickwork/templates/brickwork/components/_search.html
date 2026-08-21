@@ -1,0 +1,29 @@
+{% load brickwork_icons %}
+{% comment %}
+Topbar search component (#155). Rendered only by {% bw_search %}, whose tag
+requires a real GET action and validates the optional scope mapping.
+
+No-JS floor: this remains an ordinary <form method="get">, native search input,
+submit button, hidden scope field, and clear anchor. Consumers own the endpoint
+and the clear URL because only they know which query parameters to preserve.
+
+Arguments (via {% bw_search %}):
+  action (required), name (default "q"), placeholder (default "Search"), value,
+  scope ({label, name, value, clear_href, clear_label?}).
+{% endcomment %}
+<form class="bw-search" method="get" action="{{ action }}" role="search">
+  {% if scope %}
+    <input type="hidden" name="{{ scope.name }}" value="{{ scope.value }}">
+    <span class="bw-search__scope">
+      <span class="bw-search__scope-label">{{ scope.label }}</span>
+      <a class="bw-search__scope-clear" href="{{ scope.clear_href }}" aria-label="{{ scope.clear_label }}">&times;</a>
+    </span>
+  {% endif %}
+  <label class="bw-search__label">
+    <span class="bw-visually-hidden">{{ search_label }}</span>
+    <input class="bw-input bw-search__input" type="search" name="{{ name }}" placeholder="{{ placeholder }}" value="{{ value }}">
+  </label>
+  <button class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only" type="submit" aria-label="{{ search_label }}">
+    {% bw_icon "search" size="sm" decorative=True %}
+  </button>
+</form>
