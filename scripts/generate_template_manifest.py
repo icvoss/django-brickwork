@@ -253,7 +253,11 @@ def build_manifest() -> dict:
     }
 
 
-def check_contract_stability(baseline: dict, current_manifest: dict) -> list[str]:
+def check_contract_stability(
+    baseline: dict,
+    current_manifest: dict,
+    committed_manifest: dict | None = None,
+) -> list[str]:
     """Compare a checked-in baseline against a freshly generated manifest.
 
     Returns one instructive violation message per block/partial name that
@@ -268,10 +272,22 @@ def check_contract_stability(baseline: dict, current_manifest: dict) -> list[str
     The two collections are compared independently (a block name and a
     partial name occupy separate namespaces in Django's template language, so
     ``blocks``/``partials`` are checked as two disjoint sets, never merged).
+
+    ``committed_manifest`` is the manifest as checked in before this run, used
+    only to tell the author WHICH template the vanished name used to live in.
+    The baseline deliberately stores bare names (it is hand-maintained, and a
+    name is the contract; the path is not), so provenance is recovered from the
+    committed manifest's ``declaredIn`` instead of duplicating it into the
+    baseline. Omitted, the message simply loses that one sentence.
     """
     violations: list[str] = []
     current_deprecated_names = {entry["name"] for entry in current_manifest["deprecated"]}
     baseline_deprecated_names = set(baseline["deprecated"])
+    previously_declared_in: dict[tuple[str, str], list[str]] = {}
+    if committed_manifest is not None:
+        for kind_key, kind_label in (("blocks", "block"), ("partials", "partial")):
+            for entry in committed_manifest.get(kind_key, []):
+                previously_declared_in[(kind_label, entry["name"])] = entry.get("declaredIn", [])
 
     for kind, baseline_names, current_entries in (
         ("block", baseline["blocks"], current_manifest["blocks"]),
@@ -287,12 +303,16 @@ def check_contract_stability(baseline: dict, current_manifest: dict) -> list[str
                 # actually removes it, which is exactly when a human updates
                 # this baseline in the same PR; nothing to check here.
                 continue
+            declared_in = previously_declared_in.get((kind, name), [])
+            provenance = (
+                f" It was last declared in {', '.join(declared_in)}." if declared_in else ""
+            )
             violations.append(
                 f"The {kind} '{name}' is in the committed contract baseline "
                 f"(tests/template_contract_baseline.json) but is no longer in the "
                 f"generated template manifest. BR-BW-TPL-001 makes every named "
                 f"{{% block %}}/{{% partialdef %}} name semver-public: it cannot be "
-                f"renamed or removed silently.\n"
+                f"renamed or removed silently.{provenance}\n"
                 f"  Fix, one of:\n"
                 f"  1. You renamed or removed '{name}' by mistake: restore the "
                 f"original name.\n"

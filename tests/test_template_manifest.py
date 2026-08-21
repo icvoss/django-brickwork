@@ -202,15 +202,20 @@ def test_the_committed_baseline_matches_the_committed_manifest_with_no_violation
 def test_removing_a_block_with_no_deprecation_entry_fails_with_an_instructive_message(
     baseline: dict, current: dict
 ) -> None:
+    committed = json.loads(json.dumps(current))
     current["blocks"] = [entry for entry in current["blocks"] if entry["name"] != "trigger_meta"]
 
-    violations = check_contract_stability(baseline, current)
+    violations = check_contract_stability(baseline, current, committed_manifest=committed)
 
     assert len(violations) == 1
     message = violations[0]
     assert "trigger_meta" in message
     assert "BR-BW-TPL-001" in message
     assert "BR-BW-VER-001" in message
+    # An engineer meeting this in CI needs to know WHICH template lost the block,
+    # recovered from the committed manifest's declaredIn (the baseline stores
+    # bare names by design).
+    assert "_disclosure.html" in message
     # The message must name the concrete paths forward, not just "this broke".
     assert "deprecate" in message.lower()
     assert "MAJOR" in message
