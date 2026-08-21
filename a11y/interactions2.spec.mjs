@@ -73,6 +73,11 @@ async function bootComboboxes(page, theme = "light") {
   await expect(page.locator("#id_colour")).toBeHidden();
 }
 
+async function bootDateRangePicker(page, theme = "light") {
+  await page.goto(fx(`date-range-picker-js-${theme}.html`));
+  await page.waitForFunction(() => !!window.Alpine);
+}
+
 const TOAST_EVENTS = ["bw:toast:show", "bw:toast:dismiss", "bw:dismiss"];
 const COMBOBOX_EVENTS = ["bw:combobox:open", "bw:combobox:close", "bw:combobox:select", "bw:combobox:create"];
 
@@ -896,4 +901,108 @@ test.describe("AC-BW-090 token-owned motion", () => {
     const section = src.slice(start, end).replace(/\/\*[\s\S]*?\*\//g, "");
     expect(rawMotionLiterals(section)).toEqual([]);
   });
+});
+
+// The date-range picker EXAMPLE (src/brickwork/examples/app/date-range-picker.html,
+// not a shipped component: see that file's own header comment). Covers the
+// three JS-only states the brief calls out beyond the static closed floor
+// axe.spec.mjs already gates for free (it globs every fixtures/*.html):
+// open single-month, open two-month range mid-selection, and a disabled-dates
+// configuration, in both themes. WCAG_TAGS mirrors axe.spec.mjs's own tag set.
+test.describe("date-range picker", () => {
+  for (const theme of THEMES) {
+    test(`open single-month grid is WCAG 2.2 AA clean and keyboard-operable (${theme})`, async ({ page }) => {
+      await bootDateRangePicker(page, theme);
+      // Single mode's trigger: the second <form> on the page.
+      await page.locator('button[aria-label="Choose payment due date"]').click();
+      const popover = page.locator('[role="dialog"][aria-label="Choose a date"]');
+      await expect(popover).toBeVisible();
+      // A cell carries tabindex="0" (roving tabindex, this file's own
+      // documented departure from the combobox's aria-activedescendant).
+      const tabbable = popover.locator('.bw-drp-day[tabindex="0"]');
+      await expect(tabbable).toHaveCount(1);
+      await expect(tabbable).toBeFocused();
+      // Arrow-key APG map: ArrowRight moves focus to the next day.
+      const before = await tabbable.getAttribute("data-bw-iso");
+      await page.keyboard.press("ArrowRight");
+      const nowFocused = popover.locator('.bw-drp-day[tabindex="0"]');
+      const after = await nowFocused.getAttribute("data-bw-iso");
+      expect(after).not.toBe(before);
+      await expect(nowFocused).toBeFocused();
+      // Escape closes and restores focus to the trigger.
+      await page.keyboard.press("Escape");
+      await expect(popover).toBeHidden();
+      await expect(page.locator('button[aria-label="Choose payment due date"]')).toBeFocused();
+
+      const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+      expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+    });
+
+    test(`open two-month range mid-selection is WCAG 2.2 AA clean (${theme})`, async ({ page }) => {
+      await bootDateRangePicker(page, theme);
+      await page.locator('button[aria-label="Choose start date"]').click();
+      const popover = page.locator('[role="dialog"][aria-label="Choose dates"]');
+      await expect(popover).toBeVisible();
+      // Both months are present at rest (the two-month range default).
+      // Scoped to this popover: the page renders BOTH forms' markup at all
+      // times (only x-show hides the single-date form's own popover), so an
+      // unscoped .bw-drp-month locator resolves to 3 elements (2 here + 1
+      // from the single-date popover elsewhere on the page), not 2.
+      await expect(popover.locator(".bw-drp-month")).toHaveCount(2);
+      // Select a start date only: this IS the "mid-selection" state (a start
+      // endpoint committed, no end yet, hover/keyboard preview live).
+      const firstDay = popover.locator(".bw-drp-day:not(.bw-drp-day--outside)").first();
+      const startIso = await firstDay.getAttribute("data-bw-iso");
+      await firstDay.click();
+      await expect(page.locator("#id_start_date")).toHaveValue(startIso);
+      await expect(popover.locator(`.bw-drp-day[data-bw-endpoint="start"]`)).toHaveCount(1);
+      // Hovering a later day previews the prospective range non-visually too
+      // (data-bw-preview is a real attribute, not colour alone). Playwright's
+      // web-first expect() already retries until the reactive re-render lands,
+      // so no manual wait/catch is needed here.
+      const laterDay = popover.locator(".bw-drp-day:not(.bw-drp-day--outside)").nth(10);
+      await laterDay.hover();
+      await expect(popover.locator("[data-bw-preview]").first()).toHaveCount(1);
+
+      const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+      expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+    });
+
+    test(`a disabled-dates configuration is WCAG 2.2 AA clean and keyboard-unreachable (${theme})`, async ({
+      page,
+    }) => {
+      await bootDateRangePicker(page, theme);
+      // Configure min/max/disabledDates/disableWeekends on the live Alpine
+      // component, exactly as a consumer would by editing the x-data literal
+      // in their own copy of the file (that IS the configuration surface:
+      // see the example's own Phase 3 header comment). Setting reactive state
+      // directly is the realistic equivalent of shipping a second template
+      // fixture, without duplicating the whole page for one config variant.
+      await page.evaluate(() => {
+        const root = document.querySelector('button[aria-label="Choose start date"]').closest("[x-data]");
+        const component = window.Alpine.$data(root);
+        const today = new Date();
+        const iso = (d) => d.toISOString().slice(0, 10);
+        const disabled = new Date(today.getFullYear(), today.getMonth(), 15);
+        component.disabledISO = [iso(disabled)];
+        component.disableWeekends = true;
+      });
+      await page.locator('button[aria-label="Choose start date"]').click();
+      const popover = page.locator('[role="dialog"][aria-label="Choose dates"]');
+      await expect(popover).toBeVisible();
+      const disabledCell = popover.locator('.bw-drp-day[aria-disabled="true"]').first();
+      await expect(disabledCell).toHaveCount(1);
+      // Unreachable by keyboard: no disabled cell ever carries tabindex="0".
+      await expect(popover.locator('.bw-drp-day[aria-disabled="true"][tabindex="0"]')).toHaveCount(0);
+      // Announced as unavailable, not conveyed by dimmed colour alone.
+      const label = await disabledCell.getAttribute("aria-label");
+      expect(label).toContain("Unavailable");
+      // Unselectable by pointer: clicking it must not populate the field.
+      await disabledCell.click({ force: true });
+      await expect(page.locator("#id_start_date")).toHaveValue("");
+
+      const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+      expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+    });
+  }
 });
