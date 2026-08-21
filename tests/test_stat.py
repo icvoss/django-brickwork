@@ -18,6 +18,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import pytest
+from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 
 from brickwork.icons import get_icon
@@ -143,6 +145,27 @@ def test_without_href_the_tile_is_a_plain_div_never_a_fake_link() -> None:
     out = _render(label="Widgets", value="2")
     assert re.search(r"<a\b", out) is None
     assert re.search(r'<div[^>]+class="[^"]*bw-stat', out)
+
+
+def test_data_mapping_emits_escaped_consumer_owned_attributes() -> None:
+    out = _render(
+        label="Visitors",
+        value="1,234",
+        data={"data-metric": "visitors", "data-label": 'A "quoted" metric'},
+    )
+    assert 'data-metric="visitors"' in out
+    assert 'data-label="A &quot;quoted&quot; metric"' in out
+
+
+@pytest.mark.parametrize("data", [{"aria-label": "Visitors"}, {"data-bw-stat": ""}, ["data-metric"]])
+def test_data_mapping_rejects_non_consumer_data_attributes(data: object) -> None:
+    with pytest.raises(TemplateSyntaxError, match="stat data"):
+        _render(label="Visitors", value="1,234", data=data)
+
+
+def test_data_omitted_keeps_the_existing_opening_tag() -> None:
+    out = _render(label="Visitors", value="1,234")
+    assert '<div class="bw-stat">' in out
 
 
 def test_loading_shows_a_skeleton() -> None:

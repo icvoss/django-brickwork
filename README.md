@@ -262,6 +262,7 @@ with context.
   Record rows may include a `data` mapping for consumer-owned hooks on the
   rendered row, for example `{"data-item-id": gadget.pk}`. Only `data-*`
   names are accepted; Brickwork's own `data-bw-*` hooks remain reserved.
+  `_stat.html` accepts the same optional `data` mapping on its tile root.
 
 ### Icons: decorative or labelled, always
 

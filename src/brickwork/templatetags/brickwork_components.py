@@ -49,24 +49,22 @@ _DATA_ATTRIBUTE_NAME_RE = re.compile(r"^data-[a-z][a-z0-9_.:-]*$")
 
 
 @register.simple_tag
-def bw_data_attrs(attrs: object) -> SafeString:
-    """Render a row's consumer-owned data attributes safely.
+def bw_data_attrs(attrs: object, subject: str = "data table row") -> SafeString:
+    """Render consumer-owned data attributes safely.
 
-    ``_data_table.html`` uses this for its optional ``row.data`` mapping. Only
-    ordinary ``data-*`` names are accepted: Brickwork's own ``data-bw-*``
-    hooks remain component-owned, and attribute values are escaped.
+    Structural components use this for optional ``data`` mappings. Only
+    ordinary ``data-*`` names are accepted: Brickwork's own ``data-bw-*`` hooks
+    remain component-owned, and attribute values are escaped.
     """
     if attrs in (None, ""):
         return mark_safe("")
     if not isinstance(attrs, Mapping):
-        raise TemplateSyntaxError(
-            f"data table row data must be a mapping of data-* attribute name -> value, got {attrs!r}"
-        )
+        raise TemplateSyntaxError(f"{subject} data must be a mapping of data-* attribute name -> value, got {attrs!r}")
 
     parts = []
     for name, value in attrs.items():
         if not isinstance(name, str) or not _DATA_ATTRIBUTE_NAME_RE.match(name) or name.startswith("data-bw-"):
-            raise TemplateSyntaxError(f"data table row data contains an invalid data-* attribute name: {name!r}")
+            raise TemplateSyntaxError(f"{subject} data contains an invalid data-* attribute name: {name!r}")
         parts.append(format_html(' {}="{}"', name, value))
     return mark_safe("".join(parts))
 
