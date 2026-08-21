@@ -31,7 +31,29 @@ Optional context:
                 slot. Omitted renders a text-only hero, never a broken image
                 box. The caller owns escaping (mark it safe at the call
                 site), matching _stat.html's sparkline convention.
-  align         ("start" | "center", default "start").
+  align         ("start" | "center" | "end", default "start").
+  media_placement ("below" default | "behind" | "beside", ADR-057 section
+                1a): where the media slot sits relative to the copy. "below"
+                is the shipped 2.0.0 layout (a column flex, media after the
+                copy in document order) and is the honestly-named default,
+                not "beside": the copy and media were never side by side
+                until this option existed (icvoss/django-brickwork#118).
+                "behind" stacks the media in the same grid area as the copy,
+                with the copy on top; the section takes the inverse surface
+                (--bw-color-surface-inverse / --bw-color-fg-on-inverse) plus
+                a scrim over the media, so contrast holds in both themes
+                regardless of what the media itself contains. "beside" is a
+                true side-by-side row from 48rem up (single column below
+                it), replacing what a consumer previously had to hand-build
+                as its own section (src/brickwork/examples/sections/hero/
+                split-media.html, which collapses to an include of this
+                option, per ADR-077).
+
+                This is a CSS-only option: it changes no markup, only the
+                modifier class on the section root, so a caller who has
+                copied this include still only edits one class to change
+                arrangement (ADR-057 section 1a's binding rule on CSS-only
+                axes).
 
 Uses the display type role (--bw-text-heading-display-*) and the marketing
 section-rhythm token for its own block spacing.
@@ -47,7 +69,7 @@ slot is the escape hatch for a caller with structured copy (a translated
 mark, a rich lede with an inline link) that a flat string cannot carry,
 rather than adding yet another *_html kwarg per field.
 {% endcomment %}
-<section class="bw-hero bw-hero--{% firstof align 'start' %}">
+<section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% endif %}">
   <div class="bw-hero__copy">
     {% block eyebrow %}{% if eyebrow %}<p class="bw-hero__eyebrow">{{ eyebrow }}</p>{% endif %}{% endblock %}
     {% block heading %}{% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}{% endblock %}

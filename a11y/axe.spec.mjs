@@ -241,6 +241,41 @@ for (const theme of THEMES) {
   }
 }
 
+// icvoss/django-brickwork#118: media_placement="beside" is a true side-by-side
+// row from 48rem, the classic mobile overflow shape, and it had no dedicated
+// mobile check before this fixture existed (hero-placement-*.html, added
+// alongside media_placement itself). Same sweep as the sections check above,
+// scoped to the one fixture that actually renders "beside".
+for (const theme of THEMES) {
+  for (const width of MOBILE_WIDTHS) {
+    test(`hero media_placement="beside" does not scroll the page sideways at ${width}px (${theme})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(pathToFileURL(join(FIXTURES, `hero-placement-${theme}.html`)).href);
+
+      const result = await page.evaluate(() => ({
+        documentWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+        offenders: [...document.querySelectorAll("*")]
+          .filter((el) => {
+            const rect = el.getBoundingClientRect();
+            if (rect.right <= window.innerWidth + 1) return false;
+            const parent = el.parentElement?.getBoundingClientRect();
+            return !parent || parent.right <= window.innerWidth + 1;
+          })
+          .slice(0, 5)
+          .map((el) => `${el.tagName}.${typeof el.className === "string" ? el.className.split(" ")[0] : ""}`),
+      }));
+
+      expect(
+        result.documentWidth,
+        `page scrolls horizontally at ${width}px; root causes: ${JSON.stringify(result.offenders)}`,
+      ).toBeLessThanOrEqual(result.viewportWidth + 1);
+    });
+  }
+}
+
 // icvoss/django-brickwork#125 regression: the marketing header specifically,
 // on the landing-*.html fixtures the issue itself reproduced against (326px
 // scrollWidth at a 320px viewport, from .bw-marketing-header__actions and its
@@ -269,5 +304,160 @@ for (const theme of THEMES) {
       result.actionsRight,
       ".bw-marketing-header__actions overflows the 320px viewport",
     ).toBeLessThanOrEqual(result.viewportWidth + 1);
+  });
+}
+
+// icvoss/django-brickwork#118 regression: WCAG 1.4.3 composited contrast for
+// media_placement="behind" over the pale illustration fixture.
+//
+// axe cannot catch this. It reports "incomplete", never a violation, for text
+// painted over a background image (its colour-contrast check does not
+// rasterise the page), so the axe gate above ran green over a real defect:
+// the original scrim was a linear-gradient from 45% to 75% opacity, which
+// made the composited ratio depend on where a line of text happened to fall.
+// Measured directly, the lede sat at 4.25:1, under the 4.5:1 floor, while the
+// heading higher up passed at the same time. Only a pixel-level measurement
+// of the actual rendered page catches that class of defect, which is what
+// this test does: it screenshots the composited page (real glyphs over the
+// real scrim over the real media, exactly what a reader sees) and computes
+// the WCAG relative-luminance contrast ratio from the rendered pixels.
+//
+// Scoped to the pale-media "behind" hero specifically: that is the harder
+// case the CSS comment on the scrim itself names (frontend/src/marketing.css,
+// .bw-hero--media-behind .bw-hero__media::after) as the one a lighter
+// rebrand most threatens, since --bw-color-surface-inverse resolves to
+// --bw-color-fg, which a tenant can retune lighter.
+function relativeLuminance([r, g, b]) {
+  const channel = (c) => {
+    c /= 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+
+function wcagContrastRatio(rgbA, rgbB) {
+  const lA = relativeLuminance(rgbA);
+  const lB = relativeLuminance(rgbB);
+  const lighter = Math.max(lA, lB);
+  const darker = Math.min(lA, lB);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// Measures the worst-case composited contrast ratio between an element's own
+// text colour and the page pixels actually behind it, across the element's
+// full rendered box (its full vertical extent, so a defect that only shows up
+// partway down a wrapped line, as the original one did, is still caught).
+//
+// The element is screenshotted in place (not re-rendered in isolation), so
+// what is measured is exactly what a reader sees: real glyphs already
+// composited over the real scrim over the real media. Anti-aliased glyph
+// edges blend towards the text colour and would otherwise register as a
+// falsely dark (or light) "background" pixel a handful of times per row;
+// taking the per-row MODE of the non-glyph pixels is robust to that, because
+// the true background fills the overwhelming majority of every row that has
+// any background at all (line-height leading, inter-word gaps, the insides
+// of open letterforms), while the anti-aliasing tail is never the most
+// frequent colour in a row.
+async function measureComposedContrast(page, locator) {
+  await locator.scrollIntoViewIfNeeded();
+  const box = await locator.boundingBox();
+  const textColourCss = await locator.evaluate((el) => getComputedStyle(el).color);
+  const [tr, tg, tb] = await page.evaluate((css) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = css;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    return [r, g, b];
+  }, textColourCss);
+
+  const screenshot = await page.screenshot({
+    clip: { x: box.x, y: box.y, width: box.width, height: box.height },
+  });
+
+  return page.evaluate(
+    async ({ pngBase64, textColour, glyphThreshold }) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${pngBase64}`;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+      const relLum = ([r, g, b]) => {
+        const channel = (c) => {
+          c /= 255;
+          return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        };
+        return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+      };
+      const ratio = (a, b) => {
+        const lA = relLum(a);
+        const lB = relLum(b);
+        return (Math.max(lA, lB) + 0.05) / (Math.min(lA, lB) + 0.05);
+      };
+      const colourDistance = ([r1, g1, b1], [r2, g2, b2]) =>
+        Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+
+      let worstRatio = Infinity;
+      let worstBackground = null;
+      for (let y = 0; y < canvas.height; y++) {
+        const rowCounts = new Map();
+        for (let x = 0; x < canvas.width; x++) {
+          const idx = (y * canvas.width + x) * 4;
+          const pixel = [data[idx], data[idx + 1], data[idx + 2]];
+          if (colourDistance(pixel, textColour) < glyphThreshold) continue;
+          const key = pixel.join(",");
+          rowCounts.set(key, (rowCounts.get(key) ?? 0) + 1);
+        }
+        if (rowCounts.size === 0) continue;
+        const [modeKey] = [...rowCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+        const modeRgb = modeKey.split(",").map(Number);
+        const rowRatio = ratio(textColour, modeRgb);
+        if (rowRatio < worstRatio) {
+          worstRatio = rowRatio;
+          worstBackground = modeRgb;
+        }
+      }
+      return { ratio: worstRatio, background: worstBackground };
+    },
+    { pngBase64: screenshot.toString("base64"), textColour: [tr, tg, tb], glyphThreshold: 40 },
+  );
+}
+
+for (const theme of THEMES) {
+  test(`hero media_placement="behind" clears WCAG 1.4.3 composited contrast over pale media (${theme})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(pathToFileURL(join(FIXTURES, `hero-placement-${theme}.html`)).href);
+
+    // Document order in the hero-placement fixture (a11y/generate_fixtures.py,
+    // render_hero_media_placement): no-media, pale-media, dark-media, then the
+    // "beside" hero. The pale-media "behind" hero is the second
+    // .bw-hero--media-behind element and the harder of the two contrast cases
+    // (the original defect measured 4.25:1 here, under the lede's 4.5:1
+    // floor, while the near-black case never approached the floor).
+    const paleMediaHero = page.locator(".bw-hero--media-behind").nth(1);
+    const heading = paleMediaHero.locator(".bw-hero__heading");
+    const lede = paleMediaHero.locator(".bw-hero__lede");
+
+    const headingResult = await measureComposedContrast(page, heading);
+    const ledeResult = await measureComposedContrast(page, lede);
+
+    expect(
+      headingResult.ratio,
+      `hero heading over pale media (${theme} theme) measured ${headingResult.ratio.toFixed(2)}:1 against the composited background ${JSON.stringify(headingResult.background)}, below the WCAG 1.4.3 large-text floor of 3:1`,
+    ).toBeGreaterThanOrEqual(3.0);
+
+    expect(
+      ledeResult.ratio,
+      `hero lede over pale media (${theme} theme) measured ${ledeResult.ratio.toFixed(2)}:1 against the composited background ${JSON.stringify(ledeResult.background)}, below the WCAG 1.4.3 normal-text floor of 4.5:1`,
+    ).toBeGreaterThanOrEqual(4.5);
   });
 }

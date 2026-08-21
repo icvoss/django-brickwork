@@ -41,6 +41,12 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     ("_hero", "align", "start", "bw-hero--start"),
     ("_hero", "align", "center", "bw-hero--center"),
     ("_hero", "align", "end", "bw-hero--end"),
+    # --- media_placement (ADR-057 section 1a, icvoss/django-brickwork#118) ---
+    # "below" is the honestly-named default (the shipped column-flex layout)
+    # and emits no modifier class at all, so it has no entry here: there is
+    # no CSS rule to pin, only the byte-identity test in test_marketing.py.
+    ("_hero", "media_placement", "behind", "bw-hero--media-behind"),
+    ("_hero", "media_placement", "beside", "bw-hero--media-beside"),
     # --- the renamed vocabularies (3.0.0) -----------------------------------
     ("_alert", "variant", "info", "bw-alert--info"),
     ("_alert", "variant", "success", "bw-alert--success"),

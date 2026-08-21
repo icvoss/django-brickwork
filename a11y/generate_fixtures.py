@@ -1731,6 +1731,99 @@ def render_about(theme: str) -> str:
     return _inline_css(html)
 
 
+# --- the hero media_placement axis (ADR-057 section 1a, icvoss/django-brickwork#118) ---
+#
+# None of landing/pricing/about above ever passes media_placement, so they all
+# render the "below" default: the "behind" and "beside" CSS this option adds
+# (.bw-hero--media-behind, .bw-hero--media-beside in frontend/src/marketing.css)
+# had no fixture rendering it, so axe was never actually examining it and the
+# 320-414px sweep never actually measured "beside" collapsing to one column.
+#
+# "behind" is the contrast-sensitive one (headline over an illustration), so
+# this fixture stacks THREE behind heroes with different media, to prove the
+# scrim/inverse-surface contrast guarantee holds regardless of what the
+# caller passes as media, not just for one hand-picked image:
+#   1. no media at all (the section still needs to hold its own contrast)
+#   2. a very light illustration (pale background, pale shapes)
+#   3. a very dark illustration (near-black background)
+# A "beside" hero follows, with a real <img> in its media slot so the radius
+# scoping change (img keeps --bw-radius-lg, svg does not) is exercised here
+# alongside the placement axis itself.
+_HERO_PLACEMENT_BEHIND_NO_MEDIA = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Behind, no media" heading="Still legible with nothing behind it"'
+    ' lede="The inverse surface and scrim are the contrast guarantee, not the media."'
+    ' primary_cta=primary_cta media_placement="behind" %}'
+)
+_HERO_PLACEMENT_BEHIND_LIGHT_MEDIA = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Behind, light media" heading="Legible over a pale illustration"'
+    ' lede="A light backdrop is the harder case for a scrim to hold contrast against."'
+    ' primary_cta=primary_cta media=light_media media_placement="behind" %}'
+)
+_HERO_PLACEMENT_BEHIND_DARK_MEDIA = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Behind, dark media" heading="Legible over a near-black illustration"'
+    ' lede="A dark backdrop should not need a different scrim to stay legible."'
+    ' primary_cta=primary_cta media=dark_media media_placement="behind" %}'
+)
+_HERO_PLACEMENT_BESIDE = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Beside" heading="Copy and media side by side from 48rem"'
+    ' lede="Collapses to one column below the breakpoint; must not scroll the page sideways."'
+    ' primary_cta=primary_cta secondary_cta=secondary_cta media=beside_media media_placement="beside" %}'
+)
+
+_HERO_PLACEMENT_SOURCE = (
+    '{% extends "brickwork_marketing/shell/marketing.html" %}'
+    + _MARKETING_CHROME
+    + "{% block content %}"
+    + _HERO_PLACEMENT_BEHIND_NO_MEDIA
+    + _HERO_PLACEMENT_BEHIND_LIGHT_MEDIA
+    + _HERO_PLACEMENT_BEHIND_DARK_MEDIA
+    + _HERO_PLACEMENT_BESIDE
+    + "{% endblock %}"
+)
+
+
+def render_hero_media_placement(theme: str) -> str:
+    from django.utils.safestring import mark_safe
+
+    request = RequestFactory().get("/marketing/hero-media-placement/")
+    # Decorative (the illustration repeats what the copy already says), so it
+    # is hidden from the accessibility tree rather than given an empty
+    # role="img"/aria-label (axe correctly flags an empty accessible name),
+    # matching sections/hero/split-media.html's own documented convention.
+    light_media = mark_safe(  # noqa: S308 - our own fixture markup
+        '<svg viewBox="0 0 480 320" aria-hidden="true" focusable="false">'
+        '<rect width="480" height="320" fill="#f5f2e9"/>'
+        '<circle cx="240" cy="160" r="90" fill="#ece5d3"/>'
+        "</svg>"
+    )
+    dark_media = mark_safe(  # noqa: S308 - our own fixture markup
+        '<svg viewBox="0 0 480 320" aria-hidden="true" focusable="false">'
+        '<rect width="480" height="320" fill="#050506"/>'
+        '<circle cx="240" cy="160" r="90" fill="#121214"/>'
+        "</svg>"
+    )
+    beside_media = mark_safe('<img src="/static/demo/acme.svg" alt="" width="480" height="320">')  # noqa: S308
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Hero media placement",
+        "bw_page_title": "Hero media placement, Acme",
+        "primary_cta": {"label": "Get started", "url": "#start"},
+        "secondary_cta": {"label": "See features", "url": "#features"},
+        "light_media": light_media,
+        "dark_media": dark_media,
+        "beside_media": beside_media,
+    }
+    html = engines["django"].from_string(_HERO_PLACEMENT_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
+
+
 # --- the example sections (3.1.0, plan Phase 6a) ------------------------------
 #
 # Gate 3 of the plan's Phase 6: every section variant clears axe WCAG 2.2 AA in
@@ -1987,6 +2080,10 @@ def main() -> None:
         (OUT / f"landing-{theme}.html").write_text(render_landing(theme))
         (OUT / f"pricing-{theme}.html").write_text(render_pricing(theme))
         (OUT / f"about-{theme}.html").write_text(render_about(theme))
+        # the hero media_placement axis (ADR-057 section 1a, #118): "behind"
+        # (no/light/dark media) and "beside", none of which landing/pricing/
+        # about above ever render, so axe never examined the new CSS
+        (OUT / f"hero-placement-{theme}.html").write_text(render_hero_media_placement(theme))
         # the nav renderers (#102/#82): the marketing-header row and the
         # two-tier rail + contextual pairing, ancestor-active states lit
         (OUT / f"nav-renderers-{theme}.html").write_text(render_nav_renderers(theme))
@@ -2031,6 +2128,7 @@ def main() -> None:
             f"landing-{theme}",
             f"pricing-{theme}",
             f"about-{theme}",
+            f"hero-placement-{theme}",
             f"nav-renderers-{theme}",
             f"sections-{theme}",
         ]

@@ -51,6 +51,7 @@ from django import forms
 from django.template import Context, Template, engines
 from django.template.loader import render_to_string
 from django.test import RequestFactory
+from django.utils.safestring import mark_safe
 
 from brickwork.models import NavItem
 from tests._class_contract import UNSTYLED_BY_DESIGN, unstyled_classes
@@ -578,7 +579,12 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
         title="Panel",
         **({"size": value} if value in {"sm", "md", "lg"} else {"placement": value}),
     ),
-    "_hero": lambda value: _include("brickwork_marketing/components/_hero.html", heading="Headline", align=value),
+    "_hero": lambda value: _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Headline",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        **({"align": value} if value in {"start", "center", "end"} else {"media_placement": value}),
+    ),
     "_alert": lambda value: _tag("brickwork_components", f'{{% bw_alert "Message" variant="{value}" %}}'),
     "_card": lambda value: _include("brickwork/components/_card.html", size=value),
     "_account_menu": lambda value: _include(

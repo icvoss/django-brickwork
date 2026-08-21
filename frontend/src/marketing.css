@@ -331,7 +331,109 @@
   display: block;
   inline-size: 100%;
   block-size: auto;
+}
+
+/* Radius on img only, never svg (icvoss/django-brickwork#118). A photograph
+ * wants a frame; a diagram or logotype has no frame to round, and clipping its
+ * corners damages artwork the caller drew deliberately. Scoping here rather
+ * than shipping a --bare opt-out modifier fixes every existing SVG caller with
+ * no action on their part, instead of making each one discover an override for
+ * a .bw-* internal (the-wall EXT-013 discourages exactly that). */
+.bw-hero__media img {
   border-radius: var(--bw-radius-lg);
+}
+
+/* --- Hero media placement (ADR-057 section 1a, #118) ------------------------- */
+
+/* The media_placement axis. "below" is the default and deliberately has NO
+ * modifier class: it is the shipped 2.0.0 layout (.bw-hero is a column flex,
+ * so media follows the copy in normal flow), so an omitted or unrecognised
+ * value renders byte-identically to before this option existed. */
+
+/* "behind": media and copy share one grid area, copy on top. */
+.bw-hero--media-behind {
+  display: grid;
+  position: relative;
+  isolation: isolate;
+  padding: var(--bw-space-16) var(--bw-space-8);
+  border-radius: var(--bw-radius-2xl);
+  overflow: hidden;
+  background-color: var(--bw-color-surface-inverse);
+  color: var(--bw-color-fg-on-inverse);
+}
+
+.bw-hero--media-behind > * {
+  grid-area: 1 / 1;
+}
+
+.bw-hero--media-behind .bw-hero__copy {
+  z-index: 1;
+  max-inline-size: min(var(--bw-size-max-width-prose), 100%);
+}
+
+/* The copy inherits the inverse foreground. The eyebrow keeps its accent role
+ * elsewhere, but accent on an inverse surface is not contrast-checked, so it
+ * takes the inverse foreground here too. */
+.bw-hero--media-behind .bw-hero__eyebrow,
+.bw-hero--media-behind .bw-hero__heading,
+.bw-hero--media-behind .bw-hero__lede {
+  color: var(--bw-color-fg-on-inverse);
+}
+
+.bw-hero--media-behind .bw-hero__media {
+  position: relative;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.bw-hero--media-behind .bw-hero__media :where(img, svg) {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+/* The scrim, between the media and the copy.
+ *
+ * UNIFORM, not a gradient. A gradient makes the contrast ratio depend on WHERE
+ * a line of text happens to sit, so the guarantee changes with copy length:
+ * measured against a pale illustration, a 45%-at-the-top gradient put the lede
+ * at 4.25:1, under the 4.5:1 floor of WCAG 1.4.3, while the heading lower down
+ * passed. A flat scrim makes the floor unconditional, which is the only way
+ * this band can promise contrast without knowing what media the caller passed.
+ *
+ * 75% is chosen with headroom, not to the millimetre. Against pure white media
+ * (the worst case) the arithmetic minimum that clears 4.5:1 is 60%, but
+ * surface-inverse resolves to var(--bw-color-fg), which a tenant rebrands: a
+ * lighter brand foreground needs a denser scrim to reach the same ratio, and
+ * 75% keeps the promise across plausible rebrands rather than only the shipped
+ * palette. A uniform scrim also needs no [dir="rtl"] mirroring, which a
+ * directional gradient would. */
+.bw-hero--media-behind .bw-hero__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--bw-color-surface-inverse) 75%, transparent);
+}
+
+/* "beside": a true side-by-side row from 48rem up, single column below it.
+ * Mobile-first, so the narrow case needs no rule (ADR-057 section 1: a section
+ * that only works at desktop width is not a shipped section). */
+@media (min-width: 48rem) {
+  .bw-hero--media-beside {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--bw-space-8);
+  }
+
+  .bw-hero--media-beside .bw-hero__copy,
+  .bw-hero--media-beside .bw-hero__media {
+    min-inline-size: 0;
+  }
+
+  .bw-hero--media-beside .bw-hero__media {
+    align-self: center;
+  }
 }
 
 /* --- Feature grid ------------------------------------------------------------ */

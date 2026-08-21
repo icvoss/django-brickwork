@@ -197,6 +197,99 @@ def test_hero_default_align_is_start() -> None:
     assert "bw-hero--start" in html
 
 
+# --- components/_hero.html: media_placement (ADR-057 section 1a, #118) ------
+
+
+def test_hero_media_placement_omitted_emits_no_modifier_class() -> None:
+    # "below" (the shipped column-flex layout, media after the copy) is the
+    # honestly-named default and is byte-identical to the pre-option output,
+    # per test_hero_heading_only_output_is_byte_identical_to_pre_slot_blocks:
+    # this test covers the same invariant when media is present too.
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert "bw-hero--media-behind" not in html
+    assert "bw-hero--media-beside" not in html
+
+
+def test_hero_media_placement_below_is_explicitly_the_same_as_omitted() -> None:
+    omitted = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    explicit = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="below",
+    )
+    assert omitted == explicit
+
+
+def test_hero_media_placement_behind_emits_its_modifier_class() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Framed",
+        media=mark_safe("<svg viewBox='0 0 1 1'></svg>"),
+        media_placement="behind",
+    )
+    assert "bw-hero--media-behind" in html
+    assert "bw-hero--media-beside" not in html
+
+
+def test_hero_media_placement_beside_emits_its_modifier_class() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Side by side",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="beside",
+    )
+    assert "bw-hero--media-beside" in html
+    assert "bw-hero--media-behind" not in html
+
+
+def test_hero_media_placement_is_css_only_and_adds_no_markup() -> None:
+    # ADR-057 section 1a's binding rule on CSS-only axes: only the modifier
+    # class changes, never the DOM shape. The scrim behind's contrast
+    # contract needs is a CSS pseudo-element (::after), not a rendered node.
+    below = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Same shape",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    behind = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Same shape",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="behind",
+    )
+    beside = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Same shape",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="beside",
+    )
+    strip_classes = lambda html: re.sub(r'\sclass="[^"]*"', "", html)  # noqa: E731
+    assert strip_classes(below) == strip_classes(behind) == strip_classes(beside)
+
+
+def test_hero_media_placement_unrecognised_value_falls_back_to_default() -> None:
+    # _hero.html is include-consumed (no tag), so an unrecognised value
+    # cannot raise (BR-BW-OPT-002); the CSS-contract test in
+    # test_option_vocabularies.py is the enforcement for documented values,
+    # and this pins the fallback behaviour for an undocumented one.
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media_placement="sideways",
+    )
+    assert "bw-hero--media-behind" not in html
+    assert "bw-hero--media-beside" not in html
+
+
 # --- components/_hero.html: flat CTA kwargs (#98) ---------------------------
 
 
