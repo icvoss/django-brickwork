@@ -6,8 +6,13 @@ accessible-name enforcement), so they are tags rather than bare {% include %}.
 
 from __future__ import annotations
 
+import re
+from collections.abc import Mapping
+
 from django import template
 from django.template.exceptions import TemplateSyntaxError
+from django.utils.html import format_html
+from django.utils.safestring import SafeString, mark_safe
 
 register = template.Library()
 
@@ -40,6 +45,30 @@ _SKELETON_VARIANTS = {"text", "title", "row", "block"}
 # and failed silently. brickworkui.com shipped variant="error" against it for
 # exactly that reason.
 _BADGE_VARIANTS = {"neutral", "info", "success", "warning", "danger"}
+_DATA_ATTRIBUTE_NAME_RE = re.compile(r"^data-[a-z][a-z0-9_.:-]*$")
+
+
+@register.simple_tag
+def bw_data_attrs(attrs: object) -> SafeString:
+    """Render a row's consumer-owned data attributes safely.
+
+    ``_data_table.html`` uses this for its optional ``row.data`` mapping. Only
+    ordinary ``data-*`` names are accepted: Brickwork's own ``data-bw-*``
+    hooks remain component-owned, and attribute values are escaped.
+    """
+    if attrs in (None, ""):
+        return mark_safe("")
+    if not isinstance(attrs, Mapping):
+        raise TemplateSyntaxError(
+            f"data table row data must be a mapping of data-* attribute name -> value, got {attrs!r}"
+        )
+
+    parts = []
+    for name, value in attrs.items():
+        if not isinstance(name, str) or not _DATA_ATTRIBUTE_NAME_RE.match(name) or name.startswith("data-bw-"):
+            raise TemplateSyntaxError(f"data table row data contains an invalid data-* attribute name: {name!r}")
+        parts.append(format_html(' {}="{}"', name, value))
+    return mark_safe("".join(parts))
 
 
 @register.inclusion_tag("brickwork/components/_button.html")

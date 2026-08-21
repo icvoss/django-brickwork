@@ -8,7 +8,9 @@ covers the end-to-end server-side sort).
 
 from __future__ import annotations
 
+import pytest
 from django.template import engines
+from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.test import RequestFactory
 
@@ -58,6 +60,41 @@ def test_selected_row_carries_the_selected_class() -> None:
     assert out.count("bw-data-table__row--selected") == 1
     selected_row = out[out.index('id="gadgets-row-1"') : out.index('id="gadgets-row-2"')]
     assert "bw-data-table__row--selected" in selected_row
+
+
+def test_row_data_mapping_emits_escaped_data_attributes() -> None:
+    rows = [
+        {
+            "id": 1,
+            "cells": ["Widget", "Active"],
+            "data": {"data-item-id": "widget-1", "data-label": 'A "quoted" value'},
+        }
+    ]
+    out = _render(table_id="gadgets", columns=_COLUMNS, rows=rows)
+    row = out[out.index('id="gadgets-row-1"') : out.index("</tr>", out.index('id="gadgets-row-1"'))]
+    assert 'data-item-id="widget-1"' in row
+    assert 'data-label="A &quot;quoted&quot; value"' in row
+
+
+def test_row_without_data_keeps_its_existing_opening_tag() -> None:
+    out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
+    assert '<tr id="gadgets-row-1" class="bw-data-table__row">' in out
+
+
+@pytest.mark.parametrize(
+    "data",
+    [{"aria-label": "Widget"}, {"data-": "Widget"}, {"data-bw-row-select": ""}, ["data-item-id"]],
+)
+def test_row_data_mapping_rejects_non_data_attributes_or_non_mapping(data: object) -> None:
+    rows = [{"id": 1, "cells": ["Widget", "Active"], "data": data}]
+    with pytest.raises(TemplateSyntaxError, match="row data"):
+        _render(table_id="gadgets", columns=_COLUMNS, rows=rows)
+
+
+def test_table_rows_partial_keeps_row_data_attributes() -> None:
+    rows = [{"id": 1, "cells": ["Widget", "Active"], "data": {"data-item-id": "widget-1"}}]
+    out = _render_rows_partial(table_id="gadgets", columns=_COLUMNS, rows=rows)
+    assert 'data-item-id="widget-1"' in out
 
 
 # --- clickable rows (#10) --------------------------------------------------
