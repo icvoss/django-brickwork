@@ -1824,6 +1824,67 @@ def render_hero_media_placement(theme: str) -> str:
     return _inline_css(html)
 
 
+# --- the CTA width axis (ADR-057 section 1a, #98/#118 pattern) ----------------
+#
+# width="bleed" (bw-cta--bleed) had no fixture rendering it before this: none
+# of landing/pricing/about/sections-<theme>.html ever pass width, so axe never
+# examined the escape-the-shell CSS and the 320-414px sweep never actually
+# measured whether a full-bleed band avoids the classic horizontal-overflow
+# bug. This fixture stacks all four band x width combinations (tint/plain x
+# contained/bleed) so the source-order specificity tie between .bw-cta--tint
+# and .bw-cta--bleed (both single-class selectors) is exercised on a real
+# tinted, full-bleed band, not just read off the CSS.
+_CTA_WIDTH_CONTAINED_PLAIN = (
+    '{% include "brickwork_marketing/components/_cta.html" with'
+    ' heading="Contained, plain band" body="The unchanged default: no width, no band override."'
+    ' primary_cta_label="Start free trial" primary_cta_href="#start"'
+    ' secondary_cta_label="Talk to us" secondary_cta_href="#contact" band="plain" %}'
+)
+_CTA_WIDTH_CONTAINED_TINT = (
+    '{% include "brickwork_marketing/components/_cta.html" with'
+    ' heading="Contained, tinted band" body="band=tint with no width: the pre-existing composition."'
+    ' primary_cta_label="Start free trial" primary_cta_href="#start"'
+    ' secondary_cta_label="Talk to us" secondary_cta_href="#contact" band="tint" %}'
+)
+_CTA_WIDTH_BLEED_PLAIN = (
+    '{% include "brickwork_marketing/components/_cta.html" with'
+    ' heading="Full-bleed, plain band" body="width=bleed on the page surface, no tint."'
+    ' primary_cta_label="Start free trial" primary_cta_href="#start"'
+    ' secondary_cta_label="Talk to us" secondary_cta_href="#contact" band="plain" width="bleed" %}'
+)
+_CTA_WIDTH_BLEED_TINT = (
+    '{% include "brickwork_marketing/components/_cta.html" with'
+    ' heading="Full-bleed, tinted band" body="Both classes present: the source-order specificity tie."'
+    ' primary_cta_label="Start free trial" primary_cta_href="#start"'
+    ' secondary_cta_label="Talk to us" secondary_cta_href="#contact" band="tint" width="bleed" %}'
+)
+
+_CTA_WIDTH_SOURCE = (
+    '{% extends "brickwork_marketing/shell/marketing.html" %}'
+    + _MARKETING_CHROME
+    + "{% block content %}"
+    + _CTA_WIDTH_CONTAINED_PLAIN
+    + _CTA_WIDTH_CONTAINED_TINT
+    + _CTA_WIDTH_BLEED_PLAIN
+    + _CTA_WIDTH_BLEED_TINT
+    + "{% endblock %}"
+)
+
+
+def render_cta_width(theme: str) -> str:
+    request = RequestFactory().get("/marketing/cta-width/")
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "CTA width",
+        "bw_page_title": "CTA width, Acme",
+    }
+    html = engines["django"].from_string(_CTA_WIDTH_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
+
+
 # --- the example sections (3.1.0, plan Phase 6a) ------------------------------
 #
 # Gate 3 of the plan's Phase 6: every section variant clears axe WCAG 2.2 AA in
@@ -2084,6 +2145,9 @@ def main() -> None:
         # (no/light/dark media) and "beside", none of which landing/pricing/
         # about above ever render, so axe never examined the new CSS
         (OUT / f"hero-placement-{theme}.html").write_text(render_hero_media_placement(theme))
+        # the CTA width axis (ADR-057 section 1a, #98/#118 pattern): width="bleed"
+        # (bw-cta--bleed), never rendered by any other fixture, crossed with band
+        (OUT / f"cta-width-{theme}.html").write_text(render_cta_width(theme))
         # the nav renderers (#102/#82): the marketing-header row and the
         # two-tier rail + contextual pairing, ancestor-active states lit
         (OUT / f"nav-renderers-{theme}.html").write_text(render_nav_renderers(theme))
@@ -2129,6 +2193,7 @@ def main() -> None:
             f"pricing-{theme}",
             f"about-{theme}",
             f"hero-placement-{theme}",
+            f"cta-width-{theme}",
             f"nav-renderers-{theme}",
             f"sections-{theme}",
         ]

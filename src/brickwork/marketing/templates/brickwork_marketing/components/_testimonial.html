@@ -19,9 +19,37 @@ Layout note (#86): the root carries no block margins of its own (the UA
 marketing shell's section rhythm (.bw-marketing__content > * + *) owns the
 gap above a composed testimonial.
 
-Every input here is already a flat string (#98): this component is fully
-template-authorable via {% include ... with %} as-is; nothing dict-shaped
-or list-shaped exists in its contract.
+avatar is already a flat string (#98): fully template-authorable via
+{% include ... with %} as-is, nothing dict-shaped or list-shaped. logo is
+the one exception (pre-rendered safe HTML a plain template cannot build), so
+it also ships as the named block below.
+
+Named blocks (semver-public, BR-BW-TPL-001): logo, empty by default,
+wrapping the existing {% if logo %} rendering. A call site supplying only the
+logo context variable (the pre-existing path) renders byte-identical output
+to before this block existed. A caller who wants to author the mark inline
+(examples/sections/testimonial/logo-and-quote.html's blocker) extends this
+template and fills the block instead of supplying mark_safe(...) markup from
+a view.
+
+KNOWN LIMITATION, stated rather than papered over. This block sits inside the
+figcaption, which only renders when author, role, avatar or logo is truthy. A
+caller who fills the block but sets none of those four gets nothing: Django
+cannot test whether a block was overridden, so the gate cannot open itself on
+the caller's behalf.
+
+Filling the block therefore means setting one of the four, which for a mark
+beside an attribution is the normal case (author or role is almost always
+present). The workaround for a genuinely unattributed mark, passing a
+placeholder logo=" " purely to open the gate, is a poor contract and is NOT
+recommended; if that case turns out to matter, the fix is a structural one to
+the figcaption, not a sentinel. Tracked as icvoss/django-brickwork#171.
+
+Placing the block outside the gate was tried and rejected: it renders whenever
+filled, but then an override no longer REPLACES the logo context variable,
+so both would render at once. One region, one winner, matching the
+_empty_state precedent, is worth more than reaching the unattributed edge
+case.
 {% endcomment %}
 {% if quote %}
 <figure class="bw-testimonial">
@@ -35,7 +63,7 @@ or list-shaped exists in its contract.
         {% if author %}<span class="bw-testimonial__author">{{ author }}</span>{% endif %}
         {% if role %}<span class="bw-testimonial__role">{{ role }}</span>{% endif %}
       </div>
-      {% if logo %}<div class="bw-testimonial__logo">{{ logo }}</div>{% endif %}
+      {% block logo %}{% if logo %}<div class="bw-testimonial__logo">{{ logo }}</div>{% endif %}{% endblock %}
     </figcaption>
   {% endif %}
 </figure>

@@ -619,6 +619,13 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
         items=[{"heading": "Feature", "body": "Body"}],
         columns=value,
     ),
+    "_cta": lambda value: _include(
+        "brickwork_marketing/components/_cta.html",
+        heading="Ready to get paid faster?",
+        primary_cta_label="Start free trial",
+        primary_cta_href="/signup/",
+        width=value,
+    ),
 }
 
 for _component, _option, _value, _css_class in _VOCABULARIES:
