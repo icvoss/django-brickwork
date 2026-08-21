@@ -9,13 +9,19 @@ branch  ->  PR  ->  review  ->  merge to main  ->  tag the merged commit  ->  CI
 ```
 
 The **tag is the trigger**. Pushing a tag of the form `v<semver>` runs the
-publish workflow (`publish-private.yml`), which tests, builds, and uploads to the
-private index `pypi.icvoss.com` (ADR-020). The upload job runs on the
-`[self-hosted, icv-vps]` runner and reads index credentials from that runner's
-host-level `~ghrunner/.netrc` (login `ci-publish`), never a GitHub secret. If the
-netrc entry is missing the job fails fast before any upload; fix the netrc on the
-runner host and re-run, never re-tag. **Tagging is publishing. There is no
-separate "publish" step and no undo.**
+publish workflow (`publish.yml`), which tests, builds, and uploads to **public
+PyPI** via OIDC trusted publishing. No API token and no Actions secret are
+involved: the workflow exchanges a short-lived OIDC token, and the trusted
+publisher is configured in the PyPI project settings.
+
+brickwork graduated from the private index (`pypi.icvoss.com`, ADR-020) to
+public PyPI. This document previously described the private flow, which no
+longer applies to this package.
+
+CI refuses to publish without a CHANGELOG entry matching the version, so a
+missing entry fails the run before any upload. **Tagging is publishing. There is
+no separate "publish" step, no undo, and a version number on PyPI can never be
+reused.**
 
 ## Canonical flow
 
@@ -37,9 +43,8 @@ separate "publish" step and no undo.**
 6. **Watch the publish run** and confirm PyPI:
    ```bash
    gh run watch <run-id> --exit-status
-   # confirm the version landed on the private index (query with --pre for rc/beta):
-   pip index versions django-brickwork --pre \
-     --index-url https://pypi.icvoss.com/simple/    # netrc-authed
+   # confirm the version landed on public PyPI (add --pre for an rc):
+   pip index versions django-brickwork
    ```
 
 > **Tag the commit that is on `main`, not a feature branch.** Tags point at
