@@ -304,9 +304,7 @@ def check_contract_stability(
                 # this baseline in the same PR; nothing to check here.
                 continue
             declared_in = previously_declared_in.get((kind, name), [])
-            provenance = (
-                f" It was last declared in {', '.join(declared_in)}." if declared_in else ""
-            )
+            provenance = f" It was last declared in {', '.join(declared_in)}." if declared_in else ""
             violations.append(
                 f"The {kind} '{name}' is in the committed contract baseline "
                 f"(tests/template_contract_baseline.json) but is no longer in the "
