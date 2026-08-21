@@ -68,6 +68,19 @@ def test_app_shell_honours_an_explicit_layout_under_the_marker_engine() -> None:
 
 
 @marker_engine
+def test_data_table_row_without_data_renders_without_an_invalid_marker() -> None:
+    html = render_to_string(
+        "brickwork/components/_data_table.html",
+        {
+            "columns": [{"label": "Name"}],
+            "rows": [{"id": 1, "cells": ["Widget"]}],
+        },
+    )
+    assert MARKER_PREFIX not in html
+    assert '<tr id="bw-data-table-row-1" class="bw-data-table__row">' in html
+
+
+@marker_engine
 def test_shell_html_axis_attributes_still_default() -> None:
     html = render_to_string("brickwork/shell/app.html", {})
     assert 'lang="en"' in html

@@ -239,7 +239,7 @@ marker into ids and attributes; firstof resolves with failures ignored.
         {% endcomment %}
         {% partialdef table_rows inline %}
         {% for row in rows %}
-          <tr id="{{ table_id }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}{% if row.selected %} bw-data-table__row--selected{% endif %}"{% bw_data_attrs row.data %}>
+          <tr id="{{ table_id }}-row-{{ row.id }}" class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}{% if row.selected %} bw-data-table__row--selected{% endif %}"{% if row.data %}{% bw_data_attrs row.data %}{% endif %}>
             {% if selectable %}
               {% comment %}
               #54: the selection contract. name="selected" value="{{ row.id }}"
