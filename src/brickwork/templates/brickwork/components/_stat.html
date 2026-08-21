@@ -1,4 +1,4 @@
-{% load brickwork_icons i18n %}
+{% load brickwork_components brickwork_icons i18n %}
 {% comment %}
 Stat (VIZ-001/002/017): the KPI tile. Structural, consumed via {% include %}.
 Stacks an overline label, a tabular-numeral value (font-variant-numeric:
@@ -28,6 +28,9 @@ Optional:
   loading (bool): renders skeleton rows instead of the content (STA-004).
   size ("sm" | "md" | "lg", default "md"): emitted as bw-stat--<value> only
         when supplied (VIZ-027).
+  data (mapping of data-* name to value): consumer-owned test and lightweight
+        JavaScript hooks on the tile root. Names are limited to data attributes
+        (not Brickwork's own data-bw-* hooks), and values are escaped.
   sparkline (safe string, #60): pre-rendered sparkline markup (SVG/canvas),
         wrapped in a bw-stat__sparkline row below the value/trend. _stat.html
         is {% include %}d, never {% extends %}d (unlike _card.html and
@@ -46,7 +49,7 @@ Optional:
         convention elsewhere. Ignored while loading=True (the skeleton
         stands in for the whole tile's content, sparkline included).
 {% endcomment %}
-{% if href %}<a class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}">{% endif %}
+{% if href %}<a class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}" href="{{ href }}"{% bw_data_attrs data "stat" %}>{% else %}<div class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}"{% bw_data_attrs data "stat" %}>{% endif %}
   {% if loading %}
     <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
     <div class="bw-skeleton bw-skeleton--title" aria-hidden="true"></div>
