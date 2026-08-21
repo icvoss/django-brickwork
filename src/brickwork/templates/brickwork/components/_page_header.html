@@ -3,17 +3,46 @@ Page header: a title, optional description, and an actions slot. Used inside the
 shell's {% block page_header %}. loading=True swaps the title/description for a
 skeleton (STA-004), never a spinner.
 
-Required context: title. Optional: description, loading. The actions slot is
-filled by the caller wrapping this include, or via the shell's page_actions block.
+Required context: title. Optional: description, loading.
+
+Structural, so consumed via {% include %} (like _card.html), including by a
+caller that extends this template the way _card.html's own docstring shows.
+Named blocks (semver-public, BR-BW-TPL-001), all empty by default (an
+unfilled region renders nothing, matching _card.html's region convention),
+in document order:
+
+  breadcrumb:   above the title row (CMP-034); a consumer typically fills
+                this with {% include "brickwork/components/_breadcrumbs.html" %}.
+  title:        wraps the existing {{ title }} rendering (CMP-034); an
+                override replaces the heading markup entirely, mirroring
+                _modal.html's modal_title default-content convention. Not
+                rendered while loading=True (the skeleton stands in for it).
+  title_badge:  an inline status badge beside the title (CMP-036), e.g.
+                {% bw_badge "Draft" variant="warning" %}.
+  description:  wraps the existing conditional {{ description }} paragraph
+                (CMP-034). Not rendered while loading=True.
+  actions:      the page-level action cluster (CMP-034), e.g. one or more
+                {% bw_button %} calls.
+  tabs:         a tab strip under the header (CMP-035), e.g.
+                {% bw_tabs ... %}.
+
+A call site that supplies only title/description/loading (the pre-existing
+context-variable path) renders byte-identical output to before these blocks
+existed: every block's default content is exactly what used to render
+unconditionally in its place.
 {% endcomment %}
 <header class="bw-page-header">
+  {% block breadcrumb %}{% endblock %}
   {% if loading %}
     <div class="bw-skeleton bw-skeleton--title" aria-hidden="true"></div>
     <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
   {% else %}
     <div class="bw-page-header__titles">
-      <h1 class="bw-page-header__title">{{ title }}</h1>
-      {% if description %}<p class="bw-page-header__description">{{ description }}</p>{% endif %}
+      <h1 class="bw-page-header__title">{% block title %}{{ title }}{% endblock %}</h1>
+      {% block title_badge %}{% endblock %}
+      {% block description %}{% if description %}<p class="bw-page-header__description">{{ description }}</p>{% endif %}{% endblock %}
     </div>
   {% endif %}
+  {% block actions %}{% endblock %}
+  {% block tabs %}{% endblock %}
 </header>

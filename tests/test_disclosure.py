@@ -9,7 +9,7 @@ accordion grouping rides the native <details name> attribute (CBH-016).
 
 from __future__ import annotations
 
-from django.template import engines
+from django.template import Context, Template, engines
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
@@ -18,6 +18,13 @@ def _render(**ctx: object) -> str:
     ctx.setdefault("label", "What is brickwork?")
     ctx.setdefault("content", mark_safe("<p>Building blocks.</p>"))
     return render_to_string("brickwork/components/_disclosure.html", ctx)
+
+
+def _extend(blocks: str, **ctx: object) -> str:
+    ctx.setdefault("label", "What is brickwork?")
+    ctx.setdefault("content", mark_safe("<p>Building blocks.</p>"))
+    source = "{% extends 'brickwork/components/_disclosure.html' %}" + blocks
+    return Template(source).render(Context(ctx))
 
 
 def _details_tag(html: str) -> str:
@@ -32,6 +39,24 @@ def test_renders_a_native_details_summary_disclosure() -> None:
     assert 'class="bw-disclosure bw-disclosure--divided"' in html
     assert '<span class="bw-disclosure__label">What is brickwork?</span>' in html
     assert '<div class="bw-disclosure__panel-inner"><p>Building blocks.</p></div>' in html
+
+
+def test_default_output_is_byte_identical_to_pre_slot_blocks() -> None:
+    # Full-string equality: substring checks above would pass on a
+    # whitespace-only regression from a stray {% if %} inside trigger_meta's
+    # new block.
+    html = _render()
+    assert html == (
+        '\n\n<details class="bw-disclosure bw-disclosure--divided">\n  '
+        '<summary class="bw-disclosure__trigger">\n    '
+        '<span class="bw-disclosure__label">What is brickwork?</span>\n    \n    '
+        '<svg class="bw-icon bw-disclosure__caret" style="--bw-icon-size: var(--bw-component-icon-size-sm)" '
+        'viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+        'stroke-width="var(--bw-component-icon-stroke-width, 2)" stroke-linecap="round" stroke-linejoin="round" '
+        'aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>\n  </summary>\n  '
+        '<div class="bw-disclosure__panel">\n    '
+        '<div class="bw-disclosure__panel-inner"><p>Building blocks.</p></div>\n  </div>\n</details>\n'
+    )
 
 
 def test_ships_no_javascript_at_all() -> None:
@@ -64,6 +89,24 @@ def test_trigger_meta_renders_at_the_trigger_inline_end() -> None:
     html = _render(trigger_meta=mark_safe('<span class="count">3</span>'))
     assert '<span class="bw-disclosure__meta"><span class="count">3</span></span>' in html
     assert "bw-disclosure__meta" not in _render()
+
+
+def test_trigger_meta_block_override_wins_over_the_trigger_meta_context() -> None:
+    # SLOT wave (CMP-027, the-wall): the block is safe to add here because
+    # _disclosure.html is structural/include-consumed, not tag-consumed
+    # (unlike _dropdown.html/_tabs.html/_toast.html/_combobox.html, whose
+    # logic lives behind their {% bw_* %} tag).
+    html = _extend(
+        "{% block trigger_meta %}<span>META-SENTINEL</span>{% endblock %}",
+        trigger_meta="Ignored",
+    )
+    assert "META-SENTINEL" in html
+    assert "Ignored" not in html
+
+
+def test_trigger_meta_block_override_works_with_no_context_variable_set() -> None:
+    html = _extend("{% block trigger_meta %}<span>META-SENTINEL</span>{% endblock %}")
+    assert "META-SENTINEL" in html
 
 
 def test_caret_icon_is_decorative() -> None:

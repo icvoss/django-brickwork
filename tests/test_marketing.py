@@ -156,6 +156,16 @@ def test_hero_all_empty_renders_a_bare_hero_band() -> None:
     assert "bw-hero__actions" not in html
 
 
+def test_hero_heading_only_output_is_byte_identical_to_pre_slot_blocks() -> None:
+    # Full-string equality: substring checks above would pass on a
+    # whitespace-only regression from a stray {% if %} inside a new block.
+    html = _render("brickwork_marketing/components/_hero.html", heading="Ship faster")
+    assert html == (
+        '\n\n<section class="bw-hero bw-hero--start">\n  <div class="bw-hero__copy">\n    \n    '
+        '<h1 class="bw-hero__heading">Ship faster</h1>\n    \n    \n    \n    \n  </div>\n  \n</section>\n'
+    )
+
+
 def test_hero_with_full_context_renders_every_region() -> None:
     html = _include(
         "brickwork_marketing/components/_hero.html",
@@ -240,6 +250,89 @@ def test_hero_flat_kwargs_forwarded_unset_render_no_actions() -> None:
         " primary_cta_label=absent_a primary_cta_href=absent_b %}"
     ).render(Context({"heading": "Ship faster"}))
     assert "bw-hero__actions" not in html
+
+
+# --- components/_hero.html: named blocks (CMP wall, SLOT wave) --------------
+#
+# BR-BW-OPT-004: eyebrow/heading/lede are prose with no data object behind
+# them, so a caller with structured copy (a translated mark, a rich lede with
+# an inline link) needs a slot, not another flat-string kwarg. Each block
+# wraps the existing conditional rendering, so a call site supplying only the
+# flat context variables (tested above) renders unchanged.
+
+
+def _extend_hero(blocks: str, **ctx: object) -> str:
+    return _extend(
+        "brickwork_marketing/components/_hero.html",
+        "{% load brickwork_components %}" + blocks,
+        **ctx,
+    )
+
+
+def test_hero_eyebrow_block_override_wins_over_the_eyebrow_context() -> None:
+    html = _extend_hero(
+        "{% block eyebrow %}<p>Custom eyebrow</p>{% endblock %}",
+        heading="Ship faster",
+        eyebrow="Ignored",
+    )
+    assert "Custom eyebrow" in html
+    assert "Ignored" not in html
+
+
+def test_hero_heading_block_override_wins_over_the_heading_context() -> None:
+    html = _extend_hero(
+        "{% block heading %}<h1>Custom heading</h1>{% endblock %}",
+        heading="Ignored",
+    )
+    assert "Custom heading" in html
+    assert "Ignored" not in html
+
+
+def test_hero_lede_block_override_wins_over_the_lede_context() -> None:
+    html = _extend_hero(
+        "{% block lede %}<p>Custom lede</p>{% endblock %}",
+        heading="Ship faster",
+        lede="Ignored",
+    )
+    assert "Custom lede" in html
+    assert "Ignored" not in html
+
+
+def test_hero_actions_block_override_replaces_the_default_cta_row() -> None:
+    html = _extend_hero(
+        "{% block actions %}<div>ACTIONS-SENTINEL</div>{% endblock %}",
+        heading="Ship faster",
+        primary_cta_label="Get started",
+        primary_cta_href="/start/",
+    )
+    assert "ACTIONS-SENTINEL" in html
+    assert "Get started" not in html
+
+
+def test_hero_media_block_override_replaces_the_default_media_region() -> None:
+    html = _extend_hero(
+        "{% block media %}<div>MEDIA-SENTINEL</div>{% endblock %}",
+        heading="Ship faster",
+    )
+    assert "MEDIA-SENTINEL" in html
+
+
+def test_hero_blocks_render_in_document_order() -> None:
+    html = _extend_hero(
+        "{% block eyebrow %}EYEBROW-SENTINEL{% endblock %}"
+        "{% block heading %}HEADING-SENTINEL{% endblock %}"
+        "{% block lede %}LEDE-SENTINEL{% endblock %}"
+        "{% block actions %}ACTIONS-SENTINEL{% endblock %}"
+        "{% block media %}MEDIA-SENTINEL{% endblock %}"
+    )
+    positions = [
+        html.index("EYEBROW-SENTINEL"),
+        html.index("HEADING-SENTINEL"),
+        html.index("LEDE-SENTINEL"),
+        html.index("ACTIONS-SENTINEL"),
+        html.index("MEDIA-SENTINEL"),
+    ]
+    assert positions == sorted(positions), f"hero blocks out of document order: {positions}"
 
 
 # --- components/_feature_grid.html -----------------------------------------
