@@ -68,6 +68,8 @@ def bw_data_attrs(attrs: object, subject: str = "data table row") -> SafeString:
             raise TemplateSyntaxError(f"{subject} data contains an invalid data-* attribute name: {name!r}")
         parts.append(format_html(' {}="{}"', name, value))
     return mark_safe("".join(parts))
+
+
 _SEARCH_SCOPE_KEYS = {"label", "name", "value", "clear_href"}
 
 
