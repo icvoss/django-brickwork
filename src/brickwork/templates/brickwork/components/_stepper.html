@@ -24,13 +24,17 @@ steps are decorative (aria-hidden): they carry no information a screen
 reader needs beyond the list order it already announces.
 
 Required context:
-  steps: a list of {label, status} dicts, status one of "complete" |
-      "current" | "upcoming". The view supplies this (typically by
-      comparing each step's position against the current step number);
-      brickwork does not track wizard state itself (CBH-alike doctrine:
-      no client-side state machine, server-driven per brickwork#59).
+  steps: in progress mode, a list of {label, status} dicts, status one of
+      "complete" | "current" | "upcoming". In sequence mode, a list of
+      {label} dicts. The view supplies progress state (typically by comparing
+      each step's position against the current step number); brickwork does not
+      track wizard state itself (CBH-alike doctrine: no client-side state
+      machine, server-driven per brickwork#59).
 Optional:
   orientation ("horizontal"|"vertical", default "horizontal").
+  mode ("progress" default | "sequence"): progress communicates workflow
+      state; sequence communicates ordered stages with no current or completion
+      state. Horizontal output stacks below 48rem in either mode.
 
 Tokens (CSS lane): the numbered marker uses --bw-color-accent for
 complete/current and --bw-color-border for upcoming (never the sole
@@ -42,10 +46,10 @@ the reduced-motion floor via the shared --bw-transition-colors token.
 {% endcomment %}
 <ol class="bw-stepper bw-stepper--{% firstof orientation 'horizontal' %}">
   {% for step in steps %}
-    <li class="bw-stepper__step bw-stepper__step--{{ step.status }}"
-        {% if step.status == "current" %}aria-current="step"{% endif %}>
+    <li class="bw-stepper__step{% if mode != 'sequence' %} bw-stepper__step--{{ step.status }}{% endif %}"
+        {% if mode != "sequence" and step.status == "current" %}aria-current="step"{% endif %}>
       <span class="bw-stepper__marker" aria-hidden="true">
-        {% if step.status == "complete" %}
+        {% if mode != "sequence" and step.status == "complete" %}
           {% bw_icon "check" size="sm" decorative=True %}
         {% else %}
           <span class="bw-stepper__marker-number">{{ forloop.counter }}</span>
@@ -53,6 +57,7 @@ the reduced-motion floor via the shared --bw-transition-colors token.
       </span>
       <span class="bw-stepper__label">
         {{ step.label }}
+        {% if mode != "sequence" %}
         <span class="bw-visually-hidden">
           {% if step.status == "complete" %}
             {% translate "(completed)" %}
@@ -62,6 +67,7 @@ the reduced-motion floor via the shared --bw-transition-colors token.
             {% translate "(not started)" %}
           {% endif %}
         </span>
+        {% endif %}
       </span>
     </li>
     {% if not forloop.last %}

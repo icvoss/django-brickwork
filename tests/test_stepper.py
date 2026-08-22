@@ -18,6 +18,12 @@ _STEPS = [
     {"label": "Review", "status": "upcoming"},
 ]
 
+_SEQUENCE_STEPS = [
+    {"label": "Discover"},
+    {"label": "Decide"},
+    {"label": "Deliver"},
+]
+
 
 def _render(**ctx: object) -> str:
     ctx.setdefault("steps", _STEPS)
@@ -116,6 +122,23 @@ def test_orientation_vertical() -> None:
     html = _render(orientation="vertical")
     assert "bw-stepper--vertical" in html
     assert "bw-stepper--horizontal" not in html
+
+
+def test_sequence_mode_renders_label_only_steps() -> None:
+    html = _render(mode="sequence", steps=_SEQUENCE_STEPS)
+    for index, step in enumerate(_SEQUENCE_STEPS, start=1):
+        assert step["label"] in html
+        assert f">{index}</span>" in html
+
+
+def test_sequence_mode_omits_progress_state_semantics() -> None:
+    html = _render(mode="sequence", steps=_SEQUENCE_STEPS)
+    assert "bw-stepper__step--" not in html
+    assert "aria-current" not in html
+    assert "bw-visually-hidden" not in html
+    assert "(completed)" not in html
+    assert "(current step)" not in html
+    assert "(not started)" not in html
 
 
 def test_ships_no_javascript_at_all() -> None:

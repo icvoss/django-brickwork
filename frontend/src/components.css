@@ -2744,8 +2744,7 @@ a.bw-stat:hover {
   padding: 0;
 }
 .bw-stepper--horizontal {
-  flex-direction: row;
-  align-items: flex-start;
+  flex-direction: column;
 }
 .bw-stepper--vertical {
   flex-direction: column;
@@ -2758,6 +2757,9 @@ a.bw-stat:hover {
 .bw-stepper--vertical .bw-stepper__step {
   align-items: flex-start;
 }
+.bw-stepper--horizontal .bw-stepper__step {
+  align-items: flex-start;
+}
 /* The connector: a decorative hairline between steps. Horizontal grows to
  * fill the row between markers; vertical is a short fixed rule aligned
  * under the marker column. */
@@ -2766,9 +2768,10 @@ a.bw-stat:hover {
   background-color: var(--bw-color-border);
 }
 .bw-stepper--horizontal .bw-stepper__connector {
-  flex: 1 1 auto;
-  block-size: var(--bw-size-border-hairline);
-  margin-inline: var(--bw-space-2);
+  align-self: flex-start;
+  inline-size: var(--bw-size-border-hairline);
+  block-size: var(--bw-space-4);
+  margin-inline-start: calc(var(--bw-size-control-height-sm) / 2 - var(--bw-size-border-hairline) / 2);
 }
 .bw-stepper--vertical .bw-stepper__connector {
   align-self: flex-start;
@@ -2815,6 +2818,25 @@ a.bw-stat:hover {
 }
 .bw-stepper__step--complete .bw-stepper__label {
   color: var(--bw-color-fg);
+}
+
+@media (min-width: 48rem) {
+  .bw-stepper--horizontal {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .bw-stepper--horizontal .bw-stepper__step {
+    align-items: center;
+  }
+
+  .bw-stepper--horizontal .bw-stepper__connector {
+    align-self: center;
+    flex: 1 1 auto;
+    inline-size: auto;
+    block-size: var(--bw-size-border-hairline);
+    margin-inline: var(--bw-space-2);
+  }
 }
 
 /* --- Wizard pattern (0.14.0, brickwork#59) ------------------------------------ */
