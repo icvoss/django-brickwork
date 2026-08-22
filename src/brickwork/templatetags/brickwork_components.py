@@ -57,7 +57,15 @@ def bw_data_attrs(attrs: object, subject: str = "data table row") -> SafeString:
     ordinary ``data-*`` names are accepted: Brickwork's own ``data-bw-*`` hooks
     remain component-owned, and attribute values are escaped.
     """
-    if attrs in (None, ""):
+    # A str is never a valid mapping, so it means "not supplied", never
+    # "supplied and wrong". That distinction is load-bearing: a consumer
+    # running Django's string_if_invalid resolves a missing row.data to the
+    # marker STRING, not to None, so treating a str as an error made an
+    # OPTIONAL option raise a hard TemplateSyntaxError and 500 the page for
+    # every consumer whose rows simply had no data key (brickwork#80, whose
+    # regression suite is tests/test_string_if_invalid.py; the consumer smoke
+    # leg sets string_if_invalid precisely to catch this class).
+    if attrs is None or isinstance(attrs, str):
         return mark_safe("")
     if not isinstance(attrs, Mapping):
         raise TemplateSyntaxError(f"{subject} data must be a mapping of data-* attribute name -> value, got {attrs!r}")
