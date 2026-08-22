@@ -137,13 +137,17 @@ load-bearing set:
 | the surface scale (`-sunken` / `-raised` / `-overlay`) | derived from `surface`: sunken mixes a touch darker, raised differentiates by shadow in light and by lightness in dark, overlay is a scrim over content. The depth cues the components rely on come for free. |
 | `--bw-color-surface-inverse` | defaults to `var(--bw-color-fg)` (your ink), used for inverted chips/badges. Author it only when your ink is not the inverse surface. |
 | the muted foregrounds (`-fg-muted`, `-fg-subtle`, `-icon-muted`) | mixed from `fg` toward `surface`, with theme-tuned constants. |
-| the accent family (`-accent-hover`, `-accent-subtle`, `-focus-ring`) | shaded and tinted from `accent`. |
+| `-accent-hover` and `-accent-subtle` | shaded and tinted from `accent`. |
+| `--bw-color-focus-ring` | base theme derives a default from `accent`; `render_brand_css()` emits a separately verified OKLCH value for every tenant accent override. |
 | the status tiers (`X-subtle`, `X-strong`, `X-fg` for danger/success/warning/info) | derived per intent hue, so an alert, badge, or toast never invents a value. |
 
-Hand-tuning any of these is now the override path, not the primary path: every
-derived token remains individually overridable, and a flat value you set wins
-over the derivation (it is plain CSS cascade). The full derivation table, with
-the exact `color-mix()` constants per theme, is DESIGN.md section 4.
+Hand-tuning the derived families is the override path, not the primary path: a
+flat value you set wins over the derivation through the CSS cascade. The focus
+ring is the accessibility exception: do not override it through
+`render_brand_css()`. Supply concrete `oklch()` values for an accent and any
+surface it changes, and the service emits the verified ring value. The full
+derivation table, with the exact `color-mix()` constants per theme, is
+DESIGN.md section 4.
 
 Rule of thumb: let tokens that are shades of the same idea derive (the surface
 scale, the tint tiers); avoid collapsing tokens that carry distinct *meaning*
@@ -369,9 +373,10 @@ instead of the tenant: `render_brand_css` validates each role's
 fg-on-accent pairing per theme, and the per-request `<style>` block carries
 only that role's load-bearing values. Either way the derivation guarantee is
 the same, and it is pinned by tests: the shipped stylesheet keeps the accent
-family (`-accent-hover`, `-accent-subtle`, `-focus-ring`) derived live over
-`var(--bw-color-accent)` in every theme scope, so an accent that arrives per
-request recolours everything downstream of it.
+family (`-accent-hover`, `-accent-subtle`) derived live over
+`var(--bw-color-accent)` in every theme scope. `render_brand_css()` adds a
+verified `-focus-ring` value for per-request accents, so focus visibility does
+not depend on an unmeasured browser-side mix.
 
 ## The marketing brand slot: logo sizing out of the box (brickwork#83)
 

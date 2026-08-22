@@ -24,8 +24,9 @@ from brickwork.exceptions import BrickworkError
 from brickwork.services.token_manifest import load_bearing, overridable_names
 
 # A brand value must be an oklch literal (BR-BW-TOK-003: brickwork's colour
-# contract is oklch) for the contrast check to run; the other accepted colour
-# syntaxes below are emitted but skip the numeric check with a warning.
+# contract is oklch) for a numeric contrast check. Tenant accent overrides and
+# their relevant surfaces therefore require it; other non-critical colour
+# overrides can use the accepted syntaxes below.
 _OKLCH = re.compile(
     r"^oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+([\d.]+)\s*(?:/\s*([\d.]+%?)\s*)?\)$",
     re.IGNORECASE,
@@ -63,6 +64,22 @@ _VALUE = re.compile("|".join(f"(?:{p})" for p in _VALUE_PATTERNS), re.IGNORECASE
 # colour value, so if a future syntax addition widens _VALUE too far, the hole does
 # not silently reopen. `url(` is listed because it exfiltrates on render.
 _FORBIDDEN = ("{", "}", ";", "<", ">", "@", "/*", "*/", "\\", "url(")
+
+_FOCUS_RING = "--bw-color-focus-ring"
+_ACCENT = "--bw-color-accent"
+_FOCUS_SURFACE_NAMES = ("--bw-color-surface", "--bw-color-surface-raised", "--bw-color-surface-inverse")
+_DEFAULT_FOCUS_SURFACES = {
+    "light": {
+        "--bw-color-surface": "oklch(1 0 0)",
+        "--bw-color-surface-raised": "oklch(1 0 0)",
+        "--bw-color-surface-inverse": "oklch(0.205 0.005 265)",
+    },
+    "dark": {
+        "--bw-color-surface": "oklch(0.18 0.005 265)",
+        "--bw-color-surface-raised": "oklch(0.237 0.005 265)",
+        "--bw-color-surface-inverse": "oklch(0.93 0.002 265)",
+    },
+}
 
 
 class BrandValidationError(BrickworkError):
@@ -168,11 +185,43 @@ def _contrast_ratio(a: str, b: str) -> float | None:
     return (lighter + 0.05) / (darker + 0.05)
 
 
+def _focus_surfaces(values: dict[str, str], theme_label: str) -> tuple[str, str, str]:
+    """Resolve the three surfaces a focus outline can meet in one theme."""
+    defaults = _DEFAULT_FOCUS_SURFACES[theme_label]
+    surface = values.get("--bw-color-surface", defaults["--bw-color-surface"])
+    raised = values.get(
+        "--bw-color-surface-raised",
+        surface if "--bw-color-surface" in values else defaults["--bw-color-surface-raised"],
+    )
+    inverse = values.get(
+        "--bw-color-surface-inverse", values.get("--bw-color-fg", defaults["--bw-color-surface-inverse"])
+    )
+    return (surface, raised, inverse)
+
+
+def _derive_focus_ring(accent: str, surfaces: tuple[str, str, str], theme_label: str) -> str:
+    """Keep accent hue/chroma while selecting a ring lightness that clears 3:1."""
+    _, chroma, hue = _parse_oklch(accent)  # checked before this function is called
+    candidates = []
+    for step in range(1, 1000):
+        candidate = f"oklch({step / 1000:.3f} {chroma:g} {hue:g})"
+        ratios = [_contrast_ratio(candidate, surface) for surface in surfaces]
+        assert all(ratio is not None for ratio in ratios)
+        candidates.append((min(ratios), candidate))
+    ratio, ring = max(candidates, key=lambda candidate: candidate[0])
+    if ratio < 3:
+        raise BrandValidationError(
+            f"brickwork: {accent!r} cannot produce a focus ring with 3:1 contrast against every "
+            f"{theme_label} surface. Choose a less extreme accent (brickwork#145)."
+        )
+    return ring
+
+
 def _validate(values: dict[str, str], theme_label: str) -> None:
     """Reject unknown token names; hard-fail a contrast constraint that is
-    definitively violated by two parseable oklch values. Warn (never raise) when
-    a value is not a plain oklch literal (the check cannot run) or when a status
-    hue is collapsed onto the accent."""
+    definitively violated by two parseable oklch values. A tenant accent and
+    every supplied focus-relevant surface must be concrete oklch so its focus
+    ring can be verified; a collapsed status hue remains a warning."""
     vocabulary = overridable_names()
     for name in values:
         norm = _normalise_name(name)
@@ -183,6 +232,22 @@ def _validate(values: dict[str, str], theme_label: str) -> None:
             )
 
     normed = {_normalise_name(k): v for k, v in values.items()}
+
+    if _FOCUS_RING in normed:
+        raise BrandValidationError(
+            "brickwork: --bw-color-focus-ring is derived and validated from --bw-color-accent; "
+            "do not override it directly (brickwork#145)."
+        )
+    if _ACCENT in normed:
+        focus_inputs = (_ACCENT, *_FOCUS_SURFACE_NAMES, "--bw-color-fg")
+        for name in focus_inputs:
+            if name not in normed:
+                continue
+            if _parse_oklch(normed[name]) is None:
+                raise BrandValidationError(
+                    f"brickwork: {name} must be a concrete oklch() value when --bw-color-accent is "
+                    f"overridden, so the {theme_label} focus ring can be verified (brickwork#145)."
+                )
 
     # Contrast constraints declared in the manifest (fg-on-accent at 4.5:1).
     for entry in load_bearing():
@@ -253,6 +318,10 @@ def render_brand_css(
       is enforced when both its token and its pair are supplied as oklch literals,
       raising on a definitive failure (the fg-on-accent trap flips per theme,
       docs/BRANDING.md / brickwork#35);
+    - an overridden **accent** must be concrete oklch, as must any supplied
+      contrast-relevant surface. The service derives and emits an explicit
+      focus-ring token with at least 3:1 contrast against surface, raised
+      surface, and inverse surface. Direct focus-ring overrides are rejected;
     - a **status hue collapsed onto the accent** emits a warning (not an error).
 
     Independently of ``validate``, **every value is checked against the accepted CSS
@@ -266,12 +335,20 @@ def render_brand_css(
     as a string; the caller decides where it lives (a per-request ``<style>`` in the
     shell head, a cached file, etc.).
     """
+    light_values = dict(light)
+    dark_values = dict(dark) if dark else None
     if validate:
-        _validate(light, "light")
-        if dark:
-            _validate(dark, "dark")
+        _validate(light_values, "light")
+        if dark_values:
+            _validate(dark_values, "dark")
+        for values, theme_label in ((light_values, "light"), (dark_values, "dark")):
+            if values and _ACCENT in {_normalise_name(name) for name in values}:
+                normalised = {_normalise_name(name): value for name, value in values.items()}
+                values[_FOCUS_RING] = _derive_focus_ring(
+                    normalised[_ACCENT], _focus_surfaces(normalised, theme_label), theme_label
+                )
 
-    parts = [_block(":root", light)]
-    if dark:
-        parts.append(_block('[data-theme="dark"]', dark))
+    parts = [_block(":root", light_values)]
+    if dark_values:
+        parts.append(_block('[data-theme="dark"]', dark_values))
     return "\n\n".join(parts) + "\n"

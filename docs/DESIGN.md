@@ -215,7 +215,7 @@ and similar controls take `border-control`; dividers and card outlines keep
 | `--bw-color-accent` | LB | authored | authored |
 | `--bw-color-accent-hover` | D | `color-mix(in oklab, var(--bw-color-accent) 89%, black)` | `color-mix(in oklab, var(--bw-color-accent) 88%, black)` |
 | `--bw-color-accent-subtle` | D | `color-mix(in oklab, var(--bw-color-accent) 7%, var(--bw-color-surface))` | `color-mix(in oklab, var(--bw-color-accent) 30%, black)` (0.4.0: lowered from 40% so selection recedes behind content) |
-| `--bw-color-focus-ring` | D | `var(--bw-color-accent)` | `var(--bw-color-accent)` |
+| `--bw-color-focus-ring` | D | `color-mix(in oklab, var(--bw-color-accent) 95%, black)` | `color-mix(in oklab, var(--bw-color-accent) 82%, black)` |
 
 `accent-hover` is retained as the flat-colour fallback; transient hover
 feedback on non-accent surfaces uses the state overlays (4.6), which is why a
@@ -379,7 +379,7 @@ forward-looking (each lands with its component); the card row shipped in
 | `--bw-focus-ring-width` **[NEW]** | `2px` |
 | `--bw-focus-ring-offset` **[NEW]** | `2px` |
 | `--bw-focus-ring-style` **[NEW]** | `solid` |
-| `--bw-color-focus-ring` | existing, `:= accent` (brand-overridable; must keep ≥3:1 against surface in both themes, WCAG 1.4.11) |
+| `--bw-color-focus-ring` | derived default; tenant accents receive an explicit `render_brand_css()` value verified at ≥3:1 against every relevant surface in the theme (WCAG 1.4.11) |
 
 Composed global rule:
 `outline: var(--bw-focus-ring-width) var(--bw-focus-ring-style) var(--bw-color-focus-ring); outline-offset: var(--bw-focus-ring-offset);`
