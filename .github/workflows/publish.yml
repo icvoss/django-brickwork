@@ -166,6 +166,11 @@ jobs:
       - name: Build wheel and sdist
         run: python -m build
 
+      - name: Verify CHANGELOG ships in both distributions
+        run: |
+          unzip -l dist/*.whl | grep -qE 'share/doc/django-brickwork/CHANGELOG\.md$'
+          tar -tzf dist/*.tar.gz | grep -qE '/CHANGELOG\.md$'
+
       - name: Verify distributions with twine
         run: twine check dist/*
 
