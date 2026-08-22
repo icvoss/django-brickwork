@@ -17,6 +17,7 @@ harness under ``string_if_invalid``, guarding the composed pages end to end.
 from __future__ import annotations
 
 import pytest
+from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.test import override_settings
 
@@ -212,3 +213,33 @@ def test_no_shipped_template_defaults_a_possibly_undefined_variable() -> None:
         f"|default on a bare context variable is bypassed by string_if_invalid "
         f"(brickwork#80); use {{% firstof %}} instead. Offenders: {offenders}"
     )
+
+
+def test_bw_data_attrs_treats_the_invalid_marker_as_absent_not_as_an_error() -> None:
+    """An optional data mapping must not raise under string_if_invalid.
+
+    ``data`` is optional on both the data-table row and the stat, so a consumer
+    whose rows simply have no ``data`` key must render normally. Under
+    ``string_if_invalid`` a missing ``row.data`` resolves to the marker STRING,
+    not to None, so a guard that only special-cased None and "" raised a hard
+    TemplateSyntaxError and 500'd the whole page. A str can never be a valid
+    mapping, so it means "not supplied", never "supplied and wrong".
+    """
+    from brickwork.templatetags.brickwork_components import bw_data_attrs
+
+    assert bw_data_attrs(f"{MARKER_PREFIX}: row.data") == ""
+    assert bw_data_attrs(None) == ""
+    assert bw_data_attrs("") == ""
+    # A genuinely wrong type is still an error: this guard must not become a
+    # blanket "ignore anything unexpected", which would silently swallow a
+    # consumer passing a list of pairs and wondering why nothing rendered.
+    with pytest.raises(TemplateSyntaxError):
+        bw_data_attrs([("data-id", "1")])
+
+
+def test_bw_data_attrs_still_renders_a_real_mapping() -> None:
+    from brickwork.templatetags.brickwork_components import bw_data_attrs
+
+    out = bw_data_attrs({"data-id": "42", "data-state": "open"})
+    assert 'data-id="42"' in out
+    assert 'data-state="open"' in out
