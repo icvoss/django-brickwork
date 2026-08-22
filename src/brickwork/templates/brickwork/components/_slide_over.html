@@ -33,33 +33,42 @@ one-container-per-overlay-family shape shell/base.html already uses for
 the modal and toast regions.
 
 Named blocks (semver-public, BR-BW-TPL-001):
-  title:        the concise successor to the deprecated slide_over_title
-                block below (ADR-077 SS4). Defaults to rendering
-                {{ title }} inside the chrome-owned heading (heading-sm
-                type role).
-  body:         the concise successor to the deprecated slide_over_body
-                block below (ADR-077 SS4). The panel content. A form
-                inside it follows BR-BW-HTMX-003 unchanged
-                (hx-target="this" hx-swap="outerHTML", 422 re-render with
-                inline errors); a failed request NEVER closes the panel
-                (CBH-026 applied here). On success the view closes it
-                server-side: respond 204 (or with OOB toast content) plus
+  title:        present SINCE 3.4.0, the concise successor to the
+                deprecated slide_over_title block below (ADR-077 SS4).
+                Defaults to rendering {{ title }} inside the chrome-owned
+                heading (heading-sm type role).
+  body:         present SINCE 3.4.0, the concise successor to the
+                deprecated slide_over_body block below (ADR-077 SS4). The
+                panel content. A form inside it follows BR-BW-HTMX-003
+                unchanged (hx-target="this" hx-swap="outerHTML", 422
+                re-render with inline errors); a failed request NEVER
+                closes the panel (CBH-026 applied here). On success the
+                view closes it server-side: respond 204 (or with OOB
+                toast content) plus
                 HX-Trigger: {"bw:slide-over:close": {"id": "<id>"}};
                 bwSlideOver listens for bw:slide-over:close at the window.
-  footer:       the concise successor to the deprecated slide_over_footer
-                block below (ADR-077 SS4). Empty renders nothing; the
-                filler owns the wrapper element (write
-                <footer class="bw-slide-over__footer">...</footer>),
+  footer:       present SINCE 3.4.0, the concise successor to the
+                deprecated slide_over_footer block below (ADR-077 SS4).
+                Empty renders nothing; the filler owns the wrapper element
+                (write <footer class="bw-slide-over__footer">...</footer>),
                 matching _modal.html's footer convention. Sticky
                 header/footer with a scrolling body.
-  slide_over_title, slide_over_body, slide_over_footer: DEPRECATED,
-                removed at 4.0 (ADR-077 SS4,
+  slide_over_title, slide_over_body, slide_over_footer: present since
+                before 3.4.0 (unchanged back to at least 3.2.1).
+                DEPRECATED, removed at 4.0 (ADR-077 SS4,
                 BR-BW-TPL-001/BR-BW-VER-001). Kept as additional empty
                 extension points for backwards compatibility: a shipped
                 block name cannot be renamed silently. Both a concise
                 block and its deprecated counterpart render when both are
                 filled; a caller migrating to the concise name fills
                 title/body/footer only.
+
+A block name this file does not define is SILENTLY DISCARDED by Django:
+no error, no warning, DEBUG=True does not catch it. A consumer pinned
+below 3.4.0 who reads title/body/footer from a newer checkout gets a
+structurally valid, entirely empty panel that still passes template
+loading; check this header against your pinned version before relying
+on a name.
 
 Required context:
   title: the accessible name, rendered as the dialog heading and wired via

@@ -6,19 +6,28 @@ emits NO markup at all (matching _alert.html's {% block alert_body %}
 convention), so a card with nothing filled renders a bare elevated surface
 (resting --bw-elevation-1, radius-lg, density-aware padding; AC-BW-070).
 
-Blocks (semver-public, BR-BW-TPL-001), in document order:
-  header, title, actions, body, footer: the concise names (ADR-077 SS4; the
-      declaring template is the scope, so a component prefix carries no
-      information). Each wraps the corresponding deprecated prefixed block
-      below, so a call site filling only the concise name renders exactly
-      the same output the prefixed block always produced.
-  card_header, card_title, card_actions, card_body, card_footer: DEPRECATED,
+Named blocks (semver-public, BR-BW-TPL-001), in document order:
+  header, title, actions, body, footer: present SINCE 3.4.0, the concise
+      names (ADR-077 SS4; the declaring template is the scope, so a
+      component prefix carries no information). Each wraps the
+      corresponding deprecated prefixed block below, so a call site
+      filling only the concise name renders exactly the same output the
+      prefixed block always produced.
+  card_header, card_title, card_actions, card_body, card_footer: present
+      since before 3.4.0 (unchanged back to at least 3.2.1). DEPRECATED,
       removed at 4.0 (ADR-077 SS4, BR-BW-TPL-001/BR-BW-VER-001). Kept as
       additional empty extension points for backwards compatibility: a
       shipped block name cannot be renamed silently. Both a concise block
       and its deprecated counterpart render when both are filled; a caller
       migrating to the concise name fills header/title/actions/body/footer
       only.
+
+A block name this file does not define is SILENTLY DISCARDED by Django:
+no error, no warning, DEBUG=True does not catch it. A consumer pinned
+below 3.4.0 who reads header/title/actions/body/footer from a newer
+checkout gets a structurally valid, entirely empty region that still
+passes template loading; check this header against your pinned version
+before relying on a name.
 
 Filling blocks from an include call site: {% include %} cannot fill a block,
 so a caller that needs a region writes a small template that EXTENDS this one

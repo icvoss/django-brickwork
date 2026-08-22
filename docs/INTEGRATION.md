@@ -662,6 +662,36 @@ Notes on the shape:
   `visible_items`); the marketing header is a small fixed set of links, so
   the plain template branch above is the supported marketing-shell shape.
 
+## 9. Extending a component: a block name your pin does not define renders nothing (brickwork#193)
+
+`_modal.html`, `_slide_over.html`, `_tooltip.html`, `_card.html`, `_alert.html`
+and `_empty_state.html` are consumed by `{% extends %}`, not `{% include %}`:
+your own partial extends the shipped template and fills its named blocks
+(BR-BW-TPL-001, semver-public). Each of those templates' own `{% comment %}`
+header names every block it defines and the version that introduced it; read
+that header, not this guide or a newer checkout's source, before writing an
+override.
+
+The reason the header is the source of truth: Django silently discards a
+`{% block %}` override that names a block the parent template does not
+define. Not an error, not a warning, not caught by `DEBUG=True`, and
+`get_template()` only checks parse-time syntax. So extending an OLDER pin
+with a block name you copied from a NEWER checkout (or from these docs)
+produces a structurally valid, entirely empty region, and a test that merely
+loads or renders the page still passes; the gap only shows up by rendering
+with real content and inspecting the output.
+
+3.4.0 is the version boundary to know: it added concise block names
+(`title`, `body`, `footer`, `header`, `actions`, `heading`, `action`,
+`trigger`, and `_empty_state`'s new `icon`) alongside the older prefixed
+names each one replaces (`modal_title`, `card_body`, `alert_body`,
+`tooltip_trigger`, and so on). Upgrading is safe: every deprecated name is
+still shipped alongside its concise successor, and both render if you
+somehow fill both. The direction that is not safe is reading a concise name
+from `main` or the current docs while pinned below 3.4.0. If you are not
+certain which names your pin ships, check that version's own template file,
+not this one.
+
 ## Contribute back
 
 If a seam here was thin for your integration, or you hit a paper-cut this guide

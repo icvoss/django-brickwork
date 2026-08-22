@@ -29,14 +29,22 @@ inside an `{% if %}` body would fall out of scope before the icon line.
 
 Named blocks (semver-public, BR-BW-TPL-001):
   body:       the concise successor to the deprecated alert_body block
-              below (ADR-077 SS4). Empty by default; a filled block adds
-              extra content under the title/message lines.
-  alert_body: DEPRECATED, removed at 4.0 (ADR-077 SS4,
+              below (ADR-077 SS4), present SINCE 3.4.0. Empty by default;
+              a filled block adds extra content under the title/message
+              lines.
+  alert_body: present since before 3.4.0 (unchanged back to at least
+              3.2.1). DEPRECATED, removed at 4.0 (ADR-077 SS4,
               BR-BW-TPL-001/BR-BW-VER-001). Kept as an additional empty
               extension point for backwards compatibility: a shipped block
               name cannot be renamed silently. Both body and alert_body
               render when both are filled; a caller migrating to the
               concise name fills body only.
+
+A block name this file does not define is SILENTLY DISCARDED by Django:
+no error, no warning, DEBUG=True does not catch it. If you extend this
+template using a name read from a newer checkout than the version you
+have pinned, check that name against your pinned version's own header
+before relying on it, or the region renders nothing.
 {% endcomment %}
 {% if variant == "success" %}{% firstof icon "success" as bw_alert_icon %}{% elif variant == "warning" %}{% firstof icon "alert-triangle" as bw_alert_icon %}{% elif variant == "danger" %}{% firstof icon "alert-circle" as bw_alert_icon %}{% else %}{% firstof icon "info" as bw_alert_icon %}{% endif %}<div class="bw-alert bw-alert--{% firstof variant 'info' %}" role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
   {% bw_icon bw_alert_icon size="md" decorative=True css_class="bw-alert__icon" %}
