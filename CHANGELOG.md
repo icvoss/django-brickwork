@@ -6,6 +6,105 @@ semantic versioning. Template block names, HTMX target IDs, Alpine component
 names, event names and token names are treated as public API (see the spec's
 versioning contract).
 
+## [3.5.0] - 2026-08-22
+
+A wave of composition and accessibility work, plus the ecosystem's first
+copy-paste date range picker.
+
+Two themes run through it. Components gained the arrangement and data seams
+consumers were hand-building around: a topbar search form, a status-free
+stepper mode, `data-*` hooks on table rows and stats, and badges on disabled
+nav items. And measurement replaced assumption in the accessibility work: the
+tenant focus ring is now derived and verified rather than aliased and hoped
+for, and the obsolete hero scrim, whose contrast varied with where text
+happened to sit, is gone along with the examples that carried it.
+
+### Added
+
+- `_stepper.html` now supports `mode="sequence"` for ordered, status-free
+  stages, and horizontal steppers stack below 48rem rather than overflowing
+  narrow viewports (icvoss/django-brickwork#114).
+
+- `{% bw_search %}` adds a reusable, no-JavaScript topbar search form with an
+  optional clearable scope chip (icvoss/django-brickwork#155).
+
+- `_data_table` record rows now support a safe `data` mapping for consumer-owned
+  `data-*` hooks (icvoss/django-brickwork#184).
+
+- `_stat` now supports a safe `data` mapping for consumer-owned `data-*` hooks
+  (icvoss/django-brickwork#186).
+
+- **A complete, accessible date range picker**, as a copy-paste example rather
+  than a shipped component (`examples/app/date-range-picker.html`).
+  `BR-BW-INPUT-004` is Type Fixed and forbids brickwork shipping a JS
+  date-picker widget; `the-wall.md` EXT-006 says a date picker is a SLOT the
+  consuming team builds, with brickwork supplying the no-JS base. This is that
+  build, written once properly, so the rule stays intact and unamended: no tag,
+  no component template, no `frontend/src` JavaScript, no manifest entry.
+
+  Native `<input type="date">` controls are the submitted form controls at all
+  times, in single and range mode, so the no-JS floor is the OS date picker
+  rather than a parsed text field. Above that: a two-month grid collapsing to
+  one at narrow widths, the WAI-ARIA APG keyboard map, min/max bounds, disabled
+  dates, a weekday mask, hover and keyboard range preview, swap on inverted
+  selection, and presets. Month and day names and the week start come from
+  Django's own l10n. Copy it, own it, adapt it.
+
+### Changed
+
+- Published wheels and sdists now include `CHANGELOG.md`, with an artefact-level
+  publish check preventing it from being dropped (icvoss/django-brickwork#153).
+
+### Fixed
+
+- Tenant accent overrides now derive a verified focus-ring colour that clears
+  3:1 against every surface it can land on, rather than aliasing the accent and
+  hoping (icvoss/django-brickwork#145).
+
+  **Breaking for some tenants.** `render_brand_css()` previously accepted a
+  non-OKLCH accent (a hex value, say) and simply skipped the contrast check with
+  a warning. It now raises `BrandValidationError`, because a ring whose contrast
+  cannot be measured cannot be verified, and an unverifiable focus ring is the
+  defect this fixes. If you override `--bw-color-accent`, that value and the
+  contrast-relevant surfaces (`--bw-color-surface`, `--bw-color-surface-raised`,
+  `--bw-color-surface-inverse`, `--bw-color-fg`) must be concrete `oklch()`
+  literals. Converting a hex value is a one-line change.
+
+  Overriding `--bw-color-focus-ring` directly is also rejected now: the ring is
+  derived from your accent so it stays verified, and a direct override would
+  silently reintroduce the unverified case.
+
+- Disabled navigation items now render their existing `badge` value, so a
+  consumer can show a visible status such as "Coming soon" without changing
+  the item label (icvoss/django-brickwork#168).
+
+- Hero examples now use the shipped `media_placement` contract instead of
+  carrying duplicate markup and CSS. This removes the obsolete gradient scrim
+  whose contrast varied with the position of text over media
+  (icvoss/django-brickwork#170).
+
+- An absent `data` mapping on `_data_table` rows or `_stat` no longer raises
+  under Django's `string_if_invalid`. The guard accepted `None` and `""` but
+  treated anything else non-mapping as an error, so a consumer running
+  `string_if_invalid` had a missing `row.data` resolve to the marker *string*
+  and an optional option raise `TemplateSyntaxError`, failing the whole page. A
+  string can never be a valid mapping, so it now means "not supplied"; a
+  genuinely wrong type still raises.
+
+### Upgrading
+
+Everything is additive except one case, called out in full above: if you
+override `--bw-color-accent` through `render_brand_css()`, that value and the
+contrast-relevant surfaces must now be concrete `oklch()` literals, and
+`--bw-color-focus-ring` can no longer be overridden directly. Both exist so the
+focus ring's contrast can actually be measured rather than assumed.
+
+If you copied `examples/sections/hero/media-behind.html` or `split-media.html`,
+your copy keeps working: you own that markup. The shipped stylesheet no longer
+carries `.bw-hero-behind` or `.bw-hero-split`, so if you copied the markup but
+relied on brickwork's CSS for it, move to `_hero.html`'s `media_placement`
+option, which expresses the same arrangements as a supported contract.
+
 ## [3.4.0] - 2026-08-21
 
 The composition wave. Brickwork's components gained the named blocks its own
