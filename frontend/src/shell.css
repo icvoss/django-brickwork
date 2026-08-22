@@ -224,6 +224,12 @@
   flex: 1 1 auto;
 }
 
+.bw-topbar__search {
+  flex: 1 1 18rem;
+  min-inline-size: 0;
+  max-inline-size: 42rem;
+}
+
 .bw-workspace {
   flex: 1 1 auto;
   padding: var(--bw-density-stack-gap) var(--bw-density-page-gutter-inline);
