@@ -395,6 +395,31 @@ def test_the_shipped_example_set_matches_what_the_tests_cover() -> None:
     assert set(examples.list_examples()) == set(_EXAMPLE_CONTEXTS) | set(_SECTION_CONTEXTS)
 
 
+def test_every_page_example_is_listed_in_the_examples_readme() -> None:
+    """A new example with no README row is silently unfindable.
+
+    icvoss/django-brickwork#199: ``app/date-range-picker.html`` shipped
+    without ever being added to ``src/brickwork/examples/README.md``'s file
+    table, so a consumer had no way to discover it short of reading the
+    examples directory itself, and filed icvoss/django-brickwork#172 asking
+    for the component it deliberately replaces. Sections are excluded: they
+    are listed in their own table, under a different heading, in the same
+    file.
+    """
+    on_disk = {name for name in examples.list_examples() if not name.startswith("sections/")}
+
+    readme_text = (Path(__file__).resolve().parent.parent / "src" / "brickwork" / "examples" / "README.md").read_text(
+        encoding="utf-8"
+    )
+    listed = set(re.findall(r"^\|\s*`([\w./-]+\.html)`\s*\|", readme_text, flags=re.MULTILINE))
+
+    missing = on_disk - listed
+    assert not missing, (
+        f"{sorted(missing)} shipped in src/brickwork/examples/ but not listed in "
+        "src/brickwork/examples/README.md's file table (icvoss/django-brickwork#199)"
+    )
+
+
 @pytest.mark.parametrize(
     ("name", "media_placement", "obsolete_class"),
     [

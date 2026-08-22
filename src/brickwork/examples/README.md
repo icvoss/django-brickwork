@@ -108,6 +108,7 @@ sanitise it.)
 | `app/list.html` | Index page: filters, table, pagination |
 | `app/detail.html` | One record: facts, related sections, danger zone |
 | `app/dashboard.html` | Stat row, content grid, recent activity |
+| `app/date-range-picker.html` | Native date inputs plus a copy-in popover shell (BR-BW-INPUT-004: no component) |
 | `app/form.html` | Single create/edit form |
 | `app/wizard.html` | One step of a multi-step flow |
 | `app/settings.html` | Tabbed settings area |

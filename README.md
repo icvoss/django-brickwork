@@ -188,11 +188,17 @@ Branding it is a handful of `--bw-*` token overrides
 ## Example pages
 
 A whole page is the most project-specific thing you own, so brickwork does not
-ship one as a template you extend. Instead it ships fifteen complete, working
+ship one as a template you extend. Instead it ships sixteen complete, working
 pages built from its tokens, components and shells, as copy-paste examples in
 `src/brickwork/examples/` (`base.html`; `app/list`, `detail`, `dashboard`,
-`form`, `wizard`, `settings`, `console`, `confirm`; `auth/signin`, `signup`,
-`reset`; `marketing/landing`, `pricing`, `about`).
+`date-range-picker`, `form`, `wizard`, `settings`, `console`, `confirm`;
+`auth/signin`, `signup`, `reset`; `marketing/landing`, `pricing`, `about`).
+
+Looking for a date picker component: there is none, and there never will be
+(`BR-BW-INPUT-004` is a Fixed rule, date fields stay native
+`<input type="date">`, never a package-shipped JS calendar). Copy
+`app/date-range-picker.html` instead; its header explains why and what your
+view must supply.
 
 They cannot be extended, by construction: the directory is package data, not
 an app `templates/` folder, so Django's `APP_DIRS` loader cannot see it and
