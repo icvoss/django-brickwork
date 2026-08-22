@@ -28,6 +28,7 @@ permission logic (visibility was filtered upstream).
         <span class="bw-nav__link bw-nav__link--disabled" aria-disabled="true">
           {% if item.icon %}{% bw_icon item.icon decorative=True css_class="bw-nav__icon" %}{% endif %}
           <span class="bw-nav__label">{{ item.label }}</span>
+          {% if item.badge is not None %}<span class="bw-nav__badge">{{ item.badge }}</span>{% endif %}
         </span>
       {% else %}
         <a class="bw-nav__link{% if item.is_active %} bw-nav__link--active{% endif %}{% if item.is_active_ancestor %} bw-nav__link--active-ancestor{% endif %}"
