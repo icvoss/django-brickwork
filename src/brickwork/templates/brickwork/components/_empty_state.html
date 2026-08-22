@@ -11,36 +11,51 @@ Required context: heading, body. Optional: variant ("no_data" default or
 
 Named blocks (semver-public, BR-BW-TPL-001), all empty by default:
 
-  icon:        wraps the existing icon-resolution branch (CMP-032); an
-                override replaces the whole icon markup.
-  heading:     the concise, correct successor to the deprecated title block
-                below (ADR-077 SS4). Wraps the existing {{ heading }}
-                rendering, matching both the context variable it wraps and
-                the bw-empty-state__heading class it sits inside; "title"
-                named neither correctly and is deprecated in the same
-                cycle.
-  body:        the concise, correct successor to the deprecated description
-                block below (ADR-077 SS4). Wraps the existing {{ body }}
-                rendering, matching both the context variable it wraps and
-                the bw-empty-state__body class it sits inside; "description"
-                named neither correctly and is deprecated in the same
-                cycle.
-  action:      the concise successor to the deprecated empty_state_action
-                block below (CMP-032). Default content is the existing
-                action_href/action_label anchor rendering, so a call site
-                filling only those two context variables renders exactly
-                what it always did.
-  title, description, empty_state_action: DEPRECATED, removed at 4.0
-                (ADR-077 SS4, BR-BW-TPL-001/BR-BW-VER-001). Kept as
+  icon:        present SINCE 3.4.0, with no deprecated predecessor: this is
+                NEW capability, not a rename. Wraps the existing
+                icon-resolution branch (CMP-032); an override replaces the
+                whole icon markup.
+  heading:     present SINCE 3.4.0, the concise, correct successor to the
+                deprecated title block below (ADR-077 SS4). Wraps the
+                existing {{ heading }} rendering, matching both the context
+                variable it wraps and the bw-empty-state__heading class it
+                sits inside; "title" named neither correctly and is
+                deprecated in the same cycle.
+  body:        present SINCE 3.4.0, the concise, correct successor to the
+                deprecated description block below (ADR-077 SS4). Wraps
+                the existing {{ body }} rendering, matching both the
+                context variable it wraps and the bw-empty-state__body
+                class it sits inside; "description" named neither
+                correctly and is deprecated in the same cycle.
+  action:      present SINCE 3.4.0, the concise successor to the
+                deprecated empty_state_action block below (CMP-032).
+                Default content is the existing action_href/action_label
+                anchor rendering, so a call site filling only those two
+                context variables renders exactly what it always did.
+  title, description, empty_state_action: present since before 3.4.0
+                (unchanged back to at least 3.2.1). DEPRECATED, removed at
+                4.0 (ADR-077 SS4, BR-BW-TPL-001/BR-BW-VER-001). Kept as
                 additional empty extension points for backwards
                 compatibility: a shipped block name cannot be renamed
                 silently. Each deprecated block renders alongside its
                 concise successor when both are filled; a caller migrating
                 to the concise names fills heading/body/action only.
 
+TRAP: "title" is the deprecated name HERE, superseded by "heading", but
+"title" is simultaneously the concise, CURRENT block name in _modal.html,
+_slide_over.html and _card.html. The same word means opposite version
+states depending on which file it is copied between; check the file you
+are actually extending, not a name remembered from another component.
+
 A call site that supplies only heading/body/variant/icon/action_href/
 action_label (the pre-existing context-variable path) renders byte-identical
 output to before these blocks existed.
+
+A block name this file does not define is SILENTLY DISCARDED by Django:
+no error, no warning, DEBUG=True does not catch it. If you extend this
+template using a name read from a newer checkout than the version you
+have pinned, check that name against your pinned version's own header
+before relying on it, or the region renders nothing.
 {% endcomment %}
 <div class="bw-empty-state bw-empty-state--{% firstof variant 'no_data' %}">
   {% block icon %}
