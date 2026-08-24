@@ -427,9 +427,14 @@ def bw_combobox(
         html_name = field.html_name
         pairs = _combobox_pairs_from_field(field)
         selected_set = _combobox_selected_set(field.value())
-        label = field.label
+        # field.label / field.help_text are str | Promise (Django lazy translation);
+        # coerced to str here, matching the label=str(label) pattern already used
+        # elsewhere in this module, rather than widening label/help_text's type and
+        # threading Promise through the rest of the function and the template
+        # context dict returned below.
+        label = str(field.label)
         required = field.field.required
-        help_text = field.help_text
+        help_text = str(field.help_text)
         errors = list(field.errors)
     elif name:
         if not isinstance(name, str) or not _ID_TOKEN_RE.match(name):

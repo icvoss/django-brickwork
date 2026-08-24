@@ -50,6 +50,27 @@ jobs:
       - name: Run ruff format check
         run: ruff format --check .
 
+  mypy:
+    name: Type check (mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        # Django 6.0, the package floor (see the "Django 6.0 FLOOR" note at the
+        # top of this file): the [dev] extra pulls the pinned mypy + django-stubs
+        # pair RELEASING.md names, and the package itself so its own imports
+        # resolve during the check.
+        run: |
+          python -m pip install --upgrade pip
+          pip install "Django~=6.0.0"
+          pip install -e ".[dev]"
+      - name: Run mypy
+        run: mypy src/brickwork
+
   test:
     name: Test (Python ${{ matrix.python-version }}, Django ${{ matrix.django-version }})
     runs-on: ubuntu-latest

@@ -40,7 +40,13 @@ def check_theme_context_processor(app_configs, **kwargs) -> list[Warning]:
     for config in settings.TEMPLATES:
         if config.get("BACKEND") != _DJANGO_TEMPLATES_BACKEND:
             continue
-        processors = config.get("OPTIONS", {}).get("context_processors", [])
+        # settings.TEMPLATES is typed as list[dict[str, object]] (django-stubs has
+        # no narrower shape for it, since a project's TEMPLATES entry can carry
+        # arbitrary backend-specific OPTIONS); "OPTIONS" is itself an
+        # object-typed value here, so it is narrowed explicitly rather than
+        # chaining .get() straight through, which mypy cannot check on "object".
+        options = config.get("OPTIONS", {})
+        processors = options.get("context_processors", []) if isinstance(options, dict) else []
         if THEME_CONTEXT_PROCESSOR in processors:
             return []
     return [
