@@ -6,6 +6,88 @@ semantic versioning. Template block names, HTMX target IDs, Alpine component
 names, event names and token names are treated as public API (see the spec's
 versioning contract).
 
+## [Unreleased]
+
+Two mobile accessibility defects the package's own gate should have caught
+and did not, because the gate that catches this class of thing was only ever
+pointed at marketing fixtures. `a11y/axe.spec.mjs`'s 320px/360px/375px/414px
+sideways-scroll sweep (added for #125) ran over `sections-*.html` and
+`hero-placement-*.html` only, so the app shell and the auth shell, the two
+surfaces with the most chrome, were never swept; and axe's own `target-size`
+rule reports `incomplete` rather than `violation` for most of these shapes
+and never fires on a plain anchor, so a control could sit well under the
+WCAG 2.5.8 floor with the gate green throughout. Both gaps are now closed,
+not just the two defects: the sideways-scroll sweep runs over every fixture,
+and an explicit `getBoundingClientRect()` measurement replaces trust in
+axe's `target-size` rule.
+
+### Fixed
+
+- **Three shipped components, plus the package's own documented
+  marketing-header composition, rendered interactive controls under the
+  WCAG 2.5.8 24x24 target-size floor** (icvoss/django-brickwork#208).
+  `.bw-data-table__sort` measured 74x16 at 375px (`inline-flex` with no
+  `min-block-size`, so its height was whatever the label's line-height
+  gave it); `.bw-data-table__row-link` and `.bw-checkbox` sat under the
+  floor too. Widening the sweep found the same missing-minimum shape on
+  `.bw-breadcrumbs__link`, `.bw-nav-header__link`,
+  `.bw-bulk-actions-bar__select-all`, and
+  `.bw-marketing-header__actions > a:not(.bw-btn)` and
+  `.bw-marketing-header__nav :where(a)`, the header's own documented "a
+  plain link alongside a bw_button" composition (measured 40x21).
+  `.bw-data-table__sort`, `.bw-data-table__row-link`, the breadcrumb, nav
+  and header links all take a `min-block-size` only: their content already
+  centres, so this changes no visual weight. `.bw-checkbox` (and its
+  `.bw-radio` sibling, sharing the same rule) had no wrapping label to
+  extend the hit area through in either of its two shipped uses (a bare
+  input in the data table's select column, and `bw_field_widget`'s
+  unwrapped form-field render), so its box grew from 18px to the 24px
+  floor instead, with the tick glyph and radio dot scaled to keep the same
+  proportion; this is the one visible size change in the set, verified in
+  both themes.
+
+  `.bw-toggle` and the marketing footer's link-group default share the same
+  missing-minimum shape and were deliberately left unfixed: the toggle is a
+  fixed-shape switch that would need its visible proportions changed to
+  meet the floor in the one context (`bw_field_widget`) where it has no
+  wrapping label, and the footer group's layout is documented consumer
+  territory, not brickwork's to size. Both are excluded from the new gate
+  with the reasoning recorded alongside each exclusion, not silently
+  passed.
+
+- **The app shell's topbar and the auth shell's panel could scroll a 320px
+  viewport sideways** (icvoss/django-brickwork#209). `.bw-topbar`'s
+  fixed-content children (the drawer trigger, notifications, the account
+  menu) had no shrink floor and no wrap, so a long account label (a real
+  name or email, not the short "Account" default) pushed the row past a
+  narrow viewport with nowhere to give; it now wraps, the same shape #125
+  used for the marketing header. `.bw-auth`/`.bw-centred`'s single
+  implicit grid track defaulted to `auto`, sized to fit its content's
+  min-content width, so unbreakable panel content grew the track past the
+  viewport and `.bw-auth__panel`'s own `inline-size: min(28rem, 100%)`
+  inherited the oversized `100%` along with it; `grid-template-columns:
+  minmax(0, 1fr)` caps the track at the available space, the grid
+  counterpart of the `min-inline-size: 0` fix flex items need for the same
+  "child refuses to shrink below its content" hazard.
+
+- **`a11y/axe.spec.mjs`'s mobile sweep now covers every fixture, not just
+  the marketing ones** (icvoss/django-brickwork#209). The sideways-scroll
+  check iterates the fixture directory exactly as the axe loop above it
+  already does, rather than naming `sections-*.html` and
+  `hero-placement-*.html`; this is why the app and auth shells shipped
+  #209 unnoticed; a component named nowhere near "marketing" now gets the
+  same floor.
+
+- **`a11y/axe.spec.mjs` now measures the WCAG 2.5.8 target-size floor
+  directly instead of trusting axe's `target-size` rule**
+  (icvoss/django-brickwork#208). axe reports `incomplete`, never
+  `violation`, for most of these shapes and does not fire on a plain
+  anchor at all, so the axe gate stayed fully green through every control
+  in this release. The same "`incomplete`, not `violation`" gap the
+  3.4.0 entry below records for the hero scrim's composited contrast: a
+  real defect sitting behind an axe rule that cannot flag it needs a
+  direct measurement, not a wider tag set.
+
 ## [3.5.1] - 2026-08-24
 
 A documentation-only release. No template's rendered output changed, no option,

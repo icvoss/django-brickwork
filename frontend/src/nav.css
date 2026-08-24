@@ -247,10 +247,15 @@
   align-items: center;
 }
 
+/* min-block-size (icvoss/django-brickwork#208, same shape swept in on the
+ * fix for the three named components): a horizontal nav-bar link is a
+ * navigational control, not inline prose, so it needs the WCAG 2.5.8 floor;
+ * it was sized to its label's line-height alone (16-18px at 375px). */
 .bw-nav-header__list .bw-nav-header__link {
   display: inline-flex;
   align-items: center;
   gap: var(--bw-space-1);
+  min-block-size: 1.5rem;
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-label-size);
   font-weight: var(--bw-text-label-weight);

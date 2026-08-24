@@ -406,23 +406,37 @@ select.bw-input {
 
 /* appearance:none swaps the UA widget for a control drawn on our tokens (the
  * moderncss pattern: with appearance removed, every modern engine renders the
- * input as a plain box, including its ::before). 1.125rem (18px) is the
- * industry control size against 14-16px labels; a length literal because the
- * spacing ramp deliberately has no step between 1rem and 1.25rem. inline-grid
- * centres the glyph; vertical-align + the end margin seat the control against
- * label text. The resting border is border-control (the WCAG 1.4.11 boundary,
+ * input as a plain box, including its ::before). inline-grid centres the
+ * glyph; vertical-align + the end margin seat the control against label
+ * text. The resting border is border-control (the WCAG 1.4.11 boundary,
  * measured 3.23:1 light / 3.39:1 dark, same contract as .bw-input); the focus
  * ring comes from the global :where(input):focus-visible rule. Every selector
  * is input-qualified: RadioSelect/CheckboxSelectMultiple rendering puts the
  * class on the group wrapper div as well as on each option input (the
- * option_inherits_attrs route), and the wrapper must stay unstyled. */
+ * option_inherits_attrs route), and the wrapper must stay unstyled.
+ *
+ * icvoss/django-brickwork#208: both controls render as bare native inputs
+ * with no wrapping label (the data table's select-all/select-row cells, and
+ * bw_field_widget's own .bw-field__control), so there is no clickable
+ * wrapper to extend the hit area through; the box itself IS the whole
+ * target. The box is 1.5rem (24px), the exact WCAG 2.5.8 floor, grown from
+ * the previous 1.125rem (18px). This does change the control's visual
+ * size (the issue's own "changing visual weight is a regression in its own
+ * right" applies), but a clip/padding trick to keep an 18px-looking box
+ * inside a 24px hit area needs the border moved off `border` onto a layered
+ * box-shadow to stop it tracking the padding box, which is exactly the kind
+ * of fragile, non-obvious CSS this codebase avoids elsewhere; growing the
+ * real box is the KISS option and is verified not to unbalance the label
+ * row (row height already had headroom: the data table's select column and
+ * .bw-field__control both size to the row/control height, not to the
+ * checkbox). */
 input.bw-checkbox,
 input.bw-radio {
   appearance: none;
   display: inline-grid;
   place-content: center;
-  inline-size: 1.125rem;
-  block-size: 1.125rem;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
   flex-shrink: 0;
   margin: 0;
   margin-inline-end: var(--bw-space-2);
@@ -458,20 +472,21 @@ input.bw-radio:checked {
  * reduced-motion floor stays trivially honoured. */
 input.bw-checkbox:checked::before {
   content: "";
-  inline-size: 0.75rem; /* 12px glyph centred in the 18px box */
-  block-size: 0.75rem;
+  inline-size: 1rem; /* 16px glyph centred in the 24px box, same ~66% fill ratio as the previous 12px-in-18px */
+  block-size: 1rem;
   background-color: var(--bw-color-fg-on-accent);
   mask-image: var(--bw-component-checkbox-glyph);
   mask-repeat: no-repeat;
   mask-size: 100% 100%;
 }
 /* The radio dot uses the border-width trick, the cleanest cross-browser
- * drawing: the accent border thickens to 0.3125rem (5px) and the background
- * becomes the dot, an 8px centre of fg-on-accent (the same theme-correct
- * ink pair as the tick). No pseudo-element, no image; box-sizing: border-box
- * keeps the geometry fixed so nothing shifts on check. */
+ * drawing: the accent border thickens and the background becomes the dot
+ * (the same theme-correct ink pair as the tick). No pseudo-element, no
+ * image; box-sizing: border-box keeps the geometry fixed so nothing shifts
+ * on check. Border width scaled with the 18px->24px box (#208) to keep the
+ * same ~duplicate dot-to-box proportion as before. */
 input.bw-radio:checked {
-  border-width: 0.3125rem;
+  border-width: 0.4167rem; /* ~6.7px: 5px was 5/18 of the old box; keeps the same ratio at 24px */
   background-color: var(--bw-color-fg-on-accent);
 }
 input.bw-checkbox:disabled,
@@ -794,10 +809,16 @@ input.bw-toggle:disabled {
   letter-spacing: var(--bw-font-tracking-wide);
   text-transform: uppercase;
 }
+/* icvoss/django-brickwork#208: inline-flex with no minimum sized the target
+ * to whatever the label's line-height gave it (measured 74x16 at 375px),
+ * under the WCAG 2.5.8 floor. min-block-size only: the label text already
+ * centres via align-items, so this changes no visual weight, just the
+ * clickable/tappable extent above and below the text. */
 .bw-data-table__sort {
   display: inline-flex;
   align-items: center;
   gap: var(--bw-space-1);
+  min-block-size: 1.5rem;
   color: inherit;
   text-decoration: none;
   transition: var(--bw-transition-colors);
@@ -849,9 +870,14 @@ input.bw-toggle:disabled {
 
 /* A clickable record row (row.url, #10): the row-link fills its cell and
    inherits colour, so the whole first cell is the target and the row reads as
-   actionable. The hover already comes from the records-variant row hover. */
+   actionable. The hover already comes from the records-variant row hover.
+   min-block-size (#208): the compact density's row padding leaves less than
+   24px of line-height alone, so the row-link's own tap target fell under
+   the WCAG 2.5.8 floor there; comfortable/spacious density already clear it
+   without this, so the floor is a no-op visual change for them. */
 .bw-data-table__row-link {
   display: block;
+  min-block-size: 1.5rem;
   color: inherit;
   text-decoration: none;
 }
@@ -1030,7 +1056,14 @@ input.bw-toggle:disabled {
   align-items: center;
   gap: var(--bw-space-2);
 }
+/* min-block-size (icvoss/django-brickwork#208, same shape swept in on the
+ * fix for the three named components): an action control, not inline
+ * prose, so it needs the WCAG 2.5.8 floor; it was sized to its own
+ * line-height alone (21px at 375px). */
 .bw-bulk-actions-bar__select-all {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
   color: var(--bw-color-accent);
   font-size: var(--bw-text-body-sm-size);
   text-decoration: none;

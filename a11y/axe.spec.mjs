@@ -239,35 +239,46 @@ for (const theme of THEMES) {
   });
 }
 
-// The mobile-first floor for the example sections (3.1.0, plan Phase 6a gate 3).
+// The mobile-first floor, swept over EVERY fixture (icvoss/django-brickwork#209).
 //
 // ADR-057 section 1: "a section that only works at desktop width is not a
 // shipped section". axe does not measure this, and neither does a render test,
-// so a section that scrolls the page sideways on a phone passes every other
-// gate in this repo.
+// so a page that scrolls sideways on a phone passes every other gate in this
+// repo. This used to run over sections-*.html and hero-placement-*.html only
+// (both marketing fixtures), which is exactly why the app shell's topbar
+// account cluster and the auth shell's panel shipped a 320px overflow (#209):
+// neither fixture family is a marketing page, so the sweep never touched
+// them. Iterating `pages` (the same list the axe loop above already builds
+// from the fixture directory) closes the class rather than patching the two
+// named instances, the load-bearing half of that issue's fix.
 //
-// It caught three real defects on the way in, all of which passed axe and the
-// full pytest suite:
+// It has already caught real defects on the way in, all of which passed axe
+// and the full pytest suite:
 //   - .bw-hero__copy sized to its content instead of its container, because
 //     .bw-hero sets align-items other than stretch.
 //   - a <pre>'s <code> child painted outside its own scroll container.
 //   - a one-word hero heading ("Documentation") at the fixed 60px display size
 //     measured 406px and had no wrap opportunity.
+//   - .bw-marketing-header__actions/.bw-marketing-header__nav overflowing at
+//     320px (#125).
+//   - .bw-topbar__account (a long account label with nowhere to shrink to)
+//     and .bw-auth__panel (an implicit grid track with no minmax(0, 1fr)
+//     floor, so unbreakable panel content grew the track past the viewport
+//     and .bw-auth__panel's own `min(28rem, 100%)` inherited the oversized
+//     100%) at narrow widths (#209).
 //
-// 320px is included (icvoss/django-brickwork#125 fixed it): the shipped
-// marketing header used to overflow a 320px viewport by 6px (identical on
-// landing-*.html, so it predated these sections). Widened here per the
-// issue's own suggested follow-up once the header wraps instead of
-// overflowing.
+// 320px is the narrowest width the package supports
+// (icvoss/django-brickwork#125's own comment on MOBILE_WIDTHS); 414px is the
+// widest common phone.
 const MOBILE_WIDTHS = [320, 360, 375, 414];
 
-for (const theme of THEMES) {
-  for (const width of MOBILE_WIDTHS) {
-    test(`sections do not scroll the page sideways at ${width}px (${theme})`, async ({ page }) => {
-      await page.setViewportSize({ width, height: 900 });
-      await page.goto(pathToFileURL(join(FIXTURES, `sections-${theme}.html`)).href);
+for (const width of MOBILE_WIDTHS) {
+  for (const page of pages) {
+    test(`no sideways scroll at ${width}px: ${page}`, async ({ page: pw }) => {
+      await pw.setViewportSize({ width, height: 900 });
+      await pw.goto(pathToFileURL(join(FIXTURES, page)).href);
 
-      const result = await page.evaluate(() => ({
+      const result = await pw.evaluate(() => ({
         documentWidth: document.documentElement.scrollWidth,
         viewportWidth: window.innerWidth,
         // Name the culprits, so a failure is actionable rather than a bare
@@ -292,11 +303,105 @@ for (const theme of THEMES) {
   }
 }
 
+// WCAG 2.2 AA success criterion 2.5.8, Target Size (Minimum): 24x24 CSS px,
+// swept over EVERY fixture at 375px (icvoss/django-brickwork#208).
+//
+// NOT covered by the axe run above on purpose: axe ships a `target-size`
+// rule under wcag22aa, but it reports `incomplete` rather than `violation`
+// for most of these shapes and does not fire on the plain-anchor case at
+// all, which is why the axe gate stayed green while .bw-data-table__sort
+// measured 74x16, .bw-data-table__row-link and .bw-checkbox sat under the
+// floor, and a consumer following the package's own documented
+// ".bw-marketing-header__actions > a:not(.bw-btn)" composition got a 40x21
+// target. The same "incomplete, not violation" gap the CHANGELOG already
+// records for the 3.4.0 hero scrim (composited contrast, measured directly
+// below in this file rather than trusted to axe). Measured explicitly here
+// instead: getBoundingClientRect() over every interactive element.
+//
+// Zero-size elements are skipped: a control that is display:none or not yet
+// laid out has no target to measure, and the no-JS/hidden-drawer fixtures
+// legitimately contain those (the mobile drawer's nav links, the closed
+// account-menu panel's items).
+//
+// TAP_TARGET_EXEMPT_SELECTORS excludes elements that are not a defect in
+// this measurement's terms, each with its own reason; every entry was swept
+// up while widening this check for #208 and triaged individually rather
+// than blanket-excluded:
+//   - '.bw-dropzone__input': deliberately visually-hidden (clip, not
+//     display:none) so it stays focusable/keyboard-activatable; the
+//     dropzone BOX is the real target, documented on the rule itself
+//     (components.css).
+//   - 'button:not([class])', 'input:not([class])': bare, unclassed native
+//     controls the a11y testapp fixtures compose directly (wizard/
+//     slide-over/table-selection's plain <button>/<input>, never a
+//     bw_button or bw-field render), not a brickwork component; there is no
+//     bw-* rule to fix.
+//   - 'a:not([class])': the same shape for links, which also covers the
+//     testapp's own property-switcher slot content (brickwork#21,
+//     AC-BW-078: "Acme Ltd"/"Globex plc") and the marketing footer's
+//     link-group default ("a consumer's marketing_footer block content is
+//     arbitrary markup", marketing.css's own comment on
+//     .bw-marketing-footer__inner :where(a)) -- brickwork styles colour/
+//     decoration there but does not own the group's layout, so a sizing
+//     floor is not this package's call to make.
+//   - '.bw-toggle': a fixed-shape switch (a deliberate design proportion,
+//     not incidental line-height), always rendered inside a real clickable
+//     <label class="bw-toggle-field"> when used as the standalone {%
+//     bw_toggle %} tag; when opted into via CheckboxInput(attrs={"class":
+//     "bw-toggle"}) it instead renders bare through bw_field_widget (the
+//     same unwrapped shape .bw-checkbox had), so a track-only fix cannot
+//     honour both contexts without either inflating the switch's visible
+//     proportions or leaving the form-field usage unfixed. Tracked as its
+//     own follow-up rather than folded into #208's fix.
+//   - '.bw-listing-list__link': a text-run title link inside prose-style
+//     listing content ("Only the title is the link here, not the whole
+//     row", marketing.css's own comment), the WCAG 2.5.8 inline/text-run
+//     exception this codebase already invokes for .bw-badge__close.
+const TAP_TARGET_EXEMPT_SELECTORS = [
+  ".bw-dropzone__input",
+  "button:not([class])",
+  "input:not([class])",
+  "a:not([class])",
+  ".bw-toggle",
+  ".bw-listing-list__link",
+].join(", ");
+
+test.describe("tap targets", () => {
+  for (const page of pages) {
+    test(`interactive controls are at least 24x24: ${page}`, async ({ page: pw }) => {
+      await pw.setViewportSize({ width: 375, height: 900 });
+      await pw.goto(pathToFileURL(join(FIXTURES, page)).href);
+
+      const undersized = await pw.evaluate((exemptSelector) =>
+        [...document.querySelectorAll('a, button, input:not([type="hidden"]), select, [role="button"]')]
+          .filter((el) => !el.matches(exemptSelector))
+          .map((el) => {
+            const rect = el.getBoundingClientRect();
+            return {
+              tag: el.tagName,
+              cls: typeof el.className === "string" ? el.className.split(" ")[0] : "",
+              text: (el.textContent || "").trim().slice(0, 30),
+              width: Math.round(rect.width),
+              height: Math.round(rect.height),
+            };
+          })
+          .filter((m) => m.width > 0 && m.height > 0 && (m.width < 24 || m.height < 24)),
+        TAP_TARGET_EXEMPT_SELECTORS,
+      );
+
+      expect(undersized, `controls below the 24x24 floor: ${JSON.stringify(undersized, null, 2)}`).toEqual([]);
+    });
+  }
+});
+
 // icvoss/django-brickwork#118: media_placement="beside" is a true side-by-side
 // row from 48rem, the classic mobile overflow shape, and it had no dedicated
 // mobile check before this fixture existed (hero-placement-*.html, added
-// alongside media_placement itself). Same sweep as the sections check above,
-// scoped to the one fixture that actually renders "beside".
+// alongside media_placement itself). Covered by the generic sweep above now
+// that it runs over every fixture; kept as its own named test too, since it
+// asserts something the generic sweep does not: this exact composition mode
+// specifically, so a regression here is diagnosed without hunting through
+// the generic sweep's fixture list.
 for (const theme of THEMES) {
   for (const width of MOBILE_WIDTHS) {
     test(`hero media_placement="beside" does not scroll the page sideways at ${width}px (${theme})`, async ({
