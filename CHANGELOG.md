@@ -6,6 +6,45 @@ semantic versioning. Template block names, HTMX target IDs, Alpine component
 names, event names and token names are treated as public API (see the spec's
 versioning contract).
 
+## [3.7.0] - 2026-08-24
+
+One new Alpine behaviour, filed as a substrate gap rather than a feature
+request. Three consumers independently needed drag-reorder for a list. All
+three built the server side. Exactly one built the client side; the other two
+shipped a comment describing the enhancement they intended and never wired it.
+That is not three teams making three product choices, it is one missing
+primitive worked around twice by documentation and once by implementation.
+
+Two things the working reference implementation did not have, and could not
+simply be lifted with. Native HTML5 drag-and-drop is mouse-only, so a keyboard
+path is a WCAG 2.2 AA requirement rather than a nicety; and the behaviour
+enhances a no-JS floor it never provides, which matters because one consumer
+has already shipped a reorder endpoint reachable by no means at all.
+
+### Added
+
+- **Sortable list** (the `bwSortable` Alpine component, `icvoss/django-brickwork#214`):
+  drag/keyboard reordering for a consumer-owned list, then a single POST of
+  the full ordered id list, matching the wire contract three independent
+  consumers had already built server-side (brickworkui, Magmify, icv-cms)
+  while only one had ever wired working drag. Filed as a substrate gap after
+  the other two shipped a comment describing the enhancement and never wired
+  it. `bwSortable` enhances rather than replaces (`BR-BW-HTMX-001`): it
+  assumes every item already carries real, independently working move-up /
+  move-down submit buttons before any JS runs, and stays inert on a
+  JS-disabled page. Keyboard reordering (`Alt+ArrowUp` / `Alt+ArrowDown` /
+  `Alt+Home` / `Alt+End` on a roving-tabindex item, an `aria-live`
+  announcement of the new position) is the WCAG 2.2 AA requirement the
+  native HTML5 drag-and-drop path cannot meet on its own, since drag is
+  mouse-only. Persistence goes through `htmx.ajax` (never a bare `fetch`,
+  matching `bwCombobox`'s own network convention), swapping the server's
+  re-rendered list back in (`outerHTML`) so server truth wins over the
+  client's optimistic guess. Ships with `bw-sortable-item` CSS (grab
+  cursor, drag-over insertion indicator, dragging-item elevation): the issue
+  argued that shipping the behaviour without the affordance just moves the
+  "three consumers reinvent the same primitive" defect one layer down, and
+  the affordance is generic enough not to be product-specific.
+
 ## [3.6.0] - 2026-08-24
 
 A wave of measured accessibility work, plus the enforcement that was missing
