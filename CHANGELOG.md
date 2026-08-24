@@ -6,20 +6,27 @@ semantic versioning. Template block names, HTMX target IDs, Alpine component
 names, event names and token names are treated as public API (see the spec's
 versioning contract).
 
-## [Unreleased]
+## [3.6.0] - 2026-08-24
 
-Two mobile accessibility defects the package's own gate should have caught
-and did not, because the gate that catches this class of thing was only ever
-pointed at marketing fixtures. `a11y/axe.spec.mjs`'s 320px/360px/375px/414px
-sideways-scroll sweep (added for #125) ran over `sections-*.html` and
-`hero-placement-*.html` only, so the app shell and the auth shell, the two
-surfaces with the most chrome, were never swept; and axe's own `target-size`
-rule reports `incomplete` rather than `violation` for most of these shapes
-and never fires on a plain anchor, so a control could sit well under the
-WCAG 2.5.8 floor with the gate green throughout. Both gaps are now closed,
-not just the two defects: the sideways-scroll sweep runs over every fixture,
-and an explicit `getBoundingClientRect()` measurement replaces trust in
-axe's `target-size` rule.
+A wave of measured accessibility work, plus the enforcement that was missing
+behind three claims the package already made.
+
+Four defects, and in every case the more consequential finding was the gate
+that let them ship. The mobile sweep existed but was pointed only at marketing
+fixtures, so the app shell and the auth shell, the two surfaces with the most
+chrome, were never swept. The target-size check was delegated to axe, whose
+`target-size` rule reports `incomplete` rather than `violation` for most of
+these shapes and never fires on a plain anchor, so controls sat well under the
+WCAG 2.5.8 floor with the suite green. `py.typed` promised PEP 561 compliance
+to every consumer while mypy ran in no workflow at all, hiding 47 errors,
+one of which was a real correctness bug on the accessibility guarantee that is
+this package's headline claim.
+
+Every one of those gates is now closed, not just the defects behind them.
+
+**One visible change for existing consumers:** checkboxes and radios grow from
+18px to 24px. See the first entry under Fixed for why they could not take the
+invisible treatment the other controls did.
 
 ### Fixed
 
@@ -87,6 +94,65 @@ axe's `target-size` rule.
   3.4.0 entry below records for the hero scrim's composited contrast: a
   real defect sitting behind an axe rule that cannot flag it needs a
   direct measurement, not a wider tag set.
+
+- **`SECURITY.md` no longer disclaims the shipping version (icvoss/django-brickwork#206).**
+  The supported-versions table named only `1.x` while the package was at 3.5.1,
+  telling a security-conscious evaluator the release they were about to install
+  received no fixes. Replaced the literal table with a self-maintaining rule
+  (current major supported, previous major supported for 6 months after the
+  current major's first release) so it does not go stale at the next major.
+
+- **Focus-ring narrowing no longer depends on `assert` (icvoss/django-brickwork#207).**
+  `_derive_focus_ring` used a bare `assert` to narrow a `None` contrast ratio;
+  `python -O` strips asserts, so under `-O` a `None` ratio reached `min()` and
+  raised an unhandled `TypeError` instead of the intended `BrandValidationError`
+  on the WCAG 1.4.11 focus-ring contrast path (brickwork#145). Replaced with an
+  explicit check that raises the same `BrandValidationError` with and without
+  `-O`. Unreachable through `render_brand_css()` today (`_validate()` already
+  requires the accent and every focus-relevant surface to be concrete oklch
+  before this function runs); guarded anyway so a future internal caller that
+  skips that check fails loudly rather than crashing.
+- **CI now runs mypy, and the package typechecks clean (icvoss/django-brickwork#207).**
+  `py.typed` (PEP 561) and a `[tool.mypy]` config shipped with no CI gate behind
+  them; running mypy reported 47 errors across 15 files, none caught before
+  release. Added `django-stubs` to the `[dev]` extra (the pair `RELEASING.md`
+  already documented but never declared), fixed the real type errors (mostly
+  narrowing around Django's lazy translation `Promise` type and a `TypedDict`
+  update), and added a blocking `mypy` job to `ci.yml`. Zero errors as of this
+  release.
+
+- **README positioning claims corrected against the code**
+  (icvoss/django-brickwork#204). The README stated 3.2.0 and 78 accessibility
+  fixtures while the package was 3.5.1 with 86 axe-scanned documents (43
+  fixtures across light and dark). It also described WCAG 2.2 AA as a "tested
+  guarantee": a CI gate cannot guarantee conformance, so the README now states
+  the mechanism (what runs, over how many documents, and what else blocks)
+  instead. The date picker entry claimed none exists and none ever will, which
+  a reader disproves by opening `examples/app/date-range-picker.html`; the rule
+  it was describing (BR-BW-INPUT-004) rules out a package-maintained date
+  picker component, not the capability, and the entry now says so.
+
+### Added
+
+- **`docs/POSITIONING.md`, the canonical positioning source.** Every
+  brickwork-facing surface (README, PyPI description, marketing pages) now
+  derives its claims from one document that carries the evidence for each one
+  inline, after four documents were found each asserting a different singular
+  value for the package. It leads on beautiful defaults proved by the shipped
+  examples, and carries the claim-honesty rules that govern any copy written
+  from it.
+
+### Changed
+
+- **`PILOT-ADOPTION-BRIEF.md` is now `docs/QUICKSTART.md`.** The file was a
+  task brief for a finished pilot round, pinned to 0.3.0 and the private index.
+  It is now a short public quickstart that orients a newcomer and routes them
+  to `docs/INTEGRATION.md` for greenfield wiring or `docs/ADOPTION.md` for
+  migrating an existing UI, rather than restating either.
+- **PyPI description states a verification claim, not a design claim.** It read
+  "Accessible by construction", which contradicted the README's explicit
+  framing of accessibility as tested rather than asserted. It now reads "WCAG
+  2.2 AA tested in CI". This reaches PyPI on the next release.
 
 ## [3.5.1] - 2026-08-24
 
