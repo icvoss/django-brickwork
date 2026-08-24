@@ -2,9 +2,12 @@
 
 **Beautiful defaults, proved by the examples.** brickwork ships 42 examples
 (16 pages, 26 sections) built from nothing but its own shipped tokens and
-components, 41 of them pure composition with zero bespoke CSS. Every
-one is readable in the repo, so "the defaults are beautiful" is a claim you
-check by opening a file rather than one you take on trust.
+components. 41 of them add no CSS at all. The one that does is the date
+range picker, whose scoped `.bw-drp` block uses only existing `--bw-*`
+tokens, because brickwork ships no date picker component for it to compose
+(see [Example pages](#example-pages)). Every one is readable in the repo, so
+"the defaults are beautiful" is a claim you check by opening a file rather
+than one you take on trust.
 
 A brand-agnostic, app-facing professional UI substrate for server-rendered
 Django, on the ecosystem stack: Tailwind 4 (CSS-first), Alpine 3, HTMX 2,
