@@ -201,13 +201,39 @@ def _focus_surfaces(values: dict[str, str], theme_label: str) -> tuple[str, str,
 
 def _derive_focus_ring(accent: str, surfaces: tuple[str, str, str], theme_label: str) -> str:
     """Keep accent hue/chroma while selecting a ring lightness that clears 3:1."""
-    _, chroma, hue = _parse_oklch(accent)  # checked before this function is called
-    candidates = []
+    parsed_accent = _parse_oklch(accent)
+    if parsed_accent is None:
+        # Unreachable through render_brand_css(): _validate() requires accent to be
+        # concrete oklch before this function is ever called. Guarded rather than
+        # asserted so a future internal caller that skips that check fails with the
+        # same BrandValidationError a caller already expects, not a bare crash.
+        raise BrandValidationError(
+            f"brickwork: {accent!r} is not a concrete oklch() value, so no focus ring "
+            f"can be derived from it (brickwork#145)."
+        )
+    _, chroma, hue = parsed_accent
+    candidates: list[tuple[float, str]] = []
     for step in range(1, 1000):
         candidate = f"oklch({step / 1000:.3f} {chroma:g} {hue:g})"
         ratios = [_contrast_ratio(candidate, surface) for surface in surfaces]
-        assert all(ratio is not None for ratio in ratios)
-        candidates.append((min(ratios), candidate))
+        # Every surface reaching this function is either an authored oklch override
+        # (validated as concrete oklch by _validate() before _derive_focus_ring is
+        # called) or a hardcoded literal from _DEFAULT_FOCUS_SURFACES, and `candidate`
+        # is always a well-formed oklch literal built two lines up, so a None ratio
+        # cannot occur through the public render_brand_css() API today. It is checked
+        # anyway, and raises the same BrandValidationError the ratio<3 branch below
+        # raises, rather than assert (stripped under `python -O`, which would let a
+        # None ratio reach `min()` as an unhandled TypeError instead of this guard,
+        # brickwork#207) or a silent skip (which would understate the true minimum
+        # ratio and could pass an accent that does not actually clear 3:1).
+        known_ratios = [ratio for ratio in ratios if ratio is not None]
+        if len(known_ratios) != len(ratios):
+            raise BrandValidationError(
+                f"brickwork: could not verify focus-ring contrast for {accent!r} against every "
+                f"{theme_label} surface; a surface value was not a concrete oklch() literal "
+                f"(brickwork#145)."
+            )
+        candidates.append((min(known_ratios), candidate))
     ratio, ring = max(candidates, key=lambda candidate: candidate[0])
     if ratio < 3:
         raise BrandValidationError(

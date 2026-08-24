@@ -160,13 +160,10 @@ after release. The gate moves those to "caught before the tag".
   release (tagging is gated on a green `main`).
 - **Declared mypy / django-stubs pair.** This package typechecks clean against a
   specific `mypy` + `django-stubs` pair, declared in the `[dev]` extra of
-  `pyproject.toml` and pinned by the smoke-test job. Consumers pin the same pair.
-  Current pair: `mypy 1.10+ + django-stubs (Django 6.0.x)` (e.g. `mypy 1.19.x` + `django-stubs 5.2.x`).
-- **Advisory `mypy` leg (temporary).** If this package does not yet typecheck
-  clean in a consumer, the `mypy` leg runs `continue-on-error: true` and this
-  line records that it is advisory. The `makemigrations --check` and `migrate`
-  legs are blocking regardless. Flip the `mypy` leg to blocking in the same
-  release that ships the typing fix, and delete this bullet.
+  `pyproject.toml`. Consumers pin the same pair. Current pair:
+  `mypy 1.10+ + django-stubs ~6.0.0` (icvoss/django-brickwork#207). The `mypy`
+  leg in `ci.yml` is blocking: the package typechecks clean (zero errors) as of
+  the release that closed #207.
 
 ## Pre-tag checklist
 

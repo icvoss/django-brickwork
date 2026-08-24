@@ -15,7 +15,7 @@ import warnings
 
 import pytest
 
-from brickwork.services.brand_css import BrandValidationError, _contrast_ratio, render_brand_css
+from brickwork.services.brand_css import BrandValidationError, _contrast_ratio, _derive_focus_ring, render_brand_css
 
 # A light, low-contrast accent: fails fg-on-accent against white (~1.57:1, well
 # under the 4.5:1 minimum). This is the "assumed white always works" trap
@@ -216,6 +216,24 @@ def test_role_overrides_set_only_load_bearing_names_so_the_family_derives() -> N
 def test_non_oklch_accent_is_rejected_when_focus_contrast_cannot_be_verified() -> None:
     with pytest.raises(BrandValidationError, match="focus ring can be verified"):
         render_brand_css({"color-accent": "var(--some-other-token)", "color-fg-on-accent": _WHITE})
+
+
+def test_unparseable_focus_surface_raises_brand_validation_error_not_type_error() -> None:
+    # brickwork#207: _derive_focus_ring used to narrow a None contrast ratio with a
+    # bare `assert`, which `python -O` strips, so a None ratio would reach `min()`
+    # and raise an unhandled TypeError instead of the intended BrandValidationError.
+    # render_brand_css() cannot reach this branch itself: _validate() already
+    # requires every focus-relevant surface to be concrete oklch before
+    # _derive_focus_ring is called (test_focus_relevant_override_requires_oklch_when_accent_is_set
+    # above pins that at the public-API level). This calls the private helper
+    # directly to exercise the narrowing itself, and pins the EXCEPTION TYPE, which
+    # is exactly what silently changed under -O.
+    with pytest.raises(BrandValidationError, match="could not verify focus-ring contrast"):
+        _derive_focus_ring(
+            _AUBERGINE_ACCENT,
+            ("not-a-parseable-colour", _WHITE, _DARK_INK),
+            "light",
+        )
 
 
 # --- value validation (brickwork#133) -------------------------------------

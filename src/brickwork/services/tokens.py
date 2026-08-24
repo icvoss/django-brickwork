@@ -92,7 +92,18 @@ def resolve_theme_attributes(
     }
     if theme_resolver is not None:
         override = theme_resolver(request) or {}
-        attrs.update({k: v for k, v in override.items() if v is not None})
+        # `theme_resolver`'s declared return type is ThemeAttributes, whose values
+        # are all `str`; a `None` value is therefore only possible from a caller
+        # that ignores its own type hint (a plain dict passed where the annotation
+        # promises a TypedDict, which the interpreter does not enforce). Filtering
+        # it out is runtime defensiveness against that, not something the type
+        # system can see through an `items()` comprehension, so it is spelled as an
+        # explicit isinstance check rather than `if v is not None`: mypy narrows
+        # `dict[str, object]` to `dict[str, str]` from the isinstance, which
+        # `update()` can then check against ThemeAttributes without a cast or
+        # ignore.
+        cleaned = {k: v for k, v in override.items() if isinstance(v, str)}
+        attrs.update(cleaned)  # type: ignore[typeddict-item]  # keys are dynamic (from a caller-supplied dict); values are always str, verified above
     brand = attrs.get("brand", "")
     if brand and not _BRAND_SLUG_RE.match(brand):
         raise ImproperlyConfigured(f"brickwork brand {brand!r} is not an attribute-safe slug ([A-Za-z][A-Za-z0-9_-]*).")

@@ -93,7 +93,11 @@ def bw_field_widget(field: BoundField, *, readonly: bool = False) -> SafeString:
         described_by.append(f"{field.auto_id}_errors")
 
     css_class = _widget_css_class(field.field.widget)
-    attrs: dict[str, str] = {"class": css_class}
+    # dict[str, str | bool], matching BoundField.as_widget's attrs signature
+    # exactly (django-stubs): dict is invariant in its value type, so a narrower
+    # dict[str, str] does not satisfy that parameter even though every value
+    # assigned here is in fact a str.
+    attrs: dict[str, str | bool] = {"class": css_class}
     if "bw-toggle" in css_class.split():
         attrs["role"] = "switch"
     if field.errors:

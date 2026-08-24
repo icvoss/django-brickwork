@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from django import template
+from django.utils.functional import Promise
 
 from brickwork.conf import get_setting
 from brickwork.icons.registry import IconNotFoundError, _suggest, has_icon
@@ -46,10 +47,15 @@ class RenderedNavItem:
     """A NavItem prepared for template rendering: URL resolved, state computed."""
 
     key: str
-    label: str
+    # str | Promise, matching NavItem.label (models.py, brickwork#131): a
+    # gettext_lazy() label is passed straight through unresolved here too, so
+    # per-request language switching keeps working. Narrowing this to str would
+    # require forcing it with str() somewhere upstream, evaluating the
+    # translation once instead of per render.
+    label: str | Promise
     href: str | None  # resolved URL, external URL, or None (header/disabled)
     icon: str | None
-    badge: str | int | None
+    badge: str | Promise | int | None  # matches NavItem.badge; same lazy-label reasoning as label above
     is_active: bool  # this exact item is the current route
     is_active_ancestor: bool  # a descendant is the current route (NAV-008)
     is_section_header: bool

@@ -78,6 +78,12 @@ dev = [
     # change between them. Bump this and the CI pin in the same commit.
     "ruff==0.15.22",
     "mypy>=1.10",
+    # django-stubs provides the Django annotations py.typed does not (Django itself
+    # ships no inline types); pinned to the 6.0.x stub line to match the Django 6.0
+    # floor CI tests against (icvoss/django-brickwork#207). django-stubs releases
+    # track Django minors, and the 6.0.x line typechecks cleanly against the 6.1
+    # runtime this repo also tests, so one pin covers both matrix legs.
+    "django-stubs~=6.0.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -145,6 +151,13 @@ quote-style = "double"
 [tool.mypy]
 python_version = "3.12"
 strict = false
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+# django-stubs needs a real settings module to resolve dynamic Django attributes
+# (e.g. settings.AUTH_USER_MODEL). tests/settings.py is the default test leg's
+# settings module and is always importable with the [dev] extra installed.
+django_settings_module = "tests.settings"
 
 [tool.coverage.run]
 source = ["src"]
