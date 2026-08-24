@@ -207,8 +207,17 @@
   min-width: 0; /* let the workspace shrink rather than force overflow */
 }
 
+/* flex-wrap (icvoss/django-brickwork#209): the drawer trigger, search,
+ * notifications and account cluster are all fixed-content flex children
+ * with no shrink floor of their own; a long account label (a real
+ * consumer's name/email, not the short "Account" default) pushes the row
+ * past a narrow viewport with nowhere to give, scrolling the whole page
+ * sideways. Wrapping lets the account cluster (and notifications, if
+ * present) drop to a second row instead, the same fix shape #125 used for
+ * the marketing header. */
 .bw-topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--bw-space-3);
   padding-inline: var(--bw-density-page-gutter-inline);
@@ -228,6 +237,17 @@
   flex: 1 1 18rem;
   min-inline-size: 0;
   max-inline-size: 42rem;
+}
+
+/* The account cluster is the widest fixed-content item on the row (icon +
+ * label + caret, and a real consumer's name/email can be long); it must not
+ * be forced to shrink below its own content, which is exactly what pushed
+ * the row past the viewport at #209's narrow widths. flex-shrink: 0 lets
+ * flex-wrap do the work instead of the item compressing into an unreadable
+ * sliver first. */
+.bw-topbar__notifications,
+.bw-topbar__account {
+  flex-shrink: 0;
 }
 
 .bw-workspace {
@@ -446,7 +466,14 @@
   content: "/" / "";
   color: var(--bw-component-breadcrumb-separator);
 }
+/* min-block-size (icvoss/django-brickwork#208, same shape swept in on the
+ * fix for the three named components): a breadcrumb is a navigational
+ * control, not inline prose, so WCAG 2.5.8's text-run exception does not
+ * apply; the crumb was sized to its line-height alone (21px at 375px). */
 .bw-breadcrumbs__link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
   color: var(--bw-color-fg-muted);
   text-decoration: none;
   transition: var(--bw-transition-colors);
@@ -500,9 +527,20 @@
 
 /* --- Auth + centred shells ------------------------------------------------- */
 
+/* grid-template-columns (icvoss/django-brickwork#209): a single implicit
+ * grid track defaults to auto, sized to fit its content's min-content
+ * width; unbreakable content inside .bw-auth__panel (a long URL, an
+ * unwrapped error string) grows that track past the viewport, and since the
+ * panel's own `inline-size: min(28rem, 100%)` resolves its 100% against
+ * that oversized track rather than the viewport, the panel itself follows
+ * it wide. minmax(0, 1fr) caps the track at the available inline space,
+ * the grid counterpart of the min-inline-size: 0 fix flex items need for
+ * the same "child refuses to shrink below its content" hazard (see #125's
+ * note on .bw-marketing-header__nav). */
 .bw-auth,
 .bw-centred {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   min-block-size: 100vh;
   padding: var(--bw-space-6);

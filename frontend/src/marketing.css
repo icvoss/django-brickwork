@@ -104,7 +104,15 @@
   display: none;
 }
 
+/* min-block-size (icvoss/django-brickwork#208, same shape swept in on the
+ * fix for the three named components and the sibling __actions slot below):
+ * the primary nav row's links carried no minimum, sized to their label's
+ * line-height alone (16-18px at 375px). display: inline-flex + align-items
+ * keeps the label centred, so the extra block-size is symmetric padding. */
 .bw-marketing-header__nav :where(a) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-label-size);
   font-weight: var(--bw-text-label-weight);
@@ -132,8 +140,15 @@
  * (04-interfaces.md 4d documents exactly this shape): styled the same as the
  * nav link colour, never the UA default blue, so it clears WCAG AA contrast
  * in both themes (BR-BW-MKT-002). bw_button's own .bw-btn markup is
- * unaffected: this rule targets only a bare <a> the consumer places here. */
+ * unaffected: this rule targets only a bare <a> the consumer places here.
+ * min-block-size (icvoss/django-brickwork#208): a consumer following this
+ * exact documented composition got a sub-floor target (measured 40x21 at
+ * 375px) because nothing here set a minimum; inline-flex + centred content
+ * means the extra block-size is symmetric padding, not a shifted baseline. */
 .bw-marketing-header__actions > :where(a):not(.bw-btn) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-label-size);
   font-weight: var(--bw-text-label-weight);
