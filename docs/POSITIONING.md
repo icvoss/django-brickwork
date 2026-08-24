@@ -279,7 +279,7 @@ match it:
 |---|---|---|
 | `README.md:17` | Says "stable, on public PyPI at 3.2.0", cites 78 fixtures | Update to 3.5.1 and 86 fixtures (tracked: issue #204) |
 | `pyproject.toml:8` | "Accessible by construction" (a design claim) sits against `README.md:11-12`'s "a *tested* guarantee... not a claim" (a verification claim positioned explicitly against design claims) | Reconcile the two framings; do not ship a design claim and a verification claim that read as contradicting each other |
-| `PILOT-ADOPTION-BRIEF.md` | Pinned to 0.3.0 and the private index; drops the word "professional" from the definition | Treat as stale; do not cite as current canon |
+| `PILOT-ADOPTION-BRIEF.md` | Was pinned to 0.3.0 and the private index, and dropped "professional" from the definition | RESOLVED 2026-08-24: rewritten as a routing quickstart and renamed `docs/QUICKSTART.md` |
 | Four documents each currently state brickwork's singular value differently: `README.md:10-13` ("its value is the professional baseline"), `docs/BRANDING.md:3-4` ("brickwork's whole point is that you rebrand it by overriding tokens"), `docs/DESIGN.md:15-18` (the beautiful-defaults founding statement), `pyproject.toml:8` (the category definition) | Four different leads for one product | This document settles it: beautiful defaults, proved by the examples (section 3), is the lead. Token-first rebranding (4.3) and the professional/tested-accessibility framing (4.2) become supporting claims, not competing leads |
 
 ---

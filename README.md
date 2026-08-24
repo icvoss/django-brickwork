@@ -66,6 +66,8 @@ evidence than a gate that has never missed.
 - [docs/BRANDING.md](docs/BRANDING.md): how a consuming app brands brickwork
   (the load-bearing token minimum, dark mode, the four axes, the fg-on-accent
   contrast trap, and dynamic per-tenant / per-user theming recipes).
+- [docs/QUICKSTART.md](docs/QUICKSTART.md): start here. Orients you, then
+  routes you to the right guide below.
 - [docs/INTEGRATION.md](docs/INTEGRATION.md): the greenfield integration
   cookbook, the seams a consuming app wires end to end (settings and static, nav
   config, context processor, a worked HTMX 422 form, the chrome/body boundary).
