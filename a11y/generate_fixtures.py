@@ -1168,6 +1168,102 @@ def render_table_selection(theme: str) -> str:
     )
 
 
+# --- the bwSortable set (icvoss/django-brickwork#214) ------------------------
+#
+# sortable-<theme>.html      the no-JS floor ONLY: three items, each with a
+#                            real move-up/move-down <form method="post">
+#                            pair (BR-BW-HTMX-001, documented in
+#                            frontend/src/js/sortable.js's own header), and
+#                            no drag/keyboard chrome at all (nothing for
+#                            bwSortable to enhance without JS present).
+# sortable-js-<theme>.html   the same list, boots Alpine + htmx, adds
+#                            x-data="bwSortable(...)" and the aria-live
+#                            status region: axe examines the JS-enhanced
+#                            list, a11y/sortable.spec.mjs drives the drag
+#                            and keyboard paths and the persistence POST.
+
+_SORTABLE_ITEM_SOURCE = """{% for item in items %}<li class="bw-sortable-item" data-bw-sort-id="{{ item.id }}" draggable="{{ draggable|yesno:'true,false' }}">
+  <span>{{ item.label }}</span>
+  <form method="post" action="#">
+    <button type="submit" name="move" value="up-{{ item.id }}" {% if forloop.first %}disabled{% endif %}>Move up</button>
+    <button type="submit" name="move" value="down-{{ item.id }}" {% if forloop.last %}disabled{% endif %}>Move down</button>
+  </form>
+</li>
+{% endfor %}"""
+
+_SORTABLE_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sortable list (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Sortable list</h1>
+  <div>
+    <ul __XDATA__>
+      __ITEMS__
+    </ul>
+    __STATUS__
+  </div>
+</main>
+</body>
+</html>
+"""
+
+_SORTABLE_ITEMS = [
+    {"id": 1, "label": "Alpha"},
+    {"id": 2, "label": "Beta"},
+    {"id": 3, "label": "Gamma"},
+]
+
+
+def render_sortable(theme: str, *, inject_js: bool = False, with_url: bool = False) -> str:
+    """with_url=False (the default JS fixture) leaves bwSortable's url unset,
+    so _persist()'s own guard no-ops and a move's resulting DOM order is
+    observable directly: this repo's own reorder fragment mock is STATIC
+    (it cannot echo the posted order back), so wiring a url would round-trip
+    every move through htmx.ajax and silently revert it to the fragment's
+    fixed order before the test could assert against it. with_url=True
+    (sortable-js-persist-<theme>.html) is for the dedicated persistence
+    round-trip test alone, which asserts the swap itself rather than a
+    sequence of moves."""
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    items = (
+        engines["django"].from_string(_SORTABLE_ITEM_SOURCE).render({"items": _SORTABLE_ITEMS, "draggable": inject_js})
+    )
+    url = "fragments/sortable-reorder.html" if with_url else ""
+    xdata = f"x-data=\"bwSortable({{ url: '{url}' }})\"" if inject_js else ""
+    status = (
+        '<div data-bw-sort-status data-bw-sort-status-template="Position {position} of {count}" '
+        'aria-live="polite" class="bw-visually-hidden"></div>'
+        if inject_js
+        else ""
+    )
+    html = (
+        _SORTABLE_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__XDATA__", xdata)
+        .replace("__ITEMS__", items)
+        .replace("__STATUS__", status)
+    )
+    if inject_js:
+        html = html.replace("</body>", _JS_BOOT + "</body>")
+    return html
+
+
+def render_sortable_reorder_fragment() -> str:
+    """The persistence endpoint's response: the REAL <ul> markup re-rendered
+    server-side, exactly as bwSortable's outerHTML swap expects. outerHTML
+    targets the root ELEMENT alone (the <ul>), never its status sibling, so
+    this returns only that element, matching a real reorder view's response
+    shape (a11y/sortable.spec.mjs drives the round trip)."""
+    items = engines["django"].from_string(_SORTABLE_ITEM_SOURCE).render({"items": _SORTABLE_ITEMS, "draggable": True})
+    return f"<ul x-data=\"bwSortable({{ url: 'fragments/sortable-reorder.html' }})\">{items}</ul>"
+
+
 _BW_FORM_PAGE = """<!doctype html>
 <html lang="en" data-theme="__THEME__">
 <head>
@@ -2231,6 +2327,12 @@ def main() -> None:
         # dates configured, mirroring the comboboxes/comboboxes-js split.
         (OUT / f"date-range-picker-{theme}.html").write_text(render_date_range_picker(theme))
         (OUT / f"date-range-picker-js-{theme}.html").write_text(render_date_range_picker_js(theme))
+        # bwSortable (icvoss/django-brickwork#214): the no-JS floor (real
+        # move-up/move-down forms, no drag/keyboard chrome) and the JS leg
+        # (Alpine-booted, drag + keyboard reorder, persistence round trip)
+        (OUT / f"sortable-{theme}.html").write_text(render_sortable(theme))
+        (OUT / f"sortable-js-{theme}.html").write_text(render_sortable(theme, inject_js=True))
+        (OUT / f"sortable-js-persist-{theme}.html").write_text(render_sortable(theme, inject_js=True, with_url=True))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -2275,6 +2377,9 @@ def main() -> None:
             f"sections-{theme}",
             f"date-range-picker-{theme}",
             f"date-range-picker-js-{theme}",
+            f"sortable-{theme}",
+            f"sortable-js-{theme}",
+            f"sortable-js-persist-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())
@@ -2286,7 +2391,13 @@ def main() -> None:
     (FRAGMENTS / "toast-oob-short.html").write_text(render_toast_fragment("success", "short"))
     (FRAGMENTS / "toast-oob-action.html").write_text(render_toast_action_fragment())
     (FRAGMENTS / "combobox-options-green.html").write_text(render_combobox_options_fragment())
-    written += ["fragments/toast-oob-short", "fragments/toast-oob-action", "fragments/combobox-options-green"]
+    (FRAGMENTS / "sortable-reorder.html").write_text(render_sortable_reorder_fragment())
+    written += [
+        "fragments/toast-oob-short",
+        "fragments/toast-oob-action",
+        "fragments/combobox-options-green",
+        "fragments/sortable-reorder",
+    ]
     print("fixtures written:", ", ".join(written))
 
 

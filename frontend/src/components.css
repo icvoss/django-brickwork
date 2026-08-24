@@ -3079,6 +3079,30 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 /* Firefox draws its own affordance INSIDE the field box; the field's own
  * padding-inline-end already gives it breathing room, no extra rule needed. */
 
+/* --- Sortable list (icvoss/django-brickwork#214) ----------------------------- */
+
+/* Opt-in presentational hooks for bwSortable's two DOM-state attributes
+ * (sortable.js owns setting/clearing them; this file owns what they look
+ * like, matching the dropzone's drag-over precedent). Applying
+ * .bw-sortable-item is optional: the behaviour itself has no required class,
+ * only data-bw-sort-id, so a consumer who wants a different affordance can
+ * skip this class entirely and style the two attributes themselves. */
+.bw-sortable-item {
+  cursor: grab;
+  transition: var(--bw-transition-shadow), var(--bw-transition-opacity);
+}
+.bw-sortable-item[data-bw-dragging] {
+  cursor: grabbing;
+  opacity: var(--bw-opacity-muted);
+  box-shadow: var(--bw-elevation-3);
+}
+/* The insertion indicator: a border on the side dragover's insertBefore/
+ * insertAfter decision will actually land on, so the line always points at
+ * where the drop will place the dragged item, not just "hovering here". */
+.bw-sortable-item[data-bw-drag-over] {
+  border-block-start: var(--bw-size-border-thick) solid var(--bw-color-accent);
+}
+
 /* --- Long-form prose floor (3.1.0, plan Phase 6 gate 2) --------------------- */
 
 /* Blog posts and documentation pages are mostly text a CMS, a Markdown render,

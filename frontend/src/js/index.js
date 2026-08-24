@@ -13,7 +13,8 @@
 // + role=switch, see forms/_field.html / components/_toggle.html); the
 // stepper (brickwork#59) ships no JS either (purely structural,
 // server-driven step navigation); the whole-form renderer (brickwork#53)
-// ships no JS either (structure only, server-driven layout).
+// ships no JS either (structure only, server-driven layout); the next
+// tranche adds bwSortable (brickwork#214).
 
 import dropdown from "./dropdown.js";
 import tabs from "./tabs.js";
@@ -27,6 +28,7 @@ import dropzone from "./dropzone.js";
 import sidebarCollapse from "./sidebar_collapse.js";
 import slideOver from "./slide_over.js";
 import tableSelection from "./table_selection.js";
+import sortable from "./sortable.js";
 
 // The registered-marker attribute (brickwork#87): registerBrickworkComponents
 // stamps it on <html> at call time, so the shell's dev-only inline detector
@@ -69,6 +71,7 @@ export function registerBrickworkComponents(Alpine) {
   Alpine.data("bwSidebarCollapse", sidebarCollapse);
   Alpine.data("bwSlideOver", slideOver);
   Alpine.data("bwTableSelection", tableSelection);
+  Alpine.data("bwSortable", sortable);
 }
 
 /**
