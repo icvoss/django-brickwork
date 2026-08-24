@@ -55,12 +55,23 @@ claim: `src/brickwork/examples/app/date-range-picker.html` adds a `<style>`
 block. Every value in it is an existing `--bw-*` token (no new colour
 invented), it is scoped under `.bw-drp` so it cannot leak into a host page,
 it carries a comment stating this CSS must never be added to the shipped
-stylesheet, and it exists specifically because the package deliberately
-ships no date picker (BR-BW-INPUT-004 is a Fixed rule: date fields stay
-native `<input type="date">`, never a package-shipped JS calendar;
+stylesheet, and it exists specifically because brickwork ships no date picker
+COMPONENT (BR-BW-INPUT-004 is a Fixed rule: no package-maintained
+`bw_date_picker` tag, template or Alpine behaviour exists and none ever will;
 `src/brickwork/examples/app/date-range-picker.html:5-11`). Three further
-inline styles exist elsewhere in the example set, all `display:none` /
-`visibility:hidden`, structural rather than cosmetic.
+inline styles exist in that same file, all `display:none` /
+`visibility:hidden`, structural rather than cosmetic
+(`src/brickwork/examples/app/date-range-picker.html:632,697,817`).
+
+**Say "no date picker component", never "no date picker".** A developer who
+copies that example has a working date range picker: a calendar popover with
+weekday and month grids, locale-aware via Django's own `django.utils.dates`,
+single-date mode included, over a native `<input type="date">` no-JS floor
+that stays the submitted control at all times. What brickwork declines to
+ship is the maintained JS calendar component, not the capability. This is the
+delivery model in miniature and the clearest illustration of the lead claim:
+the substrate plus an example gets a consumer a real date picker they own
+outright, with no component contract for brickwork to maintain or break.
 
 **Why the examples are safe to give away.** ADR-056 (referenced at
 `src/brickwork/examples/README.md:7`, `CHANGELOG.md:616-620`): examples are
@@ -176,7 +187,7 @@ whenever the "zero" claim is made; a bare "zero" is disprovable in devtools.
 | Chrome vs. content | brickwork owns the shell, nav, topbar, footer; the consumer owns everything inside `{% block content %}`. |
 | Charts / data-viz | Declared non-goal. |
 | Domain-specific rendering | Declared non-goal. Generic chrome migrates to brickwork; domain components with real Python logic stay on the consumer's own framework. That is a legitimate permanent end state, not a migration phase in progress. |
-| Date picker | None, ever. BR-BW-INPUT-004 is a Fixed rule: native `<input type="date">` only. |
+| Date picker component | No package-maintained date picker component, ever (BR-BW-INPUT-004, Fixed). Not the same as "no date picker": a full date range picker ships as a copyable example over a native `<input type="date">` floor (section 3). Never state this boundary without that distinction. |
 | Utility layer | No general Tailwind utility layer; brickwork ships no `.grid`, `.gap-4`, `.px-3`. |
 | Page builder / CMS | Not a page builder, not a CMS. No tenant-arbitrary content or CSS/JS. |
 | Sanitisation | Styles markup; does not sanitise it. |
@@ -229,6 +240,12 @@ are as reported there, not from the raw dataset.
    filling it plausibly.
 8. **State RTL precisely.** Structural proof (logical-property counts) exists;
    an axe-tested `dir="rtl"` fixture does not.
+9. **Never state a delivery-model boundary as an absence of capability.**
+   brickwork declines to ship certain things as maintained components; that is
+   not the same as not providing them. "No date picker" is false and a
+   developer disproves it by opening one example; "no date picker component"
+   is true and explains the model. Check every "we do not ship X" claim for
+   this confusion before publishing it.
 
 ## 10. Anti-pattern: no house aesthetic (what killed the previous copy)
 
