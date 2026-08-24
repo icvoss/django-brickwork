@@ -1,8 +1,6 @@
 # brickwork positioning
 
-**Status:** DRAFT, awaiting owner approval (2026-08-24). Not yet canonical: no
-downstream surface may be rewritten against it until it is approved. On
-approval, change this line to "canonical positioning source" and date it.
+**Status:** canonical positioning source. Approved by the owner 2026-08-24.
 **Scope:** every brickwork-facing copy surface (README.md, brickworkui.com,
 PyPI description, any future landing page or pitch) derives its claims from
 this document and must not diverge from it. Where a surface currently
