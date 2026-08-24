@@ -6,6 +6,56 @@ semantic versioning. Template block names, HTMX target IDs, Alpine component
 names, event names and token names are treated as public API (see the spec's
 versioning contract).
 
+## [3.5.1] - 2026-08-24
+
+A documentation-only release. No template's rendered output changed, no option,
+block, tag or token was added or removed, and no behaviour differs from 3.5.0.
+There is nothing to integrate: upgrading from 3.5.0 is a version-number change.
+
+Both entries fix the same class of defect, where the text a consumer would
+actually follow disagreed with what the package shipped. One made a real
+upgrade hazard invisible (a block name read from a newer checkout than your pin
+is silently discarded), the other made a shipped example unfindable, which sent
+a consumer to file for a component that will never exist.
+
+### Changed
+
+- **Named block headers now state which version introduced each block name**
+  (icvoss/django-brickwork#193), for `_card.html`, `_modal.html`,
+  `_slide_over.html`, `_alert.html`, `_tooltip.html` and `_empty_state.html`.
+  Every concise name (`title`, `body`, `footer`, `header`, `actions`,
+  `heading`, `action`, `trigger`, and `_empty_state`'s new `icon`) landed in
+  3.4.0; every deprecated prefixed name (`modal_title`, `card_body`,
+  `alert_body`, `tooltip_trigger`, and so on) predates it. No template's
+  rendered output changed: this is a documentation-only fix.
+
+  Upgrading is, and always was, safe: every concise name has a deprecated
+  predecessor still shipped alongside it. The unsafe direction is reading a
+  block name from a newer checkout (or newer docs) than the version you have
+  pinned. A Django `{% block %}` override that names a block the parent
+  template does not define is silently discarded: no error, no warning,
+  `DEBUG=True` does not catch it, and `get_template()` only checks parse-time
+  syntax, so a consumer pinned below 3.4.0 who fills a concise block name
+  read from `main` gets a structurally valid, entirely empty region that
+  still passes ordinary template-loading tests. Check the block's own
+  version note in the template header against your pin before relying on a
+  name.
+
+### Fixed
+
+- **`app/date-range-picker.html` is now listed in both example listings**
+  (icvoss/django-brickwork#199). It shipped without ever being added to
+  `src/brickwork/examples/README.md`'s file table or `README.md`'s
+  enumerated list and page count (which said fifteen; it is sixteen), so a
+  consumer had no way to find it short of reading the examples directory
+  directly. One filed icvoss/django-brickwork#172 asking for the date-picker
+  component `BR-BW-INPUT-004` deliberately never ships, having missed the
+  example that answers it. `README.md`'s "Example pages" section now also
+  says directly that there is no date-picker component and points at the
+  example, and a new test asserts every non-section example on disk appears
+  in the examples README's file table, so the next example cannot ship
+  unlisted.
+
 ## [3.5.0] - 2026-08-22
 
 A wave of composition and accessibility work, plus the ecosystem's first
