@@ -28,8 +28,9 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 86 documents (43 fixtures x light and dark
-themes), plus a no-JS floor suite, keyboard suites, mobile-overflow checks at
+axe-core WCAG 2.2 AA scan across 132 documents (100 hand-maintained fixtures
+plus 32 catalogue archetypes, each x light and dark themes), plus a no-JS
+floor suite, keyboard suites, mobile-overflow checks at
 320/360/375/414px, and pixel-level composited contrast measurement. That last
 check exists because the axe gate itself once ran green over a real 4.25:1
 contrast defect (axe's contrast check does not rasterise the page, so text
@@ -37,7 +38,7 @@ over a background image reports "incomplete" rather than a violation); the
 gate catching its own blind spot and adding a check for it is stronger
 evidence than a gate that has never missed.
 
-> Status: **stable**. This checkout is version 3.7.0 (`pip install
+> Status: **stable**. This checkout is version 3.10.0 (`pip install
 > django-brickwork` for the published package);
 > [CHANGELOG.md](CHANGELOG.md) records the current release. The five
 > semver-governed public-API contracts (token, template, navigation,
