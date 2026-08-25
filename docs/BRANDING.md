@@ -378,6 +378,95 @@ family (`-accent-hover`, `-accent-subtle`) derived live over
 verified `-focus-ring` value for per-request accents, so focus visibility does
 not depend on an unmeasured browser-side mix.
 
+## A live, on-page axis switch (brickwork#117)
+
+The four axes are runtime attributes on the shell root `<html>`, and the live
+`color-mix()` derivation means switching any of them re-themes the page
+instantly with no rebuild. `{% bw_theme_switch %}` is the shipped, tested
+control that demonstrates that property, so you do not hand-roll the a11y
+semantics (a fieldset of radios, not buttons; each axis in its own labelled
+group; no focus trap) and get some of them wrong.
+
+```django
+{% load brickwork_theming %}
+{% bw_theme_switch %}
+```
+
+Renders one `<fieldset>` per axis (default `axes="theme density dir"`;
+`brand` is opt-in, see below), each a native, individually labelled radio
+group, wired to `bwThemeSwitch` (`registerBrickworkComponents`, same as every
+other interaction). Options (ADR-060 grammar):
+
+- `axes` (str, default `"theme density dir"`): a space-separated,
+  closed-vocabulary subset of `theme`/`density`/`dir`/`brand`. `brand` is
+  never included by default: `data-bw-brand` only means something once you
+  have authored a `[data-bw-brand="..."]` stylesheet block (Recipe 3 above),
+  so offering it unconditionally would render a control that does nothing on
+  most sites.
+- `brands` (mapping, required when `"brand"` is in `axes`): `{slug: label}`
+  for your own `data-bw-brand` values; brickwork ships no brand slugs of its
+  own to offer.
+- `label` (str, optional): the control's own accessible name; defaults to a
+  translated "Display settings".
+
+**The no-JS floor here is "render nothing", not "render a working control",
+the one deliberate departure from this package's usual doctrine.** The
+server-rendered page is already correctly themed, so a theme switch with no
+JS is a control that visibly does nothing, worse than absent: the fieldset
+ships with the `hidden` attribute and `bwThemeSwitch` removes it at init,
+mirroring the reveal-at-init shape `bw_alert`'s dismiss button already uses.
+
+**Persistence follows SHL-003** (the same rule
+`frontend/src/js/sidebar_collapse.js` documents for the sidebar): localStorage
+is the switch's own DEFAULT persistence, itself overridable by the host. Per
+axis, not globally:
+
+| Case | Behaviour |
+|---|---|
+| No `theme_resolver` configured, or it returns nothing for this axis | A free client toggle, persisted to `localStorage` |
+| The resolver's own return value asserts this axis this request | The axis renders as a disabled, read-only radio group showing the current server-resolved value; a client default must never clobber a real preference |
+
+The context processor computes this automatically: `bw_theme_locked_axes`
+(from `brickwork.context_processors.theme`) is the space-separated set of
+axes your `BRICKWORK_THEME_RESOLVER` itself asserted, and `{% bw_theme_switch %}`
+reads it via `locked_axes=bw_theme_locked_axes` in the shell's own call (you
+never set `locked_axes=` by hand in ordinary use).
+
+### The recipe, if you want your own control
+
+The same shape `{% bw_theme_switch %}` renders, for a consumer who wants
+different markup or copy: a `<fieldset>` of radios per axis (never buttons: a
+control with more than two states that are not "on"/"off" is a radio group,
+not a toggle), each axis announced by its own `<legend>`, the whole control
+`hidden` until JS reveals it (the same no-JS floor rule above), and
+persistence written directly onto `<html>`:
+
+```django
+<fieldset hidden data-my-theme-switch>
+  <legend>Theme</legend>
+  <label><input type="radio" name="theme" value="light" data-theme-value> Light</label>
+  <label><input type="radio" name="theme" value="dark" data-theme-value> Dark</label>
+</fieldset>
+```
+
+```js
+const STORAGE_KEY = "my-theme";
+const stored = localStorage.getItem(STORAGE_KEY);
+if (stored) document.documentElement.setAttribute("data-theme", stored);
+for (const radio of document.querySelectorAll("[data-theme-value]")) {
+  if (radio.value === (stored || document.documentElement.getAttribute("data-theme"))) radio.checked = true;
+  radio.addEventListener("change", () => {
+    document.documentElement.setAttribute("data-theme", radio.value);
+    localStorage.setItem(STORAGE_KEY, radio.value);
+  });
+}
+document.querySelector("[data-my-theme-switch]").removeAttribute("hidden");
+```
+
+Respect a server-resolved preference exactly as `{% bw_theme_switch %}` does:
+if your own resolver asserts an axis this request, do not read or write
+`localStorage` for it and disable that axis's inputs.
+
 ## The marketing brand slot: logo sizing out of the box (brickwork#83)
 
 The marketing shell's `brand_logo` / `brand_wordmark` blocks are wrapped in
