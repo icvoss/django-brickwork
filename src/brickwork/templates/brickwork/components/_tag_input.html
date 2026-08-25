@@ -36,6 +36,23 @@ bw:taginput:remove { value }, bubbling CustomEvents from the component root.
 Tokens: the chip run and remove button are bw-combobox__chip{,-remove}
 verbatim (no new tokens); the wrapper composes .bw-input's own border/focus
 treatment so the enhanced state reads as one field, not two controls.
+
+States: floor-only (no-JS, a plain text field with a comma-separated
+  value) vs enhanced (chip run visible, raw text hidden behind it);
+  invalid (aria-invalid plus the field chrome's error state); single-line
+  (input) vs multiline (textarea), chosen by the multiline flag, not a
+  runtime toggle.
+Accessibility: the floor input/textarea stays the single source of truth
+  for form submission at every state, so a screen reader or a JS-disabled
+  browser always sees one genuine labelled text field; each chip's remove
+  button carries a distinguishable translated aria-label (name plus the
+  tag text, never a bare icon). Covered by axe.spec.mjs against
+  inputs-*.html (both single-line and multiline renders, both themes); the
+  enhanced Enter/comma-commits and Backspace-removes-last-chip behaviour
+  has no dedicated browser-driven interaction test today, only the static
+  render the axe fixture exercises.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-tag-input* selector.
 {% endcomment %}
 {% with help_id=id|add:"_help" error_id=id|add:"_errors" %}
 <div class="bw-field{% if errors %} bw-field--invalid{% endif %}">

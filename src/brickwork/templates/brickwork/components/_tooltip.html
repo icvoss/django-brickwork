@@ -65,6 +65,21 @@ Tokens (CSS lane): bubble at --bw-z-tooltip (the highest rung in the
 stacking scale, DESIGN.md section 6.5) over --bw-color-surface-raised,
 --bw-elevation-2, radius --bw-radius-md. Motion, when present, follows the
 BR-BW-TOK-009 reduced-motion floor like every other overlay in the set.
+
+States: floor-only (native title attribute, no bubble shown) vs enhanced
+  (styled bubble shown on hover AND focus, hidden on mouseleave/blur/
+  Escape); four placement states (top default, bottom, start, end, the
+  last two logical and RTL-mirroring).
+Accessibility: WAI-ARIA APG Tooltip pattern, explicitly NOT a dialog: it
+  never traps focus and never blocks the trigger's own click/keyboard
+  behaviour. Wired via aria-describedby pointing at the bubble's id; the
+  no-JS floor still carries the browser's own native title tooltip, so a
+  hint exists with zero JavaScript. Covered by axe.spec.mjs against
+  feedback-*.html/feedback-js-*.html/feedback-tooltip-open-*.html (the
+  floor, the JS-boot leg and the open bubble state respectively), both
+  themes.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-tooltip* selector.
 {% endcomment %}
 <span class="bw-tooltip bw-tooltip--{% firstof placement 'top' %}"
       id="{{ id }}-root"

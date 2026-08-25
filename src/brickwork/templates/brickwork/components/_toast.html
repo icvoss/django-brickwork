@@ -40,6 +40,24 @@ reserved toast row), radius --bw-radius-xl, background
 variant tiers. Enter at --bw-duration-normal/--bw-ease-out translating in
 from the region's edge; exit at --bw-duration-fast/--bw-ease-in (MOT-007).
 Reduced motion: instant swap, timers unchanged (BR-BW-TOK-009).
+
+States: visible/dismissed (data-bw-visible, the CSS enter/exit hook),
+  paused (hovered or containing focus: the auto-dismiss timer stops, per
+  WCAG 2.2.1), four variant states (success/warning/danger/info, each its
+  own icon and edge colour), and a duration axis (short/normal/long/
+  persistent, persistent never auto-dismisses).
+Accessibility: the close control is always rendered (WCAG 2.2.1, no
+  timeout-only dismissal path), an ordinary tab stop with a translated
+  accessible name; danger toasts carry role="alert" (assertive) on top of
+  the region's own polite live region; a toast never steals focus on
+  arrival. Covered by axe.spec.mjs against
+  toasts-*.html/toasts-flash-*.html/toasts-stack-*.html/toasts-js-*.html
+  and by interactions2.spec.mjs's dedicated toast suite, which drives
+  focus-pause, dismissal, and asserts no client-side creation API exists
+  on window.
+Responsive: no breakpoint switch; no width-dependent CSS on any .bw-toast*
+  selector (the stacking region's placement corner is a fixed CSS
+  position, not viewport-driven).
 {% endcomment %}
 <div class="bw-toast bw-toast--{{ variant }}"
      id="{{ id }}"

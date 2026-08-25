@@ -42,6 +42,25 @@ a --bw-state-selected-bg fill at --bw-radius-full (pill variant);
 indicator movement animates translateX at
 --bw-duration-fast/--bw-ease-standard (MOT-013) under the reduced-motion
 floor (BR-BW-TOK-009). No elevation, no z-index: in-flow chrome.
+
+States: active/inactive per tab (aria-current="page" on the no-JS floor,
+  aria-selected plus roving tabindex once bwTabs upgrades it); two visual
+  variants (underline default, pill); each panel hidden/visible, with
+  lazy-loaded panels additionally pending/loaded via hx-get on first
+  intersection.
+Accessibility: deliberately NO role="tablist"/"tab" on the no-JS floor
+  (those roles promise arrow-key handling that is not running without JS);
+  each tab is a real anchor, keyboard-reachable via ordinary Tab, and
+  switching tabs is ordinary navigation. Once bwTabs upgrades the markup,
+  the full WAI-ARIA APG Tabs pattern applies: role="tablist"/"tab", roving
+  tabindex, ArrowRight/ArrowLeft move focus with wrapping (mirrored under
+  RTL), Home/End jump to first/last, manual activation (Enter/Space
+  selects the focused tab). Covered by axe.spec.mjs against
+  interactions-*.html/interactions-tab-lazy-*.html and by
+  interactions.spec.mjs's dedicated tabs suite, which drives the full
+  keyboard map and asserts the no-JS floor carries no tab/tablist role.
+Responsive: no breakpoint switch; no width-dependent CSS on any .bw-tabs*
+  selector.
 {% endcomment %}
 <div class="bw-tabs bw-tabs--{{ variant }}"
      x-data="bwTabs({ id: '{{ id|escapejs }}', active: '{{ active|escapejs }}', urlSync: {{ url_sync|yesno:'true,false' }}, lazyLoad: {{ lazy_load|yesno:'true,false' }} })">

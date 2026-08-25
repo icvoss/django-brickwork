@@ -25,6 +25,17 @@ CheckboxInput default so a plain POST parses the same way), disabled (bool).
 Tokens (CSS lane): the track/thumb pair with role=switch styling live under
 input.bw-toggle in components.css; the thumb-slide motion sits under the
 reduced-motion floor (BR-BW-TOK-009), same as every other component transition.
+
+States: checked/unchecked (native checkbox state, thumb slides between
+  track ends) and disabled; no JS-driven state, since it is a plain
+  checkbox throughout.
+Accessibility: role="switch" is the one thing added to a native checkbox;
+  the browser derives aria-checked from the checked state and
+  Enter/Space toggle it with zero JavaScript, exactly like any checkbox.
+  The tag enforces a non-empty accessible name at render time. Covered by
+  axe.spec.mjs against inputs-*.html, both themes.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-toggle* selector.
 {% endcomment %}
 <label class="bw-toggle-field">
   <input class="bw-toggle bw-checkbox"

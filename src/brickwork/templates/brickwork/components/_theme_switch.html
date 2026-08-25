@@ -68,6 +68,23 @@ Tokens (CSS lane): plain radios, no bespoke chrome; the control borrows the
 existing form-field spacing tokens (--bw-density-*), never a component of
 its own, since it is deliberately unstyled beyond what a native fieldset of
 radios already provides.
+
+States: hidden (no-JS floor, always, by deliberate design: a theme switch
+  that visibly does nothing is worse than absent) vs revealed (JS init);
+  per-axis locked (a server-resolved preference exists: disabled radios,
+  the current value checked, a "set by your account preferences" note) vs
+  unlocked (a free client toggle persisting to localStorage).
+Accessibility: role="group" with an explicit aria-label (a bare div's
+  aria-label has no semantic target without a role); each axis is its own
+  native <fieldset>/<legend>, so the axis name reaches assistive tech
+  without extra ARIA. Covered by theme_switch.spec.mjs (408 lines), a
+  dedicated suite driving no-JS absence, reveal-at-init, per-axis lock
+  state, invalid-stored-value rejection, multi-instance collision safety
+  and the locked-vs-unlocked race, plus axe.spec.mjs against
+  theme-switch-*.html/theme-switch-js-*.html/
+  theme-switch-invalid-root-js-*.html, both themes.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-theme-switch* selector.
 {% endcomment %}
 <div class="bw-theme-switch"
      id="{{ instance_id }}"
