@@ -47,6 +47,44 @@ def test_resolver_returning_none_is_safe() -> None:
     assert attrs["theme"] == "light"
 
 
+# --- asserted_keys (icvoss/django-brickwork#117): which keys the resolver's
+# OWN return value carried, key presence not truthiness, from the SAME
+# resolver call this function already makes (never a second one). ----------
+
+
+def test_asserted_keys_is_populated_from_the_resolver_result() -> None:
+    locked: set[str] = set()
+    resolve_theme_attributes(_Req(), theme_resolver=lambda _r: {"theme": "dark"}, asserted_keys=locked)
+    assert locked == {"theme"}
+
+
+def test_asserted_keys_is_key_presence_not_truthiness() -> None:
+    # an explicit empty brand is still an assertion: the resolver is
+    # deliberately clearing it, not silently agreeing with the default.
+    locked: set[str] = set()
+    resolve_theme_attributes(_Req(), theme_resolver=lambda _r: {"brand": ""}, asserted_keys=locked)
+    assert locked == {"brand"}
+
+
+def test_asserted_keys_stays_empty_with_no_resolver() -> None:
+    locked: set[str] = set()
+    resolve_theme_attributes(_Req(), asserted_keys=locked)
+    assert locked == set()
+
+
+def test_asserted_keys_stays_empty_when_the_resolver_returns_nothing() -> None:
+    locked: set[str] = set()
+    resolve_theme_attributes(_Req(), theme_resolver=lambda _r: {}, asserted_keys=locked)
+    assert locked == set()
+
+
+def test_omitting_asserted_keys_does_not_change_existing_behaviour() -> None:
+    # purely additive: a caller that never passes asserted_keys sees
+    # identical attrs and no error, exactly as before this parameter existed.
+    attrs = resolve_theme_attributes(_Req(), theme_resolver=lambda _r: {"theme": "dark"})
+    assert attrs["theme"] == "dark"
+
+
 # --- 422 helper: header vs duck-typed request.htmx -------------------------
 
 

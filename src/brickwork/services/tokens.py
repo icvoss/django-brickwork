@@ -68,6 +68,7 @@ def resolve_theme_attributes(
     request: HttpRequest,
     *,
     theme_resolver: Callable[[HttpRequest], ThemeAttributes] | None = None,
+    asserted_keys: set[str] | None = None,
 ) -> ThemeAttributes:
     """Resolve the shell's theme/density/direction/brand (+ optional logo) for a request.
 
@@ -83,6 +84,15 @@ def resolve_theme_attributes(
     ImproperlyConfigured here at resolve time, mirroring the tabs id-safety
     precedent, so a bad slug is a loud failure rather than a broken
     ``[data-bw-brand=...]`` selector.
+
+    ``asserted_keys`` (icvoss/django-brickwork#117), an optional mutable set
+    the caller supplies: populated with the KEYS the resolver's own return
+    value carried (key presence, not truthiness, so an explicit ``brand=""``
+    counts), so ``{% bw_theme_switch %}`` can lock exactly those axes without
+    a second call to ``theme_resolver`` (a second call could race a resolver
+    reading mutable state such as ``request.session`` and disagree with the
+    attributes this function actually returns). Purely additive: existing
+    callers that omit it see no change in behaviour or return shape.
     """
     attrs: ThemeAttributes = {
         "theme": get_setting("BRICKWORK_DEFAULT_THEME"),
@@ -104,6 +114,8 @@ def resolve_theme_attributes(
         # ignore.
         cleaned = {k: v for k, v in override.items() if isinstance(v, str)}
         attrs.update(cleaned)  # type: ignore[typeddict-item]  # keys are dynamic (from a caller-supplied dict); values are always str, verified above
+        if asserted_keys is not None:
+            asserted_keys.update(cleaned)
     brand = attrs.get("brand", "")
     if brand and not _BRAND_SLUG_RE.match(brand):
         raise ImproperlyConfigured(f"brickwork brand {brand!r} is not an attribute-safe slug ([A-Za-z][A-Za-z0-9_-]*).")
