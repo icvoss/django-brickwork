@@ -1337,6 +1337,8 @@ def render_bw_form_fixture(theme: str) -> str:
 #                                 {% bw_form %}.
 # console-<theme>.html           the app shell plus _empty_state.html, wired
 #                                 from heading+body.
+# console-sm-<theme>.html        the app shell plus _empty_state.html at
+#                                 size="sm" (#218), nested inside a bw-card.
 # confirm-<theme>.html           the centred shell plus a warning _alert and
 #                                 a POST form + cancel link.
 # auth-signin-<theme>.html       the auth shell plus a consumer <form>
@@ -1451,7 +1453,7 @@ _CONSOLE_SOURCE = (
 )
 
 
-def render_console(theme: str) -> str:
+def render_console(theme: str, *, size: str | None = None) -> str:
     from django.urls import resolve
 
     request = RequestFactory().get("/dashboard/")
@@ -1465,6 +1467,27 @@ def render_console(theme: str) -> str:
             "body": "Generate your first report to see it appear here.",
         }
     )
+    # size="sm" (ADR-060, STA-019, #218): the in-panel scale, exercised here
+    # nested inside a bw-card rather than the bare page-filling default, so
+    # axe sees the demoted <p> heading and the plain action-link treatment
+    # against a bounded container, not just the page-filling floor above.
+    if size == "sm":
+        ctx["size"] = "sm"
+        source = (
+            "{% extends 'brickwork/shell/app.html' %}"
+            "{% block page_header %}"
+            '{% include "brickwork/components/_page_header.html" %}'
+            "{% endblock %}"
+            "{% block content %}"
+            '<div class="bw-section-stack">'
+            '<div class="bw-card">'
+            '<div class="bw-card__body">'
+            '{% include "brickwork/components/_empty_state.html" %}'
+            "</div></div></div>"
+            "{% endblock %}"
+        )
+        html = engines["django"].from_string(source).render(ctx, request=request)
+        return _inline_css(html)
     html = engines["django"].from_string(_CONSOLE_SOURCE).render(ctx, request=request)
     return _inline_css(html)
 
@@ -2299,6 +2322,11 @@ def main() -> None:
         (OUT / f"form-page-{theme}.html").write_text(render_form_page(theme))
         (OUT / f"settings-{theme}.html").write_text(render_settings(theme))
         (OUT / f"console-{theme}.html").write_text(render_console(theme))
+        # size="sm" (ADR-060, STA-019, #218): the in-panel empty state,
+        # nested inside a bw-card, exercising the demoted heading and the
+        # plain action-link treatment axe never sees on the page-filling
+        # console fixture above
+        (OUT / f"console-sm-{theme}.html").write_text(render_console(theme, size="sm"))
         (OUT / f"confirm-{theme}.html").write_text(render_confirm(theme))
         (OUT / f"auth-signin-{theme}.html").write_text(render_auth_signin(theme))
         (OUT / f"account-menu-post-{theme}.html").write_text(render_account_menu_post(theme))
@@ -2365,6 +2393,7 @@ def main() -> None:
             f"form-page-{theme}",
             f"settings-{theme}",
             f"console-{theme}",
+            f"console-sm-{theme}",
             f"confirm-{theme}",
             f"auth-signin-{theme}",
             f"account-menu-post-{theme}",
