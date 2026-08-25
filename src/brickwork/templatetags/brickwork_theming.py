@@ -73,6 +73,7 @@ _AXIS_VALUES = {
     "dir": ("ltr", "rtl"),
 }
 
+
 # gettext() calls are made INSIDE bw_theme_switch(), never at module import
 # time here: a module-level gettext() call resolves once, at process start,
 # against whichever locale happened to be active then, and never again (the
