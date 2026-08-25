@@ -9,6 +9,27 @@ What your view must supply:
     faq_items  [{question, answer}]
 The tiers below are written straight into this template on purpose: see the
 note above the pricing section.
+
+States: the auth-aware header actions branch on request.user.is_authenticated;
+  every composed component's own states (hero, pricing tiers, FAQ, CTA) are
+  unchanged, see each component's own header; single_open=True on the FAQ
+  makes its answers a single native exclusive-open group.
+Accessibility: inherits shell/marketing.html's skip link and header/footer
+  landmarks; the current-page nav link carries aria-current="page"; the
+  composed hero renders the page's own <h1>. Covered by the archetype
+  harness's full gate sweep (render, axe WCAG 2.2 AA, no horizontal
+  overflow, light/dark distinctness, skip-link first-tab-stop with JS
+  disabled) at every W0.1 breakpoint, both themes, and directly by
+  axe.spec.mjs against pricing-*.html, this page's own hand-maintained
+  fixture.
+Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
+  fluid header wrap and content-column cap. The tiers here are three plain
+  _pricing_tier.html includes inside a hand-written div carrying the same
+  bw-pricing-table class _pricing_table.html's own wrapper uses (this page
+  skips the wrapper component itself, per the note above, but reuses its
+  class so the three tiers still take that class's own breakpoint switch:
+  1 column below md, 2 from md to below lg, 3 from lg upward, see
+  _pricing_table.html's own header for the exact matrix).
 {% endcomment %}
 {% load brickwork_components %}
 
