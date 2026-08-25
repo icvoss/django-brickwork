@@ -392,9 +392,9 @@ def test_brand_slug_rule_is_imported_from_services_tokens_not_duplicated() -> No
     # compiled pattern resolve_theme_attributes validates against, not its
     # own copy.
     from brickwork.services.tokens import BRAND_SLUG_RE
-    from brickwork.templatetags.brickwork_theming import BRAND_SLUG_RE as tag_pattern
+    from brickwork.templatetags.brickwork_theming import BRAND_SLUG_RE as TAG_BRAND_SLUG_RE
 
-    assert tag_pattern is BRAND_SLUG_RE
+    assert TAG_BRAND_SLUG_RE is BRAND_SLUG_RE
 
 
 # --- multiple instances on one page never collide (radio name/id uniqueness)

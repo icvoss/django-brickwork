@@ -1047,7 +1047,9 @@ def render_theme_switch_invalid_root(theme: str) -> str:
     own "stamp a CSS/DOM state into the fixture" technique, rather than
     mutating and reloading."""
     html = render_theme_switch(theme, inject_js=True)
-    return html.replace(f'<html lang="en" data-theme="{theme}">', '<html lang="en" data-theme="MISCONFIGURED-VALUE">', 1)
+    return html.replace(
+        f'<html lang="en" data-theme="{theme}">', '<html lang="en" data-theme="MISCONFIGURED-VALUE">', 1
+    )
 
 
 def render_sidebar_collapsed(theme: str) -> str:
