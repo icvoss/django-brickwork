@@ -28,6 +28,23 @@ slug is validated at resolve time (resolve_theme_attributes). With bw_brand
 unset the output is byte-identical to 0.9.0. This is the first-class version of
 the site-level base.html override icvlocal carried from 0.6.0 (BR-BW-TPL-002
 demand evidence, resolved here).
+
+States: no interactive states of its own; it is the document skeleton every
+  other shell extends. The one state-bearing thing it renders is the
+  DEBUG-only registration-detector script, gated on bw_debug (on/off), which
+  is diagnostic console output, never a visual state.
+Accessibility: ships the skip link (first focusable element, targets
+  #bw-main) and the lang/dir/data-theme/data-density attributes on <html>
+  every other shell inherits. Not covered by a dedicated axe fixture of its
+  own (every fixture the axe gate scans is a page extending one of the
+  concrete shells, so base.html is exercised on every run, never in
+  isolation); the skip-link and no-JS floor it establishes are asserted
+  directly by axe.spec.mjs's "no-JS floor" suite against the list-*.html
+  fixtures and by the archetype harness's "skip link is the first tab stop"
+  gate against every archetype fixture.
+Responsive: none of its own; it sets no width-dependent CSS. Each concrete
+  shell (app/auth/centred/marketing) that extends it carries its own
+  responsive behaviour, documented in that shell's own header.
 {% endcomment %}<!doctype html>
 <html lang="{% firstof bw_lang 'en' %}"
       dir="{% firstof bw_dir 'ltr' %}"

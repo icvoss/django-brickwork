@@ -5,6 +5,17 @@ anything that is neither the app shell nor an auth page (a standalone
 confirmation, an empty state, an error page). A "full-bleed no-chrome" need is
 served by an essentially-empty content block here, not a distinct fourth shell
 (SHL-013). Fully static (no JS required).
+
+States: none of its own; it is a static panel with no interactive markup.
+Accessibility: inherits the skip link and lang/dir/theme attributes from
+  base.html. Its own contribution is <main id="bw-main" tabindex="-1"> as
+  the panel body, and the same themed bare-prose-link colour
+  (.bw-centred__panel :where(a)) the auth shell carries. Covered by the
+  archetype harness and axe.spec.mjs against confirm-*.html (this shell is
+  app/confirm.html's own shell), both themes.
+Responsive: no breakpoint switch. Shares the auth shell's grid: a single
+  centred column, the panel fluid at min(28rem, 100%), capped at the
+  available inline space at every viewport width.
 {% endcomment %}
 {% block shell_variant %}centred{% endblock %}
 
