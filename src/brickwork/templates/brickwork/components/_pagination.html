@@ -1,9 +1,19 @@
 {% load brickwork_icons i18n %}
 {% comment %}
-Pagination controls for a Django Page object. Renders nothing when there is only
-one page (STA-014: a one-page result shows no controls). Uses logical
-prev/next (chevron-back/-forward flip under RTL, ICO-014). Preserves the current
-sort and filter params so they survive a page change.
+Pagination controls. Renders nothing when there is only one page, or when
+page_obj is absent (STA-014: a one-page result shows no controls). Uses
+logical prev/next (chevron-back/-forward flip under RTL, ICO-014). Preserves
+the current sort and filter params so they survive a page change.
+
+TBL-004 (icvoss/django-brickwork#217): page_obj accepts either a real
+django.core.paginator.Page, or any duck-typed object presenting the same
+attributes FLAT: number, num_pages, has_previous, has_next,
+previous_page_number, next_page_number. num_pages is read either nested
+(page_obj.paginator.num_pages, the Page shape) or flat (page_obj.num_pages,
+the duck-typed shape); every other attribute is already flat on both shapes.
+The one-page/absent-page_obj render-nothing contract above is unchanged for
+either shape. The `page_param` rename ask from #217 is deferred by recorded
+issue-comment ruling: this component does not add it.
 
 #41: when ``request`` is in context (the view/pattern path) the built-in
 ``{% querystring %}`` tag overrides only ``page`` and keeps every other current
@@ -12,10 +22,11 @@ consumer-supplied ``querystring``. Standalone renders with no request fall back
 to the documented ``querystring`` var (the current GET minus ``page``), so the
 component's request-free render contract is unchanged.
 
-Required context: page_obj (a django.core.paginator.Page). Optional: querystring
-(the request-free fallback: the current GET params minus 'page').
+Required context: page_obj (a Page, or a flat duck-typed equivalent, see
+above). Optional: querystring (the request-free fallback: the current GET
+params minus 'page').
 {% endcomment %}
-{% if page_obj.paginator.num_pages > 1 %}
+{% if page_obj.paginator.num_pages > 1 or page_obj.num_pages > 1 %}
 <nav class="bw-pagination" aria-label="{% translate 'Pagination' %}">
   {% if page_obj.has_previous %}
     <a class="bw-pagination__link" href="{% if request %}{% querystring page=page_obj.previous_page_number %}{% else %}?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}"
@@ -29,7 +40,8 @@ Required context: page_obj (a django.core.paginator.Page). Optional: querystring
   {% endif %}
 
   <span class="bw-pagination__status">
-    {% blocktranslate with current=page_obj.number total=page_obj.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktranslate %}
+    {% firstof page_obj.paginator.num_pages page_obj.num_pages as bw_total_pages %}
+    {% blocktranslate with current=page_obj.number total=bw_total_pages %}Page {{ current }} of {{ total }}{% endblocktranslate %}
   </span>
 
   {% if page_obj.has_next %}
