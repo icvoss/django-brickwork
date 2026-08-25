@@ -21,5 +21,14 @@ the component does the rest.
 Pick a quote that says what changed and by how much. "Great product, highly
 recommend" is worth nothing to the reader, because everybody's testimonials say
 that.
+
+States: see _testimonial.html's own header (none: a static quote card).
+Accessibility: see _testimonial.html's own header (a semantic figure/
+  blockquote/figcaption grouping); no avatar image here, so no alt to get
+  wrong. Covered by axe.spec.mjs against sections-*.html, which renders
+  this exact file, both themes.
+Responsive: see _testimonial.html's own header (no breakpoint switch on
+  the card itself; its container here is the marketing shell's own single
+  content column, not a grid).
 {% endcomment %}
 {% include "brickwork_marketing/components/_testimonial.html" with quote="We cut our average days-to-pay from 38 to 21 without hiring anyone. The reminders just go out, and the ones that would have been awkward phone calls now happen before anybody is annoyed." author="Priya Raman" role="Finance Director, Halden Group" %}

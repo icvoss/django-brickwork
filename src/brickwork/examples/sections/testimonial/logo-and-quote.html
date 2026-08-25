@@ -31,6 +31,20 @@ meaningful: give it role="img" and an <title>, and drop the aria-hidden.
 
 Swap in your customer's real mark. Keep the viewBox and let the CSS size it:
 a fixed pixel width is what makes a logo hang off the edge at 360px.
+
+States: none: a static section (the composed _testimonial.html carries no
+  states either).
+Accessibility: the logo mark is aria-hidden and focusable="false"
+  (deliberately decorative here, since the company name is already in the
+  attribution text underneath it; see above for when to flip that). The
+  quote card underneath inherits _testimonial.html's own semantic
+  figure/blockquote/figcaption structure unchanged. Covered by
+  axe.spec.mjs against sections-*.html, which renders this exact file,
+  both themes.
+Responsive: no named breakpoint. The mark is capped at a fixed 10rem width
+  at every viewport size (it has no intrinsic width of its own, only a
+  viewBox); the quote card below it follows _testimonial.html's own
+  (breakpoint-free) responsive behaviour.
 {% endcomment %}
 <section class="bw-testimonial-logo">
   <div class="bw-testimonial-logo__mark">

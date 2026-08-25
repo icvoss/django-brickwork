@@ -29,6 +29,17 @@ first and check the number still answers it.
 Headings: this is a stacked section, so the section heading is an <h2> and each
 card's label is a plain <p>, not a heading. Three <h3>s of card labels would put
 "Average time to pay" into the document outline as if it were a subsection.
+
+States: none: static content, no open/closed or hover-driven state.
+Accessibility: values use tabular numerals so a scanning reader is not
+  distracted by digit-width jitter; deliberately no per-card heading (see
+  above), which keeps the document outline correct rather than inventing
+  subsections that are not there. Covered by axe.spec.mjs against
+  sections-*.html, which renders this exact file, both themes.
+Responsive: no named breakpoint. grid-template-columns is
+  repeat(auto-fit, minmax(min(16rem, 100%), 1fr)): the column count grows
+  and shrinks continuously with the container width, one column below
+  16rem.
 {% endcomment %}
 <section class="bw-stat-cards-section">
   <h2 class="bw-stat-cards-section__heading">What changes in the first quarter</h2>
