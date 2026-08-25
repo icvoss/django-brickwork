@@ -19,6 +19,19 @@ Which means the URL names below are PLACEHOLDERS. Replace them with your own,
 or the page will 500 on render for a name that does not exist in your project.
 For allauth they are account_login / account_signup / account_reset_password;
 for django.contrib.auth, login / password_reset.
+
+States: the form's own valid/invalid states; bw_form renders both
+  per-field and non-field errors automatically, so a failed login (a wrong
+  password) needs no extra wiring in this file.
+Accessibility: inherits shell/auth.html's skip link, lang/dir/theme
+  attributes and themed bare-prose-link colour; the page's own <h1> names
+  the task. Covered by the archetype harness's full gate sweep (render,
+  axe WCAG 2.2 AA, no horizontal overflow, light/dark distinctness,
+  skip-link first-tab-stop with JS disabled) at every W0.1 breakpoint,
+  both themes, and directly by axe.spec.mjs against auth-signin-*.html,
+  the one auth archetype with its own dedicated hand-maintained fixture.
+Responsive: no breakpoint switch of its own; inherits shell/auth.html's
+  fluid, no-breakpoint centred panel.
 {% endcomment %}
 {% load brickwork_components brickwork_forms %}
 
