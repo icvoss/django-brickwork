@@ -26,6 +26,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = dirname(HERE);
 const FIXTURES = join(HERE, "fixtures", "archetypes");
 const TOKENS_CSS_PATH = join(ROOT, "src", "brickwork", "static", "brickwork", "dist", "tokens.css");
+const CATALOGUE_MANIFEST_PATH = join(ROOT, "src", "brickwork", "static", "brickwork", "dist", "catalogue-manifest.json");
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
@@ -92,6 +93,23 @@ function discoverArchetypes() {
 
 const archetypes = discoverArchetypes();
 
+// The catalogue manifest's own archetype count (src/brickwork/static/brickwork/
+// dist/catalogue-manifest.json, a COMMITTED artefact, unlike the gitignored
+// fixtures this spec scans): the independent expected count a fixture-count
+// guard needs. Reading it directly, rather than trusting "more than zero"
+// alone, is what catches a generator that silently drops archetypes (a
+// filter bug, an early return) without dropping to exactly zero, which the
+// discovery tests above cannot distinguish from "sixteen rendered
+// correctly".
+function expectedArchetypeCount() {
+  const manifest = JSON.parse(readFileSync(CATALOGUE_MANIFEST_PATH, "utf-8"));
+  const count = manifest.counts?.archetypes;
+  if (typeof count !== "number") {
+    throw new Error(`${CATALOGUE_MANIFEST_PATH} has no counts.archetypes; cannot size the fixture-count guard.`);
+  }
+  return count;
+}
+
 test.describe("archetype harness: discovery", () => {
   test("every discovered archetype has both a light and a dark fixture", () => {
     const incomplete = archetypes.filter((a) => !a.light || !a.dark);
@@ -100,6 +118,17 @@ test.describe("archetype harness: discovery", () => {
 
   test("at least one archetype was discovered (the sweep below is not vacuous)", () => {
     expect(archetypes.length).toBeGreaterThan(0);
+  });
+
+  test("the fixture count matches the catalogue manifest's archetype count, both themes", () => {
+    const expected = expectedArchetypeCount();
+    expect(archetypes.length, `expected ${expected} archetypes (catalogue-manifest.json), found ${archetypes.length}`).toBe(
+      expected,
+    );
+    for (const theme of THEMES) {
+      const withTheme = archetypes.filter((a) => a[theme]).length;
+      expect(withTheme, `expected ${expected} ${theme} fixtures, found ${withTheme}`).toBe(expected);
+    }
   });
 });
 
