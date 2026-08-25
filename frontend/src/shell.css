@@ -636,7 +636,7 @@
 
 /* --- Responsive: collapse the sidebar into the mobile drawer at md --------- */
 
-@media (max-width: 48rem) { /* = md breakpoint (var() is invalid in media queries) */
+@media (width < --theme(--breakpoint-md)) { /* SHL-017: the fixed sidebar-collapse point, ADR-079 */
   .bw-app {
     grid-template-columns: 1fr; /* sidebar out of flow, drawer takes over */
   }
