@@ -51,11 +51,19 @@ call is safe by default on a resolver-backed page. A tag that instead
 required the caller to pass locked_axes=bw_theme_locked_axes explicitly
 left every axis writable on the documented call path, which defeats the
 whole precedence rule for anyone following the docs.
+
+Server-emitted validation payload (review fix): the tag computes each
+axis's closed value set here (valid_values, below) and the template emits
+it as a json_script the client reads at init. bwThemeSwitch validates
+every value it is about to apply or persist against THIS payload, never
+against whatever radios happen to be rendered in the DOM: the validation
+contract must not depend on the DOM's own shape, or a consumer's mistaken
+override template (a duplicated, omitted, or retyped <input>) could
+silently widen or narrow what the client accepts.
 """
 
 from __future__ import annotations
 
-import re
 from collections.abc import Mapping
 from uuid import uuid4
 
@@ -63,18 +71,9 @@ from django import template
 from django.template.exceptions import TemplateSyntaxError
 from django.utils.translation import gettext
 
-register = template.Library()
+from brickwork.services.tokens import BRAND_SLUG_RE
 
-# The same attribute-safe slug rule brickwork.services.tokens applies to
-# BRICKWORK_DEFAULT_BRAND / a resolver's own brand key (the tabs id-safety
-# precedent, generalised there): every data-bw-brand value must be safe to
-# both write as an HTML attribute and use as a [data-bw-brand="..."] CSS
-# selector. Duplicated here rather than imported: services.tokens keeps it
-# module-private (a leading underscore), and services.brand_css makes the
-# same choice for its own value-safety patterns for the same reason (see
-# its own comment: "same reasoning as the brand slug in services/tokens.py
-# ... this is the third place it applies"; this is the fourth).
-_BRAND_SLUG_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
+register = template.Library()
 
 # ADR-060: one name per concept. "brand" stays opt-in per the ruling; the
 # other three are the always-available axes. Order here is the order the
@@ -91,6 +90,23 @@ _AXIS_VALUES = {
     "theme": ("light", "dark"),
     "density": ("compact", "comfortable", "spacious"),
     "dir": ("ltr", "rtl"),
+}
+
+# The context variable brickwork.context_processors.theme sets for each
+# axis, the SAME names shell/base.html reads to write <html>'s own
+# attributes. A locked axis's checked radio is resolved from THESE at
+# render time, never from <html> itself: with more than one switch
+# instance on a page (a fully ordinary, documented pattern, not a misuse),
+# reading a shared, mutable <html> attribute at each instance's own JS init
+# time is order-dependent (an earlier-initialising unlocked sibling on the
+# SAME axis can already have changed it by the time a locked instance's
+# own init runs), so a locked axis must resolve from context, not from a
+# runtime DOM read that a sibling instance can race.
+_AXIS_CONTEXT_VARS = {
+    "theme": "bw_theme",
+    "density": "bw_density",
+    "dir": "bw_dir",
+    "brand": "bw_brand",
 }
 
 
@@ -186,7 +202,7 @@ def bw_theme_switch(
             )
         if not isinstance(brands, Mapping):
             raise TemplateSyntaxError(f"bw_theme_switch brands= must be a mapping of slug -> label, got {brands!r}")
-        bad_slugs = [slug for slug in brands if not _BRAND_SLUG_RE.match(slug)]
+        bad_slugs = [slug for slug in brands if not BRAND_SLUG_RE.match(slug)]
         if bad_slugs:
             raise TemplateSyntaxError(
                 f"bw_theme_switch brands= keys must be attribute-safe slugs "
@@ -203,23 +219,46 @@ def bw_theme_switch(
     instance_id = f"bw-theme-switch-{uuid4().hex[:10]}"
 
     groups = []
+    # The server-emitted closed set per axis (icvoss/django-brickwork#117
+    # review): bwThemeSwitch validates every value it is about to apply or
+    # persist against THIS, never against whatever radios happen to be
+    # rendered. A consumer's own override of _theme_switch.html (or a typo
+    # that duplicates/omits an <input>) can then never widen or narrow what
+    # the client accepts, and the validation contract stops depending on
+    # the DOM at all. Emitted as a plain dict so Django's json_script (via
+    # the template) turns it into the actual payload; ordinary dict keys
+    # here, never anything a caller-controlled axis name could collide with
+    # (axis_list is _parse_axes' own closed vocabulary, not user input).
+    valid_values: dict[str, list[str]] = {}
     for axis in axis_list:
         if axis == "brand":
             values = list(brands.items())  # type: ignore[union-attr]  # guarded above
         else:
             values = [(value, _value_label(axis, value)) for value in _AXIS_VALUES[axis]]
+        valid_values[axis] = [value for value, _label in values]
+        is_locked = axis in locked
+        # A locked axis's current value is resolved from context (see
+        # _AXIS_CONTEXT_VARS above), never from <html> at JS runtime: two
+        # switch instances on one page sharing an axis would otherwise let
+        # an earlier-initialising UNLOCKED sibling's own value leak into a
+        # later-initialising locked one (review-adjacent finding, #117: the
+        # locked branch must resolve independently of DOM read order).
+        locked_value = context.get(_AXIS_CONTEXT_VARS[axis], "") if is_locked else ""
         groups.append(
             {
                 "axis": axis,
                 "legend": _axis_label(axis),
                 "name": f"{instance_id}-{axis}",
-                "locked": axis in locked,
+                "locked": is_locked,
+                "locked_value": locked_value,
                 "options": [{"value": value, "label": value_label} for value, value_label in values],
             }
         )
 
     return {
         "instance_id": instance_id,
+        "values_element_id": f"{instance_id}-values",
         "label": label or gettext("Display settings"),
         "groups": groups,
+        "valid_values": valid_values,
     }

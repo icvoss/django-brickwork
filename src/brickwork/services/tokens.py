@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     from django.http import HttpRequest
 
 __all__ = [
+    "BRAND_SLUG_RE",
     "BrandValidationError",
     "ThemeAttributes",
     "render_brand_css",
@@ -60,8 +61,12 @@ class ThemeAttributes(TypedDict, total=False):
 # and into consumers' [data-bw-brand=...] stylesheet scopes, so they are
 # constrained to the same conservative id-safe token the interaction tags use
 # (the tabs id-safety precedent) rather than escaped into something a selector
-# cannot address.
-_BRAND_SLUG_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
+# cannot address. PUBLIC (icvoss/django-brickwork#117 review): this was
+# module-private until a second caller (templatetags/brickwork_theming.py's
+# brands= validation) needed the exact same rule; a duplicated regex can
+# drift, so the compiled pattern is now the one shared source of truth
+# rather than a documented copy.
+BRAND_SLUG_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
 
 
 def resolve_theme_attributes(
@@ -117,6 +122,6 @@ def resolve_theme_attributes(
         if asserted_keys is not None:
             asserted_keys.update(cleaned)
     brand = attrs.get("brand", "")
-    if brand and not _BRAND_SLUG_RE.match(brand):
+    if brand and not BRAND_SLUG_RE.match(brand):
         raise ImproperlyConfigured(f"brickwork brand {brand!r} is not an attribute-safe slug ([A-Za-z][A-Za-z0-9_-]*).")
     return attrs
