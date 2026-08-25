@@ -560,10 +560,14 @@ for the edge cases it omits (per-axis storage cleanup among them):
 const STORAGE_KEY = "my-theme";
 const root = document.querySelector("[data-my-theme-switch]");
 const radios = root.querySelectorAll("[data-theme-value]");
-// The closed value set THIS markup renders, never trusted from elsewhere:
-// the same "validate against a server-known set, not whatever a stray
-// script injects" rule bwThemeSwitch itself follows.
-const validValues = new Set(Array.from(radios, (radio) => radio.value));
+// The intended closed vocabulary, stated inline, never derived from the
+// rendered inputs: a set queried from your own radios would make any
+// typo'd option value "valid" by being rendered, which is circular. This
+// is the same "validate against a server-known set" rule bwThemeSwitch
+// follows via its server-emitted JSON payload; a hand-rolled control on a
+// page without the component states its allowlist here instead. For a
+// brand axis, list your own registered brand slugs the same way.
+const validValues = new Set(["light", "dark"]);
 const isValid = (value) => validValues.has(value);
 
 if (root.hasAttribute("data-locked")) {
