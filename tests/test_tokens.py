@@ -263,14 +263,42 @@ def test_tailwind_bridge_is_theme_inline() -> None:
 
 _FRONTEND_SRC = Path(__file__).resolve().parent.parent / "frontend" / "src"
 
-# A viewport-shaped media feature: width/min-width/max-width against a literal
-# length (px or rem), OR the bare `width <`/`width >=` range syntax with a
-# literal length rather than a --theme(--breakpoint-*) token reference. This
-# deliberately does not match `prefers-reduced-motion` or other non-viewport
-# media features, which are never breakpoint-token concerns.
-_HARDCODED_VIEWPORT_MEDIA = re.compile(
-    r"@media\s*\([^)]*\b(?:min-width|max-width|width)\s*[:<>=]+\s*\d+(?:px|rem)[^)]*\)"
-)
+# CSS comments can sit anywhere inside a media condition (including between a
+# feature name and its value), so they are stripped before any of the
+# patterns below run; otherwise a comment breaks the adjacency a naive regex
+# relies on and the literal slips through undetected.
+_CSS_COMMENT = re.compile(r"/\*.*?\*/", re.S)
+
+# A single @media prelude, comments already stripped. Matched up to the rule's
+# opening brace rather than assuming the condition starts immediately after
+# `@media`: a media type/keyword clause can sit in between (`@media not all
+# and (min-width: 48rem)`, `@media screen and (...)`), which the compiled
+# dist output actually uses.
+_MEDIA_CONDITION = re.compile(r"@media[^{]*(?=\{)", re.S)
+
+# A viewport-shaped media feature written forward: width/min-width/max-width,
+# a comparator, then a literal length (px or rem, case-insensitive: 48REM is
+# valid CSS). Matches both the legacy `min-width: 48rem` form and the range
+# syntax `width >= 48rem` written with a literal instead of a
+# --theme(--breakpoint-*) reference.
+_HARDCODED_VIEWPORT_FORWARD = re.compile(r"\b(?:min-width|max-width|width)\s*[:<>=]+\s*\d+(?:px|rem)\b", re.I)
+
+# The same feature written in reverse range form: the literal length comes
+# first (`48rem <= width`), which the range syntax's own grammar permits and
+# the forward-only pattern above cannot see.
+_HARDCODED_VIEWPORT_REVERSE = re.compile(r"\d+(?:px|rem)\s*[:<>=]+\s*\b(?:min-width|max-width|width)\b", re.I)
+
+
+def _hardcoded_viewport_media(css: str) -> list[str]:
+    """Every @media condition in ``css`` that hardcodes a viewport length,
+    forward or reverse, rather than referencing --theme(--breakpoint-*)."""
+    stripped = _CSS_COMMENT.sub(" ", css)
+    offenders = []
+    for match in _MEDIA_CONDITION.finditer(stripped):
+        condition = match.group(0)
+        if _HARDCODED_VIEWPORT_FORWARD.search(condition) or _HARDCODED_VIEWPORT_REVERSE.search(condition):
+            offenders.append(condition)
+    return offenders
 
 
 def test_frontend_source_has_no_hardcoded_viewport_media_queries() -> None:
@@ -279,12 +307,34 @@ def test_frontend_source_has_no_hardcoded_viewport_media_queries() -> None:
     # a literal width repeated at each call site. A literal reintroduces the
     # drift the token source was built to close: one breakpoint value living
     # in N places instead of one place N call sites reference.
+    #
+    # Covers the literal written forward (`min-width: 48rem`), in range form
+    # in either direction (`width >= 48rem` and `48rem <= width`), with a
+    # comment breaking up the condition, and with an upper-case unit: all
+    # valid CSS a single naive forward/lower-case-only pattern would miss.
     offenders: list[str] = []
     for css_path in sorted(_FRONTEND_SRC.rglob("*.css")):
         text = css_path.read_text()
-        for match in _HARDCODED_VIEWPORT_MEDIA.finditer(text):
-            offenders.append(f"{css_path.relative_to(_FRONTEND_SRC)}: {match.group(0)}")
+        for condition in _hardcoded_viewport_media(text):
+            offenders.append(f"{css_path.relative_to(_FRONTEND_SRC)}: {condition}")
     assert not offenders, (
-        "hardcoded viewport @media queries found; use --theme(--breakpoint-*) "
-        f"range syntax instead: {offenders}"
+        f"hardcoded viewport @media queries found; use --theme(--breakpoint-*) range syntax instead: {offenders}"
     )
+
+
+def test_dist_brickwork_css_has_no_var_inside_a_media_condition() -> None:
+    # The failure mode this whole slice exists to prevent: a var(--bw-*)
+    # reference inside an @media condition. A media condition cannot resolve
+    # a CSS custom property (browsers evaluate media queries before the
+    # cascade that would supply var()'s value), so any var() there is dead on
+    # arrival at parse time, silently matching nothing rather than raising.
+    # The generated breakpoint values are deliberately emitted as literals
+    # (not var()) into the @theme block for exactly this reason; this
+    # asserts the compiled artefact still reflects that, catching a
+    # regression in generation even if the source-level guard above is
+    # somehow satisfied.
+    css = (_DIST / "brickwork.css").read_text()
+    offenders = [
+        match.group(0) for match in _MEDIA_CONDITION.finditer(_CSS_COMMENT.sub(" ", css)) if "var(" in match.group(0)
+    ]
+    assert not offenders, f"var() found inside an @media condition in dist/brickwork.css: {offenders}"
