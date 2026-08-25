@@ -429,8 +429,73 @@ axis, not globally:
 The context processor computes this automatically: `bw_theme_locked_axes`
 (from `brickwork.context_processors.theme`) is the space-separated set of
 axes your `BRICKWORK_THEME_RESOLVER` itself asserted, and `{% bw_theme_switch %}`
-reads it via `locked_axes=bw_theme_locked_axes` in the shell's own call (you
-never set `locked_axes=` by hand in ordinary use).
+reads it from the template context itself, so the bare
+`{% bw_theme_switch %}` call above is safe by default on a resolver-backed
+page: you never pass `locked_axes=` by hand in ordinary use. Locking is by
+KEY PRESENCE, not truthiness: a resolver that returns `{"brand": ""}` to
+deliberately clear the brand still locks the brand axis, so a stale
+`localStorage` value can never resurface a brand the resolver just cleared.
+
+Every value this control is about to apply or persist, whether restored
+from `localStorage` or read from a radio at change time, is checked against
+that axis's own rendered options first (the theme/density/dir vocabularies,
+or your `brands=` slugs); a value that fails is discarded rather than
+applied, and a bad stored entry is removed rather than left to fail again
+on the next load. `brands=` keys are validated server-side at render time
+against the same attribute-safe slug rule `BRICKWORK_DEFAULT_BRAND` and a
+resolver's own `brand` key already follow, so a bad slug is a loud
+`TemplateSyntaxError` rather than a broken `[data-bw-brand="..."]` selector.
+
+**Two accepted trade-offs, stated rather than left silent:**
+
+- **No cross-tab live sync.** Changing an axis in one open tab does not
+  update a theme switch rendered in another open tab of the same site; the
+  other tab's control still reflects whatever it read at its own init, and
+  only catches up on its own next navigation. This matches
+  `frontend/src/js/sidebar_collapse.js`'s existing persistence pattern,
+  which makes the same choice, and no brickwork interaction currently
+  synchronises live across tabs. If you need it, add your own
+  `window.addEventListener("storage", ...)` bridge that re-reads the
+  changed key and re-applies it to `<html>`.
+- **A returning visitor with a stored preference sees one flash.** The
+  server renders the page with its own resolved theme; `bwThemeSwitch`
+  applies a stored preference that differs from it at Alpine `init()`, which
+  runs after first paint, so the page can flip once, briefly, on load. A
+  genuinely flash-free restore needs a synchronous script in `<head>`,
+  before any CSS paints, which is a different mechanism to the switch itself
+  (the control's own markup can render anywhere in `content`, not
+  necessarily `<head>`) and carries its own CSP cost (an un-nonced inline
+  script, the same trade-off the shell's DEBUG-only registration detector
+  already documents in `shell/base.html`). brickwork does not ship that
+  script, deliberately: most consumers land here via the server-resolved
+  theme (SHL-003's whole point), so the flash is the rarer path (a returning
+  visitor whose stored preference disagrees with the server default), not
+  the common one. A consumer who needs a zero-flash restore adds a small
+  synchronous script to the shell's `head_js` block, reading the same
+  `localStorage` keys (`bw-theme-switch-<axis>`) this control writes and
+  setting the `<html>` attribute before the stylesheet paints:
+
+  ```django
+  {% block head_js %}
+    {{ block.super }}
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("bw-theme-switch-theme");
+          if (theme === "light" || theme === "dark") {
+            document.documentElement.setAttribute("data-theme", theme);
+          }
+        } catch (e) {}
+      })();
+    </script>
+  {% endblock %}
+  ```
+
+  Validate against the closed vocabulary inline exactly as shown (never
+  apply an unchecked stored value to `<html>`, for the same reason
+  `bwThemeSwitch` itself validates); repeat the pattern per axis you want
+  flash-free. Add your CSP nonce as the registration detector's own
+  override already documents.
 
 ### The recipe, if you want your own control
 
