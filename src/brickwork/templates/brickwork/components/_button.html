@@ -21,6 +21,23 @@ so no {% with %} is needed). The root element itself stays duplicated across
 those branches, same reasoning _card.html's docstring gives for its own href
 split: a named element cannot open in one branch and close in another, so the
 wrapper is not a candidate for this dedup, only its contents are.
+
+States: disabled (a <span> for a link-button, since an <a> stays navigable
+  regardless of aria-disabled; a real disabled attribute for a <button>),
+  loading (aria-busy="true" plus disabled, mounts the spinner in place of
+  any icon), icon-only (aria_label required, enforced by the tag, never the
+  include), plus four variant treatments (primary/secondary/ghost/danger)
+  each with their own hover and active colour, and three sizes (sm/md/lg).
+Accessibility: enforced at render time by {% bw_button %}, not this include:
+  an icon-only button with no aria_label is a template error, never a
+  silent unlabelled control. Every size clears the touch-target floor.
+  Covered by axe.spec.mjs across essentially every fixture (the button is
+  the single most-composed component: 14 archetypes, 2 sections per the
+  catalogue manifest), including the loading and disabled states rendered
+  directly in list-*.html/form-*.html.
+Responsive: no breakpoint switch; no width-dependent CSS on any .bw-btn*
+  selector. Size is a fixed token-driven scale (sm/md/lg), not a
+  viewport-driven one.
 {% endcomment %}
 {% partialdef btn_inner %}{% if loading %}{% include "brickwork/components/_spinner.html" %}{% elif icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
   {% if not icon_only %}<span class="bw-btn__label">{{ label }}</span>{% endif %}

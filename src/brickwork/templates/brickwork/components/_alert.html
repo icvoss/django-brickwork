@@ -45,6 +45,24 @@ no error, no warning, DEBUG=True does not catch it. If you extend this
 template using a name read from a newer checkout than the version you
 have pinned, check that name against your pinned version's own header
 before relying on it, or the region renders nothing.
+
+States: dismissed/not-dismissed when dismissible=True (x-data="bwDismissible()",
+  state { visible }); the no-JS floor renders the close button with the
+  hidden attribute, removed at Alpine init, so a JS-disabled page shows no
+  dead control. Four variant states (info/success/warning/danger, default
+  info), each pairing a fixed icon with its own tint and border colour.
+Accessibility: role="alert" so the whole banner is announced on render; the
+  status icon is decorative (bw_icon decorative=True), the variant colour
+  and text carry the meaning, never the icon alone. The dismiss control is
+  an icon-only button with an aria-label (translated "Dismiss"). Covered by
+  axe.spec.mjs indirectly via app/confirm.html and app/detail.html (both
+  compose it) and via sections-*.html (content/callout.html); the dismiss
+  markup and its bwDismissible() wiring are asserted at the Python/string
+  level (tests/test_components.py, tests/test_integration.py), not by a
+  browser-driven dismiss interaction in the a11y suites.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-alert* selector. The banner is full-width within its container at
+  every viewport size.
 {% endcomment %}
 {% if variant == "success" %}{% firstof icon "success" as bw_alert_icon %}{% elif variant == "warning" %}{% firstof icon "alert-triangle" as bw_alert_icon %}{% elif variant == "danger" %}{% firstof icon "alert-circle" as bw_alert_icon %}{% else %}{% firstof icon "info" as bw_alert_icon %}{% endif %}<div class="bw-alert bw-alert--{% firstof variant 'info' %}" role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
   {% bw_icon bw_alert_icon size="md" decorative=True css_class="bw-alert__icon" %}

@@ -34,6 +34,20 @@ Optional:
          used by the a11y fixtures so axe sees the open panel). Named
          menu_open, not open, so an inherited page-context variable named
          open can never toggle the disclosure by accident.
+
+States: closed (default) and open, toggled by the native <details> element,
+  so opening requires no JavaScript. The caret icon rotates on [open]
+  (CSS only). A danger item (item.danger) carries its own visual state,
+  distinct from the open/closed disclosure state.
+Accessibility: no ARIA menu role (deliberately, see above): the panel is a
+  <nav aria-label="{{ trigger_label }}"> landmark of ordinary links/buttons,
+  reachable and operable with the platform's own link/button semantics
+  rather than a hand-rolled arrow-key menu. Covered by axe.spec.mjs against
+  account-menu-post-*.html (both themes, rendered open) and against
+  list-menu-open-*.html; the no-JS floor suite asserts the disclosure opens
+  via a click on the native <summary> with JavaScript disabled.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-account-menu* selector.
 {% endcomment %}
 {% translate "Account" as default_trigger_label %}
 {% firstof trigger_label default_trigger_label as bw_account_menu_label %}

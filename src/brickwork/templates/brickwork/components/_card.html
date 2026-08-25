@@ -76,6 +76,22 @@ The root element opens and closes in matching {% if href %} branches (an <a>
 for a linked card, a <div> otherwise) because a named block may appear only
 once per template, so the regions cannot be duplicated across two branches
 the way _button.html duplicates its label.
+
+States: resting (--bw-elevation-1) and, when interactive=True or href is
+  set, a raised (--bw-elevation-2) hover/focus-within state, shadow only,
+  never a transform (MOT-010). A linked card (href) is always interactive;
+  the flag only matters for a non-linked card.
+Accessibility: purely structural, no role or live behaviour of its own; a
+  linked card renders as a real <a> so it is a native focusable, activatable
+  target rather than a div with a click handler. Not covered by a dedicated
+  card fixture in the a11y suite (usedByArchetypes/usedBySections are both
+  empty in the catalogue manifest: no shipped example composes it directly
+  today), so its accessibility floor rests on the WCAG 2.2 AA rules axe
+  checks against whatever markup a consumer fills its blocks with, not a
+  brickwork-authored render.
+Responsive: no breakpoint switch; no width-dependent CSS on any .bw-card*
+  selector. Sizing is the fixed size="sm"|"md"|"lg" token scale, composed
+  with the density axis's own padding token, never a viewport-driven rule.
 {% endcomment %}
 {% if href %}<a class="bw-card bw-card--interactive{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-card{% if interactive %} bw-card--interactive{% endif %}{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}">{% endif %}
 {% block header %}{% endblock %}

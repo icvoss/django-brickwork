@@ -91,6 +91,28 @@ at --bw-duration-normal/--bw-ease-out, exit --bw-duration-fast/--bw-ease-in,
 MOT-011's tier); the input takes --bw-color-border-control; chips take
 --bw-radius-full; the active option takes --bw-state-selected-bg. All
 motion sits under the reduced-motion floor (BR-BW-TOK-009).
+
+States: floor-only (no-JS, the native select is the whole control),
+  closed/open listbox (data-bw-open on the JS leg), single vs multiple
+  selection (chips render only in multiple mode), filtering (query in
+  flight dims the listbox via the standard htmx-indicator treatment),
+  create-affordance revealed/hidden (allow_create), empty-results message
+  revealed/hidden, invalid (aria-invalid plus the field chrome's error
+  state when used inside forms/_field.html).
+Accessibility: WAI-ARIA APG combobox pattern, hand-rolled (role="combobox",
+  aria-expanded, aria-controls, aria-autocomplete="list",
+  aria-activedescendant at init), full keyboard operability with no opt-out
+  (CBH-022: open/close/navigate/select/create, detailed above). The no-JS
+  floor is a real native <select> as the ONLY submitted control; the
+  enhanced chrome sits inert inside a hidden wrapper until Alpine reveals
+  it, so a JS-disabled page never exposes dead interactive markup. Covered
+  by axe.spec.mjs against comboboxes-*.html/comboboxes-js-*.html (both
+  themes) and by interactions2.spec.mjs's dedicated combobox suite, which
+  drives every keyboard route, the multiple-mode chip removal, the
+  allow_create affordance and the debounced server-filter round trip live.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-combobox* selector. The listbox panel is sized to
+  --bw-component-menu-min-width, fixed regardless of viewport.
 {% endcomment %}
 {% partialdef combobox_control %}
 <div class="bw-combobox"

@@ -12,6 +12,20 @@ Required context:
           links; without one they render as plain text. When crumbs is empty or
           absent, NOTHING renders (no <ol>), so the shell's :empty suppression
           collapses the breadcrumbs region.
+
+States: none: a static ordered list, no open/closed, no hover-only reveal.
+  A crumb with no url renders as plain text rather than a disabled-looking
+  link.
+Accessibility: a semantic <ol> inside the shell's aria-label="Breadcrumb"
+  <nav>; the current-page crumb carries aria-current="page" and is never a
+  link, matching WCAG's current-item convention. Every link meets the
+  min-block-size: 1.5rem touch-target floor (icvoss/django-brickwork#208).
+  Covered by axe.spec.mjs against list-*.html/dashboard-*.html (both render
+  a real crumbs list) and by the no-JS floor suite, which asserts the crumb
+  list and the aria-current marker render server-side with no JS.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-breadcrumbs* selector. A long crumb trail wraps or overflows within
+  its container's own rules, not this component's.
 {% endcomment %}
 {% if crumbs %}
 <ol class="bw-breadcrumbs__list">

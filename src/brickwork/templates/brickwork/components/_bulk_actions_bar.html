@@ -58,6 +58,24 @@ module only substitutes the number, it never hardcodes English text.
 Required context: none (fill ``bulk_actions_buttons`` by extending).
 Optional:
   select_all_href (str), select_all_label (str, default "Select all").
+
+States: no selection / partial selection / all-selected, tracked entirely by
+  the consumer-owned checkboxes bwTableSelection reads (never a separate JS
+  store); partial selection sets the header checkbox's .indeterminate
+  property. The bar itself has no visible open/closed state: it stays
+  present at rest whether JS is enabled or not, per the no-JS floor above.
+Accessibility: the live selection count is aria-live="polite" so "3
+  selected" is announced without re-announcing the whole bar; the count text
+  itself is server-supplied via a translated template string
+  (data-bw-selection-count-template), never hardcoded English in the JS.
+  The no-JS floor is real form controls throughout: ticking checkboxes and
+  pressing a bulk-action button works with no scripting. Covered by
+  axe.spec.mjs against table-selection-*.html (both themes, a checked row
+  and the bar visible); the enhanced bwTableSelection count/indeterminate
+  behaviour has no dedicated browser-driven interaction test today, only
+  the static render the axe fixture exercises.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-bulk-actions-bar* selector.
 {% endcomment %}
 {% blocktranslate asvar count_template %}{count} selected{% endblocktranslate %}
 <div class="bw-bulk-actions-bar">
