@@ -408,7 +408,16 @@ def test_families_only_lists_families_with_shipped_coverage() -> None:
 # what is inside each resolved file.
 
 _DOCSOURCE_LABELS = ("States", "Accessibility", "Responsive")
-_LEADING_COMMENT_RE = re.compile(r"\{%\s*comment\s*%\}(.*?)\{%\s*endcomment\s*%\}", re.DOTALL)
+# Anchored to the START of the file (\A): only whitespace and template-only
+# prelude tags ({% load %}/{% extends %}/{% spaceless %}, any count/order, as
+# seen across the shipped tree, e.g. _nav_rail.html's extends-then-load) may
+# precede the matched block, so a correctly labelled {% comment %} that
+# appears AFTER rendered markup starts is never mistaken for the leading one.
+_PRELUDE_TAG_RE = r"\{%\s*(?:load|extends|spaceless)\b[^%]*%\}"
+_LEADING_COMMENT_RE = re.compile(
+    rf"\A(?:\s|{_PRELUDE_TAG_RE})*\{{%\s*comment\s*%\}}(.*?)\{{%\s*endcomment\s*%\}}",
+    re.DOTALL,
+)
 
 
 def _read_docsource_text(entry: dict) -> str:
@@ -474,6 +483,36 @@ def test_the_two_previously_commentless_hero_examples_now_have_a_leading_comment
         assert _LEADING_COMMENT_RE.search(source_text) is not None, (
             f"{name} has no leading {{% comment %}} block at all (the #234 pre-fix state)"
         )
+
+
+def test_leading_comment_re_does_not_match_a_correctly_labelled_comment_after_markup() -> None:
+    # A {% comment %} block carrying all three labels is only the LEADING
+    # comment if nothing but whitespace and template-only prelude tags
+    # ({% load %}/{% extends %}/{% spaceless %}) precede it. A block that
+    # appears after rendered markup has already started is a different
+    # comment, not this file's docSource header, and must not be picked up
+    # as if it were.
+    source_text = (
+        '<div class="bw-example">rendered markup first</div>\n'
+        "{% comment %}\n"
+        "States: x\nAccessibility: y\nResponsive: z\n"
+        "{% endcomment %}\n"
+    )
+    assert _LEADING_COMMENT_RE.search(source_text) is None
+
+
+def test_leading_comment_re_matches_through_load_and_extends_prelude() -> None:
+    # _nav_rail.html's own shape: {% extends %} then {% load %} then the
+    # leading {% comment %}. Neither prelude tag is rendered markup, so the
+    # comment immediately after them is still the leading one.
+    source_text = (
+        '{% extends "brickwork/shell/base.html" %}\n'
+        "{% load i18n brickwork_icons %}\n"
+        "{% comment %}\n"
+        "States: x\nAccessibility: y\nResponsive: z\n"
+        "{% endcomment %}\n"
+    )
+    assert _LEADING_COMMENT_RE.search(source_text) is not None
 
 
 # ---------------------------------------------------------------------------
