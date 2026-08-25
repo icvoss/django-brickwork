@@ -22,6 +22,17 @@ shape ``resolve_theme_attributes`` accepts); the processor imports and applies i
 ``bw_lang`` comes from Django's active language (``get_language()``), so the
 shell's ``<html lang>`` follows ``LocaleMiddleware``/``i18n_patterns`` with no
 extra wiring. The consumer still owns ``bw_page_title`` (set it per view).
+
+``bw_theme_locked_axes`` (icvoss/django-brickwork#117): the space-separated
+subset of ``theme``/``density``/``dir``/``brand`` the resolver's OWN return
+value asserted for this request, distinct from a value that merely fell back
+to a ``BRICKWORK_DEFAULT_*`` setting. ``{% bw_theme_switch %}`` reads this to
+decide, per axis, whether a real server preference exists (the axis renders
+read-only, since a client-side default must never clobber it, SHL-003 applied
+to this axis) or none does (the axis is a free client toggle). Computed by
+calling the resolver a second time and inspecting its raw keys: the resolver
+is documented as a pure function of ``request`` (BRANDING.md recipe 3), so a
+second call carries no observable side effect beyond the one extra call.
 """
 
 from __future__ import annotations
@@ -39,6 +50,9 @@ if TYPE_CHECKING:
     from django.http import HttpRequest
 
 
+_LOCKABLE_AXES = ("theme", "density", "dir", "brand")
+
+
 def theme(request: HttpRequest) -> dict:
     """Map the theme service output onto the ``bw_*`` names the shell reads.
 
@@ -46,8 +60,10 @@ def theme(request: HttpRequest) -> dict:
     ``resolve_theme_attributes``, honouring a ``BRICKWORK_THEME_RESOLVER`` if
     set), ``bw_lang`` (the active language), ``bw_debug`` (``settings.DEBUG``;
     gates the shell's dev-only registration detector, brickwork#87), ``bw_logo``
-    when the resolver supplied one, and ``bw_brand`` when the resolved brand is
-    non-empty (0.10.0: rendered as ``data-bw-brand`` on the shell root <html>).
+    when the resolver supplied one, ``bw_brand`` when the resolved brand is
+    non-empty (0.10.0: rendered as ``data-bw-brand`` on the shell root <html>),
+    and ``bw_theme_locked_axes`` (icvoss/django-brickwork#117: the axes a
+    resolver itself asserted this request, read by ``{% bw_theme_switch %}``).
     Does NOT set ``bw_page_title`` (view-owned).
     """
     resolver_path = get_setting("BRICKWORK_THEME_RESOLVER")
@@ -66,4 +82,16 @@ def theme(request: HttpRequest) -> dict:
         context["bw_logo"] = attrs["logo"]
     if attrs.get("brand"):
         context["bw_brand"] = attrs["brand"]
+
+    # A second, side-effect-free call: resolve_theme_attributes() merges the
+    # resolver's return value with the BRICKWORK_DEFAULT_* set and discards
+    # which keys came from which, so the ONLY way to see the resolver's own
+    # assertion is to ask it directly (BRANDING.md recipe 3 documents the
+    # resolver as a pure function of request, so this carries no observable
+    # side effect beyond the one extra call).
+    locked = ()
+    if theme_resolver is not None:
+        raw = theme_resolver(request) or {}
+        locked = tuple(axis for axis in _LOCKABLE_AXES if raw.get(axis))
+    context["bw_theme_locked_axes"] = " ".join(locked)
     return context
