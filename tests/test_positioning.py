@@ -69,8 +69,7 @@ def _section_5_text() -> str:
     text = _POSITIONING.read_text(encoding="utf-8")
     start = _SECTION_5_HEADING_RE.search(text)
     assert start is not None, (
-        "docs/POSITIONING.md has no '## <n>. The full verified numbers' heading; "
-        "has the section been renamed?"
+        "docs/POSITIONING.md has no '## <n>. The full verified numbers' heading; has the section been renamed?"
     )
     end = _NEXT_HEADING_RE.search(text, start.end())
     assert end is not None, "docs/POSITIONING.md has no heading after the full verified numbers section"
