@@ -68,6 +68,29 @@ object behind them: eyebrow/heading/lede are exactly that shape, so the
 slot is the escape hatch for a caller with structured copy (a translated
 mark, a rich lede with an inline link) that a flat string cannot carry,
 rather than adding yet another *_html kwarg per field.
+
+States: none of its own beyond the primary/secondary bw_button CTAs'
+  own states; three align states (start default, center, end) and three
+  media_placement states (below default, behind, beside), each a CSS-only
+  modifier class change.
+Accessibility: the heading renders as the page's own <h1> (a page
+  composing this include owns exactly one hero per page); with
+  media_placement="behind" the copy takes the inverse foreground colour
+  and a flat (never gradient) scrim sits between the copy and the media,
+  a deliberate, uniform WCAG 1.4.3 guarantee that holds regardless of copy
+  length or what media the caller passes (see the CONTRAST reasoning
+  inline above the CSS). Covered by axe.spec.mjs against landing-*.html/
+  pricing-*.html/about-*.html (the align="start"/"center" shapes) and
+  directly by hero-placement-*.html, which exercises every media_placement
+  value including a dedicated WCAG 1.4.3 composited-contrast measurement
+  over both pale and dark media for the "behind" case; also covered by
+  sections-*.html via the four hero section examples.
+Responsive: media_placement="below" (the default) and "behind" carry no
+  @media rule of their own, applying identically at every viewport width.
+  media_placement="beside" is the one width-gated axis: below
+  --bw-breakpoint-md (48rem) it stacks in a single column; from md upward
+  it becomes a true two-column grid (1fr 1fr), media vertically centred
+  against the copy.
 {% endcomment %}
 <section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% endif %}">
   <div class="bw-hero__copy">
