@@ -209,7 +209,7 @@
       "family": null,
       "templatePath": "examples/base.html",
       "docSource": "examples/base.html",
-      "requiresContext": true,
+      "requiresContext": false,
       "composesItems": [
         "brickwork/components/_toast_region.html"
       ]

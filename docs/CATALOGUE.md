@@ -226,15 +226,15 @@ Reading the shipped tree confirms this directly, not by assumption:
   `requiresContext: true` set). THIS part could be encoded as a JSON shape
   hint (`{"features": [{"icon": "str", "heading": "str", ...}]}`), and
   would be genuinely useful.
-- But almost every ARCHETYPE (15 of 16; only `app/confirm.html` renders
-  empty) needs context that is not a JSON shape at all: a bound Django
-  `Form` instance (`auth/signin.html`, `app/form.html`, `app/wizard.html`,
-  `app/settings.html`), a resolved nav tree (every `app/*` archetype, via
-  `{% bw_nav %}`), breadcrumb/table-row dicts that are genuinely
-  data-shaped but sit alongside the Form/nav requirement in the same
-  context. `tests/test_examples.py`'s own `_EXAMPLE_CONTEXTS` and the
-  site's `fixtures.py` both confirm this independently: neither is a flat,
-  JSON-safe dict for the archetype set.
+- But almost every ARCHETYPE (14 of 16; only `app/confirm.html` and
+  `base.html` render empty) needs context that is not a JSON shape at all: a
+  bound Django `Form` instance (`auth/signin.html`, `app/form.html`,
+  `app/wizard.html`, `app/settings.html`), a resolved nav tree (every
+  `app/*` archetype, via `{% bw_nav %}`), breadcrumb/table-row dicts that
+  are genuinely data-shaped but sit alongside the Form/nav requirement in
+  the same context. `tests/test_examples.py`'s own `_EXAMPLE_CONTEXTS` and
+  the site's `fixtures.py` both confirm this independently: neither is a
+  flat, JSON-safe dict for the archetype set.
 
 Shipping ONLY the JSON-representable minority (the 6 sections) as render
 data would produce a manifest that looks complete but is not: a consumer

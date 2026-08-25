@@ -301,6 +301,34 @@ def _is_bare_variable_token(token: str) -> bool:
 _CONTEXT_CARRYING_TAG_RE = re.compile(r"\{%-?\s*(?:bw_form|bw_field_widget|bw_nav|bw_nav_header|bw_nav_rail)\b")
 
 
+def _locally_bound_names(node_list) -> set[str]:
+    """Every name a template binds ITSELF, so a reference to it is never a
+    context requirement no matter how it is later used.
+
+    ``{% firstof a b ... as NAME %}`` and ``{% with NAME=... %}`` both define
+    NAME's value entirely from within the template: ``firstof`` degrades to
+    its own literal fallback when every earlier variable resolves empty
+    (that is the whole point of the tag), and ``with`` always evaluates its
+    right-hand side, context-sourced or not, before the block body runs. A
+    name bound this way is therefore ALWAYS defined by construction; a later
+    ``{% include ... with k=NAME %}`` passing it through is not evidence the
+    example needs anything from the render context (``examples/base.html``'s
+    ``{% firstof bw_toast_position 'top-end' as bw_toast_position_resolved %}``
+    then ``{% include ... with placement=bw_toast_position_resolved %}`` is
+    exactly this shape: the include always receives a value, defaulting to
+    the literal ``'top-end'`` when ``bw_toast_position`` is absent).
+    """
+    from django.template.defaulttags import FirstOfNode, WithNode
+
+    names: set[str] = set()
+    for node in node_list.get_nodes_by_type(FirstOfNode):
+        if node.asvar:
+            names.add(node.asvar)
+    for node in node_list.get_nodes_by_type(WithNode):
+        names.update(node.extra_context)
+    return names
+
+
 def _requires_context(node_list, text: str) -> bool:
     """True if the example needs render-context data for its real content.
 
@@ -312,8 +340,10 @@ def _requires_context(node_list, text: str) -> bool:
        ``sections/listing/*`` shape: the file loops over ``entries`` with no
        local definition of it).
     2. An ``{% include ... with k=VAR %}`` argument whose value is a bare
-       variable (the ``sections/features/icon-grid.html`` shape: ``items=
-       features``, passing a context-sourced list straight through).
+       variable NOT itself bound locally by the template (see
+       ``_locally_bound_names``) (the ``sections/features/icon-grid.html``
+       shape: ``items=features``, passing a context-sourced list straight
+       through).
     3. A call to one of the tags that only ever take a context-sourced bound
        object (``bw_form``/``bw_field_widget`` always take a Django ``Form``/
        ``BoundField``; ``bw_nav``/``bw_nav_header``/``bw_nav_rail`` always
@@ -323,13 +353,7 @@ def _requires_context(node_list, text: str) -> bool:
 
     This is a deliberately mechanical, not exhaustive, signal covering the
     call shapes brickwork's own shipped tree actually uses; it is not a
-    general "does this template need anything" analyser. It also catches
-    templates that reference an OPTIONAL variable with a documented
-    empty-context default (``examples/base.html``'s toast ``placement``,
-    resolved upstream via ``{% firstof %}`` so it degrades gracefully rather
-    than needing a value): true positives there are conservative rather than
-    wrong, since the variable genuinely is context-sourced, just not
-    load-bearing for the example's own real content. docs/CATALOGUE.md
+    general "does this template need anything" analyser. docs/CATALOGUE.md
     records this as a known, deliberate imprecision rather than a hidden one.
     """
     from django.template.defaulttags import ForNode
@@ -337,12 +361,16 @@ def _requires_context(node_list, text: str) -> bool:
 
     if _CONTEXT_CARRYING_TAG_RE.search(text):
         return True
+    local_names = _locally_bound_names(node_list)
     for node in node_list.get_nodes_by_type(ForNode):
         if _is_bare_variable_token(getattr(node.sequence, "token", "")):
             return True
     for node in node_list.get_nodes_by_type(IncludeNode):
         for value in node.extra_context.values():
-            if _is_bare_variable_token(getattr(value, "token", "")):
+            token = getattr(value, "token", "")
+            if token in local_names:
+                continue
+            if _is_bare_variable_token(token):
                 return True
     return False
 
