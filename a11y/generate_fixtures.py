@@ -924,6 +924,101 @@ def render_inputs(theme: str) -> str:
     )
 
 
+# --- the bw_theme_switch fixtures (icvoss/django-brickwork#117) ---------------
+#
+# theme-switch-<theme>.html    a standalone page (mirrors render_inputs'
+#                               self-contained shape: the component has no
+#                               dedicated demo page of its own yet) composing
+#                               the REAL {% bw_theme_switch %} tag directly,
+#                               no-JS floor: the control ships hidden, the
+#                               same "render nothing" floor dismissible.js's
+#                               close button uses, so axe examines an EMPTY
+#                               page here (the control contributes nothing to
+#                               the accessibility tree until JS reveals it).
+# theme-switch-js-<theme>.html the JS leg: the real host-app boot
+#                               (_JS_BOOT, real Alpine, real
+#                               registerBrickworkComponents) so bwThemeSwitch
+#                               actually runs its init() and reveals the
+#                               control, exactly the reveal-at-init dismissible
+#                               and tooltip legs already exercise; the axe
+#                               loop then walks the REVEALED fieldsets of
+#                               radios, not a static stand-in. Two instances
+#                               on the one page (ADR-060: default axes "theme
+#                               density dir", and a second, brand-inclusive
+#                               instance via brands=) so axe also proves two
+#                               live instances never collide (unique ids and
+#                               radio group names, #117's own uniqueness
+#                               contract), plus one locked-axis instance
+#                               (locked_axes="theme": the disabled fieldset +
+#                               note branch, #117's SHL-003 precedence rule)
+#                               that no other fixture here renders.
+_THEME_SWITCH_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme switch (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Theme switch</h1>
+
+  <section aria-labelledby="default-heading">
+    <h2 id="default-heading">Default axes</h2>
+    __DEFAULT__
+  </section>
+
+  <section aria-labelledby="brand-heading">
+    <h2 id="brand-heading">Brand-inclusive</h2>
+    __BRAND__
+  </section>
+
+  <section aria-labelledby="locked-heading">
+    <h2 id="locked-heading">Theme axis locked</h2>
+    __LOCKED__
+  </section>
+</main>
+__JS_BOOT__
+</body>
+</html>
+"""
+
+
+def _render_theme_switch_default_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template("{% load brickwork_theming %}{% bw_theme_switch %}").render(Context({}))
+
+
+def _render_theme_switch_brand_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template(
+        '{% load brickwork_theming %}{% bw_theme_switch axes="theme density dir brand" brands=brands %}'
+    ).render(Context({"brands": {"acme": "Acme", "globex": "Globex"}}))
+
+
+def _render_theme_switch_locked_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template('{% load brickwork_theming %}{% bw_theme_switch axes="theme" locked_axes="theme" %}').render(
+        Context({})
+    )
+
+
+def render_theme_switch(theme: str, *, inject_js: bool = False) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    page = (
+        _THEME_SWITCH_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__DEFAULT__", _render_theme_switch_default_fixture())
+        .replace("__BRAND__", _render_theme_switch_brand_fixture())
+        .replace("__LOCKED__", _render_theme_switch_locked_fixture())
+    )
+    return page.replace("__JS_BOOT__", _JS_BOOT if inject_js else "")
+
+
 def render_sidebar_collapsed(theme: str) -> str:
     """The list fixture's shell, with the sidebar's collapsed CSS state
     stamped statically so axe examines [data-bw-collapsed] itself (SHL-004:
@@ -2304,6 +2399,12 @@ def main() -> None:
         # the 0.13.0 input chrome set (#57/#58): toggle, tag input, dropzone,
         # a styled date field; plus the shell's collapsed-sidebar state
         (OUT / f"inputs-{theme}.html").write_text(render_inputs(theme))
+        # bw_theme_switch (#117): the no-JS floor (renders nothing, the
+        # control ships hidden) and the JS leg (real Alpine boot, so
+        # bwThemeSwitch's own init reveals default/brand-inclusive/locked
+        # instances and axe walks the real revealed markup)
+        (OUT / f"theme-switch-{theme}.html").write_text(render_theme_switch(theme))
+        (OUT / f"theme-switch-js-{theme}.html").write_text(render_theme_switch(theme, inject_js=True))
         (OUT / f"sidebar-collapsed-{theme}.html").write_text(render_sidebar_collapsed(theme))
         # the 0.14.0 slide-over + stepper + wizard set (#55/#59): the
         # slide-over's OPEN state (dialog semantics, labelling, focusable
@@ -2384,6 +2485,8 @@ def main() -> None:
             f"feedback-js-{theme}",
             f"feedback-tooltip-open-{theme}",
             f"inputs-{theme}",
+            f"theme-switch-{theme}",
+            f"theme-switch-js-{theme}",
             f"sidebar-collapsed-{theme}",
             f"slide-over-open-{theme}",
             f"stepper-{theme}",
