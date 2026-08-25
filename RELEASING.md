@@ -185,6 +185,24 @@ Before pushing the tag (the irreversible step):
 - [ ] Tag format is `v<version>`.
 - [ ] This exact version has never been published (PyPI rejects re-uploads).
 
+## Post-release (Operate): keep brickworkui.com current
+
+brickworkui.com is the home of the package (owner ruling 2026-08-25, recorded
+in the umbrella `docs/plans/brickwork-interface-system-delivery.md`, decision
+D1 and slice W0.7): its catalogue renders whatever release the site has
+installed, so a stale pin makes the public documentation lie about the
+current release.
+
+After the tag publishes and the by-name install check passes:
+
+- [ ] Open the pin-bump PR on `icvoss/brickworkui.com` moving
+      `django-brickwork` to the new version. **A release is not
+      Operate-complete until this PR is open.**
+- [ ] Deploy the bumped site (`django-deploy push` from that repo) before the
+      next package release or within seven days, whichever is sooner.
+- [ ] If the site pin is more than one minor behind for more than a week,
+      that is a defect: file it on `icvoss/brickworkui.com`.
+
 ## If something goes wrong
 
 - **PyPI rejects the upload (version exists).** That version is permanently
