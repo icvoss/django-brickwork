@@ -1,22 +1,26 @@
 """Catalogue manifest tests (plan decision D8, W0.2 of the interface-system
 delivery plan).
 
-``services/catalogue_manifest.py`` reads the shipped ``catalogue-manifest.json``
-(generated from the real shipped template and examples trees by
-``scripts/generate_catalogue_manifest.py``) and exposes it as typed Python.
-These tests cover:
+``services/_catalogue_manifest.py`` (underscore-prefixed: an INTERNAL reader,
+not public API, see its own module docstring for why) reads the shipped
+``catalogue-manifest.json`` (generated from the real shipped template and
+examples trees by ``scripts/generate_catalogue_manifest.py``) and exposes it
+as typed Python for this repo's own in-package consumers. These tests cover:
 
 1. **Manifest shape**: the typed reader's accessors match the raw JSON, and
    the documented counts hold (5 shells, 39 components, 26 sections, 16
    archetypes: verified against the 3.7.0 tree, docs/CATALOGUE.md ss5).
 2. **Manifest-vs-reality drift**: regenerating the manifest from the current
-   template and examples trees produces byte-identical output to the
-   committed file, exactly the same drift discipline
-   ``test_template_manifest.py`` applies to ``template-manifest.json``.
-3. **The vocabulary gate (D4/O1)**: "family" never leaks into a package API
-   identifier by construction, because this manifest is data, not code; this
-   file asserts the JSON itself carries no key or value shaped like a
-   template tag, CSS class or token name.
+   template and examples trees produces byte-identical output (canonical
+   bytes, not a parsed-dict comparison) to the committed file.
+3. **The vocabulary gate (D4/O1)**: "family" never leaks into a public
+   package API identifier. This covers both the shipped JSON (a data value
+   only, never a key/value shaped like a template tag, CSS class or token
+   name) and the exported identifiers of every PUBLIC ``brickwork.services``
+   module (excluding this file's own internal, underscore-prefixed reader,
+   which is deliberately exempt, see point 1 above): this second half is
+   exactly the surface a prior review round found the vocabulary gate had
+   missed.
 4. **The two Wave 0 scoping decisions hold** (docs/CATALOGUE.md ss7/ss8):
    no item carries render-input data, and ``families`` carries shipped
    counts only, never a status or wave field.
@@ -24,11 +28,14 @@ These tests cover:
 
 from __future__ import annotations
 
+import importlib
 import importlib.util
 import json
+import pkgutil
 from pathlib import Path
 
-from brickwork.services.catalogue_manifest import (
+import brickwork.services
+from brickwork.services._catalogue_manifest import (
     families,
     item,
     items,
@@ -179,17 +186,23 @@ def test_items_are_cached_and_immutable() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_committed_manifest_matches_a_fresh_regeneration() -> None:
+def test_committed_manifest_matches_a_fresh_regeneration_byte_for_byte() -> None:
     """The generator is the ONLY thing that may write catalogue-manifest.json.
 
-    A source edit that adds/removes/moves a shell, component or example
-    without re-running the generator fails here, exactly as an un-rebuilt
-    template-manifest.json fails ``test_template_manifest.py``'s equivalent
-    check.
+    Compares CANONICAL BYTES (the exact ``json.dumps(..., indent=2) + "\\n"``
+    ``main()`` writes), not parsed dicts: a parsed-dict comparison is blind to
+    key-order drift, trailing-whitespace drift, or any other serialisation
+    difference that still round-trips to an equal dict, so it is a weaker
+    gate than what "matches a fresh regeneration" claims to enforce. This is
+    stricter than ``test_template_manifest.py``'s equivalent check (parsed
+    dicts) by design: D8 makes this manifest's own doc pointers and ordering
+    part of what a consumer reads directly off disk, so canonical bytes is
+    the truer gate for it specifically, not a claim this file makes about
+    the sibling test.
     """
-    committed = json.loads(_DIST.joinpath("catalogue-manifest.json").read_text(encoding="utf-8"))
-    fresh = build_manifest()
-    assert fresh == committed, (
+    committed_text = _DIST.joinpath("catalogue-manifest.json").read_text(encoding="utf-8")
+    fresh_text = json.dumps(build_manifest(), indent=2) + "\n"
+    assert fresh_text == committed_text, (
         "catalogue-manifest.json is stale: run "
         "'DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:. "
         "python scripts/generate_catalogue_manifest.py' and commit the result."
@@ -220,6 +233,49 @@ def test_no_item_carries_primitive_or_pattern_in_an_identifier_field() -> None:
             value = entry.get(identifier_field, "").lower()
             assert "primitive" not in value, f"{identifier_field} on {entry['name']} carries 'primitive'"
             assert "pattern" not in value, f"{identifier_field} on {entry['name']} carries 'pattern'"
+
+
+def test_no_public_services_module_exports_a_family_primitive_or_pattern_name() -> None:
+    """The vocabulary gate over Python identifiers, not just JSON (D4/O1).
+
+    A prior review round found this manifest's own service reader shipped
+    ``FamilyEntry``/``families()`` as PUBLIC Python identifiers, which O1
+    forbids (a package API identifier may never carry "family", "primitive"
+    or "pattern"). The fix was making that reader internal
+    (``services/_catalogue_manifest.py``, excluded here by construction: an
+    underscore-prefixed module is not part of the public surface this test
+    walks), but the gate that should have caught it in the first place only
+    ever checked the shipped JSON, never Python identifiers. This walks
+    every PUBLIC module directly under ``brickwork.services``
+    (``services/__init__.py``'s own docstring: "the public Python API
+    surface") and asserts none of its exported names, module-level or
+    class/TypedDict attribute, carries any of the three forbidden words.
+    """
+    forbidden = ("family", "primitive", "pattern")
+    checked_modules: list[str] = []
+    for module_info in pkgutil.iter_modules(brickwork.services.__path__):
+        if module_info.name.startswith("_"):
+            continue  # internal module, not public API, out of scope by design
+        module = importlib.import_module(f"brickwork.services.{module_info.name}")
+        checked_modules.append(module.__name__)
+        exported_names = getattr(module, "__all__", None) or [
+            name for name in vars(module) if not name.startswith("_")
+        ]
+        for name in exported_names:
+            lowered = name.lower()
+            for word in forbidden:
+                assert word not in lowered, f"{module.__name__}.{name} is public and carries {word!r} (O1)"
+            attr = getattr(module, name, None)
+            annotations = getattr(attr, "__annotations__", None)
+            if not annotations:
+                continue
+            for field_name in annotations:
+                field_lowered = field_name.lower()
+                for word in forbidden:
+                    assert word not in field_lowered, (
+                        f"{module.__name__}.{name}.{field_name} is a public field and carries {word!r} (O1)"
+                    )
+    assert checked_modules, "expected at least one public brickwork.services module to check"
 
 
 # ---------------------------------------------------------------------------
