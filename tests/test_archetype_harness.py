@@ -54,7 +54,7 @@ from pathlib import Path
 import pytest
 from django.template import Context
 
-from brickwork.services._catalogue_manifest import items_by_kind
+from brickwork.services._catalogue_manifest import items_by_kind, manifest
 from tests.test_examples import _EXAMPLE_CONTEXTS, _example_engine
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -147,11 +147,23 @@ def test_every_render_context_entry_is_a_known_archetype_or_section() -> None:
     )
 
 
-def test_the_manifest_reports_sixteen_archetypes() -> None:
-    """Pins the Wave 0 baseline (docs/CATALOGUE.md section 5) so a silent drop
-    in manifest coverage (a generator bug, a deleted example file) fails here
-    too, not only in tests/test_catalogue_manifest.py."""
-    assert len(items_by_kind("archetype")) == 16
+def test_the_manifest_reports_its_own_counted_archetype_total() -> None:
+    """items_by_kind("archetype") must agree with the manifest's own
+    counts.archetypes field, so a reader-side filtering bug (items_by_kind
+    silently dropping or double-counting an entry) fails here even though
+    both numbers come from the same manifest file.
+
+    A hardcoded literal here would break the plan's zero-edit enrolment exit
+    criterion: adding a 17th archetype would fail this test until someone
+    remembered to bump it, exactly the manual-upkeep failure mode this
+    harness exists to end (build/review note, PR icvoss/django-brickwork#230).
+    The degenerate cases a literal would have caught are already guarded
+    elsewhere: tests/test_catalogue_manifest.py's byte-for-byte regeneration
+    test pins the manifest against the examples tree (a generator bug or a
+    deleted example file fails there), and a11y/archetypes.spec.mjs's own
+    discovery tests fail loudly on an empty or partial fixture set.
+    """
+    assert len(items_by_kind("archetype")) == manifest()["counts"]["archetypes"]
 
 
 # ---------------------------------------------------------------------------
