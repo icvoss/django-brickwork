@@ -39,6 +39,13 @@ Required context (built by the tag; never author this list by hand):
       instance; `locked` gates the disabled state; `options` is the axis's
       closed vocabulary (or the caller's brands= mapping for the brand axis).
 
+role="group" (review fix, #117): aria-label on a bare <div> with no ARIA
+role has no semantic target and screen readers ignore it; role="group" is
+the generic grouping role that DOES accept aria-label, so the control's own
+accessible name (the label context var) actually reaches assistive tech.
+Each axis's own <fieldset>/<legend> pair supplies that axis's name
+natively, so the individual radio groups need no additional role.
+
 Tokens (CSS lane): plain radios, no bespoke chrome; the control borrows the
 existing form-field spacing tokens (--bw-density-*), never a component of
 its own, since it is deliberately unstyled beyond what a native fieldset of
@@ -47,6 +54,7 @@ radios already provides.
 <div class="bw-theme-switch"
      id="{{ instance_id }}"
      hidden
+     role="group"
      data-bw-theme-switch
      x-data="bwThemeSwitch()"
      aria-label="{{ label }}">
