@@ -1,6 +1,10 @@
 // GENERATED: brickwork token names, as CSS custom-property references.
 // Read a live value with getComputedStyle(el).getPropertyValue(tokens.X).
 export const tokens = Object.freeze({
+  "breakpoint_lg": "var(--bw-breakpoint-lg)",
+  "breakpoint_md": "var(--bw-breakpoint-md)",
+  "breakpoint_sm": "var(--bw-breakpoint-sm)",
+  "breakpoint_xl": "var(--bw-breakpoint-xl)",
   "color_accent": "var(--bw-color-accent)",
   "color_accent_hover": "var(--bw-color-accent-hover)",
   "color_accent_subtle": "var(--bw-color-accent-subtle)",

@@ -1082,11 +1082,17 @@ def test_testimonial_ua_figure_margins_neutralised_at_zero_specificity() -> None
 
 
 def test_marketing_section_gap_rule_composes_the_rhythm() -> None:
-    css = (_DIST / "brickwork.css").read_text()
-    assert re.search(
-        r"\.bw-marketing__content>\*\+\*\{margin-block-start:var\(--bw-component-section-gap-marketing\)\}",
-        css.replace(" ", ""),
-    ), "the marketing section-gap rule must remain in dist/brickwork.css"
+    # The full Tailwind compile pass (ADR-079 5a) groups the `* + *` selector
+    # with the first-child selector below when they share a declaration
+    # block, so the assertion matches the selector list rather than an exact
+    # standalone rule.
+    css = (_DIST / "brickwork.css").read_text().replace(" ", "")
+    rule = re.search(
+        r"([^{}]*\.bw-marketing__content>\*\+\*[^{}]*)\{([^}]*)\}",
+        css,
+    )
+    assert rule is not None, "the marketing section-gap rule must remain in dist/brickwork.css"
+    assert "margin-block-start:var(--bw-component-section-gap-marketing)" in rule.group(2)
 
 
 # --- #111: the first content child needs its own block-start spacing --------
@@ -1097,12 +1103,19 @@ def test_the_first_marketing_section_gets_block_start_spacing() -> None:
     # opening on a non-hero section (a page header, a feature grid) rendered
     # flush against the header's hairline and consumers were patching it with
     # their own padding wrapper.
+    #
+    # The full Tailwind compile pass (ADR-079 5a) drops the redundant `*`
+    # before `:first-child` (`>:first-child` is equivalent to `>*:first-child`
+    # for element matching) and may merge this selector with the `* + *` rule
+    # above when they share a declaration block, so this matches the
+    # selector/declaration pair rather than a single exact rule string.
     css = (_DIST / "brickwork.css").read_text().replace(" ", "")
-    assert re.search(
-        r"\.bw-marketing__content>\*:first-child:not\(\.bw-hero\)\{"
-        r"margin-block-start:var\(--bw-component-section-gap-marketing\)\}",
+    rule = re.search(
+        r"([^{}]*\.bw-marketing__content>:first-child:not\(\.bw-hero\)[^{}]*)\{([^}]*)\}",
         css,
-    ), "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
+    )
+    assert rule is not None, "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
+    assert "margin-block-start:var(--bw-component-section-gap-marketing)" in rule.group(2)
 
 
 def test_the_hero_opts_out_of_the_first_child_spacing() -> None:
@@ -1110,7 +1123,7 @@ def test_the_hero_opts_out_of_the_first_child_spacing() -> None:
     # first-child rule to it too would double the space on the canonical
     # landing page. The :not(.bw-hero) is load-bearing, not decoration.
     css = (_DIST / "brickwork.css").read_text().replace(" ", "")
-    first_child_rules = re.findall(r"\.bw-marketing__content>\*:first-child([^{]*)\{", css)
+    first_child_rules = re.findall(r"\.bw-marketing__content>:first-child([^{]*)\{", css)
     assert first_child_rules, "expected a first-child rule to exist at all"
     assert all(":not(.bw-hero)" in selector for selector in first_child_rules), (
         "every .bw-marketing__content first-child rule must exclude the hero (#111)"
@@ -1168,7 +1181,7 @@ def test_brand_wrappers_do_not_grow_or_shrink_and_collapse_when_empty() -> None:
         css,
     )
     assert wrappers is not None
-    assert "flex:00auto" in wrappers.group(1).replace(" ", "")
+    assert "flex:none" in wrappers.group(1).replace(" ", "")
     empties = re.search(
         r"\.bw-marketing-header__brand-mark:empty,\s*\.bw-marketing-header__brand-wordmark:empty\{([^}]*)\}",
         css,

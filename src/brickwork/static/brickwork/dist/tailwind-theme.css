@@ -1,3 +1,15 @@
+/* GENERATED: plain @theme breakpoint bridge (ADR-079), NOT @theme inline.
+ * Media queries cannot resolve var(), so these are literals, generated
+ * from the same source as the --bw-breakpoint-* tokens in tokens.css.
+ * Aligns a consumer's own sm:/md:/lg:/xl: utilities with brickwork's
+ * breakpoints. Do not edit by hand. */
+@theme {
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+}
+
 /* GENERATED: Tailwind 4 @theme inline projection of the --bw-* semantic
  * contract into Tailwind's utility namespaces (ADR-054 section 4), so
  * consumer utilities inherit the brand and both themes: colours, radius,

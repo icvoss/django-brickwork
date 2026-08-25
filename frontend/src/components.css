@@ -744,7 +744,7 @@ input.bw-toggle:disabled {
 }
 /* Narrow viewports collapse the grid to one column regardless of
  * grid_columns: a form is read top-to-bottom on a phone, never squeezed. */
-@media (max-width: 40rem) {
+@media (width < --theme(--breakpoint-sm)) {
   .bw-form-fields--grid {
     grid-template-columns: 1fr;
   }
@@ -1056,7 +1056,7 @@ input.bw-toggle:disabled {
  * breakpoint matches the shell's own mobile cut (DESIGN.md's sidebar
  * collapse breakpoint), so a table's card mode and the shell's mobile nav
  * change together. */
-@media (max-width: 48rem) {
+@media (width < --theme(--breakpoint-md)) {
   .bw-data-table--stack thead {
     position: absolute;
     inline-size: 1px;
@@ -3000,7 +3000,7 @@ a.bw-stat:hover {
   color: var(--bw-color-fg);
 }
 
-@media (min-width: 48rem) {
+@media (width >= --theme(--breakpoint-md)) {
   .bw-stepper--horizontal {
     flex-direction: row;
     align-items: flex-start;

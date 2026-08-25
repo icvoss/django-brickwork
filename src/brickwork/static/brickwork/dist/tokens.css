@@ -275,6 +275,10 @@
   --bw-density-section-gap: 2rem;
   --bw-density-card-padding: 1rem;
   --bw-density-page-gutter-inline: 1.5rem;
+  --bw-breakpoint-sm: 40rem;
+  --bw-breakpoint-md: 48rem;
+  --bw-breakpoint-lg: 64rem;
+  --bw-breakpoint-xl: 80rem;
 }
 
 [data-theme="light"] {
