@@ -18,6 +18,19 @@ Reversing in the markup would make row two announce backwards.
 On narrow screens the reversal is switched off entirely and every row stacks
 copy-first. An "even" row that stacked media-first would put a picture between
 a heading and its own body text.
+
+States: none: static content, no open/closed or hover-driven state.
+Accessibility: each row's heading is a real <h3> under the section's <h2>;
+  the illustrative SVGs are aria-hidden and focusable="false" (decorative,
+  the copy already carries the meaning). Reading and tab order is always
+  copy-then-media, regardless of the visual zig-zag (a CSS grid-placement
+  effect, never a markup reorder), so a screen reader never announces a
+  row backwards. Covered by axe.spec.mjs against sections-*.html, which
+  renders this exact file, both themes.
+Responsive: single named breakpoint. Below --bw-breakpoint-md (48rem)
+  every row stacks in one column, copy first. From md upward each row
+  becomes a two-column grid, and even-numbered rows reverse visually
+  (media on the left) via grid placement only, never a DOM reorder.
 {% endcomment %}
 <section class="bw-feature-rows">
   <h2 class="bw-feature-rows__heading">Built for the boring half of getting paid</h2>

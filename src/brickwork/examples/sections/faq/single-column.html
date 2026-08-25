@@ -27,6 +27,17 @@ broken.
 
 The answers here are plain text, which Django escapes for you. If an answer
 needs a link, render it as safe HTML at the call site.
+
+States: each question is a native <details>/<summary> disclosure, closed
+  by default; sharing name="bw-faq" makes the stack an exclusive
+  single-open group (opening one closes the others), the browser's own
+  behaviour, no JavaScript required.
+Accessibility: the section heading is a real <h2>; every question inherits
+  _disclosure.html's native keyboard operability unchanged (Tab to the
+  summary, Enter/Space toggles). Covered by axe.spec.mjs against
+  sections-*.html, which renders this exact file, both themes.
+Responsive: no breakpoint switch; no width-dependent CSS of its own
+  (_disclosure.html, which it composes, carries none either).
 {% endcomment %}
 <section class="bw-faq-section">
   <h2 class="bw-faq-section__heading">Questions people ask before signing up</h2>
