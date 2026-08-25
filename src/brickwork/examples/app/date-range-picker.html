@@ -104,6 +104,35 @@ screen reader arrowing through the grid announces every day's date and status
 the same way whether or not colour rendered). Disabled carries reduced
 opacity AND aria-disabled="true" AND is unreachable by keyboard AND its
 aria-label appends ", Unavailable".
+
+States: closed (native <input type="date"> floor, popover absent from the
+  accessibility tree) and open (JS-booted popover); per-day today/
+  endpoint/in-range/preview/disabled/outside-month, every one paired with
+  a non-colour signal as detailed above; range vs single mode (two
+  endpoints or one, a shorter preset list in single mode).
+Accessibility: role="dialog" aria-modal="true" popover with a full WAI-ARIA
+  APG date-picker-dialog keyboard map (roving tabindex, Arrow keys move by
+  day/week, Home/End are week-relative, PageUp/PageDown month-relative,
+  Shift+PageUp/PageDown year-relative); a visually-hidden aria-live="polite"
+  status region announces month and range changes; every disabled day is
+  keyboard-unreachable and announced ", Unavailable". The floor (two native
+  date inputs, or one in single mode) is the submitted control at all
+  times, before and after JS runs. Covered by axe.spec.mjs against
+  date-range-picker-*.html (the closed no-JS floor) and
+  date-range-picker-js-*.html (JS-booted); interactions2.spec.mjs drives
+  the trigger open, mid-selection state and disabled-date configuration
+  live. Also covered by the archetype harness's full gate sweep (render,
+  axe WCAG 2.2 AA, no horizontal overflow, light/dark distinctness,
+  skip-link first-tab-stop with JS disabled) at every W0.1 breakpoint,
+  both themes.
+Responsive: the two-month view is the default at rest; below max-width:
+  48rem it collapses to one month plus its own prev/next pair (the second
+  month is removed from the DOM flow, not shrunk), the preset rail
+  switches from a column to a wrapping row, and the day cells and month
+  width shrink further, verified against real horizontal-scroll defects at
+  320/360/375/414px. This is the example's own scoped CSS (a <style>
+  block in this file, never added to the shipped bundle), not a component
+  brickwork ships.
 {% endcomment %}
 {% load i18n brickwork_components brickwork_icons brickwork_nav %}
 

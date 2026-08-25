@@ -13,6 +13,15 @@ The tick icons are decorative (the list semantics already carry the meaning),
 so they are hidden from assistive tech rather than announced six times.
 
 Everything here is inline. No view involvement.
+
+States: none: a static checklist, no open/closed or hover-driven state.
+Accessibility: a real <ul>, so a screen reader announces "list, 6 items"
+  and can skip it; the tick icons are decorative (bw_icon decorative=True)
+  since the list semantics already carry the meaning, so they are never
+  announced per item. Covered by axe.spec.mjs against sections-*.html,
+  which renders this exact file, both themes.
+Responsive: single named breakpoint. One column below
+  --bw-breakpoint-sm (40rem); two columns side by side from sm upward.
 {% endcomment %}
 <section class="bw-feature-list-section">
   <h2 class="bw-feature-list-section__heading">What is included</h2>

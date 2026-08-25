@@ -29,6 +29,20 @@ Optional context:
               plus an accent border.
   badge       (str, e.g. "Most popular"): rendered via {% bw_badge %} when
               highlighted.
+
+States: highlighted (default False): raised elevation plus an accent
+  border, and its CTA switches from secondary to primary variant. A badge
+  only renders when highlighted AND badge is set together; a plain tier
+  never shows a badge.
+Accessibility: the tier name is an <h3>; the feature list ticks are
+  decorative icons (bw_icon decorative=True), the text carries the
+  meaning. Covered by axe.spec.mjs against pricing-*.html
+  (marketing/pricing.html, its own shipped tiers) and sections-*.html
+  (pricing/single-plan.html), both themes.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-pricing-tier* selector. Column layout is owned by whatever composes
+  it (_pricing_table.html's own responsive grid, or a page's own markup
+  for a standalone include).
 {% endcomment %}
 <div class="bw-pricing-tier{% if highlighted %} bw-pricing-tier--highlighted{% endif %}">
   {% if highlighted and badge %}

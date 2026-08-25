@@ -22,6 +22,21 @@ in a section if you want a band.
 
 Every rule is written at zero specificity, so putting your own class on any
 child beats the floor without needing !important.
+
+States: none: static long-form content, no open/closed or hover-driven
+  state (a table row hover, if any, is a plain browser default, not
+  brickwork-authored).
+Accessibility: real semantic elements throughout (h2/h3, ol, blockquote,
+  table with a caption and scope="col" headers), which is the whole point
+  of bw-prose: it styles bare markup rather than replacing it with div
+  soup. The wide table is wrapped in a scrollable region
+  (role="region" aria-label, tabindex="0") so keyboard users can reach the
+  horizontal scroll without a mouse. Covered by axe.spec.mjs against
+  sections-*.html, which renders this exact file, both themes.
+Responsive: no named breakpoint on the prose column itself: bw-prose sets
+  a fixed 65ch reading measure at every viewport width. The wrapped table
+  scrolls horizontally within its own region rather than reflowing at a
+  breakpoint.
 {% endcomment %}
 <section class="bw-content-section">
   <div class="bw-prose">

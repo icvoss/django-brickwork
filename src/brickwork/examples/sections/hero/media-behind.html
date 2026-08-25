@@ -1,1 +1,44 @@
+{% comment %}
+HERO / media behind: an inverse band with the media filling the whole
+area and the copy sitting on top of it.
+
+WHEN TO USE THIS INSTEAD OF THE CENTRED OR MINIMAL HERO. When the product
+has a strong piece of art or a screenshot that should carry the visual
+weight, and the page can spare the height a full-bleed band needs. It
+reads as a statement, so use it once, at the top of a page, not stacked
+elsewhere.
+
+This one is the shipped _hero.html component with media_placement="behind":
+the copy and media share one grid area, copy on top, over the inverse
+surface with a scrim behind it (see _hero.html's own header for the
+CONTRAST section: a flat, not gradient, scrim, so the guarantee holds
+regardless of copy length or what media the caller passes).
+
+NO MEDIA IS SUPPLIED HERE. The `media` context var is genuinely optional
+(a text-only hero renders correctly with the same inverse band and scrim
+treatment): this example demonstrates the layout and the inverse-surface
+type contract without depending on an image asset. A caller passing real
+media supplies pre-rendered, safe HTML via the `media` context var (an
+img or an svg); brickwork does not sanitise it.
+
+Required context: none. Optional context: media (safe string, an image or
+illustration to fill the band; see _hero.html's own header for the full
+Optional context list this include accepts).
+
+States: see _hero.html's own header for the full states contract (none of
+  its own: a static band, the CTA button carries its own states).
+Accessibility: see _hero.html; the heading renders as the page's own <h1>,
+  in the inverse foreground colour for contrast against the inverse
+  surface. Covered by axe.spec.mjs against sections-*.html, which renders
+  this exact file (both themes); the dedicated WCAG 1.4.3 composited-
+  contrast measurement over real pale/dark media is run against the
+  separate hero-placement-*.html fixture
+  (a11y/generate_fixtures.py's render_hero_media_placement), not against
+  this media-less example, since this file supplies no media to composite
+  over.
+Responsive: no breakpoint switch. media_placement="behind" carries no
+  @media rule of its own: the composited layout applies at every viewport
+  width (contrast with media_placement="beside", the sibling variant,
+  whose two-column layout is gated at --bw-breakpoint-md).
+{% endcomment %}
 {% include "brickwork_marketing/components/_hero.html" with eyebrow="Northwind 3.0" heading="Every invoice, chased on time" lede="Reminders that go out whether or not you remembered to send them." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" media_placement="behind" %}

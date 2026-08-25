@@ -19,6 +19,19 @@ CONTRAST. Like hero/media-behind, this band carries its own inverse surface and
 uses the checked --bw-color-fg-on-inverse pair, so it reads identically in both
 themes. The secondary action is an inverse-surface button rather than the
 standard secondary, whose border is tuned for the page surface.
+
+States: none: a static band, no open/closed or hover-driven state (the
+  primary bw_button and the plain link inside carry their own states).
+Accessibility: the heading is a real <h2>; the secondary link is
+  underlined rather than colour-only, so it reads as a link against the
+  inverse surface without relying on colour alone. Covered by
+  axe.spec.mjs against sections-*.html, which renders this exact file,
+  both themes.
+Responsive: no named breakpoint. The full-bleed escape (100vw, capped so
+  it cannot itself cause page scroll) applies at every width; the heading
+  is a fluid clamp() between 1.75rem and the display-xl token, sized
+  continuously against the viewport rather than stepping at a breakpoint;
+  the actions row wraps (flex-wrap) as it narrows.
 {% endcomment %}
 <section class="bw-cta-bleed">
   <div class="bw-cta-bleed__inner">

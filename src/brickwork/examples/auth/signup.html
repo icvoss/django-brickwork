@@ -12,6 +12,20 @@ As with signin.html, brickwork names no field and ships no view or URL: allauth
 uses email/password1/password2, django.contrib.auth's UserCreationForm uses
 username, and bw_form renders either without this file knowing the difference.
 The URL below is a PLACEHOLDER; replace it with your own.
+
+States: the form's own valid/invalid states (bw_form renders errors
+  inline).
+Accessibility: inherits shell/auth.html's skip link, lang/dir/theme
+  attributes and themed bare-prose-link colour; the page's own <h1> names
+  the task; the terms line is plain text near the submit, never a
+  pre-ticked checkbox. Covered by the archetype harness's full gate sweep
+  (render, axe WCAG 2.2 AA, no horizontal overflow, light/dark
+  distinctness, skip-link first-tab-stop with JS disabled) at every W0.1
+  breakpoint, both themes; unlike auth/signin.html, this archetype has no
+  additional hand-maintained a11y fixture of its own, only the archetype
+  harness's coverage.
+Responsive: no breakpoint switch of its own; inherits shell/auth.html's
+  fluid, no-breakpoint centred panel.
 {% endcomment %}
 {% load brickwork_components brickwork_forms %}
 

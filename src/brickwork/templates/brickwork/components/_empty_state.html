@@ -68,6 +68,21 @@ no error, no warning, DEBUG=True does not catch it. If you extend this
 template using a name read from a newer checkout than the version you
 have pinned, check that name against your pinned version's own header
 before relying on it, or the region renders nothing.
+
+States: two content variants (no_data default, no_results, each pairing a
+  different default icon and a different suggested action), and two scales
+  (md default, sm). No interactive open/closed state: it is static markup,
+  always fully rendered.
+Accessibility: the icon is decorative (bw_icon decorative=True); heading
+  and body text carry the meaning, so the icon alone never communicates
+  status. At the default scale the heading is a real <h2>; at size="sm" it
+  demotes to a <p> (an in-panel empty state nested inside a card should not
+  contribute a page-level heading). Covered by axe.spec.mjs against
+  console-*.html (size="md", app/console.html's own shape) and
+  console-sm-*.html (size="sm", both themes).
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-empty-state* selector. The size axis (sm/md) is a fixed, explicitly
+  chosen scale, never a viewport-driven one.
 {% endcomment %}
 <div class="bw-empty-state bw-empty-state--{% firstof variant 'no_data' %}{% if size == "sm" %} bw-empty-state--size-sm{% endif %}">
   {% block icon %}

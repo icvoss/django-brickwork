@@ -27,6 +27,20 @@ stat content (the ADR-056 compose-it-yourself shape) instead includes
 brickwork/components/_stat.html directly once per stat: its contract is
 already flat strings (label, value, trend, trend_label), which is exactly
 what this band forwards per item.
+
+States: none of its own beyond whatever each forwarded _stat.html tile
+  carries (trend direction, loading); every tile in the band renders at
+  size="lg", fixed, never a per-item choice.
+Accessibility: the section heading is an <h2>; each tile's own trend
+  accessibility (decorative glyph plus visually-hidden direction text)
+  passes through unchanged from _stat.html. Covered by axe.spec.mjs
+  against landing-*.html and about-*.html (both compose it) and
+  sections-*.html (stats/inline-band.html), both themes.
+Responsive: no named breakpoint. grid-template-columns is
+  repeat(auto-fit, minmax(min(16rem, 100%), 1fr)): the tile count per row
+  grows and shrinks continuously with the container width rather than
+  stepping at fixed breakpoints, centred (justify-items: center) and
+  capped at 20rem per tile.
 {% endcomment %}
 {% if heading or stats %}
 <section class="bw-stat-band-section">

@@ -37,5 +37,16 @@ make it look positive.
 Omit `trend` entirely for a number that is a standing fact rather than a change,
 like the 94% above. Not every stat has a delta, and inventing one is worse than
 leaving it out.
+
+States: see _stat_band.html/_stat.html's own headers for the full states
+  contract (a trend reading carries up/down/flat sub-states; this example
+  exercises all three: down, up and no trend).
+Accessibility: see _stat.html's own header for the trend accessibility
+  contract (never colour-only: a decorative directional glyph always pairs
+  with visually-hidden direction text). Covered by axe.spec.mjs against
+  sections-*.html, which renders this exact file with a real three-stat
+  list including both trend directions, both themes.
+Responsive: see _stat_band.html's own header (the fluid auto-fit grid, no
+  named breakpoint).
 {% endcomment %}
 {% include "brickwork_marketing/components/_stat_band.html" with heading="What changes in the first quarter" stats=stats %}

@@ -23,5 +23,15 @@ a silently missing icon is worse than a loud failure).
 
 columns takes 2, 3 or 4. The grid is mobile-first regardless: one column on
 small screens, widening at the breakpoints the component owns.
+
+States: see _feature_grid.html's own header for the full states contract
+  (none of its own: a static grid, a linked card takes the standard link
+  hover ink shift).
+Accessibility: see _feature_grid.html; covered by axe.spec.mjs against
+  sections-*.html, which renders this exact file with a real features
+  list, both themes.
+Responsive: see _feature_grid.html's own header for the exact breakpoint
+  matrix (1 column below sm, 2 from sm to below lg regardless of columns,
+  then the requested count from lg up); this example passes columns=3.
 {% endcomment %}
 {% include "brickwork_marketing/components/_feature_grid.html" with heading="Everything the chasing needs" lede="The parts of getting paid that nobody wants to do by hand." items=features columns=3 %}

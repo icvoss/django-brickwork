@@ -115,6 +115,27 @@ title heading-sm. Enter: scrim fades, panel scales 96% -> 100% at
 --bw-duration-normal/--bw-ease-out (MOT-005); exit reverses at
 --bw-duration-fast/--bw-ease-in. Reduced motion: enter and exit render
 instantly (BR-BW-TOK-009).
+
+States: closed (the floor: an in-flow, visible page under the no-JS route)
+  and open (JS route: [data-bw-open]/.bw-modal--open, overlay positioning
+  plus scrim engage only in this state); four size states
+  (sm/md/lg/full). The close control is always rendered in both states,
+  never conditionally hidden.
+Accessibility: WAI-ARIA APG Dialog (Modal) pattern (role="dialog",
+  aria-modal="true", aria-labelledby the title). Focus moves into the
+  dialog on open (or a [data-bw-autofocus] element), Tab/Shift+Tab cycle
+  inside a guaranteed focus trap with no opt-out, Escape always closes, and
+  focus returns to the trigger on every dismissal route. Body scroll locks
+  while open; the trap's inert modifier removes the page behind from the
+  accessibility tree. Covered by axe.spec.mjs against
+  interactions-modal-page-*.html (the no-JS floor route) and
+  interactions-*.html/interactions-open-*.html (the JS-boot leg); the focus
+  trap, every dismissal route (Escape/backdrop/close button) and the
+  focus-return contract are driven live by interactions.spec.mjs.
+Responsive: no breakpoint switch. Panel width is the fixed size scale
+  (sm/md/lg resolve to --bw-size-max-width-modal-*, full is 100vw/100vh),
+  not a viewport-driven rule; the panel is fluid down to the viewport width
+  at every size below its cap.
 {% endcomment %}{% firstof modal_id "bw-modal" as bw_modal_instance_id %}
 <div class="bw-modal bw-modal--{% firstof size 'md' %}"
      id="{{ bw_modal_instance_id }}"

@@ -38,6 +38,27 @@ container div, :empty-suppressed like the other optional blocks; the content
 placed inside (e.g. a <details>-based workspace or property switcher,
 following _account_menu.html's no-JS pattern) is entirely the consuming
 project's own template, never a brickwork-shipped default (AC-BW-078).
+
+States: sidebar collapsed/expanded (data-bw-collapsed on .bw-sidebar,
+  progressively enhanced by bwSidebarCollapse; the no-JS floor is always
+  expanded), mobile drawer open/closed (native <details>/<summary>, no JS
+  required), sidebar_toggle button reflects state via aria-expanded plus a
+  text swap between the two server-rendered translated labels.
+Accessibility: skip link and the base shell's lang/dir/theme attributes are
+  inherited. Own semantics: the sidebar nav region is aria-label="Primary",
+  the mobile drawer nav is aria-label="Navigation", the main workspace is
+  <main id="bw-main" tabindex="-1"> (the skip-link and no-JS-floor target),
+  the sidebar_toggle button carries an aria-label and aria-controls pointing
+  at #bw-sidebar. Covered by axe.spec.mjs against list-*.html,
+  list-menu-open-*.html, list-topbar-*.html, dashboard-*.html and
+  sidebar-collapsed-*.html (both themes), and by the "no-JS floor" suite,
+  which asserts the skip link, the real anchor nav links and the native
+  <details> drawer all work with JavaScript disabled.
+Responsive: single breakpoint, at width < --bw-breakpoint-md (48rem) the
+  sidebar (and the topbar-layout nav band) hides and the mobile drawer
+  becomes the primary nav entry point; at md and above the sidebar is the
+  primary nav and the drawer stays hidden. No other width-gated behaviour
+  in this shell.
 {% endcomment %}
 {% block shell_variant %}app{% endblock %}
 

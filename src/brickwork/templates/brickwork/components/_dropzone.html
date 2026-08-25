@@ -24,6 +24,22 @@ strings).
 
 Events (optional conventions, BR-BW-HTMX-004): bw:dropzone:change
 { files: [name, ...] }, a bubbling CustomEvent from the component root.
+
+States: invalid (aria-invalid plus the field chrome's error list), and,
+  under bwDropzone, drag-over ([data-bw-drag-over] while a file is dragged
+  across the surface) plus a rendered list of selected file names once
+  files are chosen. Hover and focus-visible both get their own visual
+  treatment on the styled label surface.
+Accessibility: the real <input type="file"> is never removed or replaced,
+  only visually hidden (the WCAG-safe technique, not display:none, which a
+  screen reader also skips), so it stays focusable and its accessible name
+  comes from the wrapping <label>. "Click to browse" plus Tab, Space and
+  Enter all work with zero JavaScript. Covered by axe.spec.mjs against
+  inputs-*.html (both themes); the drag-over and selected-file-list
+  behaviour is not driven by a browser-level interaction test today, only
+  the static render the axe fixture exercises.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-dropzone* selector.
 {% endcomment %}
 {% with help_id=id|add:"_help" error_id=id|add:"_errors" %}
 <div class="bw-field{% if errors %} bw-field--invalid{% endif %}">

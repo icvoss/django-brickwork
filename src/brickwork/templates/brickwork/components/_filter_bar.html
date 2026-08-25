@@ -23,6 +23,17 @@ Optional:
   submit_label (str, default "Filter"), clear_href (str, when set a "Clear"
   link is rendered to reset the filters), clear_label (str, default "Clear"),
   filter_bar_id (str, the id for the <form> element).
+
+States: none of its own beyond whatever each field's own widget carries
+  (invalid/focus/disabled). No open/closed state on the bar itself.
+Accessibility: every field renders through forms/_field.html, so it gets
+  the same label/aria-describedby/error wiring as any other form field; the
+  submit and clear controls are real button/anchor elements. Covered by
+  axe.spec.mjs against list-*.html (app/list.html's own filter bar,
+  populated).
+Responsive: no breakpoint switch. Both the bar and its fields row are
+  display: flex; flex-wrap: wrap, so fields drop onto further lines as the
+  container narrows rather than switching layout at a named breakpoint.
 {% endcomment %}
 <form class="bw-filter-bar"
       {% if filter_bar_id %}id="{{ filter_bar_id }}"{% endif %}

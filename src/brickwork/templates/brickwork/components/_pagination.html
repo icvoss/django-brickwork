@@ -25,6 +25,20 @@ component's request-free render contract is unchanged.
 Required context: page_obj (a Page, or a flat duck-typed equivalent, see
 above). Optional: querystring (the request-free fallback: the current GET
 params minus 'page').
+
+States: rendered / not-rendered (a single page or an absent page_obj
+  renders nothing at all, STA-014), and per-link enabled/disabled (the
+  previous/next control is a real anchor when a page exists in that
+  direction, or a non-navigable disabled span with aria-disabled otherwise,
+  the same disabled-link pattern _button.html uses).
+Accessibility: the whole control is a landmark nav (aria-label
+  "Pagination"); prev/next icons are decorative, with the direction
+  meaning carried by rel="prev"/rel="next" and the aria-label text, and
+  they flip under RTL (logical chevron-back/-forward icon names). Covered
+  by axe.spec.mjs against list-*.html (app/list.html's own paginated
+  table).
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-pagination* selector.
 {% endcomment %}
 {% if page_obj.paginator.num_pages > 1 or page_obj.num_pages > 1 %}
 <nav class="bw-pagination" aria-label="{% translate 'Pagination' %}">

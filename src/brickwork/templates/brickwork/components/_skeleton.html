@@ -22,6 +22,22 @@ nothing that could re-enable motion.
 
 Context (shaped by the tag): variant, count (a range() for the repeat),
 style_attr (the --bw-skeleton-w/-h inline override, or "").
+
+States: loading only; there is no other state, the tag is used exactly
+  while a real render is pending and removed once it arrives (this
+  template itself does not toggle between two states, it renders the
+  placeholder unconditionally). The shimmer sweep pauses under
+  prefers-reduced-motion, replaced by a static (no gradient) fill.
+Accessibility: the group root is aria-busy="true" with a visually-hidden
+  "Loading" text, so a screen reader announces the loading state once, at
+  the group; each individual shape is aria-hidden="true" so the decorative
+  filler shapes themselves are never announced. Covered by axe.spec.mjs
+  against feedback-*.html (the bw_skeleton tag rendered directly) and
+  indirectly via every fixture whose loading state uses the shared
+  .bw-skeleton classes (_data_table.html, _stat.html, _page_header.html).
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-skeleton* selector. Shape dimensions are fixed per variant or set via
+  the style_attr override, never viewport-driven.
 {% endcomment %}
 <div class="bw-skeleton-group" aria-busy="true">
   <span class="bw-visually-hidden">{% translate "Loading" %}</span>

@@ -51,6 +51,21 @@ half they do not have in common.
 
 Each row collapses to a stack on a phone, image first, which keeps the reading
 order identical to the visual order at every width.
+
+States: the title link takes the accent colour plus an underline on hover
+  and focus-visible; otherwise static.
+Accessibility: each entry's heading is a real <h3>; only the title is the
+  link (not the whole row, deliberately, since the row is wide enough that
+  a full-row target would swallow the surrounding whitespace); the
+  placeholder thumbnail SVG is aria-hidden and focusable="false", with the
+  swap note above making clear a real image needs a genuine, non-empty
+  alt (these thumbnails are content, not decoration). Covered by
+  axe.spec.mjs against sections-*.html, which renders this exact file,
+  both themes.
+Responsive: single named breakpoint. Below --bw-breakpoint-sm (40rem) each
+  entry stacks in one column, image first; from sm upward each entry
+  becomes a fixed 12rem-image-plus-flexible-body row, so reading order
+  matches visual order at every width.
 {% endcomment %}
 <section class="bw-listing-section" aria-labelledby="listing-media-list-heading">
   <div class="bw-listing-section__intro">

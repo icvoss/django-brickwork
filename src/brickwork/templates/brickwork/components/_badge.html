@@ -18,6 +18,21 @@ reduced motion removes instantly (BR-BW-TOK-009). REGRESSION NOTE: with
 dismissible=False (the default) the rendered output is byte-identical to the
 0.8.0 template; the conditional blocks below add not even whitespace when
 False.
+
+States: dismissed/not-dismissed when dismissible=True (x-data="bwDismissible()",
+  the same primitive _alert.html and _toast.html share); five variant
+  states (neutral default, success, warning, danger, info), each its own
+  .bw-badge--<variant> colour pairing.
+Accessibility: plain inline text, no role of its own (a status label is not
+  an alert or a live region). The leading icon is decorative by default
+  (bw_icon decorative=True): the label text is the accessible name, never
+  the icon alone. The dismiss control is icon-only with a translated
+  "Dismiss" aria-label. Covered by axe.spec.mjs via the badge row in
+  list-*.html (the four documented variants, plus an icon); dismiss
+  behaviour is asserted at the Python/string level
+  (tests/test_components.py), not by a browser-driven interaction.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-badge* selector.
 {% endcomment %}
 <span class="bw-badge bw-badge--{{ variant }}"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
   {% if icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-badge__icon" %}{% endif %}

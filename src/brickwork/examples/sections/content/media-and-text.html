@@ -16,6 +16,17 @@ happens to be. A chart always does.
 
 The copy uses .bw-prose so its paragraphs and lists get the same floor as any
 other long-form text, at a narrower measure because the column is narrower.
+
+States: none: static content, no open/closed or hover-driven state.
+Accessibility: the figure/figcaption pairing programmatically ties the
+  caption to the image; the SVG carries role="img" and a real <title>
+  (aria-labelledby), a genuine accessible name because the chart adds
+  information the copy does not, unlike a decorative hero illustration.
+  Covered by axe.spec.mjs against sections-*.html, which renders this
+  exact file, both themes.
+Responsive: single named breakpoint. Below --bw-breakpoint-md (48rem) the
+  copy and figure stack in one column; from md upward it becomes a
+  two-column grid (1fr 1fr) with wider inter-column spacing.
 {% endcomment %}
 <section class="bw-media-text">
   <div class="bw-prose">

@@ -45,6 +45,22 @@ __panel/__panel-inner pair below is that animation's grid track + overflow
 clip), the caret rotates on the same pair, and both sit under the global
 prefers-reduced-motion floor (MOT-003, DESIGN.md section 8.4). No z-index,
 no elevation: in-flow content, not an overlay.
+
+States: closed (default) and open ([open] on the native <details>), plus
+  two visual variants (bordered/divided, default divided). Single-open
+  accordion grouping is a state shared across a name= group (the browser's
+  own exclusive-open behaviour), not something this template tracks itself.
+Accessibility: native WAI-ARIA APG Disclosure pattern by construction (Tab
+  to the summary, Enter/Space toggles), so no ARIA role or state attribute
+  is added by hand; the browser owns focus and toggling. No JavaScript at
+  all, so the no-JS floor and the enhanced behaviour are identical. Covered
+  by axe.spec.mjs against interactions-*.html/interactions-open-*.html
+  (both open and closed states) and against sections-*.html
+  (faq/single-column.html, faq/two-column.html); the no-JS floor suite
+  asserts the account-menu's own <details> pattern works with JS disabled,
+  which this component shares mechanically.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-disclosure* selector.
 {% endcomment %}
 <details class="bw-disclosure bw-disclosure--{% firstof variant 'divided' %}"{% if name %} name="{{ name }}"{% endif %}{% if open %} open{% endif %}>
   <summary class="bw-disclosure__trigger">

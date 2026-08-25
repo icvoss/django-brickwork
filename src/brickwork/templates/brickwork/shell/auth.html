@@ -3,6 +3,22 @@
 The auth shell (SHL-011): a centred single-column layout for login / register /
 password-reset style pages. A consuming page extends this and fills
 {% block content %} with its form. Fully static (no JS required).
+
+States: none of its own; it is a static panel. Whatever states the form it
+  wraps carries (validation errors, disabled submit) belong to that form,
+  not this shell.
+Accessibility: inherits the skip link and lang/dir/theme attributes from
+  base.html. Its own contribution is <main id="bw-main" tabindex="-1"> as
+  the panel body, and a themed colour for a bare prose link
+  (.bw-auth__panel :where(a), fixed after the W0.3 archetype harness caught
+  an unstyled link falling back to UA-default blue against a dark surface).
+  Covered by the archetype harness against auth-signin (both themes, the
+  full W0.1 width matrix) and by axe.spec.mjs against auth-signin-*.html.
+Responsive: no breakpoint switch. The panel is
+  inline-size: min(28rem, 100%), fluid down to the viewport width at every
+  size, centred in a single-column grid track that is capped at the
+  available inline space (minmax(0, 1fr)) so unbreakable content inside it
+  cannot force the page wide.
 {% endcomment %}
 {% block shell_variant %}auth{% endblock %}
 

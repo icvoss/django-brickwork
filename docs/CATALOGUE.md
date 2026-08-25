@@ -178,6 +178,67 @@ works equally in a marketing page or a product-application upsell). Only
 archetypes are family-scoped today, because an archetype example lives
 under one family's own example directory (`app/`, `auth/`, `marketing/`).
 
+### 5a. The docSource label convention (icvoss/django-brickwork#234)
+
+The pointer described above (`docSource`, "the template or example's own
+leading `{% comment %}`") had no internal structure until #234: every
+shipped item carried freeform prose plus the pre-existing Required/Optional
+context markers, but nothing a consumer could parse for states,
+accessibility notes or responsive behaviour specifically. A programmatic
+scan of the 3.9.0 wheel found 46 of 87 items with no accessibility-flavoured
+prose at all (including all 5 shells and every archetype), 58 with no
+responsive-flavoured prose, and two examples
+(`examples/sections/hero/media-behind.html`,
+`examples/sections/hero/split-media.html`) with no leading comment
+whatsoever.
+
+**The format, settled with the consuming site to match its merged
+`docs_app/gallery/docstrings.py` parser**: three line-leading labels inside
+an item's existing leading `{% comment %}` block, exact spelling `States:`,
+`Accessibility:`, `Responsive:` (capitalised, trailing colon, at line
+start). Each label's prose runs until the next recognised label or the end
+of the comment; a continuation line is indented so it reads as part of the
+same entry rather than a new one. The three labels sit AFTER any existing
+`Required context:`/`Optional:` sections, so the context-parsing convention
+those sections already served is untouched; there is no ordering
+requirement among the three labels themselves, and no markdown headings.
+
+**The honesty rule governs content, not just presence.** Every sentence is
+written FROM the template's own markup, its CSS, and the gate suites that
+actually exercise it, never invented or padded to look complete:
+
+- `States:` names the states the template genuinely implements (read off
+  its classes, its JS, its conditional markup); an item with no states says
+  so plainly rather than listing states it does not have.
+- `Accessibility:` names what the blocking a11y suites actually verify for
+  that item (axe WCAG 2.2 AA, keyboard operability, the no-JS floor,
+  composited contrast where applicable) plus the item-specific semantics
+  readable in its own markup (roles, aria attributes, focus behaviour). A
+  claim that a gate covers an item is made only when a fixture or spec
+  genuinely exercises that item; where coverage is thinner than a sibling
+  component's (several enhanced-JS behaviours, for example, are asserted
+  only at the Python/string level, with no browser-driven interaction
+  test), the label says so rather than overstating it.
+- `Responsive:` names the item's actual breakpoint behaviour in terms of
+  the W0.1 tokens (`--bw-breakpoint-sm/md/lg/xl`), or states plainly that
+  the item carries no width-dependent behaviour. A claim of "no breakpoint
+  switch" is verified against the shipped CSS, not assumed from the
+  item's shape.
+
+**The gate**: `tests/test_catalogue_manifest.py` parametrizes one check per
+manifest item (87 cases), asserting all three labels appear line-leading in
+the FIRST `{% comment %}` block at that item's `docSource` path, resolved
+through the same sanctioned mechanism its kind already uses elsewhere in
+this repo (`django.template.loader.get_template(...).origin.name` for
+shells/components; `brickwork.examples.read_example(...)` for
+sections/archetypes). This is a presence gate, not a content gate: it
+catches a missing label (or a missing comment block entirely, which is how
+the two previously-commentless hero examples are caught) mechanically,
+the same way every drift test in this file catches a missing fact; the
+honesty rule above is a review-time discipline this gate cannot enforce by
+itself, matching the "presence... never length or content" wording the
+gate's own test docstring carries.
+
 ## 6. Wave 0 lookup path for returning practitioners, and what is deferred
 
 **Served in Wave 0** (plan decision D5, scoped exactly to this): the
@@ -188,11 +249,14 @@ archetype" again is served by the manifest's flat, filterable item list.
 
 **Deferred, deliberately, past Wave 0:**
 
-- A per-item live preview, states, and rendered accessibility notes beyond
-  the pointer to the template's own header comment (section 5). ROADMAP.md
-  rule 5 requires every wave to document its own additions as it ships;
-  Wave 0's job is the manifest structure those additions land into, not a
-  finished per-item detail page.
+- A per-item LIVE PREVIEW (a rendered page). #234 (still Wave 0 scope, a
+  package slice) backfilled the states/accessibility/responsive DETAIL
+  itself into every item's docSource header comment (section 5a), so that
+  content now exists and is gated; what remains deferred is a site
+  rendering it as a browsable per-item detail page. ROADMAP.md rule 5
+  requires every wave to document its own additions as it ships; Wave 0's
+  job is the manifest structure those additions land into, not a finished
+  per-item detail page.
 - A richer semantic/faceted search than flat field matching (filtering by
   "what states does this support", "is this keyboard-navigable" as
   structured, queryable facts rather than free-text pointers).

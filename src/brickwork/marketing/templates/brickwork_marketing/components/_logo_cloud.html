@@ -22,6 +22,20 @@ template cannot build a list inline, so supply it from context (the view,
 or a wrapper template's own data). The scalar context (heading, greyscale)
 is flat and template-authorable as-is; brickwork does not invent a flat
 shape for the list itself.
+
+States: greyscale=True switches each logo between a muted, desaturated
+  resting state and full colour on hover (purely decorative, opacity plus
+  filter: grayscale, never the sole signal of anything, so the logo stays
+  legible without the effect); the transition is disabled under
+  prefers-reduced-motion.
+Accessibility: every logo requires a real alt attribute (never invented on
+  the caller's behalf); the greyscale-on-hover effect is decorative only,
+  never load-bearing for legibility. Covered by axe.spec.mjs against
+  landing-*.html (marketing/landing.html composes it with a populated logos
+  list and greyscale=True), both themes.
+Responsive: no breakpoint switch. The logo row is
+  display: flex; flex-wrap: wrap; justify-content: center, so logos reflow
+  onto further lines as the container narrows, fluid at every width.
 {% endcomment %}
 {% if heading or logos %}
 <section class="bw-logo-cloud{% if greyscale %} bw-logo-cloud--greyscale{% endif %}">

@@ -10,6 +10,20 @@ What your view must supply:
     nav_items / nav_active            as in list.html
 The stat tiles below carry real values typed into the template so you can see
 the page; replace them with your own context variables.
+
+States: the stat row's own trend states (up/down/flat, see _stat.html's
+  own header); the activity table's loading/empty/row-link states (see
+  _data_table.html's own header).
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; every trend reading pairs a decorative glyph with
+  visually-hidden direction text, never colour alone. Covered by the
+  archetype harness's full gate sweep (render, axe WCAG 2.2 AA, no
+  horizontal overflow, light/dark distinctness, skip-link first-tab-stop
+  with JS disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The stat row
+  (bw-stat-grid) reflows continuously with an auto-fit grid, no named
+  breakpoint of its own.
 {% endcomment %}
 {% load brickwork_components brickwork_nav %}
 

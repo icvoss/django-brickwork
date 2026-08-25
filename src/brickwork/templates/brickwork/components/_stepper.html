@@ -43,6 +43,26 @@ use the label type role; connectors are a hairline in --bw-color-border.
 Reduced motion: no transition is load-bearing here (the stepper has no
 open/close state), but any hover/focus colour transition still follows
 the reduced-motion floor via the shared --bw-transition-colors token.
+
+States: mode="progress" only; mode="sequence" carries none of these.
+  complete (check icon plus accent marker), current (aria-current="step"
+  plus accent marker), upcoming (numbered marker in --bw-color-border).
+  mode="sequence" renders every step identically, with no status glyph or
+  aria-current, for an ordered-stages-with-no-current-state need.
+Accessibility: a native <ol>, so a screen reader announces position
+  ("step 2 of 4"-style) from list semantics alone with no extra markup;
+  the current step carries aria-current="step" (the APG step-indicator
+  convention); every step's status is also visually-hidden text
+  ("(completed)"/"(current step)"/"(not started)"), never colour or glyph
+  shape alone; connectors are aria-hidden. Covered by axe.spec.mjs against
+  stepper-*.html (standalone) and wizard-*.html (app/wizard.html's own
+  composition, the mode="progress" shape in a real flow), both themes.
+Responsive: orientation="horizontal" (default) switches at
+  --bw-breakpoint-md (48rem): below md it stacks as a vertical list
+  regardless of the orientation setting (a horizontal step row does not
+  fit a phone width); at md and above it lays out as a horizontal row with
+  the connectors stretching between markers. orientation="vertical" is
+  unaffected by this breakpoint: it stacks at every width by request.
 {% endcomment %}
 <ol class="bw-stepper bw-stepper--{% firstof orientation 'horizontal' %}">
   {% for step in steps %}

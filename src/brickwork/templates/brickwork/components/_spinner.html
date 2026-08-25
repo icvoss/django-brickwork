@@ -3,6 +3,20 @@ Dedicated loading spinner (ICO-019): its own SVG with a @keyframes rotation and
 a reduced-motion fallback (MOT-003, handled by the global reduced-motion rule in
 the bundle). aria-hidden because a busy state is conveyed by the host control's
 aria-busy, not by the spinner glyph. A button's loading=True mounts this.
+
+States: spinning only; there is no other state, since it is never rendered
+  except while its host is busy. The rotation is a CSS @keyframes
+  animation, stopped under prefers-reduced-motion (the global reduced-
+  motion rule), leaving the static glyph visible rather than an endless
+  spin.
+Accessibility: aria-hidden="true" always; the busy state is conveyed by
+  the host control's own aria-busy (e.g. _button.html's loading=True), the
+  spinner glyph itself carries no accessible name and is never the sole
+  signal. Covered indirectly wherever a fixture renders a loading button
+  or table (axe.spec.mjs sees the composed markup); not a standalone
+  fixture of its own.
+Responsive: no breakpoint switch; no width-dependent CSS. Its size is
+  fixed to --bw-component-icon-size-sm, not viewport-driven.
 {% endcomment %}
 <svg class="bw-spinner" viewBox="0 0 24 24" style="--bw-icon-size: var(--bw-component-icon-size-sm)"
      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">

@@ -133,6 +133,24 @@ edge (a slide-over meets the viewport edge flush) but --bw-radius-xl on
 the remaining corners. Enter: scrim fades, panel slides in from the
 anchored edge at --bw-duration-normal/--bw-ease-out. Reduced motion: enter
 and exit render instantly (BR-BW-TOK-009).
+
+States: closed (the floor: an in-flow, visible page under the no-JS route)
+  and open (JS route: [data-bw-open], overlay positioning plus scrim
+  engage only in this state); three size states (sm/md/lg) and two
+  placement states (start/end edge anchor).
+Accessibility: reuses the modal's WAI-ARIA APG Dialog (Modal) machinery
+  (role="dialog", aria-modal="true", aria-labelledby the title, guaranteed
+  focus trap, Escape always closes, focus returns to the trigger on every
+  dismissal route, body scroll locks while open). Covered by axe.spec.mjs
+  against slide-over-open-*.html (the JS-set open state, both themes); the
+  focus trap and every dismissal route have no dedicated browser-driven
+  interaction test today (unlike the modal, which interactions.spec.mjs
+  drives live), only the static open-state render the axe fixture
+  exercises.
+Responsive: no breakpoint switch. Panel width is the fixed size scale
+  (sm/md/lg, the same --bw-size-max-width-modal-* tokens the modal uses),
+  not a viewport-driven rule; the panel is fluid down to the viewport
+  width at every size below its cap.
 {% endcomment %}{% firstof slide_over_id "bw-slide-over" as bw_slide_over_instance_id %}
 <div class="bw-slide-over bw-slide-over--{% firstof size 'md' %} bw-slide-over--{% firstof placement 'end' %}"
      id="{{ bw_slide_over_instance_id }}"

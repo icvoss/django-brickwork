@@ -19,6 +19,18 @@ model, loop over your own queryset and pass the same four arguments per item.
 KEEP THE QUOTES A SIMILAR LENGTH. The cards sit on a shared row, so one quote
 three times the length of its neighbours leaves two short cards with a lot of
 empty space beside a wall of text. Edit for length before you reach for CSS.
+
+States: none: a static grid (each composed _testimonial.html card carries
+  no states either).
+Accessibility: the section heading is a real <h2>; each card keeps
+  _testimonial.html's own semantic figure/blockquote/figcaption structure
+  unchanged, so the grid layout adds no accessibility concern of its own.
+  Covered by axe.spec.mjs against sections-*.html, which renders this
+  exact file with all three real quotes, both themes.
+Responsive: no named breakpoint. grid-template-columns is
+  repeat(auto-fit, minmax(min(18rem, 100%), 1fr)): the column count grows
+  and shrinks continuously with the container width, one column below
+  18rem.
 {% endcomment %}
 <section class="bw-testimonial-grid-section">
   <h2 class="bw-testimonial-grid-section__heading">What finance teams say after a quarter</h2>

@@ -30,6 +30,20 @@ A call site that supplies only title/description/loading (the pre-existing
 context-variable path) renders byte-identical output to before these blocks
 existed: every block's default content is exactly what used to render
 unconditionally in its place.
+
+States: loading=True swaps the title and description for a skeleton
+  (aria-hidden), never a spinner; not-loading is the normal title/
+  description/actions render. No other interactive state of its own (the
+  title_badge and tabs slots carry whatever states those composed
+  components have).
+Accessibility: renders the page's own <h1>, so a consuming page must not
+  render a second one; the skeleton state is aria-hidden so a screen reader
+  is not read a string of empty placeholder blocks while loading. Covered
+  by axe.spec.mjs across every app-family fixture that composes it (8
+  archetypes per the catalogue manifest: console, dashboard,
+  date-range-picker, detail, form, list, settings, wizard).
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-page-header* selector.
 {% endcomment %}
 <header class="bw-page-header">
   {% block breadcrumb %}{% endblock %}

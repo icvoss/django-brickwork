@@ -50,6 +50,20 @@ filled, but then an override no longer REPLACES the logo context variable,
 so both would render at once. One region, one winner, matching the
 _empty_state precedent, is worth more than reaching the unattributed edge
 case.
+
+States: none: a static quote card, no open/closed or hover-only reveal.
+Accessibility: a semantic <figure>/<blockquote>/<figcaption> grouping, so
+  the quote and its attribution are structurally associated for assistive
+  tech, not just visually adjacent; an avatar image's alt is implied from
+  author, never an unlabelled image. Covered by axe.spec.mjs against
+  landing-*.html and about-*.html (both compose it) and sections-*.html
+  (testimonial/single-quote.html, testimonial/quote-grid.html,
+  testimonial/logo-and-quote.html), both themes.
+Responsive: no breakpoint switch; no width-dependent CSS on .bw-testimonial
+  itself (it carries no block margins of its own; the marketing shell's
+  section rhythm owns the gap above it). Its container (a quote-grid
+  section's own grid) owns whatever column-count responsiveness a page
+  shows.
 {% endcomment %}
 {% if quote %}
 <figure class="bw-testimonial">

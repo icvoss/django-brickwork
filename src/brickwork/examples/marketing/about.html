@@ -11,6 +11,23 @@ What your view must supply:
 An about page is mostly prose, which is exactly why it is a copy-paste example
 and not a configurable template: there is no data shape to fill in, only your
 own words. The narrative below is a worked placeholder. Replace all of it.
+
+States: the auth-aware header actions branch on request.user.is_authenticated
+  (a signed-in vs signed-out header state); every composed component's own
+  states (hero, stat band, testimonial, CTA) are unchanged, see each
+  component's own header.
+Accessibility: inherits shell/marketing.html's skip link and header/footer
+  landmarks; plain prose headings and paragraphs read correctly with no
+  classes, per the marketing shell's own typography floor. Covered by the
+  archetype harness's full gate sweep (render, axe WCAG 2.2 AA, no
+  horizontal overflow, light/dark distinctness, skip-link first-tab-stop
+  with JS disabled) at every W0.1 breakpoint, both themes, and directly by
+  axe.spec.mjs against about-*.html, this page's own hand-maintained
+  fixture.
+Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
+  fluid header wrap and content-column cap. Each composed section carries
+  whatever responsive behaviour its own header documents (hero, stat band,
+  testimonial, CTA: see each).
 {% endcomment %}
 {% load brickwork_components %}
 

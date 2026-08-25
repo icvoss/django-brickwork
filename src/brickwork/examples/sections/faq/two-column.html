@@ -27,6 +27,17 @@ instead when the questions come from a database or a CMS.
 WHY IT OWNS ITS WRAPPER. _faq.html renders one stack. This is two stacks in
 a responsive pair, which is a layout the wrapper does not have and should not
 grow an option for.
+
+States: each question is a native <details>/<summary> disclosure, closed
+  by default; each column shares its own exclusive-group name
+  ("bw-faq-a"/"bw-faq-b"), so only one answer per column can be open at
+  once, and opening one in the right column never closes one in the left.
+Accessibility: the section heading is a real <h2>; reading and tab order
+  follows document order (left column then right), unaffected by the
+  responsive column layout, which is CSS-only. Covered by axe.spec.mjs
+  against sections-*.html, which renders this exact file, both themes.
+Responsive: single named breakpoint. One column below --bw-breakpoint-md
+  (48rem); two columns side by side from md upward.
 {% endcomment %}
 <section class="bw-faq-columns">
   <h2 class="bw-faq-columns__heading">Everything else people ask</h2>

@@ -34,6 +34,21 @@ Context (validated nowhere at include level, matching include doctrine):
 
 Tokens, elevation, motion (CSS lane): toasts stack at --bw-z-toast (above the
 modal, the z scale's deliberate ordering); the region itself paints nothing.
+
+States: empty (renders nothing visible, no box or border) and populated,
+  with a collapsed state once more than 3 toasts stack (the 4th-and-later
+  toasts carry hidden and the "+N more" control reveals); four placement
+  states (top-end default, top-start, bottom-end, bottom-start).
+Accessibility: aria-live="polite" on the region itself, so an OOB-appended
+  toast is announced without stealing focus; the overflow control is a
+  real button with server-supplied translated text, ships hidden on the
+  no-JS floor (where the region only ever holds zero toasts anyway).
+  Covered by axe.spec.mjs across every fixture (shell/base.html includes
+  it once, unconditionally, so it is present on every rendered page) and
+  directly by interactions2.spec.mjs's toast-stack overflow suite.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-toast-region* selector. Placement is a fixed CSS corner, not
+  viewport-driven.
 {% endcomment %}
 <div id="bw-toast-region"
      class="bw-toast-region bw-toast-region--{% firstof placement 'top-end' %}"

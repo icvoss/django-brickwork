@@ -10,6 +10,22 @@ and the clear URL because only they know which query parameters to preserve.
 Arguments (via {% bw_search %}):
   action (required), name (default "q"), placeholder (default "Search"), value,
   scope ({label, name, value, clear_href, clear_label?}).
+
+States: no scope / scoped-to-one-value (the optional scope chip with its
+  own clear link); no other open/closed state, the whole control is always
+  a plain visible form.
+Accessibility: role="search" on the form landmark; the visible input's
+  accessible name is a visually-hidden label rather than a placeholder
+  alone (a placeholder is not a reliable accessible name); the submit
+  button is icon-only with an aria-label. Not covered by a dedicated a11y
+  fixture in the browser suites today (no fixture in
+  a11y/generate_fixtures.py renders bw_search); its floor rests on
+  tests/test_search.py's Python-level render assertions, not a
+  browser-driven axe or keyboard check.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-search* selector. min-inline-size: 0 on the input lets it contract
+  inside a narrow topbar rather than forcing the shell wide, fluid at every
+  viewport rather than a named-breakpoint jump.
 {% endcomment %}
 <form class="bw-search" method="get" action="{{ action }}" role="search">
   {% if scope %}
