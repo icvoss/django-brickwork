@@ -1,0 +1,20 @@
+{
+  "breakpoint": {
+    "$type": "dimension",
+    "$description": "Viewport breakpoints (ADR-079, icvoss/django-brickwork#220). Emitted as literal values on :root in tokens.css AND as a plain @theme block (never @theme inline) in tailwind-theme.css, from this single source, because media queries cannot resolve var(): the mechanism that makes the colour/type/radius/elevation @theme inline projection live-adjustable is structurally unavailable to viewport queries. Overriding these tokens in a consumer's own brand CSS adjusts that consumer's OWN Tailwind sm:/md:/lg:/xl: utilities; it does not move brickwork's own shipped brickwork.css breakpoints, which are compiled in and change only on a package rebuild (the honest limit, ADR-079 section 7). Values match Tailwind's own default breakpoint scale and stay in rem (mixed units break Tailwind's generated-rule ordering).",
+    "sm": {
+      "$value": "40rem"
+    },
+    "md": {
+      "$value": "48rem",
+      "$description": "The shell's sidebar-to-drawer collapse point (SHL-017) and _data_table's responsive=\"stack\" threshold (TBL-013); both reuse this one value so the two surfaces change together."
+    },
+    "lg": {
+      "$value": "64rem"
+    },
+    "xl": {
+      "$value": "80rem",
+      "$description": "Reserved: named by SHL-014 and emitted for completeness; no internal brickwork call site references it yet."
+    }
+  }
+}

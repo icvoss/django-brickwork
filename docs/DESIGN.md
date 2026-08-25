@@ -458,6 +458,39 @@ in-row padding. Never density-variant: font sizes and line heights (WCAG
 1.4.4 in spirit), radius, elevation, border widths, touch-target minimum,
 the spacing ramp itself.
 
+### 6.8 Breakpoints (`--bw-breakpoint-*`) **[NEW]**
+
+**Authority:** ADR-079, correcting SHL-014's originally-ratified `@theme
+inline` mechanism, which cannot work because a media query cannot resolve
+`var()`.
+
+| Token | Value | Notes |
+|---|---|---|
+| `--bw-breakpoint-sm` **[NEW]** | `40rem` | |
+| `--bw-breakpoint-md` **[NEW]** | `48rem` | the shell's sidebar-to-drawer collapse point (SHL-017) and `_data_table`'s `responsive="stack"` threshold (TBL-013); both reuse this one value so the two surfaces change together |
+| `--bw-breakpoint-lg` **[NEW]** | `64rem` | |
+| `--bw-breakpoint-xl` **[NEW]** | `80rem` | reserved: named by SHL-014 and emitted for completeness; no internal call site references it yet |
+
+Emitted as literals on `:root` in `tokens.css`, like every other public
+token, so a JS integration or a container-query component can read the
+current value. **Also** emitted as a second, plain `@theme` block in
+`tailwind-theme.css` (section 12 explains why that file now carries two
+`@theme` blocks). Both are generated from the single source
+`frontend/src/tokens/source/breakpoint.tokens.json`.
+
+**The honest limit.** Unlike every other token in this file, overriding
+`--bw-breakpoint-*` in a consumer's own brand CSS does **not** move
+brickwork's own shipped `brickwork.css` breakpoints: those are compiled
+into the static CSS the package ships via `--theme()` range-syntax
+references, resolved at brickwork's own build time, not read live via
+`var()` at browser runtime. An override changes where the *consumer's own*
+Tailwind `sm:`/`md:`/`lg:`/`xl:` utilities break, and the literal value a
+JS integration reads. It does not change where brickwork's shipped sidebar
+collapses or where `_data_table` switches to stack mode; that requires a
+package rebuild. This is the one axis in the token system that is
+build-time only; every other axis in this file (brand, theme, density) is
+genuinely live via `var()`.
+
 ## 7. Typography
 
 ### 7.1 Families (the brand's dial)
@@ -652,7 +685,19 @@ shipped `tailwind-theme.css` was a placeholder (self-referential `--bw-*`
 identity mappings, which sit in no Tailwind utility namespace and generate
 no utilities); from 0.10.0 it is the real projection.
 
-The fragment is a single `@theme inline` block mapping the semantic
+The fragment carries **two** `@theme` blocks, generated together but
+serving different mechanisms (ADR-079).
+
+The first is a **plain `@theme` block** bridging `--breakpoint-sm/md/lg/xl`
+to literal values (section 6.8), so a consumer's own `sm:`/`md:`/`lg:`/`xl:`
+utilities align with brickwork's breakpoints. It is deliberately not
+`inline`: a media query cannot resolve `var()`, so viewport breakpoints must
+be literals wherever Tailwind consumes them, and a consumer's own build
+compiles them at build time like any other `@theme` value. This is the one
+axis in the projection that is NOT live: overriding these tokens changes the
+consumer's own Tailwind output on their next build, never at runtime.
+
+The second is the original `@theme inline` block mapping the semantic
 `--bw-*` contract into Tailwind 4's utility namespaces, so a consumer's
 own utilities (`bg-accent`, `rounded-md`, `shadow-3`, `text-heading-lg`,
 `p-4`) inherit the brand. Every mapped value is a `var(--bw-*)` reference,
@@ -673,6 +718,10 @@ values the projection references):
 ```
 
 ### 12.2 Namespace coverage
+
+The table below covers the `@theme inline` semantic block only. The plain
+`@theme` breakpoint block (12, ADR-079) is separate: 4 declarations,
+`--breakpoint-sm/md/lg/xl`, from `--bw-breakpoint-sm/md/lg/xl` (section 6.8).
 
 | Tailwind namespace | Mapped from | Count | Example utility |
 |---|---|---|---|

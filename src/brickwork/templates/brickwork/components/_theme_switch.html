@@ -1,0 +1,103 @@
+{% load i18n %}
+{% comment %}
+The live root-level axis switch (icvoss/django-brickwork#117). Private
+render target of the {% bw_theme_switch %} tag
+(templatetags/brickwork_theming.py): never {% include %} directly, the tag
+validates axes=, builds each option group, and resolves per-axis lock state.
+
+Root-level: bwThemeSwitch (frontend/src/js/theme_switch.js) writes the
+attributes this control offers onto <html>, matching where the shell
+already reads bw_theme/bw_density/bw_dir/bw_brand from context and where
+every derived colour resolves.
+
+No-JS floor (BR-BW-HTMX-001, the one deliberate departure the #117 ruling
+states explicitly): the server-rendered page is ALREADY correctly themed, so
+a theme switch with no JS is a control that visibly does nothing, worse than
+absent. The floor here is "render nothing", not "render a working control":
+the fieldset ships with the hidden attribute (the same hidden-until-init
+shape _alert.html's dismiss button and dismissible.js use) and
+bwThemeSwitch removes it at init, exactly the reveal-at-init pattern
+frontend/src/js/dismissible.js already runs.
+
+Persistence (SHL-003 applied here, generalising
+frontend/src/js/sidebar_collapse.js's rule, per the #117 ruling): an axis
+with no server-resolved preference this request is a free client toggle
+that persists to localStorage. An axis the resolver DID assert renders as a
+disabled fieldset (data-bw-locked on the group, disabled on every radio in
+it): a real server preference exists, and a client default must never
+clobber it. The disabled group's matching radio is `checked` HERE, in the
+server render (group.locked_value, resolved from the bw_theme/bw_density/
+bw_dir/bw_brand context vars, the same ones shell/base.html itself reads),
+never left for bwThemeSwitch to compute from <html> at JS init time: with
+more than one switch instance on a page (ordinary, not a misuse) sharing
+an axis, an earlier-initialising UNLOCKED sibling can already have changed
+<html>'s attribute by the time a locked instance's own init runs, so a
+locked axis reading the live DOM at runtime is order-dependent and can
+show the wrong value. The server-rendered `checked` state is the one
+source of truth this branch needs.
+
+Required context (built by the tag; never author this list by hand):
+  instance_id: a unique-per-render id (uuid4-derived), so more than one
+      switch on a page never collides on radio name or fieldset id.
+  label: the control's own accessible name (a translated default from the
+      tag, or the caller's override).
+  groups: one entry per requested axis: {axis, legend, name, locked,
+      locked_value, options: [{value, label}, ...]}. `name` is already
+      namespaced to this instance; `locked` gates the disabled state;
+      `locked_value` is the axis's server-resolved current value, "" when
+      unlocked (below); `options` is the axis's closed vocabulary (or the
+      caller's brands= mapping for the brand axis).
+  valid_values: {axis: [value, ...]}, the SAME closed set `options` above
+      renders from. Emitted separately as a json_script (review fix, #117)
+      so bwThemeSwitch validates against a payload the server computed,
+      never against whatever radios happen to be in the DOM: the two are
+      only guaranteed to agree because both come from this one dict, not
+      because the client re-derives one from the other.
+  values_element_id: instance_id + "-values", the json_script element's own
+      id; bwThemeSwitch reads data-bw-theme-switch-values on the root
+      (below) to find it, rather than reconstructing the suffix client-side.
+
+role="group" (review fix, #117): aria-label on a bare <div> with no ARIA
+role has no semantic target and screen readers ignore it; role="group" is
+the generic grouping role that DOES accept aria-label, so the control's own
+accessible name (the label context var) actually reaches assistive tech.
+Each axis's own <fieldset>/<legend> pair supplies that axis's name
+natively, so the individual radio groups need no additional role.
+
+Tokens (CSS lane): plain radios, no bespoke chrome; the control borrows the
+existing form-field spacing tokens (--bw-density-*), never a component of
+its own, since it is deliberately unstyled beyond what a native fieldset of
+radios already provides.
+{% endcomment %}
+<div class="bw-theme-switch"
+     id="{{ instance_id }}"
+     hidden
+     role="group"
+     data-bw-theme-switch
+     data-bw-theme-switch-values="{{ values_element_id }}"
+     x-data="bwThemeSwitch()"
+     aria-label="{{ label }}">
+  {{ valid_values|json_script:values_element_id }}
+  {% for group in groups %}
+    <fieldset class="bw-theme-switch__group"
+              data-bw-theme-switch-axis="{{ group.axis }}"
+              {% if group.locked %}data-bw-locked{% endif %}>
+      <legend class="bw-theme-switch__legend">{{ group.legend }}</legend>
+      {% for option in group.options %}
+        <label class="bw-theme-switch__option">
+          <input class="bw-theme-switch__input"
+                 type="radio"
+                 name="{{ group.name }}"
+                 value="{{ option.value }}"
+                 {% if group.locked %}disabled{% endif %}
+                 {% if group.locked and option.value == group.locked_value %}checked{% endif %}
+                 data-bw-theme-switch-value>
+          <span class="bw-theme-switch__option-label">{{ option.label }}</span>
+        </label>
+      {% endfor %}
+      {% if group.locked %}
+        <p class="bw-theme-switch__locked-note">{% translate "Set by your account preferences." %}</p>
+      {% endif %}
+    </fieldset>
+  {% endfor %}
+</div>

@@ -109,3 +109,84 @@ def test_no_active_role_falls_back_to_defaults_with_no_brand_key() -> None:
     ctx = theme(_request())  # no active_role on the request
     assert "bw_brand" not in ctx
     assert ctx["bw_theme"] == "light"
+
+
+# --- bw_theme_locked_axes (#117): which axes the resolver itself asserted --
+# this request, distinct from a value that merely fell back to a
+# BRICKWORK_DEFAULT_* setting. {% bw_theme_switch %} reads this so a
+# server-resolved axis never renders as a free client toggle (SHL-003).
+
+
+def test_no_resolver_locks_nothing() -> None:
+    assert theme(_request())["bw_theme_locked_axes"] == ""
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._resolver")
+def test_resolver_asserting_theme_locks_only_theme() -> None:
+    # _resolver returns {"theme": "dark", "logo": ...}: theme is asserted,
+    # density/dir/brand are not (they fell back to defaults, not the resolver).
+    ctx = theme(_request())
+    assert ctx["bw_theme_locked_axes"] == "theme"
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._role_resolver")
+def test_resolver_asserting_brand_locks_only_brand() -> None:
+    request = _request()
+    request.active_role = "coach"
+    ctx = theme(request)
+    assert ctx["bw_theme_locked_axes"] == "brand"
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._role_resolver")
+def test_resolver_returning_nothing_this_request_locks_nothing() -> None:
+    ctx = theme(_request())  # no active_role: _role_resolver returns {}
+    assert ctx["bw_theme_locked_axes"] == ""
+
+
+def _full_axes_resolver(request):
+    return {"theme": "dark", "density": "compact", "dir": "rtl", "brand": "acme"}
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._full_axes_resolver")
+def test_resolver_asserting_every_axis_locks_all_four_in_order() -> None:
+    ctx = theme(_request())
+    assert ctx["bw_theme_locked_axes"] == "theme density dir brand"
+
+
+def _empty_brand_resolver(request):
+    return {"brand": ""}
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._empty_brand_resolver")
+def test_resolver_explicitly_clearing_brand_still_locks_it() -> None:
+    # review fix, #117 blocker 5: locking is KEY PRESENCE, not truthiness. A
+    # resolver returning {"brand": ""} is explicitly clearing the brand for
+    # this request, and that assertion must lock the brand axis exactly as
+    # a non-empty one does, or a stale localStorage brand could resurface
+    # after the resolver deliberately cleared it server-side.
+    ctx = theme(_request())
+    assert ctx["bw_theme_locked_axes"] == "brand"
+    assert "bw_brand" not in ctx  # empty brand: no data-bw-brand attribute either
+
+
+def _counting_resolver_calls() -> list[int]:
+    return []
+
+
+_CALL_COUNT = _counting_resolver_calls()
+
+
+def _counting_resolver(request):
+    _CALL_COUNT.append(1)
+    return {"theme": "dark"}
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._counting_resolver")
+def test_resolver_is_called_exactly_once() -> None:
+    # review fix, #117 blocker 6: a resolver reading mutable state (e.g.
+    # request.session) called twice could return two different answers for
+    # the one request, so bw_theme_locked_axes must be derived from the
+    # SAME call resolve_theme_attributes already makes, never a second one.
+    _CALL_COUNT.clear()
+    theme(_request())
+    assert len(_CALL_COUNT) == 1

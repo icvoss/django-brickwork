@@ -8,6 +8,8 @@ versioning contract).
 
 ## Unreleased
 
+## [3.8.0] - 2026-08-25
+
 ### Changed
 
 - **Interface-system product contract:** Brickwork now defines its intended
@@ -18,6 +20,30 @@ versioning contract).
   and integrations, while Brickwork owns reusable foundations, patterns,
   layouts and archetypes. This changes product direction and documentation
   only. It does not claim that every required interface family ships today.
+
+### Added
+
+- **`_empty_state.html` gains a `size="sm"` option** (icvoss/django-brickwork#218,
+  ADR-060, STA-019), the in-panel scale for an empty state nested inside a
+  card or other bounded container rather than filling a page. At `"sm"` the
+  panel takes tighter block padding, the heading becomes optional and, when
+  supplied, renders as a `<p class="bw-empty-state__heading">` rather than a
+  heading element, no icon renders unless one is explicitly passed, and a
+  supplied `action_href`/`action_label` renders as a plain link
+  (`bw-empty-state__action-link`) rather than a primary button. The default
+  `"md"` scale is unchanged.
+
+### Fixed
+
+- **Pagination accepts a flat duck-typed page_obj** (icvoss/django-brickwork#217).
+  `_pagination.html` guarded on `page_obj.paginator.num_pages`, so a view-model
+  presenting the same pagination attributes flat (`number`, `num_pages`,
+  `has_previous`, `has_next`, `previous_page_number`, `next_page_number`, with
+  no nested `paginator`) rendered no controls at all with no error, instead of
+  the working navigation a consumer expected. The component now accepts
+  `num_pages` either nested (a real `django.core.paginator.Page`) or flat; the
+  render-nothing contract for a one-page result or an absent `page_obj` is
+  unchanged.
 
 ## [3.7.0] - 2026-08-24
 
