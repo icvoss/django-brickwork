@@ -25,7 +25,19 @@ as typed Python for this repo's own in-package consumers. These tests cover:
 4. **The two Wave 0 scoping decisions hold** (docs/CATALOGUE.md ss7/ss8):
    no item carries render-input data, and ``families`` carries shipped
    counts only, never a status or wave field.
-5. **``_requires_context``'s node-tree walk**, unit-tested directly against
+5. **Every item's docSource carries the States/Accessibility/Responsive
+   contract** (icvoss/django-brickwork#234, docs/CATALOGUE.md's docSource
+   labels section): the leading ``{% comment %}`` block at each item's
+   ``docSource`` path names all three labels at line start
+   ("States:"/"Accessibility:"/"Responsive:"), so a future item cannot ship
+   without them. This is a presence gate (the three labels exist), not a
+   content gate (their prose is truthful and non-padded is a human review
+   concern, not a mechanical one). Catches by construction the two examples
+   that shipped no leading comment at all before #234 backfilled them
+   (examples/sections/hero/media-behind.html,
+   examples/sections/hero/split-media.html): a missing comment block fails
+   this check the same way an incomplete one does.
+6. **``_requires_context``'s node-tree walk**, unit-tested directly against
    hand-built template strings (not the shipped examples tree, which only
    ever exercises the shapes it happens to contain): the RHS and scope rules
    a ``{% with %}``/``{% firstof ... as %}`` binding must satisfy before the
@@ -40,10 +52,12 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import pkgutil
+import re
 from pathlib import Path
 
 import pytest
 from django.template import Engine
+from django.template.loader import get_template
 
 import brickwork.services
 from brickwork.services._catalogue_manifest import (
@@ -362,7 +376,108 @@ def test_families_only_lists_families_with_shipped_coverage() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 5. _requires_context's node-tree walk, unit-tested against hand-built
+# 5. Every item's docSource carries the States/Accessibility/Responsive
+#    contract (icvoss/django-brickwork#234)
+# ---------------------------------------------------------------------------
+#
+# docs/CATALOGUE.md section 5 documents docSource as "the template or
+# example's own leading {% comment %}" (the pre-existing convention every
+# shipped template already followed for its Required/Optional context). #234
+# found that convention had no structure for states/accessibility/responsive
+# detail and no gate holding it, so 46/87 items shipped no accessibility
+# prose at all and two examples shipped no leading comment whatsoever. The
+# fix is a labelled-section convention inside that SAME leading comment
+# (three line-leading labels, "States:"/"Accessibility:"/"Responsive:",
+# capitalised, trailing colon, positioned after any existing Required
+# context/Optional sections so context parsing is untouched) plus this gate,
+# which checks PRESENCE of the three labels per item, never their length or
+# content: a short, honest sentence for a genuinely stateless item is a pass,
+# and padding to satisfy a length check is exactly what the format forbids.
+#
+# Each docSource is read through the SAME sanctioned mechanism its own kind
+# already uses elsewhere in this repo, never a hand-built filesystem path:
+# a shell/component docSource is a real Django template ref, resolved via
+# django.template.loader.get_template(...).origin.name (the actual file the
+# app-dirs loader would serve); a section/archetype docSource is read via
+# brickwork.examples.read_example(...), the one documented supported way to
+# read that tree (ADR-056; that module's own docstring). A path that fails
+# to resolve through either mechanism is itself a manifest-vs-tree drift the
+# generator's own drift test (test_committed_manifest_matches_a_fresh_
+# regeneration_byte_for_byte, above) already guards, so this test does not
+# duplicate that guard; it assumes the manifest matches the tree and checks
+# what is inside each resolved file.
+
+_DOCSOURCE_LABELS = ("States", "Accessibility", "Responsive")
+_LEADING_COMMENT_RE = re.compile(r"\{%\s*comment\s*%\}(.*?)\{%\s*endcomment\s*%\}", re.DOTALL)
+
+
+def _read_docsource_text(entry: dict) -> str:
+    """The full source text of one catalogue item's docSource file.
+
+    Shells and components resolve through Django's real template loader
+    (get_template(...).origin.name is the actual file on disk the app-dirs
+    loader would serve for that ref); sections and archetypes resolve
+    through brickwork.examples.read_example(...) directly (it already
+    returns source text, no path needed), stripping docSource's leading
+    "examples/" since that module's own names never carry it.
+    """
+    doc_source = entry["docSource"]
+    if entry["kind"] in ("shell", "component"):
+        origin = get_template(doc_source).origin
+        return Path(origin.name).read_text(encoding="utf-8")
+    from brickwork import examples as examples_module
+
+    return examples_module.read_example(doc_source.removeprefix("examples/"))
+
+
+def _leading_comment_labels(source_text: str) -> set[str]:
+    """Which of the three docSource labels appear, line-leading, in the
+    FIRST {% comment %}...{% endcomment %} block of ``source_text``.
+
+    Line-leading (^LABEL:, MULTILINE) matches the format's own "capitalised,
+    trailing colon, at line start" rule exactly: a label mentioned only in
+    running prose ("see this component's own States for details") must not
+    count, or the gate could not tell presence from a cross-reference.
+    """
+    match = _LEADING_COMMENT_RE.search(source_text)
+    if not match:
+        return set()
+    comment_body = match.group(1)
+    return {label for label in _DOCSOURCE_LABELS if re.search(rf"(?m)^{label}:", comment_body)}
+
+
+@pytest.mark.parametrize("entry", items(), ids=[entry["name"] for entry in items()])
+def test_every_item_docsource_carries_states_accessibility_responsive(entry: dict) -> None:
+    labels_found = _leading_comment_labels(_read_docsource_text(entry))
+    missing = set(_DOCSOURCE_LABELS) - labels_found
+    assert not missing, (
+        f"{entry['name']} (docSource={entry['docSource']!r}) is missing "
+        f"{sorted(missing)} from its leading {{% comment %}} block. Every "
+        f"catalogue item's docSource must carry all three labels "
+        f"(States:/Accessibility:/Responsive:), line-leading, in its "
+        f"FIRST {{% comment %}} block (docs/CATALOGUE.md)."
+    )
+
+
+def test_the_two_previously_commentless_hero_examples_now_have_a_leading_comment() -> None:
+    # #234's own repro: these two shipped as a single {% include %} line with
+    # NO {% comment %} block at all. The parametrized gate above already
+    # covers them (a file with no comment block resolves labels_found == set(),
+    # which fails that test with all three labels reported missing), but this
+    # test pins the specific regression by name, so a future revert of just
+    # these two files' headers fails immediately and legibly rather than as
+    # one parametrize case among 87.
+    for name in ("examples/sections/hero/media-behind.html", "examples/sections/hero/split-media.html"):
+        entry = item(name)
+        assert entry is not None, f"{name} missing from the manifest entirely"
+        source_text = _read_docsource_text(entry)
+        assert _LEADING_COMMENT_RE.search(source_text) is not None, (
+            f"{name} has no leading {{% comment %}} block at all (the #234 pre-fix state)"
+        )
+
+
+# ---------------------------------------------------------------------------
+# 6. _requires_context's node-tree walk, unit-tested against hand-built
 #    template strings (PR#233 review round)
 # ---------------------------------------------------------------------------
 #
