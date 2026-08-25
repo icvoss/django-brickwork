@@ -25,6 +25,14 @@ as typed Python for this repo's own in-package consumers. These tests cover:
 4. **The two Wave 0 scoping decisions hold** (docs/CATALOGUE.md ss7/ss8):
    no item carries render-input data, and ``families`` carries shipped
    counts only, never a status or wave field.
+5. **``_requires_context``'s node-tree walk**, unit-tested directly against
+   hand-built template strings (not the shipped examples tree, which only
+   ever exercises the shapes it happens to contain): the RHS and scope rules
+   a ``{% with %}``/``{% firstof ... as %}`` binding must satisfy before the
+   name it defines counts as "local" rather than context-sourced (PR#233
+   review: a with-binding that copies an external context variable through
+   to an include kwarg was a reproducible false negative in an earlier
+   version of this detector).
 """
 
 from __future__ import annotations
@@ -33,6 +41,9 @@ import importlib
 import importlib.util
 import pkgutil
 from pathlib import Path
+
+import pytest
+from django.template import Engine
 
 import brickwork.services
 from brickwork.services._catalogue_manifest import (
@@ -65,6 +76,7 @@ def _load_generator():
 _generator = _load_generator()
 build_manifest = _generator.build_manifest
 write_manifest = _generator.write_manifest
+_requires_context = _generator._requires_context
 
 
 # ---------------------------------------------------------------------------
@@ -347,3 +359,127 @@ def test_families_only_lists_families_with_shipped_coverage() -> None:
     assert "Data-heavy operations" not in family_names
     assert "Documentation" not in family_names
     assert "Editorial and publishing" not in family_names
+
+
+# ---------------------------------------------------------------------------
+# 5. _requires_context's node-tree walk, unit-tested against hand-built
+#    template strings (PR#233 review round)
+# ---------------------------------------------------------------------------
+#
+# The shipped examples tree only ever exercises whatever with/firstof/include
+# shapes it happens to contain today (currently: exactly one, base.html's
+# firstof-plus-include), so a regression in the RHS/scope rules that does not
+# happen to change base.html's own verdict would pass the drift test and
+# every other check in this file with nothing to catch it. These tests call
+# the detector directly against template strings built for the purpose, so
+# each rule is pinned independently of what the shipped tree happens to ship.
+#
+# A bare ``Engine()`` (no ``app_dirs``, no ``libraries``) is enough: every
+# template string below uses only Django's built-in tags (``with``,
+# ``firstof``, ``for``, ``if``, ``include``), never a brickwork ``{% load %}``
+# tag, so this does not need ``test_examples.py``'s ``_example_engine()``
+# machinery (that exists for RENDERING a real shipped example; this only
+# compiles a node tree and never renders it).
+
+_engine = Engine()
+
+# (case name, template source, expected _requires_context() result). The
+# include target names a real shipped component path so the shape matches
+# what the generator actually walks in the wild; nothing here renders these
+# templates, so the target need not resolve on any loader path.
+_REQUIRES_CONTEXT_CASES: list[tuple[str, str, bool]] = [
+    (
+        "with_binding_wrapping_external_name_feeding_include_kwarg",
+        '{% with heading=external_heading %}'
+        '{% include "brickwork/components/_page_header.html" with title=heading %}'
+        "{% endwith %}",
+        True,
+    ),
+    (
+        "with_binding_wrapping_literal_feeding_include_kwarg",
+        '{% with heading="Fixed heading" %}'
+        '{% include "brickwork/components/_page_header.html" with title=heading %}'
+        "{% endwith %}",
+        False,
+    ),
+    (
+        "with_binding_out_of_scope_for_a_sibling_include",
+        '{% with x="literal" %}{{ x }}{% endwith %}'
+        '{% include "brickwork/components/_page_header.html" with title=x %}',
+        True,
+    ),
+    (
+        "nested_if_inherits_enclosing_context_requirement",
+        "{% if flag %}"
+        '{% include "brickwork/components/_page_header.html" with title=external_var %}'
+        "{% endif %}",
+        True,
+    ),
+    (
+        "firstof_asvar_with_a_literal_fallback_feeding_include_kwarg",
+        "{% firstof bw_toast_position 'top-end' as resolved %}"
+        '{% include "brickwork/components/_toast_region.html" with placement=resolved %}',
+        False,
+    ),
+    (
+        "firstof_asvar_with_no_literal_argument_feeding_include_kwarg",
+        "{% firstof a b as resolved %}"
+        '{% include "brickwork/components/_toast_region.html" with placement=resolved %}',
+        True,
+    ),
+    (
+        "base_html_real_shape_firstof_plus_include",
+        "{% firstof bw_toast_position 'top-end' as bw_toast_position_resolved %}"
+        '{% include "brickwork/components/_toast_region.html" with placement=bw_toast_position_resolved %}',
+        False,
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    ("name", "source", "expected"), _REQUIRES_CONTEXT_CASES, ids=[case[0] for case in _REQUIRES_CONTEXT_CASES]
+)
+def test_requires_context_rhs_and_scope_rules(name: str, source: str, expected: bool) -> None:
+    """Pins the RHS/scope rules a with/firstof binding must satisfy.
+
+    ``with_binding_wrapping_external_name_feeding_include_kwarg`` is the
+    PR#233 review's exact false-negative repro: an earlier version of the
+    detector treated every ``{% with %}``-bound name as local regardless of
+    what its own right-hand side needed, so this shape (a with-binding
+    copying an external, context-sourced variable straight through to an
+    include kwarg) read as ``requiresContext: False`` while genuinely
+    needing context, with nothing at render time to catch a wrong False.
+
+    ``with_binding_wrapping_literal_feeding_include_kwarg`` is the control:
+    the same shape, but the with-binding's own right-hand side is a literal,
+    so it is correctly safe.
+
+    ``with_binding_out_of_scope_for_a_sibling_include`` pins that a
+    ``{% with %}`` binding is scoped to its own block: a name bound inside
+    one with-block does not make an unrelated include OUTSIDE that block
+    treat the same name as local, matching Django's real
+    ``WithNode.render()`` push/pop scoping.
+
+    ``nested_if_inherits_enclosing_context_requirement`` pins that scope is
+    inherited through arbitrary nesting (an ``{% if %}`` here) via
+    ``Node.child_nodelists``, not just at the top level of a template.
+
+    ``firstof_asvar_with_a_literal_fallback_feeding_include_kwarg`` and
+    ``firstof_asvar_with_no_literal_argument_feeding_include_kwarg`` pin
+    firstof's own RHS rule, deliberately ANY rather than with's ALL:
+    ``FirstOfNode.render()`` never fails regardless of its arguments
+    (``ignore_failures=True`` per argument, ``asvar`` always assigned), so
+    one literal argument is enough to guarantee a context-independent
+    fallback, but with every argument bare and context-sourced, none is.
+
+    ``base_html_real_shape_firstof_plus_include`` pins the exact shape
+    ``examples/base.html`` ships (``{% firstof bw_toast_position 'top-end'
+    as bw_toast_position_resolved %}`` then passing the resolved name into
+    ``_toast_region.html``'s ``placement`` kwarg), the one case the shipped
+    examples tree already exercises and the reason this detector was
+    refined in the first place (icvoss/django-brickwork#232 follow-up).
+    """
+    template = _engine.from_string(source)
+    assert _requires_context(template.nodelist, source) is expected, (
+        f"{name}: expected requiresContext={expected} for:\n{source}"
+    )
