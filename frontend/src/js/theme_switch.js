@@ -43,6 +43,33 @@
 //   unvisited axis never guesses), applies it immediately, and writes back
 //   to localStorage on every change.
 //
+// VALIDATION (review fix, #117): a rendered group's own radios ARE its
+// closed value set (there is exactly one copy of the vocabulary, the DOM;
+// the theme/density/dir sets and the caller-supplied brand slugs are all
+// covered by construction, with no separate list to keep in sync). Every
+// value this module is about to apply to <html> or persist is checked
+// against that set first, whether it came from localStorage (a stale
+// build's value, a corrupted write, or a value edited by hand or another
+// script/extension) or from a radio's own .value at change time (also a
+// mutable DOM property, not a trusted input). An invalid stored value is
+// discarded AND removed from storage, rather than applied, so it does not
+// keep failing validation on every future load; an invalid change event is
+// simply ignored (neither applied nor persisted).
+//
+// CROSS-TAB (review concern, #117, decided not implemented): this module
+// does not listen for the storage event, so a change made in one open tab
+// does not live-update a theme switch rendered in another open tab of the
+// same site; the second tab's own control still reflects whatever it read
+// at ITS OWN init (server render or its own stored value), and only
+// catches up on its own next full navigation. This mirrors
+// sidebar_collapse.js's existing precedent, which makes the same choice
+// for the same persistence pattern: no brickwork interaction currently
+// synchronises live across tabs, and adding it here would be new
+// behaviour for the whole persistence family, not a fix scoped to this
+// component. A consumer wanting live cross-tab sync adds their own
+// `window.addEventListener("storage", ...)` bridge (BRANDING.md documents
+// this as the accepted trade-off, not a silent gap).
+//
 // Motion: intentionally none. Flipping data-theme/data-density/dir/data-bw-brand
 // is a live token re-resolution; any transition is the CONSUMER's own
 // tokens, not something this module sequences.
@@ -71,6 +98,14 @@ function writeStoredValue(axis, value) {
   } catch {
     // storage unavailable: the in-memory state for this page load still works,
     // it just does not persist across page loads. Not a functional failure.
+  }
+}
+
+function clearStoredValue(axis) {
+  try {
+    window.localStorage.removeItem(storageKey(axis));
+  } catch {
+    // storage unavailable: nothing to clear.
   }
 }
 
@@ -112,8 +147,34 @@ export default function themeSwitch() {
       const radios = group.querySelectorAll("[data-bw-theme-switch-value]");
       if (!radios.length) return;
 
+      // The group's OWN rendered radios are the closed value set: server
+      // and client can never disagree on vocabulary because there is only
+      // one copy of it, the DOM. Every value this module applies or
+      // persists is checked against this set, never trusted as-is, whether
+      // it came from localStorage (which a stale build, a corrupted write,
+      // or a hand-edited value in devtools/another extension can hold
+      // anything in) or from a radio's own .value at change time (a
+      // read/write DOM property another script could have mutated between
+      // render and the change event firing).
+      const validValues = new Set(Array.from(radios, (radio) => radio.value));
+      const isValid = (value) => validValues.has(value);
+
       const current = document.documentElement.getAttribute(attrName) || "";
-      const initial = locked ? current : readStoredValue(axis) || current;
+      let initial = current;
+      if (!locked) {
+        const stored = readStoredValue(axis);
+        if (stored !== null) {
+          if (isValid(stored)) {
+            initial = stored;
+          } else {
+            // Invalid stored value (corrupted, stale from a retired
+            // vocabulary, or tampered with): discard it rather than apply
+            // it to <html>, and remove the bad entry so it does not keep
+            // failing validation on every future load.
+            clearStoredValue(axis);
+          }
+        }
+      }
 
       if (initial) {
         this._apply(attrName, initial);
@@ -123,6 +184,7 @@ export default function themeSwitch() {
         if (locked) continue; // disabled in markup already; no listener needed
         radio.addEventListener("change", () => {
           if (!radio.checked) return;
+          if (!isValid(radio.value)) return; // tampered value: never apply or persist it
           this._apply(attrName, radio.value);
           writeStoredValue(axis, radio.value);
           dispatch(this._root, "bw:theme-switch:change", { axis, value: radio.value });

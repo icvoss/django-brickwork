@@ -119,6 +119,29 @@ test.describe("JS reveal and initial state", () => {
     }
   });
 
+  test("an invalid stored value is discarded, not applied, and removed from storage", async ({ page }) => {
+    // review fix, #117 blocker 1: a corrupted, stale or tampered
+    // localStorage value must never reach <html>. Reload with a bogus
+    // density value already stored, from BEFORE bwThemeSwitch runs, so
+    // this proves the discard happens at init, not merely that a later
+    // write overwrites it.
+    await page.evaluate(() => window.localStorage.setItem("bw-theme-switch-density", "extra-spacious"));
+    await page.reload();
+    await page.waitForFunction(() => !!window.Alpine);
+    await expect(section(page, "default-heading").locator("[data-bw-theme-switch]")).toBeVisible();
+    // <html> never received the bogus value (it had no data-density to
+    // begin with, and none of the three real radios is checked, matching
+    // the "no server-resolved value" unvisited-axis behaviour)
+    await expect(page.locator("html")).not.toHaveAttribute("data-density", "extra-spacious");
+    const density = section(page, "default-heading").locator('[data-bw-theme-switch-axis="density"] input');
+    for (const radio of await density.all()) {
+      await expect(radio).not.toBeChecked();
+    }
+    // the bad entry is removed, not left to keep failing validation forever
+    const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-density"));
+    expect(stored).toBeNull();
+  });
+
   test("two unlocked instances never collide on radio group name or root id", async ({ page }) => {
     const defaultRoot = await section(page, "default-heading").locator("[data-bw-theme-switch]").getAttribute("id");
     const brandRoot = await section(page, "brand-heading").locator("[data-bw-theme-switch]").getAttribute("id");
@@ -168,6 +191,35 @@ test.describe("changing an axis", () => {
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     const dirRtl = section(page, "default-heading").locator('[data-bw-theme-switch-axis="dir"] input[value="rtl"]');
     await expect(dirRtl).toBeChecked();
+  });
+
+  test("an edited radio value is rejected: neither applied to <html> nor persisted", async ({ page }) => {
+    // review fix, #117 blocker 2: radio.value is a mutable DOM property;
+    // this module must not trust it just because a change event fired. A
+    // capture-phase listener on the document runs BEFORE bwThemeSwitch's
+    // own bubble-phase listener on the radio itself (capture always
+    // precedes target and bubble), so mutating .value there simulates a
+    // script that tampered with the element ahead of this module's own
+    // handler reading it, which target-only interception cannot prove.
+    await page.evaluate(() => {
+      document.addEventListener(
+        "change",
+        (event) => {
+          if (event.target.matches('[data-bw-theme-switch-axis="theme"] input[value="dark"]')) {
+            event.target.value = "not-a-real-theme";
+          }
+        },
+        { capture: true },
+      );
+    });
+    const dark = section(page, "default-heading").locator('input[value="dark"]');
+    await dark.check({ force: true }); // Playwright's own value-match assertion would otherwise fight the tamper
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", "not-a-real-theme");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light"); // unchanged from the fixture default
+    // the axis never had a stored value before this interaction, and the
+    // tampered change must not create one
+    const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
+    expect(stored).toBeNull();
   });
 });
 
