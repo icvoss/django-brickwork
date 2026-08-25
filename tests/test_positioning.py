@@ -55,17 +55,25 @@ _POSITIONING = _REPO_ROOT / "docs" / "POSITIONING.md"
 # Markdown table parsing: row label -> value cell, from the ACTUAL doc text.
 # ---------------------------------------------------------------------------
 
-_SECTION_5_HEADING_RE = re.compile(r"(?m)^## 5\. ")
-_NEXT_HEADING_RE = re.compile(r"(?m)^## 6\. ")
+_SECTION_5_HEADING_RE = re.compile(r"(?m)^## \d+\. The full verified numbers")
+_NEXT_HEADING_RE = re.compile(r"(?m)^## \d+\. ")
 _TABLE_ROW_RE = re.compile(r"^\|\s*(?P<label>[^|]+?)\s*\|\s*(?P<value>[^|]+?)\s*\|\s*(?P<note>.*?)\s*\|$")
 
 
 def _section_5_text() -> str:
+    """The text of the "full verified numbers" section, found by title rather
+    than by section number: renumbering the document (inserting or removing an
+    earlier section) must not break this gate, only retitling the section
+    should.
+    """
     text = _POSITIONING.read_text(encoding="utf-8")
     start = _SECTION_5_HEADING_RE.search(text)
-    end = _NEXT_HEADING_RE.search(text)
-    assert start is not None, "docs/POSITIONING.md has no '## 5.' heading; has section 5 been renumbered?"
-    assert end is not None, "docs/POSITIONING.md has no '## 6.' heading; has section 6 been renumbered?"
+    assert start is not None, (
+        "docs/POSITIONING.md has no '## <n>. The full verified numbers' heading; "
+        "has the section been renamed?"
+    )
+    end = _NEXT_HEADING_RE.search(text, start.end())
+    assert end is not None, "docs/POSITIONING.md has no heading after the full verified numbers section"
     return text[start.end() : end.start()]
 
 
@@ -108,6 +116,42 @@ def test_section_5_table_is_parseable_and_non_empty() -> None:
     rows = _table_rows()
     assert rows, "parsed zero rows from docs/POSITIONING.md section 5; has the table format changed?"
     assert "Version" in rows
+
+
+# The rows this file's other tests treat as gated, i.e. cross-checked against
+# a real shipped artefact rather than merely hand-counted. Kept as a literal
+# list here, independent of the note text, so the assertion below is not
+# tautological: it reads the "Gated" marker from the parsed table and checks
+# it against this list, rather than deriving both sides from the same string.
+_GATED_ROW_LABELS = (
+    "Components",
+    "Shells",
+    "Sections",
+    "Archetypes",
+    "Template tag registrations",
+    "Tokens",
+    "Alpine components",
+    "Examples",
+    "A11y gate",
+    "Version",
+)
+
+
+def test_gated_rows_carry_a_visible_gated_marker_in_their_note() -> None:
+    """Every row this file treats as gated must still say so in the doc.
+
+    Guards against a silent relabelling (e.g. "Gated" -> "Dated") that would
+    otherwise leave the table claiming a row is merely dated while this file
+    keeps enforcing it as gated, which is a correctness statement the reader
+    can no longer verify by reading the table alone.
+    """
+    rows = _table_rows()
+    for label in _GATED_ROW_LABELS:
+        _value, note = rows[label]
+        assert re.search(r"\*\*[A-Za-z ]*[Gg]ated\*\*", note), (
+            f"{label!r} row is treated as gated by this test file but its note "
+            f"no longer carries a visible Gated marker: {note!r}"
+        )
 
 
 # ---------------------------------------------------------------------------
