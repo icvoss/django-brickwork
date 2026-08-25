@@ -29,6 +29,21 @@ brickwork/components/_disclosure.html directly once per question (its
 contract is flat strings: label=question, content=answer, plus a shared
 name for the single-open behaviour); stacking disclosures is all this
 wrapper does.
+
+States: whatever _disclosure.html carries per item (closed/open, and,
+  with single_open=True, exclusive single-open accordion grouping via the
+  native <details name> mechanism); this wrapper itself is static, no
+  state of its own beyond the stack it composes.
+Accessibility: the section heading is an <h2>; each question/answer pair
+  inherits _disclosure.html's native keyboard and no-JS behaviour
+  unchanged (see that component's own header for the full contract).
+  Covered by axe.spec.mjs against pricing-*.html (its own shipped FAQ
+  section) and against sections-*.html (faq/single-column.html,
+  faq/two-column.html), both themes.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-faq-section* selector. The two-column example variant is a page
+  composition (two _faq.html includes side by side), not a responsive
+  behaviour this component itself provides.
 {% endcomment %}
 {% if heading or items %}
 <section class="bw-faq-section">

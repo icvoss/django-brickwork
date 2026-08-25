@@ -51,6 +51,22 @@ Optional context:
                 gutter so the copy does not touch the viewport edge on a
                 phone (icvoss/django-brickwork#98/#118 pattern, ADR-077
                 section 3a).
+
+States: none: a static band, no open/closed or hover-driven state of its
+  own (the bw_button CTAs inside carry their own button states).
+Accessibility: purely structural; the heading is an <h2>, so a page
+  composing this band contributes one heading level to the outline rather
+  than a div soup. Covered by axe.spec.mjs against landing-*.html,
+  pricing-*.html, about-*.html (all three compose it), sections-*.html
+  (cta/centred-band.html) and cta-width-*.html (the width="bleed" axis,
+  never rendered by the three pages above).
+Responsive: no breakpoint switch. The actions row is
+  display: flex; flex-wrap: wrap, so two CTA buttons sit side by side at
+  wide widths and stack onto their own lines when the band narrows, fluid
+  at every viewport rather than a named-breakpoint jump. width="bleed" is a
+  CSS-only escape from the marketing shell's content cap (100vw, capped so
+  it cannot itself cause page-level horizontal scroll), applying at every
+  width, not gated to one.
 {% endcomment %}
 {% if heading %}
 <section class="bw-cta{% if band != 'plain' %} bw-cta--tint{% endif %}{% if width == 'bleed' %} bw-cta--bleed{% endif %}">

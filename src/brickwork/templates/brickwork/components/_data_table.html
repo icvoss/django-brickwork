@@ -88,6 +88,33 @@ overflow (no change). "stack" additionally stamps each <td> with
 data-label="<column label>" (read from ``columns`` by position via the
 ``list_item`` filter, BR-BW-TPL-005: no data reshaping, just a positional
 read) so a narrow-viewport CSS rule can render each row as a labelled card.
+
+States: loading (a skeleton row set, aria-hidden), empty (zero rows renders
+  _empty_state.html instead of a table), sortable-column ascending/
+  descending/unsorted (aria-sort plus an icon per state), row selected
+  (records variant, selectable=True), sticky header on/off, responsive
+  "scroll" (default, unconditional overflow-x on the wrap) vs "stack"
+  (card layout below md).
+Accessibility: sortable headers carry aria-sort; every selection checkbox
+  (row and select-all) has a visually-hidden accessible label, never a
+  bare unlabelled control (WCAG 4.1.2); a linked row's first cell is a real
+  anchor so the row is keyboard-reachable without a synthetic click
+  handler. The no-JS floor is a real HTML table with real links/checkboxes/
+  a real GET-param sort; selection's enhanced count/indeterminate state is
+  bwTableSelection, opt-in only. Covered by axe.spec.mjs against
+  list-*.html/dashboard-*.html (records, sortable, definition tables all
+  appear across those fixtures) and table-selection-*.html (selectable);
+  the enhanced bwTableSelection behaviour has no dedicated browser-driven
+  interaction test today (see _bulk_actions_bar.html's own header).
+Responsive: unconditional horizontal scroll on .bw-data-table-wrap at every
+  width (responsive="scroll", the default: no breakpoint gate, always on).
+  responsive="stack" additionally switches to a card layout below
+  --bw-breakpoint-md (48rem): the header row is visually hidden, each row
+  becomes a block, and each cell renders as a label/value pair via
+  data-label; at md and above it is a no-op and the table renders exactly
+  as the scroll default. This breakpoint is deliberately the same one the
+  app shell's own sidebar-to-drawer collapse uses, so a table's card mode
+  and the shell's mobile nav change together.
 {% endcomment %}
 {% comment %}
 Optional-by-design context resolves via {% firstof %} hoists, never the

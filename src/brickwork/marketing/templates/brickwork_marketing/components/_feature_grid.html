@@ -33,6 +33,24 @@ Optional context:
            content. Ignored without item.url.
   columns  (2|3|4, default 3): responsive down to one column on narrow
            viewports (bw-feature-grid--<n> selects the CSS grid template).
+
+States: none: a static grid of cards, no open/closed or hover-only reveal.
+  A linked card (item.url) takes the standard link hover ink shift and the
+  global :focus-visible ring; an unlinked card has no interactive state at
+  all.
+Accessibility: each card's heading is an <h3> (one level under the
+  section's own <h2>), so a page composing several feature grids keeps a
+  correct outline; the card icon is decorative. A linked card renders as a
+  real <a> wrapping the whole card, never a div with a click handler, and
+  item.aria_label overrides its accessible name when the visible text alone
+  would not describe the destination. Covered by axe.spec.mjs against
+  landing-*.html (its own shipped feature grid) and sections-*.html
+  (features/icon-grid.html), both themes.
+Responsive: grid-template-columns switches at two named breakpoints: 1
+  column below --bw-breakpoint-sm (40rem), 2 columns from sm up to below
+  --bw-breakpoint-lg (64rem) regardless of the columns value (2/3/4 all
+  render 2 columns in this band), then the requested column count (2, 3 or
+  4) from lg upward.
 {% endcomment %}
 {% if heading or lede or items %}
 <section class="bw-feature-grid-section">
