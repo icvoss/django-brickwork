@@ -109,3 +109,45 @@ def test_no_active_role_falls_back_to_defaults_with_no_brand_key() -> None:
     ctx = theme(_request())  # no active_role on the request
     assert "bw_brand" not in ctx
     assert ctx["bw_theme"] == "light"
+
+
+# --- bw_theme_locked_axes (#117): which axes the resolver itself asserted --
+# this request, distinct from a value that merely fell back to a
+# BRICKWORK_DEFAULT_* setting. {% bw_theme_switch %} reads this so a
+# server-resolved axis never renders as a free client toggle (SHL-003).
+
+
+def test_no_resolver_locks_nothing() -> None:
+    assert theme(_request())["bw_theme_locked_axes"] == ""
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._resolver")
+def test_resolver_asserting_theme_locks_only_theme() -> None:
+    # _resolver returns {"theme": "dark", "logo": ...}: theme is asserted,
+    # density/dir/brand are not (they fell back to defaults, not the resolver).
+    ctx = theme(_request())
+    assert ctx["bw_theme_locked_axes"] == "theme"
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._role_resolver")
+def test_resolver_asserting_brand_locks_only_brand() -> None:
+    request = _request()
+    request.active_role = "coach"
+    ctx = theme(request)
+    assert ctx["bw_theme_locked_axes"] == "brand"
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._role_resolver")
+def test_resolver_returning_nothing_this_request_locks_nothing() -> None:
+    ctx = theme(_request())  # no active_role: _role_resolver returns {}
+    assert ctx["bw_theme_locked_axes"] == ""
+
+
+def _full_axes_resolver(request):
+    return {"theme": "dark", "density": "compact", "dir": "rtl", "brand": "acme"}
+
+
+@override_settings(BRICKWORK_THEME_RESOLVER="tests.test_context_processors._full_axes_resolver")
+def test_resolver_asserting_every_axis_locks_all_four_in_order() -> None:
+    ctx = theme(_request())
+    assert ctx["bw_theme_locked_axes"] == "theme density dir brand"

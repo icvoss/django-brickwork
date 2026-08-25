@@ -705,6 +705,11 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         # no context contract of its own to render standalone, and the
         # "bw_button (loading)" registry entry already exercises its class.
         "_spinner.html",
+        # bw_theme_switch's private render target (icvoss/django-brickwork#117):
+        # its own dedicated test file (test_theme_switch.py) already renders it
+        # through the tag and checks its fixed, non-option-driven class set,
+        # matching the dropdown/tabs/toast/combobox precedent above.
+        "_theme_switch.html",
     }
     shell_dirs = {"shell"}
     covered_stems = {
