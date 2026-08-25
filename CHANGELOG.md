@@ -8,6 +8,25 @@ versioning contract).
 
 ## Unreleased
 
+## [3.10.0] - 2026-08-25
+
+A documentation and catalogue-accuracy release: every one of the 87 shipped
+catalogue items now documents its states, accessibility contract and
+responsive behaviour in a parseable format the consuming site's gallery
+parser reads directly, alongside two correctness fixes in the shipped
+examples and the generated catalogue manifest. No template, CSS or JavaScript
+runtime behaviour changes for an existing consumer on upgrade.
+
+### Added
+
+- **Every catalogue item's docSource now documents its states, accessibility contract and responsive behaviour, in a parseable format** (icvoss/django-brickwork#234). Previously each shipped shell, component, section and archetype carried freeform prose plus a `Required context`/`Optional` block in its leading `{% comment %}`; nothing named its states, what the blocking a11y gates actually verify for it, or its breakpoint behaviour, and 46 of 87 items had no accessibility-flavoured prose at all. Every item's leading comment now carries three line-leading labels, `States:`, `Accessibility:`, `Responsive:`, positioned after any existing context sections, matching the format the consuming site's `docs_app/gallery/docstrings.py` parser expects. Two examples that previously shipped no leading comment whatsoever, `examples/sections/hero/media-behind.html` and `examples/sections/hero/split-media.html`, now carry a complete header including their context contract. A new drift test enforces presence of all three labels on every manifest item, so a future item cannot ship without them. `docs/CATALOGUE.md` documents the convention (section 5a).
+
+### Fixed
+
+- **`app/detail.html`'s breadcrumb region rendered empty** (icvoss/django-brickwork#232). The example passed `items=breadcrumb_items` into `_breadcrumbs.html`, whose documented required key is `crumbs`; Django's silent-variable behaviour meant no error surfaced, so the region rendered a valid, structurally complete `<nav>` with no `<li>` children whatever context a consumer supplied. The include now passes `crumbs=breadcrumb_items`. A sweep of every other example's component include against its target's documented required keys found no other mismatch. `tests/test_examples.py` adds a check that pins, for each example, that its fixture's string values under a fixed set of documented-literal keys (`label`, `heading`, `title`, `quote`, and similar copy fields; see `_LITERAL_TEXT_KEYS`) actually reach the rendered HTML, derived from the existing `_EXAMPLE_CONTEXTS`/`_SECTION_CONTEXTS` fixtures rather than hand-listed per example. It reproduces the breadcrumb defect specifically (a fixture value silently dropped by an include-kwarg mismatch) for that key set; it is not a general claim of protection against every possible rendering defect.
+
+- **`catalogue-manifest.json` marked `examples/base.html` as `requiresContext: true`, though it renders a complete, correct document from an empty context.** `scripts/generate_catalogue_manifest.py`'s `requiresContext` detection flagged `_toast_region.html`'s `{% include ... with placement=bw_toast_position_resolved %}` as context-sourced, but `bw_toast_position_resolved` is bound locally by the preceding `{% firstof bw_toast_position 'top-end' as bw_toast_position_resolved %}`, which always resolves (to the literal `'top-end'` default when `bw_toast_position` is absent) regardless of the render context. The detector now excludes names bound by a template's own `{% firstof ... as %}`/`{% with %}` before checking whether an include kwarg is context-sourced. Compared across all 87 manifest items, this is the only value that changes; `docs/CATALOGUE.md` section 7's "15 of 16 archetypes need context" is corrected to 14 of 16, `app/confirm.html` and `base.html` both rendering empty.
+
 ## [3.9.0] - 2026-08-25
 
 Wave 0 of the interface-system delivery plan: the release that makes the
