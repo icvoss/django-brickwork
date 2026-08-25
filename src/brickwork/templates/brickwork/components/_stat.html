@@ -48,6 +48,25 @@ Optional:
         Omitted (the default) renders nothing, matching the unfilled-block
         convention elsewhere. Ignored while loading=True (the skeleton
         stands in for the whole tile's content, sparkline included).
+
+States: loading (skeleton rows stand in for the whole tile), and, when
+  href is set, the interactive-card hover/focus-within raise (the same
+  shadow-only treatment _card.html documents, never a transform); a trend
+  reading carries up/down/flat sub-states.
+Accessibility: a trend is never colour-only: a directional glyph
+  (decorative) always pairs with visually-hidden text naming the direction
+  in words ("increased"/"decreased"/"unchanged"), regardless of whether
+  the caller supplies a visible trend_label. A linked tile (href) renders
+  as a real anchor. Covered by axe.spec.mjs against dashboard-*.html
+  (app/dashboard.html's own KPI row, its native usage) and
+  sections-*.html (stats/inline-band.html, via _stat_band.html); the
+  standalone loading and href states are exercised directly by
+  tests/test_stat.py at the Python/string level, not a dedicated browser
+  fixture.
+Responsive: no breakpoint switch; no width-dependent CSS on any .bw-stat*
+  selector. Size is the fixed sm/md/lg token scale, never viewport-driven;
+  the surrounding grid (a dashboard's bw-stat-grid or this component's own
+  bw-stat-band) owns whatever column-count responsiveness a page shows.
 {% endcomment %}
 {% if href %}<a class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}" href="{{ href }}"{% bw_data_attrs data "stat" %}>{% else %}<div class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}"{% bw_data_attrs data "stat" %}>{% endif %}
   {% if loading %}

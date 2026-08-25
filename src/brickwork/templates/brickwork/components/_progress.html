@@ -34,6 +34,20 @@ Optional:
   show_value (bool, default False): also renders the percentage as visible
       text beside the bar (determinate only; ignored when indeterminate,
       since there is no percentage to show).
+
+States: determinate (a numeric aria-valuenow, fill width driven by
+  --bw-progress-value) and indeterminate (no aria-valuenow, an animated
+  sweep); under prefers-reduced-motion the sweep stops and a static
+  partial fill stands in, so reduced motion never shows a blank track.
+Accessibility: role="progressbar" with an enforced accessible name
+  (aria-label from the required label) and aria-valuemin/-valuemax always
+  present; colour is never the only signal (the accessible name plus the
+  optional visible show_value text carry the state as words). Covered by
+  axe.spec.mjs against feedback-*.html (both determinate and indeterminate
+  renders), both themes.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-progress* selector. The bar fills its container width at every
+  viewport size.
 {% endcomment %}
 <div class="bw-progress{% if value is None %} bw-progress--indeterminate{% endif %}"
      role="progressbar"
