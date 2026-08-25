@@ -41,6 +41,10 @@
     }
   ],
   "overridable": [
+    "--bw-breakpoint-lg",
+    "--bw-breakpoint-md",
+    "--bw-breakpoint-sm",
+    "--bw-breakpoint-xl",
     "--bw-color-accent",
     "--bw-color-accent-hover",
     "--bw-color-accent-subtle",
