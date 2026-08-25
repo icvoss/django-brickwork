@@ -9,5 +9,12 @@ content on the page surface instead, when the page already has enough bands.
 
 A heading is REQUIRED: with no heading the component renders nothing at all
 rather than an empty band. That is deliberate across this kit.
+
+States: none of its own: see _cta.html's own header (the include this file
+  wraps) for the full states/accessibility/responsive contract, unchanged
+  here.
+Accessibility: see _cta.html.
+Responsive: see _cta.html; band="tint" and width (defaulted here to
+  "contained") are the same CSS-only axes documented there.
 {% endcomment %}
 {% include "brickwork_marketing/components/_cta.html" with heading="Stop writing chase emails" body="Free for 30 days. No card, no setup call, no data import to sit through." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Talk to us" secondary_cta_href="/contact/" %}

@@ -13,6 +13,17 @@ arrangement of the same parts.
 The action column comes SECOND in the markup, which is also the order it is
 read and tabbed in. Keep it that way: the button should be reached after the
 sentence explaining what it does.
+
+States: none: a static band, no open/closed or hover-driven state (the
+  bw_button inside carries its own button states).
+Accessibility: the heading is a real <h2>; reading and tab order matches
+  the visual order (copy, then action), never reordered by CSS. Covered by
+  axe.spec.mjs against sections-*.html, which renders this exact file,
+  both themes.
+Responsive: single named breakpoint. Below --bw-breakpoint-md (48rem) copy
+  and action stack in a column (align-items: flex-start); from md upward
+  it becomes a row (flex-direction: row, space-between), copy and action
+  side by side.
 {% endcomment %}
 <section class="bw-cta-split">
   <div class="bw-cta-split__copy">
