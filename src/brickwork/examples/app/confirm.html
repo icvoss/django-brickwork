@@ -16,6 +16,17 @@ what is irreversible.
 No JS is involved: the confirm is a POST form and the cancel is a link. If you
 would rather confirm in a modal, brickwork ships one, but keep a real URL like
 this behind it so the action still works without JS.
+
+States: none: a static page, no open/closed or hover-driven state beyond
+  the composed _alert.html and bw_button controls' own states.
+Accessibility: inherits shell/centred.html's skip link, lang/dir/theme
+  attributes and <main id="bw-main" tabindex="-1">; the warning alert
+  names the destructive action in words (role="alert"), never colour
+  alone. Covered by the archetype harness's full gate sweep (render, axe
+  WCAG 2.2 AA, no horizontal overflow, light/dark distinctness, skip-link
+  first-tab-stop with JS disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/centred.html's
+  fluid, no-breakpoint centred panel.
 {% endcomment %}
 {% load brickwork_components %}
 

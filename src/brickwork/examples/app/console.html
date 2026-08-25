@@ -16,6 +16,20 @@ are different situations and a user reads them differently.
 Its heading and body are REQUIRED and have no defaults, deliberately. brickwork
 will not invent copy about a feature it knows nothing about, and a generic "No
 items" helps nobody.
+
+States: this page's own state IS an empty state (no_data variant); the
+  composed _empty_state.html carries its own icon/heading/body/action
+  states, documented in that component's own header.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; the empty state's icon is decorative, heading and
+  body carry the meaning in words. Covered by the archetype harness's full
+  gate sweep (render, axe WCAG 2.2 AA, no horizontal overflow, light/dark
+  distinctness, skip-link first-tab-stop with JS disabled) at every W0.1
+  breakpoint, both themes; the size="sm" in-panel empty-state shape is
+  additionally covered directly by axe.spec.mjs against
+  console-sm-*.html.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem).
 {% endcomment %}
 {% load brickwork_nav %}
 

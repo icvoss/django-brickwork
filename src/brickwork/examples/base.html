@@ -26,6 +26,22 @@ structural change to the skeleton below, which is the point.
 
 EVERY LOAD-BEARING LINE IS ANNOTATED. If you remove a line marked LOAD-BEARING
 something will break, and the comment says what.
+
+States: none of its own; it is a raw document skeleton with no interactive
+  markup beyond the skip link and the two empty overlay roots (both
+  static, no open/closed state without a consumer's own components
+  targeting them).
+Accessibility: ships the skip link as the first focusable element and the
+  lang/dir/theme/density attributes on <html>, exactly as
+  brickwork/shell/base.html does (this file is the copy-paste twin of
+  that shell). Covered by the archetype harness (a11y/archetypes.spec.mjs)
+  and axe.spec.mjs: render succeeds, axe WCAG 2.2 AA passes, no horizontal
+  overflow, light/dark are visibly distinct, and the skip link is the
+  first tab stop with JavaScript disabled, at every W0.1 breakpoint
+  (below-sm/sm/md/lg/xl/above-xl), both themes.
+Responsive: no width-dependent CSS of its own (a bare document with no
+  layout). The viewport meta tag is load-bearing for every brickwork
+  responsive layout a consumer builds on top of it, per the comment above.
 =============================================================================
 {% endcomment %}
 {% load static i18n %}<!doctype html>
