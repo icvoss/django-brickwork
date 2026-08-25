@@ -563,6 +563,22 @@
   margin-block-end: var(--bw-density-stack-gap);
 }
 
+/* A plain <a> in the panel's prose ("Back to sign in", "Forgotten your
+ * password?") is the documented default shape for auth examples, but the
+ * panel itself sets no colour for it, so it fell back to the UA default
+ * blue, invisible against a dark-theme surface (WCAG 1.4.3, caught by the
+ * W0.3 archetype harness). Same fix as .bw-marketing-footer__inner :where(a)
+ * (BR-BW-MKT-002): theme it explicitly, never leave a prose link unstyled. */
+.bw-auth__panel :where(a),
+.bw-centred__panel :where(a) {
+  color: var(--bw-color-accent);
+}
+
+.bw-auth__panel :where(a:hover),
+.bw-centred__panel :where(a:hover) {
+  color: var(--bw-color-accent-hover);
+}
+
 /* --- Topbar-primary layout (SHL-001): [data-layout="topbar"] ---------------- */
 
 /* Same DOM as the sidebar layout, restyled: the aside becomes a full-width
