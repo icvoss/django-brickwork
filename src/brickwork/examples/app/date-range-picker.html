@@ -3,14 +3,11 @@
 A date RANGE picker, and the single-date variant of the same file.
 
 COPY THIS FILE into your project and edit it. It is not on the template loader
-path, so you cannot extend it (ADR-056). It is not a brickwork component: no
-{% templatetag openblock %} bw_date_picker {% templatetag closeblock %} tag
-exists and never will (BR-BW-INPUT-004 is a Fixed rule: date fields stay native
-<input type="date">, never a JS calendar widget, as a package-shipped
-component). What you are copying is EXT-006's documented slot filled in once,
-properly, so you do not have to build it yourself: the wrapper chrome is
-brickwork tokens, the popover content is entirely yours from the moment you
-copy this file (FRM-013).
+path, so you cannot extend it (ADR-056). A package-maintained
+{% templatetag openblock %} bw_date_picker {% templatetag closeblock %} tag is
+not currently shipped. This example gives you a complete, accessible date-entry
+pattern now: the wrapper chrome uses Brickwork tokens and the copied popover is
+yours to adapt.
 
 WHAT YOUR VIEW MUST SUPPLY, and this is deliberately small:
     nav_items / nav_active     as in list.html

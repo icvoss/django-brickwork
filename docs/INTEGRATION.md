@@ -390,9 +390,9 @@ The rules:
 ## 5. A JS-bearing page: the chrome/body boundary and asset coexistence (brickwork#33)
 
 For any page that mounts a chart, a rich editor, or other app-owned JavaScript,
-the boundary is simple and firm: **brickwork owns the chrome (shell, nav, topbar,
-footer); you own everything inside `{% block content %}`.** brickwork does not
-mount data-viz; charts are a declared non-goal. Mount your component inside the
+Brickwork owns the surrounding interface contract: layout, tokens, states,
+controls and accessibility. Your project may supply the specialist renderer
+until Brickwork ships the needed primitive. Mount that renderer inside the
 content block against a plain element you control:
 
 ```django
