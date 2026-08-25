@@ -762,6 +762,37 @@ input.bw-toggle:disabled {
   line-height: var(--bw-text-body-md-line-height);
   max-inline-size: var(--bw-size-max-width-form);
 }
+/* --size-sm (ADR-060, STA-019, #218): the in-panel scale, for an empty state
+ * nested inside a card or other bounded container rather than filling a
+ * page. Tighter block padding than the page-filling default. */
+.bw-empty-state--size-sm {
+  padding-block: var(--bw-space-6);
+}
+/* The heading demotes to a <p> at this scale (optional, STA-019), so it takes
+ * an emphasised-body treatment rather than the heading-lg role: same
+ * body-md size/line-height as .bw-empty-state__body, semibold weight to
+ * still read as the region's title. Matches the established
+ * emphasised-body pattern elsewhere in this file (.bw-alert__title,
+ * .bw-page-header__description). */
+.bw-empty-state--size-sm .bw-empty-state__heading {
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+  font-weight: var(--bw-font-weight-semibold);
+}
+/* Plain-link action treatment (STA-019): no bw-btn chrome, medium weight,
+ * a 44px touch target. No bespoke focus ring: the global :focus-visible
+ * rule (index.css) already covers anchors. */
+.bw-empty-state__action-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--bw-color-accent);
+  font-weight: var(--bw-font-weight-medium);
+  text-decoration: none;
+}
+.bw-empty-state__action-link:hover {
+  text-decoration: underline;
+}
 
 /* --- Data table ------------------------------------------------------------ */
 
