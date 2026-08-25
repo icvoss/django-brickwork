@@ -390,7 +390,7 @@ _engine = Engine()
 _REQUIRES_CONTEXT_CASES: list[tuple[str, str, bool]] = [
     (
         "with_binding_wrapping_external_name_feeding_include_kwarg",
-        '{% with heading=external_heading %}'
+        "{% with heading=external_heading %}"
         '{% include "brickwork/components/_page_header.html" with title=heading %}'
         "{% endwith %}",
         True,
@@ -404,15 +404,12 @@ _REQUIRES_CONTEXT_CASES: list[tuple[str, str, bool]] = [
     ),
     (
         "with_binding_out_of_scope_for_a_sibling_include",
-        '{% with x="literal" %}{{ x }}{% endwith %}'
-        '{% include "brickwork/components/_page_header.html" with title=x %}',
+        '{% with x="literal" %}{{ x }}{% endwith %}{% include "brickwork/components/_page_header.html" with title=x %}',
         True,
     ),
     (
         "nested_if_inherits_enclosing_context_requirement",
-        "{% if flag %}"
-        '{% include "brickwork/components/_page_header.html" with title=external_var %}'
-        "{% endif %}",
+        '{% if flag %}{% include "brickwork/components/_page_header.html" with title=external_var %}{% endif %}',
         True,
     ),
     (
@@ -423,8 +420,7 @@ _REQUIRES_CONTEXT_CASES: list[tuple[str, str, bool]] = [
     ),
     (
         "firstof_asvar_with_no_literal_argument_feeding_include_kwarg",
-        "{% firstof a b as resolved %}"
-        '{% include "brickwork/components/_toast_region.html" with placement=resolved %}',
+        '{% firstof a b as resolved %}{% include "brickwork/components/_toast_region.html" with placement=resolved %}',
         True,
     ),
     (
