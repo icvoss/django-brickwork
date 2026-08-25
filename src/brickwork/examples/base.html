@@ -73,7 +73,7 @@ into the attribute. firstof ignores the resolution failure and is immune.
   {% endcomment %}
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>{% block page_title %}{% firstof bw_page_title '' %}{% endblock %}</title>
+  <title>{% block page_title %}{% firstof bw_page_title 'Northwind' %}{% endblock %}</title>
 
   {% comment %}
   LOAD-BEARING: the stylesheet. This one file carries the tokens, every

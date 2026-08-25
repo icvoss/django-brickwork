@@ -8,6 +8,7 @@
     "build:assets": "vite build",
     "build": "npm run build:tokens && npm run build:assets",
     "a11y:fixtures": "DJANGO_SETTINGS_MODULE=tests.settings_seams PYTHONPATH=src:.:tests python a11y/generate_fixtures.py",
+    "a11y:fixtures:archetypes": "DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python a11y/generate_archetype_fixtures.py",
     "a11y": "playwright test"
   },
   "devDependencies": {
