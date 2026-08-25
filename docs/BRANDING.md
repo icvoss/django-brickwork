@@ -405,9 +405,18 @@ other interaction). Options (ADR-060 grammar):
   most sites.
 - `brands` (mapping, required when `"brand"` is in `axes`): `{slug: label}`
   for your own `data-bw-brand` values; brickwork ships no brand slugs of its
-  own to offer.
+  own to offer. Every key is validated server-side against the same
+  attribute-safe slug rule `BRICKWORK_DEFAULT_BRAND` and a resolver's own
+  `brand` key already follow; a bad slug is a loud `TemplateSyntaxError`.
 - `label` (str, optional): the control's own accessible name; defaults to a
   translated "Display settings".
+- `locked_axes` (str, optional): which axes render as a disabled, read-only
+  radio group. Defaults to `bw_theme_locked_axes` from the template context
+  (set by `brickwork.context_processors.theme`) when omitted, so the bare
+  `{% bw_theme_switch %}` call above is safe by default on a resolver-backed
+  page; you do not pass this by hand in ordinary use. Pass a string
+  explicitly (including `""`) to override the context value entirely rather
+  than merging with it.
 
 **The no-JS floor here is "render nothing", not "render a working control",
 the one deliberate departure from this package's usual doctrine.** The
@@ -437,14 +446,25 @@ deliberately clear the brand still locks the brand axis, so a stale
 `localStorage` value can never resurface a brand the resolver just cleared.
 
 Every value this control is about to apply or persist, whether restored
-from `localStorage` or read from a radio at change time, is checked against
-that axis's own rendered options first (the theme/density/dir vocabularies,
-or your `brands=` slugs); a value that fails is discarded rather than
-applied, and a bad stored entry is removed rather than left to fail again
-on the next load. `brands=` keys are validated server-side at render time
-against the same attribute-safe slug rule `BRICKWORK_DEFAULT_BRAND` and a
-resolver's own `brand` key already follow, so a bad slug is a loud
-`TemplateSyntaxError` rather than a broken `[data-bw-brand="..."]` selector.
+from `localStorage`, read from `<html>`'s own current attribute, or read
+from a radio at change time, is checked against a closed set the SERVER
+emits per instance (a `json_script` payload alongside the control, never
+the rendered radios themselves, so a mistaken override template rendering a
+wrong or extra `<input>` cannot widen what the client accepts); a value
+that fails is discarded rather than applied, a bad stored entry is removed
+rather than left to fail again on the next load, and an unrecognised
+`<html>` attribute is treated as absent rather than adopted.
+
+A locked axis resolves its OWN current value server-side too (from the same
+context variables the shell itself reads to write `<html>`), never from
+`<html>` at JS runtime: with more than one switch instance on a page
+sharing an axis (an ordinary pattern, not a misuse), an earlier-initialising
+unlocked sibling can already have changed `<html>` by the time a locked
+instance's own init runs, and reading the live attribute at that point would
+be order-dependent. A locked group still discards a genuinely INVALID
+stored entry (the same closed-set check), but leaves a VALID one alone,
+since it may legitimately belong to an unlocked sibling instance sharing
+that axis.
 
 **Two accepted trade-offs, stated rather than left silent:**
 
@@ -481,10 +501,16 @@ resolver's own `brand` key already follow, so a bad slug is a loud
     <script>
       (function () {
         try {
+          {# A locked axis's value is the server's own, never a stale client one: #}
+          {# skip it here exactly as bwThemeSwitch itself does, or a stored value #}
+          {# from BEFORE this axis became locked would silently override a real #}
+          {# resolver-asserted preference for the rest of the page's first paint. #}
+          {% if "theme" not in bw_theme_locked_axes.split %}
           var theme = localStorage.getItem("bw-theme-switch-theme");
           if (theme === "light" || theme === "dark") {
             document.documentElement.setAttribute("data-theme", theme);
           }
+          {% endif %}
         } catch (e) {}
       })();
     </script>
@@ -492,10 +518,13 @@ resolver's own `brand` key already follow, so a bad slug is a loud
   ```
 
   Validate against the closed vocabulary inline exactly as shown (never
-  apply an unchecked stored value to `<html>`, for the same reason
-  `bwThemeSwitch` itself validates); repeat the pattern per axis you want
-  flash-free. Add your CSP nonce as the registration detector's own
-  override already documents.
+  apply an unchecked stored value to `<html>`), and skip any axis your
+  `bw_theme_locked_axes` names, or the recipe restores a stale client value
+  OVER a resolver-locked one (server dark, stored light) and the lock then
+  preserves the wrong value for the rest of the page: a documented recipe
+  must not contradict the shipped component's own safety rule on the same
+  page. Repeat the `{% if %}` guard per axis you want flash-free. Add your
+  CSP nonce as the registration detector's own override already documents.
 
 ### The recipe, if you want your own control
 
@@ -504,33 +533,67 @@ different markup or copy: a `<fieldset>` of radios per axis (never buttons: a
 control with more than two states that are not "on"/"off" is a radio group,
 not a toggle), each axis announced by its own `<legend>`, the whole control
 `hidden` until JS reveals it (the same no-JS floor rule above), and
-persistence written directly onto `<html>`:
+persistence written directly onto `<html>`. **A documented recipe may not
+contradict the shipped component's own safety rules**, so this one validates
+and respects a lock exactly as `bwThemeSwitch` does, not a simplified,
+unvalidated version of it:
 
 ```django
+{% if "theme" in bw_theme_locked_axes.split %}
+<fieldset hidden data-my-theme-switch data-locked>
+  <legend>Theme</legend>
+  <label><input type="radio" name="theme" value="{{ bw_theme }}" data-theme-value checked disabled></label>
+  <p>Set by your account preferences.</p>
+</fieldset>
+{% else %}
 <fieldset hidden data-my-theme-switch>
   <legend>Theme</legend>
   <label><input type="radio" name="theme" value="light" data-theme-value> Light</label>
   <label><input type="radio" name="theme" value="dark" data-theme-value> Dark</label>
 </fieldset>
+{% endif %}
 ```
 
 ```js
 const STORAGE_KEY = "my-theme";
-const stored = localStorage.getItem(STORAGE_KEY);
-if (stored) document.documentElement.setAttribute("data-theme", stored);
-for (const radio of document.querySelectorAll("[data-theme-value]")) {
-  if (radio.value === (stored || document.documentElement.getAttribute("data-theme"))) radio.checked = true;
-  radio.addEventListener("change", () => {
-    document.documentElement.setAttribute("data-theme", radio.value);
-    localStorage.setItem(STORAGE_KEY, radio.value);
-  });
+const root = document.querySelector("[data-my-theme-switch]");
+const radios = root.querySelectorAll("[data-theme-value]");
+// The closed value set THIS markup renders, never trusted from elsewhere:
+// the same "validate against a server-known set, not whatever a stray
+// script injects" rule bwThemeSwitch itself follows.
+const validValues = new Set(Array.from(radios, (radio) => radio.value));
+const isValid = (value) => validValues.has(value);
+
+if (root.hasAttribute("data-locked")) {
+  // A real server preference exists for this axis: never read or write
+  // localStorage for it (the SHL-003 precedence rule), and the radio is
+  // already checked/disabled server-side, so there is nothing more to do.
+} else {
+  const currentRaw = document.documentElement.getAttribute("data-theme") || "";
+  const current = currentRaw && isValid(currentRaw) ? currentRaw : "";
+  const storedRaw = localStorage.getItem(STORAGE_KEY);
+  const stored = storedRaw !== null && isValid(storedRaw) ? storedRaw : null;
+  if (storedRaw !== null && stored === null) localStorage.removeItem(STORAGE_KEY); // invalid entry: discard, don't keep failing
+  const initial = stored ?? current;
+  if (initial) document.documentElement.setAttribute("data-theme", initial);
+  for (const radio of radios) {
+    if (radio.value === initial) radio.checked = true;
+    radio.addEventListener("change", () => {
+      if (!radio.checked || !isValid(radio.value)) return; // a tampered .value is never applied or persisted
+      document.documentElement.setAttribute("data-theme", radio.value);
+      localStorage.setItem(STORAGE_KEY, radio.value);
+    });
+  }
 }
-document.querySelector("[data-my-theme-switch]").removeAttribute("hidden");
+root.removeAttribute("hidden");
 ```
 
 Respect a server-resolved preference exactly as `{% bw_theme_switch %}` does:
 if your own resolver asserts an axis this request, do not read or write
-`localStorage` for it and disable that axis's inputs.
+`localStorage` for it, and render that axis's own current value server-side
+(never resolved from `<html>` at JS runtime: with more than one control on a
+page sharing an axis, an earlier-initialising unlocked one could already
+have changed `<html>` before a locked one's own script runs).
 
 ## The marketing brand slot: logo sizing out of the box (brickwork#83)
 
