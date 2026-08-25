@@ -22,6 +22,23 @@ Optional context:
 
 An empty tiers list renders the section intro alone (or nothing, if that
 too is empty), never a fabricated placeholder plan.
+
+States: none of its own beyond whatever each _pricing_tier.html card
+  carries (highlighted or not). A single-tier render takes the
+  bw-pricing-table--single modifier, which only caps and centres its
+  width; it is not a distinct interactive state.
+Accessibility: the section intro heading is an <h2>; each tier card's own
+  name is an <h3> underneath it, so the outline stays correct regardless of
+  how many tiers render. Covered by axe.spec.mjs against sections-*.html
+  (pricing/three-tier.html), both themes; the single-tier and comparison-
+  table variants are separate example files, not this component, and are
+  covered the same way via sections-*.html.
+Responsive: grid-template-columns switches at two named breakpoints: 1
+  column below --bw-breakpoint-md (48rem), 2 columns from md up to below
+  --bw-breakpoint-lg (64rem), 3 columns from lg upward, independent of how
+  many tiers are supplied (2-4 tiers all follow the same column steps). A
+  single tier instead takes bw-pricing-table--single, capped at 24rem and
+  centred, at every width.
 {% endcomment %}
 {% if heading or lede or tiers %}
 <section class="bw-pricing-table-section">
