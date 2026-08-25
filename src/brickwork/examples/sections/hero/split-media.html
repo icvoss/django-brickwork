@@ -1,1 +1,40 @@
+{% comment %}
+HERO / split media: copy and media side by side, a true two-column row
+from the medium breakpoint up.
+
+WHEN TO USE THIS INSTEAD OF MEDIA BEHIND. When the media is a product
+screenshot or diagram that should stay legible on its own terms (readable
+UI chrome, real labels), rather than a full-bleed backdrop with copy
+composited over it. Media behind suits an illustration or photograph that
+can carry a scrim; a screenshot generally cannot without losing detail.
+
+This one is the shipped _hero.html component with media_placement="beside"
+(ADR-077, replacing what used to be a hand-built section per
+icvoss/django-brickwork#118): a true side-by-side row from
+--bw-breakpoint-md up, a single stacked column below it (see _hero.html's
+own header for the full media_placement axis).
+
+NO MEDIA IS SUPPLIED HERE. The `media` context var is genuinely optional
+(the copy column renders correctly with an empty media column collapsing
+to nothing): this example demonstrates the layout and the two-CTA copy
+shape without depending on an image asset. A caller passing real media
+supplies pre-rendered, safe HTML via the `media` context var (an img or an
+svg); brickwork does not sanitise it.
+
+Required context: none. Optional context: media (safe string, an image or
+illustration for the media column; see _hero.html's own header for the
+full Optional context list this include accepts).
+
+States: see _hero.html's own header for the full states contract (none of
+  its own: a static band, both CTA buttons carry their own states).
+Accessibility: see _hero.html; the heading renders as the page's own <h1>.
+  Reading and tab order is always copy-then-media, matching document
+  order, unaffected by the responsive column layout, which is CSS-only.
+  Covered by axe.spec.mjs against sections-*.html, which renders this
+  exact file, both themes.
+Responsive: single named breakpoint. Below --bw-breakpoint-md (48rem) copy
+  and media stack in one column (media collapses to nothing here, since
+  none is supplied); from md upward it becomes a two-column grid (1fr
+  1fr), media vertically centred against the copy column.
+{% endcomment %}
 {% include "brickwork_marketing/components/_hero.html" with eyebrow="Invoicing" heading="Get paid without the awkward email" lede="Northwind raises the invoice, sends the reminders on your schedule, and flags the accounts about to run late. You keep the relationship." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_href="/demo/" media_placement="beside" %}
