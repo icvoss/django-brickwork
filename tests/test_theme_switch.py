@@ -40,7 +40,53 @@ def test_control_root_ships_hidden() -> None:
 
 def test_alpine_component_is_wired() -> None:
     html = _render()
-    assert 'x-data="bwThemeSwitch(' in html or "x-data=\"bwThemeSwitch()\"" in html
+    assert 'x-data="bwThemeSwitch(' in html or 'x-data="bwThemeSwitch()"' in html
+
+
+def test_every_focusable_control_is_inside_the_hidden_root() -> None:
+    # The no-JS floor depends on `hidden` covering every radio the browser
+    # accessibility tree and keyboard focus order could otherwise reach: a
+    # single `hidden` attribute on the OUTERMOST element enclosing every
+    # <input> is sufficient (the browser propagates hidden to all
+    # descendants), but a `hidden` on some inner wrapper that leaves inputs
+    # outside it is not. Parse the DOM structurally rather than checking the
+    # root tag's own attribute string in isolation (that alone does not
+    # prove containment), one call each for the default axes and the widest
+    # (brand-inclusive) axis set, since a future template change could add a
+    # control outside the root without breaking the substring-only check.
+    from html.parser import HTMLParser
+
+    class _ContainmentParser(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.depth = 0
+            self.root_hidden_depth: int | None = None
+            self.escaped_inputs: list[str] = []
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            attr_names = {name for name, _ in attrs}
+            if tag == "div" and self.root_hidden_depth is None:
+                assert "hidden" in attr_names, "root <div> must carry the hidden attribute"
+                self.root_hidden_depth = self.depth
+            if tag in {"input", "fieldset"} and self.root_hidden_depth is None:
+                self.escaped_inputs.append(tag)
+            self.depth += 1
+
+        def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            self.handle_starttag(tag, attrs)
+            self.depth -= 1
+
+        def handle_endtag(self, tag: str) -> None:
+            self.depth -= 1
+
+    for html in (
+        _render(),
+        _render('{% bw_theme_switch axes="theme density dir brand" brands=brands %}', brands={"acme": "Acme"}),
+    ):
+        parser = _ContainmentParser()
+        parser.feed(html)
+        assert parser.root_hidden_depth == 0, "the hidden div must be the outermost element"
+        assert not parser.escaped_inputs, "every input/fieldset must be inside the hidden root"
 
 
 # --- ADR-060 option grammar: axes= is a closed, space-separated vocabulary --
@@ -181,7 +227,10 @@ def test_two_instances_do_not_share_radio_group_names() -> None:
     html = _render("{% bw_theme_switch axes='theme' %}{% bw_theme_switch axes='theme' %}")
     import re
 
-    names = re.findall(r'name="([^"]+)"', html)
+    # Each instance's "theme" axis renders two radios (light/dark) sharing
+    # one name=, so dedupe to the per-instance group names before asserting
+    # the two instances themselves do not collide.
+    names = sorted(set(re.findall(r'name="([^"]+)"', html)))
     assert len(names) == 2
     assert names[0] != names[1]
 
