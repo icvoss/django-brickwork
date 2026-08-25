@@ -18,6 +18,7 @@ Dictionary themselves (04-interfaces.md section 8).
 | `typography.tokens.json` | Component | The `--bw-text-<role>-*` type-role bundles (DESIGN.md section 7.4): every value a var() reference into the `--bw-font-*` scales so overrides cascade. |
 | `motion.tokens.json` | Component | Durations, easing curves, and the composite `--bw-transition-*` shorthands (DESIGN.md section 8). |
 | `density.{comfortable,compact,spacious}.tokens.json` | Density axis | Spacing/sizing scales per density (BR-BW-TOK-004: density never affects colour). Same names across the three. |
+| `breakpoint.tokens.json` | Viewport axis | `--bw-breakpoint-sm/md/lg/xl` (ADR-079). Built as its own layer, always emitted as literals to `tokens.css`'s `:root` (never suppressed the way primitives are) plus a plain `@theme` block in `tailwind-theme.css`, never `@theme inline`, because media queries cannot resolve `var()`. |
 
 ## The four axes -> CSS selectors
 

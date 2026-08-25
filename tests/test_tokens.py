@@ -259,3 +259,88 @@ def test_tailwind_bridge_is_theme_inline() -> None:
     tw = (_DIST / "tailwind-theme.css").read_text()
     assert "@theme inline" in tw
     assert "--color-surface: var(--bw-color-surface);" in tw
+
+
+_FRONTEND_SRC = Path(__file__).resolve().parent.parent / "frontend" / "src"
+
+# CSS comments can sit anywhere inside a conditional-rule prelude (including
+# between a feature name and its value), so they are stripped before any of
+# the patterns below run; otherwise a comment breaks the adjacency a naive
+# regex relies on and a literal slips through undetected.
+_CSS_COMMENT = re.compile(r"/\*.*?\*/", re.S)
+
+# The three CSS at-rule forms whose prelude can carry a media condition, each
+# matched up to its terminator (the rule's opening brace for @media, the
+# statement's semicolon for @import and @custom-media, which have no block).
+_MEDIA_RULE_PRELUDE = re.compile(r"@media[^{;]*(?=\{)", re.S)
+_IMPORT_STATEMENT = re.compile(r"@import[^;]*;", re.S)
+_CUSTOM_MEDIA_STATEMENT = re.compile(r"@custom-media[^;]*;", re.S)
+
+# The blanket rule (PR #227 review, comment 5412033886): a px/rem length
+# literal anywhere inside one of the preludes above, case-insensitive unit.
+_LENGTH_LITERAL = re.compile(r"\b\d+(?:\.\d+)?(?:px|rem)\b", re.I)
+
+
+def _hardcoded_media_conditions(css: str) -> list[str]:
+    """Every @media/@import/@custom-media prelude in ``css`` carrying a
+    px/rem length literal anywhere inside it, comments stripped first.
+
+    Scope and threat model (per the PR #227 review ruling): this is a
+    regression pin against CSS a contributor might plausibly write, not an
+    adversarial boundary. It scans frontend/src/**/*.css for the three
+    at-rule forms whose prelude can hold a media condition and flags any
+    length literal found there, in any position, in any comparator
+    direction, inside calc(), across a line break, or written with an
+    upper-case unit. It does NOT attempt to defeat deliberate obfuscation
+    (escaped CSS identifiers, string-encoded values reassembled at build
+    time): that is review's job, not the regex's. No shipped prelude
+    legitimately carries a length literal: viewport features resolve
+    through --theme(--breakpoint-*), and the non-viewport features this
+    codebase actually uses (prefers-reduced-motion, print, orientation)
+    carry no length at all.
+    """
+    stripped = _CSS_COMMENT.sub(" ", css)
+    offenders = []
+    for pattern in (_MEDIA_RULE_PRELUDE, _IMPORT_STATEMENT, _CUSTOM_MEDIA_STATEMENT):
+        for match in pattern.finditer(stripped):
+            prelude = match.group(0)
+            if _LENGTH_LITERAL.search(prelude):
+                offenders.append(prelude)
+    return offenders
+
+
+def test_frontend_source_has_no_hardcoded_length_in_a_media_condition() -> None:
+    # W0.1: every viewport breakpoint in frontend/src/ must route through the
+    # generated --theme(--breakpoint-*) tokens (breakpoint.tokens.json), never
+    # a literal length repeated at each call site. A literal reintroduces the
+    # drift the token source was built to close: one breakpoint value living
+    # in N places instead of one place N call sites reference.
+    #
+    # See _hardcoded_media_conditions for the guard's scope and threat model.
+    offenders: list[str] = []
+    for css_path in sorted(_FRONTEND_SRC.rglob("*.css")):
+        text = css_path.read_text()
+        for prelude in _hardcoded_media_conditions(text):
+            offenders.append(f"{css_path.relative_to(_FRONTEND_SRC)}: {prelude}")
+    assert not offenders, f"hardcoded length in a media condition; use --theme(--breakpoint-*) instead: {offenders}"
+
+
+def test_dist_brickwork_css_has_no_var_inside_a_media_condition() -> None:
+    # The failure mode this whole slice exists to prevent: a var(--bw-*)
+    # reference inside an @media condition. A media condition cannot resolve
+    # a CSS custom property (browsers evaluate media queries before the
+    # cascade that would supply var()'s value), so any var() there is dead on
+    # arrival at parse time, silently matching nothing rather than raising.
+    # The generated breakpoint values are deliberately emitted as literals
+    # (not var()) into the @theme block for exactly this reason; this
+    # asserts the compiled artefact still reflects that, catching a
+    # regression in generation even if the source-level guard above is
+    # somehow satisfied. Case-insensitive: VAR(--bw-breakpoint-md) is valid
+    # CSS and must be caught the same as var(...).
+    css = (_DIST / "brickwork.css").read_text()
+    offenders = [
+        match.group(0)
+        for match in _MEDIA_RULE_PRELUDE.finditer(_CSS_COMMENT.sub(" ", css))
+        if re.search(r"var\(", match.group(0), re.I)
+    ]
+    assert not offenders, f"var() found inside an @media condition in dist/brickwork.css: {offenders}"

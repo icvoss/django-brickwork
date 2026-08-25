@@ -203,6 +203,13 @@ async function main() {
   for (const mode of ["comfortable", "compact", "spacious"]) {
     densities[mode] = await buildLayer([`${SRC}/density.${mode}.tokens.json`]);
   }
+  // Viewport breakpoints (ADR-079, brickwork#220): their own layer, not part
+  // of the primitive/component/density composition above. They are emitted
+  // to tokens.css unconditionally, unlike primitives (which are build-time
+  // input only, see notPrimitive below), because they ARE the public
+  // contract SHL-014 names, and to a plain (not inline) @theme block in
+  // tailwind-theme.css, because a media query cannot resolve var().
+  const breakpoints = await buildLayer([`${SRC}/breakpoint.tokens.json`]);
 
   // Semantic tokens only (drop the primitive.* names) for the theme blocks, so
   // switching data-theme flips only the theme-variant roles (colour, state
@@ -240,7 +247,7 @@ async function main() {
   // dropping them from the emitted set changes no resolved value.
   const notPrimitive = (t) => !t.name.startsWith("bw-primitive-");
   const emittedBase = base.filter(notPrimitive);
-  const rootTokens = [...emittedBase, ...themeOnly(light), ...densities.comfortable];
+  const rootTokens = [...emittedBase, ...themeOnly(light), ...densities.comfortable, ...breakpoints];
 
   // Courtesy alias blocks (ADR-054 section 7): every 0.10.0 name that was renamed
   // ships as `old: var(--new);` so a consumer on the old name does not break on
@@ -348,6 +355,26 @@ async function main() {
   // regex WITHOUT skipping comments, so a commented example import is treated as a
   // real reference and fails collectstatic with a MissingFileError (found by the
   // icvlocal.com consumer, brickwork 0.1.0). Describe the import in prose instead.
+  // Plain @theme breakpoint block (ADR-079, brickwork#220): deliberately NOT
+  // @theme inline. A media query cannot resolve var(), so the breakpoint
+  // scale below is plain literals, generated from the SAME source
+  // (breakpoint.tokens.json) as the --bw-breakpoint-* literals emitted to
+  // tokens.css, so the two never drift from each other. This is a second,
+  // distinct mechanism from the semantic @theme inline projection below it:
+  // that one is live-adjustable with no rebuild (colours, radius, etc.);
+  // this one is compiled into a consumer's own Tailwind build like any other
+  // @theme value, and does not (and cannot) reach back into brickwork's own
+  // shipped brickwork.css breakpoints (the honest limit, ADR-079 section 7).
+  const breakpointTheme =
+    "/* GENERATED: plain @theme breakpoint bridge (ADR-079), NOT @theme inline.\n" +
+    " * Media queries cannot resolve var(), so these are literals, generated\n" +
+    " * from the same source as the --bw-breakpoint-* tokens in tokens.css.\n" +
+    " * Aligns a consumer's own sm:/md:/lg:/xl: utilities with brickwork's\n" +
+    " * breakpoints. Do not edit by hand. */\n" +
+    "@theme {\n" +
+    breakpoints.map((t) => `  --breakpoint-${t.name.slice("bw-breakpoint-".length)}: ${t.value};`).join("\n") +
+    "\n}\n";
+
   const tailwind =
     "/* GENERATED: Tailwind 4 @theme inline projection of the --bw-* semantic\n" +
     " * contract into Tailwind's utility namespaces (ADR-054 section 4), so\n" +
@@ -360,11 +387,11 @@ async function main() {
     "@theme inline {\n" +
     projected.join("\n") +
     "\n}\n";
-  writeFileSync(resolve(DIST, "tailwind-theme.css"), tailwind, "utf8");
+  writeFileSync(resolve(DIST, "tailwind-theme.css"), breakpointTheme + "\n" + tailwind, "utf8");
 
   // JS re-export: the flat name -> css-var-reference map, for a Vite consumer or
   // a chart adapter reading a token via getComputedStyle (used sparingly).
-  const allNames = [...new Set([...base, ...light, ...Object.values(densities).flat()].map((t) => t.name))].sort();
+  const allNames = [...new Set([...base, ...light, ...Object.values(densities).flat(), ...breakpoints].map((t) => t.name))].sort();
   const jsBody =
     "// GENERATED: brickwork token names, as CSS custom-property references.\n" +
     "// Read a live value with getComputedStyle(el).getPropertyValue(tokens.X).\n" +
@@ -401,7 +428,7 @@ async function main() {
   // component token (NOT primitives, NOT the raw font/space ramps a brand should
   // not target). A consumer's brand override, and the emitter's validation, work
   // against exactly this set.
-  const overridable = [...new Set([...base, ...themeOnly(light), ...densities.comfortable].map((t) => t.name))]
+  const overridable = [...new Set([...base, ...themeOnly(light), ...densities.comfortable, ...breakpoints].map((t) => t.name))]
     .filter((n) => !n.startsWith("bw-primitive-"))
     .sort()
     .map((n) => `--${n}`);
