@@ -335,9 +335,7 @@ def build_manifest() -> dict:
         parsed = examples_engine.get_template(rel_name)
         refs = _included_and_extended_refs(parsed.nodelist)
         called_tag_names = _bw_tag_calls_from_source(text)
-        refs |= {
-            template_ref_by_tag_name[name] for name in called_tag_names if name in template_ref_by_tag_name
-        }
+        refs |= {template_ref_by_tag_name[name] for name in called_tag_names if name in template_ref_by_tag_name}
         example_refs[rel_name] = {
             "kind": kind,
             "family": family,
