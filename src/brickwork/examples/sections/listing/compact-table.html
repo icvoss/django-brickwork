@@ -35,6 +35,21 @@ they are looking at, not just screen-reader users.
 <th scope="row"> on the title cell is what makes each row announce itself with
 its own title as the row header, so a screen-reader user reading the "Updated"
 column hears which entry each date belongs to.
+
+States: none: a static table, no sort/filter/select state (see the WHY NOT
+  _data_table.html note above for why those are deliberately absent here).
+Accessibility: a real <table> with a visible <caption> as its accessible
+  name, <th scope="col"> column headers and <th scope="row"> per-row
+  headers, so a screen reader announces which entry each cell belongs to.
+  The horizontal-scroll container is tabindex="0" and
+  role="region" aria-labelledby, so it is keyboard-reachable, not
+  mouse/touch-only. Covered by axe.spec.mjs against sections-*.html, which
+  renders this exact file, both themes.
+Responsive: no named breakpoint. The table itself never reflows (a table
+  cannot become one column without ceasing to be a table); instead its
+  scroll container carries unconditional overflow-x at every viewport
+  width, so a narrow viewport scrolls the table sideways inside its own
+  bordered box rather than the whole page.
 {% endcomment %}
 <section class="bw-listing-section" aria-labelledby="listing-compact-table-heading">
   <div class="bw-listing-section__intro">

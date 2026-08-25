@@ -35,6 +35,19 @@ resist the temptation to make it a teaser.
 The grid is mobile-first: one column until a card can hold its own width,
 then as many columns as fit. No breakpoint is hard-coded, so the section
 behaves correctly inside a narrow container as well as a wide one.
+
+States: each card raises its elevation on hover and focus-visible (shadow
+  only, never a transform, MOT-010), and its title takes the accent colour
+  in the same two states; otherwise static.
+Accessibility: the section is aria-labelledby its own heading; each card
+  is a single real anchor (one tab stop per entry, a large touch target)
+  rather than a title link plus a separate "read more"; the focus ring
+  comes from the global :focus-visible rule. Covered by axe.spec.mjs
+  against sections-*.html, which renders this exact file, both themes.
+Responsive: no named breakpoint. grid-template-columns is
+  repeat(auto-fit, minmax(min(18rem, 100%), 1fr)): the column count grows
+  and shrinks continuously with the container width, one column below
+  18rem, more as space allows.
 {% endcomment %}
 <section class="bw-listing-section" aria-labelledby="listing-card-grid-heading">
   <div class="bw-listing-section__intro">
