@@ -14,6 +14,21 @@ The tabs are REAL LINKS to ?tab=<key> on this same URL, and the server decides
 which is current. So switching sections is an ordinary navigation that works
 with no JS at all, is bookmarkable, and survives a refresh. That is why
 active_tab comes from your view rather than from a client-side tab widget.
+
+States: see _tabs.html's own header for the tab strip's states
+  (active/inactive per tab, no-JS floor plain-anchor navigation vs the
+  enhanced APG Tabs keyboard map); the form's own valid/invalid states.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; bw_tabs raises at render time rather than silently
+  rendering a tablist with nothing selected, so an authoring mistake fails
+  loudly, never as a confusing UI. Covered by the archetype harness's full
+  gate sweep (render, axe WCAG 2.2 AA, no horizontal overflow, light/dark
+  distinctness, skip-link first-tab-stop with JS disabled) at every W0.1
+  breakpoint, both themes; the composed tabs component is additionally
+  covered by axe.spec.mjs and interactions.spec.mjs (see _tabs.html's own
+  header).
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem).
 {% endcomment %}
 {% load brickwork_components brickwork_forms brickwork_interactions brickwork_nav %}
 

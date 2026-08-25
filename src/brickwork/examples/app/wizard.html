@@ -26,6 +26,24 @@ back and forward again is safe and needs no client memory.
 
 Your view computes each step's status by comparing its position against the
 current step. brickwork does not track it.
+
+States: see _stepper.html's own header for the progress indicator's states
+  (complete/current/upcoming per step, mode="progress" here); the form's
+  own valid/invalid states.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; the stepper is a native <ol> so a screen reader
+  announces position without extra markup, and the current step carries
+  aria-current="step". Covered by the archetype harness's full gate sweep
+  (render, axe WCAG 2.2 AA, no horizontal overflow, light/dark
+  distinctness, skip-link first-tab-stop with JS disabled) at every W0.1
+  breakpoint, both themes; this is also the shipped stepper-*.html
+  fixture's own real composition (app/wizard.html), not a synthetic
+  standalone render.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The stepper
+  itself stacks vertically below --bw-breakpoint-md regardless of the
+  orientation="horizontal" default (see _stepper.html's own header); this
+  example does not pass orientation, so it takes that default.
 {% endcomment %}
 {% load brickwork_components brickwork_forms brickwork_nav %}
 
