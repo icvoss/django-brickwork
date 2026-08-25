@@ -259,3 +259,32 @@ def test_tailwind_bridge_is_theme_inline() -> None:
     tw = (_DIST / "tailwind-theme.css").read_text()
     assert "@theme inline" in tw
     assert "--color-surface: var(--bw-color-surface);" in tw
+
+
+_FRONTEND_SRC = Path(__file__).resolve().parent.parent / "frontend" / "src"
+
+# A viewport-shaped media feature: width/min-width/max-width against a literal
+# length (px or rem), OR the bare `width <`/`width >=` range syntax with a
+# literal length rather than a --theme(--breakpoint-*) token reference. This
+# deliberately does not match `prefers-reduced-motion` or other non-viewport
+# media features, which are never breakpoint-token concerns.
+_HARDCODED_VIEWPORT_MEDIA = re.compile(
+    r"@media\s*\([^)]*\b(?:min-width|max-width|width)\s*[:<>=]+\s*\d+(?:px|rem)[^)]*\)"
+)
+
+
+def test_frontend_source_has_no_hardcoded_viewport_media_queries() -> None:
+    # W0.1: every viewport breakpoint in frontend/src/ must route through the
+    # generated --theme(--breakpoint-*) tokens (breakpoint.tokens.json), never
+    # a literal width repeated at each call site. A literal reintroduces the
+    # drift the token source was built to close: one breakpoint value living
+    # in N places instead of one place N call sites reference.
+    offenders: list[str] = []
+    for css_path in sorted(_FRONTEND_SRC.rglob("*.css")):
+        text = css_path.read_text()
+        for match in _HARDCODED_VIEWPORT_MEDIA.finditer(text):
+            offenders.append(f"{css_path.relative_to(_FRONTEND_SRC)}: {match.group(0)}")
+    assert not offenders, (
+        "hardcoded viewport @media queries found; use --theme(--breakpoint-*) "
+        f"range syntax instead: {offenders}"
+    )
