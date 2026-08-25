@@ -787,6 +787,23 @@ def test_every_fixture_literal_survives_into_the_example_render(name: str) -> No
     silently, exactly as `crumbs`/`items` was: the page still renders a
     complete, validly structured document, and only a check like this one
     notices the content never arrived.
+
+    KNOWN LIMITATION: this searches the WHOLE rendered page, not the specific
+    region the fixture value is meant to reach, so a value duplicated
+    elsewhere on the page can mask a dropped kwarg for that one value. In
+    `app/detail.html`, `"INV-2417"` is both a breadcrumb fixture value AND
+    appears independently in the page title, page header and button hrefs
+    (`{% block page_title %}Invoice INV-2417 - Northwind{% endblock %}` and
+    similar); a regression that dropped ONLY the breadcrumb's `"INV-2417"`
+    crumb would still pass this test, because the string is present anyway
+    from those other, unrelated places. The #232 defect itself is still
+    caught here because the breadcrumb fixture's OTHER label, `"Invoices"`,
+    is distinctive: it appears nowhere else on the page, so its absence is
+    real signal. Scoping each assertion to the component's own rendered
+    region (rather than the full page) would close this gap; not done here
+    because no shipped fixture today has a genuine collision on its only
+    distinctive value, so the current whole-page check is the simpler check
+    that still catches every real case in the shipped tree.
     """
     context = _EXAMPLE_CONTEXTS[name]
     expected = _expected_literal_strings(context) - _LITERAL_TEXT_EXEMPTIONS.get(name, set())
@@ -811,6 +828,11 @@ def test_every_fixture_literal_survives_into_the_section_render(name: str) -> No
     (`_SECTION_FEATURES`, `_SECTION_ENTRIES`, `_SECTION_TIERS`, `_SECTION_STATS`)
     have anything to check; the rest render from an empty context and are
     skipped rather than asserting on nothing.
+
+    Carries the same whole-page-search limitation as the example-level check
+    above (see that docstring's `"INV-2417"` example): a fixture value
+    duplicated elsewhere on the same rendered page can mask a dropped kwarg
+    for that one value specifically.
     """
     context = _SECTION_CONTEXTS[name]
     expected = _expected_literal_strings(context) - _LITERAL_TEXT_EXEMPTIONS.get(name, set())

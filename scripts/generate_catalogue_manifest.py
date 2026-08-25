@@ -301,47 +301,51 @@ def _is_bare_variable_token(token: str) -> bool:
 _CONTEXT_CARRYING_TAG_RE = re.compile(r"\{%-?\s*(?:bw_form|bw_field_widget|bw_nav|bw_nav_header|bw_nav_rail)\b")
 
 
-def _locally_bound_names(node_list) -> set[str]:
-    """Every name a template binds ITSELF, so a reference to it is never a
-    context requirement no matter how it is later used.
+def _is_literal_or_local_token(token: str, local_names: frozenset[str]) -> bool:
+    """True when a compiled token needs nothing from the render context.
 
-    ``{% firstof a b ... as NAME %}`` and ``{% with NAME=... %}`` both define
-    NAME's value entirely from within the template: ``firstof`` degrades to
-    its own literal fallback when every earlier variable resolves empty
-    (that is the whole point of the tag), and ``with`` always evaluates its
-    right-hand side, context-sourced or not, before the block body runs. A
-    name bound this way is therefore ALWAYS defined by construction; a later
-    ``{% include ... with k=NAME %}`` passing it through is not evidence the
-    example needs anything from the render context (``examples/base.html``'s
-    ``{% firstof bw_toast_position 'top-end' as bw_toast_position_resolved %}``
-    then ``{% include ... with placement=bw_toast_position_resolved %}`` is
-    exactly this shape: the include always receives a value, defaulting to
-    the literal ``'top-end'`` when ``bw_toast_position`` is absent).
+    Either it is not a bare-variable token at all (``_is_bare_variable_token``
+    is false: a quoted string, a number, ``True``/``False``/``None``), or it
+    IS a bare variable but the name it names is itself already local in the
+    CURRENT scope (bound by an enclosing ``{% with %}`` whose own right-hand
+    side satisfied this same rule, or by an earlier ``{% firstof ... as %}``
+    in the same nodelist). This is the RHS condition a with/firstof binding's
+    own value must pass before the name it defines can be treated as local
+    (see ``_scan_requires_context``): a binding that copies an external
+    context variable straight through (``{% with heading=external_heading %}``)
+    does NOT satisfy it, so the bound name stays context-sourced.
     """
-    from django.template.defaulttags import FirstOfNode, WithNode
-
-    names: set[str] = set()
-    for node in node_list.get_nodes_by_type(FirstOfNode):
-        if node.asvar:
-            names.add(node.asvar)
-    for node in node_list.get_nodes_by_type(WithNode):
-        names.update(node.extra_context)
-    return names
+    return not _is_bare_variable_token(token) or token in local_names
 
 
-def _requires_context(node_list, text: str) -> bool:
-    """True if the example needs render-context data for its real content.
+def _scan_requires_context(node_list, text: str, local_names: frozenset[str]) -> bool:
+    """Walk ``node_list`` depth-first, threading a SCOPED set of local names.
+
+    ``local_names`` is exactly the names safely treated as "not context
+    requirements" at THIS point in the tree: names bound by an enclosing
+    ``{% with %}`` (only while inside that block's own nodelist, per Django's
+    real scoping, ``WithNode.render`` pushes and the context manager pops) or
+    by an earlier sibling ``{% firstof ... as %}`` (not block-scoped: the
+    binding is a plain statement visible to everything AFTER it in the same
+    nodelist, matching how the compiled node list executes top to bottom).
+
+    Recursion follows ``Node.child_nodelists`` exactly as Django's own
+    ``Node.get_nodes_by_type`` does (verified against ``IfNode``, whose
+    ``child_nodelists = ("nodelist",)`` resolves through its ``nodelist``
+    property, itself built from ``NodeList(self)``, which flattens the
+    node's ``__iter__`` across every branch rather than looping on ``self``),
+    so a nested ``{% if %}``/``{% for %}``/``{% block %}`` correctly inherits
+    whatever is local in its enclosing scope without hand-listing every tag.
 
     Three mechanical signals, matching the ways brickwork's own examples take
     dynamic data a Django template cannot build inline (per the ``brickwork``
     skill's documented split):
 
-    1. A ``{% for x in VAR %}`` loop whose sequence is a bare variable (the
-       ``sections/listing/*`` shape: the file loops over ``entries`` with no
-       local definition of it).
+    1. A ``{% for x in VAR %}`` loop whose sequence is a bare variable not
+       itself local (the ``sections/listing/*`` shape: the file loops over
+       ``entries`` with no local definition of it).
     2. An ``{% include ... with k=VAR %}`` argument whose value is a bare
-       variable NOT itself bound locally by the template (see
-       ``_locally_bound_names``) (the ``sections/features/icon-grid.html``
+       variable not itself local (the ``sections/features/icon-grid.html``
        shape: ``items=features``, passing a context-sourced list straight
        through).
     3. A call to one of the tags that only ever take a context-sourced bound
@@ -349,30 +353,87 @@ def _requires_context(node_list, text: str) -> bool:
        ``BoundField``; ``bw_nav``/``bw_nav_header``/``bw_nav_rail`` always
        take the resolved nav tree): these take a positional argument, which
        ``IncludeNode.extra_context`` cannot see (it is not an include), so
-       they need this separate, explicit check.
+       they are checked once, globally, by the caller rather than here.
 
     This is a deliberately mechanical, not exhaustive, signal covering the
     call shapes brickwork's own shipped tree actually uses; it is not a
     general "does this template need anything" analyser. docs/CATALOGUE.md
     records this as a known, deliberate imprecision rather than a hidden one.
     """
-    from django.template.defaulttags import ForNode
+    from django.template.defaulttags import FirstOfNode, ForNode, WithNode
     from django.template.loader_tags import IncludeNode
 
+    scope = local_names
+    for node in node_list:
+        if isinstance(node, ForNode):
+            if not _is_literal_or_local_token(getattr(node.sequence, "token", ""), scope):
+                return True
+            if _scan_requires_context(node.nodelist_loop, text, scope):
+                return True
+            if _scan_requires_context(node.nodelist_empty, text, scope):
+                return True
+            continue
+
+        if isinstance(node, IncludeNode):
+            # A leaf reference, never a container: its "children" are the
+            # INCLUDED template's own compiled tree (a separate parse this
+            # generator never crosses into), not inline content in THIS
+            # node list, so there is nothing of this node's own to recurse
+            # into here (the inherited `child_nodelists = ("nodelist",)` is
+            # Node's base-class default; IncludeNode never actually sets a
+            # real `self.nodelist`, which is why following it unconditionally
+            # raised AttributeError before this comment was written).
+            for value in node.extra_context.values():
+                if not _is_literal_or_local_token(getattr(value, "token", ""), scope):
+                    return True
+            continue
+
+        if isinstance(node, FirstOfNode):
+            # firstof's own render() never fails regardless of what its
+            # arguments resolve to (ignore_failures=True per-argument, and
+            # asvar is always assigned, "" in the worst case), so the RHS
+            # rule here is deliberately an ANY, not with's ALL: at least one
+            # argument must be literal-or-local to guarantee a defined
+            # fallback that needs nothing from the render context. This is
+            # base.html's real shape: `{% firstof bw_toast_position 'top-end'
+            # as resolved %}` has one bare-variable argument and one string
+            # literal, so the literal alone makes `resolved` safely local
+            # even though `bw_toast_position` itself is context-sourced.
+            args_ok = any(_is_literal_or_local_token(getattr(v, "token", ""), scope) for v in node.vars)
+            if node.asvar and args_ok:
+                scope = scope | {node.asvar}
+            continue
+
+        if isinstance(node, WithNode):
+            rhs_tokens = (getattr(v, "token", "") for v in node.extra_context.values())
+            rhs_ok = all(_is_literal_or_local_token(token, scope) for token in rhs_tokens)
+            inner_scope = scope | set(node.extra_context) if rhs_ok else scope
+            if _scan_requires_context(node.nodelist, text, inner_scope):
+                return True
+            # WithNode's own bindings are block-scoped: they do not extend
+            # `scope` for siblings after the block, unlike firstof's asvar.
+            continue
+
+        for attr in node.child_nodelists:
+            child = getattr(node, attr, None)
+            if child and _scan_requires_context(child, text, scope):
+                return True
+
+    return False
+
+
+def _requires_context(node_list, text: str) -> bool:
+    """True if the example needs render-context data for its real content.
+
+    Delegates the for/include/firstof/with walk to ``_scan_requires_context``
+    (a single scoped pass, so a with-binding's locality is judged correctly
+    per block rather than file-wide); the ``bw_form``/``bw_nav``-family tag
+    check runs once here since those tags take a positional argument no
+    node-tree scope tracking is relevant to (see that function's signal 3).
+    """
     if _CONTEXT_CARRYING_TAG_RE.search(text):
         return True
-    local_names = _locally_bound_names(node_list)
-    for node in node_list.get_nodes_by_type(ForNode):
-        if _is_bare_variable_token(getattr(node.sequence, "token", "")):
-            return True
-    for node in node_list.get_nodes_by_type(IncludeNode):
-        for value in node.extra_context.values():
-            token = getattr(value, "token", "")
-            if token in local_names:
-                continue
-            if _is_bare_variable_token(token):
-                return True
-    return False
+    return _scan_requires_context(node_list, text, frozenset())
 
 
 def _included_and_extended_refs(node_list) -> set[str]:
