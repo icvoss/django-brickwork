@@ -14,6 +14,28 @@ where you change it.
 This example extends the shipped app shell, which stays a supported importable
 part of the package. Swap the extends line for your own base.html (see
 examples/base.html) if you would rather own the document skeleton too.
+
+States: sortable-column ascending/descending/unsorted per column (see
+  _data_table.html's own header); pagination rendered/absent (a single
+  page renders no controls); the filter bar's own field states.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; the filter bar, table and pagination all render as
+  real form/table/nav landmarks with no client-side-only behaviour
+  required. This is the archetype the shell's own account-menu-open and
+  topbar-layout fixtures are also built from (list-menu-open-*.html,
+  list-topbar-*.html), so its composed shell chrome is exercised in both
+  the sidebar and topbar layout shapes, not only the default one. Covered
+  by the archetype harness's full gate sweep (render, axe WCAG 2.2 AA, no
+  horizontal overflow, light/dark distinctness, skip-link first-tab-stop
+  with JS disabled) at every W0.1 breakpoint, both themes, and by
+  axe.spec.mjs's own "no-JS floor" suite, which asserts this page's real
+  server-rendered table rows, breadcrumbs and account menu all work with
+  JavaScript disabled.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The composed
+  table carries unconditional horizontal scroll (responsive="scroll", the
+  default) at every width; the filter bar's fields wrap fluidly with no
+  named breakpoint.
 {% endcomment %}
 {% load brickwork_components brickwork_nav %}
 

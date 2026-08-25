@@ -14,6 +14,23 @@ That is not a limitation, it is the only sound arrangement: only your project
 knows its own action URL, and a template that wrapped your fields in its own
 <form> would put your submit button outside it. So the <form>, the csrf_token,
 and the submit all live together in this file, which you own.
+
+States: valid/invalid per field (bw_form renders the bound form's own
+  errors inline); the 422 HTMX re-render path documented above swaps this
+  same region with inline errors, never a full page reload, when wired.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; every field renders through the standard
+  forms/_field.html chrome (label/aria-describedby/error wiring); the
+  cancel link is a real anchor, never a button pretending to navigate.
+  Covered by the archetype harness's full gate sweep (render, axe WCAG 2.2
+  AA, no horizontal overflow, light/dark distinctness, skip-link
+  first-tab-stop with JS disabled) at every W0.1 breakpoint, both themes;
+  the underlying bw_form grid layout and its error states are additionally
+  covered by axe.spec.mjs against form-*.html/form-errors-*.html.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). bw_form's own
+  grid layout (when grid_columns is set) collapses to one column below
+  --bw-breakpoint-sm (40rem), per that tag's own documentation.
 {% endcomment %}
 {% load brickwork_components brickwork_forms brickwork_nav %}
 
