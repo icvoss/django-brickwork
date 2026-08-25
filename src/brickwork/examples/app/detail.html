@@ -23,7 +23,7 @@ Breadcrumbs are a list of {label, url} dicts, last item current. Build them in
 the view or a context processor; hard-coded here so the example reads.
 {% endcomment %}
 {% block breadcrumbs %}
-  {% include "brickwork/components/_breadcrumbs.html" with items=breadcrumb_items %}
+  {% include "brickwork/components/_breadcrumbs.html" with crumbs=breadcrumb_items %}
 {% endblock %}
 
 {% block page_header %}
