@@ -197,6 +197,28 @@ test("an invalid <html> attribute value is not adopted as this axis's state", as
   // all). This is its own top-level test, outside the "JS reveal and
   // initial state" describe block's boot() beforeEach, because it needs a
   // different fixture entirely, not the standard one that block shares.
+  //
+  // Non-vacuity note: the radio-checked and storage assertions below hold
+  // REGARDLESS of whether the root-value validation runs, because
+  // "MISCONFIGURED-VALUE" can never equal any rendered radio's own .value
+  // (there is no such radio to match) and writeStoredValue is only ever
+  // called from a change listener, never from init, with or without this
+  // guard. The genuinely discriminating proof is that init() never calls
+  // _apply (document.documentElement.setAttribute) with the bogus value at
+  // all: without the guard, initial resolves to the invalid string and
+  // _apply(attrName, initial) DOES fire (harmlessly reapplying the same
+  // string, which is why the attribute-value assertion alone cannot tell
+  // the two paths apart). Intercept setAttribute via an init script
+  // (runs before the page's own module import, unlike page.evaluate after
+  // goto) to prove the call itself never happens.
+  await page.addInitScript(() => {
+    window.__setAttributeCalls = [];
+    const original = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function (name, value) {
+      if (this === document.documentElement) window.__setAttributeCalls.push({ name, value });
+      return original.call(this, name, value);
+    };
+  });
   await page.goto(fx("theme-switch-invalid-root-js-light.html"));
   await page.waitForFunction(() => !!window.Alpine);
   await expect(section(page, "default-heading").locator("[data-bw-theme-switch]")).toBeVisible();
@@ -211,6 +233,11 @@ test("an invalid <html> attribute value is not adopted as this axis's state", as
   }
   const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
   expect(stored).toBeNull();
+  // the discriminating assertion: init() never even tried to (re)apply the
+  // invalid value to <html>, proving the guard actually ran, not merely
+  // that its outcome happened to be unobservable this time
+  const calls = await page.evaluate(() => window.__setAttributeCalls);
+  expect(calls.filter((c) => c.value === "MISCONFIGURED-VALUE")).toEqual([]);
 });
 
 // --- changing an axis (SHL-003 persistence, bw:theme-switch:change) ---------
