@@ -75,6 +75,22 @@ Python name may carry "family" (or "primitive" or "pattern": the same
 vocabulary gate, D4). A package PR adding a public identifier carrying any
 of those three words is rejected in review regardless of intent.
 
+**This is why the in-package catalogue-manifest reader is internal.** The
+shipped JSON is the public contract (section 5): a consumer reads
+`catalogue-manifest.json` directly, the same pattern brickworkui.com's own
+gallery already uses for `template-manifest.json`. `brickwork.services.
+_catalogue_manifest` (underscore-prefixed, this repo's existing convention
+for a deliberately internal module) exists only to serve this repo's own
+in-package consumers, its drift test today and the W0.3 harness next, so
+its Python identifiers, including `FamilyEntry` and `families()`, carry
+"family" without being public API and without touching O1: nothing there
+is importable as part of `brickwork`'s documented public surface. A public
+Python reader was considered and rejected for Wave 0 on exactly this
+ground: no external consumer need for one has been shown, and inventing
+public API ahead of a demonstrated need is the wrong side of YAGNI. If
+that need appears later, it is a fresh O1 boundary question for the owner,
+not a rename to make on a review pass.
+
 ## 4. The starting journey
 
 The spine every piece of onboarding content, every gallery page, and this
@@ -116,6 +132,15 @@ a template author checking a block name is stable) and a different
 stability promise: it is descriptive, generated from the shipped tree at
 release time, and may evolve in minors as the catalogue itself grows
 across waves.
+
+**The JSON is the public contract, not a Python API.** A consumer reads
+`catalogue-manifest.json` directly off the installed package, the same
+pattern brickworkui.com's own `docs_app/gallery/manifest.py` already uses
+for `template-manifest.json`. This repo ships an in-package reader
+(`brickwork.services._catalogue_manifest`) for its own drift test and the
+coming W0.3 harness, deliberately internal (underscore-prefixed) so no
+Python identifier there is public API: see section 3 for why this is what
+O1 requires, not an accident of naming.
 
 Per item, the manifest carries:
 

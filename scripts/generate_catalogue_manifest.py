@@ -27,10 +27,12 @@ records):
 - ``shell``: the 5 files under ``templates/brickwork/shell/`` and
   ``brickwork_marketing/shell/`` (``base`` included: every other shell
   extends it, and CHANGELOG 3.0.0 counts it as one of the five named shells).
-- ``component``: the 39 files directly under ``templates/brickwork/
-  components/`` and ``brickwork_marketing/components/`` (forms/_*.html and
-  nav/_*.html are their own tag surface, not counted here, matching
-  ROADMAP.md's "39 components" baseline).
+- ``component``: the 39 underscore-prefixed files under (recursively)
+  ``templates/brickwork/components/`` and ``brickwork_marketing/
+  components/`` (forms/_*.html and nav/_*.html are their own tag surface,
+  not counted here, matching ROADMAP.md's "39 components" baseline). All 39
+  are directly under their root today; a future nested one is still found
+  (the scan is recursive) and still counted.
 - ``section``: the 26 files under ``examples/sections/<type>/<variant>.html``
   (D4: a section EXAMPLE, one band, the copy-paste unit).
 - ``archetype``: the 16 files under ``examples/`` that are a complete page
@@ -123,15 +125,48 @@ def _setup_django() -> None:
 
 
 def _iter_shells():
+    """Every shipped shell template, RECURSIVELY.
+
+    ``rglob``, not ``glob``: a non-recursive scan would silently drop a
+    future shell shipped in a subdirectory from the manifest rather than
+    failing loudly, defeating the drift test's whole purpose (a manifest
+    that is "successfully" stale). Matches ``brickwork.examples.
+    list_examples()``'s own ``rglob("*.html")`` walk of the examples tree.
+
+    Yields ``(namespace, rel_name, rel_path, path)``: ``rel_name`` is the
+    catalogue name qualifier (POSIX, ``.html`` stripped) and ``rel_path`` is
+    the real path relative to the root (POSIX, WITH ``.html``, the exact
+    suffix a Django template ref needs), so the caller never has to
+    re-derive either from the bare filename, which is what would silently
+    break for a nested file.
+    """
     for namespace, root in _SHELL_ROOTS:
-        for path in sorted(root.glob("*.html")):
-            yield namespace, path.stem, path
+        for path in sorted(root.rglob("*.html")):
+            rel_path = path.relative_to(root)
+            yield namespace, rel_path.with_suffix("").as_posix(), rel_path.as_posix(), path
 
 
 def _iter_components():
+    """Every shipped component template, RECURSIVELY (see ``_iter_shells``).
+
+    Only files whose own basename starts with ``_`` count as a component
+    (matching the existing ``_*.html`` convention: a private render target,
+    never `{% extends %}`able directly), so ``rglob`` plus an explicit
+    basename check replaces the non-recursive ``glob("_*.html")``, which
+    could not express "recursive AND underscore-prefixed" in one pattern.
+    """
     for namespace, root in _COMPONENT_ROOTS:
-        for path in sorted(root.glob("_*.html")):
-            yield namespace, path.stem.lstrip("_"), path
+        for path in sorted(root.rglob("*.html")):
+            if not path.name.startswith("_"):
+                continue
+            rel_path = path.relative_to(root)
+            # Strip the leading underscore from the file's own basename only
+            # (matching today's manifest names, e.g. "button" for
+            # _button.html); any subdirectory segments stay verbatim so a
+            # nested component's qualified name stays unambiguous.
+            *parts, leaf = rel_path.with_suffix("").parts
+            rel_name = "/".join([*parts, leaf.removeprefix("_")])
+            yield namespace, rel_name, rel_path.as_posix(), path
 
 
 def _iter_examples():
@@ -360,8 +395,12 @@ def build_manifest() -> dict:
 
     items: list[dict] = []
 
-    for namespace, name, path in _iter_shells():
-        template_ref = f"{namespace}/shell/{path.name}"
+    for namespace, name, rel_path, path in _iter_shells():
+        # template_ref is the real Django template ref: namespace plus the
+        # path RELATIVE TO THE ROOT (rel_path, not the file's own bare
+        # basename), so a nested shell's {% extends %}/{% include %}
+        # cross-references resolve against the right path.
+        template_ref = f"{namespace}/shell/{rel_path}"
         text = path.read_text(encoding="utf-8")
         usage = used_by.get(template_ref, {"usedByArchetypes": [], "usedBySections": []})
         items.append(
@@ -377,8 +416,8 @@ def build_manifest() -> dict:
             }
         )
 
-    for namespace, name, path in _iter_components():
-        template_ref = f"{namespace}/components/{path.name}"
+    for namespace, name, rel_path, path in _iter_components():
+        template_ref = f"{namespace}/components/{rel_path}"
         text = path.read_text(encoding="utf-8")
         usage = used_by.get(template_ref, {"usedByArchetypes": [], "usedBySections": []})
         items.append(

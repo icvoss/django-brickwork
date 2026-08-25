@@ -1,4 +1,4 @@
-"""The catalogue manifest: family, kind and usage taxonomy for shipped items.
+"""INTERNAL reader for the catalogue manifest: not part of the public API.
 
 Plan decision D8 (W0.2 of the interface-system delivery plan): the catalogue
 manifest (``static/brickwork/dist/catalogue-manifest.json``) is a SIBLING of
@@ -9,15 +9,31 @@ for block/partial names, while this one is descriptive catalogue metadata for
 building a catalogue browsing/search surface (a site's gallery, principally),
 documented as free to evolve in minors rather than semver-governed.
 
+**The underscore-prefixed module name is deliberate, not a placeholder.**
+The SHIPPED JSON is the public contract here (D8), not a Python wrapper
+around it: a consumer (a site's gallery, principally) reads
+``catalogue-manifest.json`` directly off the installed package, exactly the
+pattern brickworkui.com's own ``docs_app/gallery/manifest.py`` already
+follows for ``template-manifest.json``. This module's only real consumers
+are IN-PACKAGE (``tests/test_catalogue_manifest.py``'s drift test today, the
+W0.3 archetype-test harness next), so there is no external caller this
+module needs to serve as public API, and every identifier in it, including
+``FamilyEntry``/``families()``, may carry "family" without touching owner
+ruling O1: O1 governs package API identifiers, and nothing here is one
+(``tests/_class_contract.py`` is this repo's existing precedent for an
+underscore-prefixed, deliberately-internal module). If a genuine external
+Python-API need for this data ever emerges, that is a new O1 boundary
+question for the owner, not a reason to widen this module's exposure on a
+review pass.
+
 Read ``docs/CATALOGUE.md`` for the full information architecture this
 supports, including two explicit Wave 0 scoping decisions recorded there:
 render inputs are deliberately NOT carried by this manifest (section 7), and
 per-family "planned"/wave status is deliberately NOT carried either, because
-it is roadmap truth rather than package truth (section 8). "family" is a
-catalogue taxonomy field only (owner ruling O1): never a package API
-identifier.
+it is roadmap truth rather than package truth (section 8).
 
-Public surface (mirrors ``services/template_manifest.py``'s shape):
+Internal surface (mirrors ``services/template_manifest.py``'s public shape,
+kept private here for the reason above):
 - ``items()`` -> every catalogue item, in manifest order.
 - ``families()`` -> every family with shipped coverage, package-truth only.
 - ``items_by_kind(kind)`` -> items filtered to one kind.
