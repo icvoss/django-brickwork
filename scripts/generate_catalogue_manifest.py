@@ -27,12 +27,13 @@ records):
 - ``shell``: the 5 files under ``templates/brickwork/shell/`` and
   ``brickwork_marketing/shell/`` (``base`` included: every other shell
   extends it, and CHANGELOG 3.0.0 counts it as one of the five named shells).
-- ``component``: the 39 underscore-prefixed files under (recursively)
+- ``component``: 40 underscore-prefixed files under (recursively)
   ``templates/brickwork/components/`` and ``brickwork_marketing/
   components/`` (forms/_*.html and nav/_*.html are their own tag surface,
-  not counted here, matching ROADMAP.md's "39 components" baseline). All 39
-  are directly under their root today; a future nested one is still found
-  (the scan is recursive) and still counted.
+  not counted here). ROADMAP.md's original W0.2 baseline was 39; W0.4
+  (icvoss/django-brickwork#228) shipped the 40th, ``_theme_switch.html``.
+  All 40 are directly under their root today; a future nested one is still
+  found (the scan is recursive) and still counted.
 - ``section``: the 26 files under ``examples/sections/<type>/<variant>.html``
   (D4: a section EXAMPLE, one band, the copy-paste unit).
 - ``archetype``: the 16 files under ``examples/`` that are a complete page
@@ -167,6 +168,46 @@ def _iter_components():
             *parts, leaf = rel_path.with_suffix("").parts
             rel_name = "/".join([*parts, leaf.removeprefix("_")])
             yield namespace, rel_name, rel_path.as_posix(), path
+
+
+def _raise_on_duplicate_names(items: list[dict]) -> None:
+    """Fail loudly on a duplicate catalogue ``name``, rather than overwrite it.
+
+    A shell or component's catalogue name (``shell/<rel path>``,
+    ``component/<rel path>``) is built from the path relative to ITS OWN
+    root, with no namespace qualifier, matching every name already shipped
+    today. That is safe only because the two shell roots and the two
+    component roots (``brickwork`` and ``brickwork_marketing``) have never
+    shipped a same-relative-path file: if they ever did (for example, both
+    trees shipping their own ``_hero.html``), both would resolve to the
+    identical catalogue name ``component/hero``, and the in-package reader's
+    name index (a plain dict keyed on ``name``, built by iterating
+    ``items()``) would silently keep only whichever one was appended last,
+    with no error anywhere.
+
+    No such collision exists in the shipped tree today (verified: this
+    check runs on every generation and has never fired). Rather than
+    namespace every existing name by root pre-emptively (a breaking rename
+    of all 40 component and 5 shell catalogue names for a collision that
+    has never occurred), this turns the actual failure mode, a silent
+    overwrite, into a loud one: the FIRST PR that introduces a real
+    collision fails the generator immediately, with both colliding template
+    paths named, rather than shipping a manifest that quietly drops one of
+    them.
+    """
+    seen: dict[str, str] = {}
+    for entry in items:
+        name = entry["name"]
+        template_path = entry.get("templatePath", "<no templatePath>")
+        if name in seen:
+            raise ValueError(
+                f"catalogue name collision: '{name}' is produced by both "
+                f"{seen[name]!r} and {template_path!r}. Two different shipped "
+                f"templates cannot resolve to the same catalogue-manifest name; "
+                f"disambiguate one of them (for example, by giving the "
+                f"catalogue name its root namespace) before regenerating."
+            )
+        seen[name] = template_path
 
 
 def _iter_examples():
@@ -448,6 +489,7 @@ def build_manifest() -> dict:
         )
 
     items.sort(key=lambda entry: (entry["kind"], entry["name"]))
+    _raise_on_duplicate_names(items)
 
     counts = {
         "shells": sum(1 for i in items if i["kind"] == "shell"),
@@ -499,10 +541,24 @@ def build_manifest() -> dict:
     }
 
 
-def main() -> int:
+def write_manifest(output_path: Path) -> dict:
+    """Build the manifest and write it to ``output_path``, the ONE code path.
+
+    Both ``main()`` and the drift test call this, so the test compares bytes
+    the generator actually wrote (via a temp path), never a second,
+    hand-duplicated ``json.dumps(...)`` expression that could silently
+    diverge from what ``main()`` really produces (a changed ``separators``,
+    ``ensure_ascii``, or trailing-newline convention here would otherwise go
+    undetected by a test re-implementing its own serialisation).
+    """
     manifest = build_manifest()
-    DIST.mkdir(parents=True, exist_ok=True)
-    MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    return manifest
+
+
+def main() -> int:
+    manifest = write_manifest(MANIFEST_PATH)
     counts = manifest["counts"]
     print(
         f"catalogue manifest written: {counts['shells']} shells, {counts['components']} components, "
