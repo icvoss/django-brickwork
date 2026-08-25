@@ -29,7 +29,8 @@ wrapper is not a candidate for this dedup, only its contents are.
 {% if disabled %}
 {% comment %}
 brickwork#135: a disabled link-button renders as a non-navigable <span>, not an
-<a>, following the precedent at _pagination.html:26 for a disabled link control.
+<a>, following the precedent of the disabled bw-pagination__link--disabled span
+in _pagination.html for a disabled link control.
 An anchor keeps its href, its own focusability, and its own click/Enter
 navigation regardless of aria-disabled (that attribute is announced to assistive
 tech, it does not change behaviour), so a disabled <a> looked disabled but still

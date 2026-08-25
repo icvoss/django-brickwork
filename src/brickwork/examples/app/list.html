@@ -73,6 +73,9 @@ than inside it. Point href at your own {% templatetag openblock %} url
   {% comment %}
   Renders nothing at all when there is only one page, so there is no condition
   to write here. It keeps the current sort and filters across a page change.
+  page_obj also accepts a flat duck-typed stand-in (number, num_pages,
+  has_previous, has_next, previous_page_number, next_page_number) for a view
+  that does not use Django's own Paginator (TBL-004, icvoss/django-brickwork#217).
   {% endcomment %}
   {% include "brickwork/components/_pagination.html" with page_obj=invoices %}
 
