@@ -111,7 +111,7 @@ conformance; it can run consistently and be shown to catch real defects.
 
 | What runs | Scope |
 |---|---|
-| axe-core WCAG 2.2 AA scan | 86 documents (43 fixtures x light and dark themes), blocking every push (`a11y-gate` CI job) |
+| axe-core WCAG 2.2 AA scan | 132 documents across two fixture sets: 100 hand-maintained pages (50 fixtures x light and dark) plus 32 archetype pages (16 catalogue archetypes x light and dark), blocking every push (`a11y-gate` CI job) |
 | No-JS floor suite | blocking |
 | Keyboard suites | blocking |
 | Mobile-overflow checks | 4 widths: 320, 360, 375, 414px, blocking |
@@ -138,17 +138,17 @@ copy rather than omit it.
 
 **RTL has structural proof, not a tested fixture.** Logical-property counts
 (4.3 below) are real structural evidence for RTL support, but there is no
-`dir="rtl"` accessibility fixture in the 86-document gate. State this
+`dir="rtl"` accessibility fixture in the 132-document gate. State this
 distinction; do not imply RTL is axe-tested.
 
 ### 4.3 Token-first rebranding
 
 `docs/BRANDING.md:3-4`: rebranding is done by overriding `--bw-*` tokens, not
-by touching component classes. 332 unique `--bw-*` tokens exist, 265
-overridable. 10 are load-bearing, of which 7 are unconditional (the "core
-seven"): a brand supplies roughly 14 lines of CSS (7 tokens x light and
-dark) to rebrand the whole system, because base-theme derives its fine
-colour tokens live from that small load-bearing set (`docs/BRANDING.md:6-8`).
+by touching component classes. 336 unique `--bw-*` tokens exist, 269
+overridable. 10 are load-bearing, of which 8 are unconditional: a brand
+supplies roughly 16 lines of CSS (8 tokens x light and dark) to rebrand the
+whole system, because base-theme derives its fine colour tokens live from
+that small load-bearing set (`docs/BRANDING.md:6-8`).
 
 Dark mode is an authored surface, not a computed inversion: `data-theme`
 dark values are authored per token, not derived from light
@@ -157,28 +157,38 @@ working: brand (`data-bw-brand`), theme (`data-theme`), density (3 token
 files), direction.
 
 **RTL precision.** "Zero physical left/right properties" is true at the
-property level: layout is built entirely on logical properties (274 in
-source CSS, 297 in the compiled dist). It is not true at the value level:
+property level: layout is built entirely on logical properties (273 in
+source CSS, 500 in the compiled dist). It is not true at the value level:
 one documented exception exists, `background-position: right` / `left` at
 `frontend/src/components.css:384,391`, explicitly RTL-flipped at line 390
 because `background-position` has no logical equivalent. State the exception
 whenever the "zero" claim is made; a bare "zero" is disprovable in devtools.
 
-## 5. The full verified numbers (source: code at 3.7.0)
+## 5. The full verified numbers (source: code, drift-gated)
+
+Rows marked **gated** are asserted by `tests/test_positioning.py` against the
+shipped artefact or importable code at test time: a future edit to either the
+code or this table that leaves them disagreeing fails CI. Rows marked
+**dated** are mechanically derived as of the stated version but not cheaply
+assertable in pytest without running Node or hand-listing every source file;
+they carry the version at which they were counted so staleness is visible on
+sight, and are refreshed by hand at the next audit.
 
 | Fact | Value | Note |
 |---|---|---|
-| Components | 39 | 30 core, 9 marketing |
-| Shells | 5 | base, app, auth, centred, marketing |
-| Template tag registrations | 18 total | 14 `inclusion_tag`, 3 `simple_tag`, 1 `filter`. Write "14 component tags" or state the 18 total; never a bare "14 template tags" |
-| Tokens | 332 unique `--bw-*` | 265 overridable; 10 load-bearing (7 unconditional, the "core seven") |
-| Alpine components | 13 | |
-| Examples | 42 | 16 pages, 26 sections |
-| Icons | 50 vendored Lucide SVG files | exposed as 53 callable names (3 aliases). State precisely; never a bare "50" or bare "53" |
-| Tests | 902 test functions | across 85 Python files |
-| A11y gate | 86 axe-scanned documents | 43 fixtures x light and dark, blocking CI |
-| Logical properties | 274 in source CSS | 297 in compiled dist |
-| Version | 3.7.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py` |
+| Components | 40 | 31 core, 9 marketing. **Gated** against `catalogue-manifest.json` |
+| Shells | 5 | base, app, auth, centred, marketing. **Gated** against `catalogue-manifest.json` |
+| Sections | 26 | **Gated** against `catalogue-manifest.json` |
+| Archetypes | 16 | **Gated** against `catalogue-manifest.json` |
+| Template tag registrations | 19 total | 15 `inclusion_tag`, 3 `simple_tag`, 1 `filter`. Write "15 component tags" or state the 19 total; never a bare "15 template tags". **Gated** by importing the templatetags libraries and counting `register.tags`/`register.filters` |
+| Tokens | 336 unique `--bw-*` | 269 overridable; 10 load-bearing, 8 unconditional. **Overridable count gated** against `token-manifest.json`; the 336 total (all custom properties in compiled `tokens.css`) is **dated** at 3.10.0 |
+| Alpine components | 15 | bwDropdown, bwTabs, bwModal, bwToastRegion, bwToast, bwCombobox, bwDismissible, bwTooltip, bwTagInput, bwDropzone, bwSidebarCollapse, bwSlideOver, bwTableSelection, bwSortable, bwThemeSwitch. **Gated** by parsing the `Alpine.data(...)` calls in `frontend/src/js/index.js`'s single registration point |
+| Examples | 42 | 16 archetype pages, 26 sections. **Gated** against `catalogue-manifest.json` |
+| Icons | 50 vendored Lucide SVG files | exposed as 53 callable names (3 aliases). State precisely; never a bare "50" or bare "53". **Dated** at 3.10.0 |
+| Tests | 1011 test functions | across 89 Python files under `tests/`. **Dated** at 3.10.0 (counted via `def test_` across `tests/**/*.py`); not gated, this count moves with every PR |
+| A11y gate | 132 axe-scanned documents | 100 hand-maintained (50 fixtures x light and dark) plus 32 archetype (16 catalogue archetypes x light and dark), blocking CI. Archetype fixture count **gated** against `catalogue-manifest.json`'s archetype count; the 50 hand-maintained fixtures are **dated** at 3.10.0 (Node/Playwright fixtures are not generated in the Python test run) |
+| Logical properties | 273 in source CSS | 500 in compiled dist. **Dated** at 3.10.0; reproducible via a fixed list of logical property names matched at a declaration boundary in `frontend/src/components.css` and the compiled `dist/brickwork.css` |
+| Version | 3.10.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py`. **Gated** |
 | Hard runtime dependency | Django only | |
 | Theme axes | 4 verified working | brand, theme, density, direction |
 | Contract manifests | 2 | token, template; generated from source, CI drift-gated. Token manifest carries `minContrast: 4.5` on `fg-on-accent` |
