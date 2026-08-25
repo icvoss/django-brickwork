@@ -6,8 +6,20 @@ identical: no_results offers a clear-filters action, no_data an onboarding one.
 The icon is decorative; the heading + body carry the meaning (both required, no
 package-supplied default copy, STA-003).
 
-Required context: heading, body. Optional: variant ("no_data" default or
-"no_results"), icon (registry name), action_href, action_label.
+Required context: heading (except at size="sm", see below), body (required at
+every scale, STA-003). Optional: variant ("no_data" default or "no_results"),
+icon (registry name), action_href, action_label.
+  size ("sm" | "md", default "md"): emitted as bw-empty-state--size-sm only
+        when "sm" is supplied (ADR-060, STA-019, #218); "lg" is not an earned
+        value. "sm" is the in-panel scale, for an empty state nested inside a
+        card or other bounded container rather than filling a page: it takes
+        the tighter --bw-space-6 block padding, demotes the heading to a
+        <p class="bw-empty-state__heading"> (optional at this scale; body
+        stays required at every scale), suppresses the icon unless one is
+        explicitly passed, and renders any action_href/action_label as a
+        plain bw-empty-state__action-link rather than a bw-btn--primary. At
+        the default "md" the rendered output is unchanged (byte-identical)
+        from before this option existed.
 
 Named blocks (semver-public, BR-BW-TPL-001), all empty by default:
 
@@ -57,21 +69,26 @@ template using a name read from a newer checkout than the version you
 have pinned, check that name against your pinned version's own header
 before relying on it, or the region renders nothing.
 {% endcomment %}
-<div class="bw-empty-state bw-empty-state--{% firstof variant 'no_data' %}">
+<div class="bw-empty-state bw-empty-state--{% firstof variant 'no_data' %}{% if size == "sm" %} bw-empty-state--size-sm{% endif %}">
   {% block icon %}
   {% if icon %}
     {% bw_icon icon size="xl" decorative=True css_class="bw-empty-state__icon" %}
+  {% elif size == "sm" %}
   {% elif variant == "no_results" %}
     {% bw_icon "search" size="xl" decorative=True css_class="bw-empty-state__icon" %}
   {% else %}
     {% bw_icon "folder" size="xl" decorative=True css_class="bw-empty-state__icon" %}
   {% endif %}
   {% endblock %}
-  <h2 class="bw-empty-state__heading">{% block heading %}{% block title %}{{ heading }}{% endblock %}{% endblock %}</h2>
+  {% if size != "sm" or heading %}<{% if size == "sm" %}p{% else %}h2{% endif %} class="bw-empty-state__heading">{% block heading %}{% block title %}{{ heading }}{% endblock %}{% endblock %}</{% if size == "sm" %}p{% else %}h2{% endif %}>{% endif %}
   <p class="bw-empty-state__body">{% block body %}{% block description %}{{ body }}{% endblock %}{% endblock %}</p>
   {% block action %}
   {% if action_href and action_label %}
+    {% if size == "sm" %}
+    <a class="bw-empty-state__action-link" href="{{ action_href }}">{{ action_label }}</a>
+    {% else %}
     <a class="bw-btn bw-btn--primary bw-btn--md" href="{{ action_href }}">{{ action_label }}</a>
+    {% endif %}
   {% endif %}
   {% endblock %}
   {% block empty_state_action %}{% endblock %}
