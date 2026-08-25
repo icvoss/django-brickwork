@@ -258,9 +258,7 @@ def test_no_public_services_module_exports_a_family_primitive_or_pattern_name() 
             continue  # internal module, not public API, out of scope by design
         module = importlib.import_module(f"brickwork.services.{module_info.name}")
         checked_modules.append(module.__name__)
-        exported_names = getattr(module, "__all__", None) or [
-            name for name in vars(module) if not name.startswith("_")
-        ]
+        exported_names = getattr(module, "__all__", None) or [name for name in vars(module) if not name.startswith("_")]
         for name in exported_names:
             lowered = name.lower()
             for word in forbidden:
