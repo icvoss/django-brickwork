@@ -27,6 +27,7 @@ from django.template.backends.django import get_installed_libraries as get_defau
 from django.template.loader import get_template
 from django.utils import dates as django_dates
 from django.utils.formats import get_format
+from django.utils.html import escape as django_escape
 
 from brickwork import examples
 from tests._class_contract import unstyled_classes
@@ -646,3 +647,181 @@ def test_example_not_found_is_not_a_key_error() -> None:
     # KeyError inside a template variable resolution is swallowed and
     # re-surfaces as silently empty output.
     assert not issubclass(examples.ExampleNotFoundError, KeyError)
+
+
+# --- A fixture value must actually survive into the render (#232) -----------
+#
+# icvoss/django-brickwork#232: app/detail.html passed items=breadcrumb_items
+# into _breadcrumbs.html, whose required key is crumbs, so the breadcrumb
+# region rendered empty. Every OTHER test above only checks structural
+# completeness (a doctype, no leaked "{{", a styled class): none of them ever
+# looks at whether a SPECIFIC fixture value made it into the HTML, so an
+# include-kwarg mismatch like #232's renders a complete, validly structured,
+# silently WRONG page and nothing here would have failed.
+#
+# The fix is a literal-text contract, not a per-example hand-list (which is
+# exactly the kind of assertion that goes stale the day someone adds a new
+# example and forgets to add its check alongside it). _EXAMPLE_CONTEXTS and
+# _SECTION_CONTEXTS already carry the fixture data; the DESIGN here is to walk
+# each fixture dict and, for a fixed set of key names that every consuming
+# component renders VERBATIM as visible text (see _LITERAL_TEXT_KEYS below),
+# assert the string on that key reaches the rendered HTML. That is derived
+# from the context data itself, so a new example needs no new assertion here:
+# it is covered the moment its fixture uses one of these key names, exactly
+# the shape that would have caught #232 (breadcrumb_items' "label" values).
+#
+# This intentionally does NOT try to assert on every string in a fixture.
+# Several keys are real but non-literal: an enum consumed as a class suffix or
+# an aria state (status, variant, trend), an icon registry name (icon) that
+# renders as an SVG reference rather than text, or a sort/lookup key
+# (sort_key, key, id). Asserting those "appear" would either be trivially true
+# (icon names collide with real copy) or actively wrong (status values like
+# "current" never appear as visible text at all), so they are left out on
+# purpose rather than swept in via a blanket string walk.
+_LITERAL_TEXT_KEYS = frozenset(
+    {
+        "label",
+        "heading",
+        "lede",
+        "body",
+        "title",
+        "description",
+        "message",
+        "question",
+        "answer",
+        "author",
+        "role",
+        "quote",
+        "name",
+        "value",
+        "summary",
+        "meta",
+        "tag",
+        "eyebrow",
+        "action_label",
+        "cta_label",
+        "primary_cta_label",
+        "secondary_cta_label",
+        "trend_label",
+        "badge",
+    }
+)
+
+# Fixture values that are real literal-text keys by name but do not survive
+# byte-for-byte, or that the consuming template legitimately never renders.
+# Each entry names the example and the exact fixture values that are exempt,
+# with the reason, so a new mismatch cannot hide behind a growing allowlist
+# without a citation.
+#
+# sections/listing/*.html share ONE fixture, `_SECTION_ENTRIES` (deliberately:
+# test_examples.py's own module comment above documents that the three
+# listing variants share the ENTRY CONTRACT, not a grid), but each variant's
+# own "WHAT YOUR VIEW MUST SUPPLY" header comment names a narrower subset of
+# that shape than the fixture as a whole carries. compact-table.html renders
+# only title/category/updated (no tag, no summary, by its own header
+# comment); media-list.html renders title/summary/meta/image/image_alt (no
+# tag). Their "missing" tag/summary values are that documented, deliberate
+# narrowing, not a dropped include kwarg, so they are exempted here rather
+# than in a wider `_LITERAL_TEXT_KEYS` change that would reintroduce false
+# negatives on tags/summaries that genuinely do need to render elsewhere.
+_LITERAL_TEXT_EXEMPTIONS: dict[str, set[str]] = {
+    "sections/listing/compact-table.html": {entry["tag"] for entry in _SECTION_ENTRIES}
+    | {entry["summary"] for entry in _SECTION_ENTRIES},
+    "sections/listing/media-list.html": {entry["tag"] for entry in _SECTION_ENTRIES},
+}
+
+
+def _iter_literal_text_values(value: object, *, under_literal_key: bool) -> list[str]:
+    """Every string this fixture tree carries under a `_LITERAL_TEXT_KEYS` key.
+
+    Recurses through dicts and lists/tuples so a nested shape (breadcrumbs'
+    list of {label, url} dicts, a table's list of {label, value} rows, a
+    pricing tier's list of feature strings) is covered without each example
+    hand-listing its own nested keys. A bare string is only collected when it
+    is reached while ``under_literal_key`` is True, i.e. it sits directly on,
+    or inside a list directly on, one of `_LITERAL_TEXT_KEYS`.
+    """
+    found: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            found.extend(_iter_literal_text_values(child, under_literal_key=key in _LITERAL_TEXT_KEYS))
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            found.extend(_iter_literal_text_values(item, under_literal_key=under_literal_key))
+    elif isinstance(value, str) and under_literal_key:
+        # A short or blank string (e.g. a one-word status-like label) is too
+        # likely to appear in the rendered HTML by coincidence (whitespace,
+        # markup fragments) to be useful signal either way.
+        if len(value.strip()) >= 4:
+            found.append(value)
+    return found
+
+
+def _expected_literal_strings(context: dict[str, object]) -> set[str]:
+    found: set[str] = set()
+    for value in context.values():
+        found.update(_iter_literal_text_values(value, under_literal_key=False))
+    return found
+
+
+def _missing_literal_strings(expected: set[str], html: str) -> list[str]:
+    """Which of ``expected`` never reached ``html``.
+
+    Django autoescapes ``{{ value }}`` by default, so a value carrying an
+    apostrophe or ampersand (several examples' fixture copy does) reaches the
+    HTML as its escaped form, not byte-for-byte. A value counts as present if
+    either the raw or the HTML-escaped spelling appears, which is the correct
+    reading of "survived the render" for ordinary (non `|safe`) template
+    variables.
+    """
+    return sorted(value for value in expected if value not in html and django_escape(value) not in html)
+
+
+@pytest.mark.parametrize("name", sorted(_EXAMPLE_CONTEXTS))
+def test_every_fixture_literal_survives_into_the_example_render(name: str) -> None:
+    """Derived regression coverage for #232's defect class.
+
+    For every string the fixture carries under a key a component is documented
+    to render verbatim (see `_LITERAL_TEXT_KEYS`), assert it actually reaches
+    the rendered HTML. An include-kwarg mismatch (the component binds a
+    different name than the example passes) means the value is dropped
+    silently, exactly as `crumbs`/`items` was: the page still renders a
+    complete, validly structured document, and only a check like this one
+    notices the content never arrived.
+    """
+    context = _EXAMPLE_CONTEXTS[name]
+    expected = _expected_literal_strings(context) - _LITERAL_TEXT_EXEMPTIONS.get(name, set())
+    if not expected:
+        pytest.skip(f"{name}'s fixture carries no literal-text values to check")
+
+    template = _example_engine().get_template(name)
+    html = template.render(Context(context))
+
+    missing = _missing_literal_strings(expected, html)
+    assert not missing, (
+        f"{name} rendered without these fixture values reaching the HTML "
+        f"(an include-kwarg mismatch silently drops the value, #232): {missing}"
+    )
+
+
+@pytest.mark.parametrize("name", sorted(_SECTION_CONTEXTS))
+def test_every_fixture_literal_survives_into_the_section_render(name: str) -> None:
+    """The section-fixture counterpart of the example check above.
+
+    Only sections whose context genuinely carries list-shaped data
+    (`_SECTION_FEATURES`, `_SECTION_ENTRIES`, `_SECTION_TIERS`, `_SECTION_STATS`)
+    have anything to check; the rest render from an empty context and are
+    skipped rather than asserting on nothing.
+    """
+    context = _SECTION_CONTEXTS[name]
+    expected = _expected_literal_strings(context) - _LITERAL_TEXT_EXEMPTIONS.get(name, set())
+    if not expected:
+        pytest.skip(f"{name}'s fixture carries no literal-text values to check")
+
+    html = _example_engine().get_template(name).render(Context(context))
+
+    missing = _missing_literal_strings(expected, html)
+    assert not missing, (
+        f"{name} rendered without these fixture values reaching the HTML "
+        f"(an include-kwarg mismatch silently drops the value, #232): {missing}"
+    )
