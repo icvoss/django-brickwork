@@ -48,19 +48,21 @@ a weekend.
 
 Decide, up front and in writing, what migrates and what does not:
 
-- **Migrates:** your own chrome (shell, nav, topbar), your forms, your list and
-  detail screens, your dashboards.
-- **Does NOT migrate:** data-viz bodies (charts stay app-owned inside
-  `{% block content %}`, a declared brickwork non-goal); anything an engine or
-  third party owns; a separately-branded, separately-hosted marketing / public
-  site is not pulled into an *application-shell* cutover (that boundary stops
-  "while we are in here" scope creep mid-migration). The core `brickwork` app is
-  the *application* substrate. Note (ADR-055, from v1.2.0): brickwork now also
-  ships an **opt-in `brickwork.marketing` sub-app** (add `"brickwork.marketing"`
-  to `INSTALLED_APPS`) with a marketing shell and nine marketing components
-  (hero, feature grid, pricing tier, pricing table, CTA, testimonial, logo
-  cloud, stat band, FAQ) on the same `--bw-*` token / brand / accessibility
-  contract.
+- **Migrates:** all reusable interface design: chrome, forms, list and detail
+  screens, dashboards, public-site patterns, documentation and editorial
+  layouts, transactional journeys, and the frames and interaction conventions
+  around data visualisation.
+- **Stays consumer-owned:** product-specific semantics, business rules,
+  permissions, integrations, content operations and any specialist renderer a
+  project selects. A charting engine may stay app-owned, but it belongs inside
+  Brickwork's layout, token, state, legend, tooltip and filter contract. A
+  separately branded or hosted public site is migrated deliberately rather than
+  accidentally during a console cutover. Note (ADR-055, from v1.2.0):
+  brickwork now also ships an **opt-in `brickwork.marketing` sub-app** (add
+  `"brickwork.marketing"` to `INSTALLED_APPS`) with a marketing shell and nine
+  marketing components (hero, feature grid, pricing tier, pricing table, CTA,
+  testimonial, logo cloud, stat band, FAQ) on the same `--bw-*` token / brand /
+  accessibility contract.
   Worked landing/pricing/about pages built on that shell and those components
   ship as copy-paste examples (`brickwork.examples`), not importable templates
   (ADR-056, from v2.0.0): a whole page is the most project-specific thing a
@@ -137,12 +139,12 @@ phase: brickwork owns the shell, nav, forms scaffolding and generic components;
 your component framework owns the domain components, mounted in brickwork
 slots, indefinitely.
 
-The boundary rule that follows: **generic chrome migrates to brickwork; domain
-components with real Python logic stay on your framework.** A calendar grid
+The boundary rule that follows: **Brickwork owns reusable interface patterns;
+your framework owns product-specific semantics and logic.** A calendar grid
 that builds availability matrices in `get_context_data`, a price display doing
-currency formatting, a rating widget: these have no brickwork equivalent and
-domain-specific rendering is a declared brickwork non-goal. Do not rewrite them
-as brickwork tags; mount them where they are.
+currency formatting, or a rating widget can remain on a consumer framework
+until a generic pattern is proven. Do not force an abstraction early; mount it
+inside Brickwork's layout and interaction contract.
 
 Do:
 

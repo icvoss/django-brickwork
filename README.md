@@ -9,20 +9,23 @@ tokens, because brickwork ships no date picker component for it to compose
 "the defaults are beautiful" is a claim you check by opening a file rather
 than one you take on trust.
 
-A brand-agnostic, app-facing professional UI substrate for server-rendered
-Django, on the ecosystem stack: Tailwind 4 (CSS-first), Alpine 3, HTMX 2,
-Django 6.0. It provides the application shell, navigation and active-route
-resolution, an accessible form-field renderer, and interaction primitives
-(modal, toast, dropdown, combobox, tabs, disclosure) wrapped behind stable
-Django components.
+A brand-agnostic interface foundation for server-rendered Django, on the
+ecosystem stack: Tailwind 4 (CSS-first), Alpine 3, HTMX 2, Django 6.0.
+Brickwork is designed to cover public sites, product applications, data-heavy
+operations, documentation, editorial publishing and transactional journeys
+through shared foundations, components, layouts and copyable archetypes.
+Its target is that a team can deliver those interfaces without introducing a
+second UI kit or design language. See [the interface-system
+contract](docs/INTERFACE-SYSTEM.md) for the intended coverage and the current
+example catalogue for what ships today.
 
-**This is not a Django-admin skin.** Applications provide data, permissions
-and business behaviour; the substrate provides structure, presentation and
-interaction conventions, on a professional, tested-accessible baseline: RTL
-via logical properties, a real themeable dark-mode system, and four
-composable theme axes (brand x theme x density x direction). Rebranding is
-token-first: every visual value is a `--bw-*` custom property, so a consumer
-rebrands by overriding tokens, never by touching component classes.
+**This is not a Django-admin skin.** Consumers provide data, permissions and
+business behaviour; Brickwork owns the reusable interface design, on a
+professional, tested-accessible baseline: RTL via logical properties, a real
+themeable dark-mode system, and four composable theme axes (brand x theme x
+density x direction). Rebranding is token-first: every visual value is a
+`--bw-*` custom property, so a consumer rebrands by overriding tokens, never
+by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
 axe-core WCAG 2.2 AA scan across 86 documents (43 fixtures x light and dark
@@ -34,7 +37,8 @@ over a background image reports "incomplete" rather than a violation); the
 gate catching its own blind spot and adding a check for it is stronger
 evidence than a gate that has never missed.
 
-> Status: **stable, on public PyPI at 3.5.1** (`pip install django-brickwork`);
+> Status: **stable**. This checkout is version 3.7.0 (`pip install
+> django-brickwork` for the published package);
 > [CHANGELOG.md](CHANGELOG.md) records the current release. The five
 > semver-governed public-API contracts (token, template, navigation,
 > interaction, JavaScript) are live. The surface covers the
@@ -66,6 +70,10 @@ evidence than a gate that has never missed.
 
 - [docs/DESIGN.md](docs/DESIGN.md): the canonical token reference; every
   `--bw-*` name, default value, and derivation rule.
+- [docs/INTERFACE-SYSTEM.md](docs/INTERFACE-SYSTEM.md): the intended coverage,
+  ownership boundary and required archetypes for the complete interface system.
+- [docs/ROADMAP.md](docs/ROADMAP.md): the active plan from the current package
+  to complete interface-system coverage.
 - [docs/BRANDING.md](docs/BRANDING.md): how a consuming app brands brickwork
   (the load-bearing token minimum, dark mode, the four axes, the fg-on-accent
   contrast trap, and dynamic per-tenant / per-user theming recipes).
@@ -214,17 +222,13 @@ pages built from its tokens, components and shells, as copy-paste examples in
 `date-range-picker`, `form`, `wizard`, `settings`, `console`, `confirm`;
 `auth/signin`, `signup`, `reset`; `marketing/landing`, `pricing`, `about`).
 
-Looking for a date picker component: there is no package-maintained one, and
-there never will be (`BR-BW-INPUT-004` is a Fixed rule: no `bw_date_picker`
-tag, template or Alpine behaviour exists or ever will). That is not the same
-as no date picker. `app/date-range-picker.html` is a full working date range
-picker, calendar popover with weekday and month grids, locale-aware via
-Django's own `django.utils.dates`, single-date mode included, over a native
-`<input type="date">` no-JS floor that stays the submitted control at all
-times. Copy it; its header explains what your view must supply. What
-brickwork declines to ship is the maintained JS calendar component, not the
-capability: the copied page is yours outright, with no component contract for
-brickwork to maintain or break.
+Looking for a date picker: Brickwork does not currently ship a maintained
+`bw_date_picker` component, but it does ship a complete copyable date-range
+picker. `app/date-range-picker.html` provides a calendar popover with weekday
+and month grids, locale-aware via Django's own `django.utils.dates`, including
+single-date mode, over a native `<input type="date">` no-JavaScript floor that
+stays the submitted control. Copy it and adapt it. Brickwork owns the
+date-entry interface pattern, while the copied page remains yours outright.
 
 They cannot be extended, by construction: the directory is package data, not
 an app `templates/` folder, so Django's `APP_DIRS` loader cannot see it and

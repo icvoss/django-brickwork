@@ -6,6 +6,19 @@ semantic versioning. Template block names, HTMX target IDs, Alpine component
 names, event names and token names are treated as public API (see the spec's
 versioning contract).
 
+## Unreleased
+
+### Changed
+
+- **Interface-system product contract:** Brickwork now defines its intended
+  coverage as the reusable interface design for public sites, product
+  applications, data-heavy operations, documentation, editorial publishing and
+  transactional journeys. The new `docs/INTERFACE-SYSTEM.md` makes the design
+  ownership boundary explicit: consumers retain domain data, rules, permissions
+  and integrations, while Brickwork owns reusable foundations, patterns,
+  layouts and archetypes. This changes product direction and documentation
+  only. It does not claim that every required interface family ships today.
+
 ## [3.7.0] - 2026-08-24
 
 One new Alpine behaviour, filed as a substrate gap rather than a feature

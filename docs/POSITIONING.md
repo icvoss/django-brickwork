@@ -1,6 +1,6 @@
 # brickwork positioning
 
-**Status:** canonical positioning source. Approved by the owner 2026-08-24.
+**Status:** canonical positioning source. Updated by owner direction 2026-08-25.
 **Scope:** every brickwork-facing copy surface (README.md, brickworkui.com,
 PyPI description, any future landing page or pitch) derives its claims from
 this document and must not diverge from it. Where a surface currently
@@ -14,11 +14,16 @@ brickwork-facing prose lifts claims from here, with the evidence attached.
 
 ## 1. Position statement
 
-brickwork is a professional UI substrate for server-rendered Django: an
-application shell, navigation, an accessible form-field renderer, and
-interaction primitives (modal, toast, dropdown, combobox, tabs, disclosure),
-wrapped behind stable components, on Tailwind 4, Alpine 3 and HTMX 2. Django
-is its only hard runtime dependency.
+brickwork is being built as the complete interface foundation for
+server-rendered Django. Its target coverage is the reusable design system
+across public sites, product applications, data-heavy operations,
+documentation, editorial publishing and transactional journeys: foundations,
+components, layouts, interaction patterns and copyable page archetypes, on
+Tailwind 4, Alpine 3 and HTMX 2. Django is its only hard runtime dependency.
+
+The current shipped component inventory is not yet that complete system. Public
+copy must distinguish the target from verified shipping coverage, while showing
+the examples and released components that prove each available part.
 
 It is brand-agnostic by construction: every visual value is a `--bw-*`
 custom property, so a consumer rebrands it by overriding tokens, never by
@@ -26,10 +31,11 @@ touching component classes (`docs/BRANDING.md:3-4`).
 
 ## 2. Who it is for
 
-A Django team hand-building console, dashboard, or marketing-adjacent views
-who wants a professional, accessible baseline without building a design
-system first. Not a fit for a team that wants a Django-admin skin, a page
-builder, or a general Tailwind utility layer (see Boundaries, section 6).
+A Django team that wants one branded, accessible design system across every
+interface it ships, without rebuilding common design decisions for each new
+site, app, content surface or workflow. It is not a Django-admin skin, a page
+builder, a CMS, or a general Tailwind utility layer (see Boundaries, section
+6).
 
 ## 3. The lead claim
 
@@ -158,7 +164,7 @@ one documented exception exists, `background-position: right` / `left` at
 because `background-position` has no logical equivalent. State the exception
 whenever the "zero" claim is made; a bare "zero" is disprovable in devtools.
 
-## 5. The full verified numbers (source: code at 3.5.1)
+## 5. The full verified numbers (source: code at 3.7.0)
 
 | Fact | Value | Note |
 |---|---|---|
@@ -169,23 +175,23 @@ whenever the "zero" claim is made; a bare "zero" is disprovable in devtools.
 | Alpine components | 13 | |
 | Examples | 42 | 16 pages, 26 sections |
 | Icons | 50 vendored Lucide SVG files | exposed as 53 callable names (3 aliases). State precisely; never a bare "50" or bare "53" |
-| Tests | 899 test functions | across 52 files |
+| Tests | 902 test functions | across 85 Python files |
 | A11y gate | 86 axe-scanned documents | 43 fixtures x light and dark, blocking CI |
 | Logical properties | 274 in source CSS | 297 in compiled dist |
-| Version | 3.5.1 | consistent in `pyproject.toml` and `src/brickwork/__init__.py` |
+| Version | 3.7.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py` |
 | Hard runtime dependency | Django only | |
 | Theme axes | 4 verified working | brand, theme, density, direction |
 | Contract manifests | 2 | token, template; generated from source, CI drift-gated. Token manifest carries `minContrast: 4.5` on `fg-on-accent` |
 
-## 6. What brickwork is not (boundaries and non-goals)
+## 6. Design boundaries
 
 | Boundary | Statement |
 |---|---|
-| Django-admin | Not a Django-admin skin. It is for hand-built views. |
-| Chrome vs. content | brickwork owns the shell, nav, topbar, footer; the consumer owns everything inside `{% block content %}`. |
-| Charts / data-viz | Declared non-goal. |
-| Domain-specific rendering | Declared non-goal. Generic chrome migrates to brickwork; domain components with real Python logic stay on the consumer's own framework. That is a legitimate permanent end state, not a migration phase in progress. |
-| Date picker component | No package-maintained date picker component, ever (BR-BW-INPUT-004, Fixed). Not the same as "no date picker": a full date range picker ships as a copyable example over a native `<input type="date">` floor (section 3). Never state this boundary without that distinction. |
+| Django-admin | Not a Django-admin skin. It is for hand-built interfaces. |
+| Design ownership | brickwork owns reusable interface design, including content, data and workflow patterns. Consumers own domain data, permissions, business rules and integrations. |
+| Data visualisation | Brickwork owns the visual, layout, state and interaction contract. Consumers may supply a charting engine or specialist renderer that fits that contract. |
+| Domain-specific rendering | A consumer owns product-unique semantics and business logic. Brickwork owns a reusable interface pattern whenever one exists. |
+| Date entry | A package-maintained JavaScript calendar component is not currently shipped. A full date-range-picker example is available to copy and own. Brickwork owns the date-entry interface contract and may evolve its delivery model when a reusable component is warranted. |
 | Utility layer | No general Tailwind utility layer; brickwork ships no `.grid`, `.gap-4`, `.px-3`. |
 | Page builder / CMS | Not a page builder, not a CMS. No tenant-arbitrary content or CSS/JS. |
 | Sanitisation | Styles markup; does not sanitise it. |
@@ -277,7 +283,7 @@ match it:
 
 | Surface | Contradiction | Fix |
 |---|---|---|
-| `README.md:17` | Says "stable, on public PyPI at 3.2.0", cites 78 fixtures | Update to 3.5.1 and 86 fixtures (tracked: issue #204) |
+| `README.md` | Was stale on package version and fixture count | Resolved: it identifies this checkout as 3.7.0 and states 86 fixtures. |
 | `pyproject.toml:8` | "Accessible by construction" (a design claim) sits against `README.md:11-12`'s "a *tested* guarantee... not a claim" (a verification claim positioned explicitly against design claims) | Reconcile the two framings; do not ship a design claim and a verification claim that read as contradicting each other |
 | `PILOT-ADOPTION-BRIEF.md` | Was pinned to 0.3.0 and the private index, and dropped "professional" from the definition | RESOLVED 2026-08-24: rewritten as a routing quickstart and renamed `docs/QUICKSTART.md` |
 | Four documents each currently state brickwork's singular value differently: `README.md:10-13` ("its value is the professional baseline"), `docs/BRANDING.md:3-4` ("brickwork's whole point is that you rebrand it by overriding tokens"), `docs/DESIGN.md:15-18` (the beautiful-defaults founding statement), `pyproject.toml:8` (the category definition) | Four different leads for one product | This document settles it: beautiful defaults, proved by the examples (section 3), is the lead. Token-first rebranding (4.3) and the professional/tested-accessibility framing (4.2) become supporting claims, not competing leads |

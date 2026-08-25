@@ -9,13 +9,12 @@ themselves.
 
 ## What brickwork is
 
-**Beautiful defaults, proved by the examples.** brickwork is a brand-agnostic,
-app-facing professional UI substrate for server-rendered Django: an
-application shell, navigation with active-route resolution, an accessible
-form-field renderer, and interaction primitives (modal, toast, dropdown,
-combobox, tabs, disclosure), wrapped behind stable Django components, on
-Tailwind 4 (CSS-first), Alpine 3 and HTMX 2. Django is its only hard runtime
-dependency. It is not a Django-admin skin: it is for your hand-built views.
+**Beautiful defaults, proved by the examples.** brickwork is a brand-agnostic
+interface foundation for server-rendered Django. It owns reusable design across
+public sites, product applications, data-heavy operations, documentation,
+editorial publishing and transactional journeys, on Tailwind 4 (CSS-first),
+Alpine 3 and HTMX 2. Django is its only hard runtime dependency. It is not a
+Django-admin skin: it is for your hand-built interfaces.
 
 Rebranding is token-first: every visual value is a `--bw-*` custom property,
 so you rebrand by overriding tokens, never by touching component classes
@@ -33,7 +32,7 @@ so you rebrand by overriding tokens, never by touching component classes
 
 ## Install
 
-From public PyPI, at 3.5.1:
+From public PyPI:
 
 ```
 uv add django-brickwork             # or: pip install django-brickwork
