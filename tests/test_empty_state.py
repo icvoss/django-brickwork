@@ -164,3 +164,56 @@ def test_empty_state_action_alone_still_renders_with_no_action_block_filled() ->
 def test_bare_empty_state_emits_no_action_markup() -> None:
     out = _render()
     assert "bw-btn" not in out
+
+
+# --- size="sm" (ADR-060, STA-019, #218) ---------------------------------------
+
+
+def test_default_size_carries_no_size_sm_class() -> None:
+    out = _render()
+    assert "bw-empty-state--size-sm" not in out
+
+
+def test_size_sm_carries_the_size_sm_class() -> None:
+    out = _render(size="sm")
+    assert "bw-empty-state--size-sm" in out
+
+
+def test_size_sm_with_heading_renders_a_paragraph_not_a_heading_element() -> None:
+    out = _render(size="sm")
+    assert '<p class="bw-empty-state__heading">No invoices yet</p>' in out
+    assert "<h2" not in out
+
+
+def test_size_sm_without_heading_renders_no_heading_markup_at_all() -> None:
+    out = _render(size="sm", heading="")
+    assert "bw-empty-state__heading" not in out
+
+
+def test_size_md_without_heading_still_renders_the_empty_heading_element() -> None:
+    # STA-003: heading stays required at "md"; an empty value still gets the
+    # <h2> wrapper, unlike "sm" where an empty heading suppresses it entirely.
+    out = _render(heading="")
+    assert '<h2 class="bw-empty-state__heading"></h2>' in out
+
+
+def test_size_sm_without_icon_renders_no_icon_markup() -> None:
+    out = _render(size="sm")
+    assert "bw-empty-state__icon" not in out
+
+
+def test_size_sm_with_explicit_icon_still_renders_it() -> None:
+    out = _render(size="sm", icon="trash")
+    assert "bw-empty-state__icon" in out
+
+
+def test_size_sm_action_renders_the_plain_link_not_the_primary_button() -> None:
+    out = _render(size="sm", action_href="/invoices/new/", action_label="Create invoice")
+    assert '<a class="bw-empty-state__action-link" href="/invoices/new/">Create invoice</a>' in out
+    assert "bw-btn--primary" not in out
+
+
+def test_size_md_action_still_renders_the_primary_button() -> None:
+    out = _render(action_href="/invoices/new/", action_label="Create invoice")
+    assert '<a class="bw-btn bw-btn--primary bw-btn--md" href="/invoices/new/">Create invoice</a>' in out
+    assert "bw-empty-state__action-link" not in out
