@@ -142,6 +142,29 @@ test.describe("JS reveal and initial state", () => {
     expect(stored).toBeNull();
   });
 
+  test("validation sources from the server-emitted payload, not the rendered radios", async ({ page }) => {
+    // review fix, #117 blocker 1: the DOM's own rendered radios must never
+    // be the validation contract, because a consumer's mistaken override
+    // template could render an extra, wrong <input> that live-DOM
+    // validation would then treat as legitimate. Inject a genuine extra
+    // radio (a real, working control, not a value tamper) OUTSIDE the
+    // json_script payload the server emitted, then interact with it the
+    // normal way: it must still be rejected.
+    const themeFieldset = section(page, "default-heading").locator('[data-bw-theme-switch-axis="theme"]');
+    const groupName = await themeFieldset.locator("input").first().getAttribute("name");
+    await themeFieldset.evaluate((fieldset, name) => {
+      const label = document.createElement("label");
+      label.innerHTML = '<input type="radio" data-bw-theme-switch-value value="rogue-value"> Rogue';
+      label.querySelector("input").name = name; // same radio group: real, working native semantics
+      fieldset.appendChild(label);
+    }, groupName);
+    const rogue = section(page, "default-heading").locator('input[value="rogue-value"]');
+    await rogue.check();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light"); // unchanged
+    const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
+    expect(stored).toBeNull();
+  });
+
   test("two unlocked instances never collide on radio group name or root id", async ({ page }) => {
     const defaultRoot = await section(page, "default-heading").locator("[data-bw-theme-switch]").getAttribute("id");
     const brandRoot = await section(page, "brand-heading").locator("[data-bw-theme-switch]").getAttribute("id");
@@ -156,6 +179,38 @@ test.describe("JS reveal and initial state", () => {
       .getAttribute("name");
     expect(defaultName).not.toEqual(brandName);
   });
+});
+
+test("an invalid <html> attribute value is not adopted as this axis's state", async ({ page }) => {
+  // review fix, #117 blocker 2: the ROOT's own current attribute value is
+  // validated too, not trusted just because it is already on <html>. A
+  // consumer template mistake (a stray or mistyped data-theme value) must
+  // not be adopted as this axis's state, offered as a checked radio, or
+  // ever reach localStorage.
+  //
+  // A DEDICATED FIXTURE with the bogus value baked into the served HTML
+  // (never a page.evaluate() mutation followed by page.reload()): a
+  // file:// reload re-fetches the static file from disk, so a prior DOM
+  // mutation is gone before bwThemeSwitch's own init() ever runs, which
+  // would make this test pass vacuously (the reload silently reverts
+  // <html> to a real value, never exercising the invalid-value path at
+  // all). This is its own top-level test, outside the "JS reveal and
+  // initial state" describe block's boot() beforeEach, because it needs a
+  // different fixture entirely, not the standard one that block shares.
+  await page.goto(fx("theme-switch-invalid-root-js-light.html"));
+  await page.waitForFunction(() => !!window.Alpine);
+  await expect(section(page, "default-heading").locator("[data-bw-theme-switch]")).toBeVisible();
+  // bwThemeSwitch never overwrites <html> when nothing valid resolves, so
+  // the bogus value baked into the fixture is still there; the important
+  // assertion is that NEITHER radio adopts it as checked and it never
+  // reaches storage
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "MISCONFIGURED-VALUE");
+  const theme = section(page, "default-heading").locator('[data-bw-theme-switch-axis="theme"] input');
+  for (const radio of await theme.all()) {
+    await expect(radio).not.toBeChecked();
+  }
+  const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
+  expect(stored).toBeNull();
 });
 
 // --- changing an axis (SHL-003 persistence, bw:theme-switch:change) ---------
@@ -249,6 +304,66 @@ test.describe("locked axis", () => {
     const locked = section(page, "locked-heading");
     const darkRadio = locked.locator('input[value="dark"]');
     await expect(darkRadio).toBeDisabled();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
+    expect(stored).toBeNull();
+  });
+
+  test("a locked instance's own state never races an unlocked sibling sharing the same axis", async ({ page }) => {
+    // Self-found during the #117 review fixes, not one of the seven named
+    // items: the locked branch originally read document.documentElement's
+    // LIVE attribute to decide its own state, which is order-dependent
+    // when more than one switch instance shares an axis on one page (this
+    // fixture is exactly that: the default instance's theme fieldset is
+    // UNLOCKED and shares the theme axis with the locked instance). Alpine
+    // boots components in DOM order, the default instance first, so if it
+    // applies a stored "dark" preference to <html> before the locked
+    // instance's own init runs, a DOM-reading locked branch would
+    // incorrectly adopt "dark" too. The fix resolves a locked axis's
+    // checked radio SERVER-SIDE (group.locked_value in
+    // _theme_switch.html), never from <html> at JS runtime, so this must
+    // hold regardless of sibling ordering or a pre-seeded stored value.
+    await page.evaluate(() => window.localStorage.setItem("bw-theme-switch-theme", "dark"));
+    await page.reload();
+    await page.waitForFunction(() => !!window.Alpine);
+    await expect(section(page, "locked-heading").locator("[data-bw-theme-switch]")).toBeVisible();
+    // the unlocked default instance DID adopt the stored value (the write
+    // was real and this module did read it back for that axis, proving the
+    // scenario is meaningful rather than vacuous)
+    await expect(section(page, "default-heading").locator('input[value="dark"]')).toBeChecked();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    // but the LOCKED instance's radios still reflect light, the resolver's
+    // own value, never the sibling's stored one, and the note is present
+    const lockedFieldset = section(page, "locked-heading").locator('[data-bw-theme-switch-axis="theme"]');
+    await expect(lockedFieldset.locator('input[value="light"]')).toBeChecked();
+    await expect(lockedFieldset.locator('input[value="dark"]')).not.toBeChecked();
+    // the VALID stored value is left alone: it legitimately belongs to the
+    // unlocked sibling sharing this axis, and the locked instance has no
+    // way to tell "stale from before I was locked" apart from "currently
+    // valid for a sibling", so only an INVALID entry is ever cleared (the
+    // next test)
+    const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
+    expect(stored).toEqual("dark");
+  });
+
+  test("an INVALID stored value is cleaned up, never adopted, on the page's locked axis", async ({ page }) => {
+    // review fix, #117 blocker 3: previously only unlocked groups discarded
+    // and removed an invalid stored value; a locked group read no storage
+    // at all. This fixture's theme axis has an unlocked sibling too (the
+    // default instance), so this proves the whole-page outcome rather than
+    // isolating which instance's own code path removed the entry: the
+    // locked branch's cleanup was verified in isolation directly against
+    // the compiled bundle, a single locked-only instance with no unlocked
+    // sibling on the same axis, confirming the removal is the LOCKED
+    // branch's own behaviour and not merely a side effect of the sibling.
+    await page.evaluate(() => window.localStorage.setItem("bw-theme-switch-theme", "not-a-real-theme"));
+    await page.reload();
+    await page.waitForFunction(() => !!window.Alpine);
+    await expect(section(page, "locked-heading").locator("[data-bw-theme-switch]")).toBeVisible();
+    // the locked instance still shows its own server value; the invalid
+    // entry never reached <html> anywhere on the page
+    const lockedFieldset = section(page, "locked-heading").locator('[data-bw-theme-switch-axis="theme"]');
+    await expect(lockedFieldset.locator('input[value="light"]')).toBeChecked();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
     expect(stored).toBeNull();

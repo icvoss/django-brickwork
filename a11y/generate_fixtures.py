@@ -952,6 +952,14 @@ def render_inputs(theme: str) -> str:
 #                               (locked_axes="theme": the disabled fieldset +
 #                               note branch, #117's SHL-003 precedence rule)
 #                               that no other fixture here renders.
+# theme-switch-invalid-root-js-<theme>.html
+#                               the JS leg with a BOGUS data-theme baked into
+#                               <html> from render time (review fix, #117
+#                               blocker 2: the consumer-template-mistake case
+#                               has to be present in the served HTML, since a
+#                               file:// page.reload() discards a
+#                               page.evaluate() mutation before it ever
+#                               reaches bwThemeSwitch's own init()).
 _THEME_SWITCH_PAGE = """<!doctype html>
 <html lang="en" data-theme="__THEME__">
 <head>
@@ -999,11 +1007,19 @@ def _render_theme_switch_brand_fixture() -> str:
     ).render(Context({"brands": {"acme": "Acme", "globex": "Globex"}}))
 
 
-def _render_theme_switch_locked_fixture() -> str:
+def _render_theme_switch_locked_fixture(theme: str) -> str:
     from django.template import Context, Template
 
+    # bw_theme MUST match this page's own <html data-theme="__THEME__">
+    # substitution below (icvoss/django-brickwork#117 review): the locked
+    # radio's checked state is resolved from bw_theme at RENDER time, the
+    # same context variable the shell itself reads, never from <html> at JS
+    # runtime, so this fixture's server render and its own <html> attribute
+    # have to agree by construction, exactly as a real resolver-backed page
+    # would (resolve_theme_attributes -> the SAME value onto both bw_theme
+    # and the shell's own <html data-theme>).
     return Template('{% load brickwork_theming %}{% bw_theme_switch axes="theme" locked_axes="theme" %}').render(
-        Context({})
+        Context({"bw_theme": theme})
     )
 
 
@@ -1014,9 +1030,24 @@ def render_theme_switch(theme: str, *, inject_js: bool = False) -> str:
         .replace("__CSS__", f"<style>{css}</style>")
         .replace("__DEFAULT__", _render_theme_switch_default_fixture())
         .replace("__BRAND__", _render_theme_switch_brand_fixture())
-        .replace("__LOCKED__", _render_theme_switch_locked_fixture())
+        .replace("__LOCKED__", _render_theme_switch_locked_fixture(theme))
     )
     return page.replace("__JS_BOOT__", _JS_BOOT if inject_js else "")
+
+
+def render_theme_switch_invalid_root(theme: str) -> str:
+    """The JS leg with a BOGUS data-theme baked into <html> from render time
+    (icvoss/django-brickwork#117 review): the consumer-template-mistake case
+    (a stray or mistyped data-theme value) has to be present in the SERVED
+    HTML, not applied via a post-load page.evaluate() + page.reload(), since
+    a file:// reload re-fetches the static file and any prior DOM mutation
+    is lost before bwThemeSwitch's own init() ever sees it (a reload proves
+    nothing about a value that was never actually there when the page
+    loaded). Stamped statically here, mirroring render_sidebar_collapsed's
+    own "stamp a CSS/DOM state into the fixture" technique, rather than
+    mutating and reloading."""
+    html = render_theme_switch(theme, inject_js=True)
+    return html.replace(f'<html lang="en" data-theme="{theme}">', '<html lang="en" data-theme="MISCONFIGURED-VALUE">', 1)
 
 
 def render_sidebar_collapsed(theme: str) -> str:
@@ -2405,6 +2436,7 @@ def main() -> None:
         # instances and axe walks the real revealed markup)
         (OUT / f"theme-switch-{theme}.html").write_text(render_theme_switch(theme))
         (OUT / f"theme-switch-js-{theme}.html").write_text(render_theme_switch(theme, inject_js=True))
+        (OUT / f"theme-switch-invalid-root-js-{theme}.html").write_text(render_theme_switch_invalid_root(theme))
         (OUT / f"sidebar-collapsed-{theme}.html").write_text(render_sidebar_collapsed(theme))
         # the 0.14.0 slide-over + stepper + wizard set (#55/#59): the
         # slide-over's OPEN state (dialog semantics, labelling, focusable

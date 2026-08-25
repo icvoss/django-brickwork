@@ -269,6 +269,134 @@ def test_explicit_locked_axes_overrides_the_context_default() -> None:
     assert "data-bw-locked" not in html
 
 
+def _fieldset(html: str, axis: str) -> str:
+    axis_marker = f'data-bw-theme-switch-axis="{axis}"'
+    start = html.rindex("<fieldset", 0, html.index(axis_marker))
+    end = html.index("</fieldset>", start)
+    return html[start:end]
+
+
+def test_locked_axis_checks_the_radio_matching_the_context_value() -> None:
+    # review-adjacent fix, #117: a locked axis's checked radio is resolved
+    # SERVER-SIDE from the same bw_theme/bw_density/bw_dir/bw_brand context
+    # variables the shell itself reads, never left for JS to compute from
+    # <html> at runtime (two switch instances on one page sharing an axis
+    # would otherwise race: an earlier-initialising unlocked sibling can
+    # already have changed <html> by the time a locked instance's own init
+    # runs).
+    html = _render('{% bw_theme_switch axes="theme" locked_axes="theme" %}', bw_theme="dark")
+    fieldset = _fieldset(html, "theme")
+    dark_start = fieldset.index('value="dark"')
+    dark_tag_end = fieldset.index(">", dark_start)
+    assert "checked" in fieldset[dark_start:dark_tag_end]
+    light_start = fieldset.index('value="light"')
+    light_tag_end = fieldset.index(">", light_start)
+    assert "checked" not in fieldset[light_start:light_tag_end]
+
+
+def test_locked_axis_with_no_context_value_checks_nothing() -> None:
+    # No bw_theme in context (an unusual but not impossible call shape, e.g.
+    # locked_axes= passed explicitly without the shell's own context
+    # processor wired): locked_value falls back to "", so no radio matches
+    # and none is checked, rather than guessing or raising.
+    html = _render('{% bw_theme_switch axes="theme" locked_axes="theme" %}')
+    fieldset = _fieldset(html, "theme")
+    assert "checked" not in fieldset
+
+
+def test_locked_density_and_dir_check_from_their_own_context_vars() -> None:
+    html = _render(
+        '{% bw_theme_switch axes="density dir" locked_axes="density dir" %}',
+        bw_density="compact",
+        bw_dir="rtl",
+    )
+    density_fieldset = _fieldset(html, "density")
+    compact_start = density_fieldset.index('value="compact"')
+    assert "checked" in density_fieldset[compact_start : density_fieldset.index(">", compact_start)]
+    dir_fieldset = _fieldset(html, "dir")
+    rtl_start = dir_fieldset.index('value="rtl"')
+    assert "checked" in dir_fieldset[rtl_start : dir_fieldset.index(">", rtl_start)]
+
+
+def test_locked_brand_checks_from_bw_brand_context() -> None:
+    html = _render(
+        '{% bw_theme_switch axes="brand" locked_axes="brand" brands=brands %}',
+        brands={"acme": "Acme", "globex": "Globex"},
+        bw_brand="globex",
+    )
+    fieldset = _fieldset(html, "brand")
+    globex_start = fieldset.index('value="globex"')
+    assert "checked" in fieldset[globex_start : fieldset.index(">", globex_start)]
+    acme_start = fieldset.index('value="acme"')
+    assert "checked" not in fieldset[acme_start : fieldset.index(">", acme_start)]
+
+
+def test_unlocked_axis_never_renders_checked() -> None:
+    # An unlocked group's initial checked state is entirely JS's job
+    # (resolved from <html> or localStorage at runtime); the server-rendered
+    # markup for an unlocked axis must never pre-check a radio, even when a
+    # bw_theme-shaped variable happens to be in context, since that context
+    # var is only ever consulted for a LOCKED axis.
+    html = _render('{% bw_theme_switch axes="theme" %}', bw_theme="dark")
+    fieldset = _fieldset(html, "theme")
+    assert "checked" not in fieldset
+
+
+# --- the server-emitted validation payload (review fix, #117 blocker 1) -----
+
+
+def test_payload_script_carries_the_closed_value_sets() -> None:
+    import json
+
+    html = _render('{% bw_theme_switch axes="theme density dir" %}')
+    start = html.index('type="application/json">') + len('type="application/json">')
+    end = html.index("</script>", start)
+    payload = json.loads(html[start:end])
+    assert payload == {
+        "theme": ["light", "dark"],
+        "density": ["compact", "comfortable", "spacious"],
+        "dir": ["ltr", "rtl"],
+    }
+
+
+def test_payload_script_carries_brand_slugs_in_the_caller_supplied_order() -> None:
+    import json
+
+    html = _render(
+        '{% bw_theme_switch axes="brand" brands=brands %}',
+        brands={"acme": "Acme", "globex": "Globex"},
+    )
+    start = html.index('type="application/json">') + len('type="application/json">')
+    end = html.index("</script>", start)
+    payload = json.loads(html[start:end])
+    assert payload == {"brand": ["acme", "globex"]}
+
+
+def test_root_references_the_payload_script_by_id() -> None:
+    html = _render('{% bw_theme_switch axes="theme" %}')
+    start = html.index("<div")
+    root_tag = html[start : html.index(">", start)]
+    import re
+
+    m = re.search(r'data-bw-theme-switch-values="([^"]+)"', root_tag)
+    assert m is not None
+    script_id = m.group(1)
+    assert f'<script id="{script_id}"' in html
+
+
+# --- the shared brand slug rule (review fix, #117 blocker 4) ----------------
+
+
+def test_brand_slug_rule_is_imported_from_services_tokens_not_duplicated() -> None:
+    # A duplicated regex can drift; the tag module must import the SAME
+    # compiled pattern resolve_theme_attributes validates against, not its
+    # own copy.
+    from brickwork.services.tokens import BRAND_SLUG_RE
+    from brickwork.templatetags.brickwork_theming import BRAND_SLUG_RE as tag_pattern
+
+    assert tag_pattern is BRAND_SLUG_RE
+
+
 # --- multiple instances on one page never collide (radio name/id uniqueness)
 
 
