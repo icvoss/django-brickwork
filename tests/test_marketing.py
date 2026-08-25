@@ -1114,9 +1114,7 @@ def test_the_first_marketing_section_gets_block_start_spacing() -> None:
         r"([^{}]*\.bw-marketing__content>:first-child:not\(\.bw-hero\)[^{}]*)\{([^}]*)\}",
         css,
     )
-    assert rule is not None, (
-        "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
-    )
+    assert rule is not None, "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
     assert "margin-block-start:var(--bw-component-section-gap-marketing)" in rule.group(2)
 
 
