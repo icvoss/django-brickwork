@@ -378,6 +378,229 @@ family (`-accent-hover`, `-accent-subtle`) derived live over
 verified `-focus-ring` value for per-request accents, so focus visibility does
 not depend on an unmeasured browser-side mix.
 
+## A live, on-page axis switch (brickwork#117)
+
+The four axes are runtime attributes on the shell root `<html>`, and the live
+`color-mix()` derivation means switching any of them re-themes the page
+instantly with no rebuild. `{% bw_theme_switch %}` is the shipped, tested
+control that demonstrates that property, so you do not hand-roll the a11y
+semantics (a fieldset of radios, not buttons; each axis in its own labelled
+group; no focus trap) and get some of them wrong.
+
+```django
+{% load brickwork_theming %}
+{% bw_theme_switch %}
+```
+
+Renders one `<fieldset>` per axis (default `axes="theme density dir"`;
+`brand` is opt-in, see below), each a native, individually labelled radio
+group, wired to `bwThemeSwitch` (`registerBrickworkComponents`, same as every
+other interaction). Options (ADR-060 grammar):
+
+- `axes` (str, default `"theme density dir"`): a space-separated,
+  closed-vocabulary subset of `theme`/`density`/`dir`/`brand`. `brand` is
+  never included by default: `data-bw-brand` only means something once you
+  have authored a `[data-bw-brand="..."]` stylesheet block (Recipe 3 above),
+  so offering it unconditionally would render a control that does nothing on
+  most sites.
+- `brands` (mapping, required when `"brand"` is in `axes`): `{slug: label}`
+  for your own `data-bw-brand` values; brickwork ships no brand slugs of its
+  own to offer. Every key is validated server-side against the same
+  attribute-safe slug rule `BRICKWORK_DEFAULT_BRAND` and a resolver's own
+  `brand` key already follow; a bad slug is a loud `TemplateSyntaxError`.
+- `label` (str, optional): the control's own accessible name; defaults to a
+  translated "Display settings".
+- `locked_axes` (str, optional): which axes render as a disabled, read-only
+  radio group. Defaults to `bw_theme_locked_axes` from the template context
+  (set by `brickwork.context_processors.theme`) when omitted, so the bare
+  `{% bw_theme_switch %}` call above is safe by default on a resolver-backed
+  page; you do not pass this by hand in ordinary use. Pass a string
+  explicitly (including `""`) to override the context value entirely rather
+  than merging with it.
+
+**The no-JS floor here is "render nothing", not "render a working control",
+the one deliberate departure from this package's usual doctrine.** The
+server-rendered page is already correctly themed, so a theme switch with no
+JS is a control that visibly does nothing, worse than absent: the fieldset
+ships with the `hidden` attribute and `bwThemeSwitch` removes it at init,
+mirroring the reveal-at-init shape `bw_alert`'s dismiss button already uses.
+
+**Persistence follows SHL-003** (the same rule
+`frontend/src/js/sidebar_collapse.js` documents for the sidebar): localStorage
+is the switch's own DEFAULT persistence, itself overridable by the host. Per
+axis, not globally:
+
+| Case | Behaviour |
+|---|---|
+| No `theme_resolver` configured, or it returns nothing for this axis | A free client toggle, persisted to `localStorage` |
+| The resolver's own return value asserts this axis this request | The axis renders as a disabled, read-only radio group showing the current server-resolved value; a client default must never clobber a real preference |
+
+The context processor computes this automatically: `bw_theme_locked_axes`
+(from `brickwork.context_processors.theme`) is the space-separated set of
+axes your `BRICKWORK_THEME_RESOLVER` itself asserted, and `{% bw_theme_switch %}`
+reads it from the template context itself, so the bare
+`{% bw_theme_switch %}` call above is safe by default on a resolver-backed
+page: you never pass `locked_axes=` by hand in ordinary use. Locking is by
+KEY PRESENCE, not truthiness: a resolver that returns `{"brand": ""}` to
+deliberately clear the brand still locks the brand axis, so a stale
+`localStorage` value can never resurface a brand the resolver just cleared.
+
+Every value this control is about to apply or persist, whether restored
+from `localStorage`, read from `<html>`'s own current attribute, or read
+from a radio at change time, is checked against a closed set the SERVER
+emits per instance (a `json_script` payload alongside the control, never
+the rendered radios themselves, so a mistaken override template rendering a
+wrong or extra `<input>` cannot widen what the client accepts); a value
+that fails is discarded rather than applied, a bad stored entry is removed
+rather than left to fail again on the next load, and an unrecognised
+`<html>` attribute is treated as absent rather than adopted.
+
+A locked axis resolves its OWN current value server-side too (from the same
+context variables the shell itself reads to write `<html>`), never from
+`<html>` at JS runtime: with more than one switch instance on a page
+sharing an axis (an ordinary pattern, not a misuse), an earlier-initialising
+unlocked sibling can already have changed `<html>` by the time a locked
+instance's own init runs, and reading the live attribute at that point would
+be order-dependent. A locked group still discards a genuinely INVALID
+stored entry (the same closed-set check), but leaves a VALID one alone,
+since it may legitimately belong to an unlocked sibling instance sharing
+that axis.
+
+**Two accepted trade-offs, stated rather than left silent:**
+
+- **No cross-tab live sync.** Changing an axis in one open tab does not
+  update a theme switch rendered in another open tab of the same site; the
+  other tab's control still reflects whatever it read at its own init, and
+  only catches up on its own next navigation. This matches
+  `frontend/src/js/sidebar_collapse.js`'s existing persistence pattern,
+  which makes the same choice, and no brickwork interaction currently
+  synchronises live across tabs. If you need it, add your own
+  `window.addEventListener("storage", ...)` bridge that re-reads the
+  changed key and re-applies it to `<html>`.
+- **A returning visitor with a stored preference sees one flash.** The
+  server renders the page with its own resolved theme; `bwThemeSwitch`
+  applies a stored preference that differs from it at Alpine `init()`, which
+  runs after first paint, so the page can flip once, briefly, on load. A
+  genuinely flash-free restore needs a synchronous script in `<head>`,
+  before any CSS paints, which is a different mechanism to the switch itself
+  (the control's own markup can render anywhere in `content`, not
+  necessarily `<head>`) and carries its own CSP cost (an un-nonced inline
+  script, the same trade-off the shell's DEBUG-only registration detector
+  already documents in `shell/base.html`). brickwork does not ship that
+  script, deliberately: most consumers land here via the server-resolved
+  theme (SHL-003's whole point), so the flash is the rarer path (a returning
+  visitor whose stored preference disagrees with the server default), not
+  the common one. A consumer who needs a zero-flash restore adds a small
+  synchronous script to the shell's `head_js` block, reading the same
+  `localStorage` keys (`bw-theme-switch-<axis>`) this control writes and
+  setting the `<html>` attribute before the stylesheet paints:
+
+  ```django
+  {% block head_js %}
+    {{ block.super }}
+    <script>
+      (function () {
+        try {
+          {# A locked axis's value is the server's own, never a stale client one: #}
+          {# skip it here exactly as bwThemeSwitch itself does, or a stored value #}
+          {# from BEFORE this axis became locked would silently override a real #}
+          {# resolver-asserted preference for the rest of the page's first paint. #}
+          {% if "theme" not in bw_theme_locked_axes.split %}
+          var theme = localStorage.getItem("bw-theme-switch-theme");
+          if (theme === "light" || theme === "dark") {
+            document.documentElement.setAttribute("data-theme", theme);
+          }
+          {% endif %}
+        } catch (e) {}
+      })();
+    </script>
+  {% endblock %}
+  ```
+
+  Validate against the closed vocabulary inline exactly as shown (never
+  apply an unchecked stored value to `<html>`), and skip any axis your
+  `bw_theme_locked_axes` names, or the recipe restores a stale client value
+  OVER a resolver-locked one (server dark, stored light) and the lock then
+  preserves the wrong value for the rest of the page: a documented recipe
+  must not contradict the shipped component's own safety rule on the same
+  page. Repeat the `{% if %}` guard per axis you want flash-free. Add your
+  CSP nonce as the registration detector's own override already documents.
+
+### The recipe, if you want your own control
+
+The same shape `{% bw_theme_switch %}` renders, for a consumer who wants
+different markup or copy: a `<fieldset>` of radios per axis (never buttons: a
+control with more than two states that are not "on"/"off" is a radio group,
+not a toggle), each axis announced by its own `<legend>`, the whole control
+`hidden` until JS reveals it (the same no-JS floor rule above), and
+persistence written directly onto `<html>`. **A documented recipe may not
+contradict the shipped component's own safety rules**, so this one validates
+and respects a lock exactly as `bwThemeSwitch` does, not a simplified,
+unvalidated version of it. This recipe teaches the shape, not every nuance:
+`frontend/src/js/theme_switch.js` is the complete reference implementation
+for the edge cases it omits (per-axis storage cleanup among them):
+
+```django
+{% if "theme" in bw_theme_locked_axes.split %}
+<fieldset hidden data-my-theme-switch data-locked>
+  <legend>Theme</legend>
+  <label><input type="radio" name="theme" value="{{ bw_theme }}" data-theme-value checked disabled></label>
+  <p>Set by your account preferences.</p>
+</fieldset>
+{% else %}
+<fieldset hidden data-my-theme-switch>
+  <legend>Theme</legend>
+  <label><input type="radio" name="theme" value="light" data-theme-value> Light</label>
+  <label><input type="radio" name="theme" value="dark" data-theme-value> Dark</label>
+</fieldset>
+{% endif %}
+```
+
+```js
+const STORAGE_KEY = "my-theme";
+const root = document.querySelector("[data-my-theme-switch]");
+const radios = root.querySelectorAll("[data-theme-value]");
+// The intended closed vocabulary, stated inline, never derived from the
+// rendered inputs: a set queried from your own radios would make any
+// typo'd option value "valid" by being rendered, which is circular. This
+// is the same "validate against a server-known set" rule bwThemeSwitch
+// follows via its server-emitted JSON payload; a hand-rolled control on a
+// page without the component states its allowlist here instead. For a
+// brand axis, list your own registered brand slugs the same way.
+const validValues = new Set(["light", "dark"]);
+const isValid = (value) => validValues.has(value);
+
+if (root.hasAttribute("data-locked")) {
+  // A real server preference exists for this axis: never read or write
+  // localStorage for it (the SHL-003 precedence rule), and the radio is
+  // already checked/disabled server-side, so there is nothing more to do.
+} else {
+  const currentRaw = document.documentElement.getAttribute("data-theme") || "";
+  const current = currentRaw && isValid(currentRaw) ? currentRaw : "";
+  const storedRaw = localStorage.getItem(STORAGE_KEY);
+  const stored = storedRaw !== null && isValid(storedRaw) ? storedRaw : null;
+  if (storedRaw !== null && stored === null) localStorage.removeItem(STORAGE_KEY); // invalid entry: discard, don't keep failing
+  const initial = stored ?? current;
+  if (initial) document.documentElement.setAttribute("data-theme", initial);
+  for (const radio of radios) {
+    if (radio.value === initial) radio.checked = true;
+    radio.addEventListener("change", () => {
+      if (!radio.checked || !isValid(radio.value)) return; // a tampered .value is never applied or persisted
+      document.documentElement.setAttribute("data-theme", radio.value);
+      localStorage.setItem(STORAGE_KEY, radio.value);
+    });
+  }
+}
+root.removeAttribute("hidden");
+```
+
+Respect a server-resolved preference exactly as `{% bw_theme_switch %}` does:
+if your own resolver asserts an axis this request, do not read or write
+`localStorage` for it, and render that axis's own current value server-side
+(never resolved from `<html>` at JS runtime: with more than one control on a
+page sharing an axis, an earlier-initialising unlocked one could already
+have changed `<html>` before a locked one's own script runs).
+
 ## The marketing brand slot: logo sizing out of the box (brickwork#83)
 
 The marketing shell's `brand_logo` / `brand_wordmark` blocks are wrapped in
