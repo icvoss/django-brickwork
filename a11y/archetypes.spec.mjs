@@ -262,16 +262,20 @@ for (const archetype of archetypes) {
 // comment documents one, reusing the existing blocking suites' own
 // mechanism rather than re-deriving it -----------------------------------
 //
-// Every archetype extends a shell that already carries the skip-link and
-// no-JS floor a11y/axe.spec.mjs's own "no-JS floor" describe block proves
-// concretely against the hand-maintained list-*.html/dashboard-*.html
+// Every archetype (base.html included: it carries the skip link and
+// #bw-main directly rather than via a shell, but it does carry them, per
+// build/review note on PR icvoss/django-brickwork#230) ships the skip-link
+// and no-JS floor a11y/axe.spec.mjs's own "no-JS floor" describe block
+// proves concretely against the hand-maintained list-*.html/dashboard-*.html
 // fixtures; duplicating those per-widget assertions here for a fixture that
 // composes the SAME shell and the SAME components would test the shell
 // twice, never the archetype. What is archetype-specific, and what this
 // harness DOES assert directly, is the one floor every archetype shares
 // structurally: the skip link is the first tab stop and targets #bw-main
 // (BR-BW-HTMX-001's no-JS floor, keyboard entry point), proved with
-// JavaScript disabled so no scripting is required for it to hold.
+// JavaScript disabled so no scripting is required for it to hold. No
+// per-archetype exemption exists here: an archetype that genuinely lacks a
+// working skip link fails this gate by name, which is the point.
 test.describe("no-JS floor: skip link", () => {
   test.use({ javaScriptEnabled: false });
 
@@ -287,14 +291,6 @@ test.describe("no-JS floor: skip link", () => {
           href: document.activeElement?.getAttribute("href"),
           classes: document.activeElement?.className,
         }));
-        // base.html is a raw, unstyled document skeleton (docs/CATALOGUE.md
-        // section 5: "tied to no family"); it ships no skip link of its own
-        // to skip past, since it has no chrome yet for one to target. Every
-        // other archetype extends a real shell, which does.
-        if (archetype.slug === "base") {
-          test.skip();
-          return;
-        }
         expect(focused.tag).toBe("A");
         expect(focused.href).toBe("#bw-main");
       });
