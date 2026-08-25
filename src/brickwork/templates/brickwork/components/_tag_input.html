@@ -12,17 +12,20 @@ real `name`; its value is a comma-separated tag list, and the SERVER splits it
 simply a labelled text field: fully working, nothing hidden behind JS.
 
 Enhanced (bwTagInput, semver-public, BR-BW-JS-004): x-data mounts on the
-wrapper and, at init, hides the floor input's raw text presentation behind a
-chip run reusing the combobox's OWN chip classes (bw-combobox__chip /
-bw-combobox__chip-remove, CMP-028 precedent) so a tag input and a multi-select
-combobox render identically. Enter or comma commits the current text as a
-chip; Backspace with an empty text buffer removes the last chip; each chip's
-remove button carries a translated per-chip aria-label (ICO-008: an icon-only
-control needs a distinguishable name). The floor input STAYS the single
-source of truth for form submission: bwTagInput serialises the chip list back
-into the floor input's value (comma-joined) on every add/remove, so a normal
-POST or a 422 re-render both work from the same one field, exactly as the
-combobox's floor <select> stays the submitted control (BR-BW-HTMX-003).
+wrapper and, at init, renders a chip run above the floor input reusing the
+combobox's OWN chip classes (bw-combobox__chip / bw-combobox__chip-remove,
+CMP-028 precedent) so a tag input and a multi-select combobox render
+identically. The floor input STAYS visible and typeable throughout: it is
+the buffer for the next tag, not hidden behind the chip run. Enter or comma
+commits the current text as a chip; Backspace with an empty text buffer
+removes the last chip; each chip's remove button carries a translated
+per-chip aria-label (ICO-008: an icon-only control needs a distinguishable
+name). The floor input STAYS the single source of truth for form
+submission: bwTagInput serialises the committed chip list back into the
+floor input's value (comma-joined) on every add/remove, preserving any
+in-progress text the user is still typing after it, so a normal POST or a
+422 re-render both work from the same one field, exactly as the combobox's
+floor <select> stays the submitted control (BR-BW-HTMX-003).
 
 Required context: label, id, name.
 Optional: value (str, pre-filled comma-separated tags), placeholder,
@@ -38,10 +41,11 @@ verbatim (no new tokens); the wrapper composes .bw-input's own border/focus
 treatment so the enhanced state reads as one field, not two controls.
 
 States: floor-only (no-JS, a plain text field with a comma-separated
-  value) vs enhanced (chip run visible, raw text hidden behind it);
-  invalid (aria-invalid plus the field chrome's error state); single-line
-  (input) vs multiline (textarea), chosen by the multiline flag, not a
-  runtime toggle.
+  value) vs enhanced (chip run rendered above the floor input, which stays
+  visible and editable, carrying the comma-joined committed tags plus any
+  in-progress text); invalid (aria-invalid plus the field chrome's error
+  state); single-line (input) vs multiline (textarea), chosen by the
+  multiline flag, not a runtime toggle.
 Accessibility: the floor input/textarea stays the single source of truth
   for form submission at every state, so a screen reader or a JS-disabled
   browser always sees one genuine labelled text field; each chip's remove
