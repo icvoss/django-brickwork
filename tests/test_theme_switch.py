@@ -160,6 +160,29 @@ def test_brands_not_a_mapping_raises() -> None:
         _render('{% bw_theme_switch axes="brand" brands="acme" %}')
 
 
+def test_brands_key_with_an_unsafe_slug_raises() -> None:
+    # review fix, #117: brands= keys become data-bw-brand attribute values
+    # and [data-bw-brand="..."] selector values, so they must pass the same
+    # attribute-safe slug rule resolve_theme_attributes applies to a
+    # resolver's own brand key. Validated server-side at render time.
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_theme_switch axes="brand" brands=brands %}', brands={"bad slug!": "Bad"})
+
+
+def test_brands_key_starting_with_a_digit_raises() -> None:
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_theme_switch axes="brand" brands=brands %}', brands={"1acme": "Acme"})
+
+
+def test_brands_valid_slugs_render() -> None:
+    html = _render(
+        '{% bw_theme_switch axes="brand" brands=brands %}',
+        brands={"acme-1": "Acme", "globex_corp": "Globex"},
+    )
+    assert 'value="acme-1"' in html
+    assert 'value="globex_corp"' in html
+
+
 # --- the closed value vocabularies (ADR-060 rule 2: validated, not a suggestion)
 
 
@@ -220,6 +243,32 @@ def test_unknown_locked_axis_raises() -> None:
         _render('{% bw_theme_switch locked_axes="colour" %}')
 
 
+def test_bare_call_locks_from_bw_theme_locked_axes_context_variable() -> None:
+    # review fix, #117 blocker 4: the documented bare {% bw_theme_switch %}
+    # call (BRANDING.md) must be safe by default on a resolver-backed page,
+    # so locked_axes= defaults from the ambient context variable
+    # brickwork.context_processors.theme sets, rather than requiring the
+    # caller to pass it explicitly.
+    html = _render("{% bw_theme_switch %}", bw_theme_locked_axes="theme")
+    theme_block_start = html.index('data-bw-theme-switch-axis="theme"')
+    theme_fieldset_start = html.rindex("<fieldset", 0, theme_block_start)
+    theme_fieldset_end = html.index("</fieldset>", theme_fieldset_start)
+    assert "data-bw-locked" in html[theme_fieldset_start:theme_fieldset_end]
+
+
+def test_bare_call_with_no_locked_axes_in_context_locks_nothing() -> None:
+    html = _render("{% bw_theme_switch %}")
+    assert "data-bw-locked" not in html
+
+
+def test_explicit_locked_axes_overrides_the_context_default() -> None:
+    # Passing locked_axes= (even "") is a deliberate override, not a merge:
+    # the explicit empty string here forces every axis writable regardless
+    # of what the context says.
+    html = _render('{% bw_theme_switch locked_axes="" %}', bw_theme_locked_axes="theme")
+    assert "data-bw-locked" not in html
+
+
 # --- multiple instances on one page never collide (radio name/id uniqueness)
 
 
@@ -245,6 +294,16 @@ def test_two_instances_do_not_share_root_ids() -> None:
 
 
 # --- accessible name (a fieldset of radios, per the issue's a11y guidance) --
+
+
+def test_wrapper_has_a_semantic_target_for_aria_label() -> None:
+    # review concern, #117: aria-label on a bare <div> with no ARIA role has
+    # no semantic target and is ignored by assistive tech; role="group" is
+    # the generic grouping role that DOES accept it.
+    html = _render()
+    start = html.index("<div")
+    root_tag = html[start : html.index(">", start)]
+    assert 'role="group"' in root_tag
 
 
 def test_default_label_is_a_translated_string() -> None:
