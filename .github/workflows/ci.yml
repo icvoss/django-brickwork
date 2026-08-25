@@ -165,6 +165,13 @@ jobs:
   # and the skip-link keyboard check. axe finds ~57% of issues, so the keyboard +
   # no-JS assertions are wired alongside it, not axe alone; manual AT review is a
   # release-gate step on top.
+  #   - W0.3 archetype-test harness (a11y/archetypes.spec.mjs): a SEPARATE
+  #     fixture set (a11y/fixtures/archetypes/), rendered by its own generator
+  #     (a11y/generate_archetype_fixtures.py, npm run a11y:fixtures:archetypes)
+  #     BEFORE Playwright runs. Both fixture-generation steps must run every
+  #     time: the archetype fixtures are gitignored, so a skipped generation
+  #     step here means archetypes.spec.mjs auto-discovers zero fixtures and
+  #     passes vacuously rather than failing.
   a11y-gate:
     name: Accessibility + no-JS gate (WCAG 2.2 AA)
     runs-on: ubuntu-latest
@@ -190,5 +197,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Render a11y fixtures (real pages, light + dark)
         run: npm run a11y:fixtures
+      - name: Render archetype-harness fixtures (catalogue-manifest archetypes, light + dark)
+        run: npm run a11y:fixtures:archetypes
       - name: Run axe-core WCAG 2.2 AA + no-JS + keyboard suite
         run: npm run a11y
