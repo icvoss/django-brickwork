@@ -40,9 +40,9 @@ import django
 django.setup()
 
 from django.template import Context  # noqa: E402
+from tests.test_examples import _EXAMPLE_CONTEXTS, _example_engine  # noqa: E402
 
 from brickwork.services._catalogue_manifest import items_by_kind  # noqa: E402
-from tests.test_examples import _EXAMPLE_CONTEXTS, _example_engine  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 CSS = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text(encoding="utf-8")
@@ -62,7 +62,7 @@ def _inline_css(html: str) -> str:
 
 
 def _slug(example_name: str) -> str:
-    """"app/list.html" -> "app-list"; the fixture filename stem, distinct from
+    """ "app/list.html" -> "app-list"; the fixture filename stem, distinct from
     generate_fixtures.py's hand-chosen names by construction (this is derived,
     never hand-picked)."""
     return example_name.removesuffix(".html").replace("/", "-")
