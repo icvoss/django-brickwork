@@ -24,6 +24,18 @@ of them happens to be alone; prefer this when the price is static copy.
 
 The tick icons on the list are decorative: the list semantics already say
 these are items, so announcing "check" six times adds nothing.
+
+States: see _pricing_tier.html's own header for the card's states (this
+  example passes highlighted=True, so it carries the raised elevation and
+  primary-variant CTA that state gives).
+Accessibility: the section intro heading is a real <h2>; the includes list
+  is a real <ul> with decorative tick icons (list semantics already carry
+  the meaning). Covered by axe.spec.mjs against sections-*.html, which
+  renders this exact file, both themes.
+Responsive: no named breakpoint on this section's own layout. The card is
+  capped at 26rem and centred at every width; the includes list below it
+  is capped at prose width and, via the shared .bw-feature-list rule,
+  becomes two columns from --bw-breakpoint-sm (40rem) upward.
 {% endcomment %}
 <section class="bw-single-plan">
   <div class="bw-single-plan__intro">

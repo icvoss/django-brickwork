@@ -36,6 +36,24 @@ twice into one page, change the id on both ends of that pair.
 No view context needed. The plans and rows are written inline on purpose:
 this is the part of a pricing page that gets edited by whoever writes the
 copy, not by whoever writes the view.
+
+States: none: a static comparison table, no sort/filter/select state.
+Accessibility: a real <table> with a visible <caption>, <th scope="col">
+  per plan and <th scope="row"> per capability, so a cell mid-grid
+  announces "Team, Multi-currency, Included" rather than just
+  "Included"; every included/not-included cell carries visually-hidden
+  text alongside the tick/dash icon, never colour or shape alone (WCAG
+  1.4.1). The scroll container is tabindex="0" and role="region" with
+  aria-labelledby, keyboard-reachable, not mouse/touch-only. Covered by
+  axe.spec.mjs against sections-*.html, which renders this exact file,
+  both themes.
+Responsive: no named breakpoint. The table never reflows (a table cannot
+  become one column without ceasing to be a table); its scroll container
+  carries unconditional overflow-x plus contain: paint at every viewport
+  width, verified against real horizontal-scroll defects at 360/375/414px
+  in both themes (contain: paint is load-bearing here, not an
+  optimisation: overflow-x alone did not stop the wide table's paint
+  escaping the container and scrolling the whole page).
 {% endcomment %}
 <section class="bw-pricing-comparison">
   <h2 class="bw-pricing-comparison__heading" id="bw-pricing-comparison-heading">

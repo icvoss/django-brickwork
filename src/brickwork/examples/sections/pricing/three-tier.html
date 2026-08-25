@@ -47,5 +47,14 @@ WHEN TO SKIP THE WRAPPER. If your prices are static words rather than data,
 include _pricing_tier.html once per plan instead: every input except the
 feature list is a flat string, so the whole section stays editable in the
 template. Looping tier cards is all this wrapper does.
+
+States: see _pricing_table.html and _pricing_tier.html's own headers for
+  the full states contract (unchanged here: this file is a direct include
+  of the shipped wrapper, no markup of its own).
+Accessibility: see _pricing_table.html/_pricing_tier.html. Covered by
+  axe.spec.mjs against sections-*.html, which renders this exact file with
+  a real three-tier tiers list, both themes.
+Responsive: see _pricing_table.html's own header for the exact breakpoint
+  matrix (1 column below md, 2 from md to below lg, 3 from lg upward).
 {% endcomment %}
 {% include "brickwork_marketing/components/_pricing_table.html" with heading="Pay for the people, not the paperwork" lede="Every plan includes unlimited invoices and automatic reminders." tiers=tiers note="Prices exclude VAT. Annual billing saves two months." %}
