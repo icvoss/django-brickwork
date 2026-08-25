@@ -89,7 +89,7 @@ def theme(request: HttpRequest) -> dict:
     # assertion is to ask it directly (BRANDING.md recipe 3 documents the
     # resolver as a pure function of request, so this carries no observable
     # side effect beyond the one extra call).
-    locked = ()
+    locked: tuple[str, ...] = ()
     if theme_resolver is not None:
         raw = theme_resolver(request) or {}
         locked = tuple(axis for axis in _LOCKABLE_AXES if raw.get(axis))
