@@ -748,12 +748,11 @@ def _iter_literal_text_values(value: object, *, under_literal_key: bool) -> list
     elif isinstance(value, (list, tuple)):
         for item in value:
             found.extend(_iter_literal_text_values(item, under_literal_key=under_literal_key))
-    elif isinstance(value, str) and under_literal_key:
+    elif isinstance(value, str) and under_literal_key and len(value.strip()) >= 4:
         # A short or blank string (e.g. a one-word status-like label) is too
         # likely to appear in the rendered HTML by coincidence (whitespace,
         # markup fragments) to be useful signal either way.
-        if len(value.strip()) >= 4:
-            found.append(value)
+        found.append(value)
     return found
 
 
