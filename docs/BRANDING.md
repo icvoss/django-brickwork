@@ -536,7 +536,9 @@ not a toggle), each axis announced by its own `<legend>`, the whole control
 persistence written directly onto `<html>`. **A documented recipe may not
 contradict the shipped component's own safety rules**, so this one validates
 and respects a lock exactly as `bwThemeSwitch` does, not a simplified,
-unvalidated version of it:
+unvalidated version of it. This recipe teaches the shape, not every nuance:
+`frontend/src/js/theme_switch.js` is the complete reference implementation
+for the edge cases it omits (per-axis storage cleanup among them):
 
 ```django
 {% if "theme" in bw_theme_locked_axes.split %}
