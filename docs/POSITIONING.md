@@ -111,7 +111,7 @@ conformance; it can run consistently and be shown to catch real defects.
 
 | What runs | Scope |
 |---|---|
-| axe-core WCAG 2.2 AA scan | 132 documents across two fixture sets: 100 hand-maintained pages (50 fixtures x light and dark) plus 32 archetype pages (16 catalogue archetypes x light and dark), blocking every push (`a11y-gate` CI job) |
+| axe-core WCAG 2.2 AA scan | 136 documents across two fixture sets: 104 hand-maintained pages (52 fixtures x light and dark) plus 32 archetype pages (16 catalogue archetypes x light and dark), blocking every push (`a11y-gate` CI job) |
 | No-JS floor suite | blocking |
 | Keyboard suites | blocking |
 | Mobile-overflow checks | 4 widths: 320, 360, 375, 414px, blocking |
@@ -186,7 +186,7 @@ sight, and are refreshed by hand at the next audit.
 | Examples | 42 | 16 archetype pages, 26 sections. **Gated** against `catalogue-manifest.json` |
 | Icons | 50 vendored Lucide SVG files | exposed as 53 callable names (3 aliases). State precisely; never a bare "50" or bare "53". **Dated** at 3.10.0 |
 | Tests | 1023 test functions | across 58 files containing at least one `def test_` (90 Python files exist under `tests/` in total; most are fixtures, conftest or helpers with no test functions of their own). **Dated** at 3.10.0 (counted via `git grep -hE '^def test_' -- tests \| wc -l` for the function count, `git grep -lE '^def test_' -- tests \| wc -l` for the file count); not gated, this count moves with every PR |
-| A11y gate | 132 axe-scanned documents | 100 hand-maintained (50 fixtures x light and dark) plus 32 archetype (16 catalogue archetypes x light and dark), blocking CI. Archetype fixture count **gated** against `catalogue-manifest.json`'s archetype count; the 50 hand-maintained fixtures are **dated** at 3.10.0 (Node/Playwright fixtures are not generated in the Python test run) |
+| A11y gate | 136 axe-scanned documents | 104 hand-maintained (52 fixtures x light and dark) plus 32 archetype (16 catalogue archetypes x light and dark), blocking CI. Archetype fixture count **gated** against `catalogue-manifest.json`'s archetype count; the 52 hand-maintained fixtures are **dated** at 3.10.0 (Node/Playwright fixtures are not generated in the Python test run). Hand-maintained fixture COVERAGE (does every shell/component/section have at least one fixture) is separately **gated** by `tests/test_a11y_fixture_coverage.py` against `catalogue-manifest.json` (icvoss/django-brickwork#226) |
 | Logical properties | 273 in source CSS | 500 in compiled dist. **Dated** at 3.10.0. Reproducible: `grep -oE '\b[a-z-]*(inline\|block)[a-z-]*\s*:' frontend/src/components.css \| grep -v 'display\s*:\|inline-block' \| wc -l` gives 269 (declarations whose property name contains `inline` or `block`, excluding `display: inline-block`), plus `grep -oE '(^\|[^-a-z])inset\s*:' frontend/src/components.css \| wc -l` gives 4 (bare `inset:` shorthand declarations); 269 + 4 = 273. The prior 274 figure's methodology was never recorded (commit 8ee225d only logs the audit correction from 142 to 274, no rule); it is not reproducible from the recorded rule above, so the 1-count delta cannot be attributed honestly beyond "not the same method" |
 | Version | 3.10.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py`. **Gated** |
 | Hard runtime dependency | Django only | |

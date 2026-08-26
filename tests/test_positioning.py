@@ -202,19 +202,21 @@ def test_examples_row_matches_the_shipped_catalogue_manifest() -> None:
 def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> None:
     """Only the archetype half of the a11y-gate row is cheaply gateable here.
 
-    The 50 hand-maintained fixtures come from a11y/generate_fixtures.py's own
+    The 52 hand-maintained fixtures come from a11y/generate_fixtures.py's own
     per-theme write calls, which this file deliberately does not re-parse: a
     second regex over that script's source would be exactly the kind of
     parallel, ungrounded re-derivation this module's docstring warns against.
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free to
-    check here.
+    check here. (icvoss/django-brickwork#226: search-<theme>.html, the 52nd
+    pair, added to close the component/search and component/spinner gaps the
+    new tests/test_a11y_fixture_coverage.py drift test found.)
     """
     manifest = catalogue_manifest()
     archetype_count = manifest["counts"]["archetypes"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 100 + (archetype_count * 2)
+    assert _leading_int(value) == 104 + (archetype_count * 2)
     assert f"{archetype_count} catalogue archetypes x light and dark" in note
 
 

@@ -2390,6 +2390,94 @@ def render_nav_renderers(theme: str) -> str:
     )
 
 
+# --- the search + loading-button fixtures (icvoss/django-brickwork#226) -------
+#
+# search-<theme>.html is a standalone (non-shell) page, mirroring render_
+# feedback's self-contained shape: {% bw_search %} has no dedicated demo page
+# of its own yet, so the fixture composes the REAL tag directly (an unscoped
+# search plus a scoped search, so both the plain no-JS floor and the scope
+# chip's clear-link surface are examined) alongside a loading {% bw_button %},
+# which is _button.html's own documented way of mounting _spinner.html
+# (_spinner.html's own docSource: "a button's loading=True mounts this").
+# Neither component had a fixture before this, each one's own docSource
+# comment said so in as many words; both are exactly the silent-gap failure
+# mode tests/test_a11y_fixture_coverage.py now drift-gates against the
+# catalogue manifest.
+
+_SEARCH_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search and loading button (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Search and loading button</h1>
+
+  <section aria-labelledby="search-heading">
+    <h2 id="search-heading">Search</h2>
+    __SEARCH__
+  </section>
+
+  <section aria-labelledby="search-scoped-heading">
+    <h2 id="search-scoped-heading">Search, scoped</h2>
+    __SEARCH_SCOPED__
+  </section>
+
+  <section aria-labelledby="loading-button-heading">
+    <h2 id="loading-button-heading">Loading button</h2>
+    __LOADING_BUTTON__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_search_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template('{% load brickwork_components %}{% bw_search action="/search/" %}').render(Context({}))
+
+
+def _render_search_scoped_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template('{% load brickwork_components %}{% bw_search action="/search/" scope=scope %}').render(
+        Context(
+            {
+                "scope": {
+                    "label": "Widgets",
+                    "name": "scope",
+                    "value": "widgets",
+                    "clear_href": "/search/",
+                }
+            }
+        )
+    )
+
+
+def _render_loading_button_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template('{% load brickwork_components %}{% bw_button "Saving" loading=True disabled=True %}').render(
+        Context({})
+    )
+
+
+def render_search(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _SEARCH_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__SEARCH__", _render_search_fixture())
+        .replace("__SEARCH_SCOPED__", _render_search_scoped_fixture())
+        .replace("__LOADING_BUTTON__", _render_loading_button_fixture())
+    )
+
+
 def main() -> None:
     written = []
     projection_css = build_projection_css()
@@ -2481,6 +2569,9 @@ def main() -> None:
         # the nav renderers (#102/#82): the marketing-header row and the
         # two-tier rail + contextual pairing, ancestor-active states lit
         (OUT / f"nav-renderers-{theme}.html").write_text(render_nav_renderers(theme))
+        # search + loading button (#226): bw_search and _spinner.html's
+        # loading=True mount, neither previously rendered by any fixture
+        (OUT / f"search-{theme}.html").write_text(render_search(theme))
         # every example section (3.1.0, plan Phase 6a gate 3), stacked in a
         # real marketing shell so heading order and landmarks are meaningful
         (OUT / f"sections-{theme}.html").write_text(render_sections(theme))
@@ -2540,6 +2631,7 @@ def main() -> None:
             f"hero-placement-{theme}",
             f"cta-width-{theme}",
             f"nav-renderers-{theme}",
+            f"search-{theme}",
             f"sections-{theme}",
             f"date-range-picker-{theme}",
             f"date-range-picker-js-{theme}",
