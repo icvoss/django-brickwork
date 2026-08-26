@@ -520,10 +520,15 @@ test.describe("layout=\"compact\"", () => {
     const viewport = page.viewportSize();
     expect(rect.width, "the panel must have real, measurable extent").toBeGreaterThan(0);
     expect(rect.height, "the panel must have real, measurable extent").toBeGreaterThan(0);
-    expect(rect.left, "panel left edge is off-viewport (the min-width regression)").toBeGreaterThanOrEqual(0);
-    expect(rect.right, "panel right edge is off-viewport").toBeLessThanOrEqual(viewport.width);
-    expect(rect.top, "panel top edge is off-viewport").toBeGreaterThanOrEqual(0);
-    expect(rect.bottom, "panel bottom edge is off-viewport").toBeLessThanOrEqual(viewport.height);
+    // half-pixel tolerance on every edge: getBoundingClientRect can report a
+    // layout unit short of a whole-pixel viewport edge on CI (the same
+    // subpixel rounding #251 hit at 43.999969 vs 44), and a zero-tolerance
+    // bound here would fail on that rounding rather than a real regression,
+    // which lands whole pixels off-viewport.
+    expect(rect.left, "panel left edge is off-viewport (the min-width regression)").toBeGreaterThanOrEqual(-0.5);
+    expect(rect.right, "panel right edge is off-viewport").toBeLessThanOrEqual(viewport.width + 0.5);
+    expect(rect.top, "panel top edge is off-viewport").toBeGreaterThanOrEqual(-0.5);
+    expect(rect.bottom, "panel bottom edge is off-viewport").toBeLessThanOrEqual(viewport.height + 0.5);
   });
 
   test("ArrowDown/ArrowRight move focus and selection within a fieldset's own radio group", async ({ page }) => {

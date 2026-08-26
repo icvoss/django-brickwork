@@ -104,28 +104,64 @@ async function settleAnimations(page) {
   await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
 }
 
+// Two animation frames, not one: a swap that itself triggers a reflow (a
+// skeleton collapsing once real content lands, say) can still have a pending
+// layout the frame it lands in, and the first rAF callback only guarantees
+// "styles are resolved for this frame", not "the frame after the reflow has
+// painted". Waiting for a second one gives layout-shift entries produced by
+// that reflow time to be recorded before the score is read.
+async function flushLayout(page) {
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+  );
+}
+
+// The float CLS score sums per-entry `value`s from real compositor
+// measurements: a shift that is genuinely absent can still surface a
+// vanishingly small non-zero score from sub-pixel rounding in the
+// compositor's own box comparison, the same class of near-miss #251 hit at
+// 43.999969 vs 44. toBe(0) demands exact float equality of a value nothing
+// in this pipeline promises; this epsilon is small enough that any shift a
+// reader could perceive clears it by orders of magnitude.
+const CLS_EPSILON = 0.0005;
+
 async function armLayoutShiftObserver(page, allowedSelectors) {
   await page.evaluate((allowed) => {
     window.__ls = [];
-    const observer = new PerformanceObserver((list) => {
+    window.__lsAttribute = (entry) => {
+      const sources = entry.sources ?? [];
+      return sources.some((source) => {
+        const node = source.node;
+        if (!node) return false; // detached: cannot be attributed
+        const el = node.nodeType === 1 ? node : node.parentElement;
+        if (!el) return false;
+        return !allowed.some((sel) => el.closest(sel));
+      });
+    };
+    window.__lsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        const sources = entry.sources ?? [];
-        const outside = sources.some((source) => {
-          const node = source.node;
-          if (!node) return false; // detached: cannot be attributed
-          const el = node.nodeType === 1 ? node : node.parentElement;
-          if (!el) return false;
-          return !allowed.some((sel) => el.closest(sel));
-        });
-        window.__ls.push({ value: entry.value, outside });
+        window.__ls.push({ value: entry.value, outside: window.__lsAttribute(entry) });
       }
     });
-    observer.observe({ type: "layout-shift", buffered: false });
+    window.__lsObserver.observe({ type: "layout-shift", buffered: false });
   }, allowedSelectors);
 }
 
+// takeRecords() drains any entry the callback has not yet been scheduled to
+// receive (PerformanceObserver delivers on its own microtask cadence, not
+// synchronously with the layout that produced the entry) before the score is
+// read, so a late-arriving shift entry cannot be silently missed the way
+// icvoss/django-brickwork#249's DOM-count wait silently missed a swap: a
+// fixed sleep before reading is a guess that the callback has already run,
+// takeRecords() makes that guess unnecessary.
 const outsideShiftScore = (page) =>
-  page.evaluate(() => window.__ls.filter((e) => e.outside).reduce((sum, e) => sum + e.value, 0));
+  page.evaluate(() => {
+    for (const entry of window.__lsObserver.takeRecords()) {
+      window.__ls.push({ value: entry.value, outside: window.__lsAttribute(entry) });
+    }
+    return window.__ls.filter((e) => e.outside).reduce((sum, e) => sum + e.value, 0);
+  });
 
 // --- the no-JS floors (AC-BW-085, AC-BW-086, BR-BW-HTMX-006) ------------------
 
@@ -567,8 +603,9 @@ test.describe("layout shift", () => {
     // htmx fires on revealed and swaps in the real content
     await page.locator("#bw-tab-itx-activity").click();
     await expect(page.getByText("Priya restocked Alpha")).toBeVisible();
-    await page.waitForTimeout(400); // let any late layout-shift entries land
-    expect(await outsideShiftScore(page)).toBe(0);
+    await settleAnimations(page);
+    await flushLayout(page);
+    expect(await outsideShiftScore(page)).toBeLessThanOrEqual(CLS_EPSILON);
   });
 
   test("opening and closing the modal shifts nothing outside the modal root", async ({ page }) => {
@@ -577,7 +614,8 @@ test.describe("layout shift", () => {
     await openModal(page);
     await page.keyboard.press("Escape");
     await expect(page.locator("#confirm-reset")).not.toHaveAttribute("data-bw-open", "");
-    await page.waitForTimeout(400);
-    expect(await outsideShiftScore(page)).toBe(0);
+    await settleAnimations(page);
+    await flushLayout(page);
+    expect(await outsideShiftScore(page)).toBeLessThanOrEqual(CLS_EPSILON);
   });
 });
