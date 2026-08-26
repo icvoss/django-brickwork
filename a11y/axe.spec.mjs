@@ -474,8 +474,14 @@ test.describe("coarse-pointer touch targets (#242)", () => {
         (sel) => document.querySelector(sel)?.getBoundingClientRect().height ?? 0,
         selector,
       );
+      // 43.5, not 44: the token is exactly 2.75rem (44px), but
+      // getBoundingClientRect can report one layout unit short on CI
+      // (the 3.11.0 release run measured 43.999969 in the sibling
+      // theme_switch sweep). Half a pixel absorbs subpixel rounding;
+      // a real regression lands whole pixels away. The fine-pointer
+      // pins below already carry their own 1px tolerance.
       expect(height, `${label} (${selector}) measured ${height}px under a coarse pointer, want >= 44px`).toBeGreaterThanOrEqual(
-        44,
+        43.5,
       );
 
       await context.close();
