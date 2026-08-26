@@ -169,7 +169,16 @@ test.describe("keyboard reorder", () => {
 // insertion-preview technique) -------------------------------------------------
 
 test.describe("drag reorder", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    // native HTML5 DnD events do not exist on touch devices (they are a
+    // mouse-only construct), so under a touch-emulating context this test
+    // would either no-op or pass on events the browser never actually
+    // dispatches for touch input: an honest gap, not a browser bug, so it is
+    // skipped rather than asserted vacuously. The keyboard reorder describe
+    // block above is the touch-relevant floor these two drag tests sit on
+    // top of. Inert today (this project sets no hasTouch context), becomes
+    // live the day a touch-emulating project is added.
+    if (testInfo.project.use.hasTouch) test.skip();
     await boot(page);
     await captureEvents(page);
   });
@@ -182,7 +191,11 @@ test.describe("drag reorder", () => {
     await expect(first).toHaveAttribute("data-bw-dragging", "");
     await second.dispatchEvent("dragover", {
       dataTransfer: await dataTransfer(page),
-      clientY: box2.y + box2.height - 2, // below the midpoint: insert AFTER
+      // proportional midpoint offset, not a fixed pixel count: 75% down the
+      // row is unambiguously past the midpoint (the insert-after boundary)
+      // regardless of the row's actual rendered height, where a fixed 2px
+      // offset would invert its meaning if a row ever shrank to 2px or less
+      clientY: box2.y + box2.height * 0.75,
     });
     await expect(second).toHaveAttribute("data-bw-drag-over", "");
     await expect(sortIds(page)).resolves.toEqual(["2", "1", "3"]);
@@ -255,17 +268,25 @@ test.describe("persistence", () => {
 // --- axe WCAG 2.2 AA on the enhanced list (AC-BW-088 discipline) -------------
 
 for (const theme of THEMES) {
-  test(`axe WCAG 2.2 AA on the enhanced sortable list, at rest and mid-drag (${theme})`, async ({ page }) => {
+  test(`axe WCAG 2.2 AA on the enhanced sortable list, at rest and mid-drag (${theme})`, async ({ page }, testInfo) => {
     await boot(page, theme);
     let results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+    // native HTML5 DnD is mouse-only by construction (see the "drag reorder"
+    // describe block's own beforeEach for the full rationale): the at-rest
+    // axe check above still applies under any pointer type, but the
+    // mid-drag state below is unreachable by touch, so only that part is
+    // skipped here rather than the whole test.
+    if (testInfo.project.use.hasTouch) test.skip();
     const first = page.locator('[data-bw-sort-id="1"]');
     const second = page.locator('[data-bw-sort-id="2"]');
     await first.dispatchEvent("dragstart", { dataTransfer: await dataTransfer(page) });
     const box2 = await second.boundingBox();
     await second.dispatchEvent("dragover", {
       dataTransfer: await dataTransfer(page),
-      clientY: box2.y + box2.height - 2,
+      // proportional midpoint offset: see the "drag reorder" describe
+      // block's own comment on this same shape
+      clientY: box2.y + box2.height * 0.75,
     });
     results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);

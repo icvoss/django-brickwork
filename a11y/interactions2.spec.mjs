@@ -141,25 +141,61 @@ async function settleAnimations(page) {
 async function armLayoutShiftObserver(page, allowedSelectors) {
   await page.evaluate((allowed) => {
     window.__ls = [];
-    const observer = new PerformanceObserver((list) => {
+    window.__lsAttribute = (entry) => {
+      const sources = entry.sources ?? [];
+      return sources.some((source) => {
+        const node = source.node;
+        if (!node) return false; // detached: cannot be attributed
+        const el = node.nodeType === 1 ? node : node.parentElement;
+        if (!el) return false;
+        return !allowed.some((sel) => el.closest(sel));
+      });
+    };
+    window.__lsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        const sources = entry.sources ?? [];
-        const outside = sources.some((source) => {
-          const node = source.node;
-          if (!node) return false; // detached: cannot be attributed
-          const el = node.nodeType === 1 ? node : node.parentElement;
-          if (!el) return false;
-          return !allowed.some((sel) => el.closest(sel));
-        });
-        window.__ls.push({ value: entry.value, outside });
+        window.__ls.push({ value: entry.value, outside: window.__lsAttribute(entry) });
       }
     });
-    observer.observe({ type: "layout-shift", buffered: false });
+    window.__lsObserver.observe({ type: "layout-shift", buffered: false });
   }, allowedSelectors);
 }
 
+// takeRecords() drains any entry the callback has not yet been scheduled to
+// receive (PerformanceObserver delivers on its own microtask cadence, not
+// synchronously with the layout that produced the entry) before the score is
+// read, so a late-arriving shift entry cannot be silently missed the way
+// icvoss/django-brickwork#249's DOM-count wait silently missed a swap: a
+// fixed sleep before reading is a guess that the callback has already run,
+// takeRecords() makes that guess unnecessary.
 const outsideShiftScore = (page) =>
-  page.evaluate(() => window.__ls.filter((e) => e.outside).reduce((sum, e) => sum + e.value, 0));
+  page.evaluate(() => {
+    for (const entry of window.__lsObserver.takeRecords()) {
+      window.__ls.push({ value: entry.value, outside: window.__lsAttribute(entry) });
+    }
+    return window.__ls.filter((e) => e.outside).reduce((sum, e) => sum + e.value, 0);
+  });
+
+// Two animation frames, not one: a swap that itself triggers a reflow (an
+// OOB append settling into the toast region, say) can still have a pending
+// layout the frame it lands in, and the first rAF callback only guarantees
+// "styles are resolved for this frame", not "the frame after the reflow has
+// painted". Waiting for a second one gives layout-shift entries produced by
+// that reflow time to be recorded before the score is read.
+async function flushLayout(page) {
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+  );
+}
+
+// The float CLS score sums per-entry `value`s from real compositor
+// measurements: a shift that is genuinely absent can still surface a
+// vanishingly small non-zero score from sub-pixel rounding in the
+// compositor's own box comparison, the same class of near-miss #251 hit at
+// 43.999969 vs 44. toBe(0) demands exact float equality of a value nothing
+// in this pipeline promises; this epsilon is small enough that any shift a
+// reader could perceive clears it by orders of magnitude.
+const CLS_EPSILON = 0.0005;
 
 // --- the no-JS floors (BR-BW-HTMX-001/006, STA-008) ---------------------------
 
@@ -253,7 +289,14 @@ test.describe("toast delivery", () => {
       document.dispatchEvent(new CustomEvent("bw:toast:create", { bubbles: true, detail }));
       document.getElementById("bw-toast-region").dispatchEvent(new CustomEvent("bw:toast:show", { detail }));
     });
-    await page.waitForTimeout(250); // bounded settle: nothing may react
+    // no positive signal exists for "nothing reacted": a correctly-forged
+    // event that mints nothing fires no follow-on event to await, so this
+    // proves the negative over a bounded window instead. The window has no
+    // timer to be a multiple of (there is nothing scheduled to observe);
+    // 750ms is comfortably past any plausible event-loop turn a wrongly
+    // wired handler could use, well over the 500ms margin this suite holds
+    // its other windows to.
+    await page.waitForTimeout(750);
     await expect(page.locator("[data-bw-toast]")).toHaveCount(0);
   });
 
@@ -291,7 +334,13 @@ test.describe("toast timers", () => {
     const show = events.find((e) => e.type === "bw:toast:show");
     const dismiss = events.find((e) => e.type === "bw:toast:dismiss");
     expect(dismiss.detail.reason).toBe("timeout");
-    expect(dismiss.at - show.at).toBeLessThan(2500);
+    // the load-bearing distinction is 120ms (the CSS override this test set)
+    // against 4000ms (the JS fallback constant this test proves was NOT
+    // read): 3000ms sits roughly midway, many multiples of the 120ms
+    // override, while staying comfortably clear of 4000ms even under CI
+    // contention, so a slow runner cannot turn a correct short-token read
+    // into a false failure the way a bound closer to 2500ms could.
+    expect(dismiss.at - show.at).toBeLessThan(3000);
   });
 
   test("the timer pauses on hover and on focus-within, then resumes", async ({ page }) => {
@@ -302,13 +351,17 @@ test.describe("toast timers", () => {
     await toast.hover();
     // paused is public state (BR-BW-JS-004); read it through Alpine
     await page.waitForFunction(() => window.Alpine.$data(document.querySelector("[data-bw-toast]")).paused === true);
-    await page.waitForTimeout(1300); // well past the 800ms duration
+    // observes the 800ms override this test set: a margin of at least
+    // 500ms above it so CI contention cannot make a genuinely-paused timer
+    // look like a coincidental survival
+    await page.waitForTimeout(1400);
     await expect(toast).toHaveCount(1); // hover held it (WCAG 2.2.1)
     // focus-within takes over the pause before the pointer leaves
     await toast.locator(".bw-toast__close").focus();
     await page.mouse.move(0, 0);
     await page.waitForFunction(() => window.Alpine.$data(document.querySelector("[data-bw-toast]")).paused === true);
-    await page.waitForTimeout(1100);
+    // same 800ms timer, same 500ms+ margin
+    await page.waitForTimeout(1400);
     await expect(toast).toHaveCount(1); // focus-within held it
     // releasing focus resumes from the REMAINING time and it times out
     await page.evaluate(() => document.activeElement.blur());
@@ -320,7 +373,12 @@ test.describe("toast timers", () => {
     await deliverFragment(page, "toast-oob-success.html"); // duration persistent
     const toast = page.locator("[data-bw-toast]");
     await expect(toast).toHaveAttribute("data-bw-visible", "");
-    await page.waitForTimeout(1500); // bounded observation window
+    // observes the shortest configured auto-dismiss token this suite ever
+    // exercises unoverridden, --bw-duration-toast-short at 4000ms
+    // (tokens.css): 1500ms leaves a 2500ms margin under it, well past this
+    // suite's 500ms floor, so a genuinely-persistent toast cannot be
+    // mistaken for one that merely has not hit its (non-existent) timer yet
+    await page.waitForTimeout(1500);
     await expect(toast).toHaveCount(1);
     expect((await recordedEvents(page)).filter((e) => e.type === "bw:toast:dismiss")).toEqual([]);
   });
@@ -564,6 +622,7 @@ test.describe("combobox keyboard", () => {
     await page.evaluate(() => {
       window.__requests = [];
       window.__inflight = null;
+      window.__settledCount = 0;
       document.addEventListener("htmx:beforeRequest", () => window.__requests.push(performance.now()));
       // htmx applies the hx-indicator class before send: capture the
       // in-flight marker synchronously (a file:// response is too fast to
@@ -572,6 +631,10 @@ test.describe("combobox keyboard", () => {
         const listbox = document.getElementById("bw-listbox-id_colour");
         window.__inflight = { marked: listbox.classList.contains("htmx-request") };
       });
+      // afterSettle is the real "this swap has landed" signal (as in
+      // sortable.spec.mjs's persistence leg): counted rather than awaited
+      // once, since an undebounced extra request would fire a second one
+      document.addEventListener("htmx:afterSettle", () => window.__settledCount++);
     });
     const input = page.locator("#id_colour_combobox");
     await input.focus();
@@ -580,7 +643,12 @@ test.describe("combobox keyboard", () => {
     await expect(root).toHaveAttribute("data-bw-open", ""); // typing opens
     // the debounced request lands and the option-list swap replaces the list
     await expect(page.locator("#bw-listbox-id_colour .bw-combobox__option")).toHaveText(["Green"]);
-    await page.waitForTimeout(700); // an undebounced extra request would land here
+    await page.waitForFunction(() => window.__settledCount >= 1);
+    // observes --bw-debounce-search (300ms, tokens.css): an undebounced
+    // extra request would land within one more debounce window of the first
+    // settle, so 900ms leaves a 600ms margin over it, past this suite's
+    // 500ms floor
+    await page.waitForTimeout(900);
     expect(await page.evaluate(() => window.__requests.length)).toBe(1);
     expect(await page.evaluate(() => window.__inflight?.marked)).toBe(true);
     // the empty-message row is kept across the swap (CMP-029)
@@ -664,7 +732,12 @@ test.describe("combobox keyboard", () => {
     await input.pressSequentially("zzz"); // no match at all
     await expect(page.locator("#bw-listbox-id_tags-opt-0")).toBeHidden();
     await expect(root.locator(".bw-combobox__empty")).toBeVisible(); // CMP-029
-    await page.waitForTimeout(500); // a wrongly scheduled server call would land here
+    // no positive signal exists for "no request was scheduled": client mode
+    // never fires htmx:beforeRequest to await, so this proves the negative
+    // over a bounded window instead. Observes --bw-debounce-search (300ms,
+    // tokens.css), the timer a wrongly-wired server call would ride; 900ms
+    // leaves a 600ms margin over it, past this suite's 500ms floor
+    await page.waitForTimeout(900);
     expect(await page.evaluate(() => window.__requests.length)).toBe(0);
   });
 
@@ -822,8 +895,11 @@ test.describe("layout shift", () => {
     await bootToasts(page);
     // let the page's own post-boot settle finish (htmx injects its
     // indicator stylesheet at init and the document reflows once) before
-    // arming, so the measurement isolates the append itself
-    await page.waitForTimeout(400);
+    // arming, so the measurement isolates the append itself; settleAnimations
+    // plus a layout flush observes that reflow directly rather than guessing
+    // a duration for it
+    await settleAnimations(page);
+    await flushLayout(page);
     await armLayoutShiftObserver(page, ["#bw-toast-region"]);
     // the canonical OOB-only delivery (hx-swap none: the response is
     // processed for its OOB wrapper alone), so the measurement isolates the
@@ -834,8 +910,8 @@ test.describe("layout shift", () => {
     );
     await expect(page.locator("#bw-toast-region .bw-toast--info")).toHaveAttribute("data-bw-visible", "");
     await settleAnimations(page);
-    await page.waitForTimeout(400); // let any late layout-shift entries land
-    expect(await outsideShiftScore(page)).toBe(0);
+    await flushLayout(page);
+    expect(await outsideShiftScore(page)).toBeLessThanOrEqual(CLS_EPSILON);
   });
 
   test("the option-list swap shifts nothing outside the combobox", async ({ page }) => {
@@ -845,8 +921,9 @@ test.describe("layout shift", () => {
     await input.focus();
     await input.pressSequentially("gre", { delay: 40 });
     await expect(page.locator("#bw-listbox-id_colour .bw-combobox__option")).toHaveText(["Green"]);
-    await page.waitForTimeout(400);
-    expect(await outsideShiftScore(page)).toBe(0);
+    await settleAnimations(page);
+    await flushLayout(page);
+    expect(await outsideShiftScore(page)).toBeLessThanOrEqual(CLS_EPSILON);
   });
 });
 
