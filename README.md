@@ -38,7 +38,7 @@ over a background image reports "incomplete" rather than a violation); the
 gate catching its own blind spot and adding a check for it is stronger
 evidence than a gate that has never missed.
 
-> Status: **stable**. This checkout is version 3.11.0 (`pip install
+> Status: **stable**. This checkout is version 3.12.0 (`pip install
 > django-brickwork` for the published package);
 > [CHANGELOG.md](CHANGELOG.md) records the current release. The five
 > semver-governed public-API contracts (token, template, navigation,
