@@ -450,6 +450,123 @@ def test_each_axis_has_a_legend() -> None:
     assert html.count("<legend") == 3
 
 
+# --- layout=/placement= (ADR-060 structural carve-out, #235) -----------------
+
+
+def test_default_layout_is_inline_and_renders_no_disclosure() -> None:
+    html = _render()
+    assert "bw-theme-switch--compact" not in html
+    assert "<details" not in html
+    assert "bw-theme-switch__disclosure" not in html
+
+
+def test_inline_render_is_identical_to_the_pre_235_template() -> None:
+    # The design's binding requirement: layout="inline" (the default) must
+    # render EXACTLY today's markup, so existing consumers see zero diff.
+    # The instance_id is uuid4-derived (non-deterministic across renders), so
+    # this normalises it out on both sides rather than asserting true byte
+    # equality of two independent renders; every OTHER byte, including
+    # whitespace from the template's control structures, must match exactly.
+    import re
+
+    id_re = re.compile(r"bw-theme-switch-[0-9a-f]{10}")
+
+    default_html = id_re.sub("ID", _render())
+    explicit_html = id_re.sub("ID", _render('{% bw_theme_switch layout="inline" %}'))
+    assert default_html == explicit_html
+
+    # Pinned structural fingerprint of the pre-#235 template (never {%
+    # include %}d directly, so this asserts on the rendered OUTPUT the tag
+    # produces, which is what a consumer's page actually receives): the root
+    # div carries no compact/placement modifier class, and the fieldset loop
+    # sits directly inside it with no intervening <details>/<summary>/panel
+    # wrapper at all.
+    assert '<div class="bw-theme-switch"\n     id="ID"\n     hidden' in default_html
+    assert "<summary" not in default_html
+    assert 'bw-theme-switch__panel"' not in default_html
+
+
+def test_unknown_layout_raises() -> None:
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_theme_switch layout="floating" %}')
+
+
+def test_compact_layout_wraps_the_same_fieldsets_in_a_disclosure() -> None:
+    html = _render('{% bw_theme_switch axes="theme" layout="compact" %}')
+    assert "bw-theme-switch--compact" in html
+    assert "<details" in html
+    assert 'class="bw-theme-switch__disclosure"' in html
+    assert 'class="bw-theme-switch__panel"' in html
+    # the fieldset markup itself is untouched: same classes, same data
+    # attributes, so bwThemeSwitch's existing selectors work unmodified
+    assert 'data-bw-theme-switch-axis="theme"' in html
+    assert "data-bw-theme-switch-value" in html
+
+
+def test_compact_trigger_reuses_the_resolved_label() -> None:
+    html = _render('{% bw_theme_switch layout="compact" label="Display settings" %}')
+    assert '<span class="bw-btn__label">Display settings</span>' in html
+
+
+def test_compact_trigger_falls_back_to_the_translated_default_label() -> None:
+    html = _render('{% bw_theme_switch layout="compact" %}')
+    assert '<span class="bw-btn__label">Display settings</span>' in html
+
+
+def test_compact_carries_no_aria_menu_roles() -> None:
+    # APG Disclosure, not a menu (design binding #3): native details/summary
+    # semantics carry it, so no role="menu"/"menuitem", no aria-haspopup, no
+    # hand-authored aria-expanded anywhere in the compact render.
+    html = _render('{% bw_theme_switch layout="compact" %}')
+    assert 'role="menu"' not in html
+    assert 'role="menuitem"' not in html
+    assert "aria-haspopup" not in html
+    assert "aria-expanded" not in html
+
+
+def test_default_placement_is_end() -> None:
+    html = _render('{% bw_theme_switch layout="compact" %}')
+    assert "bw-theme-switch--end" in html
+    assert "bw-theme-switch--start" not in html
+
+
+def test_placement_start_is_honoured() -> None:
+    html = _render('{% bw_theme_switch layout="compact" placement="start" %}')
+    assert "bw-theme-switch--start" in html
+    assert "bw-theme-switch--end" not in html
+
+
+def test_unknown_placement_raises() -> None:
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_theme_switch layout="compact" placement="middle" %}')
+
+
+def test_placement_with_inline_layout_raises() -> None:
+    # placement= only anchors a compact panel; inline has no panel, and this
+    # package has no precedent for a silently-ignored, inapplicable option
+    # (bw_dropdown validates placement= unconditionally, and
+    # _shape_menu_item rejects a divider item's own extra keys outright).
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_theme_switch layout="inline" placement="start" %}')
+
+
+def test_placement_with_default_inline_layout_still_raises() -> None:
+    # Passing placement= explicitly must raise even when layout= is omitted
+    # (defaulting to "inline"), not only when layout="inline" is spelled out.
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_theme_switch placement="end" %}')
+
+
+def test_compact_locked_axis_still_disables_and_checks_server_side() -> None:
+    # Locking (SHL-003) is layout-independent: the same fieldset markup
+    # renders inside the compact panel unchanged.
+    html = _render('{% bw_theme_switch axes="theme" layout="compact" locked_axes="theme" %}', bw_theme="dark")
+    fieldset = _fieldset(html, "theme")
+    assert "data-bw-locked" in fieldset
+    dark_start = fieldset.index('value="dark"')
+    assert "checked" in fieldset[dark_start : fieldset.index(">", dark_start)]
+
+
 # --- the shipped JS bundle contract ------------------------------------------
 
 
@@ -462,3 +579,9 @@ def test_bundle_registers_bwthemeswitch_and_emits_the_change_event() -> None:
 def test_bundle_never_starts_alpine_for_theme_switch() -> None:
     bundle = _DIST_JS.read_text()
     assert "Alpine.start(" not in bundle
+
+
+def test_bundle_carries_the_compact_disclosure_wiring() -> None:
+    bundle = _DIST_JS.read_text()
+    assert "bw-theme-switch__disclosure" in bundle
+    assert "bw-theme-switch__trigger" in bundle
