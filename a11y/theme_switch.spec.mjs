@@ -4,10 +4,11 @@
 // Two legs against the pre-rendered fixtures (a11y/generate_fixtures.py):
 //   - the no-JS leg (javaScriptEnabled: false) proves the floor concretely
 //     (BR-BW-HTMX-001, the #117 ruling's one deliberate departure): the
-//     control ships with the hidden attribute and NOTHING reveals it
-//     without JS, so the no-JS floor is genuinely "renders nothing", not a
-//     dead or half-working control (mirroring dismissible.js's close
-//     button, the same hidden-until-init shape);
+//     control ships with the bw-theme-switch--pre-init class (icvoss/
+//     django-brickwork#272, supersedes the unconditional hidden attribute
+//     this shipped with through 3.11.0) and NOTHING reveals it without JS,
+//     so the no-JS floor is genuinely "renders nothing usable", not a dead
+//     or half-working control;
 //   - the JS leg loads theme-switch-js-<theme>.html, which boots Alpine +
 //     the real registerBrickworkComponents from node_modules/src exactly as
 //     a host application would (the FIXTURE owns Alpine.start(); brickwork
@@ -24,7 +25,11 @@
 //
 // A fourth, separate page (theme-switch-compact-open-js-<theme>.html)
 // carries layout="compact"'s own single instance, disclosure stamped [open]
-// in the served HTML: see the "layout=\"compact\"" describe block below.
+// in the served HTML: see the "layout=\"compact\"" describe block below. Its
+// own no-JS floor is a fifth, dedicated fixture (theme-switch-compact-
+// <theme>.html, #272 review): the three-instance inline fixture above never
+// renders layout="compact" at all, so it cannot prove the compact root's
+// own pre-init state, only the inline one.
 
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -52,18 +57,66 @@ async function boot(page, theme = "light") {
   await page.goto(fx(`theme-switch-js-${theme}.html`));
   await page.waitForFunction(() => !!window.Alpine);
   // the default instance's own reveal is the ready signal: init() removes
-  // `hidden` from every instance's root at once (three separate x-data
-  // components, each booting independently, so waiting on one is sufficient)
+  // the bw-theme-switch--pre-init class from every instance's root at once
+  // (three separate x-data components, each booting independently, so
+  // waiting on one is sufficient)
   await expect(section(page, "default-heading").locator("[data-bw-theme-switch]")).toBeVisible();
 }
 
 // --- the no-JS floor (BR-BW-HTMX-001, the #117 ruling's departure) -----------
+//
+// visibility: hidden (icvoss/django-brickwork#272) hides an ancestor's own
+// box, but visibility only INHERITS: a descendant that specifies its own
+// visibility value always wins over an inherited one, `!important` on the
+// ancestor notwithstanding (`!important` only breaks ties between rules
+// matching the SAME element, never against inheritance from a different
+// one). The old `hidden` attribute never had this gap, but for a reason
+// specific to THIS package, not a universal property of the attribute: the
+// protection came from brickwork's own author-origin
+// `[class^="bw-"][hidden]{display:none!important}` floor (index.css:42),
+// not from the UA stylesheet, and `display: none` on an ancestor also
+// removes descendants from rendering entirely regardless of what they
+// specify, which `visibility` does not. `.bw-theme-switch--pre-init`
+// therefore forces every descendant's OWN visibility too (components.css),
+// not only the root's: `.bw-theme-switch__trigger` (the compact summary
+// button) re-declaring visibility the way a consumer's own unrelated CSS
+// could is exactly this regression's shape, and it is NOT one that
+// toBeHidden()/toBeVisible() on the root and the radios alone would catch,
+// since those checks never inspect a different descendant. The genuinely
+// discriminating proof, added below, walks the ENTIRE focusable-selector set
+// inside each root and asserts none of them can actually receive focus
+// (tabIndex/focus() outcome, not merely a CSS visibility read), plus that a
+// real Tab-key walk of the whole page never lands inside any instance. A
+// dedicated test further down injects a competing descendant
+// visibility:visible rule to prove the guard actually holds, the same
+// teeth-check discipline the layout-shift suite uses.
+
+async function focusableDescendants(page, rootSelector) {
+  return page.locator(rootSelector).locator("a, button, input, select, textarea, summary, [tabindex]");
+}
+
+// Genuinely reachable, not merely "has a visibility:hidden style": call
+// .focus() directly (bypassing Playwright's own actionability wait, which
+// would otherwise time out rather than answer the question) and read back
+// document.activeElement, the only proof that survives a descendant
+// re-declaring visibility on itself.
+async function assertNoDescendantIsFocusable(page, rootSelector) {
+  const descendants = await focusableDescendants(page, rootSelector);
+  const count = await descendants.count();
+  for (let i = 0; i < count; i += 1) {
+    const becameActive = await descendants.nth(i).evaluate((el) => {
+      el.focus();
+      return document.activeElement === el;
+    });
+    expect(becameActive, `${rootSelector} descendant ${i} must not be focusable without JS`).toBe(false);
+  }
+}
 
 test.describe("no-JS floor", () => {
   test.use({ javaScriptEnabled: false });
 
   for (const theme of THEMES) {
-    test(`the control renders nothing: hidden and absent from the accessibility tree (${theme})`, async ({
+    test(`the inline control renders nothing: hidden and absent from the accessibility tree (${theme})`, async ({
       page,
     }) => {
       await page.goto(fx(`theme-switch-${theme}.html`));
@@ -86,6 +139,107 @@ test.describe("no-JS floor", () => {
       // AxeBuilder injects its own analysis script, which a javaScriptEnabled:
       // false context blocks outright, so axe never runs inside this describe
       // block); the hidden/absent assertions above are this floor's proof.
+    });
+
+    test(`no descendant of any inline instance is focusable, and Tab never enters one (${theme})`, async ({
+      page,
+    }) => {
+      await page.goto(fx(`theme-switch-${theme}.html`));
+      await assertNoDescendantIsFocusable(page, "[data-bw-theme-switch]");
+      // a real keyboard walk from the top of the document: as many Tabs as
+      // there are focusable descendants (if any wrongly painted) plus a
+      // margin, confirming focus never lands on anything the control owns
+      await page.locator("body").focus();
+      for (let i = 0; i < 10; i += 1) {
+        await page.keyboard.press("Tab");
+        const insideControl = await page.evaluate(
+          () => !!document.activeElement?.closest("[data-bw-theme-switch]"),
+        );
+        expect(insideControl, "Tab must never move focus inside the pre-init control").toBe(false);
+      }
+    });
+
+    test(`the compact control's no-JS floor renders nothing: hidden and absent from the accessibility tree (${theme})`, async ({
+      page,
+    }) => {
+      // icvoss/django-brickwork#272 review: the three-instance inline
+      // fixture above never renders layout="compact", so it cannot prove
+      // the compact root's own pre-init state, only the inline one (the
+      // two layouts share one root element in the template, but that is a
+      // source-code fact, not a substitute for rendering compact and
+      // actually checking it). Dedicated fixture, no JS boot at all.
+      await page.goto(fx(`theme-switch-compact-${theme}.html`));
+      const root = page.locator("[data-bw-theme-switch]");
+      await expect(root).toHaveCount(1);
+      await expect(root).toBeHidden();
+      // the summary trigger and every radio inside the (closed) disclosure
+      // panel must all be hidden: visibility: hidden propagates through a
+      // closed <details> same as any other descendant
+      const trigger = page.locator(".bw-theme-switch__trigger");
+      await expect(trigger).toBeHidden();
+      const radios = page.locator("[data-bw-theme-switch-value]");
+      await expect(radios).toHaveCount(7); // theme 2 + density 3 + dir 2, see the fixture
+      for (const radio of await radios.all()) {
+        await expect(radio).toBeHidden();
+      }
+    });
+
+    test(`no descendant of the compact instance is focusable, and Tab never enters it (${theme})`, async ({
+      page,
+    }) => {
+      await page.goto(fx(`theme-switch-compact-${theme}.html`));
+      await assertNoDescendantIsFocusable(page, "[data-bw-theme-switch]");
+      await page.locator("body").focus();
+      for (let i = 0; i < 10; i += 1) {
+        await page.keyboard.press("Tab");
+        const insideControl = await page.evaluate(
+          () => !!document.activeElement?.closest("[data-bw-theme-switch]"),
+        );
+        expect(insideControl, "Tab must never move focus inside the pre-init compact control").toBe(false);
+      }
+    });
+
+  }
+});
+
+// Teeth check (icvoss/django-brickwork#272 review): visibility only
+// INHERITS, so an inherited hidden state from the root alone would lose to
+// an ordinary descendant rule as unremarkable as `.bw-theme-switch__trigger
+// { visibility: visible; }`, regardless of `!important` on the ancestor
+// (!important only arbitrates between rules matching the SAME element,
+// never against inheritance from a different one, verified directly in a
+// browser before this fix landed). components.css's
+// `.bw-theme-switch--pre-init *` rule closes this by forcing every
+// descendant's OWN visibility, so the same competing rule now has nothing
+// weaker to beat. Proved here by injecting the EXACT competing rule via a
+// real <style> tag (a genuine cascade contest, not a JS-set inline style,
+// which would only prove inline specificity beats a class and answer
+// nothing about the descendant-selector guard).
+//
+// javaScriptEnabled: true, deliberately, unlike the rest of this describe
+// block: addStyleTag needs the page's own script execution channel to
+// inject the competing rule at all, which is a TEST-authoring mechanism,
+// not the thing under test. The no-JS floor claim being proved (no
+// descendant is focusable) is a pure CSS/DOM fact, unaffected by whether
+// the page's OWN scripts happen to be enabled; bwThemeSwitch never runs
+// here (no _JS_BOOT in this fixture at all), so nothing about the control's
+// own no-JS behaviour is compromised by allowing the test harness itself to
+// run a script.
+test.describe("descendant-override guard (icvoss/django-brickwork#272)", () => {
+  for (const theme of THEMES) {
+    test(`a competing descendant visibility:visible rule still cannot make the compact trigger focusable (${theme})`, async ({
+      page,
+    }) => {
+      await page.goto(fx(`theme-switch-compact-${theme}.html`));
+      await page.addStyleTag({ content: ".bw-theme-switch__trigger { visibility: visible; }" });
+      // the guarded mechanism (.bw-theme-switch--pre-init *) forces the
+      // trigger's OWN visibility, so the competing rule above, real and
+      // genuinely injected into the cascade, still computes to hidden
+      const computedVisibility = await page
+        .locator(".bw-theme-switch__trigger")
+        .evaluate((el) => getComputedStyle(el).visibility);
+      expect(computedVisibility).toBe("hidden");
+      await assertNoDescendantIsFocusable(page, "[data-bw-theme-switch]");
     });
   }
 });
@@ -673,3 +827,74 @@ for (const theme of THEMES) {
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
   });
 }
+
+// --- layout-shift discipline (icvoss/django-brickwork#272) -------------------
+//
+// The regression this suite would have caught: the root shipped the hidden
+// ATTRIBUTE unconditionally, collapsing the control to zero footprint until
+// bwThemeSwitch's init() revealed it, well after first paint. Every consumer
+// composing the control into a visible header inherited a real, measured
+// layout shift (CLS 0.16 to 0.19 on the issue's own consumer measurement).
+// The fix (bw-theme-switch--pre-init, visibility: hidden, in flow) reserves
+// the control's true box from first paint, so init's later class swap must
+// produce a visible-appearance change only, never a geometry change, and
+// therefore no layout-shift entry. Mirrors the hardened CLS pattern from
+// PR #254 (a11y/interactions.spec.mjs, a11y/interactions2.spec.mjs):
+// event-driven settling, a drained observer via takeRecords(), and the same
+// named CLS_EPSILON convention, rather than a fresh pattern for one more
+// component.
+//
+// The observer has to be armed BEFORE the page's own module script runs
+// (addInitScript, not a post-navigation page.evaluate): the reveal this test
+// is proving absent happens at Alpine's init(), during initial page load,
+// not from a later user interaction the test itself triggers.
+
+const CLS_EPSILON = 0.0005;
+
+async function armLayoutShiftObserver(page) {
+  await page.addInitScript(() => {
+    window.__ls = [];
+    window.__lsObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        window.__ls.push(entry.value);
+      }
+    });
+    window.__lsObserver.observe({ type: "layout-shift", buffered: false });
+  });
+}
+
+// takeRecords() drains any entry the callback has not yet been scheduled to
+// receive (PerformanceObserver delivers on its own microtask cadence, not
+// synchronously with the layout that produced the entry), so a late-arriving
+// shift entry cannot be silently missed.
+const totalShiftScore = (page) =>
+  page.evaluate(() => {
+    for (const entry of window.__lsObserver.takeRecords()) {
+      window.__ls.push(entry.value);
+    }
+    return window.__ls.reduce((sum, value) => sum + value, 0);
+  });
+
+async function flushLayout(page) {
+  await page.evaluate(
+    () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+  );
+}
+
+test.describe("layout shift on reveal (#272)", () => {
+  for (const theme of THEMES) {
+    test(`revealing the inline control at init produces no layout-shift entry (${theme})`, async ({ page }) => {
+      await armLayoutShiftObserver(page);
+      await boot(page, theme);
+      await flushLayout(page);
+      expect(await totalShiftScore(page)).toBeLessThanOrEqual(CLS_EPSILON);
+    });
+
+    test(`revealing the compact control at init produces no layout-shift entry (${theme})`, async ({ page }) => {
+      await armLayoutShiftObserver(page);
+      await bootCompact(page, theme);
+      await flushLayout(page);
+      expect(await totalShiftScore(page)).toBeLessThanOrEqual(CLS_EPSILON);
+    });
+  }
+});

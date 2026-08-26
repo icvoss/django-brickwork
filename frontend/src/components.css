@@ -595,6 +595,50 @@ input.bw-toggle:disabled {
   flex-wrap: wrap;
   gap: var(--bw-density-stack-gap);
 }
+/* Reserved pre-init state (icvoss/django-brickwork#272): visibility: hidden,
+ * never display: none or the [hidden] attribute, so the control stays IN
+ * FLOW and its real, label-dependent box is reserved from first paint.
+ * bwThemeSwitch removes this class at init, changing appearance only, never
+ * geometry, so the reveal produces no layout-shift entry.
+ *
+ * A class, not an attribute-based override: the honest reason is that
+ * `visibility: hidden` keeps the box in flow, which the `hidden` ATTRIBUTE
+ * cannot do (the UA sheet's `[hidden]` is `display: none`, out of flow, by
+ * definition, so there is no attribute-only way to reserve space while
+ * hiding). This is NOT a cascade-priority argument: `!important` here is the
+ * same scoped-floor pattern index.css:42 already establishes for
+ * `[class^="bw-"][hidden]` ("hidden always means hidden without a consumer
+ * preflight"), applied to this class for the same reason, since brickwork's
+ * own compiled output carries no @layer at all and an ordinary consumer
+ * utility rule of equal or later specificity could otherwise override a
+ * bare `visibility: hidden` (a plain descendant selector on
+ * .bw-theme-switch__trigger, say) and leave part of the pre-init control
+ * visible and focusable. Applies in BOTH layout="inline" and
+ * layout="compact": the two share the same root element, this rule targets
+ * neither layout's own modifier class.
+ *
+ * The descendant rule below is load-bearing, not belt-and-braces (icvoss/
+ * django-brickwork#272 review): `visibility` INHERITS, but an inherited
+ * value always loses to a value SPECIFIED on the element itself, `!important`
+ * on the ancestor notwithstanding (`!important` only breaks ties between
+ * rules matching the SAME element; it has no say over inheritance from a
+ * different element at all). Verified directly: a plain `.child{visibility:
+ * visible}` descendant of a `.root{visibility:hidden!important}` ancestor
+ * computes to visible and is genuinely focusable. A single consumer rule as
+ * ordinary as `.bw-theme-switch__trigger { visibility: visible; }` would
+ * therefore paint and unhide the compact trigger while the rest of the
+ * control stayed reserved-but-invisible, exactly the no-JS floor this class
+ * exists to prevent. Forcing every descendant's OWN visibility here closes
+ * that gap: it is no longer inheritance doing the work, so a competing
+ * descendant rule has nothing weaker to beat. A consumer can still defeat
+ * this deliberately (their own `!important` on the same selector, or a rule
+ * later in a layer that outranks this unlayered one), which is the correct
+ * shape: overriding this package's own floor should take a deliberate,
+ * equally forceful rule, never an ordinary unqualified declaration. */
+.bw-theme-switch--pre-init,
+.bw-theme-switch--pre-init * {
+  visibility: hidden !important;
+}
 .bw-theme-switch__group {
   display: flex;
   flex-direction: column;
@@ -615,6 +659,24 @@ input.bw-toggle:disabled {
   align-items: center;
   gap: var(--bw-space-2);
   cursor: pointer;
+}
+/* 24x24 tap-target floor (icvoss/django-brickwork#272 gate run): a plain,
+ * unstyled native radio has no chrome of its own to grow, so browsers render
+ * it at its intrinsic ~13x13 box, under the WCAG 2.5.8 AA floor every OTHER
+ * interactive control in this file already meets (input.bw-checkbox/
+ * input.bw-radio grow their own box the same way, just with appearance:none
+ * painted chrome on top since they are NOT plain). Sizing only, no
+ * appearance/paint change: this control stays deliberately unstyled beyond
+ * native fieldset-of-radios chrome (this file's own theme-switch doc
+ * comment), so only the hit box grows, never the visible glyph. Previously
+ * masked by the root's [hidden] attribute collapsing every descendant,
+ * including this input, to 0x0 until JS ran; #272 replaced that with
+ * visibility: hidden (an in-flow, real-geometry pre-init state), which
+ * exposed the never-fixed 13x13 floor to axe's tap-target sweep for the
+ * first time, in both the pre-init and post-reveal fixtures. */
+.bw-theme-switch__input {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
 }
 .bw-theme-switch__input:disabled {
   cursor: not-allowed;

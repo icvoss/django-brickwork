@@ -452,12 +452,22 @@ label-extension route brickwork's other compact controls use); no other
 markup or behaviour differs from the inline render, including validation,
 persistence, and locking.
 
-**The no-JS floor here is "render nothing", not "render a working control",
-the one deliberate departure from this package's usual doctrine.** The
-server-rendered page is already correctly themed, so a theme switch with no
-JS is a control that visibly does nothing, worse than absent: the fieldset
-ships with the `hidden` attribute and `bwThemeSwitch` removes it at init,
-mirroring the reveal-at-init shape `bw_alert`'s dismiss button already uses.
+**The no-JS floor here is "render nothing VISIBLE", not "render a working
+control", the one deliberate departure from this package's usual doctrine.**
+The server-rendered page is already correctly themed, so a theme switch with
+no JS is a control that visibly does nothing, worse than absent: the root
+ships with the `bw-theme-switch--pre-init` class (icvoss/django-brickwork#272;
+`visibility: hidden`, in flow, so the control's own true, label-dependent box
+is reserved from first paint) and `bwThemeSwitch` swaps the class off at
+init, changing appearance only, never geometry, so the reveal produces no
+layout shift. This class-based reservation replaced an unconditional
+`hidden` attribute (through 3.11.0), which collapsed the control to zero
+footprint until init and then grew a visible header's actions row on
+reveal. The class forces `visibility` on every descendant, not only the
+root, since `visibility` merely inherits and a descendant's own specified
+value always wins over an inherited one regardless of `!important` on the
+ancestor: a plain rule targeting one inner element cannot silently unhide
+it.
 
 **Persistence follows SHL-003** (the same rule
 `frontend/src/js/sidebar_collapse.js` documents for the sidebar): localStorage
