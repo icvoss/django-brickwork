@@ -111,7 +111,7 @@ conformance; it can run consistently and be shown to catch real defects.
 
 | What runs | Scope |
 |---|---|
-| axe-core WCAG 2.2 AA scan | 132 documents across two fixture sets: 100 hand-maintained pages (50 fixtures x light and dark) plus 32 archetype pages (16 catalogue archetypes x light and dark), blocking every push (`a11y-gate` CI job) |
+| axe-core WCAG 2.2 AA scan | 136 documents across two fixture sets: 104 hand-maintained pages (52 fixtures x light and dark) plus 32 archetype pages (16 catalogue archetypes x light and dark), blocking every push (`a11y-gate` CI job) |
 | No-JS floor suite | blocking |
 | Keyboard suites | blocking |
 | Mobile-overflow checks | 4 widths: 320, 360, 375, 414px, blocking |
@@ -138,7 +138,7 @@ copy rather than omit it.
 
 **RTL has structural proof, not a tested fixture.** Logical-property counts
 (4.3 below) are real structural evidence for RTL support, but there is no
-`dir="rtl"` accessibility fixture in the 132-document gate. State this
+`dir="rtl"` accessibility fixture in the 136-document gate. State this
 distinction; do not imply RTL is axe-tested.
 
 ### 4.3 Token-first rebranding
@@ -186,7 +186,7 @@ sight, and are refreshed by hand at the next audit.
 | Examples | 42 | 16 archetype pages, 26 sections. **Gated** against `catalogue-manifest.json` |
 | Icons | 50 vendored Lucide SVG files | exposed as 53 callable names (3 aliases). State precisely; never a bare "50" or bare "53". **Dated** at 3.10.0 |
 | Tests | 1023 test functions | across 58 files containing at least one `def test_` (90 Python files exist under `tests/` in total; most are fixtures, conftest or helpers with no test functions of their own). **Dated** at 3.10.0 (counted via `git grep -hE '^def test_' -- tests \| wc -l` for the function count, `git grep -lE '^def test_' -- tests \| wc -l` for the file count); not gated, this count moves with every PR |
-| A11y gate | 132 axe-scanned documents | 100 hand-maintained (50 fixtures x light and dark) plus 32 archetype (16 catalogue archetypes x light and dark), blocking CI. Archetype fixture count **gated** against `catalogue-manifest.json`'s archetype count; the 50 hand-maintained fixtures are **dated** at 3.10.0 (Node/Playwright fixtures are not generated in the Python test run) |
+| A11y gate | 136 axe-scanned documents | 104 hand-maintained (52 fixtures x light and dark) plus 32 archetype (16 catalogue archetypes x light and dark), blocking CI. Archetype fixture count **gated** against `catalogue-manifest.json`'s archetype count; the 104 hand-maintained fixtures are **gated** against the real `a11y/generate_fixtures.py` run's own written output by `tests/test_a11y_fixture_coverage.py` (icvoss/django-brickwork#226), so this figure can never drift from what the axe gate actually loads. Hand-maintained fixture COVERAGE (does every shell/component/section have at least one fixture) is separately **gated** by the same file against `catalogue-manifest.json` |
 | Logical properties | 273 in source CSS | 500 in compiled dist. **Dated** at 3.10.0. Reproducible: `grep -oE '\b[a-z-]*(inline\|block)[a-z-]*\s*:' frontend/src/components.css \| grep -v 'display\s*:\|inline-block' \| wc -l` gives 269 (declarations whose property name contains `inline` or `block`, excluding `display: inline-block`), plus `grep -oE '(^\|[^-a-z])inset\s*:' frontend/src/components.css \| wc -l` gives 4 (bare `inset:` shorthand declarations); 269 + 4 = 273. The prior 274 figure's methodology was never recorded (commit 8ee225d only logs the audit correction from 142 to 274, no rule); it is not reproducible from the recorded rule above, so the 1-count delta cannot be attributed honestly beyond "not the same method" |
 | Version | 3.10.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py`. **Gated** |
 | Hard runtime dependency | Django only | |
@@ -293,7 +293,7 @@ match it:
 
 | Surface | Contradiction | Fix |
 |---|---|---|
-| `README.md` | Was stale on package version and the a11y fixture/document count | RESOLVED 2026-08-26: version updated to 3.10.0 and the a11y line restated in the current two-gate, 132-document framing (100 hand-maintained plus 32 archetype), consistent with section 5's A11y gate row |
+| `README.md` | Was stale on package version and the a11y fixture/document count | RESOLVED 2026-08-26: version updated to 3.10.0 and the a11y line restated in the current two-gate, 136-document framing (104 hand-maintained plus 32 archetype), consistent with section 5's A11y gate row |
 | `pyproject.toml:8` | Was "Accessible by construction" (a design claim), read against `README.md:11-12`'s "a *tested* guarantee... not a claim" (a verification claim positioned explicitly against design claims) | RESOLVED: `pyproject.toml:8` now reads "WCAG 2.2 AA tested in CI", which is a verification claim and aligns with README.md's framing; no reconciliation remains outstanding |
 | `PILOT-ADOPTION-BRIEF.md` | Was pinned to 0.3.0 and the private index, and dropped "professional" from the definition | RESOLVED 2026-08-24: rewritten as a routing quickstart and renamed `docs/QUICKSTART.md` |
 | Four documents each currently state brickwork's singular value differently: `README.md:10-13` ("its value is the professional baseline"), `docs/BRANDING.md:3-4` ("brickwork's whole point is that you rebrand it by overriding tokens"), `docs/DESIGN.md:15-18` (the beautiful-defaults founding statement), `pyproject.toml:8` (the category definition) | Four different leads for one product | This document settles it: beautiful defaults, proved by the examples (section 3), is the lead. Token-first rebranding (4.3) and the professional/tested-accessibility framing (4.2) become supporting claims, not competing leads |

@@ -16,6 +16,11 @@ default leg and the settings_seams leg but NOT in settings_consumer.py (a
 fixed, pre-existing V3-shaped harness orthogonal to the marketing kit):
 skipped at collection under any leg where the sub-app is absent, the same
 guard shape as the two legs above.
+
+test_a11y_fixture_coverage.py (icvoss/django-brickwork#226) imports and runs
+a11y/generate_fixtures.py, which itself imports brickwork_testapp.forms/nav/
+views: only installed under settings_seams, so this is skipped the same way
+test_integration.py is.
 """
 
 from __future__ import annotations
@@ -35,4 +40,6 @@ def pytest_ignore_collect(collection_path, config):
         # file): the marketing sub-app is the one app here whose name and
         # label differ.
         return not apps.is_installed("brickwork.marketing")
+    if "test_a11y_fixture_coverage.py" in path_str:
+        return not apps.is_installed("brickwork_testapp")
     return False
