@@ -65,6 +65,8 @@
   --bw-component-stat-tile-value-size: var(--bw-font-size-3xl);
   --bw-component-stat-tile-sparkline-height: 2rem;
   --bw-component-progress-track-height: 0.5rem;
+  --bw-component-ranked-list-bar-thickness: 0.375rem;
+  --bw-component-ranked-list-row-gap: 0.75rem;
   --bw-component-tooltip-max-width: 16rem;
   --bw-component-disabled-opacity: 0.5;
   --bw-component-content-max-width: 72rem;
@@ -480,6 +482,8 @@
   --bw-logo-height: var(--bw-component-logo-height);
   --bw-menu-min-width: var(--bw-component-menu-min-width);
   --bw-progress-track-height: var(--bw-component-progress-track-height);
+  --bw-ranked-list-bar-thickness: var(--bw-component-ranked-list-bar-thickness);
+  --bw-ranked-list-row-gap: var(--bw-component-ranked-list-row-gap);
   --bw-section-gap-marketing: var(--bw-component-section-gap-marketing);
   --bw-select-indicator: var(--bw-component-select-indicator);
   --bw-size-icon-2xl: var(--bw-component-icon-size-2xl);

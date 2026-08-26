@@ -111,6 +111,8 @@
     "--bw-component-nav-item-disabled-text",
     "--bw-component-nav-section-text",
     "--bw-component-progress-track-height",
+    "--bw-component-ranked-list-bar-thickness",
+    "--bw-component-ranked-list-row-gap",
     "--bw-component-section-gap-marketing",
     "--bw-component-select-indicator",
     "--bw-component-skeleton-bg",

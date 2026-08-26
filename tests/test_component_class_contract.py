@@ -230,6 +230,25 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         size="lg",
     ),
     "_stat (loading)": lambda: _include("brickwork/components/_stat.html", label="Revenue", value="0", loading=True),
+    "bw_ranked_list (linked rows, basis=total, label, data)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_ranked_list rows=rows basis='total' label='Top accounts' data=data %}",
+        rows=[
+            {"label": "Acme Corp", "amount": 4000, "value": "£4,000", "href": "/accounts/acme/"},
+            {"label": "Globex", "amount": 3000, "value": "£3,000", "href": "/accounts/globex/"},
+            {"label": "Initech", "amount": 1000, "value": "£1,000", "href": "/accounts/initech/"},
+        ],
+        data={"data-testid": "top-accounts"},
+    ),
+    "bw_ranked_list (empty, with action)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_ranked_list rows=rows empty_heading='No accounts yet' empty_body='Add one to see it here.' "
+        "empty_action_href='/accounts/new/' empty_action_label='Add an account' %}",
+        rows=[],
+    ),
+    "bw_ranked_list (loading)": lambda: _tag(
+        "brickwork_components", "{% bw_ranked_list rows=rows loading=True %}", rows=[]
+    ),
     "_data_table (records, selectable, sticky, stack, sorted)": lambda: _include(
         "brickwork/components/_data_table.html",
         table_id="invoices",
@@ -721,6 +740,7 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_search",
         "_card",
         "_stat",
+        "_ranked_list",
         "_data_table",
         "_stepper",
         "_modal",
