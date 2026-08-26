@@ -648,9 +648,11 @@ test.describe("layout=\"compact\"", () => {
     // Genuinely observable side effect, not just the interception above: a
     // pointerdown dispatched after destroy must not throw (nothing left
     // to run) and must not attempt to touch the now-detached disclosure.
-    await expect(async () => {
-      await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true })));
-    }).not.toThrow();
+    // Awaited directly rather than wrapped in .not.toThrow(): that matcher
+    // is synchronous, so it never awaits the callback and the evaluate can
+    // outlive the test, surfacing under load as "Error: page.evaluate:
+    // Test ended" rather than as a real failure.
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true })));
   });
 
   for (const theme of THEMES) {
