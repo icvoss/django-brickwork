@@ -24,7 +24,10 @@
 //
 // Also covers (icvoss/django-brickwork#244): re-init on the same root (an
 // Alpine re-mount / content-only swap, reproduced with the real
-// window.Alpine.initTree() API rather than a synthetic shortcut).
+// window.Alpine.initTree() API rather than a synthetic shortcut), two
+// instances in one form each folding into their own carrier on one submit,
+// and dedupe-on-submit (buffer text equal to an already-committed tag is
+// not posted twice).
 
 import { test, expect } from "@playwright/test";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -233,5 +236,45 @@ test.describe("re-init on the same root", () => {
     // the posted form data; FormData.entries() would then yield more than
     // one, so asserting the single value also proves there is one carrier
     expect(data.skill_tags).toBe("django, python, uncommitted-tag");
+  });
+});
+
+// --- suggestion 1: two instances, one submit (icvoss/django-brickwork#244) --
+
+test.describe("two tag inputs in one form", () => {
+  test.beforeEach(async ({ page }) => {
+    await boot(page);
+  });
+
+  test("one user submit folds each field's own uncommitted buffer into its own carrier", async ({ page }) => {
+    await interceptSubmit(page);
+    await page.locator("#skill-tags").fill("uncommitted-single");
+    await page.locator("#related-topics").fill("uncommitted-multi");
+    await page.locator('button[type="submit"]').click();
+    const data = await submittedData(page);
+    expect(data.skill_tags).toBe("django, python, uncommitted-single");
+    expect(data.related_topics).toBe("alpha, beta, uncommitted-multi");
+  });
+});
+
+// --- suggestion 2: dedupe-on-submit (icvoss/django-brickwork#244) -----------
+//
+// add()'s existing dedupe (this.tags.includes(tag) is a no-op) already
+// governs Enter/comma commits; this pins that the same guard governs the
+// commit-on-submit fold path, since _commitOnSubmit() reuses _commitBuffer()
+// -> add() rather than a separate code path.
+
+test.describe("dedupe on submit", () => {
+  test.beforeEach(async ({ page }) => {
+    await boot(page);
+  });
+
+  test("buffer text matching an already-committed tag is not duplicated on submit", async ({ page }) => {
+    await interceptSubmit(page);
+    await page.locator("#skill-tags").fill("django");
+    await page.locator('button[type="submit"]').click();
+    const data = await submittedData(page);
+    expect(data.skill_tags).toBe("django, python");
+    await expect(chipsFor(page, "skill-tags")).toHaveCount(2);
   });
 });
