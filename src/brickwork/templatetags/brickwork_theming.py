@@ -14,6 +14,16 @@ already reads bw_theme / bw_density / bw_dir / bw_brand from context and
 where the compiled tokens.css derives every colour (owner ruling
 2026-08-25, issue comment #5411464485: this is the whole of #117's scope).
 
+``layout`` (ADR-060 structural carve-out, icvoss/django-brickwork#235): closed
+set "inline" (default, unchanged) | "compact". "inline" renders every
+fieldset side by side, exactly as before this option existed. "compact"
+wraps the same fieldsets in a native <details>/<summary> disclosure (APG
+Disclosure, deliberately no ARIA menu roles, the _account_menu.html
+doctrine), sized for a header actions cluster. ``placement`` ("start" | "end",
+default "end") is only meaningful once "compact" wraps the fieldsets in a
+panel to anchor; passing it alongside "inline" is a render error, not a
+silently ignored option.
+
 ``axes`` (ADR-060: a closed, space-separated vocabulary, one name per
 concept, no new axis invented): "theme density dir" by default, per the
 ruling's constraint that brand is opt-in, never a default axis (a
@@ -109,6 +119,27 @@ _AXIS_CONTEXT_VARS = {
     "brand": "bw_brand",
 }
 
+# ADR-060 structural carve-out (icvoss/django-brickwork#235, design confirmed
+# 2026-08-26): a closed presentation vocabulary. "inline" is the pre-existing,
+# still-default render (every fieldset laid out side by side); "compact"
+# wraps the SAME fieldsets in a native <details>/<summary> disclosure (APG
+# Disclosure, deliberately no ARIA menu roles, the _account_menu.html
+# doctrine), for a header-safe collapsed presentation (the issue's own
+# evidence: a content-heavy header cannot fit the full three-fieldset control
+# until roughly 1240px, and phone-width targets measured 53x21..100x21 px,
+# both well under the 44px floor).
+_LAYOUTS = ("inline", "compact")
+
+# Which edge the compact disclosure's panel aligns to, the same vocabulary
+# and default ("end") bw_dropdown/_account_menu already use. Only meaningful
+# once layout="compact" wraps the fieldsets in a details/summary disclosure;
+# an inline render has no panel to anchor, so placement= passed alongside
+# layout="inline" is a render error rather than a silently ignored option
+# (the strictest existing precedent: _shape_menu_item in
+# brickwork_interactions.py rejects a divider item's own extra/inapplicable
+# keys outright rather than accepting and discarding them).
+_PLACEMENTS = ("start", "end")
+
 
 # gettext() calls are made INSIDE bw_theme_switch(), never at module import
 # time here: a module-level gettext() call resolves once, at process start,
@@ -162,6 +193,8 @@ def bw_theme_switch(
     brands: Mapping[str, str] | None = None,
     label: str = "",
     locked_axes: str | None = None,
+    layout: str = "inline",
+    placement: str | None = None,
 ) -> dict:
     """The live root-level axis switch (icvoss/django-brickwork#117).
 
@@ -191,7 +224,32 @@ def bw_theme_switch(
     string explicitly to force every axis writable regardless of context
     (there is no ordinary reason to); passing a string overrides the context
     value entirely rather than merging with it.
+
+    ``layout`` (ADR-060 structural carve-out, #235): "inline" (default) |
+    "compact". "inline" is the pre-existing render, byte-identical to before
+    this option existed. "compact" wraps the same fieldsets in a native
+    <details>/<summary> disclosure sized for a header actions cluster.
+
+    ``placement`` ("start" | "end", default "end"): which edge the compact
+    disclosure's panel aligns to. Only meaningful with ``layout="compact"``;
+    passing it with ``layout="inline"`` raises, since inline has no panel to
+    anchor and there is no established precedent in this package for a
+    silently-ignored, inapplicable option.
     """
+    if layout not in _LAYOUTS:
+        raise TemplateSyntaxError(f"bw_theme_switch layout= must be one of {sorted(_LAYOUTS)}, got {layout!r}")
+    if placement is not None:
+        if layout != "compact":
+            raise TemplateSyntaxError(
+                'bw_theme_switch placement= is only meaningful with layout="compact" '
+                f"(it anchors the compact panel); got layout={layout!r} with placement={placement!r}."
+            )
+        if placement not in _PLACEMENTS:
+            raise TemplateSyntaxError(
+                f"bw_theme_switch placement= must be one of {sorted(_PLACEMENTS)}, got {placement!r}"
+            )
+    resolved_placement = placement or "end"
+
     axis_list = _parse_axes(axes)
     if "brand" in axis_list:
         if not brands:
@@ -261,4 +319,6 @@ def bw_theme_switch(
         "label": label or gettext("Display settings"),
         "groups": groups,
         "valid_values": valid_values,
+        "layout": layout,
+        "placement": resolved_placement,
     }

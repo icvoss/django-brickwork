@@ -66,6 +66,13 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     ("_account_menu", "placement", "start", "bw-account-menu--start"),
     ("_account_menu", "placement", "end", "bw-account-menu--end"),
     ("_dropdown", "placement", "end", "bw-dropdown--end"),
+    # --- theme-switch layout/placement (ADR-060 structural carve-out, #235) --
+    # "inline" is the honestly-named default (the pre-existing render) and
+    # emits no modifier class at all, so it has no entry here: there is no
+    # CSS rule to pin, only the byte-identity test in test_theme_switch.py.
+    ("_theme_switch", "layout", "compact", "bw-theme-switch--compact"),
+    ("_theme_switch", "placement", "start", "bw-theme-switch--start"),
+    ("_theme_switch", "placement", "end", "bw-theme-switch--end"),
     # --- vocabularies that were always fine, asserted so they stay that way --
     ("_badge", "variant", "neutral", "bw-badge--neutral"),
     ("_badge", "variant", "info", "bw-badge--info"),

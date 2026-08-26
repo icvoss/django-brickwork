@@ -960,6 +960,25 @@ def render_inputs(theme: str) -> str:
 #                               file:// page.reload() discards a
 #                               page.evaluate() mutation before it ever
 #                               reaches bwThemeSwitch's own init()).
+# theme-switch-compact-open-js-<theme>.html
+#                               layout="compact" (icvoss/django-brickwork#235),
+#                               the JS leg, with the <details> disclosure
+#                               stamped [open] statically in the served HTML
+#                               (the render_sidebar_collapsed/
+#                               render_theme_switch_invalid_root "stamp a
+#                               settled state into the fixture" technique,
+#                               never a page.evaluate() + reload, which a
+#                               file:// reload would discard): axe needs the
+#                               panel actually visible to examine the
+#                               trigger/panel pairing and the compact
+#                               options' own 44px target size, not a closed
+#                               disclosure contributing nothing to the tree.
+#                               A dedicated compact-only instance (axes=
+#                               "theme density dir", layout="compact"), kept
+#                               separate from the three inline instances
+#                               above so neither page's own axe pass, nor the
+#                               inline instances' own uniqueness contract,
+#                               is disturbed by adding a fourth one there.
 _THEME_SWITCH_PAGE = """<!doctype html>
 <html lang="en" data-theme="__THEME__">
 <head>
@@ -1049,6 +1068,58 @@ def render_theme_switch_invalid_root(theme: str) -> str:
     html = render_theme_switch(theme, inject_js=True)
     return html.replace(
         f'<html lang="en" data-theme="{theme}">', '<html lang="en" data-theme="MISCONFIGURED-VALUE">', 1
+    )
+
+
+_THEME_SWITCH_COMPACT_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme switch, compact (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Theme switch, compact</h1>
+
+  <section aria-labelledby="compact-heading">
+    <h2 id="compact-heading">Compact disclosure</h2>
+    __COMPACT__
+  </section>
+</main>
+__JS_BOOT__
+</body>
+</html>
+"""
+
+
+def _render_theme_switch_compact_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template(
+        '{% load brickwork_theming %}{% bw_theme_switch axes="theme density dir" layout="compact" %}'
+    ).render(Context({}))
+
+
+def render_theme_switch_compact_open(theme: str) -> str:
+    """layout="compact" (icvoss/django-brickwork#235), the JS leg, with the
+    <details> disclosure stamped [open] statically in the served HTML (the
+    render_sidebar_collapsed/render_theme_switch_invalid_root "stamp a
+    settled state into the fixture" technique): a file:// page.reload()
+    would discard a page.evaluate()-driven open(), so the open state has to
+    already be in the markup the page is served with for axe to examine the
+    trigger/panel pairing and the compact options' own target sizes, rather
+    than a closed disclosure that contributes nothing to the tree."""
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    page = (
+        _THEME_SWITCH_COMPACT_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__COMPACT__", _render_theme_switch_compact_fixture())
+        .replace("__JS_BOOT__", _JS_BOOT)
+    )
+    return page.replace(
+        '<details class="bw-theme-switch__disclosure">', '<details class="bw-theme-switch__disclosure" open>', 1
     )
 
 
@@ -2599,6 +2670,10 @@ def main() -> None:
         (OUT / f"theme-switch-{theme}.html").write_text(render_theme_switch(theme))
         (OUT / f"theme-switch-js-{theme}.html").write_text(render_theme_switch(theme, inject_js=True))
         (OUT / f"theme-switch-invalid-root-js-{theme}.html").write_text(render_theme_switch_invalid_root(theme))
+        # layout="compact" (#235): the disclosure's own JS leg, stamped open
+        # so axe examines the revealed trigger/panel pairing and the
+        # compact options' own 44px targets, not a closed disclosure
+        (OUT / f"theme-switch-compact-open-js-{theme}.html").write_text(render_theme_switch_compact_open(theme))
         (OUT / f"sidebar-collapsed-{theme}.html").write_text(render_sidebar_collapsed(theme))
         # the 0.14.0 slide-over + stepper + wizard set (#55/#59): the
         # slide-over's OPEN state (dialog semantics, labelling, focusable
@@ -2687,6 +2762,7 @@ def main() -> None:
             f"inputs-{theme}",
             f"theme-switch-{theme}",
             f"theme-switch-js-{theme}",
+            f"theme-switch-compact-open-js-{theme}",
             f"sidebar-collapsed-{theme}",
             f"slide-over-open-{theme}",
             f"stepper-{theme}",

@@ -213,18 +213,31 @@ test.describe("persistence", () => {
   }) => {
     await page.evaluate(() => {
       window.__requests = [];
+      window.__settled = false;
       document.addEventListener("htmx:beforeRequest", (event) => {
         window.__requests.push({ verb: event.detail.requestConfig.verb, path: event.detail.pathInfo.requestPath });
+      });
+      // htmx:afterSettle is the real "the outerHTML swap has landed" signal
+      // (fired on the swapped-in target once its own settle timers, if any,
+      // complete): a DOM-shape check like toHaveCount(1) is a vacuous wait
+      // here, since data-bw-sort-id="1" is present in both the client's
+      // pre-swap optimistic order and the server's post-swap fragment, so
+      // its count never transitions and never actually gates the swap
+      // (icvoss/django-brickwork#242's CI flake, root-caused to this race).
+      document.addEventListener("htmx:afterSettle", () => {
+        window.__settled = true;
       });
     });
     const first = page.locator('[data-bw-sort-id="1"]');
     await first.focus();
     await page.keyboard.press("Alt+ArrowDown");
+    // wait for the real swap-complete signal, not a DOM shape that is true
+    // both before and after the swap
+    await page.waitForFunction(() => window.__settled === true, { timeout: 3000 });
     // the swap lands: the returned fragment IS the mock's fixed order
     // (Alpha/Beta/Gamma), proving server truth overwrote the client's own
     // optimistic [2, 1, 3] guess, exactly as the reference implementation's
     // documented contract requires
-    await expect(page.locator('[data-bw-sort-id="1"]')).toHaveCount(1, { timeout: 3000 });
     await expect(sortIds(page)).resolves.toEqual(["1", "2", "3"]);
     // the swapped-in root is a fresh x-data element; Alpine's own mutation
     // observer re-initialises it with no explicit htmx.process() call

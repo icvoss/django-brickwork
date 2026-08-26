@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n brickwork_icons %}
 {% comment %}
 The live root-level axis switch (icvoss/django-brickwork#117). Private
 render target of the {% bw_theme_switch %} tag
@@ -56,6 +56,43 @@ Required context (built by the tag; never author this list by hand):
   values_element_id: instance_id + "-values", the json_script element's own
       id; bwThemeSwitch reads data-bw-theme-switch-values on the root
       (below) to find it, rather than reconstructing the suffix client-side.
+  layout: "inline" (default) | "compact" (ADR-060, icvoss/django-brickwork#235).
+      "inline" renders the fieldsets directly, byte-identical to the render
+      before this option existed. "compact" wraps the SAME fieldset loop
+      (below, written once and shared by both branches) in a native
+      <details>/<summary> disclosure, for a header-safe collapsed
+      presentation: the issue's own evidence is a content-heavy header that
+      cannot fit the full three-fieldset control until roughly 1240px, and
+      phone-width option targets measuring 53x21..100x21 px, both well
+      under the 44px floor.
+  placement: "start" | "end" (default "end"), only meaningful with
+      layout="compact"; anchors the compact panel to the trigger's start or
+      end edge, the same vocabulary bw_dropdown/_account_menu already use.
+
+Compact is an APG Disclosure, deliberately with NO ARIA menu roles anywhere
+(the _account_menu.html doctrine run forwards, BR-BW-HTMX-006): a native
+<details>/<summary> already carries the correct semantics and keyboard
+behaviour (Tab to the summary, Enter/Space toggles) with no hand-rolled
+role="menu"/aria-haspopup/aria-expanded needed. The trigger reuses the
+bw_button "secondary md" chrome (_dropdown.html's own composition) and the
+chevron-down caret; the panel is _dropdown.html's own dropdown-shaped panel
+tokens (surface-raised, elevation-3 at z-dropdown, radius-lg), deliberately
+WITHOUT the --bw-component-menu-min-width floor _dropdown.html/
+_account_menu.html borrow: that token is sized for a vertical list of text
+menu items, wider than this panel's own three-fieldset content, and forcing
+it wider than the trigger pushed the panel off the start edge of the
+viewport under the documented placement="end" recipe (a bug found verifying
+#235). The panel sizes to its own content instead. Selecting a radio inside
+the compact panel never closes it: unlike a command menu (bw_dropdown's
+closeOnSelect), a visitor may want to flip more than one axis in a single
+visit, so the panel stays open until the trigger is toggled, Escape is
+pressed, or a click/tap lands outside it (bwThemeSwitch,
+frontend/src/js/theme_switch.js). The panel's legends render in full-strength
+ink, not the inline layout's fg-muted (a bug found verifying #235):
+fg-muted clears AA body contrast against the inline layout's surface-sunken
+backdrop but falls under 4.5:1 against the raised panel's measurably
+lighter surface in both themes, the same reason bw-dropdown__item/
+bw-account-menu__item never use muted text on a raised surface either.
 
 role="group" (review fix, #117): aria-label on a bare <div> with no ARIA
 role has no semantic target and screen readers ignore it; role="group" is
@@ -73,20 +110,37 @@ States: hidden (no-JS floor, always, by deliberate design: a theme switch
   that visibly does nothing is worse than absent) vs revealed (JS init);
   per-axis locked (a server-resolved preference exists: disabled radios,
   the current value checked, a "set by your account preferences" note) vs
-  unlocked (a free client toggle persisting to localStorage).
+  unlocked (a free client toggle persisting to localStorage). layout="compact"
+  adds its own open/closed presentation on top: closed (default, the native
+  [open] attribute absent) vs open (the disclosure panel visible, toggled by
+  the summary, Escape, or a click/tap outside it); layout="inline" has no
+  such state, the fieldsets are always in the flow.
 Accessibility: role="group" with an explicit aria-label (a bare div's
   aria-label has no semantic target without a role); each axis is its own
   native <fieldset>/<legend>, so the axis name reaches assistive tech
-  without extra ARIA. Covered by theme_switch.spec.mjs (408 lines), a
-  dedicated suite driving no-JS absence, reveal-at-init, per-axis lock
-  state, invalid-stored-value rejection, multi-instance collision safety
-  and the locked-vs-unlocked race, plus axe.spec.mjs against
-  theme-switch-*.html/theme-switch-js-*.html/
-  theme-switch-invalid-root-js-*.html, both themes.
-Responsive: no breakpoint switch; no width-dependent CSS on any
-  .bw-theme-switch* selector.
+  without extra ARIA. layout="compact" adds a native <details>/<summary>
+  disclosure around the SAME fieldsets, deliberately with NO ARIA menu
+  roles: this is an APG Disclosure, not a menu (role="menu" would mandate
+  arrow-key handling nothing here provides), so native details semantics
+  carry Tab-to-summary and Enter/Space-toggles with no hand-rolled ARIA.
+  Dismissal has three routes once JS has run (summary toggle, Escape with
+  focus returned to the trigger, click/tap outside), all inert on the no-JS
+  floor where the whole control stays hidden. Every compact option meets
+  the 44px touch-target floor (--bw-size-touch-target-min on
+  .bw-theme-switch__option, the #212 label-extension route: the clickable
+  label grows, the visible radio/text stay their normal size). Covered by
+  theme_switch.spec.mjs, a dedicated suite driving no-JS absence,
+  reveal-at-init, per-axis lock state, invalid-stored-value rejection,
+  multi-instance collision safety, the locked-vs-unlocked race, and the
+  compact disclosure's own open/close/dismissal routes and target sizes,
+  plus axe.spec.mjs against theme-switch-*.html/theme-switch-js-*.html/
+  theme-switch-invalid-root-js-*.html/theme-switch-compact-open-*.html,
+  both themes.
+Responsive: no breakpoint switch; layout is a consumer-chosen option, not a
+  media query, and no .bw-theme-switch* selector carries width-dependent
+  CSS in either layout.
 {% endcomment %}
-<div class="bw-theme-switch"
+<div class="bw-theme-switch{% if layout == 'compact' %} bw-theme-switch--compact bw-theme-switch--{{ placement }}{% endif %}"
      id="{{ instance_id }}"
      hidden
      role="group"
@@ -95,6 +149,14 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
      x-data="bwThemeSwitch()"
      aria-label="{{ label }}">
   {{ valid_values|json_script:values_element_id }}
+  {% if layout == 'compact' %}
+    <details class="bw-theme-switch__disclosure">
+      <summary class="bw-theme-switch__trigger bw-btn bw-btn--secondary bw-btn--md">
+        <span class="bw-btn__label">{{ label }}</span>
+        {% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-theme-switch__caret" %}
+      </summary>
+      <div class="bw-theme-switch__panel">
+  {% endif %}
   {% for group in groups %}
     <fieldset class="bw-theme-switch__group"
               data-bw-theme-switch-axis="{{ group.axis }}"
@@ -117,4 +179,8 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
       {% endif %}
     </fieldset>
   {% endfor %}
+  {% if layout == 'compact' %}
+      </div>
+    </details>
+  {% endif %}
 </div>
