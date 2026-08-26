@@ -1118,7 +1118,9 @@ def render_theme_switch_compact_open(theme: str) -> str:
         .replace("__COMPACT__", _render_theme_switch_compact_fixture())
         .replace("__JS_BOOT__", _JS_BOOT)
     )
-    return page.replace('<details class="bw-theme-switch__disclosure">', '<details class="bw-theme-switch__disclosure" open>', 1)
+    return page.replace(
+        '<details class="bw-theme-switch__disclosure">', '<details class="bw-theme-switch__disclosure" open>', 1
+    )
 
 
 def render_sidebar_collapsed(theme: str) -> str:

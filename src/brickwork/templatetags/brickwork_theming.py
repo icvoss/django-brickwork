@@ -241,8 +241,8 @@ def bw_theme_switch(
     if placement is not None:
         if layout != "compact":
             raise TemplateSyntaxError(
-                "bw_theme_switch placement= is only meaningful with layout=\"compact\" "
-                f'(it anchors the compact panel); got layout={layout!r} with placement={placement!r}.'
+                'bw_theme_switch placement= is only meaningful with layout="compact" '
+                f"(it anchors the compact panel); got layout={layout!r} with placement={placement!r}."
             )
         if placement not in _PLACEMENTS:
             raise TemplateSyntaxError(
