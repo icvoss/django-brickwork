@@ -19,10 +19,16 @@ States: none: a static ordered list, no open/closed, no hover-only reveal.
 Accessibility: a semantic <ol> inside the shell's aria-label="Breadcrumb"
   <nav>; the current-page crumb carries aria-current="page" and is never a
   link, matching WCAG's current-item convention. Every link meets the
-  min-block-size: 1.5rem touch-target floor (icvoss/django-brickwork#208).
-  Covered by axe.spec.mjs against list-*.html/dashboard-*.html (both render
-  a real crumbs list) and by the no-JS floor suite, which asserts the crumb
-  list and the aria-current marker render server-side with no JS.
+  min-block-size: 1.5rem WCAG 2.5.8 AA touch-target floor unconditionally
+  (icvoss/django-brickwork#208), and takes a further min-block-size of
+  --bw-size-touch-target-min (44px, WCAG 2.5.5/platform-HIG) under
+  @media (pointer: coarse) (icvoss/django-brickwork#242); a fine-pointer
+  desktop render stays at the 24px floor. Covered by axe.spec.mjs against
+  list-*.html/dashboard-*.html (both render a real crumbs list) for the
+  unconditional floor, and against list-light.html under a hasTouch: true
+  browser context for the coarse-pointer tier, and by the no-JS floor suite,
+  which asserts the crumb list and the aria-current marker render
+  server-side with no JS.
 Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-breadcrumbs* selector. A long crumb trail wraps or overflows within
   its container's own rules, not this component's.
