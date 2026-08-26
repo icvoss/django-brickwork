@@ -169,6 +169,22 @@ after release. The gate moves those to "caught before the tag".
   leg in `ci.yml` is blocking: the package typechecks clean (zero errors) as of
   the release that closed #207.
 
+## Never hand-merge a gated count
+
+When two branches both touch a drift-gated figure (the fixture counts and
+component counts in `docs/POSITIONING.md` and `README.md` are the usual ones),
+resolve the conflict from the generator's own output, never by picking a side.
+
+In 3.12.0 two branches each added one a11y fixture, so each independently
+stepped the documented count from 53 files to 54. **Neither side of the
+conflict was correct**: the true figure was 55. Taking either version would
+have shipped a wrong number that the drift test then enforces as truth, which
+is the worst shape a defect can take, wrong and self-defending, because the
+gate that exists to catch drift instead certifies it. Three further stale
+hardcoded counts in test files were found the same way during that release.
+
+Regenerate, read the real number off the generator, then write it down.
+
 ## Pre-tag checklist
 
 Before pushing the tag (the irreversible step):
