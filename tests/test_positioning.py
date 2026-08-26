@@ -202,21 +202,27 @@ def test_examples_row_matches_the_shipped_catalogue_manifest() -> None:
 def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> None:
     """Only the archetype half of the a11y-gate row is cheaply gateable here.
 
-    The 52 hand-maintained fixtures come from a11y/generate_fixtures.py's own
-    per-theme write calls, which this file deliberately does not re-parse: a
-    second regex over that script's source would be exactly the kind of
-    parallel, ungrounded re-derivation this module's docstring warns against.
-    The archetype half is different: it is walked from the SAME shipped
-    manifest every other gated row already reads, so it is genuinely free to
-    check here. (icvoss/django-brickwork#226: search-<theme>.html, the 52nd
-    pair, added to close the component/search and component/spinner gaps the
-    new tests/test_a11y_fixture_coverage.py drift test found.)
+    The 102 hand-maintained fixtures (51 fixtures x light and dark) are no
+    longer merely hand-counted from a11y/generate_fixtures.py's source: this
+    file still deliberately does not re-parse that script (a second regex
+    over its source would be exactly the kind of parallel, ungrounded
+    re-derivation this module's docstring warns against), but
+    tests/test_a11y_fixture_coverage.py's
+    test_documented_hand_maintained_fixture_count_matches_the_real_generator_output
+    counts the real files the traced generator run writes and gates this
+    exact number against that count, so it is covered end to end even
+    though the mechanism lives in the other file. (A prior review round
+    hand-counted the generator's write-call sites and reached 52/104,
+    which the real traced run disproved: it is 51/102, per
+    icvoss/django-brickwork#226 review "B5".) The archetype half is
+    different: it is walked from the SAME shipped manifest every other
+    gated row already reads, so it is genuinely free to check here.
     """
     manifest = catalogue_manifest()
     archetype_count = manifest["counts"]["archetypes"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 104 + (archetype_count * 2)
+    assert _leading_int(value) == 102 + (archetype_count * 2)
     assert f"{archetype_count} catalogue archetypes x light and dark" in note
 
 
