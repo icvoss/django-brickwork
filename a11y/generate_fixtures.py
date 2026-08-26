@@ -1382,6 +1382,78 @@ def render_sortable(theme: str, *, inject_js: bool = False, with_url: bool = Fal
     return html
 
 
+# --- the bwTagInput carrier set (icvoss/django-brickwork#237) ----------------
+#
+# tag-input-js-<theme>.html   two REAL {% include %} instances of
+#                              _tag_input.html (single-line and multiline),
+#                              wrapped in a real <form> so the commit-on-
+#                              submit data-loss guard has something to
+#                              listen for, and boots Alpine so bwTagInput's
+#                              own init() performs the carrier takeover
+#                              (a11y/tag_input.spec.mjs drives chip commit,
+#                              chip remove, carrier serialisation, and
+#                              commit-on-submit for both variants). The
+#                              static (non-JS) tag input already renders
+#                              inside inputs-<theme>.html above; this page
+#                              exists only for the JS leg.
+
+_TAG_INPUT_JS_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tag input carrier (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Tag input carrier</h1>
+  <form id="tag-input-form" method="post" action="#">
+    <section aria-labelledby="tag-input-heading">
+      <h2 id="tag-input-heading">Tag input</h2>
+      __TAG_INPUT__
+    </section>
+    <section aria-labelledby="tag-input-multiline-heading">
+      <h2 id="tag-input-multiline-heading">Tag input (multiline)</h2>
+      __TAG_INPUT_MULTILINE__
+    </section>
+    <button type="submit">Save</button>
+  </form>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_tag_input_multiline_fixture() -> str:
+    return render_to_string(
+        "brickwork/components/_tag_input.html",
+        {
+            "label": "Related topics",
+            "id": "related-topics",
+            "name": "related_topics",
+            "value": "alpha,beta",
+            "multiline": True,
+        },
+    )
+
+
+def render_tag_input_js(theme: str) -> str:
+    """The JS leg for bwTagInput's carrier takeover (#237): both the
+    single-line and multiline floors, each pre-filled with two committed
+    tags via `value`, so the fixture's own load already exercises the 422
+    re-render parse path (init() reads the server-rendered value into chips
+    before the carrier takeover runs)."""
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    html = (
+        _TAG_INPUT_JS_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__TAG_INPUT__", _render_tag_input_fixture())
+        .replace("__TAG_INPUT_MULTILINE__", _render_tag_input_multiline_fixture())
+    )
+    return html.replace("</body>", _JS_BOOT + "</body>")
+
+
 def render_sortable_reorder_fragment() -> str:
     """The persistence endpoint's response: the REAL <ul> markup re-rendered
     server-side, exactly as bwSortable's outerHTML swap expects. outerHTML
@@ -2587,6 +2659,9 @@ def main() -> None:
         (OUT / f"sortable-{theme}.html").write_text(render_sortable(theme))
         (OUT / f"sortable-js-{theme}.html").write_text(render_sortable(theme, inject_js=True))
         (OUT / f"sortable-js-persist-{theme}.html").write_text(render_sortable(theme, inject_js=True, with_url=True))
+        # bwTagInput carrier takeover (icvoss/django-brickwork#237): the JS
+        # leg for both the single-line and multiline floors
+        (OUT / f"tag-input-js-{theme}.html").write_text(render_tag_input_js(theme))
         written += [
             f"list-{theme}",
             f"list-menu-open-{theme}",
@@ -2638,6 +2713,7 @@ def main() -> None:
             f"sortable-{theme}",
             f"sortable-js-{theme}",
             f"sortable-js-persist-{theme}",
+            f"tag-input-js-{theme}",
         ]
     FRAGMENTS.mkdir(exist_ok=True)
     (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())
