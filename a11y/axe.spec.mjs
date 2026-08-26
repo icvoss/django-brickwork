@@ -338,19 +338,23 @@ for (const width of MOBILE_WIDTHS) {
 //     bw-* rule to fix.
 //   - 'a:not([class])': the same shape for links, which also covers the
 //     testapp's own property-switcher slot content (brickwork#21,
-//     AC-BW-078: "Acme Ltd"/"Globex plc") and the marketing footer's
-//     link-group default ("a consumer's marketing_footer block content is
-//     arbitrary markup", marketing.css's own comment on
-//     .bw-marketing-footer__inner :where(a)) -- this exemption is about the
-//     testapp fixture's own bare, unclassed <a> markup escaping THIS
-//     selector-based sweep, not about brickwork disclaiming the sizing
-//     floor itself: .bw-marketing-footer__inner :where(a) matches on tag,
-//     not class, so it always reached these links for colour/decoration,
-//     and #242 extended it to size too (min-block-size, both tiers, the
-//     same as the header nav/actions links). The floor is real; only the
-//     unclassed markup shape means this particular 24x24 element-level
-//     sweep cannot see it. The coarse-pointer tier is measured separately,
-//     below, by selector rather than by class presence.
+//     AC-BW-078: "Acme Ltd"/"Globex plc") and, until #242, the marketing
+//     footer's link-group default. Before #242 this exemption WAS brickwork
+//     disclaiming the sizing floor there for #208, on the stated rationale
+//     that "brickwork does not own the group's layout, so a sizing floor is
+//     not this package's call to make" (this file's own comment on
+//     TAP_TARGET_EXEMPT_SELECTORS, added for #212). #242 reverses that
+//     position:
+//     .bw-marketing-footer__inner :where(a) already matches on tag, not
+//     class, so it always reached these links for colour/decoration
+//     (BR-BW-MKT-002) regardless of the consumer's own markup, which is the
+//     same claim of ownership a sizing floor makes; #242 sizes them too
+//     (min-block-size, both tiers, the same as the header nav/actions
+//     links) rather than leaving the inconsistency in place. The entry
+//     stays in this list only because the sweep is class-based and the
+//     footer's own markup carries no class: the coarse-pointer tier is
+//     measured separately, below, by selector rather than by class
+//     presence, so this element-level exemption no longer means "unsized".
 //   - '.bw-toggle': a fixed-shape switch (a deliberate design proportion,
 //     not incidental line-height), always rendered inside a real clickable
 //     <label class="bw-toggle-field"> when used as the standalone {%
@@ -419,19 +423,41 @@ test.describe("tap targets", () => {
 // assertion below it: an emulation that silently fails to flip the media
 // feature would otherwise make this a vacuous test that passes regardless
 // of whether the CSS rule fires.
+// expectedFinePx pins the exact fine-pointer rendered block-size measured
+// against the current fixtures (all four surfaces render at exactly 24px,
+// the #208 AA floor, with no extra padding or line-height inflation): a
+// >=24/<44 band alone cannot tell a genuine 24px render from a fine-pointer
+// creep to, say, 43px, since both pass that band. The 1px tolerance below
+// allows for sub-pixel layout rounding, not for a real size change.
 const COARSE_TARGETS = [
-  { fixture: "landing-light.html", selector: ".bw-marketing-header__nav a", label: "marketing header nav link" },
   {
     fixture: "landing-light.html",
-    selector: '.bw-marketing-header__actions > a:not(.bw-btn)',
-    label: "marketing header actions link",
+    selector: ".bw-marketing-header__nav a:not(.bw-btn)",
+    label: "marketing header nav link",
+    expectedFinePx: 24,
   },
-  { fixture: "landing-light.html", selector: ".bw-marketing-footer__inner a", label: "marketing footer link" },
-  { fixture: "list-light.html", selector: ".bw-breadcrumbs__link", label: "breadcrumb link" },
+  {
+    fixture: "landing-light.html",
+    selector: ".bw-marketing-header__actions > a:not(.bw-btn)",
+    label: "marketing header actions link",
+    expectedFinePx: 24,
+  },
+  {
+    fixture: "landing-light.html",
+    selector: ".bw-marketing-footer__inner a:not(.bw-btn)",
+    label: "marketing footer link",
+    expectedFinePx: 24,
+  },
+  {
+    fixture: "list-light.html",
+    selector: ".bw-breadcrumbs__link",
+    label: "breadcrumb link",
+    expectedFinePx: 24,
+  },
 ];
 
 test.describe("coarse-pointer touch targets (#242)", () => {
-  for (const { fixture, selector, label } of COARSE_TARGETS) {
+  for (const { fixture, selector, label, expectedFinePx } of COARSE_TARGETS) {
     test(`${label} reaches 44px block-size under a coarse pointer`, async ({ browser }) => {
       const context = await browser.newContext({ hasTouch: true, viewport: { width: 375, height: 900 } });
       const page = await context.newPage();
@@ -471,15 +497,17 @@ test.describe("coarse-pointer touch targets (#242)", () => {
         (sel) => document.querySelector(sel)?.getBoundingClientRect().height ?? 0,
         selector,
       );
-      // The AA floor is 24px (#208); the coarse-pointer 44px tier must not
-      // leak into the fine-pointer render, so this pins the desktop size
-      // strictly under the 44px tier rather than asserting an exact value.
+      // Pinned to the exact measured value (expectedFinePx), not just a
+      // >=24/<44 band: that band alone cannot distinguish a genuine 24px
+      // render from a fine-pointer creep to, say, 43px, since both pass a
+      // band check. +/-1px tolerance only, for sub-pixel layout rounding.
       expect(
         height,
-        `${label} (${selector}) measured ${height}px under a fine pointer, want >= 24 and < 44 ` +
-          "(the coarse-pointer tier must not apply here)",
-      ).toBeGreaterThanOrEqual(24);
-      expect(height).toBeLessThan(44);
+        `${label} (${selector}) measured ${height}px under a fine pointer, want ` +
+          `${expectedFinePx}px (+/-1px); the coarse-pointer tier must not apply here, and any drift from ` +
+          `${expectedFinePx}px is a real size change, not rounding`,
+      ).toBeGreaterThanOrEqual(expectedFinePx - 1);
+      expect(height).toBeLessThanOrEqual(expectedFinePx + 1);
 
       await context.close();
     });
