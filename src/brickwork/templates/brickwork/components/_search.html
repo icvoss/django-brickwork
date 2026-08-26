@@ -17,11 +17,12 @@ States: no scope / scoped-to-one-value (the optional scope chip with its
 Accessibility: role="search" on the form landmark; the visible input's
   accessible name is a visually-hidden label rather than a placeholder
   alone (a placeholder is not a reliable accessible name); the submit
-  button is icon-only with an aria-label. Not covered by a dedicated a11y
-  fixture in the browser suites today (no fixture in
-  a11y/generate_fixtures.py renders bw_search); its floor rests on
-  tests/test_search.py's Python-level render assertions, not a
-  browser-driven axe or keyboard check.
+  button is icon-only with an aria-label. Covered by the dedicated
+  search-<theme>.html fixture (a11y/generate_fixtures.py's render_search,
+  #226), which renders a plain bw_search and a scoped bw_search (the
+  scope chip and its clear link) so the axe, keyboard and no-JS gates all
+  examine the real markup; tests/test_search.py's Python-level render
+  assertions remain the floor for the tag's own argument handling.
 Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-search* selector. min-inline-size: 0 on the input lets it contract
   inside a narrow topbar rather than forcing the shell wide, fluid at every

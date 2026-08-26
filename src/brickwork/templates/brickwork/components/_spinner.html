@@ -12,9 +12,12 @@ States: spinning only; there is no other state, since it is never rendered
 Accessibility: aria-hidden="true" always; the busy state is conveyed by
   the host control's own aria-busy (e.g. _button.html's loading=True), the
   spinner glyph itself carries no accessible name and is never the sole
-  signal. Covered indirectly wherever a fixture renders a loading button
-  or table (axe.spec.mjs sees the composed markup); not a standalone
-  fixture of its own.
+  signal. Covered directly by the search-<theme>.html fixture
+  (a11y/generate_fixtures.py's render_search, #226), which renders a
+  loading bw_button (loading=True disabled=True) alongside bw_search
+  specifically to mount this component; the composed markup is what
+  axe.spec.mjs examines. Not a standalone fixture of its own, since it is
+  never rendered except while a host control is busy.
 Responsive: no breakpoint switch; no width-dependent CSS. Its size is
   fixed to --bw-component-icon-size-sm, not viewport-driven.
 {% endcomment %}
