@@ -492,6 +492,147 @@ test.describe("layout=\"compact\"", () => {
     }
   });
 
+  test("the open panel sits fully within the viewport (#247 review)", async ({ page }) => {
+    // Regression pin, #247 review: the panel once borrowed
+    // --bw-component-menu-min-width (12rem), sized for _dropdown.html's own
+    // vertical list of text menu items. Under this fixture's placement="end"
+    // (the tag default, resolved server-side) the panel anchors its END edge
+    // to the trigger's own end edge and grows towards the START edge; the
+    // trigger sits near the page's own start edge inside <main>, so a panel
+    // forced wider than its content pushed that start edge, and every radio
+    // past it, off the LEFT of the viewport entirely (bcc4481 fixed the CSS
+    // to size the panel to its own content instead). This is its own
+    // dedicated test, not a side effect of the 44px sweep above, because a
+    // target-size check on individual options says nothing about whether
+    // the panel's own bounding box is on-screen at all.
+    await bootCompact(page);
+    const rect = await compactSection(page)
+      .locator(".bw-theme-switch__panel")
+      .evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+      });
+    const viewport = page.viewportSize();
+    expect(rect.width, "the panel must have real, measurable extent").toBeGreaterThan(0);
+    expect(rect.height, "the panel must have real, measurable extent").toBeGreaterThan(0);
+    expect(rect.left, "panel left edge is off-viewport (the min-width regression)").toBeGreaterThanOrEqual(0);
+    expect(rect.right, "panel right edge is off-viewport").toBeLessThanOrEqual(viewport.width);
+    expect(rect.top, "panel top edge is off-viewport").toBeGreaterThanOrEqual(0);
+    expect(rect.bottom, "panel bottom edge is off-viewport").toBeLessThanOrEqual(viewport.height);
+  });
+
+  test("ArrowDown/ArrowRight move focus and selection within a fieldset's own radio group", async ({ page }) => {
+    // Suggestion taken (#247 review): this is native <fieldset>/radio-group
+    // keyboard behaviour, not code bwThemeSwitch itself implements (no
+    // keydown handling on the radios anywhere in theme_switch.js), but it
+    // proves the disclosure's own JS (open/close, the outside-pointerdown
+    // and Escape listeners) never intercepts or fights the browser's own
+    // arrow-key handling once the panel is open, and that the resulting
+    // change still runs this module's ordinary selection path exactly like
+    // the existing pointer-driven selection tests above ("radios inside the
+    // compact panel operate, persist, and dispatch the change event").
+    await bootCompact(page);
+    await page.evaluate(() => {
+      window.__bw = [];
+      window.addEventListener("bw:theme-switch:change", (event) => {
+        window.__bw.push({ type: event.type, detail: event.detail ?? null });
+      });
+    });
+    const details = compactSection(page).locator(".bw-theme-switch__disclosure");
+    const light = compactSection(page).locator('[data-bw-theme-switch-axis="theme"] input[value="light"]');
+    const dark = compactSection(page).locator('[data-bw-theme-switch-axis="theme"] input[value="dark"]');
+    await expect(light).toBeChecked();
+    await light.focus();
+    await page.keyboard.press("ArrowDown");
+    // native radio-group semantics: ArrowDown/ArrowRight moves both focus
+    // and the checked state to the next radio in the SAME name= group
+    await expect(dark).toBeFocused();
+    await expect(dark).toBeChecked();
+    await expect(light).not.toBeChecked();
+    // the panel stays open: arrow-key navigation within the fieldset is not
+    // one of the disclosure's three dismissal routes
+    await expect(details).toHaveJSProperty("open", true);
+    // the resulting change is a normal selection, run through the same
+    // path a pointer click would: applied to <html>, persisted, dispatched
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
+    expect(stored).toEqual("dark");
+    const events = await page.evaluate(() => window.__bw);
+    expect(events).toEqual([{ type: "bw:theme-switch:change", detail: { axis: "theme", value: "dark" } }]);
+    // ArrowRight is the row-direction equivalent (LTR): press it once more
+    // to move back to light and confirm it behaves identically to ArrowDown
+    await page.keyboard.press("ArrowRight");
+    await expect(light).toBeFocused();
+    await expect(light).toBeChecked();
+  });
+
+  test("destroying the Alpine component removes the document pointerdown listener", async ({ page }) => {
+    // Suggestion taken (#247 review): destroy() is only reachable in this
+    // suite by removing the enhanced root from the DOM, which triggers
+    // Alpine's own MutationObserver-driven cleanup (destroyTree ->
+    // component destroy()); there is no public API to invoke it directly.
+    //
+    // Observability limit, stated plainly: this module exposes no counter,
+    // flag, or other instance-level side effect a test could read after
+    // destroy (by design: "state none exposed" in theme_switch.js's own
+    // public-shape doctrine). Asserting only that a POST-destroy
+    // document pointerdown "does not throw" would pass vacuously: an
+    // unrelated bug that silently no-ops the listener, or a destroy() that
+    // never ran at all, would look identical to a correctly removed one.
+    // The genuinely discriminating proof available without new production
+    // code is reference identity: intercept document.addEventListener/
+    // removeEventListener before the page's own module import runs (the
+    // same addInitScript technique the invalid-root-value test above uses
+    // to intercept setAttribute), and assert that the EXACT function
+    // reference init() registered for "pointerdown" is the one destroy()
+    // later removes. This cannot pass vacuously: a destroy() that forgot
+    // the removeEventListener call, or that called it with a different
+    // (e.g. newly wrapped) function reference, fails this assertion, and a
+    // destroy() that never ran at all leaves the removal call recorded
+    // nowhere.
+    await page.addInitScript(() => {
+      window.__pointerdownAdds = [];
+      window.__pointerdownRemoves = [];
+      const originalAdd = document.addEventListener.bind(document);
+      const originalRemove = document.removeEventListener.bind(document);
+      document.addEventListener = function (type, listener, options) {
+        if (type === "pointerdown") window.__pointerdownAdds.push(listener);
+        return originalAdd(type, listener, options);
+      };
+      document.removeEventListener = function (type, listener, options) {
+        if (type === "pointerdown") window.__pointerdownRemoves.push(listener);
+        return originalRemove(type, listener, options);
+      };
+    });
+    await bootCompact(page);
+    const addedCount = await page.evaluate(() => window.__pointerdownAdds.length);
+    expect(addedCount).toEqual(1); // init() wires exactly one outside-pointerdown listener
+    await compactSection(page).locator("[data-bw-theme-switch]").evaluate((el) => el.remove());
+    // Alpine's cleanup runs off a MutationObserver callback (a microtask
+    // after the removal above, never synchronous with it), so poll rather
+    // than assert immediately. A genuine microtask lands well under a
+    // second; capped short so a real regression (the listener never
+    // removed) fails fast rather than eating the suite's default timeout.
+    await page.waitForFunction(() => window.__pointerdownRemoves.length === 1, null, { timeout: 2000 });
+    // Compare the two function REFERENCES inside the page itself: a
+    // function value cannot survive the evaluate() serialisation boundary
+    // as the same object, so pulling each one out to the Node side first
+    // and comparing there (even with toEqual/toBe) would compare two
+    // independently serialised copies and could pass no matter what
+    // destroy() actually removed. `===` run inside page.evaluate is the
+    // only check that is genuinely about reference identity.
+    const sameReference = await page.evaluate(
+      () => window.__pointerdownAdds[0] === window.__pointerdownRemoves[0],
+    );
+    expect(sameReference, "destroy() must remove the SAME listener reference init() added").toBe(true);
+    // Genuinely observable side effect, not just the interception above: a
+    // pointerdown dispatched after destroy must not throw (nothing left
+    // to run) and must not attempt to touch the now-detached disclosure.
+    await expect(async () => {
+      await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true })));
+    }).not.toThrow();
+  });
+
   for (const theme of THEMES) {
     test(`axe WCAG 2.2 AA on the revealed compact disclosure (${theme})`, async ({ page }) => {
       await bootCompact(page, theme);
