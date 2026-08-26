@@ -417,6 +417,40 @@ other interaction). Options (ADR-060 grammar):
   page; you do not pass this by hand in ordinary use. Pass a string
   explicitly (including `""`) to override the context value entirely rather
   than merging with it.
+- `layout` (str, default `"inline"`): `"inline"` | `"compact"`
+  (icvoss/django-brickwork#235). `"inline"` is the render shown above,
+  unchanged. `"compact"` wraps the same fieldsets in a native
+  `<details>/<summary>` disclosure, for a header actions cluster too narrow
+  for the full inline control.
+- `placement` (str, default `"end"`): `"start"` | `"end"`, only meaningful
+  with `layout="compact"` (it anchors the compact panel to the trigger's
+  start or end edge, the same vocabulary `bw_dropdown`/`bw_account_menu`
+  already use). Passing it with `layout="inline"` raises
+  `TemplateSyntaxError`: inline has no panel to anchor, and this package has
+  no precedent for a silently-ignored, inapplicable option.
+
+**`layout="compact"` for a header actions cluster:**
+
+```django
+{% load brickwork_theming %}
+{% bw_theme_switch layout="compact" placement="end" %}
+```
+
+This is a native WAI-ARIA APG **Disclosure**, not a menu, deliberately with
+**no ARIA menu roles anywhere** (the same doctrine `bw_account_menu`'s own
+`<details>/<summary>` recipe uses): `role="menu"` mandates arrow-key
+handling this control never provides, so a hand-authored `role="menu"`/
+`aria-haspopup`/`aria-expanded` would promise behaviour that is not there.
+Native `<details>/<summary>` already carries the correct semantics (Tab to
+the summary, Enter/Space toggles) with nothing extra needed. Once
+`bwThemeSwitch` has run, the panel gains three dismissal routes: the summary
+toggle, Escape (focus returns to the trigger), and a click or tap outside
+it. Selecting a radio never closes the panel: unlike a command menu, you may
+want to flip more than one axis in a single visit. Every compact option
+clears the 44px touch-target floor (`--bw-size-touch-target-min`, the same
+label-extension route brickwork's other compact controls use); no other
+markup or behaviour differs from the inline render, including validation,
+persistence, and locking.
 
 **The no-JS floor here is "render nothing", not "render a working control",
 the one deliberate departure from this package's usual doctrine.** The
@@ -536,9 +570,11 @@ not a toggle), each axis announced by its own `<legend>`, the whole control
 persistence written directly onto `<html>`. **A documented recipe may not
 contradict the shipped component's own safety rules**, so this one validates
 and respects a lock exactly as `bwThemeSwitch` does, not a simplified,
-unvalidated version of it. This recipe teaches the shape, not every nuance:
-`frontend/src/js/theme_switch.js` is the complete reference implementation
-for the edge cases it omits (per-axis storage cleanup among them):
+unvalidated version of it. This recipe teaches the inline shape, not every
+nuance, and does not cover `layout="compact"`'s disclosure wrapper (Escape/
+click-outside dismissal, focus return): `frontend/src/js/theme_switch.js` is
+the complete reference implementation for the edge cases it omits (per-axis
+storage cleanup among them):
 
 ```django
 {% if "theme" in bw_theme_locked_axes.split %}
