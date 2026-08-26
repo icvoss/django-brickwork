@@ -202,7 +202,7 @@ def test_examples_row_matches_the_shipped_catalogue_manifest() -> None:
 def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> None:
     """Only the archetype half of the a11y-gate row is cheaply gateable here.
 
-    The 102 hand-maintained fixtures (51 fixtures x light and dark) are no
+    The 104 hand-maintained fixtures (52 fixtures x light and dark) are no
     longer merely hand-counted from a11y/generate_fixtures.py's source: this
     file still deliberately does not re-parse that script (a second regex
     over its source would be exactly the kind of parallel, ungrounded
@@ -213,16 +213,20 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     exact number against that count, so it is covered end to end even
     though the mechanism lives in the other file. (A prior review round
     hand-counted the generator's write-call sites and reached 52/104,
-    which the real traced run disproved: it is 51/102, per
-    icvoss/django-brickwork#226 review "B5".) The archetype half is
-    different: it is walked from the SAME shipped manifest every other
-    gated row already reads, so it is genuinely free to check here.
+    which the real traced run disproved: it was 51/102, per
+    icvoss/django-brickwork#226 review "B5". #244 then added a tag-input
+    fixture pair to the same generator, moving the real count to 52/104,
+    which coincides with that original hand count but for a different
+    reason: one more fixture landed for real, rather than the hand count
+    being right all along.) The archetype half is different: it is walked
+    from the SAME shipped manifest every other gated row already reads, so
+    it is genuinely free to check here.
     """
     manifest = catalogue_manifest()
     archetype_count = manifest["counts"]["archetypes"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 102 + (archetype_count * 2)
+    assert _leading_int(value) == 104 + (archetype_count * 2)
     assert f"{archetype_count} catalogue archetypes x light and dark" in note
 
 
