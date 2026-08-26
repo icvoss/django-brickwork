@@ -1,0 +1,59 @@
+{% comment %}
+Ranked list (icvoss/django-brickwork#183): an ordered <ol> of label/value
+rows, each paired with a proportional decorative bar (a leaderboard or a
+top-N breakdown). Consumed via the {% bw_ranked_list %} tag, never a plain
+{% include %}: geometry (basis validation, per-row percent) is computed in
+Python, and this template only ever renders the finished numbers.
+
+Required context:
+  rows: a list of RankedListRow (label, value, percent, href, attrs_html),
+      already shaped by the tag. Ignored while loading is True or when
+      empty (see below).
+Optional:
+  label: the accessible name for the list (aria-label on the <ol>).
+  loading (bool): renders a skeleton row set (STA-004) instead of rows.
+  empty_heading, empty_body, empty_action_href, empty_action_label:
+      passthrough to _empty_state.html (size="sm", VIZ-021) when rows is
+      empty and loading is False.
+  attrs_html: pre-rendered consumer data-* attributes for the list root
+      (bw_data_attrs, mirroring _stat.html's own root data seam).
+
+States: loading (a skeleton row set stands in for the whole list) and empty
+  (zero rows composes _empty_state.html at size="sm", VIZ-021); otherwise
+  the populated list, each row's bar width driven by its own percent.
+Accessibility: an <ol> (rank order is meaning), each row rendering its
+  label and value as VISIBLE text (COL-030: the numeric meaning never rides
+  on bar length or colour alone), with the bar itself aria-hidden="true"
+  (decorative). Deliberately NOT role="progressbar" per row (VIZ-015): that
+  role's contract is one quantity's progress toward a known target, not an
+  N-way ranked comparison, and COL-030 is already satisfied by the visible
+  text without it. A row with href renders as a real anchor (VIZ-024).
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-ranked-list* selector. Bar geometry is a fixed 0-100 number computed
+  once in Python, never recomputed client-side: the list renders its final
+  geometry server-side with zero layout shift on load.
+{% endcomment %}
+<ol class="bw-ranked-list"{% if label %} aria-label="{{ label }}"{% endif %}{{ attrs_html }}>
+  {% if loading %}
+    {% for _ in "xxx" %}
+      <li class="bw-ranked-list__row" aria-hidden="true">
+        <div class="bw-skeleton bw-skeleton--text"></div>
+        <div class="bw-skeleton bw-skeleton--text"></div>
+      </li>
+    {% endfor %}
+  {% elif not rows %}
+    <li>
+      {% include "brickwork/components/_empty_state.html" with heading=empty_heading body=empty_body size="sm" action_href=empty_action_href action_label=empty_action_label %}
+    </li>
+  {% else %}
+    {% for row in rows %}
+      <li>
+        {% if row.href %}<a class="bw-ranked-list__row" href="{{ row.href }}"{{ row.attrs_html }}>{% else %}<div class="bw-ranked-list__row"{{ row.attrs_html }}>{% endif %}
+          <span class="bw-ranked-list__label">{{ row.label }}</span>
+          <span class="bw-ranked-list__value">{{ row.value }}</span>
+          <span class="bw-ranked-list__bar" aria-hidden="true" style="--bw-ranked-list-value: {{ row.percent }}"></span>
+        {% if row.href %}</a>{% else %}</div>{% endif %}
+      </li>
+    {% endfor %}
+  {% endif %}
+</ol>

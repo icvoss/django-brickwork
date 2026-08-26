@@ -76,6 +76,8 @@ const RENAMES = new Map([
   ["bw-toast-max-width", "bw-component-toast-max-width"],
   ["bw-htmx-indicator-opacity", "bw-component-htmx-indicator-opacity"],
   ["bw-progress-track-height", "bw-component-progress-track-height"],
+  ["bw-ranked-list-bar-thickness", "bw-component-ranked-list-bar-thickness"],
+  ["bw-ranked-list-row-gap", "bw-component-ranked-list-row-gap"],
   ["bw-tooltip-max-width", "bw-component-tooltip-max-width"],
   ["bw-toggle-track-width", "bw-component-toggle-track-width"],
   ["bw-toggle-track-height", "bw-component-toggle-track-height"],

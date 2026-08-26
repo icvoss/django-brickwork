@@ -924,6 +924,103 @@ def render_inputs(theme: str) -> str:
     )
 
 
+# --- the bw_ranked_list fixture (icvoss/django-brickwork#183) -----------------
+#
+# ranked-list-<theme>.html is a standalone (non-shell) page, mirroring
+# render_inputs' self-contained shape: the component has no dedicated demo
+# page of its own yet, so the fixture composes the REAL {% bw_ranked_list %}
+# tag directly (populated, linked rows; the empty branch composing
+# _empty_state.html at size="sm"; the loading skeleton) with the compiled
+# brickwork.css inlined. Covers: the ordered-list floor with visible label/
+# value text and an aria-hidden bar (VIZ-015/COL-030), a linked row
+# (VIZ-024), the empty state's action link, and the loading skeleton
+# (STA-004).
+
+_RANKED_LIST_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ranked list (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Ranked list</h1>
+
+  <section aria-labelledby="ranked-list-populated-heading">
+    <h2 id="ranked-list-populated-heading">Top accounts</h2>
+    __RANKED_LIST_POPULATED__
+  </section>
+
+  <section aria-labelledby="ranked-list-empty-heading">
+    <h2 id="ranked-list-empty-heading">Empty</h2>
+    __RANKED_LIST_EMPTY__
+  </section>
+
+  <section aria-labelledby="ranked-list-loading-heading">
+    <h2 id="ranked-list-loading-heading">Loading</h2>
+    __RANKED_LIST_LOADING__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+_RANKED_LIST_ROWS = [
+    {"label": "Acme Corp", "amount": 4000, "value": "£4,000", "href": "/accounts/acme/"},
+    {"label": "Globex", "amount": 3000, "value": "£3,000", "href": "/accounts/globex/"},
+    {"label": "Initech", "amount": 1000, "value": "£1,000", "href": "/accounts/initech/"},
+]
+
+
+def _render_ranked_list_fixture(**ctx: object) -> str:
+    from django.template import Context, Template
+
+    return Template(
+        "{% load brickwork_components %}"
+        "{% bw_ranked_list rows=rows basis=basis label=label loading=loading "
+        "empty_heading=empty_heading empty_body=empty_body "
+        "empty_action_href=empty_action_href empty_action_label=empty_action_label %}"
+    ).render(
+        Context(
+            {
+                "rows": [],
+                "basis": "max",
+                "label": "",
+                "loading": False,
+                "empty_heading": "",
+                "empty_body": "",
+                "empty_action_href": "",
+                "empty_action_label": "",
+                **ctx,
+            }
+        )
+    )
+
+
+def render_ranked_list(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _RANKED_LIST_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace(
+            "__RANKED_LIST_POPULATED__",
+            _render_ranked_list_fixture(rows=_RANKED_LIST_ROWS, label="Top accounts"),
+        )
+        .replace(
+            "__RANKED_LIST_EMPTY__",
+            _render_ranked_list_fixture(
+                empty_heading="No accounts yet",
+                empty_body="Add one to see it here.",
+                empty_action_href="/accounts/new/",
+                empty_action_label="Add an account",
+            ),
+        )
+        .replace("__RANKED_LIST_LOADING__", _render_ranked_list_fixture(loading=True))
+    )
+
+
 # --- the bw_theme_switch fixtures (icvoss/django-brickwork#117) ---------------
 #
 # theme-switch-<theme>.html    a standalone page (mirrors render_inputs'
@@ -2663,6 +2760,9 @@ def main() -> None:
         # the 0.13.0 input chrome set (#57/#58): toggle, tag input, dropzone,
         # a styled date field; plus the shell's collapsed-sidebar state
         (OUT / f"inputs-{theme}.html").write_text(render_inputs(theme))
+        # bw_ranked_list (#183): populated (linked rows), empty (with
+        # action), and loading skeleton variants on one page
+        (OUT / f"ranked-list-{theme}.html").write_text(render_ranked_list(theme))
         # bw_theme_switch (#117): the no-JS floor (renders nothing, the
         # control ships hidden) and the JS leg (real Alpine boot, so
         # bwThemeSwitch's own init reveals default/brand-inclusive/locked
@@ -2760,6 +2860,7 @@ def main() -> None:
             f"feedback-js-{theme}",
             f"feedback-tooltip-open-{theme}",
             f"inputs-{theme}",
+            f"ranked-list-{theme}",
             f"theme-switch-{theme}",
             f"theme-switch-js-{theme}",
             f"theme-switch-compact-open-js-{theme}",

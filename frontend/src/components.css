@@ -1833,6 +1833,69 @@ a.bw-stat:hover {
   block-size: 100%;
 }
 
+/* --- Ranked list (icvoss/django-brickwork#183) ------------------------------ */
+
+/* An ordered <ol>: no default list-style/padding of its own (the numbering
+   is announced to assistive tech via list semantics, not rendered as a
+   visible marker glyph). Row rhythm via the row-gap component token. */
+.bw-ranked-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-component-ranked-list-row-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bw-ranked-list__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--bw-space-3);
+  row-gap: var(--bw-space-1);
+}
+/* A linked row (VIZ-024): the <li>'s only child IS the anchor (mirroring
+   a.bw-stat, not a wrapper around already-laid-out children), so the whole
+   row stays keyboard-reachable via one link and keeps its own native focus
+   ring, which a box-less display: contents wrapper cannot guarantee across
+   browsers. */
+a.bw-ranked-list__row {
+  color: inherit;
+  text-decoration: none;
+}
+a.bw-ranked-list__row:hover .bw-ranked-list__label,
+a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
+  text-decoration: underline;
+}
+.bw-ranked-list__label {
+  color: var(--bw-color-fg);
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+}
+.bw-ranked-list__value {
+  color: var(--bw-color-fg-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.bw-ranked-list__bar {
+  grid-column: 1 / -1;
+  display: block;
+  block-size: var(--bw-component-ranked-list-bar-thickness);
+  background: var(--bw-color-surface-sunken);
+  border-radius: var(--bw-radius-full);
+  overflow: hidden;
+}
+/* The proportional fill: an unqualified 0-100 custom property turned into a
+   length here (mirrors .bw-progress__fill exactly), never a "N%" string
+   built at the template layer. Painted with a pseudo-element so the track
+   background above stays visible as the non-colour contrast signal. */
+.bw-ranked-list__bar::before {
+  content: "";
+  display: block;
+  block-size: 100%;
+  background: var(--bw-color-accent);
+  border-radius: var(--bw-radius-full);
+  width: calc(var(--bw-ranked-list-value, 0) * 1%);
+}
+
 /* Visually hidden, screen-reader-available text: the stat trend's directional
    fallback ("increased"/"decreased", AC-BW-074) and any other markup whose
    meaning must survive with CSS colour stripped. Standard clip pattern; the

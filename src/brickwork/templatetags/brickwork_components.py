@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
+from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 
 from django import template
 from django.template.exceptions import TemplateSyntaxError
@@ -79,6 +81,12 @@ def bw_data_attrs(attrs: object, subject: str = "data table row") -> SafeString:
 
 
 _SEARCH_SCOPE_KEYS = {"label", "name", "value", "clear_href"}
+# icvoss/django-brickwork#183: geometry is computed in Python against a
+# closed vocabulary (ADR-060 rule 2), never left to the template to guess a
+# denominator from. "max" is the leaderboard reading (the longest row is
+# full-width); "total" is the share-of-whole reading (rows sum to a fraction
+# of the total, so a single dominant row does not stretch to 100%).
+_RANKED_LIST_BASES = {"max", "total"}
 
 
 @register.inclusion_tag("brickwork/components/_button.html")
@@ -289,4 +297,253 @@ def bw_skeleton(
         # attribute value is exactly the protection needed (width/height are
         # caller-supplied CSS lengths, never markup).
         "style_attr": "; ".join(style_parts),
+    }
+
+
+@dataclass(frozen=True)
+class RankedListRow:
+    """One ranked-list row prepared for template rendering: label/value
+    resolved to display strings, the bar's 0-100 geometry computed here (the
+    template only ever consumes the finished number), href/data pre-shaped."""
+
+    label: str
+    value: str
+    percent: int
+    href: str
+    attrs_html: SafeString  # "" or a leading-space run of escaped data-* attributes
+
+
+def _ranked_list_denominator(amounts: list[Decimal], basis: str) -> Decimal:
+    # amounts is never empty here: _validate_ranked_list_row runs (and would
+    # already have raised on a missing/non-numeric amount) for every row
+    # before this is called. start=Decimal(0), not the sum() builtin's
+    # default int 0, so mypy sees the return type as Decimal in both
+    # branches rather than "Decimal | int" (sum() never actually returns the
+    # int seed here, since amounts is never empty, but its static type does).
+    return max(amounts) if basis == "max" else sum(amounts, start=Decimal(0))
+
+
+def _validate_ranked_list_row(raw: object, *, basis: str) -> Decimal:
+    """Raise the friendly, specific error for a malformed row, and return its
+    amount as a ``Decimal``. Split from `_shape_ranked_list_row` so every
+    row's shape is checked, and every amount collected, BEFORE the
+    denominator is computed: `max()`/`sum()` over zero collected amounts
+    (every row malformed) would otherwise raise a bare ValueError instead of
+    this function's own TemplateSyntaxError.
+
+    Every amount is normalised to ``Decimal`` here, not ``float``, so the
+    geometry maths downstream never round-trips through float and cannot
+    silently under/overflow a caller's ``Decimal`` (icvoss/django-brickwork
+    adversarial review: ``Decimal("1e-1000")`` underflowed to 0.0 through
+    ``float()``, and ``Decimal("1e10000")`` overflowed to inf and crashed
+    `round()`). ``Decimal(str(x))`` is exact for int and bool, and matches
+    float's own repr for float, so this changes nothing for the existing
+    int/float callers.
+    """
+    if not isinstance(raw, Mapping):
+        raise TemplateSyntaxError(f"bw_ranked_list rows must be mappings, got {raw!r}")
+    label = raw.get("label")
+    amount = raw.get("amount")
+    if not label or amount is None:
+        raise TemplateSyntaxError(f'bw_ranked_list rows require "label" and "amount", got {dict(raw)!r}')
+    try:
+        if isinstance(amount, Decimal):
+            decimal_amount = amount
+        elif isinstance(amount, bool):
+            # bool is an int subclass in Python, and str(True) == "True" is not
+            # a numeric string Decimal() accepts, so it needs its own branch.
+            # Unchanged, pre-existing behaviour (amount=True already rendered
+            # as 1 before this fix): not something this defect pass changes.
+            decimal_amount = Decimal(int(amount))
+        else:
+            decimal_amount = Decimal(str(amount))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise TemplateSyntaxError(f"bw_ranked_list row amount must be numeric, got {amount!r}") from exc
+    # NaN and +/-Infinity pass isinstance/Decimal conversion but are not a
+    # position on the number line, so a share-of-something computed against
+    # one is meaningless; reject rather than let round() crash on it later
+    # (bare "cannot convert float NaN to integer") or render a corrupted bar.
+    if not decimal_amount.is_finite():
+        raise TemplateSyntaxError(
+            f"bw_ranked_list row amount must be a finite number, got {dict(raw)!r} (amount={amount!r})"
+        )
+    if basis == "total" and decimal_amount < 0:
+        # "share of total" is undefined once amounts have mixed signs: the
+        # denominator (sum of all amounts) can land at or below zero even
+        # though some individual rows are genuinely positive, which the old
+        # code rendered as every row (including the positive ones) at a
+        # zero-width bar (icvoss/django-brickwork adversarial review). A
+        # negative row is meaningful under basis="max" (it degrades to a
+        # zero-width bar, which the existing geometry contract already
+        # covers), so the rejection is scoped to basis="total" only.
+        raise TemplateSyntaxError(
+            f'bw_ranked_list basis="total" requires every row amount to be non-negative (share of a total is '
+            f"undefined with mixed signs), got {dict(raw)!r}"
+        )
+    return decimal_amount
+
+
+def _shape_ranked_list_row(raw: Mapping, *, amount: Decimal, denominator: Decimal) -> RankedListRow:
+    """Build the finished row. ``raw`` has already passed
+    `_validate_ranked_list_row` (a mapping, with "label" and a finite,
+    numeric "amount"), and ``amount`` is that same amount as a ``Decimal``,
+    so this function does no further validation of its own."""
+    # A zero or negative denominator (every amount non-positive, or basis="max"
+    # against an all-zero set) degrades to a zero-width bar rather than a
+    # ZeroDivisionError or a negative/over-100 width: the label/value text
+    # still renders, only the decorative bar goes empty.
+    percent = 0 if denominator <= 0 or amount <= 0 else round(min(amount / denominator, Decimal(1)) * 100)
+    value = raw.get("value")
+    if value is None:
+        # VIZ-020: the package never formats numbers (locale, currency and
+        # precision are consumer decisions); the unformatted RAW amount
+        # (never the coerced float) is the only honest default, matching how
+        # bw_data_table leaves cell text entirely to the caller.
+        value = str(raw["amount"])
+    return RankedListRow(
+        label=str(raw["label"]),
+        value=str(value),
+        percent=int(percent),
+        href=str(raw.get("href", "") or ""),
+        attrs_html=bw_data_attrs(raw.get("data"), "ranked list row"),
+    )
+
+
+@register.inclusion_tag("brickwork/components/_ranked_list.html")
+def bw_ranked_list(
+    rows: object,
+    *,
+    basis: str = "max",
+    label: str = "",
+    loading: bool = False,
+    empty_heading: str = "",
+    empty_body: str = "",
+    empty_action_href: str = "",
+    empty_action_label: str = "",
+    data: object = None,
+) -> dict:
+    """A ranked bar list (icvoss/django-brickwork#183): an ordered ``<ol>`` of
+    label/value rows, each paired with a proportional decorative bar. The
+    rank order IS the meaning (a leaderboard, a top-N breakdown), which is
+    why the semantic root is an ordered list rather than a plain list or a
+    set of per-row progressbars (see Accessibility below).
+
+    Required context:
+      rows: a non-empty list of mappings (ignored while loading=True or when
+          empty, see below). Each row requires "label" (str) and "amount"
+          (numeric, drives the bar's geometry). Optional per row:
+            value: a pre-formatted display string. The package never formats
+                numbers (VIZ-020: locale, currency and precision are consumer
+                decisions); omitted renders the raw amount as text.
+            href: the row becomes an anchor (VIZ-024). Omitted renders a
+                plain, never clickable-looking, row.
+            data: a mapping of consumer-owned data-* attributes for the row
+                (test/lightweight-JS hooks), via the same bw_data_attrs seam
+                _stat.html and _data_table.html use; a str value (an unset
+                context variable under string_if_invalid) is treated as
+                "not supplied", never an error (brickwork#80).
+    Optional:
+      basis ("max" default | "total"): the closed vocabulary the bar geometry
+          is computed against. "max" reads as a leaderboard (the largest row
+          fills the bar track); "total" reads as a share of the whole (rows
+          sum toward 100%). Any other value is a render-time
+          TemplateSyntaxError (ADR-060 rule 2: a typo here must not ship a
+          silently wrong bar). Geometry is computed in PYTHON, never left to
+          the template to build a percentage string; a zero or negative
+          denominator (every amount non-positive, under basis="max") degrades
+          every bar to zero-width rather than raising or emitting a malformed
+          calc(). basis="total" additionally requires every amount to be
+          non-negative: share-of-total is undefined with mixed signs (a
+          negative row can otherwise push the sum to zero or below while
+          individual rows are still genuinely positive), so a negative
+          amount with basis="total" is a render-time TemplateSyntaxError. A
+          negative amount is fine under basis="max": it degrades to a
+          zero-width bar and every positive row still renders proportionally
+          against the largest amount, since a negative value is never the
+          max unless every amount is non-positive.
+      label: the accessible name for the list (aria-label on the <ol>).
+          Omitted renders no aria-label; give one when the list's heading is
+          not already an adjacent, associated heading.
+      loading (bool, default False): renders a skeleton row set (STA-004)
+          instead of rows; rows is ignored while loading. basis is validated
+          regardless of loading (a contract violation, such as a typo'd
+          basis, does not become acceptable just because rows are not being
+          rendered this call).
+      empty_heading, empty_body, empty_action_href, empty_action_label:
+          passthrough to _empty_state.html (size="sm", VIZ-021) when rows is
+          empty and loading is False. empty_body should always be supplied
+          (STA-003); empty_heading is optional at size="sm". The action pair
+          renders only when BOTH href and label are given, matching
+          _empty_state.html's own action contract.
+      data: a mapping of consumer-owned data-* attributes for the list root
+          (component-level test hooks, mirroring _stat.html's own root data
+          seam).
+
+    States: loading (a skeleton row set stands in for the whole list) and
+      empty (zero rows composes _empty_state.html at size="sm", VIZ-021,
+      with the empty_* passthrough); otherwise the populated list, each row's
+      bar width driven by its computed percent.
+    Accessibility: an <ol> (rank order is meaning: VoiceOver/NVDA announce
+      "1 of 5", "2 of 5", which a plain <ul> or a div soup never gives for
+      free), each row rendering its label and value as VISIBLE text (COL-030:
+      the numeric meaning never rides on bar length or colour alone) with the
+      bar itself aria-hidden="true" (decorative). Deliberately NOT a
+      role="progressbar" per row (VIZ-015): progressbar's accessibility
+      contract is for a SINGLE quantity's progress toward a known target
+      (aria-valuenow/-valuemin/-valuemax against one goal, exactly
+      _progress.html's own case), not an N-way comparison across independent
+      rows with no shared "complete" semantics; stamping progressbar role on
+      every row would announce a false "toward completion" framing a ranked
+      comparison does not have, and COL-030 is already satisfied without it
+      by the visible label/value text. Covered by axe.spec.mjs against
+      ranked-list-*.html (populated, empty and loading variants), both
+      themes.
+    Responsive: no breakpoint switch; no width-dependent CSS on any
+      .bw-ranked-list* selector. The bar geometry is computed once in Python
+      as a fixed 0-100 number and never recomputed client-side, so there is
+      no post-load reveal or JS-dependent resize: the list renders its final
+      geometry server-side and occupies its full row height and bar width on
+      first paint, with zero layout shift.
+    """
+    if basis not in _RANKED_LIST_BASES:
+        raise TemplateSyntaxError(f"bw_ranked_list basis must be one of {sorted(_RANKED_LIST_BASES)}, got {basis!r}")
+    if not loading and rows is not None and not isinstance(rows, list | tuple):
+        # Checked before the emptiness test below, and regardless of
+        # truthiness: rows={} is a falsey non-list/tuple, and without this
+        # ordering it silently fell through to the empty-state branch
+        # instead of raising, while a non-empty mapping correctly raised
+        # (icvoss/django-brickwork adversarial review). rows=None still
+        # renders the empty state (see the emptiness test below); only a
+        # value that is neither None nor a list/tuple is a contract
+        # violation.
+        raise TemplateSyntaxError(f"bw_ranked_list rows must be a list/tuple of mappings, got {rows!r}")
+    rendered_rows: list[RankedListRow] = []
+    if not loading and rows:
+        # The isinstance check above already narrowed the only two shapes
+        # that can reach here (a non-empty list or tuple), but that
+        # narrowing does not carry across into this separate `if`, so it is
+        # reasserted for the type checker rather than re-raising a
+        # user-facing error twice.
+        assert isinstance(rows, list | tuple)
+        # Every row's shape is validated (and its amount collected) FIRST,
+        # over the whole set, before the denominator is computed: this is
+        # what guarantees `amounts` is never empty when a malformed row is
+        # present, so _ranked_list_denominator's max()/sum() never sees a
+        # bare empty-iterable failure instead of this validator's own
+        # TemplateSyntaxError.
+        amounts = [_validate_ranked_list_row(raw, basis=basis) for raw in rows]
+        denominator = _ranked_list_denominator(amounts, basis)
+        rendered_rows = [
+            _shape_ranked_list_row(raw, amount=amount, denominator=denominator)
+            for raw, amount in zip(rows, amounts, strict=True)
+        ]
+    return {
+        "rows": rendered_rows,
+        "label": label,
+        "loading": bool(loading),
+        "empty_heading": empty_heading,
+        "empty_body": empty_body,
+        "empty_action_href": empty_action_href,
+        "empty_action_label": empty_action_label,
+        "attrs_html": bw_data_attrs(data, "ranked list"),
     }

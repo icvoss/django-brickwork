@@ -91,6 +91,18 @@
       "$description": "Progress bar track thickness (STA-007, 0.12.0)."
     }
   },
+  "ranked-list": {
+    "bar-thickness": {
+      "$type": "dimension",
+      "$value": "{size.space.1-5}",
+      "$description": "Ranked-list decorative bar thickness (icvoss/django-brickwork#183): slimmer than the standalone progress bar's track-height, since a ranked list's bars sit one per row alongside visible label/value text rather than carrying the sole meaning on their own."
+    },
+    "row-gap": {
+      "$type": "dimension",
+      "$value": "{size.space.3}",
+      "$description": "Vertical rhythm between ranked-list rows (icvoss/django-brickwork#183)."
+    }
+  },
   "tooltip": {
     "max-width": {
       "$type": "dimension",
