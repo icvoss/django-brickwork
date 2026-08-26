@@ -104,12 +104,23 @@
   display: none;
 }
 
-/* min-block-size (icvoss/django-brickwork#208, same shape swept in on the
- * fix for the three named components and the sibling __actions slot below):
- * the primary nav row's links carried no minimum, sized to their label's
- * line-height alone (16-18px at 375px). display: inline-flex + align-items
- * keeps the label centred, so the extra block-size is symmetric padding. */
-.bw-marketing-header__nav :where(a) {
+/* Two-tier target size (icvoss/django-brickwork#208, then #242): the primary
+ * nav row's links carried no minimum, sized to their label's line-height
+ * alone (16-18px at 375px). A nav link is a navigational control, not
+ * inline prose, so WCAG 2.5.8's text-run exception does not apply; the AA
+ * floor here is min-block-size: 1.5rem (24px), unconditional, grown via
+ * min-block-size rather than padding, so display: inline-flex +
+ * align-items keeps the label centred on the larger box. #242 adds a
+ * second, coarse-pointer-only tier below: WCAG 2.5.5/platform-HIG's 44px
+ * bar, above what the package's AA claim requires, applied only where the
+ * primary input is imprecise (a fine-pointer desktop click never sees the
+ * larger target, so the row's rendered layout does not shift there).
+ * :not(.bw-btn) excludes a bw_button a consumer composes into this slot
+ * (buttons are #212's own tier, sized by .bw-btn's own rule), matching the
+ * header actions rule below exactly: marketing_nav is documented as "a
+ * plain list of links", but the exclusion is defensive against a consumer
+ * dropping a button in here anyway. */
+.bw-marketing-header__nav :where(a):not(.bw-btn) {
   display: inline-flex;
   align-items: center;
   min-block-size: 1.5rem;
@@ -120,8 +131,14 @@
   transition: var(--bw-transition-colors);
 }
 
-.bw-marketing-header__nav :where(a:hover) {
+.bw-marketing-header__nav :where(a:hover):not(.bw-btn) {
   color: var(--bw-color-fg);
+}
+
+@media (pointer: coarse) {
+  .bw-marketing-header__nav :where(a):not(.bw-btn) {
+    min-block-size: var(--bw-size-touch-target-min);
+  }
 }
 
 .bw-marketing-header__actions {
@@ -139,12 +156,17 @@
 /* A plain link (e.g. "Sign in") alongside a bw_button in this slot
  * (04-interfaces.md 4d documents exactly this shape): styled the same as the
  * nav link colour, never the UA default blue, so it clears WCAG AA contrast
- * in both themes (BR-BW-MKT-002). bw_button's own .bw-btn markup is
- * unaffected: this rule targets only a bare <a> the consumer places here.
- * min-block-size (icvoss/django-brickwork#208): a consumer following this
- * exact documented composition got a sub-floor target (measured 40x21 at
- * 375px) because nothing here set a minimum; inline-flex + centred content
- * means the extra block-size is symmetric padding, not a shifted baseline. */
+ * in both themes (BR-BW-MKT-002). :not(.bw-btn) excludes bw_button's own
+ * markup: buttons are #212's own tier, sized by .bw-btn's own rule; this
+ * rule targets only a bare <a> the consumer places here.
+ * Two-tier target size (icvoss/django-brickwork#208, then #242): a consumer
+ * following this exact documented composition got a sub-floor target
+ * (measured 40x21 at 375px) because nothing here set a minimum; the AA
+ * floor is min-block-size: 1.5rem (24px), unconditional, grown via
+ * min-block-size rather than padding, so inline-flex + centred content
+ * keeps the label centred on the larger box. #242 adds a coarse-pointer-only
+ * 44px tier below, the WCAG 2.5.5/platform-HIG bar; a fine-pointer desktop
+ * click never sees it, so the slot's layout does not shift there. */
 .bw-marketing-header__actions > :where(a):not(.bw-btn) {
   display: inline-flex;
   align-items: center;
@@ -158,6 +180,12 @@
 
 .bw-marketing-header__actions > :where(a:hover):not(.bw-btn) {
   color: var(--bw-color-fg);
+}
+
+@media (pointer: coarse) {
+  .bw-marketing-header__actions > :where(a):not(.bw-btn) {
+    min-block-size: var(--bw-size-touch-target-min);
+  }
 }
 
 .bw-marketing__content {
@@ -182,15 +210,40 @@
  * consumer's marketing_footer block content is arbitrary markup, but a plain
  * <a> link at this level is the documented default shape ("a multi-column
  * footer with link groups"), so it is styled the same way the header nav
- * links are, never left to the UA default blue (BR-BW-MKT-002). */
-.bw-marketing-footer__inner :where(a) {
+ * links are, never left to the UA default blue (BR-BW-MKT-002).
+ * Two-tier target size (icvoss/django-brickwork#208, then #242) REVERSES
+ * #208's own exemption: #208 explicitly declined to size these links,
+ * reasoning that "brickwork does not own the group's layout, so a sizing
+ * floor is not this package's call to make" (its comment on
+ * TAP_TARGET_EXEMPT_SELECTORS in axe.spec.mjs). That rationale no longer
+ * holds: this rule already styles colour/decoration for any <a> descendant
+ * here regardless of the consumer's own markup, which is the same claim of
+ * ownership a sizing floor makes, so #242 sizes them too rather than
+ * leaving the inconsistency in place. min-block-size: 1.5rem (24px,
+ * unconditional) grows the box, not padding; inline-flex + align-items
+ * keeps the label centred on the larger box. #242 adds a coarse-pointer-only
+ * 44px tier below, the WCAG 2.5.5/platform-HIG bar; a fine-pointer desktop
+ * click never sees it, so the footer's layout does not shift there.
+ * :not(.bw-btn) excludes a bw_button a consumer composes into this slot
+ * (buttons are #212's own tier, sized by .bw-btn's own rule), matching the
+ * header actions rule above. */
+.bw-marketing-footer__inner :where(a):not(.bw-btn) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
   color: var(--bw-color-fg-muted);
   text-decoration: none;
   transition: var(--bw-transition-colors);
 }
 
-.bw-marketing-footer__inner :where(a:hover) {
+.bw-marketing-footer__inner :where(a:hover):not(.bw-btn) {
   color: var(--bw-color-fg);
+}
+
+@media (pointer: coarse) {
+  .bw-marketing-footer__inner :where(a):not(.bw-btn) {
+    min-block-size: var(--bw-size-touch-target-min);
+  }
 }
 
 .bw-marketing-footer__legal {

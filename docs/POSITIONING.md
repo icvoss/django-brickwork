@@ -116,6 +116,23 @@ conformance; it can run consistently and be shown to catch real defects.
 | Keyboard suites | blocking |
 | Mobile-overflow checks | 4 widths: 320, 360, 375, 414px, blocking |
 | Pixel-level composited contrast measurement | canvas `getImageData`, blocking |
+| Tap-target size measurement | `getBoundingClientRect()`, every fixture at 375px, blocking (`a11y/axe.spec.mjs`, icvoss/django-brickwork#208) |
+| Coarse-pointer touch-target measurement | `getBoundingClientRect()` under a `hasTouch: true` browser context, marketing header nav/actions, marketing footer links, breadcrumb links, blocking (icvoss/django-brickwork#242) |
+
+**Two-tier target size.** The package's claimed conformance level is WCAG 2.2
+AA, and 2.5.8 Target Size (Minimum) at AA requires 24x24 CSS px; every
+interactive control and navigational link meets that floor unconditionally,
+gated by the tap-target sweep above. A second tier goes further than the AA
+claim: the marketing header nav, the marketing header actions slot, the
+marketing footer links, and the breadcrumb trail take a `min-block-size` of
+`--bw-size-touch-target-min` (2.75rem/44px, the WCAG 2.5.5 AAA and
+platform-HIG bar) under `@media (pointer: coarse)`, so a touch-primary device
+gets the larger target while a fine-pointer desktop render is unchanged.
+**Gated** against the second row above: the coarse-pointer measurement
+asserts >= 44px on those four surfaces and asserts the fine-pointer render
+stays under 44px (a regression pin, not a new claim). State it as "44px on
+coarse-pointer devices for these four nav surfaces", never a bare "44px
+targets" or "AAA conformance": the package's claimed level stays AA.
 
 **Automated testing has a ceiling.** Deque's published figure is that
 automated tooling catches roughly 57% of accessibility issues. That figure is

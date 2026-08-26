@@ -338,12 +338,23 @@ for (const width of MOBILE_WIDTHS) {
 //     bw-* rule to fix.
 //   - 'a:not([class])': the same shape for links, which also covers the
 //     testapp's own property-switcher slot content (brickwork#21,
-//     AC-BW-078: "Acme Ltd"/"Globex plc") and the marketing footer's
-//     link-group default ("a consumer's marketing_footer block content is
-//     arbitrary markup", marketing.css's own comment on
-//     .bw-marketing-footer__inner :where(a)) -- brickwork styles colour/
-//     decoration there but does not own the group's layout, so a sizing
-//     floor is not this package's call to make.
+//     AC-BW-078: "Acme Ltd"/"Globex plc") and, until #242, the marketing
+//     footer's link-group default. Before #242 this exemption WAS brickwork
+//     disclaiming the sizing floor there for #208, on the stated rationale
+//     that "brickwork does not own the group's layout, so a sizing floor is
+//     not this package's call to make" (this file's own comment on
+//     TAP_TARGET_EXEMPT_SELECTORS, added for #212). #242 reverses that
+//     position:
+//     .bw-marketing-footer__inner :where(a) already matches on tag, not
+//     class, so it always reached these links for colour/decoration
+//     (BR-BW-MKT-002) regardless of the consumer's own markup, which is the
+//     same claim of ownership a sizing floor makes; #242 sizes them too
+//     (min-block-size, both tiers, the same as the header nav/actions
+//     links) rather than leaving the inconsistency in place. The entry
+//     stays in this list only because the sweep is class-based and the
+//     footer's own markup carries no class: the coarse-pointer tier is
+//     measured separately, below, by selector rather than by class
+//     presence, so this element-level exemption no longer means "unsized".
 //   - '.bw-toggle': a fixed-shape switch (a deliberate design proportion,
 //     not incidental line-height), always rendered inside a real clickable
 //     <label class="bw-toggle-field"> when used as the standalone {%
@@ -390,6 +401,115 @@ test.describe("tap targets", () => {
       );
 
       expect(undersized, `controls below the 24x24 floor: ${JSON.stringify(undersized, null, 2)}`).toEqual([]);
+    });
+  }
+});
+
+// Coarse-pointer 44px tier (icvoss/django-brickwork#242, on top of #208's
+// unconditional 24px AA floor above): the marketing header nav, the
+// marketing header actions slot, the marketing footer link groups, and the
+// breadcrumb trail all take a `@media (pointer: coarse)` min-block-size
+// bump to --bw-size-touch-target-min (2.75rem/44px), the WCAG 2.5.5/
+// platform-HIG bar, above what the sweep at 375px above asserts (a
+// fine-pointer default context, which is why that sweep cannot see this
+// tier at all).
+//
+// A new browser context with hasTouch: true is required: page.emulateMedia
+// cannot emulate `pointer`, only `prefers-color-scheme` and similar, and
+// Chromium's `pointer`/`any-pointer` media features are driven by the
+// context's touch capability, not the viewport. Each test confirms
+// window.matchMedia("(pointer: coarse)").matches is genuinely true (or
+// false, for the fine-pointer regression pin) before trusting the size
+// assertion below it: an emulation that silently fails to flip the media
+// feature would otherwise make this a vacuous test that passes regardless
+// of whether the CSS rule fires.
+// expectedFinePx pins the exact fine-pointer rendered block-size measured
+// against the current fixtures (all four surfaces render at exactly 24px,
+// the #208 AA floor, with no extra padding or line-height inflation): a
+// >=24/<44 band alone cannot tell a genuine 24px render from a fine-pointer
+// creep to, say, 43px, since both pass that band. The 1px tolerance below
+// allows for sub-pixel layout rounding, not for a real size change.
+const COARSE_TARGETS = [
+  {
+    fixture: "landing-light.html",
+    selector: ".bw-marketing-header__nav a:not(.bw-btn)",
+    label: "marketing header nav link",
+    expectedFinePx: 24,
+  },
+  {
+    fixture: "landing-light.html",
+    selector: ".bw-marketing-header__actions > a:not(.bw-btn)",
+    label: "marketing header actions link",
+    expectedFinePx: 24,
+  },
+  {
+    fixture: "landing-light.html",
+    selector: ".bw-marketing-footer__inner a:not(.bw-btn)",
+    label: "marketing footer link",
+    expectedFinePx: 24,
+  },
+  {
+    fixture: "list-light.html",
+    selector: ".bw-breadcrumbs__link",
+    label: "breadcrumb link",
+    expectedFinePx: 24,
+  },
+];
+
+test.describe("coarse-pointer touch targets (#242)", () => {
+  for (const { fixture, selector, label, expectedFinePx } of COARSE_TARGETS) {
+    test(`${label} reaches 44px block-size under a coarse pointer`, async ({ browser }) => {
+      const context = await browser.newContext({ hasTouch: true, viewport: { width: 375, height: 900 } });
+      const page = await context.newPage();
+      await page.goto(pathToFileURL(join(FIXTURES, fixture)).href);
+
+      const matchesCoarse = await page.evaluate(() => window.matchMedia("(pointer: coarse)").matches);
+      expect(
+        matchesCoarse,
+        "hasTouch: true did not flip (pointer: coarse); this Chromium build's touch emulation is not " +
+          "genuine here, so the size assertion below cannot be trusted",
+      ).toBe(true);
+
+      const height = await page.evaluate(
+        (sel) => document.querySelector(sel)?.getBoundingClientRect().height ?? 0,
+        selector,
+      );
+      expect(height, `${label} (${selector}) measured ${height}px under a coarse pointer, want >= 44px`).toBeGreaterThanOrEqual(
+        44,
+      );
+
+      await context.close();
+    });
+
+    test(`${label} stays at its fine-pointer size (regression pin) under a mouse pointer`, async ({ browser }) => {
+      const context = await browser.newContext({ hasTouch: false, viewport: { width: 375, height: 900 } });
+      const page = await context.newPage();
+      await page.goto(pathToFileURL(join(FIXTURES, fixture)).href);
+
+      const matchesFine = await page.evaluate(() => window.matchMedia("(pointer: fine)").matches);
+      expect(
+        matchesFine,
+        "the default (no hasTouch) context did not report (pointer: fine); this Chromium build's pointer " +
+          "media feature default is not what this regression pin assumes",
+      ).toBe(true);
+
+      const height = await page.evaluate(
+        (sel) => document.querySelector(sel)?.getBoundingClientRect().height ?? 0,
+        selector,
+      );
+      // Pinned to the exact measured value (expectedFinePx), not just a
+      // >=24/<44 band: that band alone cannot distinguish a genuine 24px
+      // render from a fine-pointer creep to, say, 43px, since both pass a
+      // band check. +/-1px tolerance only, for sub-pixel layout rounding.
+      expect(
+        height,
+        `${label} (${selector}) measured ${height}px under a fine pointer, want ` +
+          `${expectedFinePx}px (+/-1px); the coarse-pointer tier must not apply here, and any drift from ` +
+          `${expectedFinePx}px is a real size change, not rounding`,
+      ).toBeGreaterThanOrEqual(expectedFinePx - 1);
+      expect(height).toBeLessThanOrEqual(expectedFinePx + 1);
+
+      await context.close();
     });
   }
 });
