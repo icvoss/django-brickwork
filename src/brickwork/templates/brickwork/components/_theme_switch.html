@@ -76,12 +76,23 @@ behaviour (Tab to the summary, Enter/Space toggles) with no hand-rolled
 role="menu"/aria-haspopup/aria-expanded needed. The trigger reuses the
 bw_button "secondary md" chrome (_dropdown.html's own composition) and the
 chevron-down caret; the panel is _dropdown.html's own dropdown-shaped panel
-tokens (surface-raised, elevation-3 at z-dropdown, radius-lg,
---bw-component-menu-min-width). Selecting a radio inside the compact panel
-never closes it: unlike a command menu (bw_dropdown's closeOnSelect), a
-visitor may want to flip more than one axis in a single visit, so the panel
-stays open until the trigger is toggled, Escape is pressed, or a
-click/tap lands outside it (bwThemeSwitch, frontend/src/js/theme_switch.js).
+tokens (surface-raised, elevation-3 at z-dropdown, radius-lg), deliberately
+WITHOUT the --bw-component-menu-min-width floor _dropdown.html/
+_account_menu.html borrow: that token is sized for a vertical list of text
+menu items, wider than this panel's own three-fieldset content, and forcing
+it wider than the trigger pushed the panel off the start edge of the
+viewport under the documented placement="end" recipe (a bug found verifying
+#235). The panel sizes to its own content instead. Selecting a radio inside
+the compact panel never closes it: unlike a command menu (bw_dropdown's
+closeOnSelect), a visitor may want to flip more than one axis in a single
+visit, so the panel stays open until the trigger is toggled, Escape is
+pressed, or a click/tap lands outside it (bwThemeSwitch,
+frontend/src/js/theme_switch.js). The panel's legends render in full-strength
+ink, not the inline layout's fg-muted (a bug found verifying #235):
+fg-muted clears AA body contrast against the inline layout's surface-sunken
+backdrop but falls under 4.5:1 against the raised panel's measurably
+lighter surface in both themes, the same reason bw-dropdown__item/
+bw-account-menu__item never use muted text on a raised surface either.
 
 role="group" (review fix, #117): aria-label on a bare <div> with no ARIA
 role has no semantic target and screen readers ignore it; role="group" is

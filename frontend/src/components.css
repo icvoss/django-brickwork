@@ -645,9 +645,18 @@ input.bw-toggle:disabled {
  * composition, mirrored here rather than duplicated as a new primitive);
  * the panel takes the SAME dropdown-shaped tokens _dropdown.html/
  * _account_menu.html already established: surface-raised, elevation-3 at
- * z-dropdown, radius-lg, the menu min-width token, absolute positioning
- * anchored under the trigger by placement=. No width-dependent rule
- * anywhere in this block: layout is a consumer-chosen option, not a
+ * z-dropdown, radius-lg, absolute positioning anchored under the trigger by
+ * placement=, deliberately WITHOUT the menu min-width token those two
+ * borrow (a bug found verifying #235: that 12rem floor is sized for a
+ * vertical list of text menu items, wider than this panel's own content,
+ * three flex-wrapped fieldsets of radios; forcing it wider than the
+ * trigger under placement="end" pushes the panel's start edge past the
+ * trigger's own start edge, and past the viewport's edge whenever the
+ * trigger sits near it, exactly the documented "header actions cluster"
+ * placement this feature exists for). The panel sizes to its own content
+ * instead, which already matches the trigger's width in practice. No
+ * width-dependent rule anywhere in this block: layout is a consumer-chosen
+ * option, not a
  * breakpoint. */
 .bw-theme-switch--compact {
   display: inline-flex; /* the outer root still only ever holds the one disclosure */
@@ -673,7 +682,6 @@ input.bw-toggle:disabled {
 .bw-theme-switch__panel {
   position: absolute;
   inset-block-start: calc(100% + var(--bw-space-1));
-  min-inline-size: var(--bw-component-menu-min-width);
   padding: var(--bw-space-3);
   display: flex;
   flex-wrap: wrap;
@@ -699,6 +707,17 @@ input.bw-toggle:disabled {
  * centred inside the taller target. */
 .bw-theme-switch--compact .bw-theme-switch__option {
   min-block-size: var(--bw-size-touch-target-min);
+}
+/* fg-muted on the compact panel's legends (a bug found verifying #235): the
+ * inline layout's legends sit against surface-sunken, where fg-muted clears
+ * AA body contrast (proven by the inline axe pass above), but the compact
+ * panel is surface-raised, measurably LIGHTER than sunken by design (the
+ * elevation effect), and fg-muted against it lands at ~4.1:1 in both
+ * themes, under the 4.5:1 floor. bw-dropdown__item/bw-account-menu__item
+ * never hit this because they use full-strength ink for their raised-surface
+ * text; the compact legend now matches that, inline is untouched. */
+.bw-theme-switch--compact .bw-theme-switch__legend {
+  color: var(--bw-color-fg);
 }
 @media (prefers-reduced-motion: reduce) {
   .bw-theme-switch__caret {
