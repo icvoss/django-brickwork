@@ -466,10 +466,15 @@
   content: "/" / "";
   color: var(--bw-component-breadcrumb-separator);
 }
-/* min-block-size (icvoss/django-brickwork#208, same shape swept in on the
- * fix for the three named components): a breadcrumb is a navigational
- * control, not inline prose, so WCAG 2.5.8's text-run exception does not
- * apply; the crumb was sized to its line-height alone (21px at 375px). */
+/* Two-tier target size (icvoss/django-brickwork#208, then #242): a
+ * breadcrumb is a navigational control, not inline prose, so WCAG 2.5.8's
+ * text-run exception does not apply; the crumb was sized to its line-height
+ * alone (21px at 375px). The AA floor here is min-block-size: 1.5rem
+ * (24px), unconditional. #242 adds a coarse-pointer-only 44px tier below,
+ * the WCAG 2.5.5/platform-HIG bar, above what the package's AA claim
+ * requires; align-items keeps the crumb centred, so a fine-pointer desktop
+ * click never sees the larger target and the trail's layout does not shift
+ * there. */
 .bw-breadcrumbs__link {
   display: inline-flex;
   align-items: center;
@@ -481,6 +486,12 @@
 .bw-breadcrumbs__link:hover {
   color: var(--bw-color-accent);
   text-decoration: underline;
+}
+
+@media (pointer: coarse) {
+  .bw-breadcrumbs__link {
+    min-block-size: var(--bw-size-touch-target-min);
+  }
 }
 .bw-breadcrumbs__text {
   color: var(--bw-color-fg-muted);
