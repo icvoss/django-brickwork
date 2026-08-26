@@ -47,16 +47,29 @@
 // never sequences animation (BR-BW-TOK-009 lives entirely in the component
 // CSS, matching the combobox chip precedent of no per-chip entrance).
 //
-// Re-init (icvoss/django-brickwork#244): a second init() on the SAME root
-// (an Alpine re-mount, or a content-only htmx swap that keeps the root and
-// re-runs x-data without replacing it) finds the carrier already created by
-// the first init() (marked with data-bw-tag-input-carrier) and re-syncs
-// `tags` FROM that carrier's value instead of repeating the takeover, so
-// chips are rebuilt without wiping state or creating a second, wrongly
-// unnamed carrier. destroy() (Alpine's own teardown hook, matching
-// bwDropdown's convention) removes the submit listener init() attached to
-// the owning form, so a genuine unmount-then-remount never stacks a second
-// listener there.
+// Re-init (icvoss/django-brickwork#244, closed as not-reproducible after
+// empirical investigation): a content-only re-init on the SAME root cannot
+// happen under Alpine v3. Alpine's initTree() (vendored
+// node_modules/alpinejs/dist/module.esm.js) stamps every element it walks
+// with `_x_marker` and skips any element that already carries one before it
+// runs that element's directives (including x-data's own init() call), so a
+// second initTree() pass over an already-initialised root is a no-op: it
+// neither re-parses the floor nor re-attaches the floor keydown or submit
+// listeners. This was proven at runtime, not just read from source: an
+// observable side effect placed in a (since-removed) carrier-detect branch
+// never fired when window.Alpine.initTree() was called a second time on an
+// already-mounted root, and removing that branch entirely left every
+// existing test passing unchanged, which is only possible if the branch was
+// unreachable. The carrier-detect check below is kept purely as cheap
+// defence in depth against a future Alpine major changing this guarantee;
+// it is not exercised by any current, reachable code path.
+//
+// What DOES replace a mounted tag input is a root-REPLACING swap (the whole
+// .bw-tag-input element removed and a fresh one inserted, e.g. an htmx swap
+// targeting an ancestor). That produces a genuinely new element with no
+// `_x_marker`, which Alpine's mutation observer initialises exactly once
+// through the normal first-init path above; there is no second-carrier
+// hazard because the old root (and its carrier) leaves the DOM with it.
 
 function dispatch(el, name, detail) {
   el.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
@@ -69,10 +82,9 @@ function splitTags(raw) {
     .filter((tag) => tag !== "");
 }
 
-// Marks the hidden carrier so a second init() on the same root (Alpine
-// re-mount, or a content-only htmx swap that keeps the root and re-runs
-// x-data) can detect the takeover already happened, instead of reading the
-// already-cleared floor as empty and wiping the chips.
+// Marks the hidden carrier so the defence-in-depth check in init() (see the
+// module-level Re-init note) can detect a takeover already happened, on the
+// unreachable-under-Alpine-v3 chance init() ran twice on the same root.
 const CARRIER_ATTR = "data-bw-tag-input-carrier";
 
 export default function tagInput() {
@@ -94,23 +106,17 @@ export default function tagInput() {
       this._floor = root.querySelector("[data-bw-tag-input-floor]");
       if (!this._chips || !this._floor) return; // floor markup absent: stay inert
 
-      // Re-init guard (icvoss/django-brickwork#244): a second init() on the
-      // SAME root (an Alpine re-mount, or a content-only htmx swap that
-      // keeps the root and re-runs x-data) finds the carrier already
-      // created by a prior init(). Re-syncing FROM that carrier's value,
-      // rather than repeating the takeover, is the only safe path: the
-      // floor's own value was already cleared to "" by the first init(), so
-      // reading it again would wipe every committed tag, and creating a
-      // SECOND hidden carrier would leave the original (still named, still
-      // in the form) carrier orphaned from `tags` while a second, wrongly
-      // empty-named carrier sits beside it.
+      // Defence in depth only (see the module-level Re-init note above): this
+      // repo's own investigation of icvoss/django-brickwork#244 found this
+      // branch unreachable under Alpine v3, since initTree() never re-runs
+      // init() on an already-initialised root. Kept cheap and inert in case
+      // a future Alpine major removes that guarantee; it must never repeat
+      // the takeover below and create a second, wrongly unnamed carrier.
       const existingCarrier = root.querySelector(`[${CARRIER_ATTR}]`);
       if (existingCarrier) {
         this._carrier = existingCarrier;
         this.tags = splitTags(existingCarrier.value);
         this._renderChips();
-        this._attachFloorListener();
-        this._attachSubmitListener(root);
         return;
       }
 
@@ -150,9 +156,9 @@ export default function tagInput() {
 
     destroy() {
       // Mirrors bwDropdown's destroy() convention: undo exactly what init()
-      // attached outside the component root, so a re-mount after teardown
-      // (rather than the re-init takeover above) never stacks a second
-      // submit listener on the form.
+      // attached outside the component root, so a genuine unmount-then-remount
+      // (a fresh root, per the module-level Re-init note) never stacks a
+      // second submit listener on the form.
       if (this._form && this._onSubmit) {
         this._form.removeEventListener("submit", this._onSubmit);
       }
