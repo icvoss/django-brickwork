@@ -12,20 +12,47 @@ real `name`; its value is a comma-separated tag list, and the SERVER splits it
 simply a labelled text field: fully working, nothing hidden behind JS.
 
 Enhanced (bwTagInput, semver-public, BR-BW-JS-004): x-data mounts on the
-wrapper and, at init, renders a chip run above the floor input reusing the
-combobox's OWN chip classes (bw-combobox__chip / bw-combobox__chip-remove,
-CMP-028 precedent) so a tag input and a multi-select combobox render
-identically. The floor input STAYS visible and typeable throughout: it is
-the buffer for the next tag, not hidden behind the chip run. Enter or comma
-commits the current text as a chip; Backspace with an empty text buffer
-removes the last chip; each chip's remove button carries a translated
-per-chip aria-label (ICO-008: an icon-only control needs a distinguishable
-name). The floor input STAYS the single source of truth for form
-submission: bwTagInput serialises the committed chip list back into the
-floor input's value (comma-joined) on every add/remove, preserving any
-in-progress text the user is still typing after it, so a normal POST or a
-422 re-render both work from the same one field, exactly as the combobox's
-floor <select> stays the submitted control (BR-BW-HTMX-003).
+wrapper and, at init, parses the floor's comma-separated value into chips
+(reusing the combobox's OWN chip classes, bw-combobox__chip /
+bw-combobox__chip-remove, CMP-028 precedent, so a tag input and a
+multi-select combobox render identically), then performs a CARRIER
+TAKEOVER (icvoss/django-brickwork#237): a hidden input takes the floor's
+`name` and becomes the serialised, comma-joined carrier of the committed
+tag list; the floor loses its `name` and becomes the buffer for the next
+tag's text only. Committed tags therefore have exactly one visible
+representation, the chip, never a duplicate comma-joined copy in the floor.
+Enter or comma commits the current buffer as a chip; Backspace with an
+empty buffer removes the last chip; each chip's remove button carries a
+translated per-chip aria-label (ICO-008: an icon-only control needs a
+distinguishable name). Submitting the owning form with unfinished buffer
+text (no Enter/comma pressed) commits that text into the carrier as a
+final tag first, so nothing typed is lost on submit, matching the no-JS
+floor's own posted value in that case. This commit-on-submit fold runs on
+a genuine, user-originated form submission (a click/Enter on a submit
+control, or a script's own `form.requestSubmit()`) because both fire the
+form's `submit` event, which the listener above listens for. Calling the
+DOM `form.submit()` method directly does NOT fire a `submit` event by
+specification, so it bypasses this fold exactly as it bypasses every other
+submit handler and the browser's own constraint validation
+(icvoss/django-brickwork#244); a consumer that calls `form.submit()`
+programmatically is responsible for committing any uncommitted buffer
+text itself first if it needs that text posted. Mounting a tag input
+outside a `<form>` is also supported and, having no form to listen on,
+simply has no commit-on-submit fold: the component works purely as a
+chip-editing control and the caller reads state via the `tags` array or
+the `bw:taginput:add`/`bw:taginput:remove` events.
+
+Re-mounting (icvoss/django-brickwork#244): a root-REPLACING swap (the
+whole `.bw-tag-input` element, or an ancestor of it, is swapped out and
+back in with fresh server-rendered markup) is the real remount path and
+behaves exactly as a first mount: the fresh instance parses the rendered
+value, builds its own carrier, and the old carrier leaves with the old
+root. A content-only re-init on a kept root CANNOT occur under Alpine v3:
+initTree() skips any element already stamped with `_x_marker` before the
+`x-data` init hook would run, so init() never executes twice on one root
+(verified in #244 by source reading, a runtime probe, and guard-removed
+tests staying green). init()'s carrier-detect check is defence in depth
+for that impossible path, not a supported pattern; do not rely on it.
 
 Required context: label, id, name.
 Optional: value (str, pre-filled comma-separated tags), placeholder,
@@ -41,20 +68,23 @@ verbatim (no new tokens); the wrapper composes .bw-input's own border/focus
 treatment so the enhanced state reads as one field, not two controls.
 
 States: floor-only (no-JS, a plain text field with a comma-separated
-  value) vs enhanced (chip run rendered above the floor input, which stays
-  visible and editable, carrying the comma-joined committed tags plus any
-  in-progress text); invalid (aria-invalid plus the field chrome's error
-  state); single-line (input) vs multiline (textarea), chosen by the
-  multiline flag, not a runtime toggle.
-Accessibility: the floor input/textarea stays the single source of truth
-  for form submission at every state, so a screen reader or a JS-disabled
-  browser always sees one genuine labelled text field; each chip's remove
-  button carries a distinguishable translated aria-label (name plus the
-  tag text, never a bare icon). Covered by axe.spec.mjs against
-  inputs-*.html (both single-line and multiline renders, both themes); the
-  enhanced Enter/comma-commits and Backspace-removes-last-chip behaviour
-  has no dedicated browser-driven interaction test today, only the static
-  render the axe fixture exercises.
+  value, the submitted control) vs enhanced (chip run showing committed
+  tags, floor input/textarea holding only the next tag's in-progress text,
+  a hidden carrier input holding the comma-joined committed list under the
+  real name); invalid (aria-invalid plus the field chrome's error state);
+  single-line (input) vs multiline (textarea), chosen by the multiline
+  flag, not a runtime toggle.
+Accessibility: the label/id stay on the visible floor input/textarea at
+  every state, so its accessible name always points at what the user
+  types; a JS-disabled browser sees one genuine labelled text field
+  carrying the real name directly. Each chip's remove button carries a
+  distinguishable translated aria-label (name plus the tag text, never a
+  bare icon). Covered by axe.spec.mjs against inputs-*.html (both
+  single-line and multiline renders, both themes) and by
+  a11y/tag_input.spec.mjs's browser-driven chip commit, chip remove,
+  carrier-serialisation, commit-on-submit, root-replacing-remount,
+  multi-instance-submit, and dedupe-on-submit tests
+  (icvoss/django-brickwork#237, #244).
 Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-tag-input* selector.
 {% endcomment %}
