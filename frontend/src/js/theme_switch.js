@@ -15,15 +15,46 @@
 // departure from the package's usual doctrine, per the #117 ruling): the
 // server-rendered page is ALREADY correctly themed, so a theme switch with
 // no JS is a control that visibly does nothing, worse than absent. The
-// floor here is "render nothing": _theme_switch.html ships the control
-// root with the hidden attribute (the same hidden-until-init shape
-// dismissible.js already runs for bw_alert/bw_badge's close button), and
-// this module's ONLY floor-facing job is removing it at init, exactly the
-// reveal step dismissible.js performs.
+// floor here is "render nothing VISIBLE": _theme_switch.html ships the
+// control root with the bw-theme-switch--pre-init class (icvoss/django-
+// brickwork#272, supersedes the unconditional hidden attribute this
+// shipped with through 3.11.0), and this module's ONLY floor-facing job is
+// swapping that class off at init.
+//
+// Reserved pre-init state (#272): bw-theme-switch--pre-init sets
+// visibility: hidden rather than removing the box from flow, so the
+// control's own true, label-dependent footprint is already reserved at
+// first paint; init only changes visibility, never geometry, so the reveal
+// produces no layout-shift entry. Class-based, not attribute-based, and
+// this is load-bearing, not a style choice, but the reason is GEOMETRY, not
+// cascade priority: the hidden attribute is display: none in the UA sheet,
+// out of flow by definition, so no attribute-only shape can reserve space
+// while hiding. Only a class (or inline style) carries visibility: hidden
+// here. components.css's own !important on this class is the same
+// scoped-floor pattern index.css already uses for [hidden] ("hidden always
+// means hidden without a consumer preflight"), not a claim about beating
+// Tailwind's layered preflight rule (a different rule entirely, on the
+// attribute this class no longer uses): this package's own compiled CSS
+// carries no @layer at all, so an ordinary unlayered consumer rule could
+// otherwise override a bare visibility: hidden on a descendant (the compact
+// trigger, say) and leave part of the control visible and focusable while
+// pre-init.
+//
+// That descendant gap is real regardless of layering (#272 review):
+// visibility only INHERITS, and an inherited value always loses to a value
+// specified on the element itself, ancestor !important notwithstanding
+// (!important only arbitrates between rules matching the SAME element,
+// never against inheritance from elsewhere). components.css's
+// .bw-theme-switch--pre-init rule therefore also matches every descendant
+// (.bw-theme-switch--pre-init *), forcing each one's OWN visibility rather
+// than relying on inheritance, so a single ordinary consumer rule on
+// .bw-theme-switch__trigger has nothing weaker to beat. This module never
+// has to reason about that: it only ever adds or removes the one class on
+// the root, and the CSS rule covers the whole subtree.
 //
 // DOM contract (rendered by _theme_switch.html; never hand-build this):
 //
-//   <[data-bw-theme-switch] hidden x-data="bwThemeSwitch()"
+//   <[data-bw-theme-switch].bw-theme-switch--pre-init x-data="bwThemeSwitch()"
 //                           data-bw-theme-switch-values="<id>-values">
 //     <script id="<id>-values" type="application/json">{"theme": [...], ...}</script>
 //     <fieldset data-bw-theme-switch-axis="theme" [data-bw-locked]>
@@ -108,6 +139,14 @@
 
 const STORAGE_PREFIX = "bw-theme-switch-";
 
+// The reserved pre-init state (#272): visibility: hidden, in flow, never
+// display:none, so the control's own box is already reserved at first
+// paint. init() swaps this off; destroy() restores it, so a control
+// re-mounted into a fresh root (never a re-init of a live one, see
+// destroy()'s own note below) starts from the same floor a first render
+// would.
+const PRE_INIT_CLASS = "bw-theme-switch--pre-init";
+
 function dispatch(el, name, detail) {
   el.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
 }
@@ -186,6 +225,7 @@ function readValidValues(root) {
 export default function themeSwitch() {
   return {
     _root: null,
+    _removedPreInitClass: false,
     _disclosure: null,
     _disclosureTrigger: null,
     _onDisclosureKeydown: null,
@@ -202,10 +242,18 @@ export default function themeSwitch() {
         this._initGroup(group, validValues);
       }
 
-      // Reveal the whole control: it ships hidden so the no-JS floor never
-      // shows a control that would do nothing (the #117 ruling's floor
-      // rule, mirrored from dismissible.js's close-button reveal).
-      root.removeAttribute("hidden");
+      // Reveal the whole control: it ships pre-init (visibility: hidden,
+      // in flow) so the no-JS floor never shows a control that would do
+      // nothing (the #117 ruling's floor rule), while its box is already
+      // reserved (#272) so this class swap changes appearance only, never
+      // geometry. Record whether THIS init actually removed the class
+      // (#272 review): a consumer whose markup never carried it (hand-
+      // written from the docs, or legacy markup predating this change)
+      // must not have destroy() add a class init never took away, which
+      // would leave that control permanently invisible with no init having
+      // run against it at all.
+      this._removedPreInitClass = root.classList.contains(PRE_INIT_CLASS);
+      root.classList.remove(PRE_INIT_CLASS);
 
       this._initCompactDisclosure(root);
     },
@@ -248,6 +296,23 @@ export default function themeSwitch() {
     },
 
     destroy() {
+      // Restore the pre-init class (#272), but ONLY if this instance's own
+      // init() actually removed it: restoring unconditionally regressed a
+      // consumer whose markup never carried the class in the first place
+      // (hand-written from the docs, or legacy markup predating this
+      // change) into a control that rendered visible, worked, and then
+      // went permanently invisible on teardown, having never been in the
+      // reserved pre-init state to begin with. This guards the root itself,
+      // never a live re-init of it: Alpine v3's initTree() skips any root
+      // already carrying its own internal _x_marker, so a removed-and-
+      // reinserted root is never re-initialised by Alpine at all, only a
+      // genuinely fresh server-rendered root (which already ships the
+      // class, and whose own init() sets _removedPreInitClass again) is.
+      // Restoring it here is the defensive floor for the node THIS
+      // instance owned, not a re-init mechanism.
+      if (this._root && this._removedPreInitClass) {
+        this._root.classList.add(PRE_INIT_CLASS);
+      }
       if (this._disclosure && this._onDisclosureKeydown) {
         this._disclosure.removeEventListener("keydown", this._onDisclosureKeydown);
       }

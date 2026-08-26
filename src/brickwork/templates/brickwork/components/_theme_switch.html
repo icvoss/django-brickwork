@@ -13,11 +13,63 @@ every derived colour resolves.
 No-JS floor (BR-BW-HTMX-001, the one deliberate departure the #117 ruling
 states explicitly): the server-rendered page is ALREADY correctly themed, so
 a theme switch with no JS is a control that visibly does nothing, worse than
-absent. The floor here is "render nothing", not "render a working control":
-the fieldset ships with the hidden attribute (the same hidden-until-init
-shape _alert.html's dismiss button and dismissible.js use) and
-bwThemeSwitch removes it at init, exactly the reveal-at-init pattern
-frontend/src/js/dismissible.js already runs.
+absent. The floor here is "render nothing VISIBLE", not "render a working
+control".
+
+Reserved pre-init state (icvoss/django-brickwork#272, supersedes the
+unconditional hidden attribute this control shipped with through 3.11.0):
+the root ships with the bw-theme-switch--pre-init class instead, which sets
+visibility: hidden while leaving the control in normal flow. This reserves
+the control's own true, label-dependent box at first paint, so
+bwThemeSwitch's later reveal (swapping the class off at init) produces a
+visible-appearance change only, never a box-size change, and consequently no
+layout-shift entry: the #272 measurement showed the OLD hidden-attribute
+shape collapsing the control to zero footprint until init, then growing the
+header actions row into its real, label-dependent width on reveal, scoring
+CLS 0.16 to 0.19 on a consumer's visible-header placement (control
+experiments there confirmed the switch was the entire shift).
+
+Class-based rather than attribute-based is load-bearing, not a style
+preference, but the reason is geometry, NOT cascade priority: the `hidden`
+ATTRIBUTE is `display: none` in the UA sheet, out of flow by definition, so
+there is no way to keep the box in flow while using it. `visibility: hidden`
+achieves that, and only a class (or an inline style) can carry it here. This
+package's own compiled CSS ships no @layer at all (verified against
+dist/brickwork.css), so bw-theme-switch--pre-init's own `!important` is the
+SAME scoped-floor pattern index.css:42 already uses for the `[hidden]`
+attribute ("hidden always means hidden without a consumer preflight"),
+applied for the identical reason: an ordinary consumer rule of equal or later
+specificity, still just as unlayered as this one, could otherwise override a
+bare `visibility: hidden` and leave a descendant (the compact trigger, say)
+visible and focusable while the rest of the control stays reserved-but-
+invisible.
+
+That gap is real independent of layering, and closing it needed more than
+`!important` (icvoss/django-brickwork#272 review): `visibility` only
+INHERITS, and an inherited value always loses to a value specified on the
+element itself, regardless of `!important` on the ancestor (`!important`
+only arbitrates between rules matching the SAME element, never against
+inheritance from a different one). Verified directly in a browser: a plain
+`.child{visibility:visible}` descendant of a `!important`-hidden ancestor
+computes to visible and is genuinely focusable. `.bw-theme-switch--pre-init`
+therefore also matches every descendant (`.bw-theme-switch--pre-init *` in
+components.css), forcing each one's OWN visibility rather than relying on
+inheritance, so a single ordinary consumer rule like
+`.bw-theme-switch__trigger { visibility: visible; }` has nothing weaker to
+beat. Defeating this deliberately still takes an equally forceful rule (a
+consumer's own `!important` on the same selector, or a later, higher-priority
+layer); it can no longer happen by accident.
+
+The accepted trade (issue ask 2): a no-JS visitor now gets an INVISIBLE
+RESERVED BOX in the header instead of no box at all. The control still
+renders nothing usable without JS (visibility: hidden takes the whole
+subtree out of the accessibility tree and off pointer/keyboard reach,
+exactly as the hidden attribute did), so the #117 ruling's floor ("a switch
+that visibly does nothing is worse than absent") still holds; what changes
+for an existing consumer is that the control's own footprint is now always
+present in a header's layout math, at every viewport, whether or not JS ever
+runs. A consumer measuring header height or writing a snapshot test against
+the no-JS render sees a taller header than before this fix.
 
 Persistence (SHL-003 applied here, generalising
 frontend/src/js/sidebar_collapse.js's rule, per the #117 ruling): an axis
@@ -106,15 +158,18 @@ existing form-field spacing tokens (--bw-density-*), never a component of
 its own, since it is deliberately unstyled beyond what a native fieldset of
 radios already provides.
 
-States: hidden (no-JS floor, always, by deliberate design: a theme switch
-  that visibly does nothing is worse than absent) vs revealed (JS init);
-  per-axis locked (a server-resolved preference exists: disabled radios,
-  the current value checked, a "set by your account preferences" note) vs
-  unlocked (a free client toggle persisting to localStorage). layout="compact"
-  adds its own open/closed presentation on top: closed (default, the native
-  [open] attribute absent) vs open (the disclosure panel visible, toggled by
-  the summary, Escape, or a click/tap outside it); layout="inline" has no
-  such state, the fieldsets are always in the flow.
+States: pre-init (no-JS floor, always, by deliberate design: a theme switch
+  that visibly does nothing is worse than absent; bw-theme-switch--pre-init
+  reserves the control's box in flow while keeping it invisible, #272) vs
+  revealed (JS init swaps the class off, box already reserved so the reveal
+  changes appearance only); per-axis locked (a server-resolved preference
+  exists: disabled radios, the current value checked, a "set by your account
+  preferences" note) vs unlocked (a free client toggle persisting to
+  localStorage). layout="compact" adds its own open/closed presentation on
+  top: closed (default, the native [open] attribute absent) vs open (the
+  disclosure panel visible, toggled by the summary, Escape, or a click/tap
+  outside it); layout="inline" has no such state, the fieldsets are always
+  in the flow.
 Accessibility: role="group" with an explicit aria-label (a bare div's
   aria-label has no semantic target without a role); each axis is its own
   native <fieldset>/<legend>, so the axis name reaches assistive tech
@@ -125,24 +180,24 @@ Accessibility: role="group" with an explicit aria-label (a bare div's
   carry Tab-to-summary and Enter/Space-toggles with no hand-rolled ARIA.
   Dismissal has three routes once JS has run (summary toggle, Escape with
   focus returned to the trigger, click/tap outside), all inert on the no-JS
-  floor where the whole control stays hidden. Every compact option meets
-  the 44px touch-target floor (--bw-size-touch-target-min on
-  .bw-theme-switch__option, the #212 label-extension route: the clickable
-  label grows, the visible radio/text stay their normal size). Covered by
-  theme_switch.spec.mjs, a dedicated suite driving no-JS absence,
-  reveal-at-init, per-axis lock state, invalid-stored-value rejection,
-  multi-instance collision safety, the locked-vs-unlocked race, and the
-  compact disclosure's own open/close/dismissal routes and target sizes,
-  plus axe.spec.mjs against theme-switch-*.html/theme-switch-js-*.html/
-  theme-switch-invalid-root-js-*.html/theme-switch-compact-open-*.html,
-  both themes.
+  floor where the whole control stays invisible (bw-theme-switch--pre-init).
+  Every compact option meets the 44px touch-target floor
+  (--bw-size-touch-target-min on .bw-theme-switch__option, the #212
+  label-extension route: the clickable label grows, the visible radio/text
+  stay their normal size). Covered by theme_switch.spec.mjs, a dedicated
+  suite driving no-JS absence, reveal-at-init, per-axis lock state,
+  invalid-stored-value rejection, multi-instance collision safety, the
+  locked-vs-unlocked race, the compact disclosure's own open/close/dismissal
+  routes and target sizes, and the reveal producing no layout-shift entry
+  (#272), plus axe.spec.mjs against theme-switch-*.html/
+  theme-switch-js-*.html/theme-switch-invalid-root-js-*.html/
+  theme-switch-compact-open-*.html, both themes.
 Responsive: no breakpoint switch; layout is a consumer-chosen option, not a
   media query, and no .bw-theme-switch* selector carries width-dependent
   CSS in either layout.
 {% endcomment %}
-<div class="bw-theme-switch{% if layout == 'compact' %} bw-theme-switch--compact bw-theme-switch--{{ placement }}{% endif %}"
+<div class="bw-theme-switch bw-theme-switch--pre-init{% if layout == 'compact' %} bw-theme-switch--compact bw-theme-switch--{{ placement }}{% endif %}"
      id="{{ instance_id }}"
-     hidden
      role="group"
      data-bw-theme-switch
      data-bw-theme-switch-values="{{ values_element_id }}"

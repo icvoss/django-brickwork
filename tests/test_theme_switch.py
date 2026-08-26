@@ -26,16 +26,19 @@ def _render(src: str = "{% bw_theme_switch %}", **ctx: object) -> str:
 # --- the no-JS floor (BR-BW-HTMX-001, the #117 ruling's departure) -----------
 
 
-def test_control_root_ships_hidden() -> None:
+def test_control_root_ships_the_reserved_pre_init_class() -> None:
     # The server-rendered page is already correctly themed, so a no-JS theme
     # switch would be a control that visibly does nothing. The floor is
-    # "render nothing": the root ships hidden, and only bwThemeSwitch's init
-    # removes it.
+    # "render nothing VISIBLE": the root ships bw-theme-switch--pre-init
+    # (icvoss/django-brickwork#272, supersedes the unconditional hidden
+    # attribute), which reserves the control's box while keeping it
+    # invisible; only bwThemeSwitch's init swaps the class off.
     html = _render()
     assert "data-bw-theme-switch" in html
     start = html.index("<div")
     root_tag = html[start : html.index(">", start)]
-    assert "hidden" in root_tag
+    assert "bw-theme-switch--pre-init" in root_tag
+    assert "hidden" not in root_tag
 
 
 def test_alpine_component_is_wired() -> None:
@@ -43,32 +46,36 @@ def test_alpine_component_is_wired() -> None:
     assert 'x-data="bwThemeSwitch(' in html or 'x-data="bwThemeSwitch()"' in html
 
 
-def test_every_focusable_control_is_inside_the_hidden_root() -> None:
-    # The no-JS floor depends on `hidden` covering every radio the browser
-    # accessibility tree and keyboard focus order could otherwise reach: a
-    # single `hidden` attribute on the OUTERMOST element enclosing every
-    # <input> is sufficient (the browser propagates hidden to all
-    # descendants), but a `hidden` on some inner wrapper that leaves inputs
-    # outside it is not. Parse the DOM structurally rather than checking the
-    # root tag's own attribute string in isolation (that alone does not
-    # prove containment), one call each for the default axes and the widest
-    # (brand-inclusive) axis set, since a future template change could add a
-    # control outside the root without breaking the substring-only check.
+def test_every_focusable_control_is_inside_the_pre_init_root() -> None:
+    # The no-JS floor depends on the pre-init class covering every radio the
+    # browser accessibility tree and keyboard focus order could otherwise
+    # reach: visibility: hidden on the OUTERMOST element enclosing every
+    # <input> is sufficient (the browser propagates visibility to all
+    # descendants unless a child re-asserts its own), but the class on some
+    # inner wrapper that leaves inputs outside it is not. Parse the DOM
+    # structurally rather than checking the root tag's own attribute string
+    # in isolation (that alone does not prove containment), one call each
+    # for the default axes and the widest (brand-inclusive) axis set, since
+    # a future template change could add a control outside the root without
+    # breaking the substring-only check.
     from html.parser import HTMLParser
 
     class _ContainmentParser(HTMLParser):
         def __init__(self) -> None:
             super().__init__()
             self.depth = 0
-            self.root_hidden_depth: int | None = None
+            self.root_pre_init_depth: int | None = None
             self.escaped_inputs: list[str] = []
 
         def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-            attr_names = {name for name, _ in attrs}
-            if tag == "div" and self.root_hidden_depth is None:
-                assert "hidden" in attr_names, "root <div> must carry the hidden attribute"
-                self.root_hidden_depth = self.depth
-            if tag in {"input", "fieldset"} and self.root_hidden_depth is None:
+            attr_map = dict(attrs)
+            if tag == "div" and self.root_pre_init_depth is None:
+                classes = (attr_map.get("class") or "").split()
+                assert "bw-theme-switch--pre-init" in classes, (
+                    "root <div> must carry the bw-theme-switch--pre-init class"
+                )
+                self.root_pre_init_depth = self.depth
+            if tag in {"input", "fieldset"} and self.root_pre_init_depth is None:
                 self.escaped_inputs.append(tag)
             self.depth += 1
 
@@ -85,8 +92,8 @@ def test_every_focusable_control_is_inside_the_hidden_root() -> None:
     ):
         parser = _ContainmentParser()
         parser.feed(html)
-        assert parser.root_hidden_depth == 0, "the hidden div must be the outermost element"
-        assert not parser.escaped_inputs, "every input/fieldset must be inside the hidden root"
+        assert parser.root_pre_init_depth == 0, "the pre-init div must be the outermost element"
+        assert not parser.escaped_inputs, "every input/fieldset must be inside the pre-init root"
 
 
 # --- ADR-060 option grammar: axes= is a closed, space-separated vocabulary --
@@ -416,7 +423,7 @@ def test_two_instances_do_not_share_root_ids() -> None:
     html = _render("{% bw_theme_switch axes='theme' %}{% bw_theme_switch axes='theme' %}")
     import re
 
-    ids = re.findall(r'<div class="bw-theme-switch"\s+id="([^"]+)"', html)
+    ids = re.findall(r'<div class="bw-theme-switch bw-theme-switch--pre-init"\s+id="([^"]+)"', html)
     assert len(ids) == 2
     assert ids[0] != ids[1]
 
@@ -475,13 +482,16 @@ def test_inline_render_is_identical_to_the_pre_235_template() -> None:
     explicit_html = id_re.sub("ID", _render('{% bw_theme_switch layout="inline" %}'))
     assert default_html == explicit_html
 
-    # Pinned structural fingerprint of the pre-#235 template (never {%
+    # Pinned structural fingerprint of the inline template (never {%
     # include %}d directly, so this asserts on the rendered OUTPUT the tag
     # produces, which is what a consumer's page actually receives): the root
     # div carries no compact/placement modifier class, and the fieldset loop
     # sits directly inside it with no intervening <details>/<summary>/panel
-    # wrapper at all.
-    assert '<div class="bw-theme-switch"\n     id="ID"\n     hidden' in default_html
+    # wrapper at all. The root's own class list changed under #272 (the
+    # pre-init reserved-space class replaces the unconditional hidden
+    # attribute this fingerprint pinned through 3.11.0); everything else
+    # about the inline shape is unchanged.
+    assert '<div class="bw-theme-switch bw-theme-switch--pre-init"\n     id="ID"\n     role="group"' in default_html
     assert "<summary" not in default_html
     assert 'bw-theme-switch__panel"' not in default_html
 
@@ -585,3 +595,14 @@ def test_bundle_carries_the_compact_disclosure_wiring() -> None:
     bundle = _DIST_JS.read_text()
     assert "bw-theme-switch__disclosure" in bundle
     assert "bw-theme-switch__trigger" in bundle
+
+
+def test_bundle_carries_the_pre_init_class_name() -> None:
+    # icvoss/django-brickwork#272: the reveal is now a class swap
+    # (classList.remove), never removeAttribute("hidden") (other components
+    # in this same bundle, e.g. bw_alert's dismiss button, legitimately keep
+    # using removeAttribute("hidden") for THEIR OWN controls, so this only
+    # asserts the new class name reached the compiled bundle, not an
+    # absence of that call anywhere in the whole file).
+    bundle = _DIST_JS.read_text()
+    assert "bw-theme-switch--pre-init" in bundle

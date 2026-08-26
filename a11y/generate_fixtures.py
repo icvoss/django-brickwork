@@ -1027,10 +1027,14 @@ def render_ranked_list(theme: str) -> str:
 #                               self-contained shape: the component has no
 #                               dedicated demo page of its own yet) composing
 #                               the REAL {% bw_theme_switch %} tag directly,
-#                               no-JS floor: the control ships hidden, the
-#                               same "render nothing" floor dismissible.js's
-#                               close button uses, so axe examines an EMPTY
-#                               page here (the control contributes nothing to
+#                               no-JS floor: the control ships the
+#                               bw-theme-switch--pre-init class (icvoss/
+#                               django-brickwork#272, visibility: hidden,
+#                               forced onto every descendant too, not only
+#                               the root: supersedes the unconditional
+#                               hidden attribute this shipped with through
+#                               3.11.0), so axe examines an EMPTY page here
+#                               (the control contributes nothing usable to
 #                               the accessibility tree until JS reveals it).
 # theme-switch-js-<theme>.html the JS leg: the real host-app boot
 #                               (_JS_BOOT, real Alpine, real
@@ -1184,6 +1188,28 @@ __CSS__
     <h2 id="compact-heading">Compact disclosure</h2>
     __COMPACT__
   </section>
+
+  <!-- Trailing flow content (tester follow-up, icvoss/django-brickwork#272
+  gate run): the compact control's own root is display: inline-flex, sized
+  to its trigger, with the [open] panel taken out of flow via position:
+  absolute, so nothing about the trigger's own box changing size or
+  visibility moves the trigger itself. Without a sibling block AFTER it,
+  the reveal has nothing in normal flow to displace, so the Layout
+  Instability API records no entry at all even when the control genuinely
+  regresses to the old zero-footprint-until-init defect: the page has
+  nothing below the control that COULD move. This section mirrors the
+  issue's own consumer measurement (the actions row growing pushes a
+  sibling MAIN block down by its own height delta): a real block of body
+  content after the control, so a reveal that changes the trigger's flow
+  height (broken) genuinely displaces this content, while a reveal that
+  only changes visibility (fixed, box already reserved) does not. -->
+  <section aria-labelledby="compact-body-heading">
+    <h2 id="compact-body-heading">Body content</h2>
+    <p>This paragraph sits after the compact control in normal flow, the same
+    relationship the issue's own consumer measurement showed (a header
+    actions row growing pushes page content below it). Its own position is
+    what the layout-shift assertion below actually measures.</p>
+  </section>
 </main>
 __JS_BOOT__
 </body>
@@ -1197,6 +1223,24 @@ def _render_theme_switch_compact_fixture() -> str:
     return Template(
         '{% load brickwork_theming %}{% bw_theme_switch axes="theme density dir" layout="compact" %}'
     ).render(Context({}))
+
+
+def render_theme_switch_compact(theme: str) -> str:
+    """layout="compact" (icvoss/django-brickwork#235), the NO-JS floor
+    (icvoss/django-brickwork#272 review): no _JS_BOOT at all, disclosure
+    left closed exactly as the server renders it. Proves the reserved
+    pre-init state (bw-theme-switch--pre-init) genuinely hides the compact
+    control too, not only the inline instances the pre-existing no-JS test
+    covered: the two layouts share one root element, but only a dedicated
+    render of the compact tag proves it, since theme-switch-<theme>.html
+    never renders layout="compact" at all."""
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _THEME_SWITCH_COMPACT_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__COMPACT__", _render_theme_switch_compact_fixture())
+        .replace("__JS_BOOT__", "")
+    )
 
 
 def render_theme_switch_compact_open(theme: str) -> str:
@@ -2763,16 +2807,22 @@ def main() -> None:
         # bw_ranked_list (#183): populated (linked rows), empty (with
         # action), and loading skeleton variants on one page
         (OUT / f"ranked-list-{theme}.html").write_text(render_ranked_list(theme))
-        # bw_theme_switch (#117): the no-JS floor (renders nothing, the
-        # control ships hidden) and the JS leg (real Alpine boot, so
-        # bwThemeSwitch's own init reveals default/brand-inclusive/locked
-        # instances and axe walks the real revealed markup)
+        # bw_theme_switch (#117): the no-JS floor (renders nothing usable,
+        # the control ships the bw-theme-switch--pre-init class, icvoss/
+        # django-brickwork#272, supersedes the unconditional hidden
+        # attribute this shipped with through 3.11.0) and the JS leg (real
+        # Alpine boot, so bwThemeSwitch's own init reveals default/brand-
+        # inclusive/locked instances and axe walks the real revealed markup)
         (OUT / f"theme-switch-{theme}.html").write_text(render_theme_switch(theme))
         (OUT / f"theme-switch-js-{theme}.html").write_text(render_theme_switch(theme, inject_js=True))
         (OUT / f"theme-switch-invalid-root-js-{theme}.html").write_text(render_theme_switch_invalid_root(theme))
-        # layout="compact" (#235): the disclosure's own JS leg, stamped open
-        # so axe examines the revealed trigger/panel pairing and the
-        # compact options' own 44px targets, not a closed disclosure
+        # layout="compact" (#235): the no-JS floor (#272 review: the
+        # pre-existing no-JS test only ever rendered layout="inline",
+        # leaving the compact root's own reserved-pre-init state
+        # unverified) and the disclosure's own JS leg, stamped open so axe
+        # examines the revealed trigger/panel pairing and the compact
+        # options' own 44px targets, not a closed disclosure
+        (OUT / f"theme-switch-compact-{theme}.html").write_text(render_theme_switch_compact(theme))
         (OUT / f"theme-switch-compact-open-js-{theme}.html").write_text(render_theme_switch_compact_open(theme))
         (OUT / f"sidebar-collapsed-{theme}.html").write_text(render_sidebar_collapsed(theme))
         # the 0.14.0 slide-over + stepper + wizard set (#55/#59): the
