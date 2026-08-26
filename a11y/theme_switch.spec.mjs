@@ -610,10 +610,20 @@ test.describe("layout=\"compact\"", () => {
     await compactSection(page).locator("[data-bw-theme-switch]").evaluate((el) => el.remove());
     // Alpine's cleanup runs off a MutationObserver callback (a microtask
     // after the removal above, never synchronous with it), so poll rather
-    // than assert immediately. A genuine microtask lands well under a
-    // second; capped short so a real regression (the listener never
-    // removed) fails fast rather than eating the suite's default timeout.
-    await page.waitForFunction(() => window.__pointerdownRemoves.length === 1, null, { timeout: 2000 });
+    // than assert immediately. expect.poll retries the read on its own
+    // schedule and reports a clear assertion failure (not a bare timeout)
+    // once the 10s budget is spent, which also gives a loaded CI runner
+    // genuine headroom: a hand-rolled short-cap wait risks the poll itself
+    // expiring mid-flight under load, which then surfaces downstream as an
+    // unrelated "Test ended" error from whatever page.evaluate call happens
+    // to be in flight when the overall test timeout fires, exactly what
+    // failed the first time this test ran on CI.
+    await expect
+      .poll(() => page.evaluate(() => window.__pointerdownRemoves.length), {
+        timeout: 10000,
+        message: "destroy() never removed the document pointerdown listener",
+      })
+      .toEqual(1);
     // Compare the two function REFERENCES inside the page itself: a
     // function value cannot survive the evaluate() serialisation boundary
     // as the same object, so pulling each one out to the Node side first
