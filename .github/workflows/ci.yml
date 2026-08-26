@@ -27,6 +27,11 @@ name: CI
 #     scripts/generate_catalogue_manifest.py and checked for drift by
 #     tests/test_catalogue_manifest.py, same default pytest leg, same
 #     no-separate-job reasoning.
+#   - A11y fixture coverage (icvoss/django-brickwork#226): every catalogue-manifest
+#     shell/component/section has at least one a11y/generate_fixtures.py fixture,
+#     checked by tests/test_a11y_fixture_coverage.py, which imports and runs the
+#     real generator (brickwork_testapp needed), so it runs in the settings_seams
+#     leg alongside test_integration.py, not the default leg.
 
 on:
   push:
@@ -111,7 +116,10 @@ jobs:
         # under settings_seams. That settings module imports the testapp by its bare
         # name, so tests/ must be on the path here (in addition to the pyproject
         # "src"/"." entries), hence the explicit PYTHONPATH.
-        run: pytest tests/test_integration.py -v --tb=short --color=yes --no-cov
+        # test_a11y_fixture_coverage.py (icvoss/django-brickwork#226) is here for the
+        # same reason: it imports and runs a11y/generate_fixtures.py, which itself
+        # imports brickwork_testapp.forms/nav/views.
+        run: pytest tests/test_integration.py tests/test_a11y_fixture_coverage.py -v --tb=short --color=yes --no-cov
         env:
           DJANGO_SETTINGS_MODULE: tests.settings_seams
           PYTHONPATH: src:.:tests
