@@ -21,6 +21,10 @@
 // a navigation. Per this repo's own file:// trap, a reload discards
 // page.evaluate() state, so every assertion below reads the live DOM after
 // an interaction rather than mutating then reloading.
+//
+// Also covers (icvoss/django-brickwork#244): re-init on the same root (an
+// Alpine re-mount / content-only swap, reproduced with the real
+// window.Alpine.initTree() API rather than a synthetic shortcut).
 
 import { test, expect } from "@playwright/test";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -159,5 +163,75 @@ test.describe("multiline floor (related-topics)", () => {
     // the single-line field's own carrier is unaffected by the other
     // field's uncommitted text
     expect(data.skill_tags).toBe("django, python");
+  });
+});
+
+// --- re-init on the same root (icvoss/django-brickwork#244) -----------------
+//
+// A root-REPLACING swap (whole .bw-tag-input element out and back in) yields
+// a fresh x-data element, which Alpine's own mutation observer initialises
+// exactly once (sortable.spec.mjs's persistence suite already proves that
+// path). The bug this guards against is the OTHER swap shape: content stays,
+// the SAME root keeps its x-data and gets initialised a second time (an
+// Alpine re-mount, or an htmx swap that targets content inside the root
+// without replacing the root). window.Alpine.initTree() is Alpine's own
+// public API for running init() on a tree (it is what Alpine calls
+// internally when a new node is observed); calling it again on the SAME,
+// already-initialised root reproduces that second-init path directly,
+// without inventing a shortcut around the real code.
+
+test.describe("re-init on the same root", () => {
+  test.beforeEach(async ({ page }) => {
+    await boot(page);
+  });
+
+  test("a second init() re-syncs from the carrier instead of wiping chips or duplicating the carrier", async ({
+    page,
+  }) => {
+    // commit one more tag first, so re-init must preserve state beyond what
+    // the server originally rendered, not just replay the initial value
+    await page.locator("#skill-tags").fill("testing");
+    await page.locator("#skill-tags").press("Enter");
+    await expect(page.locator('input[type="hidden"][name="skill_tags"]')).toHaveValue("django, python, testing");
+
+    await page.evaluate(() => {
+      window.Alpine.initTree(document.querySelector(".bw-tag-input:has(#skill-tags)"));
+    });
+
+    // exactly one carrier remains, still holding the real name
+    const carriers = page.locator('input[type="hidden"][name="skill_tags"]');
+    await expect(carriers).toHaveCount(1);
+    await expect(carriers).toHaveValue("django, python, testing");
+    // chips match the carrier, rebuilt from it rather than wiped
+    await expect(chipsFor(page, "skill-tags")).toHaveCount(3);
+    // the floor is still the unnamed buffer, not re-carrying `name`
+    await expect(page.locator("#skill-tags")).not.toHaveAttribute("name");
+  });
+
+  test("a subsequent commit after re-init updates the one surviving carrier", async ({ page }) => {
+    await page.evaluate(() => {
+      window.Alpine.initTree(document.querySelector(".bw-tag-input:has(#skill-tags)"));
+    });
+    await page.locator("#skill-tags").fill("rust");
+    await page.locator("#skill-tags").press("Enter");
+    const carriers = page.locator('input[type="hidden"][name="skill_tags"]');
+    await expect(carriers).toHaveCount(1);
+    await expect(carriers).toHaveValue("django, python, rust");
+  });
+
+  test("re-init does not stack a second submit listener (no double-fold of the buffer)", async ({ page }) => {
+    await page.evaluate(() => {
+      window.Alpine.initTree(document.querySelector(".bw-tag-input:has(#skill-tags)"));
+    });
+    await interceptSubmit(page);
+    await page.locator("#skill-tags").fill("uncommitted-tag");
+    await page.locator('button[type="submit"]').click();
+    const data = await submittedData(page);
+    // a stacked listener would still only fold once into the SAME carrier
+    // value (idempotent), but a second, DIFFERENT carrier created by a
+    // repeated takeover would show up as a duplicate `skill_tags` entry in
+    // the posted form data; FormData.entries() would then yield more than
+    // one, so asserting the single value also proves there is one carrier
+    expect(data.skill_tags).toBe("django, python, uncommitted-tag");
   });
 });

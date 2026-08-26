@@ -46,6 +46,17 @@
 // Motion is CSS-owned: this module only appends/removes chip elements and
 // never sequences animation (BR-BW-TOK-009 lives entirely in the component
 // CSS, matching the combobox chip precedent of no per-chip entrance).
+//
+// Re-init (icvoss/django-brickwork#244): a second init() on the SAME root
+// (an Alpine re-mount, or a content-only htmx swap that keeps the root and
+// re-runs x-data without replacing it) finds the carrier already created by
+// the first init() (marked with data-bw-tag-input-carrier) and re-syncs
+// `tags` FROM that carrier's value instead of repeating the takeover, so
+// chips are rebuilt without wiping state or creating a second, wrongly
+// unnamed carrier. destroy() (Alpine's own teardown hook, matching
+// bwDropdown's convention) removes the submit listener init() attached to
+// the owning form, so a genuine unmount-then-remount never stacks a second
+// listener there.
 
 function dispatch(el, name, detail) {
   el.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
@@ -58,6 +69,12 @@ function splitTags(raw) {
     .filter((tag) => tag !== "");
 }
 
+// Marks the hidden carrier so a second init() on the same root (Alpine
+// re-mount, or a content-only htmx swap that keeps the root and re-runs
+// x-data) can detect the takeover already happened, instead of reading the
+// already-cleared floor as empty and wiping the chips.
+const CARRIER_ATTR = "data-bw-tag-input-carrier";
+
 export default function tagInput() {
   return {
     tags: [],
@@ -67,6 +84,8 @@ export default function tagInput() {
     _floor: null,
     _carrier: null,
     _buffer: "",
+    _form: null,
+    _onSubmit: null,
 
     init() {
       const root = this.$el;
@@ -74,6 +93,26 @@ export default function tagInput() {
       this._chips = root.querySelector("[data-bw-tag-input-chips]");
       this._floor = root.querySelector("[data-bw-tag-input-floor]");
       if (!this._chips || !this._floor) return; // floor markup absent: stay inert
+
+      // Re-init guard (icvoss/django-brickwork#244): a second init() on the
+      // SAME root (an Alpine re-mount, or a content-only htmx swap that
+      // keeps the root and re-runs x-data) finds the carrier already
+      // created by a prior init(). Re-syncing FROM that carrier's value,
+      // rather than repeating the takeover, is the only safe path: the
+      // floor's own value was already cleared to "" by the first init(), so
+      // reading it again would wipe every committed tag, and creating a
+      // SECOND hidden carrier would leave the original (still named, still
+      // in the form) carrier orphaned from `tags` while a second, wrongly
+      // empty-named carrier sits beside it.
+      const existingCarrier = root.querySelector(`[${CARRIER_ATTR}]`);
+      if (existingCarrier) {
+        this._carrier = existingCarrier;
+        this.tags = splitTags(existingCarrier.value);
+        this._renderChips();
+        this._attachFloorListener();
+        this._attachSubmitListener(root);
+        return;
+      }
 
       // Parse the server-rendered value BEFORE the carrier takeover below,
       // so a 422 re-render (which fills the floor with the posted value)
@@ -88,6 +127,7 @@ export default function tagInput() {
       const carrier = document.createElement("input");
       carrier.type = "hidden";
       carrier.name = this._floor.name;
+      carrier.setAttribute(CARRIER_ATTR, "");
       this._floor.removeAttribute("name");
       this._floor.value = "";
       this._floor.insertAdjacentElement("afterend", carrier);
@@ -98,17 +138,42 @@ export default function tagInput() {
       // (not hidden like the combobox's select-as-floor pattern), so typing
       // plus Enter/comma is the whole authoring flow with the chip run
       // showing what has already been committed.
-      this._floor.addEventListener("keydown", (event) => this._onKeydown(event));
+      this._attachFloorListener();
 
       // Data-loss guard (owner ruling, #237): a user who types a tag and
       // submits WITHOUT pressing Enter/comma still gets that text posted,
       // matching the pre-#237 behaviour where the buffer was appended into
       // the floor value. A component mounted outside a <form> has nothing
       // to listen for and stays exactly as it was.
-      const form = root.closest("form");
-      if (form) {
-        form.addEventListener("submit", () => this._commitOnSubmit());
+      this._attachSubmitListener(root);
+    },
+
+    destroy() {
+      // Mirrors bwDropdown's destroy() convention: undo exactly what init()
+      // attached outside the component root, so a re-mount after teardown
+      // (rather than the re-init takeover above) never stacks a second
+      // submit listener on the form.
+      if (this._form && this._onSubmit) {
+        this._form.removeEventListener("submit", this._onSubmit);
       }
+      this._form = null;
+      this._onSubmit = null;
+    },
+
+    _attachFloorListener() {
+      this._floor.addEventListener("keydown", (event) => this._onKeydown(event));
+    },
+
+    _attachSubmitListener(root) {
+      // Idempotent per component instance: init() only reaches here once
+      // per fresh mount (the re-init branch above returns early), and
+      // destroy() removes the listener it registers, so a re-mount never
+      // stacks a second listener on the form.
+      const form = root.closest("form");
+      if (!form) return;
+      this._form = form;
+      this._onSubmit = () => this._commitOnSubmit();
+      form.addEventListener("submit", this._onSubmit);
     },
 
     add(value) {
