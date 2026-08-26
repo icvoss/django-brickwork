@@ -488,7 +488,12 @@ test.describe("layout=\"compact\"", () => {
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
     expect(heights.length).toBeGreaterThan(0);
     for (const height of heights) {
-      expect(height).toBeGreaterThanOrEqual(44);
+      // 43.5, not 44: min-block-size is exactly 2.75rem (44px), but
+      // getBoundingClientRect can report one layout unit short on CI
+      // (43.999969... failed the 3.11.0 release run on main at 755cf4c).
+      // The half-pixel tolerance absorbs subpixel rounding while still
+      // failing any real regression, which lands whole pixels away.
+      expect(height).toBeGreaterThanOrEqual(43.5);
     }
   });
 
