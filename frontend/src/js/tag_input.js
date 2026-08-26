@@ -13,23 +13,35 @@
 // BR-BW-HTMX-006). ONE markup serves both legs: the no-JS floor is a plain
 // <input type="text"> (or <textarea>, multiline=True) carrying the real
 // `name`, whose value IS a comma-separated tag list the server splits; it
-// STAYS the submitted form control at all times:
+// is the submitted form control with no JS present:
 //
 //   <div class="bw-tag-input" x-data="bwTagInput()" data-bw-tag-input>
 //     <div data-bw-tag-input-chips>            chip run (built here)
-//     <input data-bw-tag-input-floor>          the form control, comma text
+//     <input data-bw-tag-input-floor>          no-JS: the form control
 //
 // At init this module reads the floor's comma-separated value into `tags`,
 // renders one bw-combobox__chip per tag (the SAME classes the combobox's
 // multiple mode uses, CMP-028 precedent, so a tag input and a multi-select
-// combobox render identically), and re-serialises `tags` back into the floor
-// value (comma-joined) on every add/remove so the floor is always the single
-// source of truth a normal POST or a 422 re-render reads from.
+// combobox render identically), then performs a CARRIER TAKEOVER
+// (icvoss/django-brickwork#237): a hidden <input type="hidden"> is created,
+// takes the floor's `name` (the floor loses it), and becomes the serialised
+// carrier of the committed, comma-joined tag list. From that point on the
+// visible floor is a buffer for the text of the NEXT tag only; it never
+// again shows already-committed tags, so there is exactly one visible
+// representation of each tag (the chip) instead of the chip plus a
+// duplicate comma-joined copy in the floor. The hidden carrier is what a
+// normal POST or a 422 re-render reads the tag list from; init still parses
+// the server-rendered floor value into `tags` first (the 422 re-render
+// contract is unchanged), and the takeover happens after that parse.
 //
 // Keyboard: Enter or "," commits the current floor text as a tag and clears
 // the buffer; Backspace with an empty buffer removes the last tag (the
 // combobox's own multiple-mode precedent). A duplicate value is ignored
-// (adding an existing tag again is a no-op, not a second chip).
+// (adding an existing tag again is a no-op, not a second chip). Submitting
+// the owning form with text left in the buffer (no Enter/comma pressed)
+// commits that text as a final tag first, so nothing a user typed is lost
+// on submit; a component mounted outside a form has no submit to listen for
+// and behaves exactly as before.
 //
 // Motion is CSS-owned: this module only appends/removes chip elements and
 // never sequences animation (BR-BW-TOK-009 lives entirely in the component
@@ -53,6 +65,7 @@ export default function tagInput() {
     _root: null,
     _chips: null,
     _floor: null,
+    _carrier: null,
     _buffer: "",
 
     init() {
@@ -62,14 +75,40 @@ export default function tagInput() {
       this._floor = root.querySelector("[data-bw-tag-input-floor]");
       if (!this._chips || !this._floor) return; // floor markup absent: stay inert
 
+      // Parse the server-rendered value BEFORE the carrier takeover below,
+      // so a 422 re-render (which fills the floor with the posted value)
+      // still seeds `tags` correctly.
       this.tags = splitTags(this._floor.value);
       this._renderChips();
 
-      // The floor stays visible and typeable (it is the buffer for the NEXT
-      // tag, not hidden like the combobox's select-as-floor pattern), so
-      // typing plus Enter/comma is the whole authoring flow with the chip
-      // run showing what has already been committed.
+      // Carrier takeover (#237): the hidden carrier becomes the submitted
+      // control under the real `name`; the floor loses `name` and becomes
+      // the buffer for the next tag only, so committed tags render exactly
+      // once (as chips), never a second time as floor text.
+      const carrier = document.createElement("input");
+      carrier.type = "hidden";
+      carrier.name = this._floor.name;
+      this._floor.removeAttribute("name");
+      this._floor.value = "";
+      this._floor.insertAdjacentElement("afterend", carrier);
+      this._carrier = carrier;
+      this._syncFloor();
+
+      // The floor stays visible and typeable as the buffer for the NEXT tag
+      // (not hidden like the combobox's select-as-floor pattern), so typing
+      // plus Enter/comma is the whole authoring flow with the chip run
+      // showing what has already been committed.
       this._floor.addEventListener("keydown", (event) => this._onKeydown(event));
+
+      // Data-loss guard (owner ruling, #237): a user who types a tag and
+      // submits WITHOUT pressing Enter/comma still gets that text posted,
+      // matching the pre-#237 behaviour where the buffer was appended into
+      // the floor value. A component mounted outside a <form> has nothing
+      // to listen for and stays exactly as it was.
+      const form = root.closest("form");
+      if (form) {
+        form.addEventListener("submit", () => this._commitOnSubmit());
+      }
     },
 
     add(value) {
@@ -104,19 +143,28 @@ export default function tagInput() {
     },
 
     _commitBuffer() {
-      // The floor doubles as the typing buffer: committed tags are re-joined
-      // back into it below, so clearing to "" here and letting _syncFloor
-      // restore the committed list is what removes the just-typed text.
+      // The floor holds only the in-progress buffer (#237 carrier
+      // takeover): clear it up front and let add() decide whether the text
+      // becomes a tag.
       const value = this._floor.value;
       this._floor.value = "";
       this.add(value);
     },
 
+    _commitOnSubmit() {
+      // Data-loss guard: fold any text left in the buffer into the
+      // serialised carrier as a final committed tag before the form's own
+      // submission proceeds (the listener does not preventDefault).
+      if (this._floor.value.trim() !== "") {
+        this._commitBuffer();
+      }
+    },
+
     _syncFloor() {
-      // Preserve any in-progress (uncommitted) text the user is still
-      // typing; only the committed portion is replaced.
-      const buffer = this._floor.value;
-      this._floor.value = this.tags.join(", ") + (buffer ? (this.tags.length ? ", " : "") + buffer : "");
+      // The carrier alone holds the committed, comma-joined tag list; the
+      // floor is left untouched so any in-progress text the user is typing
+      // is never rewritten or duplicated.
+      this._carrier.value = this.tags.join(", ");
     },
 
     _renderChips() {
