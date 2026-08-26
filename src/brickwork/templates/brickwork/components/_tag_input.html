@@ -27,7 +27,31 @@ translated per-chip aria-label (ICO-008: an icon-only control needs a
 distinguishable name). Submitting the owning form with unfinished buffer
 text (no Enter/comma pressed) commits that text into the carrier as a
 final tag first, so nothing typed is lost on submit, matching the no-JS
-floor's own posted value in that case.
+floor's own posted value in that case. This commit-on-submit fold runs on
+a genuine, user-originated form submission (a click/Enter on a submit
+control, or a script's own `form.requestSubmit()`) because both fire the
+form's `submit` event, which the listener above listens for. Calling the
+DOM `form.submit()` method directly does NOT fire a `submit` event by
+specification, so it bypasses this fold exactly as it bypasses every other
+submit handler and the browser's own constraint validation
+(icvoss/django-brickwork#244); a consumer that calls `form.submit()`
+programmatically is responsible for committing any uncommitted buffer
+text itself first if it needs that text posted. Mounting a tag input
+outside a `<form>` is also supported and, having no form to listen on,
+simply has no commit-on-submit fold: the component works purely as a
+chip-editing control and the caller reads state via the `tags` array or
+the `bw:taginput:add`/`bw:taginput:remove` events.
+
+Re-mounting (icvoss/django-brickwork#244): a root-REPLACING swap (the
+whole `.bw-tag-input` element, or an ancestor of it, is swapped out and
+back in) creates a fresh component instance and behaves exactly as a
+first mount. A content-only swap that keeps the same `.bw-tag-input` root
+element but re-runs `x-data` on it (an Alpine re-init, or an htmx swap
+targeting content inside the root without replacing the root itself) is
+also handled: init() detects the hidden carrier a prior init() already
+created and re-syncs its chip state from the carrier's value rather than
+repeating the takeover, so chips, the carrier's name, and the posted value
+stay consistent across the re-init.
 
 Required context: label, id, name.
 Optional: value (str, pre-filled comma-separated tags), placeholder,
@@ -57,8 +81,8 @@ Accessibility: the label/id stay on the visible floor input/textarea at
   bare icon). Covered by axe.spec.mjs against inputs-*.html (both
   single-line and multiline renders, both themes) and by
   a11y/tag_input.spec.mjs's browser-driven chip commit, chip remove,
-  carrier-serialisation, and commit-on-submit tests
-  (icvoss/django-brickwork#237).
+  carrier-serialisation, commit-on-submit, and re-init tests
+  (icvoss/django-brickwork#237, #244).
 Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-tag-input* selector.
 {% endcomment %}
