@@ -21,6 +21,10 @@
 // (axes="theme density dir brand", brands=), and a theme-only instance with
 // locked_axes="theme". Selectors scope by section heading rather than the
 // uuid-derived instance id (regenerated on every fixture build).
+//
+// A fourth, separate page (theme-switch-compact-open-js-<theme>.html)
+// carries layout="compact"'s own single instance, disclosure stamped [open]
+// in the served HTML: see the "layout=\"compact\"" describe block below.
 
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -395,6 +399,106 @@ test.describe("locked axis", () => {
     const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
     expect(stored).toBeNull();
   });
+});
+
+// --- layout="compact" (icvoss/django-brickwork#235) --------------------------
+//
+// The compact fixture (theme-switch-compact-open-js-<theme>.html) renders a
+// SINGLE compact instance (axes="theme density dir") with its details
+// disclosure stamped [open] in the served HTML, so axe and these tests see
+// the panel already revealed; bwThemeSwitch's own init() still runs the same
+// per-axis logic every inline instance exercises (validated separately
+// above), so this suite covers only what compact ADDS: the disclosure's own
+// open/close affordances, the three dismissal routes, that selecting a radio
+// never closes the panel, and the 44px compact target-size floor.
+
+function compactSection(page) {
+  return page.locator("section:has(#compact-heading)");
+}
+
+async function bootCompact(page, theme = "light") {
+  await page.goto(fx(`theme-switch-compact-open-js-${theme}.html`));
+  await page.waitForFunction(() => !!window.Alpine);
+  await expect(compactSection(page).locator("[data-bw-theme-switch]")).toBeVisible();
+}
+
+test.describe("layout=\"compact\"", () => {
+  test("init reveals the control and the disclosure ships open (fixture-stamped)", async ({ page }) => {
+    await bootCompact(page);
+    const details = compactSection(page).locator(".bw-theme-switch__disclosure");
+    await expect(details).toHaveJSProperty("open", true);
+  });
+
+  test("the summary toggles the disclosure closed and back open", async ({ page }) => {
+    await bootCompact(page);
+    const details = compactSection(page).locator(".bw-theme-switch__disclosure");
+    const summary = compactSection(page).locator(".bw-theme-switch__trigger");
+    await summary.click();
+    await expect(details).toHaveJSProperty("open", false);
+    await summary.click();
+    await expect(details).toHaveJSProperty("open", true);
+  });
+
+  test("radios inside the compact panel operate, persist, and dispatch the change event", async ({ page }) => {
+    await bootCompact(page);
+    await page.evaluate(() => {
+      window.__bw = [];
+      window.addEventListener("bw:theme-switch:change", (event) => {
+        window.__bw.push({ type: event.type, detail: event.detail ?? null });
+      });
+    });
+    const dark = compactSection(page).locator('input[value="dark"]');
+    await dark.check();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    const stored = await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"));
+    expect(stored).toEqual("dark");
+    const events = await page.evaluate(() => window.__bw);
+    expect(events).toEqual([{ type: "bw:theme-switch:change", detail: { axis: "theme", value: "dark" } }]);
+  });
+
+  test("selecting a radio never closes the panel", async ({ page }) => {
+    await bootCompact(page);
+    const details = compactSection(page).locator(".bw-theme-switch__disclosure");
+    const dark = compactSection(page).locator('input[value="dark"]');
+    await dark.check();
+    await expect(details).toHaveJSProperty("open", true);
+  });
+
+  test("Escape closes the disclosure and returns focus to the trigger", async ({ page }) => {
+    await bootCompact(page);
+    const details = compactSection(page).locator(".bw-theme-switch__disclosure");
+    const summary = compactSection(page).locator(".bw-theme-switch__trigger");
+    await summary.focus();
+    await page.keyboard.press("Escape");
+    await expect(details).toHaveJSProperty("open", false);
+    await expect(summary).toBeFocused();
+  });
+
+  test("a click outside the disclosure closes it", async ({ page }) => {
+    await bootCompact(page);
+    const details = compactSection(page).locator(".bw-theme-switch__disclosure");
+    await page.locator("h1").click();
+    await expect(details).toHaveJSProperty("open", false);
+  });
+
+  test("every compact option meets the 44px touch-target floor", async ({ page }) => {
+    await bootCompact(page);
+    const heights = await compactSection(page)
+      .locator(".bw-theme-switch__option")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
+    expect(heights.length).toBeGreaterThan(0);
+    for (const height of heights) {
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  for (const theme of THEMES) {
+    test(`axe WCAG 2.2 AA on the revealed compact disclosure (${theme})`, async ({ page }) => {
+      await bootCompact(page, theme);
+      const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+      expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+    });
+  }
 });
 
 // --- axe WCAG 2.2 AA on the revealed, live control ---------------------------
