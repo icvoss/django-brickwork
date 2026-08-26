@@ -585,9 +585,11 @@ input.bw-toggle:disabled {
 /* --- Theme switch (icvoss/django-brickwork#117) ----------------------------- */
 
 /* Deliberately unstyled beyond a native fieldset of radios laid out with the
- * existing density/space tokens: no bespoke widget, no option-driven
- * modifier class (axes=/locked_axes= change WHICH fieldsets render, never
- * their appearance), so there is nothing here to vary by option value. */
+ * existing density/space tokens: no bespoke widget. axes=/locked_axes=
+ * change WHICH fieldsets render, never their appearance. layout="compact"
+ * (icvoss/django-brickwork#235, below) is the one option that does vary
+ * appearance: it wraps the SAME fieldsets in a details/summary disclosure,
+ * on the dropdown's own established panel tokens. */
 .bw-theme-switch {
   display: flex;
   flex-wrap: wrap;
@@ -634,6 +636,74 @@ input.bw-toggle:disabled {
   font-size: var(--bw-text-caption-size);
   font-weight: var(--bw-text-caption-weight);
   line-height: var(--bw-text-caption-line-height);
+}
+
+/* layout="compact" (icvoss/django-brickwork#235): the same fieldsets above,
+ * wrapped in a native details/summary disclosure (APG Disclosure, no ARIA
+ * menu roles, the _account_menu.html/_dropdown.html doctrine). The trigger
+ * is bw_button "secondary md" chrome on a summary (_dropdown.html's own
+ * composition, mirrored here rather than duplicated as a new primitive);
+ * the panel takes the SAME dropdown-shaped tokens _dropdown.html/
+ * _account_menu.html already established: surface-raised, elevation-3 at
+ * z-dropdown, radius-lg, the menu min-width token, absolute positioning
+ * anchored under the trigger by placement=. No width-dependent rule
+ * anywhere in this block: layout is a consumer-chosen option, not a
+ * breakpoint. */
+.bw-theme-switch--compact {
+  display: inline-flex; /* the outer root still only ever holds the one disclosure */
+}
+.bw-theme-switch__disclosure {
+  position: relative;
+  display: inline-block;
+}
+.bw-theme-switch__trigger {
+  cursor: pointer;
+  list-style: none; /* hide the default disclosure triangle; the caret glyph is the affordance */
+}
+.bw-theme-switch__trigger::-webkit-details-marker {
+  display: none;
+}
+.bw-theme-switch__caret {
+  color: var(--bw-color-fg-muted);
+  transition: var(--bw-transition-transform);
+}
+.bw-theme-switch__disclosure[open] .bw-theme-switch__caret {
+  transform: rotate(180deg);
+}
+.bw-theme-switch__panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--bw-space-1));
+  min-inline-size: var(--bw-component-menu-min-width);
+  padding: var(--bw-space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-density-stack-gap);
+  background: var(--bw-color-surface-raised);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  box-shadow: var(--bw-elevation-3), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  z-index: var(--bw-z-dropdown);
+}
+.bw-theme-switch__disclosure[open] .bw-theme-switch__panel {
+  animation: bw-fade-in-up var(--bw-duration-normal) var(--bw-ease-out);
+}
+.bw-theme-switch--start .bw-theme-switch__panel {
+  inset-inline-start: 0;
+}
+.bw-theme-switch--end .bw-theme-switch__panel {
+  inset-inline-end: 0;
+}
+/* The 44px touch-target floor on compact options only (#212's label-extension
+ * route): the clickable label grows, the visible radio and text keep their
+ * ordinary size, and align-items: center (above) keeps the label vertically
+ * centred inside the taller target. */
+.bw-theme-switch--compact .bw-theme-switch__option {
+  min-block-size: var(--bw-size-touch-target-min);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-theme-switch__caret {
+    transition: none;
+  }
 }
 
 .bw-field__help {
@@ -3453,6 +3523,7 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 [data-theme="dark"] .bw-account-menu__panel,
 [data-theme="dark"] .bw-dropdown__panel,
+[data-theme="dark"] .bw-theme-switch__panel,
 [data-theme="dark"] .bw-combobox__listbox {
   box-shadow: var(--bw-elevation-3);
 }
