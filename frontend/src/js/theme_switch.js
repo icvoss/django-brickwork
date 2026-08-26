@@ -90,6 +90,21 @@
 // Motion: intentionally none. Flipping data-theme/data-density/dir/data-bw-brand
 // is a live token re-resolution; any transition is the CONSUMER's own
 // tokens, not something this module sequences.
+//
+// layout="compact" (icvoss/django-brickwork#235): the fieldsets above are
+// wrapped in a native <details class="bw-theme-switch__disclosure">, an APG
+// Disclosure with deliberately NO ARIA menu roles (the _account_menu.html
+// doctrine: role="menu" mandates arrow-key handling this module never
+// provides here). The disclosure already opens/closes with no JS at all
+// (native <details>/<summary>); this module's ONLY job for it is adding the
+// three dismissal routes bwDropdown's own panel offers (Escape with focus
+// returned to the trigger, and click/tap outside), each wired once at init
+// and removed in destroy(), mirroring bwDropdown's own
+// document-pointerdown-listener lifecycle
+// (frontend/src/js/dropdown.js). Selecting a radio inside the panel never
+// closes it: unlike a command menu (bwDropdown's closeOnSelect), a visitor
+// may want to flip more than one axis in a single visit, so the panel stays
+// open until one of the three dismissal routes fires.
 
 const STORAGE_PREFIX = "bw-theme-switch-";
 
@@ -171,6 +186,10 @@ function readValidValues(root) {
 export default function themeSwitch() {
   return {
     _root: null,
+    _disclosure: null,
+    _disclosureTrigger: null,
+    _onDisclosureKeydown: null,
+    _onOutsidePointerDown: null,
 
     init() {
       const root = this.$el;
@@ -187,6 +206,54 @@ export default function themeSwitch() {
       // shows a control that would do nothing (the #117 ruling's floor
       // rule, mirrored from dismissible.js's close-button reveal).
       root.removeAttribute("hidden");
+
+      this._initCompactDisclosure(root);
+    },
+
+    // layout="compact" (#235): the disclosure already opens/closes with no
+    // JS (native <details>/<summary>); this only adds the dismissal routes
+    // a bare <details> does not provide on its own (Escape, click/tap
+    // outside), mirroring bwDropdown's own listener shape
+    // (frontend/src/js/dropdown.js). Absent on layout="inline" (no
+    // .bw-theme-switch__disclosure in the markup at all), so this stays
+    // inert for the pre-existing render.
+    _initCompactDisclosure(root) {
+      const disclosure = root.querySelector(":scope > .bw-theme-switch__disclosure");
+      if (!disclosure) return;
+      const trigger = disclosure.querySelector(":scope > .bw-theme-switch__trigger");
+      if (!trigger) return;
+
+      this._disclosure = disclosure;
+      this._disclosureTrigger = trigger;
+
+      this._onDisclosureKeydown = (event) => {
+        if (event.key !== "Escape" || !disclosure.open) return;
+        event.preventDefault();
+        disclosure.open = false;
+        trigger.focus(); // BR-BW-JS-006: never drop focus on a dismissal route
+      };
+      disclosure.addEventListener("keydown", this._onDisclosureKeydown);
+
+      this._onOutsidePointerDown = (event) => {
+        if (disclosure.open && !disclosure.contains(event.target)) {
+          disclosure.open = false;
+        }
+      };
+      document.addEventListener("pointerdown", this._onOutsidePointerDown);
+
+      // Deliberately no listener on radio change: unlike a command menu
+      // (bwDropdown's closeOnSelect), a visitor may want to flip more than
+      // one axis in a single visit, so selecting a radio never closes the
+      // panel; only the summary toggle, Escape, and click/tap outside do.
+    },
+
+    destroy() {
+      if (this._disclosure && this._onDisclosureKeydown) {
+        this._disclosure.removeEventListener("keydown", this._onDisclosureKeydown);
+      }
+      if (this._onOutsidePointerDown) {
+        document.removeEventListener("pointerdown", this._onOutsidePointerDown);
+      }
     },
 
     _initGroup(group, validValues) {
