@@ -8,6 +8,101 @@ versioning contract).
 
 ## Unreleased
 
+## [3.11.0] - 2026-08-26
+
+A behaviour and accessibility release, plus gate hardening. The enhanced tag
+input no longer shows a committed tag twice: bwTagInput now serialises
+committed tags through a hidden carrier input that takes over the floor's
+`name`, so the visible floor holds only the tag currently being typed; posts
+are unchanged, including uncommitted text at submit, and the commit-on-submit
+fold runs for a genuine user-originated submit or `form.requestSubmit()`
+(a script calling `form.submit()` directly bypasses this fold exactly as it
+bypasses every other submit handler). `{% bw_theme_switch %}` gains
+`layout="inline"|"compact"` and `placement` options for a collapsed,
+disclosure-based header presentation; the `"inline"` default is unchanged and
+pinned byte-identical to 3.10.0, so nothing changes for a consumer who does
+not opt in. Marketing header, header actions, footer and breadcrumb nav links
+now grow to a 44px touch target on coarse-pointer (touch) devices, routed
+through the existing `--bw-size-touch-target-min` token; fine-pointer desktop
+rendering is pinned unchanged at 24px, so there is no layout shift for a
+mouse or trackpad user. The footer links' touch-target floor is a reversed
+position: #208 had explicitly declined to size those links, reasoning that
+brickwork did not own the group's layout; this release reverses that and
+owns their floor, on the grounds that the package already styles those
+anchors' colour and decoration, which is the same claim of ownership a
+sizing floor makes. Gate hardening: the blocking a11y gate's fixture
+coverage is now drift-gated against the catalogue manifest, the
+`docs/POSITIONING.md` canonical claims table is now mechanically re-derived
+and drift-gated, and a flaky sortable-persistence gate race is fixed by
+waiting on `htmx:afterSettle` instead of a vacuous DOM count.
+
+### Added
+
+- **`{% bw_theme_switch %}` gains `layout="inline"|"compact"` and `placement="start"|"end"`, a collapsed presentation for a header actions cluster** (icvoss/django-brickwork#235). The stock control renders three fieldsets side by side, which wraps onto its own line in a content-heavy header before roughly 1240px and, at phone width, presents as bare radios measuring as little as 53x21px, well under the 44px touch-target floor. `layout="compact"` (opt-in; the default `"inline"` is unchanged, byte-identical to the pre-existing render) wraps the same fieldsets in a native `<details>/<summary>` disclosure, a WAI-ARIA APG Disclosure with no ARIA menu roles, styled on the same dropdown panel tokens `bw_dropdown`/`bw_account_menu` already use, dismissible via the summary toggle, Escape, or a click outside, and never closing on radio selection (a visitor may flip more than one axis in a visit). Every compact option clears the 44px touch-target floor. `placement` (only meaningful with `layout="compact"`; passing it with `layout="inline"` raises `TemplateSyntaxError`) anchors the panel to the trigger's start or end edge. Nothing changes for a consumer who does not pass `layout=`. Unwinds the hand-built `<details>` wrapper brickworkui.com composed around the stock control as a workaround (icvoss/brickworkui.com#69).
+
+- **Marketing header, marketing footer and breadcrumb nav links gain a 44px
+  touch target on touch devices** (icvoss/django-brickwork#242). These links
+  already met the WCAG 2.5.8 AA 24px floor (#208); on a coarse-pointer
+  device (`@media (pointer: coarse)`) they now also meet the WCAG 2.5.5/
+  platform-HIG 44px bar, routed through the existing
+  `--bw-size-touch-target-min` token rather than a new hardcoded value.
+  Fine-pointer desktop rendering is unchanged: the larger target only
+  applies where the primary input is imprecise, so no layout shifts for a
+  mouse or trackpad user.
+
+### Fixed
+
+- **The a11y gate's fixture coverage is now drift-gated against the catalogue
+  manifest** (icvoss/django-brickwork#226). The blocking a11y gate ran over a
+  hand-maintained fixture list with no check that it stayed complete: a new
+  catalogue item could ship with no fixture rendering it and go unnoticed
+  until a review caught it, which happened twice (a visual surface before
+  3.6.0, then `bw_theme_switch` in the W0.4 slice). A new drift test
+  (`tests/test_a11y_fixture_coverage.py`) now asserts every shipped shell,
+  component and section has at least one fixture, and that archetype coverage
+  stays auto-discovered from the manifest rather than hand-listed; it found
+  two components with no fixture at all (`component/search`,
+  `component/spinner`, both of which said so in their own documentation
+  comments), now fixed with a new `search-<theme>.html` fixture. Consumer
+  terms: no behaviour change; the a11y gate's coverage of the shipped
+  component set is now mechanically verified rather than trusted, so a future
+  component cannot ship with untested markup.
+
+- **Enhanced tag input no longer displays committed tags twice**
+  (icvoss/django-brickwork#237). Committing a tag showed it both as a chip
+  and as comma-joined text in the still-visible floor input. bwTagInput now
+  serialises committed tags through a hidden carrier input, which takes over
+  the floor's `name`; the visible floor holds only the text of the next tag
+  being typed. Form posts are unchanged, including text left uncommitted
+  (no Enter or comma pressed) at submit time, which is still folded into the
+  posted value.
+
+  The commit-on-submit fold runs on a genuine, user-originated form
+  submission or a script's own `form.requestSubmit()`, both of which fire
+  the form's `submit` event. Calling the DOM `form.submit()` method
+  directly does not fire a `submit` event, so it bypasses this fold exactly
+  as it bypasses every other submit handler and the browser's own
+  constraint validation; a consumer calling `form.submit()` programmatically
+  is responsible for committing any uncommitted buffer text itself first.
+
+  A second `init()` on the same component root (an Alpine re-mount, or a
+  content-only htmx swap that keeps the root) no longer wipes committed
+  chips or creates a second, wrongly unnamed carrier: it now re-syncs from
+  the existing carrier's value instead of repeating the takeover
+  (icvoss/django-brickwork#244).
+
+- **`docs/POSITIONING.md`'s canonical claims table refreshed and drift-gated**
+  (icvoss/django-brickwork#240). Section 5's table was hand-counted at 3.7.0
+  and had gone stale by 3.10.0, worst on the component count (39 claimed
+  versus 40 shipped, after `bw_theme_switch` landed in 3.9.0). Consumer
+  marketing copy anchored to this table could inherit that rot silently. All
+  values are now mechanically re-derived against the shipped code, and the
+  mechanically derivable rows (kind counts, the core/marketing split,
+  overridable token count, version, Alpine registrations, template tag
+  registrations, archetype fixture count) are covered by a new drift test
+  (`tests/test_positioning.py`), so a future edit that leaves the doc and the
+  code disagreeing fails CI instead of shipping quietly.
+
 ## [3.10.0] - 2026-08-25
 
 A documentation and catalogue-accuracy release: every one of the 87 shipped

@@ -31,6 +31,10 @@ reused.**
    - `pyproject.toml` - update `version`
    - `src/brickwork/__init__.py` - update `__version__` (keep in sync)
    - `CHANGELOG.md` - rename `[Unreleased]` to `[<version>] - <YYYY-MM-DD>`
+   - `docs/POSITIONING.md` - update the section 5 Version row (it is
+     drift-gated against `brickwork.__version__` since #241, so CI fails
+     the release PR if you skip this) and `README.md`'s "This checkout is
+     version" line
 3. **Open a PR** to `main`. CI runs lint and tests. Get it reviewed. This is
    the gate, do not skip it.
 4. **Merge to `main`** (squash or merge, per repo norm).
