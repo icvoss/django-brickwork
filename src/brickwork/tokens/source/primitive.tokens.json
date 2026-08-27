@@ -3,118 +3,345 @@
     "$description": "Primitive tier: raw scale values with no semantic meaning. NOT the public contract (BR-BW-TOK-001): names may change between minors. Colour ramps seeded from Radix Colors, converted to oklch (BR-BW-TOK-003); non-colour scales seeded from Open Props. Semantic tokens reference these; consumers reference the semantic tier, never these.",
     "$type": "color",
     "gray": {
-      "0":  { "$value": "oklch(1 0 0)" },
-      "50": { "$value": "oklch(0.985 0.001 265)" },
-      "100": { "$value": "oklch(0.967 0.002 265)" },
-      "200": { "$value": "oklch(0.928 0.004 265)" },
-      "300": { "$value": "oklch(0.872 0.006 265)" },
-      "400": { "$value": "oklch(0.708 0.008 265)" },
-      "500": { "$value": "oklch(0.556 0.009 265)" },
-      "600": { "$value": "oklch(0.446 0.008 265)" },
-      "700": { "$value": "oklch(0.372 0.007 265)" },
-      "800": { "$value": "oklch(0.269 0.006 265)" },
-      "900": { "$value": "oklch(0.205 0.005 265)" },
-      "950": { "$value": "oklch(0.145 0.004 265)" },
-      "1000": { "$value": "oklch(0.11 0.003 265)" }
+      "0": {
+        "$value": "oklch(1 0 0)"
+      },
+      "50": {
+        "$value": "oklch(0.985 0.001 265)"
+      },
+      "100": {
+        "$value": "oklch(0.967 0.002 265)"
+      },
+      "200": {
+        "$value": "oklch(0.928 0.004 265)"
+      },
+      "300": {
+        "$value": "oklch(0.872 0.006 265)"
+      },
+      "400": {
+        "$value": "oklch(0.708 0.008 265)"
+      },
+      "500": {
+        "$value": "oklch(0.556 0.009 265)"
+      },
+      "600": {
+        "$value": "oklch(0.446 0.008 265)"
+      },
+      "700": {
+        "$value": "oklch(0.372 0.007 265)"
+      },
+      "800": {
+        "$value": "oklch(0.269 0.006 265)"
+      },
+      "900": {
+        "$value": "oklch(0.205 0.005 265)"
+      },
+      "950": {
+        "$value": "oklch(0.145 0.004 265)"
+      },
+      "1000": {
+        "$value": "oklch(0.11 0.003 265)"
+      }
     },
     "blue": {
-      "50":  { "$value": "oklch(0.97 0.014 254)" },
-      "100": { "$value": "oklch(0.932 0.032 255)" },
-      "400": { "$value": "oklch(0.707 0.165 254)" },
-      "500": { "$value": "oklch(0.623 0.188 260)" },
-      "600": { "$value": "oklch(0.546 0.192 262)" },
-      "700": { "$value": "oklch(0.488 0.181 264)" },
-      "950": { "$value": "oklch(0.282 0.091 267)" }
+      "50": {
+        "$value": "oklch(0.97 0.014 254)"
+      },
+      "100": {
+        "$value": "oklch(0.932 0.032 255)"
+      },
+      "400": {
+        "$value": "oklch(0.707 0.165 254)"
+      },
+      "500": {
+        "$value": "oklch(0.623 0.188 260)"
+      },
+      "600": {
+        "$value": "oklch(0.546 0.192 262)"
+      },
+      "700": {
+        "$value": "oklch(0.488 0.181 264)"
+      },
+      "950": {
+        "$value": "oklch(0.282 0.091 267)"
+      }
     },
     "cyan": {
-      "50":  { "$value": "oklch(0.98 0.02 210)" },
-      "400": { "$value": "oklch(0.72 0.11 220)" },
-      "600": { "$value": "oklch(0.6 0.11 225)" },
-      "700": { "$value": "oklch(0.52 0.1 227)" },
-      "950": { "$value": "oklch(0.3 0.06 230)" }
+      "50": {
+        "$value": "oklch(0.98 0.02 210)"
+      },
+      "400": {
+        "$value": "oklch(0.72 0.11 220)"
+      },
+      "600": {
+        "$value": "oklch(0.6 0.11 225)"
+      },
+      "700": {
+        "$value": "oklch(0.52 0.1 227)"
+      },
+      "950": {
+        "$value": "oklch(0.3 0.06 230)"
+      }
     },
     "red": {
-      "50":  { "$value": "oklch(0.971 0.013 18)" },
-      "100": { "$value": "oklch(0.936 0.032 18)" },
-      "500": { "$value": "oklch(0.637 0.208 25)" },
-      "600": { "$value": "oklch(0.577 0.215 27)" },
-      "700": { "$value": "oklch(0.505 0.194 27)" },
-      "950": { "$value": "oklch(0.258 0.092 26)" }
+      "50": {
+        "$value": "oklch(0.971 0.013 18)"
+      },
+      "100": {
+        "$value": "oklch(0.936 0.032 18)"
+      },
+      "500": {
+        "$value": "oklch(0.637 0.208 25)"
+      },
+      "600": {
+        "$value": "oklch(0.577 0.215 27)"
+      },
+      "700": {
+        "$value": "oklch(0.505 0.194 27)"
+      },
+      "950": {
+        "$value": "oklch(0.258 0.092 26)"
+      }
     },
     "amber": {
-      "50":  { "$value": "oklch(0.987 0.022 95)" },
-      "100": { "$value": "oklch(0.962 0.059 95)" },
-      "500": { "$value": "oklch(0.769 0.166 70)" },
-      "600": { "$value": "oklch(0.666 0.163 58)" },
-      "700": { "$value": "oklch(0.555 0.143 49)" },
-      "950": { "$value": "oklch(0.279 0.077 46)" }
+      "50": {
+        "$value": "oklch(0.987 0.022 95)"
+      },
+      "100": {
+        "$value": "oklch(0.962 0.059 95)"
+      },
+      "500": {
+        "$value": "oklch(0.769 0.166 70)"
+      },
+      "600": {
+        "$value": "oklch(0.666 0.163 58)"
+      },
+      "700": {
+        "$value": "oklch(0.555 0.143 49)"
+      },
+      "950": {
+        "$value": "oklch(0.279 0.077 46)"
+      }
     },
     "green": {
-      "50":  { "$value": "oklch(0.982 0.018 155)" },
-      "100": { "$value": "oklch(0.962 0.044 156)" },
-      "500": { "$value": "oklch(0.723 0.169 152)" },
-      "600": { "$value": "oklch(0.627 0.155 149)" },
-      "700": { "$value": "oklch(0.527 0.132 150)" },
-      "950": { "$value": "oklch(0.266 0.061 153)" }
+      "50": {
+        "$value": "oklch(0.982 0.018 155)"
+      },
+      "100": {
+        "$value": "oklch(0.962 0.044 156)"
+      },
+      "500": {
+        "$value": "oklch(0.723 0.169 152)"
+      },
+      "600": {
+        "$value": "oklch(0.627 0.155 149)"
+      },
+      "700": {
+        "$value": "oklch(0.527 0.132 150)"
+      },
+      "950": {
+        "$value": "oklch(0.266 0.061 153)"
+      }
+    },
+    "chart": {
+      "$description": "Categorical data-series ramp (ADR-082). Unlike the hue ramps above this is a set of eight mutually-distinguishable series colours, not a lightness scale of one hue: 'light'/'dark' are the two authored themes (BR-BW-TOK-002), not scale steps. Hue is invariant per series across both themes because a series' identity is its hue; only lightness and chroma are authored per theme. Every value satisfies four properties verified in tests: an all-pairs separation floor of 0.12 in oklab, a minimum 28 degree hue separation, WCAG 1.4.11 3:1 against its own theme's surface, and hue stability across themes. See ADR-082 Decision 5.",
+      "light": {
+        "1": {
+          "$value": "oklch(0.562 0.213 6)"
+        },
+        "2": {
+          "$value": "oklch(0.313 0.143 49)"
+        },
+        "3": {
+          "$value": "oklch(0.604 0.116 77)"
+        },
+        "4": {
+          "$value": "oklch(0.597 0.197 173)"
+        },
+        "5": {
+          "$value": "oklch(0.307 0.217 212)"
+        },
+        "6": {
+          "$value": "oklch(0.470 0.214 245)"
+        },
+        "7": {
+          "$value": "oklch(0.346 0.155 273)"
+        },
+        "8": {
+          "$value": "oklch(0.596 0.113 302)"
+        }
+      },
+      "dark": {
+        "1": {
+          "$value": "oklch(0.587 0.205 6)"
+        },
+        "2": {
+          "$value": "oklch(0.871 0.134 49)"
+        },
+        "3": {
+          "$value": "oklch(0.687 0.212 77)"
+        },
+        "4": {
+          "$value": "oklch(0.578 0.208 173)"
+        },
+        "5": {
+          "$value": "oklch(0.726 0.129 212)"
+        },
+        "6": {
+          "$value": "oklch(0.561 0.220 245)"
+        },
+        "7": {
+          "$value": "oklch(0.885 0.131 273)"
+        },
+        "8": {
+          "$value": "oklch(0.705 0.219 302)"
+        }
+      }
     }
   },
   "size": {
     "$type": "dimension",
     "$description": "Non-colour primitives (Open Props-derived). Spacing scale, radii, icon sizes, control heights. Density axis (semantic tier) selects between these; direction is handled by logical CSS properties, not a token (BR-BW-TOK-005).",
     "space": {
-      "0": { "$value": "0" },
-      "px": { "$value": "1px" },
-      "0-5": { "$value": "0.125rem" },
-      "1": { "$value": "0.25rem" },
-      "1-5": { "$value": "0.375rem" },
-      "2": { "$value": "0.5rem" },
-      "3": { "$value": "0.75rem" },
-      "4": { "$value": "1rem" },
-      "5": { "$value": "1.25rem" },
-      "6": { "$value": "1.5rem" },
-      "7": { "$value": "1.75rem" },
-      "8": { "$value": "2rem" },
-      "9": { "$value": "2.25rem" },
-      "10": { "$value": "2.5rem" },
-      "11": { "$value": "2.75rem" },
-      "12": { "$value": "3rem" },
-      "16": { "$value": "4rem" },
-      "20": { "$value": "5rem" },
-      "24": { "$value": "6rem" }
+      "0": {
+        "$value": "0"
+      },
+      "px": {
+        "$value": "1px"
+      },
+      "0-5": {
+        "$value": "0.125rem"
+      },
+      "1": {
+        "$value": "0.25rem"
+      },
+      "1-5": {
+        "$value": "0.375rem"
+      },
+      "2": {
+        "$value": "0.5rem"
+      },
+      "3": {
+        "$value": "0.75rem"
+      },
+      "4": {
+        "$value": "1rem"
+      },
+      "5": {
+        "$value": "1.25rem"
+      },
+      "6": {
+        "$value": "1.5rem"
+      },
+      "7": {
+        "$value": "1.75rem"
+      },
+      "8": {
+        "$value": "2rem"
+      },
+      "9": {
+        "$value": "2.25rem"
+      },
+      "10": {
+        "$value": "2.5rem"
+      },
+      "11": {
+        "$value": "2.75rem"
+      },
+      "12": {
+        "$value": "3rem"
+      },
+      "16": {
+        "$value": "4rem"
+      },
+      "20": {
+        "$value": "5rem"
+      },
+      "24": {
+        "$value": "6rem"
+      }
     },
     "radius": {
-      "none": { "$value": "0" },
-      "sm": { "$value": "0.25rem" },
-      "md": { "$value": "0.375rem" },
-      "lg": { "$value": "0.5rem" },
-      "xl": { "$value": "0.75rem" },
-      "2xl": { "$value": "1rem" },
-      "full": { "$value": "9999px" }
+      "none": {
+        "$value": "0"
+      },
+      "sm": {
+        "$value": "0.25rem"
+      },
+      "md": {
+        "$value": "0.375rem"
+      },
+      "lg": {
+        "$value": "0.5rem"
+      },
+      "xl": {
+        "$value": "0.75rem"
+      },
+      "2xl": {
+        "$value": "1rem"
+      },
+      "full": {
+        "$value": "9999px"
+      }
     },
     "border": {
-      "hairline": { "$value": "1px" },
-      "thick": { "$value": "2px" },
-      "nav-marker": { "$value": "3px" }
+      "hairline": {
+        "$value": "1px"
+      },
+      "thick": {
+        "$value": "2px"
+      },
+      "nav-marker": {
+        "$value": "3px"
+      }
     },
     "icon": {
-      "sm": { "$value": "1rem" },
-      "md": { "$value": "1.25rem" },
-      "lg": { "$value": "1.5rem" },
-      "xl": { "$value": "2rem" },
-      "2xl": { "$value": "2.5rem" }
+      "sm": {
+        "$value": "1rem"
+      },
+      "md": {
+        "$value": "1.25rem"
+      },
+      "lg": {
+        "$value": "1.5rem"
+      },
+      "xl": {
+        "$value": "2rem"
+      },
+      "2xl": {
+        "$value": "2.5rem"
+      }
     },
     "control-height": {
-      "sm": { "$value": "2rem" },
-      "md": { "$value": "var(--bw-density-control-height)" },
-      "lg": { "$value": "3rem" }
+      "sm": {
+        "$value": "2rem"
+      },
+      "md": {
+        "$value": "var(--bw-density-control-height)"
+      },
+      "lg": {
+        "$value": "3rem"
+      }
     },
-    "touch-target-min": { "$value": "2.75rem" },
+    "touch-target-min": {
+      "$value": "2.75rem"
+    },
     "max-width": {
-      "prose": { "$value": "65ch" },
-      "form": { "$value": "32rem" },
-      "modal-sm": { "$value": "28rem" },
-      "modal-md": { "$value": "32rem" },
-      "modal-lg": { "$value": "48rem" }
+      "prose": {
+        "$value": "65ch"
+      },
+      "form": {
+        "$value": "32rem"
+      },
+      "modal-sm": {
+        "$value": "28rem"
+      },
+      "modal-md": {
+        "$value": "32rem"
+      },
+      "modal-lg": {
+        "$value": "48rem"
+      }
     }
   }
 }
