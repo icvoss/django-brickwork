@@ -290,10 +290,21 @@ def test_dark_theme_contains_a_chromatic_partner_mix() -> None:
             chromatic_hue_divergent.append(css_name)
 
     assert chromatic_hue_divergent, (
-        "dark theme has no derived token mixing toward a chromatic partner with "
-        "measurable hue divergence between the Cartesian and polar models; the "
-        "coverage brickwork#306 asks for has regressed to achromatic-only, which "
-        "cannot distinguish a correct _evaluate() from the shortest-arc bug it replaced"
+        "dark theme has no derived token mixing toward a chromatic partner whose "
+        "Cartesian and polar results differ by more than _TOL_H, so nothing here "
+        "can distinguish a correct _evaluate() from the shortest-arc bug it "
+        "replaced (brickwork#306).\n"
+        "TWO DIFFERENT CHANGES CAUSE THIS, and the fix differs:\n"
+        "  1. Every mix partner became achromatic, the original #306 shape.\n"
+        "  2. A qualifying mix survived but its operands' hues moved closer "
+        "together. The divergence scales with the hue gap: this guard has rested "
+        "on --bw-color-surface-marketing-tint (accent H 254 toward surface H 265, "
+        "an 11 degree gap, 7.69 degrees of divergence), and it stops qualifying "
+        "below roughly a 6 degree gap. A routine 5 degree palette retune is "
+        "enough, and is not a defect.\n"
+        "In case 2 the model is still correct and only this guard's subject "
+        "moved: point it at another chromatic mix, or widen the dark palette's "
+        "hue spread, rather than relaxing _TOL_H."
     )
 
 
