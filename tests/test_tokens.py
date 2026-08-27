@@ -355,12 +355,12 @@ def test_dist_brickwork_css_has_no_var_inside_a_media_condition() -> None:
 # block in tokens.css (the 0.10.0 courtesy-alias block) could quietly break.
 _TEXT_FAMILY_TOKEN = re.compile(r"--bw-text-[a-z0-9]+(?:-[a-z0-9]+)*-family")
 
-# The `code` role deliberately bypasses the role layer: .bw-prose code/pre
-# read --bw-font-family-mono directly (DESIGN.md 7.4), not this token, so
-# --bw-text-code-family is a genuine token-nothing-reads exemption, not a
-# bug. Wiring it means changing what a live rendering path (every
-# consumer's prose) resolves through, which is out of scope for the #288
-# false-affordance fix and is tracked as its own issue. This is a named,
+# The `code` role bypasses the role layer: .bw-prose code/pre read
+# --bw-font-family-mono directly rather than this token, against the rule
+# DESIGN.md 7.4 states. That is a real defect, tracked as #293, and a
+# different one from the false affordance #288 fixed: wiring it changes
+# what a live rendering path (every consumer's prose) resolves through,
+# so it gets its own review rather than riding in here. This is a named,
 # single-token exemption, never a pattern: a second token added here
 # without the same justification is a regression, not a fix, and the
 # quantifier assertion below still fails for it.
@@ -424,10 +424,9 @@ def test_every_text_family_token_is_consumed_by_a_font_family_rule() -> None:
     # so a build-pipeline drop between the two is caught either way.
     #
     # --bw-text-code-family is excluded via the named _TEXT_FAMILY_EXEMPT
-    # set above (the `code` role bypasses the role layer by design pending
-    # its own issue); every other token must still be consumed, and adding
-    # a second token to that exemption without matching justification does
-    # not shrink what this assertion checks.
+    # set above, pending #293; every other token must still be consumed,
+    # and adding a second token to that exemption without matching
+    # justification does not shrink what this assertion checks.
     defined = _defined_text_family_tokens() - _TEXT_FAMILY_EXEMPT
     assert defined, "expected at least one --bw-text-*-family token in the manifest"
     assert len(defined) > 1, (
