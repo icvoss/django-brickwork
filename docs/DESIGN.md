@@ -741,6 +741,11 @@ who wants a different label face changes `--bw-font-family-sans` instead.
 or `letter-spacing`, so binding those two would add an opinion the rule
 never expressed rather than close a gap, and the role's `normal`/`0em`
 defaults already match the inherited values a consumer would otherwise get.
+That is a deliberate exception to the wire-or-remove rule stated above, and
+it is held open rather than settled: `code` is not special here, its two are
+2 of 9 unconsumed role properties across the whole type scale, tracked and
+decided together as icvoss/django-brickwork#312. Resolving them per role
+in isolation is what produced the inconsistency #312 exists to correct.
 Wiring was a visual no-op at package default: `--bw-text-code-family`
 already resolved to `var(--bw-font-family-mono)`, and `--bw-text-code-size`
 and the previously-read `--bw-text-body-sm-size` both resolved to

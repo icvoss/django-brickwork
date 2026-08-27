@@ -357,13 +357,19 @@ _TEXT_FAMILY_TOKEN = re.compile(r"--bw-text-[a-z0-9]+(?:-[a-z0-9]+)*-family")
 
 # #293 wired the `code` role (.bw-prose code/pre now consume
 # --bw-text-code-family instead of reading --bw-font-family-mono directly),
-# which closed the last unconsumed --bw-text-*-family token. #288's original
-# exemption mechanism (a named frozenset plus a staleness test) is removed
-# rather than kept empty: a staleness test over an empty exemption set can
-# never fail (set difference against the empty set is always empty), which is
-# the vacuous-assertion class #286 is about. If a future token needs a
-# deliberate, reviewed exemption, reintroduce the mechanism then, with a
-# non-empty set the staleness test can actually exercise.
+# which closed the last unconsumed --bw-text-*-family token. #288's exemption
+# mechanism (a named frozenset plus a staleness test) is therefore removed
+# because there is nothing left to exempt, not because the mechanism was
+# wrong: it did its job and its cause is gone.
+#
+# It is deleted rather than kept as an empty frozenset because an empty one
+# would be worse than absent. The staleness test could not then fail (set
+# difference against the empty set is always empty), so it would advertise a
+# protection it does not provide, which is the vacuous-assertion class #286
+# is about. That is the reason for deleting rather than emptying; it is not a
+# reason to avoid the mechanism itself. If a future token needs a deliberate,
+# reviewed exemption, reintroduce both, with a non-empty set the staleness
+# test can actually exercise.
 
 
 def _defined_text_family_tokens() -> set[str]:
