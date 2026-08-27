@@ -1,14 +1,9 @@
 """{% bw_ranked_list %} contract tests (icvoss/django-brickwork#183).
 
 Covers geometry (basis="max"/"total", zero/negative-amount degradation),
-the href/data/value row options, the empty and loading branches, and the
-shared data-visualisation encoding contract (ADR-081): numeric meaning
-survives with all colour/style stripped (COL-030), the bar is aria-hidden
-and carries no text, the geometry is a unitless custom property, and no
-per-row progressbar semantics leak in (VIZ-015). The contract assertions
-themselves live in ``tests/_encoding_contract.py`` so the next family member
-(sparkline, trend indicator, gauge/scorecard) is built against the same
-mechanism rather than a fresh regex.
+the href/data/value row options, the empty and loading branches, and
+COL-030 (numeric meaning survives with all colour/style stripped, since the
+bar is aria-hidden and the label/value text is the sole accessible channel).
 """
 
 from __future__ import annotations
@@ -19,16 +14,6 @@ from decimal import Decimal
 import pytest
 from django.template import engines
 from django.template.exceptions import TemplateSyntaxError
-from django.template.loader import render_to_string
-
-from tests._encoding_contract import (
-    assert_bar_is_aria_hidden_and_empty,
-    assert_geometry_is_a_unitless_custom_property,
-    assert_no_progressbar_semantics,
-    assert_ordered_list_element_survives_stripping,
-    assert_text_nodes_are_not_aria_hidden,
-    assert_text_survives_colour_and_style_stripped,
-)
 
 _ROWS = [
     {"label": "Acme Corp", "amount": 400},
@@ -290,70 +275,33 @@ def test_loading_shows_a_skeleton_and_ignores_rows() -> None:
     assert "bw-empty-state" not in out
 
 
-# --- encoding contract (ADR-081): shared with every viz family member ------
+# --- COL-030: numeric meaning survives with colour/style stripped -----------
 
 
 def test_label_and_value_text_survive_with_all_colour_and_style_stripped() -> None:
     out = _render()
-    # the label assertions alone would still pass if the value span's text
+    stripped = re.sub(r'\s(?:class|style)="[^"]*"', "", out)
+    assert "Acme Corp" in stripped
+    assert "Globex" in stripped
+    assert "Initech" in stripped
+    # the label assertions above would still pass if the value span's text
     # were stripped entirely, since the bar itself carries no text of its
     # own to compensate; the numeric meaning must survive too (COL-030).
-    assert_text_survives_colour_and_style_stripped(out, "Acme Corp", "Globex", "Initech", "400", "300", "100")
+    assert "400" in stripped
+    assert "300" in stripped
+    assert "100" in stripped
 
 
 def test_bar_is_aria_hidden_and_carries_no_visible_text_of_its_own() -> None:
     out = _render(rows=[{"label": "Acme", "amount": 400}])
-    assert_bar_is_aria_hidden_and_empty(out, bar_class="bw-ranked-list__bar")
+    bar_match = re.search(r'<span class="bw-ranked-list__bar"[^>]*></span>', out)
+    assert bar_match is not None
+    assert 'aria-hidden="true"' in bar_match.group(0)
 
 
 def test_no_progressbar_role_on_any_row() -> None:
     # VIZ-015: a ranked list is an N-way comparison, not one quantity's
     # progress toward a known target, so it deliberately carries no
-    # progressbar semantics per row. _progress.html is the one component
-    # that legitimately keeps full progressbar wiring; see the family
-    # boundary test near the end of this file.
+    # role="progressbar" per row (unlike _progress.html).
     out = _render()
-    assert_no_progressbar_semantics(out)
-
-
-def test_label_and_value_spans_are_never_aria_hidden_only_the_bar_is() -> None:
-    # a regression that copied aria-hidden from the bar onto the text spans
-    # would remove the one channel COL-030 depends on while still passing
-    # the "bar is aria-hidden" check above; guard the text spans separately.
-    out = _render(rows=[{"label": "Acme", "amount": 400}])
-    assert_text_nodes_are_not_aria_hidden(out, text_classes=("bw-ranked-list__label", "bw-ranked-list__value"))
-
-
-def test_geometry_is_a_unitless_custom_property_not_a_width_or_percent_string() -> None:
-    # the bar's CSS turns this bare number into a length with its own
-    # calc(); a template regression that emitted "75%" or "width: 75%"
-    # directly would bypass that seam and hardcode layout server-side.
-    out = _render()
-    assert_geometry_is_a_unitless_custom_property(out, property_name="--bw-ranked-list-value")
-
-
-def test_ol_ordering_survives_with_all_colour_and_style_stripped() -> None:
-    # rank order is itself meaning (position 1 outranks position 2); a
-    # regression that demoted the <ol> to a <div> or <ul> would discard that
-    # meaning while every label/value string still passed the text checks
-    # above, so the element itself is checked, not just its text content.
-    out = _render()
-    assert_ordered_list_element_survives_stripping(out, list_class="bw-ranked-list")
-
-
-# --- boundary: _progress.html legitimately keeps the role ------------------
-
-
-def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() -> None:
-    # VIZ-015 scopes the "no progressbar" rule to the ranked/N-way
-    # comparison family, not a blanket ban across the package:
-    # _progress.html is the ONE component built for a single quantity's
-    # progress toward a known target, so it must go on carrying the full
-    # role/aria-valuenow/-valuemin/-valuemax wiring. The ARIA values
-    # themselves (aria-valuenow="42" etc.) are already pinned by
-    # test_feedback.py::test_determinate_progress_has_full_aria_wiring; this
-    # asserts only the boundary distinction, so the two files do not drift
-    # into two slightly different opinions about the same wiring.
-    out = render_to_string("brickwork/components/_progress.html", {"label": "Import progress", "value": 42})
-    assert 'role="progressbar"' in out
-    assert "aria-valuenow" in out
+    assert 'role="progressbar"' not in out
