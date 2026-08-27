@@ -502,6 +502,227 @@ def _shape_ranked_list_row(raw: Mapping, *, amount: Decimal, denominator: Decima
     )
 
 
+# icvoss/django-brickwork VIZ-007 to VIZ-010: a gauge reads one quantity
+# against a fixed min/max, not an N-way comparison (bw_ranked_list's own
+# family boundary), so it deliberately keeps the SVG geometry fixed at a
+# 0-100 viewBox and expresses only the arc's dash geometry per instance.
+# threshold_bands resolves to one of these four names, never a caller-chosen
+# colour string: each is an ALREADY-SHIPPED semantic token (danger/warning/
+# success carry their own status meaning; accent is the shared ink used for
+# every other determinate-progress fill in the package, .bw-progress__fill
+# and .bw-ranked-list__bar__before both key off --bw-color-accent), so this
+# component ships no new colour token at all (colour tokens are semantic-tier
+# and per-theme-authored; this closed set already exists in both themes).
+_GAUGE_SIZES = _SIZES
+_GAUGE_THRESHOLD_TOKENS = {"accent", "success", "warning", "danger"}
+# A full circle's centre-to-edge angle in a 0-100 viewBox: r=40 leaves enough
+# margin inside a 100x100 box for the stroke width without clipping (VIZ-010
+# sizes only change the box's rendered diameter via CSS, never this radius,
+# so the geometry maths below is the same for every size).
+_GAUGE_VIEWBOX_RADIUS = 40.0
+_GAUGE_CIRCUMFERENCE = 2 * 3.141592653589793 * _GAUGE_VIEWBOX_RADIUS
+
+
+def _gauge_numeric(raw: object, *, name: str) -> Decimal:
+    """Coerce a gauge numeric argument (value/min/max) to ``Decimal``, the
+    same conversion `_validate_ranked_list_row` uses and for the same reason:
+    ``Decimal(str(x))`` never round-trips through float, so it cannot
+    silently under/overflow the way a caller-supplied `Decimal("1e10000")`
+    already has for `_ranked_list.html` (icvoss/django-brickwork adversarial
+    review, see `_validate_ranked_list_row`'s own docstring)."""
+    try:
+        if isinstance(raw, Decimal):
+            decimal_value = raw
+        elif isinstance(raw, bool):
+            decimal_value = Decimal(int(raw))
+        else:
+            decimal_value = Decimal(str(raw))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise TemplateSyntaxError(f"bw_gauge {name} must be numeric, got {raw!r}") from exc
+    if not decimal_value.is_finite():
+        raise TemplateSyntaxError(f"bw_gauge {name} must be a finite number, got {raw!r}")
+    return decimal_value
+
+
+def _gauge_threshold_token(percent: Decimal, threshold_bands: object) -> str:
+    """Resolve the arc's colour token from ``threshold_bands`` (VIZ-009): a
+    list of ``{"max": <numeric>, "token": <one of _GAUGE_THRESHOLD_TOKENS>}``
+    mappings, sorted here by ``max`` ascending, the first band whose ``max``
+    is greater than or equal to the current percent. ``threshold_bands=None``
+    (the default) or an empty list resolves to "accent" unconditionally,
+    which is the same colour a bare `_progress.html` fill already uses, so an
+    ungated gauge call reads exactly like the plain determinate case rather
+    than an unstyled or missing arc.
+
+    COL-030 is enforced structurally, not by this function: the resolved
+    token only ever selects a CSS class modifier on the decorative,
+    aria-hidden arc (never inline colour), and the template ALWAYS renders
+    the numeric percentage as visible text regardless of which band, or
+    whether any band, resolved. A caller cannot construct a threshold-banded
+    gauge whose value is not also paired with visible text, because the
+    template does not expose a way to omit that text node."""
+    if threshold_bands is None:
+        return "accent"
+    if not isinstance(threshold_bands, list | tuple):
+        raise TemplateSyntaxError(f"bw_gauge threshold_bands must be a list/tuple of mappings, got {threshold_bands!r}")
+    if not threshold_bands:
+        return "accent"
+    parsed: list[tuple[Decimal, str]] = []
+    for raw_band in threshold_bands:
+        if not isinstance(raw_band, Mapping):
+            raise TemplateSyntaxError(f"bw_gauge threshold_bands entries must be mappings, got {raw_band!r}")
+        band_max = _gauge_numeric(raw_band.get("max"), name="threshold_bands max")
+        token = raw_band.get("token")
+        if token not in _GAUGE_THRESHOLD_TOKENS:
+            raise TemplateSyntaxError(
+                f"bw_gauge threshold_bands token must be one of {sorted(_GAUGE_THRESHOLD_TOKENS)}, got {token!r}"
+            )
+        parsed.append((band_max, token))
+    parsed.sort(key=lambda band: band[0])
+    for band_max, token in parsed:
+        if percent <= band_max:
+            return token
+    # every band's max is below the current percent: the highest band wins,
+    # matching a "90+ is success" band still applying at exactly 100.
+    return parsed[-1][1]
+
+
+@register.inclusion_tag("brickwork/components/_gauge.html")
+def bw_gauge(
+    *,
+    value: object,
+    min: object = 0,  # shadows the builtin `min`, deliberately: VIZ-007 names the public kwarg min/max/value
+    max: object = 100,  # shadows the builtin `max`, deliberately: see `min` above
+    label: str = "",
+    size: str = "md",
+    threshold_bands: object = None,
+    gauge_label: str | SafeString = "",
+    data: object = None,
+) -> dict:
+    """A circular progress ring (VIZ-007 to VIZ-010): one quantity read
+    against a fixed ``min``/``max``, rendered as an SVG ``<circle>`` whose
+    ``stroke-dasharray``/``stroke-dashoffset`` encode the percentage. No JS
+    or canvas: the arc is pure CSS-driven SVG, geometry computed HERE in
+    Python (mirroring ``bw_ranked_list``'s own promotion from a plain
+    include), never left to the template to build a dash string. A TAG,
+    not an ``{% include %}``, for the same reason ``bw_ranked_list`` is one:
+    ``min``/``max``/``threshold_bands`` need real validation against a
+    render-time TemplateSyntaxError, which an include has no seam for
+    (ADR-060 rule 2).
+
+    Required context:
+      value: the reading, numeric (int/float/Decimal/numeric string).
+    Optional:
+      min (default 0), max (default 100): the fixed range ``value`` reads
+          against. ``max`` must be strictly greater than ``min``, or this is
+          a render-time TemplateSyntaxError (a zero or negative range has no
+          meaningful percentage). ``value`` is clamped into ``[min, max]``
+          before the percentage is computed, so an out-of-range reading
+          renders a full or empty ring rather than an invalid dash length.
+      label: the accessible name (``aria-label``, ``role="img"`` on the SVG
+          root, mirroring ``bw_chart_mount``'s CHT-012 contract for a static
+          one-shot visual summary rather than a live task-progress control).
+          Omitted renders no ``aria-label``: give one when the gauge's
+          meaning is not already carried by an adjacent, associated heading.
+      size ("sm" | "md" | "lg", default "md", VIZ-010): the ring's rendered
+          diameter, via the ``--bw-component-gauge-diameter-*`` component
+          token. Any other value is a render-time TemplateSyntaxError
+          (ADR-060 rule 2).
+      threshold_bands (VIZ-009): a list of ``{"max": <numeric>,
+          "token": "accent" | "success" | "warning" | "danger"}`` mappings.
+          The arc's colour resolves to the first band (sorted by ``max``
+          ascending, computed here) whose ``max`` is at or above the current
+          percentage, falling back to the highest band past its max, or
+          plain "accent" when omitted, empty, or no percentage-basis
+          reading applies. Every token is an EXISTING semantic status
+          colour (no new token is authored for this: --bw-color-danger/
+          -warning/-success already carry their own meaning, and --bw-
+          color-accent is the same ink _progress.html's own determinate
+          fill already uses). COL-030 is structural here, not merely
+          documented: the resolved token only ever selects a class modifier
+          on the decorative, aria-hidden arc, and the numeric percentage
+          always renders as visible text regardless of which band (or
+          none) resolved, so a threshold colour can never ship without its
+          paired visible number.
+      gauge_label (VIZ-008, a pre-rendered safe string): overrides the text
+          rendered inside the ring. Mirrors ``_stat.html``'s own
+          ``sparkline`` seam (a caller-supplied SafeString, brickwork never
+          sanitises it, never pass unescaped user input here) rather than a
+          named block: this is an inclusion tag, and a plain
+          ``{% include %}``/inclusion-tag context has no block-filling seam
+          the way ``{% extends %}`` does. Omitted (the default) renders the
+          computed percentage as ordinary escaped text, e.g. "73%".
+      data: a mapping of consumer-owned ``data-*`` attributes for the gauge
+          root (component-level test hooks, mirroring ``_stat.html``'s and
+          ``bw_ranked_list``'s own root data seam).
+
+    States: a single populated state (no loading/empty variant: a gauge
+      always has a value once rendered, matching ``_progress.html``'s own
+      determinate case); the threshold band (if any) changes only the arc's
+      colour class, never its markup shape.
+    Accessibility: ``role="img"`` with ``aria-label`` from ``label`` when
+      given (CHT-012's own reasoning: a bare SVG root maps to no accessible-
+      name-bearing role without one). The percentage is ALWAYS rendered as
+      visible text inside the ring (COL-030), and the decorative arc/track
+      circles are ``aria-hidden="true"`` and carry no text of their own
+      (VIZ-015: deliberately no ``role="progressbar"``/``aria-valuenow``,
+      since a static, already-resolved reading is not the "toward a live
+      target" contract that role implies; that vocabulary belongs to
+      ``_progress.html`` alone). Covered by the encoding-contract helpers in
+      ``tests/_encoding_contract.py`` (ADR-081), the same machinery
+      ``bw_ranked_list`` is proven against, and by axe.spec.mjs against
+      gauge-*.html, both themes.
+    Responsive: no breakpoint switch; ``size`` is the fixed sm/md/lg token
+      scale (VIZ-010), never viewport-driven. Geometry (the SVG viewBox and
+      dash maths) is fixed at every size: only the rendered diameter, via
+      CSS, changes.
+    """
+    if size not in _GAUGE_SIZES:
+        raise TemplateSyntaxError(f"bw_gauge size must be one of {sorted(_GAUGE_SIZES)}, got {size!r}")
+    min_value = _gauge_numeric(min, name="min")
+    max_value = _gauge_numeric(max, name="max")
+    if max_value <= min_value:
+        raise TemplateSyntaxError(f"bw_gauge max ({max_value}) must be strictly greater than min ({min_value})")
+    raw_value = _gauge_numeric(value, name="value")
+    # The `min`/`max` PARAMETERS above shadow the builtins for the rest of
+    # this function body, which is exactly why the clamp below is written as
+    # explicit comparisons rather than calling min()/max(): a bare min(...)
+    # here would call this function's own `min` argument (a Decimal), not
+    # the builtin, and raise TypeError immediately.
+    clamped_value = raw_value
+    if clamped_value < min_value:
+        clamped_value = min_value
+    elif clamped_value > max_value:
+        clamped_value = max_value
+    percent = ((clamped_value - min_value) / (max_value - min_value)) * 100
+    if percent < 0:
+        percent = Decimal(0)
+    elif percent > 100:
+        percent = Decimal(100)
+    threshold_token = _gauge_threshold_token(percent, threshold_bands)
+
+    # Geometry as floats formatted to a fixed 2-decimal-place pattern (never
+    # a Decimal or a caller-influenced string): a value built this way cannot
+    # carry a quote character into the style="..." attribute it lands in, so
+    # there is nothing here for an escaping step to defend, which is the
+    # safe-by-construction property this component is built to (see the
+    # module's own worked defect history on _validate_ranked_list_row).
+    percent_float = float(percent)
+    dash_offset = _GAUGE_CIRCUMFERENCE * (1 - percent_float / 100)
+
+    return {
+        "label": label,
+        "size": size,
+        "threshold_token": threshold_token,
+        "circumference": f"{_GAUGE_CIRCUMFERENCE:.2f}",
+        "dash_offset": f"{dash_offset:.2f}",
+        "radius": f"{_GAUGE_VIEWBOX_RADIUS:.2f}",
+        "percent_display": str(int(percent.to_integral_value())),
+        "gauge_label": gauge_label,
+        "attrs_html": bw_data_attrs(data, "gauge"),
+    }
+
+
 @register.simple_tag
 def bw_chart_mount(
     *,
