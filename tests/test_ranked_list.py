@@ -22,6 +22,7 @@ from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 
 from tests._encoding_contract import (
+    _mask_comments,
     assert_bar_is_aria_hidden_and_empty,
     assert_geometry_is_a_unitless_custom_property,
     assert_no_progressbar_semantics,
@@ -930,9 +931,28 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     # either, for the same nesting reason, so the honest shape is to assert
     # the property here and say why. Locating a root that contains same-tag
     # children is #290's job; this test must not depend on it.
-    out = render_to_string("brickwork/components/_progress.html", {"label": "Import progress", "value": 42})
-    assert 'role="progressbar"' in out, (
-        "_progress.html no longer carries role='progressbar': the family boundary has moved, and the "
-        "ranked group's no-progressbar rule can no longer be described as scoped rather than blanket"
+    # Anchored and attribute-shaped, NOT bare substring checks. A raw
+    # `'role="progressbar"' in out` is the same defect this PR fixes in the
+    # helper, and it was measurably weaker than the whole-document scan it
+    # replaced: it passed when the live attributes were renamed to data-
+    # lookalikes, when the literals survived only inside an HTML comment,
+    # and when aria-valuenow existed only as words in the accessible name.
+    # Each of those leaves the component genuinely broken for a screen
+    # reader. Requiring the "=" kills the comment and label-text evasions;
+    # the (?<![\w-]) lookbehind kills the data- ones, matching the
+    # convention _ARIA_HIDDEN_TRUE and the helper already use.
+    # Comments masked first, reusing the module's own helper rather than a
+    # second opinion about what a comment is: without it, the literals
+    # surviving only inside an HTML comment satisfied both assertions while
+    # the live attributes were gone.
+    out = _mask_comments(
+        render_to_string("brickwork/components/_progress.html", {"label": "Import progress", "value": 42})
     )
-    assert "aria-valuenow" in out, "_progress.html no longer carries aria-valuenow: see above"
+    assert re.search(r'(?<![\w-])role\s*=\s*["\']?[^"\'>]*\bprogressbar\b', out), (
+        "_progress.html no longer carries a real role='progressbar' attribute: the family boundary has "
+        "moved, and the ranked group's no-progressbar rule can no longer be described as scoped rather "
+        "than blanket"
+    )
+    assert re.search(r"(?<![\w-])aria-valuenow\s*=", out), (
+        "_progress.html no longer carries a real aria-valuenow attribute: see above"
+    )
