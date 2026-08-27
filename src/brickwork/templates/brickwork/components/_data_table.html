@@ -143,9 +143,9 @@ marker into ids and attributes; firstof resolves with failures ignored.
       {% for _ in "xxxxx" %}<div class="bw-skeleton bw-skeleton--row"></div>{% endfor %}
     </div>
   {% elif not rows %}
-    {% firstof empty_heading '' as empty_heading_resolved %}
-    {% firstof empty_body '' as empty_body_resolved %}
-    {% include "brickwork/components/_empty_state.html" with variant="no_data" heading=empty_heading_resolved body=empty_body_resolved action_href=empty_action_href action_label=empty_action_label %}
+    {% firstof empty_heading '' as empty_heading_resolved %}{% firstof empty_body '' as empty_body_resolved %}
+    {% firstof empty_action_href '' as empty_action_href_resolved %}{% firstof empty_action_label '' as empty_action_label_resolved %}
+    {% include "brickwork/components/_empty_state.html" with variant="no_data" heading=empty_heading_resolved body=empty_body_resolved action_href=empty_action_href_resolved action_label=empty_action_label_resolved %}
   {% elif variant == "definition" %}
     <table class="bw-data-table bw-data-table--definition">
       <tbody>

@@ -155,7 +155,7 @@ copy rather than omit it.
 
 **RTL has structural proof, not a tested fixture.** Logical-property counts
 (4.3 below) are real structural evidence for RTL support, but there is no
-`dir="rtl"` accessibility fixture in the 138-document gate. State this
+`dir="rtl"` accessibility fixture in the 144-document gate. State this
 distinction; do not imply RTL is axe-tested.
 
 ### 4.3 Token-first rebranding

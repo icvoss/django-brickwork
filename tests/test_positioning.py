@@ -202,7 +202,7 @@ def test_examples_row_matches_the_shipped_catalogue_manifest() -> None:
 def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> None:
     """Only the archetype half of the a11y-gate row is cheaply gateable here.
 
-    The 110 hand-maintained fixtures (55 fixtures x light and dark) are no
+    The 112 hand-maintained fixtures (56 fixtures x light and dark) are no
     longer merely hand-counted from a11y/generate_fixtures.py's source: this
     file still deliberately does not re-parse that script (a second regex
     over its source would be exactly the kind of parallel, ungrounded
@@ -223,7 +223,9 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     ranked-list fixture pair, moving the real count to 54/108. #272's own
     review round then added a no-JS-floor compact fixture
     (theme-switch-compact-<theme>.html, the pre-existing no-JS coverage
-    only ever rendered layout="inline"), moving the real count to 55/110.)
+    only ever rendered layout="inline"), moving the real count to 55/110.
+    #185 then added the _data_table.html empty-state action CTA fixture,
+    moving the real count to 56/112.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -232,7 +234,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     archetype_count = manifest["counts"]["archetypes"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 110 + (archetype_count * 2)
+    assert _leading_int(value) == 112 + (archetype_count * 2)
     assert f"{archetype_count} catalogue archetypes x light and dark" in note
 
 
