@@ -46,7 +46,6 @@
       "tracking": { "$value": "var(--bw-font-tracking-normal)" }
     },
     "body-lg": {
-      "family": { "$value": "var(--bw-font-family-sans)" },
       "size": { "$value": "var(--bw-font-size-lg)" },
       "line-height": { "$value": "var(--bw-font-line-height-relaxed)" },
       "weight": { "$value": "var(--bw-font-weight-normal)" },
@@ -60,14 +59,12 @@
       "tracking": { "$value": "var(--bw-font-tracking-normal)" }
     },
     "body-sm": {
-      "family": { "$value": "var(--bw-font-family-sans)" },
       "size": { "$value": "var(--bw-font-size-sm)" },
       "line-height": { "$value": "var(--bw-font-line-height-normal)" },
       "weight": { "$value": "var(--bw-font-weight-normal)" },
       "tracking": { "$value": "var(--bw-font-tracking-normal)" }
     },
     "label": {
-      "family": { "$value": "var(--bw-font-family-sans)" },
       "size": { "$value": "var(--bw-font-size-sm)" },
       "line-height": { "$value": "var(--bw-font-line-height-none)" },
       "weight": { "$value": "var(--bw-font-weight-medium)" },

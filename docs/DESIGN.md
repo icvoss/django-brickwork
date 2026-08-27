@@ -542,6 +542,14 @@ Each role is a bundle of five properties
 `var()` reference into the scales above so overrides cascade. Components
 consume roles, never raw scale steps, so nothing drifts out of rhythm.
 
+**Not every role carries a `-family` token** (**CHANGED**, icvoss/django-brickwork#288). `body-lg`,
+`body-sm` and `label` deliberately have no `-family` property: those roles
+inherit the sans stack from `.bw-body` rather than pinning it per role, so a
+per-size body family cannot be set without also touching `--bw-font-family-sans`,
+which is the intended override point. Every other role's `-family` token is
+consumed by at least one rule; there is no role in this list whose `-family`
+token is defined but unused by any component.
+
 | Role | Family | Size | Leading | Weight | Tracking |
 |---|---|---|---|---|---|
 | `heading-display` **[NEW 1.2.0]** | display | 5xl | tight | bold | tight |
@@ -550,10 +558,10 @@ consume roles, never raw scale steps, so nothing drifts out of rhythm.
 | `heading-lg` | sans | lg | snug | semibold | normal |
 | `heading-md` | sans | md | snug | semibold | normal |
 | `heading-sm` | sans | sm | snug | semibold | normal |
-| `body-lg` | sans | lg | relaxed | normal | normal |
+| `body-lg` | *(none, inherits `.bw-body`)* | lg | relaxed | normal | normal |
 | `body-md` | sans | md | normal | normal | normal |
-| `body-sm` | sans | sm | normal | normal | normal |
-| `label` | sans | sm | none | medium | normal |
+| `body-sm` | *(none, inherits `.bw-body`)* | sm | normal | normal | normal |
+| `label` | *(none, inherits `.bw-body`)* | sm | none | medium | normal |
 | `caption` | sans | xs | normal | normal | normal |
 | `overline` | sans | 2xs | none | semibold | wider |
 | `code` | mono | sm | normal | normal | normal |
