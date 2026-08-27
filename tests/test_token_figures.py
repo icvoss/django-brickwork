@@ -2,17 +2,26 @@
 
 The counts themselves are gated elsewhere (``test_positioning.py`` checks the
 shipped manifest against ``docs/POSITIONING.md``). What is tested here is the
-property that helper exists for: a figure produced without its ref, or read
-from the working tree instead of the requested ref, is the defect it prevents.
+property the helper exists for: a figure read from the working tree instead of
+the ref it was asked for is the defect it prevents.
 
-The fixture is two real refs whose counts genuinely differ on every axis. A
-helper that ignored its argument and read the checkout would agree with at
-most one of them, so it fails rather than passing by coincidence (#286: the
-fixture must be able to express the violation).
+The fixture is a throwaway git repository built in a tmpdir, carrying two
+commits whose token counts differ on every axis. It is constructed rather than
+pinned to this repository's own history on purpose: every ``actions/checkout``
+step in ``ci.yml`` takes the default ``fetch-depth: 1``, so real refs would be
+absent in CI and the whole module would skip. **A skipped test is green**,
+which is the failure mode this file is meant to be immune to, so the fixture
+carries its own history and depends on nothing outside the tmpdir.
+
+Two differing commits is the load-bearing part (#286: the fixture must be able
+to express the violation). A helper that ignored its ref argument and read the
+checkout would agree with at most one of them, so it fails rather than passing
+by coincidence.
 """
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -23,69 +32,120 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from token_figures import figures  # noqa: E402
 
-# Two refs, chosen because #297 (the chart token vocabulary) moved every count
-# between them. Pinned as shas rather than branch names so the fixture cannot
-# drift into agreement as main advances.
-_BEFORE = "a1c2330"
-_AFTER = "fc9ebc3"
+# Deliberately different on every axis the helper reports, so no assertion
+# below can be satisfied by the wrong commit.
+_OLD = {
+    "css": ":root{--bw-a:1;--bw-b:2;}",
+    "manifest": {
+        "overridable": ["--bw-a", "--bw-b"],
+        "loadBearing": [{"name": "--bw-a"}],
+        "contrastPairs": [],
+    },
+}
+_NEW = {
+    "css": ":root{--bw-a:1;--bw-b:2;--bw-c:3;}[data-theme=dark]{--bw-a:9;}",
+    "manifest": {
+        "overridable": ["--bw-a", "--bw-b", "--bw-c"],
+        "loadBearing": [{"name": "--bw-a"}, {"name": "--bw-c", "conditional": True}],
+        "contrastPairs": [{"fg": "--bw-a", "bg": "--bw-b"}],
+    },
+}
 
 
-def _available(ref: str) -> bool:
-    return (
-        subprocess.run(
-            ["git", "cat-file", "-e", f"{ref}^{{commit}}"],
-            capture_output=True,
-            check=False,
-        ).returncode
-        == 0
-    )
+def _git(repo: Path, *args: str) -> str:
+    result = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=True)
+    return result.stdout.strip()
 
 
-_needs_history = pytest.mark.skipif(
-    not (_available(_BEFORE) and _available(_AFTER)),
-    reason="shallow clone: the two pinned refs are not present",
-)
+@pytest.fixture(scope="module")
+def repo(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """A throwaway repo with two commits whose token counts differ."""
+    root = tmp_path_factory.mktemp("token-figures-fixture")
+    _git(root, "init", "-q")
+    _git(root, "config", "user.email", "test@example.invalid")
+    _git(root, "config", "user.name", "Test")
+
+    css = root / "src/brickwork/static/brickwork/dist/tokens.css"
+    manifest = css.parent / "token-manifest.json"
+    css.parent.mkdir(parents=True)
+
+    for state, message in ((_OLD, "old"), (_NEW, "new")):
+        css.write_text(state["css"])
+        manifest.write_text(json.dumps(state["manifest"]))
+        _git(root, "add", "-A")
+        _git(root, "commit", "-q", "-m", message)
+    return root
 
 
-@_needs_history
-def test_the_two_pinned_refs_really_do_differ() -> None:
+@pytest.fixture(scope="module")
+def refs(repo: Path) -> tuple[str, str]:
+    log = _git(repo, "log", "--format=%H").splitlines()
+    return log[1], log[0]  # oldest first
+
+
+def _figures_in(repo: Path, ref: str) -> dict[str, object]:
+    """Run the helper with ``repo`` as the working directory."""
+    original = Path.cwd()
+    try:
+        import os
+
+        os.chdir(repo)
+        return figures(ref)
+    finally:
+        import os
+
+        os.chdir(original)
+
+
+def test_the_two_fixture_commits_really_do_differ(repo: Path, refs: tuple[str, str]) -> None:
     """Guard the fixture itself: if these agree, every test below is vacuous."""
-    before, after = figures(_BEFORE), figures(_AFTER)
-    for key in ("unique", "overridable", "contrast_pairs"):
-        assert before[key] != after[key], (
-            f"{key} is equal at {_BEFORE} and {_AFTER}, so this fixture can no "
+    old, new = (_figures_in(repo, r) for r in refs)
+    for key in ("unique", "overridable", "load_bearing", "contrast_pairs"):
+        assert old[key] != new[key], (
+            f"{key} is equal across the fixture commits, so this fixture can no "
             "longer catch a helper that ignores its ref argument"
         )
 
 
-@_needs_history
-@pytest.mark.parametrize("ref", [_BEFORE, _AFTER])
-def test_figures_report_the_ref_they_were_asked_for(ref: str) -> None:
+def test_figures_report_the_ref_they_were_asked_for(repo: Path, refs: tuple[str, str]) -> None:
     """The ref travels with the numbers; that is the whole point of the helper."""
-    result = figures(ref)
-    assert result["ref"] == ref
-    assert result["sha"], "no sha resolved, so the figure carries no provenance"
-    assert ref.startswith(result["sha"]) or result["sha"].startswith(ref)
+    for ref in refs:
+        result = _figures_in(repo, ref)
+        assert result["ref"] == ref
+        assert result["sha"], "no sha resolved, so the figure carries no provenance"
+        assert ref.startswith(str(result["sha"]))
 
 
-@_needs_history
-def test_figures_read_the_requested_ref_not_the_working_tree() -> None:
+def test_figures_read_the_requested_ref_not_the_working_tree(repo: Path, refs: tuple[str, str]) -> None:
     """The defect this helper exists to prevent, asserted directly.
 
-    Every wrong token figure this project has published was a correct
-    measurement of the wrong tree. If ``figures()`` ever reads the checkout
-    instead of the ref, one of these two must come back with the other's
-    numbers.
+    The working tree is left at the newer commit throughout. If ``figures()``
+    ever reads the checkout instead of the ref it was given, the older ref
+    comes back with the newer commit's numbers.
     """
-    before, after = figures(_BEFORE), figures(_AFTER)
-    assert before["unique"] == 337
-    assert before["overridable"] == 268
-    assert after["unique"] == 352
-    assert after["overridable"] == 283
+    old_ref, new_ref = refs
+    old = _figures_in(repo, old_ref)
+    new = _figures_in(repo, new_ref)
+
+    assert old["unique"] == 2
+    assert old["overridable"] == 2
+    assert old["load_bearing"] == 1
+    assert old["contrast_pairs"] == 0
+
+    assert new["unique"] == 3
+    assert new["overridable"] == 3
+    assert new["load_bearing"] == 2
+    assert new["contrast_pairs"] == 1
 
 
-@_needs_history
-def test_an_unknown_ref_fails_loudly_rather_than_falling_back() -> None:
+def test_unconditional_excludes_flagged_entries(repo: Path, refs: tuple[str, str]) -> None:
+    """``unconditional`` is the load-bearing subset without a conditional flag."""
+    new = _figures_in(repo, refs[1])
+    assert new["load_bearing"] == 2
+    assert new["unconditional"] == 1
+
+
+def test_an_unknown_ref_fails_loudly_rather_than_falling_back(repo: Path) -> None:
     """A silent fallback to the working tree is the failure mode to avoid."""
     with pytest.raises(SystemExit):
-        figures("definitely-not-a-ref")
+        _figures_in(repo, "definitely-not-a-ref")
