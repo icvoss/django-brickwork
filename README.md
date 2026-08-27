@@ -272,9 +272,10 @@ with context.
 
 - **Tags** (load the library first): `{% bw_icon %}`, `{% bw_button %}`,
   `{% bw_badge %}`, `{% bw_alert %}`, `{% bw_nav %}`, `{% bw_nav_header %}`,
-  `{% bw_nav_rail %}`, `{% bw_field_widget %}`. The three nav tags are sibling
-  renderers over the same `NavItem` tree: the sidebar/tree render, the
-  horizontal marketing-header row, and the compact two-tier rail (see
+  `{% bw_nav_rail %}`, `{% bw_field_widget %}`, `{% bw_dropdown %}`,
+  `{% bw_tabs %}`, `{% bw_toast %}`, `{% bw_combobox %}`. The three nav tags
+  are sibling renderers over the same `NavItem` tree: the sidebar/tree render,
+  the horizontal marketing-header row, and the compact two-tier rail (see
   [INTEGRATION.md](docs/INTEGRATION.md) section 2).
 
   ```django
@@ -286,6 +287,13 @@ with context.
   The `_button.html` / `_badge.html` / `_alert.html` template files exist but are
   the tags' own render targets, **not** a consumer-facing `{% include %}` API.
   Call the tag, not the partial.
+
+  `{% bw_dropdown %}` items may carry an optional `attrs` mapping for
+  consumer-owned hooks on the rendered item, for example
+  `{"data-item-id": widget.pk}`. Only `data-*` names are accepted; Brickwork's
+  own `data-bw-*` hooks remain reserved (ADR-083: this is the same rule as the
+  `data` seam below, not a wider one, since the seam protects what a
+  component deliberately withholds, not just what it emits).
 
 - **Includes** (structure you fill with context): `_page_header.html`,
   `_data_table.html`, `_pagination.html`, `_empty_state.html`,

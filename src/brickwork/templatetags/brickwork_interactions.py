@@ -31,6 +31,8 @@ from django.utils.http import urlencode
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
 
+from brickwork.templatetags.brickwork_components import _DATA_ATTRIBUTE_NAME_RE
+
 register = template.Library()
 
 _TRIGGER_VARIANTS = {"primary", "secondary", "ghost", "danger"}
@@ -58,9 +60,14 @@ _FILTER_MODES = {"server", "client"}
 _ID_TOKEN_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
 
 # Attribute NAMES cannot be escaped into safety (only values can), so the
-# consumer pass-through mapping (the per-item hx-* seam) validates names
-# against a conservative HTML attribute token.
-_ATTR_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]*$")
+# consumer pass-through mapping (the per-item attrs seam) validates names.
+# ADR-083: this seam protects what a component deliberately WITHHOLDS (a
+# rejected ARIA role, an unstamped hx-* hook), not just what it emits; the
+# browser's first-attribute-wins behaviour already defends the latter, but
+# nothing defends the former unless the grammar itself refuses non-data-*
+# names. So this reuses bw_data_attrs's own rule (_DATA_ATTRIBUTE_NAME_RE,
+# including its data-bw-* reservation) rather than a second, wider regex:
+# one rule, two call sites, not two rules that happen to overlap.
 
 
 @dataclass(frozen=True)
@@ -89,17 +96,36 @@ class RenderedTab:
 
 
 def _rendered_attrs(tag: str, attrs: object) -> SafeString:
-    """Flatten a consumer attrs mapping (the per-item hx-* seam) into a safe
-    leading-space attribute run. Attribute names are validated (they cannot be
-    escaped); values are escaped."""
+    """Flatten a consumer attrs mapping (the per-item data-* metadata seam,
+    ADR-083) into a safe leading-space attribute run. Attribute names are
+    validated against the same rule bw_data_attrs enforces (they cannot be
+    escaped); values are escaped.
+
+    ADR-083: this seam is for consumer-owned data-* metadata only, never a
+    general HTML attribute escape hatch, and never a way to fill in an
+    attribute a component author deliberately chose not to emit (the
+    _ranked_list.html VIZ-015 abstention is the worked example the ADR is
+    built from). A consumer needing hx-* on a component-rendered element
+    reaches for one of the two already-shipping answers instead: a stable
+    id with the hx-* attributes authored on the consumer's own element
+    (the _disclosure.html/_data_table.html pattern), or a named, validated
+    kwarg on the component itself (the _filter_bar.html hx_get/hx_target
+    pattern)."""
     if attrs in (None, ""):
         return mark_safe("")
     if not isinstance(attrs, Mapping):
         raise TemplateSyntaxError(f'{tag} item "attrs" must be a mapping of attribute name -> value, got {attrs!r}')
     parts = []
     for name, value in attrs.items():
-        if not isinstance(name, str) or not _ATTR_NAME_RE.match(name):
-            raise TemplateSyntaxError(f"{tag} item attrs contains an invalid attribute name: {name!r}")
+        if not isinstance(name, str) or not _DATA_ATTRIBUTE_NAME_RE.match(name) or name.startswith("data-bw-"):
+            raise TemplateSyntaxError(
+                f"{tag} item attrs contains an invalid attribute name: {name!r}. This seam accepts only "
+                'consumer-owned data-* metadata (matching "data-[a-z][a-z0-9_.:-]*", excluding brickwork\'s '
+                "own reserved data-bw-* namespace); it is not a general attribute passthrough (ADR-083). "
+                "For an htmx interaction, author hx-* on your own element against a stable id the component "
+                "already renders, or use a named kwarg if the component ships one (as _filter_bar.html does "
+                "with hx_get/hx_target)."
+            )
         parts.append(format_html(' {}="{}"', name, value))
     return mark_safe("".join(parts))
 
@@ -148,7 +174,20 @@ def bw_dropdown(
     <details> disclosure of plain links (no ARIA menu roles); bwDropdown
     upgrades it to the APG Menu Button pattern at init. ICO-008: an icon-only
     trigger REQUIRES an accessible name (aria_label), else it is a render
-    error, exactly as bw_button."""
+    error, exactly as bw_button.
+
+    Each item in ``items`` may carry an optional ``attrs`` mapping: consumer-
+    owned ``data-*`` metadata rendered on that item's anchor, for the
+    consumer's own JS or htmx to read back (mirroring the ``data`` seam
+    ``_data_table.html``/``_stat.html``/``bw_ranked_list`` already accept).
+    ADR-083: only ordinary ``data-*`` names are accepted (brickwork's own
+    ``data-bw-*`` hooks stay reserved), and values are escaped; this is not a
+    general attribute passthrough, so ``role``, ``aria-*``, ``hx-*``, and
+    every other non-``data-*`` name raise ``TemplateSyntaxError``. An htmx
+    interaction on a rendered item reaches for a stable id and its own
+    consumer-authored element instead, or a named kwarg if the component
+    ships one (as ``_filter_bar.html`` does with ``hx_get``/``hx_target``).
+    """
     if not isinstance(items, list | tuple) or not items:
         raise TemplateSyntaxError("bw_dropdown requires items=, a non-empty list/tuple of item dicts")
     if trigger_variant not in _TRIGGER_VARIANTS:

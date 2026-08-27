@@ -8,6 +8,39 @@ versioning contract).
 
 ## Unreleased
 
+### Fixed
+
+- **`{% bw_dropdown %}` item `attrs` no longer accepts `data-bw-*`**
+  (icvoss/django-brickwork#305). The reserved namespace exclusion that
+  `bw_data_attrs` already enforces for `_data_table.html`, `_stat.html` and
+  `bw_ranked_list` had never been applied to `bw_dropdown`'s own `attrs`
+  seam, so a consumer could stamp `data-bw-dropdown-item` (or any other
+  `data-bw-*` name) beside the package's own reserved hooks on the same
+  element, indistinguishable to any later reader of that namespace. It is
+  now rejected everywhere the seam exists, matching the rule's existing
+  behaviour at every other call site.
+
+### Changed
+
+- **`{% bw_dropdown %}` item `attrs` now accepts only `data-*` names**
+  (ADR-083). Previously the seam accepted any syntactically valid HTML
+  attribute name, so a consumer could pass `role`, `aria-*`, `hx-*`,
+  `onclick`, `style` or any other attribute onto a rendered dropdown item.
+  That protected what the component emits (a browser honours the first of a
+  duplicate attribute), but gave no protection at all for what a component
+  deliberately withholds, such as `bw_ranked_list`'s own reasoned decision
+  not to stamp `role="progressbar"` on each row (VIZ-015): an open seam let
+  a consumer add exactly that, uncontested, on any component that reached
+  for the same mechanism. The seam is narrowed to the same grammar
+  `bw_data_attrs` already enforces (`^data-[a-z][a-z0-9_.:-]*$`, excluding
+  `data-bw-*`), so it is now, and can only ever be, consumer-owned metadata
+  for the consumer's own JS or htmx to read back. **Breaking**: a call
+  passing a non-`data-*` name (including the previously-working `hx-post`)
+  now raises `TemplateSyntaxError`. For an htmx interaction on a rendered
+  item, author `hx-*` on your own element against a stable id the component
+  already renders, or wait for a named kwarg on the component itself (the
+  `_filter_bar.html` `hx_get`/`hx_target` pattern) if that need resurfaces.
+
 ## [3.12.0] - 2026-08-26
 
 The first Wave 1 data-visualisation component, and a layout-shift fix to the

@@ -101,11 +101,37 @@ def test_item_icon_renders_decorative() -> None:
     assert 'aria-hidden="true"' in html
 
 
-def test_attrs_seam_passes_through_escaped_attributes() -> None:
-    items = [{"label": "Export", "url": "/export/", "attrs": {"hx-post": "/export/", "data-kind": 'a"b'}}]
+# --- the attrs seam: consumer data-* metadata only, never a general
+# --- attribute passthrough (ADR-083) -----------------------------------------
+
+
+def test_attrs_seam_passes_through_a_plain_data_attribute_escaped() -> None:
+    items = [{"label": "Export", "url": "/export/", "attrs": {"data-kind": 'a"b'}}]
     html = _render(items=items)
-    assert 'hx-post="/export/"' in html
     assert 'data-kind="a&quot;b"' in html
+
+
+def test_attrs_seam_rejects_the_reserved_data_bw_namespace() -> None:
+    # Pinned to the attrs-seam rejection message specifically (not just
+    # "attrs", which the "attrs must be a mapping" precondition message
+    # also contains), so a precondition failure could not masquerade as
+    # this class of rejection.
+    items = [{"label": "Export", "url": "/export/", "attrs": {"data-bw-export": "1"}}]
+    with pytest.raises(TemplateSyntaxError, match="item attrs contains an invalid attribute name"):
+        _render(items=items)
+
+
+@pytest.mark.parametrize("name", ["role", "onclick", "aria-label", "hx-post"])
+def test_attrs_seam_rejects_non_data_attribute_names(name: str) -> None:
+    # ADR-083: the seam protects what a component deliberately withholds
+    # (an unstamped ARIA role, an unwired hx-* hook), not just what it
+    # emits, so only data-* names are ever accepted here. A precondition
+    # failure (a non-mapping attrs, tested separately below) raises a
+    # different message, so this match is pinned to the attrs-seam
+    # rejection specifically, not merely "some TemplateSyntaxError".
+    items = [{"label": "Export", "url": "/export/", "attrs": {name: "1"}}]
+    with pytest.raises(TemplateSyntaxError, match="item attrs contains an invalid attribute name"):
+        _render(items=items)
 
 
 def test_alpine_component_and_behaviour_args_are_wired() -> None:
