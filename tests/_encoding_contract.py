@@ -95,10 +95,14 @@ accessibility tree while every prior check, scoped to the element's own
 tag and descendants, stayed green.
 
 Rung 5 is only partially reachable by a regex over markup, and that
-boundary is deliberate rather than an oversight: an element's own
-``aria-label`` attribute IS caught by the existing text-content checks
-(the label text on the element itself is part of what "text survives"
-means). ``aria-labelledby`` pointing at an ID elsewhere in the document
+boundary is deliberate rather than an oversight. An element's own
+``aria-label`` REPLACES its text content as the accessible name, so text
+that survives stripping can still be unreachable to a screen reader.
+``assert_text_nodes_carry_no_accessible_name_override`` below closes that
+case explicitly. Note the text-content checks alone do NOT catch it: they
+read rendered inner text and never inspect ``aria-label``, so a needle
+goes on matching while the accessible name is something else entirely.
+``aria-labelledby`` pointing at an ID elsewhere in the document
 is NOT reachable here: resolving it needs finding the referenced element
 by ID anywhere in the fragment and reading ITS hidden state, which is a
 second, ID-indexed lookup this module does not build, so a text element
@@ -509,6 +513,33 @@ def assert_text_nodes_are_not_aria_hidden(
         assert total_matches == expected_count, (
             f"expected {expected_count} text element(s) across {text_classes!r}, found {total_matches}"
         )
+
+
+def assert_text_nodes_carry_no_accessible_name_override(html: str, *, text_classes: tuple[str, ...]) -> None:
+    """Assert no text-bearing element carries an ``aria-label`` (or
+    ``aria-labelledby``) overriding its own visible text.
+
+    Rung 5 of the scope ladder, and it needs its own helper because the
+    text-content checks cannot see it: ``aria-label`` REPLACES the element's
+    text as its accessible name, so ``<span class="x__label"
+    aria-label="redacted">Acme Corp</span>`` still has "Acme Corp" as inner
+    text and satisfies every needle, while a screen reader announces
+    "redacted". COL-030 asks whether the meaning reaches the user, not
+    whether the characters are in the DOM.
+
+    Asserts its own precondition first: the named elements must actually be
+    found, or "none of them overrides its name" is vacuously true of an
+    empty set."""
+    for text_class in text_classes:
+        elements = _find_text_elements(html, class_name=text_class)
+        assert elements, f"no <span class={text_class!r}> element found in the rendered html"
+        for _start_offset, element in elements:
+            opening_tag = element[: element.index(">") + 1]
+            for attribute in ("aria-label", "aria-labelledby"):
+                assert _attr_value(attribute, opening_tag) is None, (
+                    f"{text_class!r} text element carries {attribute}, which replaces its visible text as the "
+                    f"accessible name: the label reads as something other than its own text: {opening_tag!r}"
+                )
 
 
 # --- geometry is a unitless custom property, never width:/% -----------------

@@ -27,6 +27,7 @@ from tests._encoding_contract import (
     assert_no_progressbar_semantics,
     assert_ordered_list_element_survives_stripping,
     assert_text_nodes_are_not_aria_hidden,
+    assert_text_nodes_carry_no_accessible_name_override,
     assert_text_survives_colour_and_style_stripped,
 )
 
@@ -345,6 +346,37 @@ def test_label_and_value_spans_are_never_aria_hidden_only_the_bar_is() -> None:
     assert_text_nodes_are_not_aria_hidden(
         out, text_classes=("bw-ranked-list__label", "bw-ranked-list__value"), expected_count=6
     )
+
+
+def test_label_and_value_spans_carry_no_accessible_name_override() -> None:
+    # rung 5 of the scope ladder. aria-label REPLACES an element's text as
+    # its accessible name, so a label keeping "Acme Corp" as inner text
+    # while announcing "redacted" satisfies every needle check and still
+    # fails COL-030: the meaning does not reach the user. The text-content
+    # checks structurally cannot see this, since they read inner text and
+    # never inspect the attribute.
+    out = _render()
+    assert_text_nodes_carry_no_accessible_name_override(
+        out, text_classes=("bw-ranked-list__label", "bw-ranked-list__value")
+    )
+
+
+def test_an_aria_label_on_a_text_span_is_caught_as_a_name_override() -> None:
+    # teeth-check for the helper above, in the matched-the-wrong-thing
+    # direction: the needles still match because the inner text is
+    # untouched. Mutate the SECOND row, since the three rows render
+    # byte-identical and a first-row mutation cannot distinguish an
+    # every-element guarantee from a first-element one.
+    out = _render()
+    marker = '<span class="bw-ranked-list__label">'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = f'{before}{marker}{second_before}<span class="bw-ranked-list__label" aria-label="redacted">{second_rest}'
+    assert mutated != out, "the aria-label mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="accessible name"):
+        assert_text_nodes_carry_no_accessible_name_override(
+            mutated, text_classes=("bw-ranked-list__label", "bw-ranked-list__value")
+        )
 
 
 def test_text_nodes_hidden_by_an_ancestor_row_are_caught() -> None:
