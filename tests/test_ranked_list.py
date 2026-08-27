@@ -911,6 +911,16 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     # rescue it; that claim came from trying <div>, hitting the nesting
     # limit and writing it up as a property of the matcher. It is not one.
     #
+    # The wrapper therefore depends on a fact about _progress.html that
+    # could change, so what matters is the failure DIRECTION when it does.
+    # Verified: give that template a <section> of its own and this test
+    # FAILS rather than passing vacuously, because the probe stops being
+    # locatable and match= no longer sees its message. Loud, not quiet. If
+    # you are here because that happened, pick another tag the render does
+    # not emit rather than reaching for the direct-attribute form: that
+    # form stops tracking _FORBIDDEN_PROGRESS_ROLES, which is the whole
+    # reason this test is written through the helper.
+    #
     # match= is the other half, and it is what the layer-2 defect needed:
     # without it, pytest.raises passed on the helper's "no element found"
     # precondition rather than on the vocabulary, so the test went on
