@@ -230,6 +230,11 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         size="lg",
     ),
     "_stat (loading)": lambda: _include("brickwork/components/_stat.html", label="Revenue", value="0", loading=True),
+    "_trend_indicator (up, with label)": lambda: _include(
+        "brickwork/components/_trend_indicator.html", trend="up", trend_label="17 days faster"
+    ),
+    "_trend_indicator (down, no label)": lambda: _include("brickwork/components/_trend_indicator.html", trend="down"),
+    "_trend_indicator (flat)": lambda: _include("brickwork/components/_trend_indicator.html", trend="flat"),
     "bw_ranked_list (linked rows, basis=total, label, data)": lambda: _tag(
         "brickwork_components",
         "{% bw_ranked_list rows=rows basis='total' label='Top accounts' data=data %}",
@@ -793,6 +798,7 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_search",
         "_card",
         "_stat",
+        "_trend_indicator",
         "_ranked_list",
         "_chart_card",
         "_sparkline",
