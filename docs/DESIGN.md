@@ -162,6 +162,44 @@ per-tenant runtime-branding recipe; this section is a pointer only, the
 worked recipe (multi-tenant lookup, caching, template wiring) lives in
 [BRANDING.md](BRANDING.md).
 
+### 3b. Cascade claims are verified by rendering, never by reading
+
+**A claim about what the cascade does is verified by rendering it.** Reading
+the CSS is not evidence. This is an instrument rule, not a caution: three
+separate cascade claims in this package were wrong, every one survived a
+careful source read, and every one died to a browser measurement.
+
+The operational test when judging whether a declaration is redundant is not
+"does an ancestor set this property" but **"does anything else set this
+property on a path that reaches this element"**, which covers ancestors and
+same-element competitors in one question. An auditor with the narrow version
+finds one mechanism and deletes the other.
+
+Two mechanisms make a declaration load-bearing, and **neither is visible in
+the declaration itself**:
+
+- **Inheritance barrier.** For an inherited property, setting it to its own
+  initial value blocks an ancestor's value. `.bw-content` h2 and `.bw-footer`
+  both set `letter-spacing` to the `normal` tracking token; both resolve to
+  `0em`; both read as redundant. Removing either lets a wrapper's tracking
+  through, measured at 4.8px under a `letter-spacing: 0.3em` ancestor.
+- **Modifier reset.** `.bw-data-table__th--label` sets `letter-spacing:
+  var(--bw-font-tracking-normal)` to cancel the tracking its own base class
+  `.bw-data-table__th` sets for uppercase column headers. No ancestor is
+  involved; the competitor is a rule on the same element.
+
+The corollary is that **an explicit initial value is not evidence of
+redundancy**, and the inverse also holds: an omitted property is not evidence
+that the property is unwanted. `.bw-prose code` and `pre` bind no
+`letter-spacing`, so an ancestor's tracking reaches them today; binding
+`--bw-text-code-tracking` would resolve to `0em` and remove that inherited
+value rather than adding an unused one (icvoss/django-brickwork#312).
+
+The three instances behind this rule: `!important` does not beat a
+descendant's own value, so a hiding mechanism must target descendants
+explicitly; the two `0em` barriers above; and a paragraph in section 7.4 that
+stated the tracking case exactly backwards until it was measured.
+
 ## 4. Colour
 
 ### 4.1 Surfaces
@@ -734,19 +772,33 @@ copy internally inconsistent rather than giving a consumer a real theming
 lever, so this is a deliberate design choice, not an oversight; a consumer
 who wants a different label face changes `--bw-font-family-sans` instead.
 
-**`code` is a known, separately tracked gap, not a wired role.**
-`.bw-prose code` and `.bw-prose pre` read `--bw-font-family-mono` directly,
-bypassing the role layer entirely (they never resolve through
-`--bw-text-code-family`), which is the "components consume roles, never raw
-scale steps" rule stated above, violated. `--bw-text-code-family` is
-therefore shipped but consumed by nothing: exactly the false-affordance
-shape #288 fixed for the other nine `-family` tokens, except here the fix
-is wiring the existing rules to the role rather than deleting an unused
-property, and it changes a live rendering path in every consumer's prose,
-so it ships as its own change under its own review rather than riding in on
-#288. `tests/test_tokens.py` carries a single, named exemption for
-`--bw-text-code-family` in `_TEXT_FAMILY_EXEMPT` for exactly this reason;
-every other role's `-family` token is consumed by at least one rule.
+**`code` is wired** (icvoss/django-brickwork#293). `.bw-prose code` consumes
+`--bw-text-code-family`; `.bw-prose pre` consumes `--bw-text-code-family`,
+`--bw-text-code-size` and `--bw-text-code-line-height`. Neither rule binds
+`-weight` or `-tracking`, and the reason differs between the two. `font-weight`
+is inert here: nothing on a path to either rule sets it, so binding it would
+change nothing today. `letter-spacing` is not. It inherits, and neither rule
+sets it, so a `.bw-prose` ancestor carrying tracking currently reaches code
+blocks; binding `--bw-text-code-tracking` would resolve to `0em` and act as a
+barrier, stopping it. **Binding tracking is a behaviour change, not a no-op**,
+which is the argument for deciding it deliberately rather than sweeping it in
+here.
+That is a deliberate exception to the wire-or-remove rule stated above, and
+it is held open rather than settled: `code` is not special here, its two are
+2 of 9 unconsumed role properties across the whole type scale, tracked and
+decided together as icvoss/django-brickwork#312. Resolving them per role
+in isolation is what produced the inconsistency #312 exists to correct.
+Wiring was a visual no-op at package default: `--bw-text-code-family`
+already resolved to `var(--bw-font-family-mono)`, and `--bw-text-code-size`
+and the previously-read `--bw-text-body-sm-size` both resolved to
+`var(--bw-font-size-sm)`; `--bw-text-code-line-height` likewise matches the
+`--bw-font-line-height-normal` the `pre` rule read directly before. Inline
+`code`'s `font-size: 0.9em` is untouched: a deliberate relative unit so
+inline code tracks whichever role it is nested in, not a raw scale-step
+reference. `--bw-text-code-family` is consumed like every other role's
+`-family` token; the exemption that previously excluded it from
+`test_every_text_family_token_is_consumed_by_a_font_family_rule` is
+removed, not left empty.
 
 | Role | Family | Size | Leading | Weight | Tracking |
 |---|---|---|---|---|---|
@@ -762,7 +814,7 @@ every other role's `-family` token is consumed by at least one rule.
 | `label` | *(none, inherits `.bw-body`)* | sm | none | medium | normal |
 | `caption` | sans | xs | normal | normal | normal |
 | `overline` | sans | 2xs | none | semibold | wider |
-| `code` | mono (defined, not yet wired; see below) | sm | normal | normal | normal |
+| `code` | mono | sm | normal | normal | normal (weight/tracking defined, not wired; see below) |
 
 **Component map:** page-header title heading-xl (description body-md +
 fg-muted); empty-state heading heading-lg, body body-md + fg-muted +
