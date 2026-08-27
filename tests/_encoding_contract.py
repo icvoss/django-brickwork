@@ -77,7 +77,7 @@ enumerating the whole ladder is what this module now guards, rung by rung:
 
   1. the text node itself                              -- covered
   2. the text element's own attributes                  -- covered
-  3. its subtree (a nested ``aria-hidden`` child)        -- covered
+  3. its subtree (a nested hiding child)                -- covered
   4a. its immediate ancestor (the row wrapper)           -- covered
   4b. an ancestor at the fragment root (the component's
       own list element)                                 -- covered
@@ -85,13 +85,36 @@ enumerating the whole ladder is what this module now guards, rung by rung:
      ``aria-labelledby`` present at all                  -- covered, by
         refusing the attribute outright rather than resolving it
 
+Rungs 1-4b were, until now, ARIA-only: each rung above enumerated
+``aria-hidden`` and accessible-name overrides and stopped there, while the
+ladder's own title promises "available to the accessibility tree", not
+"available unless ARIA specifically hid it". A real browser removes an
+element from the accessibility tree by several mechanisms that carry no
+``aria-*`` attribute at all: the boolean ``hidden`` attribute, an inline
+``style="display:none"`` or ``style="visibility:hidden"``, and the
+boolean ``inert`` attribute, each checked at rungs 1 through 4b exactly as
+``aria-hidden`` is (own tag, subtree, immediate ancestor, fragment root).
+``display:none`` was the sharpest gap of the four: ``_ATTR_STRIP`` strips
+``style=`` from an element's own opening tag before the "survives
+stripping" text check runs, so the very attribute carrying the violation
+was removed before it could be seen. A component author reaching for
+``hidden`` or ``display:none`` is at least as likely as reaching for
+``aria-hidden``, so this was a missing CATEGORY of the ladder, not a
+missing rung within the ARIA category; widening was chosen over narrowing
+the ladder's stated scope, since the mechanisms are cheap to check (the
+same attribute/style-value reads this module already has the shape for)
+and a component author is more likely to reach for the plain HTML/CSS
+mechanism than for ARIA. Deliberately NOT covering ``<template>``: see
+``_removes_element_from_a11y_tree``'s own docstring for why that one stays
+an explicit boundary rather than a claimed rung.
+
 Rungs 1-3 are what the original nested-``aria-hidden``-child fix closed:
 the element's own tag and everything strictly inside it. Rungs 4a/4b are
 the SAME missing check at greater depth, closed by
-``_enclosing_aria_hidden_ranges``/``_is_enclosed_by_any`` below: a
+``_ancestor_removes_from_a11y_tree_ranges``/``_is_enclosed_by_any`` below: a
 subtree walk starting at the text element can never see outward to an
-ancestor, so wrapping the row (4a) or the whole ``<ol>`` (4b) in
-``aria-hidden="true"`` removed every label and value from the
+ancestor, so wrapping the row (4a) or the whole ``<ol>`` (4b) in any of the
+recognised hiding mechanisms removed every label and value from the
 accessibility tree while every prior check, scoped to the element's own
 tag and descendants, stayed green.
 
@@ -136,8 +159,9 @@ _ATTR_STRIP = re.compile(r"""\s(?:class|style)=(?:"[^"]*"|'[^']*')""")
 
 
 def _attr_value(attr_name: str, opening_tag: str) -> str | None:
-    """Return the value of ``attr_name`` on ``opening_tag``, single- or
-    double-quoted, or ``None`` if the attribute is absent.
+    """Return the value of ``attr_name`` on ``opening_tag``, single-quoted,
+    double-quoted, or entirely unquoted, or ``None`` if the attribute is
+    absent.
 
     A double-quote-only read is the same matched-the-wrong-thing defect as
     ``_ATTR_STRIP`` above: ``_find_elements`` deliberately accepts either
@@ -148,11 +172,42 @@ def _attr_value(attr_name: str, opening_tag: str) -> str | None:
     property. Every attribute read in this module goes through here so a
     single-quoted ``style=`` or ``class=`` is exactly as visible as a
     double-quoted one, matching what element matching itself already
-    guarantees."""
-    match = re.search(rf'{re.escape(attr_name)}\s*=\s*"([^"]*)"|{re.escape(attr_name)}\s*=\s*\'([^\']*)\'', opening_tag)
+    guarantees.
+
+    Three further properties a real browser does not care about but this
+    regex previously did, all closed the same way ``_ARIA_HIDDEN_TRUE`` is
+    already anchored, case-insensitive and unquoted-tolerant:
+
+    Anchored with ``(?<![\\w-])``, not a bare name match: an unanchored
+    search for ``style=`` is satisfied by ``data-style=``, a consumer-facing
+    attribute this component's own row ``data`` option can emit, so a
+    violating ``style="width: 75%"`` sitting AFTER a compliant ``data-style``
+    on the same tag was read from the wrong attribute entirely, a false pass
+    on a real property this helper exists to forbid, and a compliant
+    ``data-style`` value was misread as the checked property, a false
+    failure in the other direction.
+
+    Case-insensitive (``re.IGNORECASE``): ``ARIA-LABEL="redacted"`` overrides
+    the accessible name in a real browser exactly as ``aria-label`` does;
+    HTML attribute names are case-insensitive, and a case-sensitive read
+    treated the attribute as absent.
+
+    Unquoted values accepted (``[^\\s>]+``): ``aria-label=redacted`` is a
+    legal, unquoted HTML attribute value that a real browser overrides the
+    accessible name with; a quoted-only read treated it as absent, the same
+    false "attribute absent, therefore compliant" reading the case and
+    anchoring gaps produced.
+    """
+    attr_regex = rf'(?<![\w-]){re.escape(attr_name)}\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))'
+    match = re.search(attr_regex, opening_tag, re.IGNORECASE)
     if match is None:
         return None
-    return match.group(1) if match.group(1) is not None else match.group(2)
+    double_quoted, single_quoted, unquoted = match.group(1), match.group(2), match.group(3)
+    if double_quoted is not None:
+        return double_quoted
+    if single_quoted is not None:
+        return single_quoted
+    return unquoted
 
 
 def _class_token_regex(class_name: str) -> str:
@@ -208,7 +263,7 @@ def _find_text_elements(html: str, *, class_name: str) -> list[tuple[int, str]]:
     mid-subtree with a dangling, unclosed inner tag that no later check can
     reason about correctly.
 
-    The start offset lets a caller ask ``_enclosing_aria_hidden_ranges``
+    The start offset lets a caller ask ``_ancestor_removes_from_a11y_tree_ranges``
     whether some ANCESTOR of this element (not the element itself, and not
     a sibling that already closed) is ``aria-hidden="true"``: a subtree scan
     starting from the element's own opening tag can never see outward to a
@@ -242,21 +297,126 @@ _ANY_TAG = re.compile(r"<(?P<closing>/)?(?P<name>[a-zA-Z][\w-]*)(?P<attrs>[^>]*?
 # substring, preceded by "-", which \b does not treat as a boundary),
 # wrongly treating an unrelated attribute as the hiding one.
 _ARIA_HIDDEN_TRUE = re.compile(r'(?<![\w-])aria-hidden\s*=\s*(?:"true"|\'true\'|true\b)', re.IGNORECASE)
+_HTML_COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
+# The boolean attributes an HTML parser removes an element (and everything
+# beneath it) from the accessibility tree for, with no value required:
+# bare ``hidden``/``inert`` and an empty-string or same-name value
+# (``hidden=""``, ``hidden="hidden"``) are all the same boolean-true state
+# a real browser recognises. Anchored on BOTH sides: (?<![\w-]) on the left
+# for the same reason _ARIA_HIDDEN_TRUE is (an unanchored left match would
+# also fire inside "aria-hidden" itself), and (?=[\s=/>]|$) on the right so
+# a bare "hidden"/"inert" is only recognised as an ATTRIBUTE NAME, delimited
+# by whitespace, "=", the tag's self-closing "/" or its closing ">", never
+# as a substring inside a CSS declaration VALUE such as
+# "content-visibility:hidden", where the character preceding "hidden" is
+# ":", which the left anchor alone does not reject. This regex is only ever
+# run against an opening tag's own attribute text, never against an
+# isolated style value, so this right boundary is the correct one for what
+# terminates an attribute name in that context.
+_HIDDEN_ATTR = re.compile(r'(?<![\w-])hidden\b(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?(?=[\s=/>]|$)', re.IGNORECASE)
+_INERT_ATTR = re.compile(r'(?<![\w-])inert\b(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?(?=[\s=/>]|$)', re.IGNORECASE)
+# display:none and visibility:hidden are the two inline-style declarations
+# that remove an element from the accessibility tree exactly as
+# aria-hidden="true" does; visibility:collapse is table-row-specific and not
+# emitted by any current family member, so it is not chased here. A real
+# style attribute's VALUE is what carries this, so these are matched only
+# after _attr_value("style", ...) has already isolated that one attribute's
+# value from the rest of the opening tag, never against the opening tag's
+# raw text (which would also match a "display: none"/"visibility: hidden"
+# STRING sitting in some unrelated data-* attribute).
+# (?<![\w-]) anchors the property name to a real declaration boundary, the
+# same convention _ARIA_HIDDEN_TRUE uses for an attribute name: without it,
+# a search for "visibility:hidden" is satisfied by the SUBSTRING inside
+# "content-visibility:hidden", a distinct, legitimately-disproved CSS
+# property (content-visibility, not visibility) that must stay unaffected.
+_DISPLAY_NONE = re.compile(r"(?<![\w-])display\s*:\s*none\b", re.IGNORECASE)
+_VISIBILITY_HIDDEN = re.compile(r"(?<![\w-])visibility\s*:\s*hidden\b", re.IGNORECASE)
 
 
-def _enclosing_aria_hidden_ranges(html: str) -> list[tuple[int, int]]:
+def _mask_comments(html: str) -> str:
+    """Return ``html`` with every HTML comment's content replaced by
+    same-length filler that contains no ``<``/``>``, so a comment
+    containing tag-like text can never be mistaken for real markup by
+    ``_ANY_TAG``.
+
+    A comment is not required to contain anything tag-shaped, but nothing
+    stops it doing so, and a real browser's HTML parser treats the whole
+    ``<!-- ... -->`` span as opaque, never scanning its content for tags:
+    ``<ol aria-hidden="true"><!-- </ol> -->`` closes the ``<ol>`` on ITS OWN
+    real closing tag, not on the ``</ol>`` text sitting inside the comment,
+    so every row beneath it stays inside the hidden range in the real
+    accessibility tree. ``_ANY_TAG``, run over the raw string, disagreed: it
+    treated the commented-out ``</ol>`` as the real close, ending the hidden
+    range early and leaving every row past that point looking unhidden to
+    every helper in this module.
+
+    Filler, not deletion: deleting the comment would shift every later
+    offset, and ``_find_text_elements`` hands this module's callers offsets
+    computed against the ORIGINAL ``html`` string, so any span-altering
+    transform here would silently misalign every enclosing-range lookup
+    that follows. Replacing each matched comment with ``-`` for the same
+    span keeps every offset stable while removing every ``<``/``>``
+    character a comment's content might otherwise contribute to the tag
+    scan below."""
+
+    def _fill(match: re.Match[str]) -> str:
+        return "-" * (match.end() - match.start())
+
+    return _HTML_COMMENT.sub(_fill, html)
+
+
+def _removes_element_from_a11y_tree(opening_tag_attrs: str) -> bool:
+    """True if an opening tag carrying ``opening_tag_attrs`` removes the
+    element ITSELF, and therefore everything nested inside it, from the
+    accessibility tree, by any of the non-ARIA mechanisms a real browser
+    recognises alongside ``aria-hidden="true"``: the boolean ``hidden``
+    attribute, the boolean ``inert`` attribute, or an inline
+    ``style="display:none"``/``style="visibility:hidden"`` declaration.
+
+    Deliberately NOT covering ``<template>``: a component rendered inside
+    ``<template>`` is inert to the accessibility tree for a different
+    reason (its content is not part of the document at all, not merely
+    hidden within it), which this attribute-presence check cannot express;
+    treating it here would claim a coverage this module does not actually
+    have. No current family member renders inside ``<template>``, so this
+    is a stated boundary, not a silent gap."""
+    if _ARIA_HIDDEN_TRUE.search(opening_tag_attrs) is not None:
+        return True
+    if _HIDDEN_ATTR.search(opening_tag_attrs) is not None:
+        return True
+    if _INERT_ATTR.search(opening_tag_attrs) is not None:
+        return True
+    style_value = _attr_value("style", f"<x {opening_tag_attrs}>")
+    return style_value is not None and (
+        _DISPLAY_NONE.search(style_value) is not None or _VISIBILITY_HIDDEN.search(style_value) is not None
+    )
+
+
+def _ancestor_removes_from_a11y_tree_ranges(html: str) -> list[tuple[int, int]]:
     """Return one ``(start, end)`` span per element, ANYWHERE in ``html``
-    and of ANY tag name, whose own opening tag carries
-    ``aria-hidden="true"``, spanning from that opening tag's ``<`` through
+    and of ANY tag name, whose own opening tag removes it (and everything
+    nested inside it) from the accessibility tree by ``aria-hidden="true"``
+    OR any of the non-ARIA mechanisms ``_removes_element_from_a11y_tree``
+    recognises (``hidden``, ``inert``, ``display:none``,
+    ``visibility:hidden``), spanning from that opening tag's ``<`` through
     its matching closing tag's ``>``. A caller can then test whether some
     other element's start offset falls strictly inside one of these spans,
     which is exactly "is this element a descendant of something hidden",
     the property rungs 4a/4b of the accessibility-tree ladder need: the
     existing subtree helpers only ever look at an element's own tag or
     INWARD into its own descendants, never OUTWARD at its ancestors, so
-    wrapping a whole row or the component root in ``aria-hidden="true"``
+    wrapping a whole row or the component root in one of these mechanisms
     passed every prior check while removing every label and value beneath
     it from the accessibility tree.
+
+    The ladder's title has always promised "this text is available to the
+    accessibility tree", but until now the enumerated mechanisms were
+    ARIA-only; every one of ``hidden``, ``display:none``,
+    ``visibility:hidden`` and ``inert`` is at least as reachable for a
+    component author as ``aria-hidden``, and a real browser removes the
+    element from the tree identically for all of them, so a check that
+    only recognised ``aria-hidden`` was silently narrower than the
+    property it claimed to guard.
 
     Built as a single forward scan over the WHOLE fragment with a tag
     stack, not a second per-element subtree walk: an ancestor can be any
@@ -266,13 +426,23 @@ def _enclosing_aria_hidden_ranges(html: str) -> list[tuple[int, int]]:
 
     ``aria-hidden="false"`` must NOT open a hidden range: only a literal
     ``true`` (either quote style, or bare unquoted) counts, matching what
-    every other helper in this module treats as "hidden". A self-closing
-    tag (``<br aria-hidden="true"/>``) never opens a range: it has no body,
-    so nothing can be its descendant, and pushing it on the stack would
-    make the NEXT sibling's closing tag wrongly pop it instead."""
+    every other helper in this module treats as "hidden"; there is no
+    equivalent "false" spelling for ``hidden``/``inert``/``display``/
+    ``visibility`` to guard against, since each of those is either a
+    boolean attribute (present means hidden; a differently-valued
+    ``style`` simply does not match the two forbidden declarations) rather
+    than a tri-state one. A self-closing tag (``<br aria-hidden="true"/>``)
+    never opens a range: it has no body, so nothing can be its descendant,
+    and pushing it on the stack would make the NEXT sibling's closing tag
+    wrongly pop it instead.
+
+    Scans ``_mask_comments(html)``, not ``html`` itself, so tag-like text
+    inside an HTML comment can never be read as a real opening or closing
+    tag; the returned offsets still index correctly into the ORIGINAL
+    ``html`` because masking preserves length and never shifts anything."""
     ranges: list[tuple[int, int]] = []
-    stack: list[tuple[str, int, bool]] = []  # (tag name lower, open tag start, is aria-hidden)
-    for match in _ANY_TAG.finditer(html):
+    stack: list[tuple[str, int, bool]] = []  # (tag name lower, open tag start, is hidden)
+    for match in _ANY_TAG.finditer(_mask_comments(html)):
         name = match.group("name").lower()
         if match.group("closing"):
             # a closing tag: pop the nearest matching open element, if any.
@@ -293,7 +463,7 @@ def _enclosing_aria_hidden_ranges(html: str) -> list[tuple[int, int]]:
             continue
         if match.group("selfclosing"):
             continue
-        is_hidden = _ARIA_HIDDEN_TRUE.search(match.group("attrs")) is not None
+        is_hidden = _removes_element_from_a11y_tree(match.group("attrs"))
         stack.append((name, match.start(), is_hidden))
     return ranges
 
@@ -306,18 +476,62 @@ def _is_enclosed_by_any(offset: int, ranges: list[tuple[int, int]]) -> bool:
     return any(start < offset < end for start, end in ranges)
 
 
-_NESTED_ARIA_HIDDEN_ELEMENT = re.compile(r"<(\w+)\b[^>]*\baria-hidden\s*=\s*[\"']true[\"'][^>]*>.*?</\1>", re.DOTALL)
+_NESTED_ELEMENT_OPENING_TAG = re.compile(r"<(?P<tag>\w+)\b(?P<attrs>[^>]*)>", re.DOTALL)
 
 
 def _visible_text(inner_html: str) -> str:
-    """Return ``inner_html`` with any nested ``aria-hidden="true"`` element
-    (and its own subtree) removed entirely, so text that is only present
-    inside a hidden descendant cannot be mistaken for text genuinely visible
-    to the accessibility tree. ``<span aria-hidden="true">Acme Corp</span>``
-    nested inside a label element must not be able to satisfy a "text
-    survives" needle: the substring is there, but it is hidden from
-    assistive technology, which is exactly the state COL-030 forbids."""
-    return _NESTED_ARIA_HIDDEN_ELEMENT.sub("", inner_html)
+    """Return ``inner_html`` with any nested element (and its own subtree)
+    that ``_removes_element_from_a11y_tree`` recognises as hiding itself
+    removed entirely, so text that is only present inside such a
+    descendant cannot be mistaken for text genuinely visible to the
+    accessibility tree. ``<span aria-hidden="true">Acme Corp</span>`` (or
+    the same nested child hidden via ``hidden``, ``inert``,
+    ``display:none`` or ``visibility:hidden``) inside a label element must
+    not be able to satisfy a "text survives" needle: the substring is
+    there, but it is hidden from assistive technology, which is exactly
+    the state COL-030 forbids.
+
+    A single forward scan with a depth counter, mirroring
+    ``_find_text_elements``'s own nested-``<span>`` handling: a naive
+    regex anchored to one specific attribute (the module's previous
+    ``aria-hidden``-only version) cannot express "OR any of several
+    different hiding mechanisms" without either growing one alternation
+    per mechanism inside the tag-matching regex itself (fragile, and prone
+    to disagreeing with ``_removes_element_from_a11y_tree`` about what
+    counts) or, as done here, delegating the hiding decision to that same
+    predicate function while this loop only tracks nesting depth and
+    matching tag names."""
+    result: list[str] = []
+    cursor = 0
+    while True:
+        open_match = _NESTED_ELEMENT_OPENING_TAG.search(inner_html, cursor)
+        if open_match is None:
+            result.append(inner_html[cursor:])
+            break
+        if not _removes_element_from_a11y_tree(open_match.group("attrs")):
+            result.append(inner_html[cursor : open_match.end()])
+            cursor = open_match.end()
+            continue
+        # this nested element hides itself: skip its own opening tag and
+        # its entire subtree, up to and including its matching close.
+        result.append(inner_html[cursor : open_match.start()])
+        tag = open_match.group("tag")
+        depth = 1
+        scan_cursor = open_match.end()
+        while depth > 0:
+            next_open = re.search(rf"<{tag}\b[^>]*>", inner_html[scan_cursor:], re.IGNORECASE)
+            next_close = re.search(rf"</{tag}\s*>", inner_html[scan_cursor:], re.IGNORECASE)
+            assert next_close is not None, (
+                f"<{tag}> opened at offset {open_match.start()} has no matching </{tag}> in the given text"
+            )
+            if next_open is not None and next_open.start() < next_close.start():
+                depth += 1
+                scan_cursor += next_open.end()
+            else:
+                depth -= 1
+                scan_cursor += next_close.end()
+        cursor = scan_cursor
+    return "".join(result)
 
 
 def assert_text_survives_colour_and_style_stripped(
@@ -334,24 +548,25 @@ def assert_text_survives_colour_and_style_stripped(
     inside an unrelated ``href``, a ``data-*`` attribute value, or a sibling
     element's markup must NOT be able to satisfy this assertion, which a
     whole-document substring scan cannot tell apart from the real text node.
-    Text present only inside a NESTED ``aria-hidden="true"`` child is also
-    excluded before matching (rung 3 of the accessibility-tree ladder): that
-    text is a substring of the captured content but genuinely absent from
-    the accessibility tree, so it must not be able to satisfy a needle in
-    its place. An element whose own ANCESTOR (its row, or the component
-    root) carries ``aria-hidden="true"`` is excluded from ``text_content``
-    entirely (rungs 4a/4b): wrapping a row or the whole list in
-    ``aria-hidden="true"`` removes every needle beneath it from the
-    accessibility tree just as completely as hiding the text node itself,
-    and a needle must not be able to ride to a false pass on an
-    ancestor's hidden subtree while every text element's OWN tag looks
+    Text present only inside a NESTED child that hides itself (whether by
+    ``aria-hidden="true"``, ``hidden``, ``inert``, ``display:none`` or
+    ``visibility:hidden``) is also excluded before matching (rung 3 of the
+    accessibility-tree ladder): that text is a substring of the captured
+    content but genuinely absent from the accessibility tree, so it must
+    not be able to satisfy a needle in its place. An element whose own
+    ANCESTOR (its row, or the component root) carries any of the same
+    hiding mechanisms is excluded from ``text_content`` entirely (rungs
+    4a/4b): wrapping a row or the whole list removes every needle beneath
+    it from the accessibility tree just as completely as hiding the text
+    node itself, and a needle must not be able to ride to a false pass on
+    an ancestor's hidden subtree while every text element's OWN tag looks
     clean.
 
     Asserts its own precondition first: stripping must actually have changed
     at least one of the named elements' own opening tags, or the "survives
     stripping" property below is unproven (the check would pass identically
     against the untouched ``html``, which is not what COL-030 claims)."""
-    hidden_ranges = _enclosing_aria_hidden_ranges(html)
+    hidden_ranges = _ancestor_removes_from_a11y_tree_ranges(html)
     changed_any_element = False
     text_content: list[str] = []
     for text_class in text_classes:
@@ -362,7 +577,14 @@ def assert_text_survives_colour_and_style_stripped(
             inner = element[len(opening_tag) : -len("</span>")]
             if _ATTR_STRIP.sub("", opening_tag) != opening_tag:
                 changed_any_element = True
-            if _is_enclosed_by_any(start_offset, hidden_ranges):
+            # rungs 1/2 as well as 4a/4b: an element that hides ITSELF is
+            # just as absent from the accessibility tree as one hidden by an
+            # ancestor, and this helper covered the ancestor case and the
+            # nested-child case (via _visible_text) while missing the
+            # element's own tag. Its sibling helper caught that shape, so the
+            # suite went red and the gap read as covered; a rung is only
+            # covered by THIS helper if THIS helper can see it.
+            if _removes_element_from_a11y_tree(opening_tag) or _is_enclosed_by_any(start_offset, hidden_ranges):
                 continue
             text_content.append(_visible_text(inner))
 
@@ -419,7 +641,7 @@ def assert_bar_is_aria_hidden_and_empty(
         )
     for match in bar_matches:
         element = match.group(0)
-        # _ARIA_HIDDEN_TRUE, the SAME constant _enclosing_aria_hidden_ranges
+        # _ARIA_HIDDEN_TRUE, the SAME constant _ancestor_removes_from_a11y_tree_ranges
         # uses, rather than a second pattern written here. Two patterns for
         # one attribute disagreed: a looser local version accepted mismatched
         # quotes AND matched data-aria-hidden, so a bar that was never hidden
@@ -478,15 +700,17 @@ def assert_text_nodes_are_not_aria_hidden(
 ) -> None:
     """Assert none of the visible label/value text elements (selected by
     their own ``class="..."`` values in ``text_classes``) is hidden from the
-    accessibility tree, whether ``aria-hidden`` sits on the element's OWN
-    opening tag, ANYWHERE IN ITS SUBTREE (a regression that nests a hidden
-    child inside the text element, ``<span class="bw-x__label"><span
-    aria-hidden="true">Acme Corp</span></span>``, would otherwise still
-    pass, silently removing the one channel COL-030 depends on while the
-    outer tag looks clean), or on any ANCESTOR of the element (its row, or
-    the component root): wrapping the whole row or list in
-    ``aria-hidden="true"`` removes the text from the accessibility tree
-    just as completely, while the text element's own tag and subtree stay
+    accessibility tree, whether the hiding mechanism (``aria-hidden``,
+    ``hidden``, ``inert``, ``display:none`` or ``visibility:hidden``) sits
+    on the element's OWN opening tag, ANYWHERE IN ITS SUBTREE (a regression
+    that nests a hidden child inside the text element, ``<span
+    class="bw-x__label"><span aria-hidden="true">Acme Corp</span></span>``
+    or the same shape with ``hidden``/``inert``/a hiding ``style=``, would
+    otherwise still pass, silently removing the one channel COL-030 depends
+    on while the outer tag looks clean), or on any ANCESTOR of the element
+    (its row, or the component root): wrapping the whole row or list in any
+    of these mechanisms removes the text from the accessibility tree just
+    as completely, while the text element's own tag and subtree stay
     entirely clean, which is exactly what the self-and-subtree checks above
     cannot see.
 
@@ -496,7 +720,7 @@ def assert_text_nodes_are_not_aria_hidden(
     ``assert_bar_is_aria_hidden_and_empty``. If ``expected_count`` is given,
     it is asserted once, against the total across every class in
     ``text_classes`` combined."""
-    hidden_ranges = _enclosing_aria_hidden_ranges(html)
+    hidden_ranges = _ancestor_removes_from_a11y_tree_ranges(html)
     total_matches = 0
     for text_class in text_classes:
         elements = _find_text_elements(html, class_name=text_class)
@@ -504,14 +728,18 @@ def assert_text_nodes_are_not_aria_hidden(
         total_matches += len(elements)
         for start_offset, element in elements:
             opening_tag = element[: element.index(">") + 1]
-            assert "aria-hidden" not in opening_tag, f"{text_class!r} text element must never be aria-hidden"
+            assert not _removes_element_from_a11y_tree(opening_tag), (
+                f"{text_class!r} text element must never hide itself from the accessibility tree "
+                f"(aria-hidden, hidden, inert, display:none or visibility:hidden): {opening_tag!r}"
+            )
             inner = element[len(opening_tag) : -len("</span>")]
-            assert re.search(r'aria-hidden\s*=\s*["\']?\s*true', inner, re.IGNORECASE) is None, (
-                f"{text_class!r} text element must never contain an aria-hidden descendant: {inner!r}"
+            assert _visible_text(inner) == inner, (
+                f"{text_class!r} text element must never contain a descendant that hides itself from the "
+                f"accessibility tree (aria-hidden, hidden, inert, display:none or visibility:hidden): {inner!r}"
             )
             assert not _is_enclosed_by_any(start_offset, hidden_ranges), (
-                f"{text_class!r} text element has an aria-hidden ancestor: it is present in the DOM but "
-                "removed from the accessibility tree by a parent element, not by its own tag or subtree"
+                f"{text_class!r} text element has an ancestor that hides it from the accessibility tree: it is "
+                "present in the DOM but removed by a parent element, not by its own tag or subtree"
             )
     if expected_count is not None:
         assert total_matches == expected_count, (
