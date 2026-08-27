@@ -452,7 +452,21 @@ def bw_chart_mount(
     (which does not flag a name that is merely ignored), and reaches nobody,
     which is precisely the failure CHT-012 exists to prevent. It shipped that
     way in this tag's first draft and was caught by reading bw_icon's
-    contract rather than by any gate. Supplying neither is
+    contract rather than by any gate.
+
+    The role carries a BOUNDARY worth knowing before you reach for it: it
+    makes the mount's descendants presentational, so anything focusable the
+    engine paints inside (a keyboard-navigable data point, a drill-down
+    control) stays reachable by keyboard while being hidden from assistive
+    technology, which is a worse state than either a plain image or a plain
+    interactive region. The role is right for the case this contract targets
+    and CHT-012 describes: a canvas or SVG that is ONE graphical object to a
+    screen reader, whose detail is carried by the chart_data_table fallback
+    rather than by traversable children. An interactive chart is a different
+    contract that this tag does not yet serve, and it wants its own role and
+    its own keyboard story rather than a widened meaning for this one.
+
+    Supplying neither is
     a render-time error: a canvas or SVG the engine paints into has no
     accessible name of its own, so silence here is exactly the WCAG 1.1.1
     defect this tag exists to close. Supplying both is also an error
