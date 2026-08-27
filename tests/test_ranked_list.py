@@ -347,6 +347,92 @@ def test_label_and_value_spans_are_never_aria_hidden_only_the_bar_is() -> None:
     )
 
 
+def test_text_nodes_hidden_by_an_ancestor_row_are_caught() -> None:
+    # rung 4a of the accessibility-tree ladder: aria-hidden="true" on the
+    # ROW WRAPPER, not on the label/value spans themselves and not nested
+    # inside them, removes both spans from the accessibility tree just as
+    # completely while their own tags and subtrees stay entirely clean. The
+    # earlier nested-child fix (rung 3) only ever looked INWARD from the
+    # text element; this looks OUTWARD at its ancestors, which no prior
+    # check did.
+    #
+    # Mutated on the SECOND row's wrapper, not the first (icvoss/
+    # django-brickwork#286): a violation on the first of several matching
+    # elements is indistinguishable from a check that only ever looked at
+    # the first element in the first place, since a naive re.search would
+    # still find a clean, unhidden row afterwards and could report that as
+    # "found one, therefore the property holds" if a helper were ever
+    # careless about scanning every match. Globex is the second row, and
+    # every row wrapper's own opening tag is identical text (no
+    # distinguishing attribute), so a plain ``str.replace(..., 1)`` always
+    # mutates the FIRST occurrence (Acme), never the second, silently
+    # asserting the property against the wrong, still-clean row: split on
+    # the marker to target the second occurrence specifically.
+    out = _render()
+    before, marker, after = out.partition('<div class="bw-ranked-list__row">')
+    before2, marker2, after2 = after.partition('<div class="bw-ranked-list__row">')
+    mutated = before + marker + before2 + '<div class="bw-ranked-list__row" aria-hidden="true">' + after2
+    assert mutated != out, "the row-wrapper mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError):
+        assert_text_nodes_are_not_aria_hidden(
+            mutated, text_classes=("bw-ranked-list__label", "bw-ranked-list__value"), expected_count=6
+        )
+    with pytest.raises(AssertionError):
+        assert_text_survives_colour_and_style_stripped(
+            mutated,
+            "Globex",
+            "300",
+            text_classes=("bw-ranked-list__label", "bw-ranked-list__value"),
+        )
+
+
+def test_text_nodes_hidden_by_the_component_root_are_caught() -> None:
+    # rung 4b: aria-hidden="true" on the component's OWN <ol> root hides
+    # every row beneath it at once. Necessarily a single-element mutation
+    # (there is only one list root to hide), unlike rung 4a above where the
+    # violation is planted on a non-first element among several; that
+    # asymmetry is inherent to "the root" being singular, not a gap in this
+    # test.
+    out = _render()
+    mutated = out.replace('<ol class="bw-ranked-list">', '<ol class="bw-ranked-list" aria-hidden="true">', 1)
+    assert mutated != out, "the root mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError):
+        assert_text_nodes_are_not_aria_hidden(
+            mutated, text_classes=("bw-ranked-list__label", "bw-ranked-list__value"), expected_count=6
+        )
+    with pytest.raises(AssertionError):
+        assert_text_survives_colour_and_style_stripped(
+            mutated,
+            "Acme Corp",
+            "400",
+            text_classes=("bw-ranked-list__label", "bw-ranked-list__value"),
+        )
+
+
+def test_aria_hidden_false_on_an_ancestor_does_not_count_as_hiding() -> None:
+    # aria-hidden="false" is a real, legal ARIA value meaning "not hidden",
+    # not a synonym for the attribute's absence; a range-builder keyed on
+    # the mere presence of the attribute name rather than its value would
+    # wrongly treat this row as hidden and fail a genuinely conformant
+    # render. str.replace(..., 1) mutates the FIRST occurrence, Acme's row,
+    # so the assertions below check Acme/400, the row actually mutated, not
+    # a row this call never touched.
+    out = _render()
+    mutated = out.replace(
+        '<div class="bw-ranked-list__row">', '<div class="bw-ranked-list__row" aria-hidden="false">', 1
+    )
+    assert mutated != out, "the row-wrapper mutation did not change the rendered html: fixture assumption is stale"
+    assert_text_nodes_are_not_aria_hidden(
+        mutated, text_classes=("bw-ranked-list__label", "bw-ranked-list__value"), expected_count=6
+    )
+    assert_text_survives_colour_and_style_stripped(
+        mutated,
+        "Acme Corp",
+        "400",
+        text_classes=("bw-ranked-list__label", "bw-ranked-list__value"),
+    )
+
+
 def test_geometry_is_a_unitless_custom_property_not_a_width_or_percent_string() -> None:
     # the bar's CSS turns this bare number into a length with its own
     # calc(); a template regression that emitted "75%" or "width: 75%"
