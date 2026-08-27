@@ -1989,6 +1989,88 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   width: calc(var(--bw-ranked-list-value, 0) * 1%);
 }
 
+/* --- Sparkline (VIZ-003/004/005/006) ---------------------------------------- */
+
+/* An inline single-series trend line: label/value as visible text (COL-030),
+   the <svg> itself scaling to whatever box the caller's container gives it
+   (no fixed size of its own, matching _stat.html's bw-stat__sparkline slot,
+   which this component is designed to fill). Label/value stack above the
+   line by default; a caller wanting them side by side does so from its own
+   container, since this component owns no width-dependent layout of its
+   own (Responsive, per the template header). */
+.bw-sparkline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
+}
+.bw-sparkline__label {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
+.bw-sparkline__value {
+  color: var(--bw-color-fg);
+  font-variant-numeric: tabular-nums;
+}
+/* Mirrors .bw-stat__trend exactly (BR-BW-TPL-007): the glyph + hidden text
+   pairing that keeps direction off colour alone. */
+.bw-sparkline__trend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-1);
+  color: var(--bw-color-fg-muted);
+}
+.bw-sparkline--up .bw-sparkline__trend {
+  color: var(--bw-color-success-fg);
+}
+.bw-sparkline--down .bw-sparkline__trend {
+  color: var(--bw-color-danger-fg);
+}
+.bw-sparkline__svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+/* Neutral reuses the shared chart palette's first colour (VIZ-026) rather
+   than a hardcoded value: --bw-color-sparkline-stroke DEFAULTS to
+   --bw-color-chart-1, so a lone sparkline matches the chart palette's first
+   series and nothing changes visually, but the token exists so a consumer
+   can override it. VIZ-026 lets any VIZ stroke resolve --bw-color-chart-1..8
+   to colour-match a chart shown alongside; reading chart-1 directly here
+   would leave that consumer nothing to override but this rule, and
+   docs/BRANDING.md forbids reaching into component internals. The seam is
+   the point, not the default value. */
+.bw-sparkline--neutral .bw-sparkline__line {
+  stroke: var(--bw-color-sparkline-stroke);
+}
+/* Trend reuses the SAME per-theme-authored, AA-verified ink _stat.html's own
+   trend TEXT already uses (--bw-color-success-fg / --bw-color-danger-fg),
+   rather than a duplicate --bw-sparkline-stroke-positive/-negative pair
+   carrying identical values: one authored pairing, two consumers. */
+.bw-sparkline--trend.bw-sparkline--up .bw-sparkline__line {
+  stroke: var(--bw-color-success-fg);
+}
+.bw-sparkline--trend.bw-sparkline--down .bw-sparkline__line {
+  stroke: var(--bw-color-danger-fg);
+}
+.bw-sparkline--trend.bw-sparkline--flat .bw-sparkline__line {
+  stroke: var(--bw-color-fg-muted);
+}
+.bw-sparkline__line {
+  stroke-width: var(--bw-component-sparkline-stroke-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+/* The highlighted point (VIZ-005): filled with the brand accent, matching
+   .bw-ranked-list__bar::before's own reuse of --bw-color-accent rather than
+   a new marker-only token, since nothing about this dot needs a colour the
+   accent does not already provide. */
+.bw-sparkline__marker {
+  fill: var(--bw-color-accent);
+  r: var(--bw-component-sparkline-marker-radius);
+}
+
 /* --- Chart card (icvoss/django-brickwork CHT-001/002/003/024) --------------- */
 
 /* The chrome around a consumer's own charting engine: _chart_card.html

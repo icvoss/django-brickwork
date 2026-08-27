@@ -103,6 +103,18 @@
       "$description": "Vertical rhythm between ranked-list rows (icvoss/django-brickwork#183)."
     }
   },
+  "sparkline": {
+    "stroke-width": {
+      "$type": "dimension",
+      "$value": "2",
+      "$description": "Sparkline line thickness (VIZ-003/004): a unitless SVG user-unit value, not a CSS length, matching icon.stroke-width's own convention above for the same reason (both are stroke-width on an SVG element inside a scaling viewBox, where a rem/px length would not track the viewBox's own coordinate space)."
+    },
+    "marker-radius": {
+      "$type": "dimension",
+      "$value": "2.5",
+      "$description": "Highlighted-point marker radius (VIZ-005): a unitless SVG user-unit value in the same viewBox coordinate space as the line's own points, slightly larger than half the stroke width so the marker reads as a distinct dot rather than a thickened patch of the line it sits on."
+    }
+  },
   "tooltip": {
     "max-width": {
       "$type": "dimension",

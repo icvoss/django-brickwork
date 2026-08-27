@@ -101,6 +101,13 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     # class the template correctly never renders.
     ("_chart_card", "legend_position", "bottom", "bw-chart-card--legend-bottom"),
     ("_chart_card", "legend_position", "side", "bw-chart-card--legend-side"),
+    # --- sparkline tone (VIZ-004) -------------------------------------------
+    # Only `tone` is an OPTION. The bw-sparkline--up/-down/-flat classes are
+    # computed in Python from the points themselves (points[-1] vs points[0]),
+    # never passed by a caller, so they are not a vocabulary a consumer can
+    # get wrong and are deliberately absent from this table.
+    ("_sparkline", "tone", "neutral", "bw-sparkline--neutral"),
+    ("_sparkline", "tone", "trend", "bw-sparkline--trend"),
 ]
 
 
