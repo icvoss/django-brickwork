@@ -396,7 +396,7 @@ counterpart.
 
 | Token | LB/D | Light | Dark |
 |---|---|---|---|
-| `--bw-color-chart-1` .. `-chart-8` | authored | authored per series | authored per series (hue held, L and C re-authored) |
+| `--bw-color-chart-1` .. `-chart-8` | authored | authored per series, in gamut | authored per series (hue held, L and C re-authored), in gamut |
 | `--bw-color-chart-axis` | authored | `oklch(0.45 0.004 265)`, 7.44:1 on surface | `oklch(0.62 0.004 265)`, 4.55:1 on raised |
 | `--bw-color-chart-grid` | authored | `oklch(0.922 0.003 265)`, 1.40:1 | `oklch(0.33 0.004 265)`, 1.39:1 |
 | `--bw-color-chart-axis-label` | authored | `oklch(0.48 0.003 265)`, 6.54:1 | `oklch(0.72 0.003 265)`, 6.69:1 |
@@ -421,19 +421,34 @@ themes, a user switching theme would see it change identity and any legend or
 support conversation naming a colour would break.
 
 **The series palette carries a guarantee, with a stated scope.** Any two series
-stay distinguishable, hold a minimum hue separation, and clear WCAG 1.4.11's
-3:1 against their own surface, across brand retints down to 70 percent of
-shipped chroma (`docs/BRANDING.md`). All four properties are executable in
-`tests/test_chart_series_contract.py`, which reads the built `tokens.css` rather
-than these sources. Contrast figures throughout this section are true sRGB
-relative luminance (oklch to oklab to linear sRGB, then the WCAG
-coefficients), not an approximation from oklch lightness.
+stay distinguishable (all-pairs minimum 0.1408 light, 0.1699 dark against a
+0.12 floor, measured at the worst point of the retint envelope rather than
+at full chroma, where the figures are 0.1595 and 0.1932),
+hold at least 36 degrees of hue separation, and clear WCAG 1.4.11's 3:1 against
+their own surface (minimum 3.24:1 in both themes), across brand retints down to
+70 percent of shipped chroma (`docs/BRANDING.md`).
+
+**Every one of those figures is measured on the colour a browser paints, not
+the value authored.** An oklch colour outside the sRGB gamut is clipped to the
+gamut boundary before it reaches a display, so an out-of-gamut palette's
+measured properties describe colours nobody sees. The whole palette is
+therefore solved with the gamut boundary as a hard constraint, and a test
+asserts every series is renderable. This is not theoretical: an earlier version
+of this palette had eleven of sixteen series out of gamut and measured 0.1632
+as authored against 0.0787 as displayed, failing its own floor on any ordinary
+monitor.
+
+All six properties are executable in `tests/test_chart_series_contract.py`,
+which reads the built `tokens.css` rather than these sources. Contrast figures
+throughout this section are true sRGB relative luminance (oklch to oklab to
+linear sRGB, then the WCAG coefficients), not an approximation from oklch
+lightness.
 
 **The guarantee is scoped to normal colour vision.** Eight categorical colours
 cannot be made mutually distinguishable under dichromatic vision: the best
 achievable all-pairs floor across normal vision and all three dichromacies is
 0.1025, below the range this package's own evidence treats as distinguishable,
-and this palette measures 0.0207 at worst (deuteranopia, dark). That is a
+and this palette measures 0.0153 at worst (protanopia, light). That is a
 property of eight-colour palettes, not of this one. COL-030's standing NO
 carries the case instead: meaning never rides on colour alone, and CHT-014's
 swatch-plus-text-label pairing is the mechanism. The measured figures are

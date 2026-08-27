@@ -144,57 +144,57 @@
       }
     },
     "chart": {
-      "$description": "Categorical data-series ramp (ADR-082). Unlike the hue ramps above this is a set of eight mutually-distinguishable series colours, not a lightness scale of one hue: 'light'/'dark' are the two authored themes (BR-BW-TOK-002), not scale steps. Hue is invariant per series across both themes because a series' identity is its hue; only lightness and chroma are authored per theme. Every value satisfies four properties verified in tests: an all-pairs separation floor of 0.12 in oklab, a minimum 28 degree hue separation, WCAG 1.4.11 3:1 against its own theme's surface, and hue stability across themes. See ADR-082 Decision 5.",
+      "$description": "Categorical data-series ramp (ADR-082). Unlike the hue ramps above this is a set of eight mutually-distinguishable series colours, not a lightness scale of one hue: 'light'/'dark' are the two authored themes (BR-BW-TOK-002), not scale steps. Hue is invariant per series across both themes because a series' identity is its hue; only lightness and chroma are authored per theme. Every value satisfies six properties verified in tests, all measured on the colour a browser actually paints rather than the authored value: renderable within sRGB without clipping, an all-pairs separation floor of 0.12 in oklab across the retint envelope, a minimum 28 degree hue separation, WCAG 1.4.11 3:1 against its own theme's surface, and hue stability across themes. Solved under all constraints simultaneously with the gamut boundary as a hard limit. See ADR-082 Decision 5.",
       "light": {
         "1": {
-          "$value": "oklch(0.562 0.213 6)"
+          "$value": "oklch(0.523 0.187 15)"
         },
         "2": {
-          "$value": "oklch(0.313 0.143 49)"
+          "$value": "oklch(0.260 0.065 58)"
         },
         "3": {
-          "$value": "oklch(0.604 0.116 77)"
+          "$value": "oklch(0.496 0.091 101)"
         },
         "4": {
-          "$value": "oklch(0.597 0.197 173)"
+          "$value": "oklch(0.631 0.174 149)"
         },
         "5": {
-          "$value": "oklch(0.307 0.217 212)"
+          "$value": "oklch(0.376 0.063 185)"
         },
         "6": {
-          "$value": "oklch(0.470 0.214 245)"
+          "$value": "oklch(0.570 0.103 229)"
         },
         "7": {
-          "$value": "oklch(0.346 0.155 273)"
+          "$value": "oklch(0.271 0.150 282)"
         },
         "8": {
-          "$value": "oklch(0.596 0.113 302)"
+          "$value": "oklch(0.632 0.274 320)"
         }
       },
       "dark": {
         "1": {
-          "$value": "oklch(0.587 0.205 6)"
+          "$value": "oklch(0.636 0.232 15)"
         },
         "2": {
-          "$value": "oklch(0.871 0.134 49)"
+          "$value": "oklch(0.806 0.106 58)"
         },
         "3": {
-          "$value": "oklch(0.687 0.212 77)"
+          "$value": "oklch(0.567 0.104 101)"
         },
         "4": {
-          "$value": "oklch(0.578 0.208 173)"
+          "$value": "oklch(0.764 0.209 149)"
         },
         "5": {
-          "$value": "oklch(0.726 0.129 212)"
+          "$value": "oklch(0.920 0.107 185)"
         },
         "6": {
-          "$value": "oklch(0.561 0.220 245)"
+          "$value": "oklch(0.693 0.129 229)"
         },
         "7": {
-          "$value": "oklch(0.885 0.131 273)"
+          "$value": "oklch(0.549 0.155 282)"
         },
         "8": {
-          "$value": "oklch(0.705 0.219 302)"
+          "$value": "oklch(0.649 0.294 320)"
         }
       }
     }

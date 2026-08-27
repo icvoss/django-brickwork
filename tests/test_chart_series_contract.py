@@ -395,10 +395,17 @@ def test_tooltip_text_clears_aa_on_its_own_background(theme):
 # regardless of whether the assertions below still pass.
 
 # The measured floor across all three dichromacies and both themes, recorded in
-# ADR-082. Documented limit, not an aspiration: the true minimum is 0.0207
-# (deuteranopia, dark). A margin below that would let the palette degrade
-# silently, so this pins just under what is measured.
-_CVD_DOCUMENTED_FLOOR = 0.020
+# ADR-082. A documented limit, not an aspiration: the true minimum is 0.0153
+# (protanopia, light, series 1 against 5). Pinned just under what is measured,
+# because a generous margin here would let the palette degrade silently, which
+# is the whole failure this figure exists to catch.
+#
+# This value moved once already, from 0.020, when the palette was re-authored
+# inside the sRGB gamut. That is the mechanism working: the gamut fix changed
+# the colours, the CVD figures moved with them, and this test failed rather
+# than quietly tracking the change. Re-measure and update deliberately when the
+# palette moves; never widen the margin to make a failure go away.
+_CVD_DOCUMENTED_FLOOR = 0.015
 
 _LMS_SIM = {
     "protanopia": lambda l_ch, m_ch, s_ch: (2.02344 * m_ch - 2.52581 * s_ch, m_ch, s_ch),
