@@ -189,11 +189,17 @@ the declaration itself**:
   involved; the competitor is a rule on the same element.
 
 The corollary is that **an explicit initial value is not evidence of
-redundancy**, and the inverse also holds: an omitted property is not evidence
-that the property is unwanted. `.bw-prose code` and `pre` bind no
-`letter-spacing`, so an ancestor's tracking reaches them today; binding
-`--bw-text-code-tracking` would resolve to `0em` and remove that inherited
-value rather than adding an unused one (icvoss/django-brickwork#312).
+redundancy**, and the inverse also holds: an omitted property is not
+automatically evidence that the property is unwanted, either; it has to be
+checked, not assumed either way. `.bw-prose code` and `pre` bind no
+`letter-spacing`, so an ancestor's tracking reaches them; binding
+`--bw-text-code-tracking` would have resolved to `0em` and removed that
+inherited value rather than adding an unused one, which is a real behaviour
+change, not a no-op. Checking it (icvoss/django-brickwork#312) found no rule
+on the path to either element that needed to block a non-`0em` ancestor, so
+the omission stood and the token was removed rather than wired; see section
+7.4 for the two reasons that do make `-tracking` load-bearing elsewhere
+(`heading-lg`, `caption`).
 
 The three instances behind this rule: `!important` does not beat a
 descendant's own value, so a hiding mechanism must target descendants
@@ -744,21 +750,51 @@ Courier New.)
 
 ### 7.4 Type roles (`--bw-text-<role>-*`) **[NEW]**
 
-Each role is a bundle of five properties
-(`-family`, `-size`, `-line-height`, `-weight`, `-tracking`), every value a
-`var()` reference into the scales above so overrides cascade. Components
-consume roles, never raw scale steps, so nothing drifts out of rhythm.
+**A role carries the properties it makes a decision about, not a fixed
+five** (**CHANGED**, icvoss/django-brickwork#312). `-family`, `-size`,
+`-line-height` and `-weight` are near-universal; `-tracking` is carried
+only where there is a reason. Every value a role does carry is a `var()`
+reference into the scales above so overrides cascade. Components consume
+roles, never raw scale steps, so nothing drifts out of rhythm.
+
+**`-tracking` is carried for one of two reasons, and both must be named**,
+because a rule naming only the first would license deleting the second:
+
+1. **A typographic reason.** `heading-display`, `heading-2xl` and
+   `heading-xl` carry `tight`, because large display type needs negative
+   tracking. `overline` carries `wider`, because uppercase overlines read
+   tighter than mixed case.
+2. **Holding `0em` against inheritance.** `heading-lg` and `caption` carry
+   `tracking: normal` so their consuming rules (`shell.css`'s `.bw-content`
+   h2 and `.bw-footer` rules) can set an explicit `0em` that blocks an
+   ancestor's `letter-spacing` from inheriting through. This is the
+   mechanism section 3b describes: a claim about what the cascade does is
+   verified by rendering it, and removing either declaration was measured
+   in Chromium to let a wrapper's tracking through at 4.8px under a
+   `0.3em` ancestor. Do not delete either on the strength of the
+   consumption test alone.
+
+`heading-md`, `heading-sm`, `body-lg`, `body-md`, `body-sm`, `label` and
+`code` carry neither reason: each resolves to `var(--bw-font-tracking-normal)`
+(`0em`, the browser default) and no rule on any path to them sets a
+non-`0em` ancestor tracking that would need blocking, so the property was a
+dead lever, not a spare. Their `-tracking` properties were removed
+(icvoss/django-brickwork#312), the same disposition #288 gave the equivalent
+dead `-family` tokens below. A future role that needs `-tracking` for either
+of the two reasons above adds it back; the default for a new role is to omit
+it, and to justify the addition against this list, not the other way round.
 
 **A role token that no rule consumes is a false affordance, not a spare.**
-Shipping a `-family` (or any) property on a role promises a consumer that
-setting it changes the render; a token the build emits and nothing reads
-breaks that promise silently, since neither the type system nor a visual
-check flags an override with no effect (icvoss/django-brickwork#288, 7 of 13
-`-family` tokens shipped this way with no accessibility impact and no broken
-render). Each role property is therefore either wired into a consuming rule
-or removed from the role's source definition; a property is never left
-defined "for completeness" once a decision has been made about whether the
-role binds it. `tests/test_tokens.py::test_every_text_family_token_is_consumed_by_a_font_family_rule`
+Shipping a property on a role promises a consumer that setting it changes
+the render; a token the build emits and nothing reads breaks that promise
+silently, since neither the type system nor a visual check flags an
+override with no effect (icvoss/django-brickwork#288, 7 of 13 `-family`
+tokens shipped this way with no accessibility impact and no broken render;
+icvoss/django-brickwork#312, 7 of 13 `-tracking` tokens the same way). Each
+property a role carries is therefore either wired into a consuming rule or
+removed from the role's source definition; a property is never left defined
+"for completeness" once a decision has been made about whether the role
+binds it. `tests/test_tokens.py::test_every_text_family_token_is_consumed_by_a_font_family_rule`
 enforces this for `-family` specifically, deriving the shipped set from the
 token manifest rather than a hardcoded list, so a newly added dead token
 fails the build instead of shipping unnoticed.
@@ -775,20 +811,16 @@ who wants a different label face changes `--bw-font-family-sans` instead.
 **`code` is wired** (icvoss/django-brickwork#293). `.bw-prose code` consumes
 `--bw-text-code-family`; `.bw-prose pre` consumes `--bw-text-code-family`,
 `--bw-text-code-size` and `--bw-text-code-line-height`. Neither rule binds
-`-weight` or `-tracking`, and the reason differs between the two. `font-weight`
-is inert here: nothing on a path to either rule sets it, so binding it would
-change nothing today. `letter-spacing` is not. It inherits, and neither rule
-sets it, so a `.bw-prose` ancestor carrying tracking currently reaches code
-blocks; binding `--bw-text-code-tracking` would resolve to `0em` and act as a
-barrier, stopping it. **Binding tracking is a behaviour change, not a no-op**,
-which is the argument for deciding it deliberately rather than sweeping it in
-here.
-That is a deliberate exception to the wire-or-remove rule stated above, and
-it is held open rather than settled: `code` is not special here, its two are
-2 of 9 unconsumed role properties across the whole type scale, tracked and
-decided together as icvoss/django-brickwork#312. Resolving them per role
-in isolation is what produced the inconsistency #312 exists to correct.
-Wiring was a visual no-op at package default: `--bw-text-code-family`
+`-weight`, and `font-weight` is inert here: nothing on a path to either rule
+sets it, so binding it would change nothing today. `--bw-text-code-weight`
+is therefore left defined but unwired, decided on its own merits separately
+from #312 rather than swept into either the family wiring or the tracking
+deletion. `code`'s `-tracking` carried neither reason from the list above:
+`letter-spacing` inherits, and no rule on the path to `.bw-prose code` or
+`.bw-prose pre` needed to block a non-`0em` ancestor value from reaching it,
+so `--bw-text-code-tracking` was removed with the other six
+(icvoss/django-brickwork#312).
+Wiring `-family` was a visual no-op at package default: `--bw-text-code-family`
 already resolved to `var(--bw-font-family-mono)`, and `--bw-text-code-size`
 and the previously-read `--bw-text-body-sm-size` both resolved to
 `var(--bw-font-size-sm)`; `--bw-text-code-line-height` likewise matches the
@@ -805,16 +837,16 @@ removed, not left empty.
 | `heading-display` **[NEW 1.2.0]** | display | 5xl | tight | bold | tight |
 | `heading-2xl` | display | 2xl | tight | bold | tight |
 | `heading-xl` | display | xl | tight | semibold (0.4.0: was bold; 600 at 24px is the product-chrome cut, 2xl keeps bold for true display use) | tight |
-| `heading-lg` | sans | lg | snug | semibold | normal |
-| `heading-md` | sans | md | snug | semibold | normal |
-| `heading-sm` | sans | sm | snug | semibold | normal |
-| `body-lg` | *(none, inherits `.bw-body`)* | lg | relaxed | normal | normal |
-| `body-md` | sans | md | normal | normal | normal |
-| `body-sm` | *(none, inherits `.bw-body`)* | sm | normal | normal | normal |
-| `label` | *(none, inherits `.bw-body`)* | sm | none | medium | normal |
-| `caption` | sans | xs | normal | normal | normal |
+| `heading-lg` | sans | lg | snug | semibold | normal (holds `0em` against inheritance; see above) |
+| `heading-md` | sans | md | snug | semibold | *(not carried)* |
+| `heading-sm` | sans | sm | snug | semibold | *(not carried)* |
+| `body-lg` | *(none, inherits `.bw-body`)* | lg | relaxed | normal | *(not carried)* |
+| `body-md` | sans | md | normal | normal | *(not carried)* |
+| `body-sm` | *(none, inherits `.bw-body`)* | sm | normal | normal | *(not carried)* |
+| `label` | *(none, inherits `.bw-body`)* | sm | none | medium | *(not carried)* |
+| `caption` | sans | xs | normal | normal | normal (holds `0em` against inheritance; see above) |
 | `overline` | sans | 2xs | none | semibold | wider |
-| `code` | mono | sm | normal | normal | normal (weight/tracking defined, not wired; see below) |
+| `code` | mono | sm | normal | normal | *(not carried; weight defined, not wired, see below)* |
 
 **Component map:** page-header title heading-xl (description body-md +
 fg-muted); empty-state heading heading-lg, body body-md + fg-muted +
