@@ -927,7 +927,23 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     # passing with every progressbar attribute scrubbed out. "no element
     # found" shares no vocabulary with "progressbar", so pinning the
     # message keeps the raise attached to the property it certifies.
+    # match= excludes the PRECONDITION message specifically, rather than
+    # naming one detection message. The helper checks several forbidden
+    # things and raises on whichever it meets first, so pinning
+    # match="progressbar" pinned the wrong thing: deleting only
+    # role="progressbar" made it raise on aria-valuenow instead, whose
+    # message contains no "progressbar", and the test then failed with
+    # "Regex pattern did not match" rather than reporting the real state.
+    # It still failed, so it was not vacuous, but it failed for a reason
+    # that misdescribes what happened, and the pairing could shift again.
+    # "forbidden" opens every detection message and appears in none of the
+    # precondition messages, which is the distinction that matters. Note
+    # "found in" does NOT work here even though it reads as though it
+    # should: the precondition says "no <section ...> element found in the
+    # rendered html", so matching on it would reopen the very vacuity this
+    # guard exists to close. Checked in both directions rather than
+    # assumed, which is how that was caught.
     out = render_to_string("brickwork/components/_progress.html", {"label": "Import progress", "value": 42})
     page = f'<section class="bw-boundary-probe">{out}</section>'
-    with pytest.raises(AssertionError, match="progressbar"):
+    with pytest.raises(AssertionError, match="forbidden"):
         assert_no_progressbar_semantics(page, component_tag="section", component_class="bw-boundary-probe")
