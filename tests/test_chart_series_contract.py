@@ -5,9 +5,9 @@ something no other brand-overridable token does: any two series stay tellable
 apart, in either theme, and stay visible on the surface they are drawn on. That
 promise is only worth the name if it is executable, so it lives here.
 
-ADR-082 states the guarantee as FOUR properties, deliberately expressed as what
+ADR-082 states the guarantee as SIX properties, deliberately expressed as what
 they are properties OF rather than as a list of checks, because a list is what
-let the third one go missing for two rounds:
+let three of them go missing for as many rounds:
 
     relation                          property                       here
     -------------------------------   ----------------------------   -----------------
@@ -15,6 +15,13 @@ let the third one go missing for two rounds:
     series against another series     distinct identity, not value   test_hue_separation
     series against its surface        visible at all (WCAG 1.4.11)   test_contrast_*
     series against itself, themes     same identity                  test_hue_invariant
+    series against the display        renderable at all (sRGB)       test_every_series_is_renderable
+    series against chart chrome       not read as furniture          test_series_stay_clear_of_chart_chrome
+
+Dichromacy is verified too but is a documented SCOPE rather than a floor: no
+eight-colour palette can hold the separation floor under dichromatic vision,
+so the figures are pinned to catch degradation rather than to assert a
+guarantee (see test_dichromatic_separation_is_no_worse_than_documented).
 
 All four hold across the retint envelope (chroma down to x0.7), which is their
 scope rather than a fifth property.
