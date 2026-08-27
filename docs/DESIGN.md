@@ -232,7 +232,7 @@ Six tiers per intent so an alert, badge, or toast never invents a value.
 | `--bw-color-X-subtle` | tinted bg | D | `color-mix(in oklab, var(--bw-color-X) 7%, var(--bw-color-surface))` | `color-mix(in oklab, var(--bw-color-X) P%, black)` (danger 26%, success 23%, warning 22%, info 26%; 0.4.0: lowered from 41/37/36/42 so the dark tints whisper like light; X-fg measures 7.22 to 10.77 on them) |
 | `--bw-color-X-border` **[NEW]** | tinted border | D | `color-mix(in oklab, var(--bw-color-X) 30%, var(--bw-color-surface))` (the badge/alert border, replacing invented inline mixes) | `color-mix(in oklab, var(--bw-color-X) 55%, black)` (clears the black-mixed subtle tint by delta-L >= 0.08, verified 0.184-0.254) |
 | `--bw-color-X-strong` **[NEW]** | border/emphasis | D | `color-mix(in oklab, var(--bw-color-X) 88%, black)` | **flips**: `color-mix(in oklab, var(--bw-color-X) 96%, white)` |
-| `--bw-color-X-fg` **[NEW]** | text on `X-subtle` (also painted on plain surface: `.bw-field__error`, `.bw-stat__trend`, `.bw-account-menu__item--danger`) | D | `color-mix(in oklab, var(--bw-color-X) P%, var(--bw-color-status-fg-ink))` (danger 87%, success 69%, warning 68%, info 75%), mixed toward the dedicated `--bw-color-status-fg-ink` token, NOT `var(--bw-color-fg)` (brickwork#289 round 2; see the trap note below): default measures 5.33-5.40 against `X-subtle` and 5.74-5.84 against plain surface (all at surface L=1.0), and stays >= 4.5:1 against BOTH backgrounds for `--bw-color-surface` overridden anywhere down to **L 0.94** (conservative published floor; measured worst-family crossing L 0.9390), independent of any `--bw-color-fg` override | `color-mix(in oklab, var(--bw-color-X) 78%, white)` (danger tightened to 73%, brickwork#289: the 78% value's plain-surface pairing degraded once dark surface lightened past its true ceiling; warning/success/info already held at 78% and are unchanged); lightness boost for AA on the dark tint |
+| `--bw-color-X-fg` **[NEW]** | text on `X-subtle` (also painted on plain surface: `.bw-field__error`, `.bw-stat__trend`, `.bw-account-menu__item--danger`) | D | `color-mix(in oklab, var(--bw-color-X) P%, var(--bw-color-status-fg-ink))` (danger 87%, success 69%, warning 68%, info 75%), mixed toward the dedicated `--bw-color-status-fg-ink` token, NOT `var(--bw-color-fg)` (brickwork#289 round 2; see the trap note below): default measures 5.33-5.40 against `X-subtle` and 5.74-5.84 against plain surface (all at surface L=1.0), and stays >= 4.5:1 against BOTH backgrounds for `--bw-color-surface` overridden anywhere down to **L 0.94** (conservative published floor; measured worst-family crossing L 0.9390), independent of any `--bw-color-fg` override | `color-mix(in oklab, var(--bw-color-X) P%, white)` (danger 73%, success 78%, warning 78%, info 78%; brickwork#289: danger alone tightened from 78% because its plain-surface pairing degraded once dark surface lightened past its true ceiling, so danger does NOT share the other three families' constant, unlike every other row in this table); lightness boost for AA on the dark tint |
 | `--bw-color-status-fg-ink` **[NEW, brickwork#289 round 2]** | fixed mix partner for `X-fg` | not load-bearing (overridable, rarely authored) | `oklch(0.205 0.005 265)` (= the light `fg` default, gray.900, but a DISTINCT token) | `oklch(0.93 0.002 265)` (= the dark `fg` default; unreferenced by any dark derivation, kept only so the name exists in both theme files) |
 | `--bw-color-X-on-fg` **[NEW]** | text on solid `X` | authored | `oklch(1 0 0)` for danger only (4.83, passes); near-black ink for warning, success, and info (white fails AA on the solid amber, green, and cyan bases: 3.19, 3.32, 3.83) | authored per hue, same rule (all four take near-black ink: the dark bases sit on the lighter 400/500 ramp steps, where white fails AA) |
 
@@ -273,18 +273,29 @@ against a `--bw-color-surface` override is unchanged from the `var(fg)`
 attempt (`status-fg-ink`'s default equals that attempt's resolved value), and
 an `--bw-color-fg` override now has zero effect on status-text contrast.
 
-**What this guarantees, stated precisely:** verified (both against `X-subtle`
-and against plain surface, the pairing `.bw-field__error`, `.bw-stat__trend`,
-and `.bw-account-menu__item--danger` actually use) to hold >= 4.5:1 by
+**What this guarantees, stated precisely:** `X-subtle` is the binding
+constraint that sets the published floor. `X-fg` is verified to hold >= 4.5:1
+against BOTH `X-subtle` and plain surface (the pairing `.bw-field__error`,
+`.bw-stat__trend`, and `.bw-account-menu__item--danger` actually use) by
 DEFAULT for `--bw-color-surface` overridden anywhere down to **L 0.94** (a
 conservative published floor, rounded toward safety from the measured
-worst-family crossing points: subtle L 0.9390, plain surface L 0.9177;
-publishing the exact figures would leave zero margin against rounding),
-**independently of any `--bw-color-fg` value**: an ordinary `fg` override,
+worst-family crossing points: subtle L 0.9390, plain surface L 0.9177), but
+across the whole surface-L range `X-subtle` is always the tighter constraint
+for every family (bisected: at L 0.94, danger subtle 4.51 vs plain 4.90,
+warning 4.53 vs 5.24, success 4.57 vs 5.28, info 4.55 vs 5.11), so it is
+`X-subtle`, not plain surface, that determines where the floor sits and what
+`render_brand_css()` reports first when a surface override pushes past it.
+Plain surface is declared as its own `contrastPairs` entry and verified to
+exceed AA at that floor, for defence in depth: the pairing those three
+components actually use stays covered by the gate even though it is not
+currently the constraint that binds. If a future token change makes plain
+surface the tighter constraint for some family, the published floor moves,
+and the error `render_brand_css()` raises will name that pairing instead.
+**Independently of any `--bw-color-fg` value**: an ordinary `fg` override,
 the documented load-bearing case, has zero effect on status-text contrast
 because `status-fg-ink` is a separate input `fg` does not touch. Beyond that,
 `render_brand_css()`'s `contrastPairs` check is not scoped to surface alone:
-it re-resolves BOTH sides of BOTH declared pairings from whichever inputs the
+it re-resolves BOTH sides of EVERY declared pairing from whichever inputs the
 caller actually supplied (`--bw-color-surface`, the relevant `--bw-color-X`
 status base, or `--bw-color-status-fg-ink` itself), so an extreme override of
 any of those three raises the same loud `BrandValidationError`, not only a
@@ -317,10 +328,12 @@ tighter than the double-the-default L 0.35 previously published here, which
 was itself an unverified overstatement); warning, success, and info already
 held at their existing 78% constant and are unchanged. Independently, the
 pairing holds for a dark `--bw-color-danger` override down to **L 0.52**
-(conservative published floor; verified true crossing point L 0.500). A
-brand whose dark `danger` is darker than L 0.52, or whose dark surface is
-lighter than L 0.29, must re-verify the account-menu danger-on-raised pair
-and, if needed, author `--bw-color-danger-fg` directly.
+(conservative published floor, rounded up from the measured true crossing
+point L 0.500 for the same reason as the light floor above: publishing the
+exact crossing point would leave zero margin against rounding). A brand
+whose dark `danger` is darker than L 0.52, or whose dark surface is lighter
+than L 0.29, must re-verify the account-menu danger-on-raised pair and, if
+needed, author `--bw-color-danger-fg` directly.
 
 ### 4.6 Interactive state
 

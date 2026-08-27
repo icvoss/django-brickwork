@@ -153,18 +153,23 @@ def test_surface_override_that_breaks_status_subtle_pairing_raises() -> None:
     # brickwork#289: darkening surface alone, with no status colour or X-fg/
     # X-subtle override, breaks the danger-fg vs danger-subtle pairing at this
     # lightness (measured 4.02:1 < 4.5:1). This is the reported defect.
+    #
+    # Both X-subtle and plain surface are declared as their own contrastPairs
+    # entry (X-fg is also painted directly on plain surface:
+    # .bw-field__error, .bw-stat__trend, .bw-account-menu__item--danger; see
+    # test_token_manifest.py's contrastPairs coverage test for both entries).
+    # They are NOT independently reachable by the current derivation, though:
+    # bisected across the whole surface-L range, X-subtle is always the
+    # tighter constraint for every family (at the published floor L=0.94,
+    # danger subtle 4.51 vs plain 4.90, warning 4.53 vs 5.24, success 4.57 vs
+    # 5.28, info 4.55 vs 5.11), so a surface override that fails always
+    # raises on the subtle pairing first, as asserted below. The
+    # plain-surface entry is kept and declared anyway for defence in depth:
+    # if a component moves to a different background, or a future token
+    # change makes plain surface the tighter constraint, the published floor
+    # (docs/DESIGN.md 4.5) moves and the plain-surface entry becomes the one
+    # that fires first.
     with pytest.raises(BrandValidationError, match="danger-fg.*fail contrast against.*danger-subtle"):
-        render_brand_css({"color-surface": "oklch(0.90 0 0)"})
-
-
-def test_surface_override_that_breaks_status_plain_surface_pairing_raises() -> None:
-    # brickwork#289 blocker 2: X-fg is also painted directly on plain surface
-    # (.bw-field__error, .bw-stat__trend, .bw-account-menu__item--danger), not
-    # only on X-subtle. A gate declaring only the -subtle pairing would miss a
-    # surface override breaking this one; both are declared and both are
-    # independently violated by this same override (verified separately in
-    # test_token_manifest.py's contrastPairs coverage test).
-    with pytest.raises(BrandValidationError, match="danger-fg"):
         render_brand_css({"color-surface": "oklch(0.90 0 0)"})
 
 
