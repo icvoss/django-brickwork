@@ -1218,6 +1218,242 @@ def _render_theme_switch_locked_fixture(theme: str) -> str:
     )
 
 
+# chart-card-<theme>.html is a standalone (non-shell) page, mirroring
+# render_ranked_list's self-contained shape above: the component has no
+# dedicated demo page of its own yet, so the fixture EXTENDS the real
+# _chart_card.html (title/actions/chart_legend blocks filled, exactly as a
+# consumer would) for the populated, loading, error and empty states, plus a
+# populated card demonstrating legend_position="side", with the compiled
+# brickwork.css inlined. Covers: the real {% bw_chart_mount %} tag's
+# accessible-name pairing (role="img" + aria-label, CHT-012) in the populated
+# card, the loading skeleton (STA-004), the composed _alert.html error
+# surface (STA-008/009, CHT-010), and the composed _empty_state.html at
+# size="sm" with its action link (STA-001/002, CHT-008).
+
+_CHART_CARD_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chart card (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Chart card</h1>
+
+  <section aria-labelledby="chart-card-populated-heading">
+    <h2 id="chart-card-populated-heading">Revenue by month</h2>
+    __CHART_CARD_POPULATED__
+  </section>
+
+  <section aria-labelledby="chart-card-side-legend-heading">
+    <h2 id="chart-card-side-legend-heading">Side legend</h2>
+    __CHART_CARD_SIDE_LEGEND__
+  </section>
+
+  <section aria-labelledby="chart-card-loading-heading">
+    <h2 id="chart-card-loading-heading">Loading</h2>
+    __CHART_CARD_LOADING__
+  </section>
+
+  <section aria-labelledby="chart-card-error-heading">
+    <h2 id="chart-card-error-heading">Error</h2>
+    __CHART_CARD_ERROR__
+  </section>
+
+  <section aria-labelledby="chart-card-empty-heading">
+    <h2 id="chart-card-empty-heading">Empty</h2>
+    __CHART_CARD_EMPTY__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_chart_card_fixture(*, title: str = "", legend: str = "", **ctx: object) -> str:
+    from django.template import Context, Template
+
+    blocks = ""
+    if title:
+        blocks += f'{{% block title %}}<h2 class="bw-card__title">{title}</h2>{{% endblock %}}'
+    if legend:
+        blocks += f'{{% block chart_legend %}}<div class="bw-chart-card__legend">{legend}</div>{{% endblock %}}'
+    source = "{% extends 'brickwork/components/_chart_card.html' %}{% load brickwork_components %}" + blocks
+    return Template(source).render(Context(ctx))
+
+
+def render_chart_card(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    from django.template import Context, Template
+    from django.utils.safestring import mark_safe
+
+    mount = Template(
+        "{% load brickwork_components %}"
+        '{% bw_chart_mount aria_label="Revenue by month" min_height="16rem" aspect_ratio="16 / 9" %}'
+    ).render(Context({}))
+    return (
+        _CHART_CARD_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace(
+            "__CHART_CARD_POPULATED__",
+            _render_chart_card_fixture(title="Revenue by month", mount=mark_safe(mount)),  # noqa: S308
+        )
+        .replace(
+            "__CHART_CARD_SIDE_LEGEND__",
+            _render_chart_card_fixture(
+                title="Signups by channel",
+                legend="Organic, Paid, Referral",
+                legend_position="side",
+                mount=mark_safe(mount),  # noqa: S308
+            ),
+        )
+        .replace("__CHART_CARD_LOADING__", _render_chart_card_fixture(title="Revenue by month", loading=True))
+        .replace(
+            "__CHART_CARD_ERROR__",
+            _render_chart_card_fixture(
+                title="Revenue by month",
+                error=True,
+                error_title="Could not load",
+                error_message="Try again later.",
+            ),
+        )
+        .replace(
+            "__CHART_CARD_EMPTY__",
+            _render_chart_card_fixture(
+                title="Revenue by month",
+                empty=True,
+                empty_body="Nothing to plot yet.",
+                empty_action_href="/reports/new/",
+                empty_action_label="Create a report",
+            ),
+        )
+    )
+
+
+# --- the bw_theme_switch fixtures (icvoss/django-brickwork#117) ---------------
+#
+# theme-switch-<theme>.html    a standalone page (mirrors render_inputs'
+#                               self-contained shape: the component has no
+#                               dedicated demo page of its own yet) composing
+#                               the REAL {% bw_theme_switch %} tag directly,
+#                               no-JS floor: the control ships the
+#                               bw-theme-switch--pre-init class (icvoss/
+#                               django-brickwork#272, visibility: hidden,
+#                               forced onto every descendant too, not only
+#                               the root: supersedes the unconditional
+#                               hidden attribute this shipped with through
+#                               3.11.0), so axe examines an EMPTY page here
+#                               (the control contributes nothing usable to
+#                               the accessibility tree until JS reveals it).
+# theme-switch-js-<theme>.html the JS leg: the real host-app boot
+#                               (_JS_BOOT, real Alpine, real
+#                               registerBrickworkComponents) so bwThemeSwitch
+#                               actually runs its init() and reveals the
+#                               control, exactly the reveal-at-init dismissible
+#                               and tooltip legs already exercise; the axe
+#                               loop then walks the REVEALED fieldsets of
+#                               radios, not a static stand-in. Two instances
+#                               on the one page (ADR-060: default axes "theme
+#                               density dir", and a second, brand-inclusive
+#                               instance via brands=) so axe also proves two
+#                               live instances never collide (unique ids and
+#                               radio group names, #117's own uniqueness
+#                               contract), plus one locked-axis instance
+#                               (locked_axes="theme": the disabled fieldset +
+#                               note branch, #117's SHL-003 precedence rule)
+#                               that no other fixture here renders.
+# theme-switch-invalid-root-js-<theme>.html
+#                               the JS leg with a BOGUS data-theme baked into
+#                               <html> from render time (review fix, #117
+#                               blocker 2: the consumer-template-mistake case
+#                               has to be present in the served HTML, since a
+#                               file:// page.reload() discards a
+#                               page.evaluate() mutation before it ever
+#                               reaches bwThemeSwitch's own init()).
+# theme-switch-compact-open-js-<theme>.html
+#                               layout="compact" (icvoss/django-brickwork#235),
+#                               the JS leg, with the <details> disclosure
+#                               stamped [open] statically in the served HTML
+#                               (the render_sidebar_collapsed/
+#                               render_theme_switch_invalid_root "stamp a
+#                               settled state into the fixture" technique,
+#                               never a page.evaluate() + reload, which a
+#                               file:// reload would discard): axe needs the
+#                               panel actually visible to examine the
+#                               trigger/panel pairing and the compact
+#                               options' own 44px target size, not a closed
+#                               disclosure contributing nothing to the tree.
+#                               A dedicated compact-only instance (axes=
+#                               "theme density dir", layout="compact"), kept
+#                               separate from the three inline instances
+#                               above so neither page's own axe pass, nor the
+#                               inline instances' own uniqueness contract,
+#                               is disturbed by adding a fourth one there.
+_THEME_SWITCH_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme switch (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Theme switch</h1>
+
+  <section aria-labelledby="default-heading">
+    <h2 id="default-heading">Default axes</h2>
+    __DEFAULT__
+  </section>
+
+  <section aria-labelledby="brand-heading">
+    <h2 id="brand-heading">Brand-inclusive</h2>
+    __BRAND__
+  </section>
+
+  <section aria-labelledby="locked-heading">
+    <h2 id="locked-heading">Theme axis locked</h2>
+    __LOCKED__
+  </section>
+</main>
+__JS_BOOT__
+</body>
+</html>
+"""
+
+
+def _render_theme_switch_default_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template("{% load brickwork_theming %}{% bw_theme_switch %}").render(Context({}))
+
+
+def _render_theme_switch_brand_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template(
+        '{% load brickwork_theming %}{% bw_theme_switch axes="theme density dir brand" brands=brands %}'
+    ).render(Context({"brands": {"acme": "Acme", "globex": "Globex"}}))
+
+
+def _render_theme_switch_locked_fixture(theme: str) -> str:
+    from django.template import Context, Template
+
+    # bw_theme MUST match this page's own <html data-theme="__THEME__">
+    # substitution below (icvoss/django-brickwork#117 review): the locked
+    # radio's checked state is resolved from bw_theme at RENDER time, the
+    # same context variable the shell itself reads, never from <html> at JS
+    # runtime, so this fixture's server render and its own <html> attribute
+    # have to agree by construction, exactly as a real resolver-backed page
+    # would (resolve_theme_attributes -> the SAME value onto both bw_theme
+    # and the shell's own <html data-theme>).
+    return Template('{% load brickwork_theming %}{% bw_theme_switch axes="theme" locked_axes="theme" %}').render(
+        Context({"bw_theme": theme})
+    )
+
+
 def render_theme_switch(theme: str, *, inject_js: bool = False) -> str:
     css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
     page = (
@@ -2909,6 +3145,10 @@ def main() -> None:
         # bw_ranked_list (#183): populated (linked rows), empty (with
         # action), and loading skeleton variants on one page
         _emit(OUT / f"ranked-list-{theme}.html", render_ranked_list(theme), written)
+        # _chart_card (chart card work): populated (real bw_chart_mount tag,
+        # title/actions/legend fills), legend_position="side", loading,
+        # error and empty states, all on one page
+        _emit(OUT / f"chart-card-{theme}.html", render_chart_card(theme), written)
         # _data_table.html's empty-state action CTA (#185): records and
         # definition variants, both rendered with zero rows and the new
         # empty_action_href/empty_action_label passthrough

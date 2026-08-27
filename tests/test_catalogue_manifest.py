@@ -103,20 +103,21 @@ def test_counts_match_the_documented_wave_0_baseline() -> None:
     # baseline at 5 shells, 39 components, 42 examples (16 archetypes + 26
     # sections). W0.4 (icvoss/django-brickwork#228) shipped a 40th
     # component, bw_theme_switch/_theme_switch.html; #183 then shipped a
-    # 41st, bw_ranked_list/_ranked_list.html. The count below is verified
+    # 41st, bw_ranked_list/_ranked_list.html; the chart card work then
+    # shipped a 42nd, _chart_card.html. The count below is verified
     # directly against the repo post-merge, not copied from the plan:
     # docs/CATALOGUE.md ss5 records the same verification.
     counts = manifest()["counts"]
-    assert counts == {"shells": 5, "components": 41, "sections": 26, "archetypes": 16}
+    assert counts == {"shells": 5, "components": 42, "sections": 26, "archetypes": 16}
 
 
 def test_items_covers_every_shell_component_section_and_archetype() -> None:
-    assert len(items()) == 5 + 41 + 26 + 16 == 88
+    assert len(items()) == 5 + 42 + 26 + 16 == 89
 
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 5
-    assert len(items_by_kind("component")) == 41
+    assert len(items_by_kind("component")) == 42
     assert len(items_by_kind("section")) == 26
     assert len(items_by_kind("archetype")) == 16
 

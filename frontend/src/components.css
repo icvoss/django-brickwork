@@ -1989,6 +1989,101 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   width: calc(var(--bw-ranked-list-value, 0) * 1%);
 }
 
+/* --- Chart card (icvoss/django-brickwork CHT-001/002/003/024) --------------- */
+
+/* The chrome around a consumer's own charting engine: _chart_card.html
+ * extends _card.html for elevation/radius/density padding, and this file
+ * styles only the two regions it declares itself, chart_legend and the mount
+ * box. Column layout is the shared shape for every legend_position: "top"
+ * and "bottom" differ only in order (row-reverse below), and "side" switches
+ * to a row so the legend sits beside the mount rather than above/below it. */
+.bw-chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-4);
+}
+.bw-chart-card--legend-bottom {
+  flex-direction: column-reverse;
+}
+.bw-chart-card--legend-side {
+  flex-direction: row;
+  align-items: flex-start;
+}
+.bw-chart-card--legend-side > .bw-chart-card__mount {
+  flex: 1 1 auto;
+  /* min-inline-size: 0 so a wide engine-rendered canvas/SVG can shrink inside
+     the flex row instead of overflowing the card (the classic flex-item
+     intrinsic-size trap; every other row layout in this file that shares
+     space with a shrinkable sibling needs the same override). */
+  min-inline-size: 0;
+}
+
+/* The mount box itself (CHT-001: "unstyled beyond padding + a fixed
+ * aspect-ratio/min-height box"). bw_chart_mount emits this class on the
+ * element the consumer's engine paints into; .bw-chart-card__mount above is
+ * this file's own layout wrapper around it (present even before the mount
+ * tag renders, so the loading/error/empty states share the same slot).
+ *
+ * CHT-024 reservation, read d3fa3db before changing this: the box must
+ * occupy its final size from FIRST PAINT, before the engine's JS ever runs,
+ * so mounting the engine in later causes no layout-shift entry. Unlike
+ * d3fa3db's theme-switch fix, this box is never hidden-then-revealed, so
+ * there is no visibility-vs-display distinction to make here: reservation is
+ * simply giving the box real geometry (min-block-size and/or aspect-ratio)
+ * unconditionally, from the first server-rendered byte. The two custom
+ * properties are unset (not layout-affecting) unless bw_chart_mount's
+ * min_height=/aspect_ratio= arguments set them inline, per component,
+ * because there is no one right chart height to default to package-wide;
+ * a consumer that reserves neither gets whatever size its container gives
+ * the box, with no shift protection of its own. */
+.bw-chart-mount {
+  display: block;
+  inline-size: 100%;
+  min-block-size: var(--bw-chart-mount-min-height, auto);
+  aspect-ratio: var(--bw-chart-mount-aspect-ratio, auto);
+}
+/* The consumer's engine draws a <canvas> or <svg> into the mount; either
+ * fills the reserved box exactly rather than adding its own intrinsic
+ * sizing on top of it (an unstyled <canvas> defaults to 300x150 and an
+ * <svg> to its own viewBox dimensions, both of which would fight the
+ * min-block-size/aspect-ratio reservation above rather than filling it). */
+.bw-chart-mount > canvas,
+.bw-chart-mount > svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* The legend region (CHT-003, CHT-014): brickwork styles the row/column
+ * chrome only, the consumer supplies each swatch+label pair's markup.
+ * Wrapping and gap match the density axis's stack rhythm used elsewhere
+ * (e.g. .bw-theme-switch__group), so a legend reads as one coherent row
+ * regardless of how many series the consumer's data has. */
+.bw-chart-card__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-2) var(--bw-space-4);
+}
+.bw-chart-card--legend-side .bw-chart-card__legend {
+  flex-direction: column;
+  flex: 0 0 auto;
+}
+
+/* Loading skeleton (CHT-009): a single block shape stands in for the whole
+ * mount while the engine has no data to paint yet, matching the reserved
+ * box's own sizing so the skeleton occupies the same footprint the real
+ * chart will, rather than a fixed guess that itself shifts on reveal. */
+.bw-chart-card__skeleton {
+  display: block;
+  inline-size: 100%;
+  min-block-size: var(--bw-chart-mount-min-height, auto);
+  aspect-ratio: var(--bw-chart-mount-aspect-ratio, auto);
+}
+.bw-chart-card__skeleton .bw-skeleton--block {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
 /* Visually hidden, screen-reader-available text: the stat trend's directional
    fallback ("increased"/"decreased", AC-BW-074) and any other markup whose
    meaning must survive with CSS colour stripped. Standard clip pattern; the
