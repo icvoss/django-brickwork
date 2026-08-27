@@ -58,6 +58,20 @@ Accessibility: label and, when given, value are VISIBLE text nodes; the
   graphic would risk disagreeing with it rather than reinforcing it (unlike
   bw_chart_mount, whose <div> has no other accessible text of its own and
   therefore needs the name ON the mount).
+
+  The BOUNDARY that follows, stated because it is easy to read this
+  component as offering more than it does: a screen reader user receives
+  the label, the value and, at tone="trend", the direction. They do NOT
+  receive the line's SHAPE, and no text this component renders could give
+  it to them. "Rose steadily" and "spiked then crashed to the same point"
+  are the same label, the same value and the same direction. That is a
+  genuine loss and it is not a defect in the markup: a shape summary is a
+  judgement about data that only the consumer's own domain can make, so
+  the honest position is that a sparkline is DECORATIVE REINFORCEMENT of
+  numbers stated elsewhere, never the sole carrier of an insight. A
+  consumer whose sparkline IS the insight (a volatility indicator, an
+  anomaly spike) owes their own summary in adjacent text or a data table,
+  the same way CHT-012 makes the chart's summary the consumer's to write.
 Responsive: no breakpoint switch; the <svg> scales to its container via
   viewBox with no width-dependent CSS on any .bw-sparkline* selector, so
   on-page size is entirely the caller's container (matching _stat.html's
