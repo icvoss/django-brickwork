@@ -502,21 +502,47 @@ input.bw-radio:disabled {
  * widget: appearance:none draws a track, the thumb is a ::before positioned
  * absolutely inside it and slid via a custom property so the checked-state
  * transform and the reduced-motion floor share one declaration. Track/thumb
- * sizes are component tokens (no primitive scale step fits a switch track). */
+ * sizes are component tokens (no primitive scale step fits a switch track).
+ *
+ * icvoss/django-brickwork#316: the input's own block-size is the WCAG 2.5.8
+ * 24px hit-area floor, not the visible track. When used via the standalone
+ * {% bw_toggle %} tag a wrapping <label class="bw-toggle-field"> already
+ * gives a bigger clickable area, but when opted into via
+ * CheckboxInput(attrs={"class": "bw-toggle"}) it renders bare through
+ * bw_field_widget (forms/_field.html puts the field label in a SIBLING
+ * <label>, not a wrapper), so the input alone is the whole target in that
+ * context and must itself clear the floor. The track stays the fixed
+ * 20px-tall shape (a deliberate design proportion per the switch's
+ * near-2:1 track ratio, not incidental line-height, so growing it would
+ * distort a recognisable switch shape) by moving track drawing off the
+ * input's own border/background onto ::after, sized and centred
+ * independently of the input's now-taller box. The thumb (::before) is
+ * unaffected: its position is already 50% of the input's own box, so it
+ * stays centred at any input height, and its slide distance is
+ * track-width-derived only. */
 input.bw-toggle {
   appearance: none;
   position: relative;
   display: inline-block;
   inline-size: var(--bw-component-toggle-track-width);
-  block-size: var(--bw-component-toggle-track-height);
+  block-size: 1.5rem; /* 24px hit-area floor; see comment above */
   flex-shrink: 0;
   margin: 0;
   margin-inline-end: var(--bw-space-2);
   vertical-align: middle;
+  cursor: pointer;
+}
+input.bw-toggle::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  inline-size: 100%;
+  block-size: var(--bw-component-toggle-track-height);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
   border-radius: var(--bw-radius-full);
   background: var(--bw-color-surface-sunken);
-  cursor: pointer;
+  transform: translateY(-50%);
   transition: var(--bw-transition-colors);
 }
 input.bw-toggle::before {
@@ -531,15 +557,16 @@ input.bw-toggle::before {
   box-shadow: var(--bw-elevation-1);
   transform: translateY(-50%);
   transition: transform var(--bw-duration-normal) var(--bw-ease-standard);
+  z-index: 1;
 }
-input.bw-toggle:hover:where(:not(:disabled)) {
+input.bw-toggle:hover:where(:not(:disabled))::after {
   border-color: color-mix(in oklab, var(--bw-color-border-control) 82%, var(--bw-color-fg));
 }
 /* Checked: the track fills accent (measured against the same 1.4.11 boundary
  * as the checkbox fill above) and the thumb slides to the trailing edge; the
  * slide distance is track width minus thumb size minus both edge insets, so
  * one custom property expression works for any future density-scaled track. */
-input.bw-toggle:checked {
+input.bw-toggle:checked::after {
   border-color: var(--bw-color-accent);
   background: var(--bw-color-accent);
 }
