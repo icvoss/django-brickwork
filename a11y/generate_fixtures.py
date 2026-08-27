@@ -2837,207 +2837,213 @@ def render_search(theme: str) -> str:
     )
 
 
+def _emit(path: Path, html: str, written: list[str], name: str | None = None) -> None:
+    """Write a fixture and record its name in the same call.
+
+    A hand-maintained ``written`` list kept beside the write calls drifted
+    from what was actually written (icvoss/django-brickwork#319): the log
+    reported 116 fixtures while 122 were on disk. Routing every write
+    through this helper makes the two impossible to diverge, because there
+    is only one way to write one. ``name`` defaults to the path's stem, but
+    fragment writes record a ``fragments/...`` name distinct from their
+    stem, so it can be overridden explicitly.
+    """
+    path.write_text(html)
+    written.append(name if name is not None else path.stem)
+
+
 def main() -> None:
-    written = []
+    written: list[str] = []
     projection_css = build_projection_css()
     for theme in ("light", "dark"):
-        (OUT / f"list-{theme}.html").write_text(render_list(theme))
-        (OUT / f"list-menu-open-{theme}.html").write_text(render_list(theme, menu_open=True))
+        _emit(OUT / f"list-{theme}.html", render_list(theme), written)
+        _emit(OUT / f"list-menu-open-{theme}.html", render_list(theme, menu_open=True), written)
         # the topbar-primary layout (SHL-001, 0.6.0): the same list page with
         # the nav restyled as a horizontal band, so the axe gate covers the
         # bottom active marker, inline section labels, and inline switcher slot
-        (OUT / f"list-topbar-{theme}.html").write_text(render_list(theme, layout="topbar"))
-        (OUT / f"dashboard-{theme}.html").write_text(render_dashboard(theme))
-        (OUT / f"form-{theme}.html").write_text(render_form(theme, with_errors=False))
-        (OUT / f"form-errors-{theme}.html").write_text(render_form(theme, with_errors=True))
+        _emit(OUT / f"list-topbar-{theme}.html", render_list(theme, layout="topbar"), written)
+        _emit(OUT / f"dashboard-{theme}.html", render_dashboard(theme), written)
+        _emit(OUT / f"form-{theme}.html", render_form(theme, with_errors=False), written)
+        _emit(OUT / f"form-errors-{theme}.html", render_form(theme, with_errors=True), written)
         # the 0.8.0 interaction set (floor, open floor states, lazy tab
         # active, the JS leg, and the modal's full-page floor)
-        (OUT / f"interactions-{theme}.html").write_text(render_interactions(theme))
-        (OUT / f"interactions-open-{theme}.html").write_text(
-            render_interactions(theme, active_tab="details", disclosure_open=True)
+        _emit(OUT / f"interactions-{theme}.html", render_interactions(theme), written)
+        _emit(
+            OUT / f"interactions-open-{theme}.html",
+            render_interactions(theme, active_tab="details", disclosure_open=True),
+            written,
         )
-        (OUT / f"interactions-tab-lazy-{theme}.html").write_text(render_interactions(theme, active_tab="activity"))
-        (OUT / f"interactions-js-{theme}.html").write_text(render_interactions(theme, inject_js=True))
-        (OUT / f"interactions-modal-page-{theme}.html").write_text(render_modal_page(theme))
+        _emit(
+            OUT / f"interactions-tab-lazy-{theme}.html",
+            render_interactions(theme, active_tab="activity"),
+            written,
+        )
+        _emit(OUT / f"interactions-js-{theme}.html", render_interactions(theme, inject_js=True), written)
+        _emit(OUT / f"interactions-modal-page-{theme}.html", render_modal_page(theme), written)
         # the 0.9.0 overlay pair (toast floors + stack, combobox floors, the
         # dismissible surfaces, and the JS legs for both pages)
-        (OUT / f"toasts-{theme}.html").write_text(render_toasts(theme))
-        (OUT / f"toasts-flash-{theme}.html").write_text(render_toasts(theme, flash=True))
-        (OUT / f"toasts-stack-{theme}.html").write_text(render_toast_stack(theme))
-        (OUT / f"toasts-js-{theme}.html").write_text(render_toasts(theme, inject_js=True))
-        (OUT / f"comboboxes-{theme}.html").write_text(render_comboboxes(theme))
-        (OUT / f"comboboxes-js-{theme}.html").write_text(render_comboboxes(theme, selected=True, inject_js=True))
+        _emit(OUT / f"toasts-{theme}.html", render_toasts(theme), written)
+        _emit(OUT / f"toasts-flash-{theme}.html", render_toasts(theme, flash=True), written)
+        _emit(OUT / f"toasts-stack-{theme}.html", render_toast_stack(theme), written)
+        _emit(OUT / f"toasts-js-{theme}.html", render_toasts(theme, inject_js=True), written)
+        _emit(OUT / f"comboboxes-{theme}.html", render_comboboxes(theme), written)
+        _emit(
+            OUT / f"comboboxes-js-{theme}.html",
+            render_comboboxes(theme, selected=True, inject_js=True),
+            written,
+        )
         # the 0.10.0 Tailwind projection proof (consumer utilities only)
-        (OUT / f"projection-{theme}.html").write_text(render_projection(theme, projection_css))
+        _emit(OUT / f"projection-{theme}.html", render_projection(theme, projection_css), written)
         # the 0.12.0 feedback set (#56/#60): skeleton, tooltip (floor + JS-open
         # state), progress (determinate + indeterminate)
-        (OUT / f"feedback-{theme}.html").write_text(render_feedback(theme))
-        (OUT / f"feedback-js-{theme}.html").write_text(render_feedback(theme, inject_js=True))
-        (OUT / f"feedback-tooltip-open-{theme}.html").write_text(
-            render_feedback(theme, inject_js=True, tooltip_open=True)
+        _emit(OUT / f"feedback-{theme}.html", render_feedback(theme), written)
+        _emit(OUT / f"feedback-js-{theme}.html", render_feedback(theme, inject_js=True), written)
+        _emit(
+            OUT / f"feedback-tooltip-open-{theme}.html",
+            render_feedback(theme, inject_js=True, tooltip_open=True),
+            written,
         )
         # the 0.13.0 input chrome set (#57/#58): toggle, tag input, dropzone,
         # a styled date field; plus the shell's collapsed-sidebar state
-        (OUT / f"inputs-{theme}.html").write_text(render_inputs(theme))
+        _emit(OUT / f"inputs-{theme}.html", render_inputs(theme), written)
         # bw_ranked_list (#183): populated (linked rows), empty (with
         # action), and loading skeleton variants on one page
-        (OUT / f"ranked-list-{theme}.html").write_text(render_ranked_list(theme))
+        _emit(OUT / f"ranked-list-{theme}.html", render_ranked_list(theme), written)
         # _data_table.html's empty-state action CTA (#185): records and
         # definition variants, both rendered with zero rows and the new
         # empty_action_href/empty_action_label passthrough
-        (OUT / f"data-table-empty-cta-{theme}.html").write_text(render_data_table_empty_cta(theme))
+        _emit(OUT / f"data-table-empty-cta-{theme}.html", render_data_table_empty_cta(theme), written)
         # bw_theme_switch (#117): the no-JS floor (renders nothing usable,
         # the control ships the bw-theme-switch--pre-init class, icvoss/
         # django-brickwork#272, supersedes the unconditional hidden
         # attribute this shipped with through 3.11.0) and the JS leg (real
         # Alpine boot, so bwThemeSwitch's own init reveals default/brand-
         # inclusive/locked instances and axe walks the real revealed markup)
-        (OUT / f"theme-switch-{theme}.html").write_text(render_theme_switch(theme))
-        (OUT / f"theme-switch-js-{theme}.html").write_text(render_theme_switch(theme, inject_js=True))
-        (OUT / f"theme-switch-invalid-root-js-{theme}.html").write_text(render_theme_switch_invalid_root(theme))
+        _emit(OUT / f"theme-switch-{theme}.html", render_theme_switch(theme), written)
+        _emit(OUT / f"theme-switch-js-{theme}.html", render_theme_switch(theme, inject_js=True), written)
+        _emit(
+            OUT / f"theme-switch-invalid-root-js-{theme}.html",
+            render_theme_switch_invalid_root(theme),
+            written,
+        )
         # layout="compact" (#235): the no-JS floor (#272 review: the
         # pre-existing no-JS test only ever rendered layout="inline",
         # leaving the compact root's own reserved-pre-init state
         # unverified) and the disclosure's own JS leg, stamped open so axe
         # examines the revealed trigger/panel pairing and the compact
         # options' own 44px targets, not a closed disclosure
-        (OUT / f"theme-switch-compact-{theme}.html").write_text(render_theme_switch_compact(theme))
-        (OUT / f"theme-switch-compact-open-js-{theme}.html").write_text(render_theme_switch_compact_open(theme))
-        (OUT / f"sidebar-collapsed-{theme}.html").write_text(render_sidebar_collapsed(theme))
+        _emit(OUT / f"theme-switch-compact-{theme}.html", render_theme_switch_compact(theme), written)
+        _emit(
+            OUT / f"theme-switch-compact-open-js-{theme}.html",
+            render_theme_switch_compact_open(theme),
+            written,
+        )
+        _emit(OUT / f"sidebar-collapsed-{theme}.html", render_sidebar_collapsed(theme), written)
         # the 0.14.0 slide-over + stepper + wizard set (#55/#59): the
         # slide-over's OPEN state (dialog semantics, labelling, focusable
         # content), the stepper's status pairing, and the composed wizard page
-        (OUT / f"slide-over-open-{theme}.html").write_text(render_slide_over_open(theme))
-        (OUT / f"stepper-{theme}.html").write_text(render_stepper(theme))
-        (OUT / f"wizard-{theme}.html").write_text(render_wizard(theme))
+        _emit(OUT / f"slide-over-open-{theme}.html", render_slide_over_open(theme), written)
+        _emit(OUT / f"stepper-{theme}.html", render_stepper(theme), written)
+        _emit(OUT / f"wizard-{theme}.html", render_wizard(theme), written)
         # the 0.15.0 table bulk-selection + whole-form set (#53/#54): a
         # selectable table with the bulk-actions bar visible and a checked
         # row, and the whole-form renderer in a valid grid layout plus a
         # bound-invalid render (field + non-field errors)
-        (OUT / f"table-selection-{theme}.html").write_text(render_table_selection(theme))
-        (OUT / f"bw-form-{theme}.html").write_text(render_bw_form_fixture(theme))
+        _emit(OUT / f"table-selection-{theme}.html", render_table_selection(theme), written)
+        _emit(OUT / f"bw-form-{theme}.html", render_bw_form_fixture(theme), written)
         # the 1.1.0 page-templates kit (form_page, settings, console, confirm,
         # auth_signin) plus #73's POST sign-out account-menu item
-        (OUT / f"form-page-{theme}.html").write_text(render_form_page(theme))
-        (OUT / f"settings-{theme}.html").write_text(render_settings(theme))
-        (OUT / f"console-{theme}.html").write_text(render_console(theme))
+        _emit(OUT / f"form-page-{theme}.html", render_form_page(theme), written)
+        _emit(OUT / f"settings-{theme}.html", render_settings(theme), written)
+        _emit(OUT / f"console-{theme}.html", render_console(theme), written)
         # size="sm" (ADR-060, STA-019, #218): the in-panel empty state,
         # nested inside a bw-card, exercising the demoted heading and the
         # plain action-link treatment axe never sees on the page-filling
         # console fixture above
-        (OUT / f"console-sm-{theme}.html").write_text(render_console(theme, size="sm"))
-        (OUT / f"confirm-{theme}.html").write_text(render_confirm(theme))
-        (OUT / f"auth-signin-{theme}.html").write_text(render_auth_signin(theme))
-        (OUT / f"account-menu-post-{theme}.html").write_text(render_account_menu_post(theme))
+        _emit(OUT / f"console-sm-{theme}.html", render_console(theme, size="sm"), written)
+        _emit(OUT / f"confirm-{theme}.html", render_confirm(theme), written)
+        _emit(OUT / f"auth-signin-{theme}.html", render_auth_signin(theme), written)
+        _emit(OUT / f"account-menu-post-{theme}.html", render_account_menu_post(theme), written)
         # the 1.2.0 marketing kit (brickwork.marketing, BR-BW-MKT-002): the
         # three shipped pages, each rendered through a consumer-shaped
         # extension carrying representative content
-        (OUT / f"landing-{theme}.html").write_text(render_landing(theme))
-        (OUT / f"pricing-{theme}.html").write_text(render_pricing(theme))
-        (OUT / f"about-{theme}.html").write_text(render_about(theme))
+        _emit(OUT / f"landing-{theme}.html", render_landing(theme), written)
+        _emit(OUT / f"pricing-{theme}.html", render_pricing(theme), written)
+        _emit(OUT / f"about-{theme}.html", render_about(theme), written)
         # the hero media_placement axis (ADR-057 section 1a, #118): "behind"
         # (no/light/dark media) and "beside", none of which landing/pricing/
         # about above ever render, so axe never examined the new CSS
-        (OUT / f"hero-placement-{theme}.html").write_text(render_hero_media_placement(theme))
+        _emit(OUT / f"hero-placement-{theme}.html", render_hero_media_placement(theme), written)
         # the CTA width axis (ADR-057 section 1a, #98/#118 pattern): width="bleed"
         # (bw-cta--bleed), never rendered by any other fixture, crossed with band
-        (OUT / f"cta-width-{theme}.html").write_text(render_cta_width(theme))
+        _emit(OUT / f"cta-width-{theme}.html", render_cta_width(theme), written)
         # the nav renderers (#102/#82): the marketing-header row and the
         # two-tier rail + contextual pairing, ancestor-active states lit
-        (OUT / f"nav-renderers-{theme}.html").write_text(render_nav_renderers(theme))
+        _emit(OUT / f"nav-renderers-{theme}.html", render_nav_renderers(theme), written)
         # search + loading button (#226): bw_search and _spinner.html's
         # loading=True mount, neither previously rendered by any fixture
-        (OUT / f"search-{theme}.html").write_text(render_search(theme))
+        _emit(OUT / f"search-{theme}.html", render_search(theme), written)
         # every example section (3.1.0, plan Phase 6a gate 3), stacked in a
         # real marketing shell so heading order and landmarks are meaningful
-        (OUT / f"sections-{theme}.html").write_text(render_sections(theme))
+        _emit(OUT / f"sections-{theme}.html", render_sections(theme), written)
         # the date-range picker example (examples/app/date-range-picker.html):
         # the closed no-JS floor plus the Alpine-booted leg
         # interactions2.spec.mjs drives open, mid-selection and with disabled
         # dates configured, mirroring the comboboxes/comboboxes-js split.
-        (OUT / f"date-range-picker-{theme}.html").write_text(render_date_range_picker(theme))
-        (OUT / f"date-range-picker-js-{theme}.html").write_text(render_date_range_picker_js(theme))
+        _emit(OUT / f"date-range-picker-{theme}.html", render_date_range_picker(theme), written)
+        _emit(OUT / f"date-range-picker-js-{theme}.html", render_date_range_picker_js(theme), written)
         # bwSortable (icvoss/django-brickwork#214): the no-JS floor (real
         # move-up/move-down forms, no drag/keyboard chrome) and the JS leg
         # (Alpine-booted, drag + keyboard reorder, persistence round trip)
-        (OUT / f"sortable-{theme}.html").write_text(render_sortable(theme))
-        (OUT / f"sortable-js-{theme}.html").write_text(render_sortable(theme, inject_js=True))
-        (OUT / f"sortable-js-persist-{theme}.html").write_text(render_sortable(theme, inject_js=True, with_url=True))
+        _emit(OUT / f"sortable-{theme}.html", render_sortable(theme), written)
+        _emit(OUT / f"sortable-js-{theme}.html", render_sortable(theme, inject_js=True), written)
+        _emit(
+            OUT / f"sortable-js-persist-{theme}.html",
+            render_sortable(theme, inject_js=True, with_url=True),
+            written,
+        )
         # bwTagInput carrier takeover (icvoss/django-brickwork#237): the JS
         # leg for both the single-line and multiline floors
-        (OUT / f"tag-input-js-{theme}.html").write_text(render_tag_input_js(theme))
-        written += [
-            f"list-{theme}",
-            f"list-menu-open-{theme}",
-            f"list-topbar-{theme}",
-            f"dashboard-{theme}",
-            f"form-{theme}",
-            f"form-errors-{theme}",
-            f"interactions-{theme}",
-            f"interactions-open-{theme}",
-            f"interactions-tab-lazy-{theme}",
-            f"interactions-js-{theme}",
-            f"interactions-modal-page-{theme}",
-            f"toasts-{theme}",
-            f"toasts-flash-{theme}",
-            f"toasts-stack-{theme}",
-            f"toasts-js-{theme}",
-            f"comboboxes-{theme}",
-            f"comboboxes-js-{theme}",
-            f"projection-{theme}",
-            f"feedback-{theme}",
-            f"feedback-js-{theme}",
-            f"feedback-tooltip-open-{theme}",
-            f"inputs-{theme}",
-            f"ranked-list-{theme}",
-            f"theme-switch-{theme}",
-            f"theme-switch-js-{theme}",
-            f"theme-switch-compact-open-js-{theme}",
-            f"sidebar-collapsed-{theme}",
-            f"slide-over-open-{theme}",
-            f"stepper-{theme}",
-            f"wizard-{theme}",
-            f"table-selection-{theme}",
-            f"bw-form-{theme}",
-            f"form-page-{theme}",
-            f"settings-{theme}",
-            f"console-{theme}",
-            f"console-sm-{theme}",
-            f"confirm-{theme}",
-            f"auth-signin-{theme}",
-            f"account-menu-post-{theme}",
-            f"landing-{theme}",
-            f"pricing-{theme}",
-            f"about-{theme}",
-            f"hero-placement-{theme}",
-            f"cta-width-{theme}",
-            f"nav-renderers-{theme}",
-            f"search-{theme}",
-            f"sections-{theme}",
-            f"date-range-picker-{theme}",
-            f"date-range-picker-js-{theme}",
-            f"sortable-{theme}",
-            f"sortable-js-{theme}",
-            f"sortable-js-persist-{theme}",
-            f"tag-input-js-{theme}",
-        ]
+        _emit(OUT / f"tag-input-js-{theme}.html", render_tag_input_js(theme), written)
     FRAGMENTS.mkdir(exist_ok=True)
-    (FRAGMENTS / "modal-confirm.html").write_text(render_modal_fragment())
-    (FRAGMENTS / "tab-panel-activity.html").write_text(render_activity_fragment())
-    written += ["fragments/modal-confirm", "fragments/tab-panel-activity"]
+    _emit(FRAGMENTS / "modal-confirm.html", render_modal_fragment(), written, name="fragments/modal-confirm")
+    _emit(
+        FRAGMENTS / "tab-panel-activity.html",
+        render_activity_fragment(),
+        written,
+        name="fragments/tab-panel-activity",
+    )
     for intent in _TOAST_INTENTS:
-        (FRAGMENTS / f"toast-oob-{intent}.html").write_text(render_toast_fragment(intent, "persistent"))
-        written.append(f"fragments/toast-oob-{intent}")
-    (FRAGMENTS / "toast-oob-short.html").write_text(render_toast_fragment("success", "short"))
-    (FRAGMENTS / "toast-oob-action.html").write_text(render_toast_action_fragment())
-    (FRAGMENTS / "combobox-options-green.html").write_text(render_combobox_options_fragment())
-    (FRAGMENTS / "sortable-reorder.html").write_text(render_sortable_reorder_fragment())
-    written += [
-        "fragments/toast-oob-short",
-        "fragments/toast-oob-action",
-        "fragments/combobox-options-green",
-        "fragments/sortable-reorder",
-    ]
+        _emit(
+            FRAGMENTS / f"toast-oob-{intent}.html",
+            render_toast_fragment(intent, "persistent"),
+            written,
+            name=f"fragments/toast-oob-{intent}",
+        )
+    _emit(
+        FRAGMENTS / "toast-oob-short.html",
+        render_toast_fragment("success", "short"),
+        written,
+        name="fragments/toast-oob-short",
+    )
+    _emit(
+        FRAGMENTS / "toast-oob-action.html",
+        render_toast_action_fragment(),
+        written,
+        name="fragments/toast-oob-action",
+    )
+    _emit(
+        FRAGMENTS / "combobox-options-green.html",
+        render_combobox_options_fragment(),
+        written,
+        name="fragments/combobox-options-green",
+    )
+    _emit(
+        FRAGMENTS / "sortable-reorder.html",
+        render_sortable_reorder_fragment(),
+        written,
+        name="fragments/sortable-reorder",
+    )
     print("fixtures written:", ", ".join(written))
 
 
