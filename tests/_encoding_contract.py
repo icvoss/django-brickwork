@@ -796,7 +796,14 @@ def assert_no_progressbar_semantics(html: str, *, component_tag: str, component_
     component_matches = _find_elements(html, tag=component_tag, class_name=component_class)
     assert component_matches, f"no <{component_tag} class={component_class!r}> element found in the rendered html"
     for component_match in component_matches:
-        lowered = component_match.group(0).lower()
+        # Comments masked first, through the module's own helper rather than
+        # a second opinion here about what a comment is. Without it this
+        # check reads commented-out markup as live: a component carrying
+        # <!-- role="progressbar" removed --> failed, which is a false
+        # failure on correct markup, and the mirror of it is worse, since a
+        # test asserting the vocabulary IS present could be satisfied by a
+        # comment while the real attribute was gone.
+        lowered = _mask_comments(component_match.group(0)).lower()
         for element in ("progress", "meter"):
             assert not re.search(rf"<{element}\b", lowered), (
                 f"forbidden <{element}> element found in <{component_tag} class={component_class!r}>"

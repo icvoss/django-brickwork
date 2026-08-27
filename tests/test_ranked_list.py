@@ -22,7 +22,6 @@ from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 
 from tests._encoding_contract import (
-    _mask_comments,
     assert_bar_is_aria_hidden_and_empty,
     assert_geometry_is_a_unitless_custom_property,
     assert_no_progressbar_semantics,
@@ -892,67 +891,33 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     # comparison family, not a blanket ban across the package:
     # _progress.html is the ONE component built for a single quantity's
     # progress toward a known target, so it must go on carrying the full
-    # role/aria-valuenow/-valuemin/-valuemax wiring.
+    # role/aria-valuenow/-valuemin/-valuemax wiring. This test proves the
+    # boundary using the GROUP'S OWN CONTRACT rather than by re-asserting
+    # the attributes: the family's "no progressbar semantics" helper must
+    # actively RAISE against _progress.html's output, which shows the two
+    # components being judged by one rule and coming out differently. It
+    # therefore tracks the rule automatically: extend the forbidden
+    # vocabulary and this test keeps testing the real boundary, where a
+    # hand-written attribute assertion would silently stop.
     #
-    # WHAT THIS TEST DOES AND DOES NOT PROVE, stated plainly because it was
-    # weakened deliberately and a reader should not have to infer that. It
-    # asserts _progress.html still carries the vocabulary, which is what
-    # makes "the ranked group forbids it" a SCOPED rule rather than a
-    # blanket one. It no longer proves that assertion via the group's own
-    # helper, so it no longer demonstrates the two components being judged
-    # by one contract; it now overlaps
-    # test_feedback.py::test_determinate_progress_has_full_aria_wiring,
-    # which pins the same attributes for a different reason. That overlap
-    # is a real cost, accepted knowingly: two tests asserting one property
-    # can drift into two opinions about it, and if this one ever
-    # contradicts test_feedback's, THIS one is the wrong one, because the
-    # ARIA wiring is that test's subject and only the boundary is this
-    # test's subject.
+    # The <section> wrapper is load-bearing and not decoration. The helper
+    # locates its component through _find_elements, whose regex body
+    # cannot match an element containing further elements OF THE SAME TAG.
+    # _progress.html's root is a <div> containing <div>s, so a <div> probe
+    # is unlocatable, but that limit is PER TAG NAME: this render emits no
+    # <section>, so a <section> wrapper is located and the whole progress
+    # subtree falls inside it. An earlier revision of this test asserted
+    # the attributes directly, on the claim that no probe wrapper could
+    # rescue it; that claim came from trying <div>, hitting the nesting
+    # limit and writing it up as a property of the matcher. It is not one.
     #
-    # THE OVERLAP IS TEMPORARY AND OWNED BY #290. When the rewrite makes
-    # _progress.html's root locatable, this test goes back to calling
-    # assert_no_progressbar_semantics and the duplication is deleted. That
-    # is written down here and in #290's acceptance criteria so the rewrite
-    # has a specific thing to remove, rather than inheriting a duplication
-    # nobody remembers was deliberate: an accepted cost with no owner
-    # decays into a residue that later reads as an accident.
-    #
-    # Asserted directly rather than through assert_no_progressbar_semantics,
-    # deliberately. That helper now locates its component through
-    # _find_elements, which cannot match _progress.html's root: the root
-    # <div> nests further <div>s and the matcher is documented as not a
-    # general nested-tag parser. Routing the boundary through it therefore
-    # raised on "no element found" rather than on the vocabulary, and went
-    # on passing with every progressbar attribute scrubbed out of the
-    # markup. A test that cannot fail is worse than an absent one, and this
-    # is the single test certifying the family boundary.
-    #
-    # Wrapping the render in a locatable probe element does not rescue it
-    # either, for the same nesting reason, so the honest shape is to assert
-    # the property here and say why. Locating a root that contains same-tag
-    # children is #290's job; this test must not depend on it.
-    # Anchored and attribute-shaped, NOT bare substring checks. A raw
-    # `'role="progressbar"' in out` is the same defect this PR fixes in the
-    # helper, and it was measurably weaker than the whole-document scan it
-    # replaced: it passed when the live attributes were renamed to data-
-    # lookalikes, when the literals survived only inside an HTML comment,
-    # and when aria-valuenow existed only as words in the accessible name.
-    # Each of those leaves the component genuinely broken for a screen
-    # reader. Requiring the "=" kills the comment and label-text evasions;
-    # the (?<![\w-]) lookbehind kills the data- ones, matching the
-    # convention _ARIA_HIDDEN_TRUE and the helper already use.
-    # Comments masked first, reusing the module's own helper rather than a
-    # second opinion about what a comment is: without it, the literals
-    # surviving only inside an HTML comment satisfied both assertions while
-    # the live attributes were gone.
-    out = _mask_comments(
-        render_to_string("brickwork/components/_progress.html", {"label": "Import progress", "value": 42})
-    )
-    assert re.search(r'(?<![\w-])role\s*=\s*["\']?[^"\'>]*\bprogressbar\b', out), (
-        "_progress.html no longer carries a real role='progressbar' attribute: the family boundary has "
-        "moved, and the ranked group's no-progressbar rule can no longer be described as scoped rather "
-        "than blanket"
-    )
-    assert re.search(r"(?<![\w-])aria-valuenow\s*=", out), (
-        "_progress.html no longer carries a real aria-valuenow attribute: see above"
-    )
+    # match= is the other half, and it is what the layer-2 defect needed:
+    # without it, pytest.raises passed on the helper's "no element found"
+    # precondition rather than on the vocabulary, so the test went on
+    # passing with every progressbar attribute scrubbed out. "no element
+    # found" shares no vocabulary with "progressbar", so pinning the
+    # message keeps the raise attached to the property it certifies.
+    out = render_to_string("brickwork/components/_progress.html", {"label": "Import progress", "value": 42})
+    page = f'<section class="bw-boundary-probe">{out}</section>'
+    with pytest.raises(AssertionError, match="progressbar"):
+        assert_no_progressbar_semantics(page, component_tag="section", component_class="bw-boundary-probe")
