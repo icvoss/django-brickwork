@@ -184,6 +184,113 @@ def test_every_derived_expression_reproduces_its_baseline(theme: _Theme) -> None
             )
 
 
+def test_evaluate_mixes_toward_a_chromatic_partner_in_cartesian_oklab() -> None:
+    """Direct model check (brickwork#306): a chromatic partner must move the hue.
+
+    Every assertion elsewhere in this module runs against real token data, so a
+    future edit that happened to make every mix partner achromatic again (as
+    every derivation was before #289) would silently stop exercising this
+    property, exactly as it did before #306 was found. This test is independent
+    of the token source: it builds a synthetic theme with two colours of
+    different, non-opposite hue and asserts the mix lands at the true Cartesian
+    (L, a, b) blend rather than on a shortest-arc polar interpolation between
+    the two hues.
+
+    Base is red-ish (H 30), partner is blue-ish (H 260); a 60% mix under the
+    correct Cartesian model lands near H 0.6 (verified below against a
+    hand-computed a/b blend), against roughly H 338 on the polar shortest-arc
+    path (which wraps through 0 the "short way" rather than the long way round
+    through the two sources' own hues). The two models diverge by around 22.6
+    degrees here, several times the module's own 4-degree hue tolerance, so
+    this is a clean model discriminator rather than a borderline case.
+    """
+    theme = _Theme.__new__(_Theme)
+    theme.name = "synthetic"
+    theme.baseline = {
+        "--bw-color-base": "oklch(0.6 0.2 30)",
+        "--bw-color-partner": "oklch(0.5 0.15 260)",
+    }
+    theme.derived = {}
+
+    lightness, chroma, hue, alpha = _evaluate(
+        theme, "color-mix(in oklab, var(--bw-color-base) 60%, var(--bw-color-partner))"
+    )
+
+    # Hand-computed Cartesian expectation, independent of _evaluate's own code path.
+    a1, b1 = 0.2 * math.cos(math.radians(30)), 0.2 * math.sin(math.radians(30))
+    a2, b2 = 0.15 * math.cos(math.radians(260)), 0.15 * math.sin(math.radians(260))
+    expected_l = 0.6 * 0.6 + 0.4 * 0.5
+    expected_a = 0.6 * a1 + 0.4 * a2
+    expected_b = 0.6 * b1 + 0.4 * b2
+    expected_c = math.hypot(expected_a, expected_b)
+    expected_h = math.degrees(math.atan2(expected_b, expected_a)) % 360.0
+
+    assert lightness == pytest.approx(expected_l, abs=1e-9)
+    assert chroma == pytest.approx(expected_c, abs=1e-9)
+    assert hue == pytest.approx(expected_h, abs=1e-9)
+    assert alpha == pytest.approx(1.0, abs=1e-9)
+
+    # The polar shortest-arc model this replaced would land here instead; assert
+    # the real result is nowhere near it, so a regression to that model is caught.
+    polar_shortest_arc_hue = 30.0 + 0.4 * (((260.0 - 30.0 + 180.0) % 360.0) - 180.0)
+    assert _hue_distance(hue, polar_shortest_arc_hue % 360.0) > 15.0, (
+        "the Cartesian result should diverge sharply from the polar shortest-arc "
+        f"model ({polar_shortest_arc_hue % 360.0:.1f} degrees); got hue {hue:.1f}, "
+        "too close to the polar answer to be discriminating the two models"
+    )
+
+
+def test_dark_theme_contains_a_chromatic_partner_mix() -> None:
+    """Coverage guard for brickwork#306: dark must exercise the Cartesian model.
+
+    The defect in #306 never fired in either theme because every mix partner
+    was exactly achromatic (black, white, or a zero-chroma grey), where polar
+    and Cartesian interpolation agree. Light gained a chromatic-partner case
+    with the four status -fg tokens (#289: mixed toward --bw-color-status-fg-ink,
+    C 0.005). This asserts dark independently carries at least one derivation
+    whose partner is genuinely chromatic (chroma above the tokens.css
+    quantisation noise floor) AND whose base and partner hues differ enough
+    that the Cartesian and polar models produce measurably different results,
+    so the coverage this issue asks for cannot silently regress to
+    achromatic-only again without this test failing.
+
+    --bw-color-surface-marketing-tint in dark currently supplies this: it mixes
+    var(--bw-color-accent) toward var(--bw-color-surface) (dark surface C
+    0.005, a different hue to accent), and the two models diverge by roughly
+    7.7 degrees on it, per the token's own $description.
+    """
+    dark = _Theme("dark")
+    mix_partner_pattern = re.compile(
+        r"^color-mix\(in oklab, var\(--bw-color-[a-z0-9-]+\) [\d.]+%, var\((--bw-color-[a-z0-9-]+)\)\)$"
+    )
+    chromatic_hue_divergent: list[str] = []
+    for css_name, expression in dark.derived.items():
+        m = mix_partner_pattern.match(expression)
+        if not m:
+            continue
+        base_l, base_c, base_h, _ = dark.components(css_name)
+        _, partner_c, partner_h, _ = dark.components(m.group(1))
+        if partner_c < 0.002:
+            continue
+        lightness, chroma, hue, alpha = _evaluate(dark, expression)
+        if chroma < _HUE_CHROMA_FLOOR:
+            continue
+        d = (partner_h - base_h + 180) % 360 - 180
+        # Reconstruct the mix fraction from the expression to build the polar comparator.
+        pct_match = re.match(r"^color-mix\(in oklab, var\([^)]+\) ([\d.]+)%", expression)
+        p = float(pct_match.group(1)) / 100.0
+        polar_hue = (base_h + (1 - p) * d) % 360.0
+        if _hue_distance(hue, polar_hue) > _TOL_H:
+            chromatic_hue_divergent.append(css_name)
+
+    assert chromatic_hue_divergent, (
+        "dark theme has no derived token mixing toward a chromatic partner with "
+        "measurable hue divergence between the Cartesian and polar models; the "
+        "coverage brickwork#306 asks for has regressed to achromatic-only, which "
+        "cannot distinguish a correct _evaluate() from the shortest-arc bug it replaced"
+    )
+
+
 def test_derived_expressions_contain_no_dtcg_braces() -> None:
     # Style Dictionary treats {a.b} inside a value as a reference; a brace in a
     # derived expression would be resolved (or crash) instead of passing through.
