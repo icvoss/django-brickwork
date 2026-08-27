@@ -344,3 +344,81 @@ def test_dist_brickwork_css_has_no_var_inside_a_media_condition() -> None:
         if re.search(r"var\(", match.group(0), re.I)
     ]
     assert not offenders, f"var() found inside an @media condition in dist/brickwork.css: {offenders}"
+
+
+# --- #288: every shipped --bw-text-*-family token must be consumed --------
+
+# The DEFINED set comes from token-manifest.json's "overridable" array, not a
+# regex over tokens.css's :root block. The manifest is itself a generated,
+# already-flattened artefact (one name per shipped token), so reading it
+# avoids re-deriving :root-extraction logic that a second `:root { ... }`
+# block in tokens.css (the 0.10.0 courtesy-alias block) could quietly break.
+_TEXT_FAMILY_TOKEN = re.compile(r"--bw-text-[a-z0-9]+(?:-[a-z0-9]+)*-family")
+
+
+def _defined_text_family_tokens() -> set[str]:
+    manifest = json.loads((_DIST / "token-manifest.json").read_text())
+    return {name for name in manifest["overridable"] if _TEXT_FAMILY_TOKEN.fullmatch(name)}
+
+
+def _consumed_text_family_tokens(css: str) -> set[str]:
+    """Token names actually read by a font-family declaration in ``css``.
+
+    This is deliberately NOT a bare ``var(--bw-text-*-family)`` substring
+    search. tokens.css (and the compiled brickwork.css, which inlines the
+    same :root block) contains lines shaped like
+    ``--bw-text-heading-display-family: var(--bw-font-family-display);``:
+    that is the token's DEFINITION, and its value never happens to be
+    ``var(--bw-text-*-family)`` for the same token, so a naive scan of
+    tokens.css would not vacuously self-match there. But dist/tokens.js
+    DOES print the courtesy shape ``"text_x_family": "var(--bw-text-x-family)"``
+    for every token (a JS reference helper, not a CSS rule), so scanning
+    that file, or any similar reference table, would rubber-stamp every
+    token as consumed regardless of whether any component reads it. The
+    matcher below only counts a token as consumed when it appears as the
+    VALUE of a ``font-family`` DECLARATION (``font-family: var(--bw-text-
+    ...-family)``), which is the only shape an actual consuming rule can
+    take; a token's own definition line has the token as the property being
+    set, never as a font-family value, so the two are structurally
+    distinguishable by property name, not by which file happens to hold
+    them.
+    """
+    consumed: set[str] = set()
+    for match in re.finditer(r"font-family\s*:\s*var\(\s*(--bw-text-[a-z0-9-]+-family)\s*\)", css):
+        consumed.add(match.group(1))
+    return consumed
+
+
+def test_every_text_family_token_is_consumed_by_a_font_family_rule() -> None:
+    # #288: 7 of 13 shipped --bw-text-*-family tokens were read by nothing,
+    # so setting them had no effect (a false affordance). This is the
+    # checkable form of that rule: derive the shipped set from the manifest
+    # (never a hardcoded list, or a newly added dead token is invisible),
+    # and derive the consumed set from BOTH the authored source
+    # (frontend/src/*.css, what a contributor actually writes) and the
+    # compiled bundle (dist/brickwork.css, what a consumer actually loads),
+    # so a build-pipeline drop between the two is caught either way.
+    defined = _defined_text_family_tokens()
+    assert defined, "expected at least one --bw-text-*-family token in the manifest"
+    assert len(defined) > 1, (
+        "the defined set has only one member; an 'every token has a consumer' "
+        "assertion cannot be exercised meaningfully against a singleton (see #286)"
+    )
+
+    frontend_css = "\n".join(
+        path.read_text() for path in sorted(_FRONTEND_SRC.glob("*.css"))
+    )
+    consumed_in_source = _consumed_text_family_tokens(frontend_css)
+    consumed_in_dist = _consumed_text_family_tokens((_DIST / "brickwork.css").read_text())
+
+    dead_in_source = sorted(defined - consumed_in_source)
+    dead_in_dist = sorted(defined - consumed_in_dist)
+
+    assert not dead_in_source, (
+        f"--bw-text-*-family tokens defined but consumed by no font-family rule "
+        f"in frontend/src/*.css: {dead_in_source}"
+    )
+    assert not dead_in_dist, (
+        f"--bw-text-*-family tokens defined but consumed by no font-family rule "
+        f"in dist/brickwork.css (build dropped a source rule): {dead_in_dist}"
+    )

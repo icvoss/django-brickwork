@@ -542,6 +542,20 @@ Each role is a bundle of five properties
 `var()` reference into the scales above so overrides cascade. Components
 consume roles, never raw scale steps, so nothing drifts out of rhythm.
 
+**A role token that no rule consumes is a false affordance, not a spare.**
+Shipping a `-family` (or any) property on a role promises a consumer that
+setting it changes the render; a token the build emits and nothing reads
+breaks that promise silently, since neither the type system nor a visual
+check flags an override with no effect (icvoss/django-brickwork#288, 7 of 13
+`-family` tokens shipped this way with no accessibility impact and no broken
+render). Each role property is therefore either wired into a consuming rule
+or removed from the role's source definition; a property is never left
+defined "for completeness" once a decision has been made about whether the
+role binds it. `tests/test_tokens.py::test_every_text_family_token_is_consumed_by_a_font_family_rule`
+enforces this for `-family` specifically, deriving the shipped set from the
+token manifest rather than a hardcoded list, so a newly added dead token
+fails the build instead of shipping unnoticed.
+
 **Not every role carries a `-family` token** (**CHANGED**, icvoss/django-brickwork#288). `body-lg`,
 `body-sm` and `label` deliberately have no `-family` property: those roles
 inherit the sans stack from `.bw-body` rather than pinning it per role, so a
