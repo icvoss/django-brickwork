@@ -87,8 +87,17 @@ def _class_token_regex(class_name: str) -> str:
     double-quoted, so a multi-class value (``class="bw-x__bar bw-x__bar--hot"``)
     or a class listed after other attributes still matches, rather than
     demanding ``class`` be the sole, first, exact-value attribute."""
+    # NOT \b around the class name: \b treats "-" as a word boundary, so
+    # \bbw-x__bar\b matches inside class="bw-x__bar-label". A helper then
+    # locates a SIBLING and asserts the property against it while the real
+    # element goes unchecked, which is precisely the matched-the-wrong-thing
+    # defect this module exists to prevent (see icvoss/django-brickwork#286).
+    # The token must be delimited by whitespace or the quote itself, which is
+    # what "one token of a class attribute" actually means.
     escaped = re.escape(class_name)
-    return rf'class\s*=\s*(["\'])(?:(?!\1).)*?\b{escaped}\b(?:(?!\1).)*?\1'
+    boundary_open = r'(?:(?<=["\'])|(?<=\s))'
+    boundary_close = r'(?=\s|["\'])'
+    return rf'class\s*=\s*(["\'])(?:(?!\1).)*?{boundary_open}{escaped}{boundary_close}(?:(?!\1).)*?\1'
 
 
 def _find_elements(html: str, *, tag: str, class_name: str) -> list[re.Match[str]]:
@@ -101,13 +110,16 @@ def _find_elements(html: str, *, tag: str, class_name: str) -> list[re.Match[str
     A tag with no other element of the same name nested inside it is enough
     for every current family member (bars, lines, arcs are always leaves);
     this is not a general nested-tag parser."""
+    # The \s before the class regex requires class= to be a real attribute:
+    # without it, <span data-note="class='bar'"> matches a search for the
+    # class "bar" although the element carries no class attribute at all.
     class_regex = _class_token_regex(class_name)
-    pattern = (
-        rf"<{tag}\b(?:[^>]*?{class_regex}[^>]*?)"
+    element_regex = (
+        rf"<{tag}\b(?:[^>]*?\s{class_regex}[^>]*?)"
         rf"(?:/>"
         rf"|>(?:(?!</?{tag}\b).)*?</{tag}>)"
     )
-    return list(re.finditer(pattern, html, re.DOTALL))
+    return list(re.finditer(element_regex, html, re.DOTALL))
 
 
 def _find_text_elements(html: str, *, class_name: str) -> list[str]:
