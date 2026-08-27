@@ -145,9 +145,30 @@ def _contrast(l1: float, l2: float) -> float:
     return (a + 0.05) / (b + 0.05)
 
 
-def _in_srgb_gamut(colour: tuple[float, float, float], tolerance: float = 0.001) -> bool:
-    """Is this oklch colour renderable in sRGB without clipping?"""
-    return all(-tolerance <= v <= 1.0 + tolerance for v in _oklab_to_linear_rgb(*_oklab(*colour)))
+# Headroom the palette is solved to keep inside the gamut, in linear-sRGB
+# channel units. NOT a tolerance for accepting near-misses: it is asserted as a
+# positive margin, so a colour merely touching the boundary fails.
+#
+# The distinction is not academic. An earlier palette passed this check with a
+# 0.001 tolerance while light series 2 sat at -0.00053, genuinely outside the
+# gamut and passing only because the epsilon was wider than its excursion. That
+# is the same fitted-to-the-boundary defect this module rejects elsewhere, so
+# the palette was re-solved to hold real headroom rather than the check relaxed.
+_GAMUT_MARGIN = 0.002
+
+
+def _gamut_headroom(colour: tuple[float, float, float]) -> float:
+    """How far inside the sRGB gamut this colour sits, in linear channel units.
+
+    Negative means outside, and therefore clipped by the browser.
+    """
+    channels = _oklab_to_linear_rgb(*_oklab(*colour))
+    return min(min(channels), 1.0 - max(channels))
+
+
+def _in_srgb_gamut(colour: tuple[float, float, float]) -> bool:
+    """Is this colour renderable in sRGB with real headroom, not just barely?"""
+    return _gamut_headroom(colour) >= _GAMUT_MARGIN
 
 
 def _as_displayed(colour: tuple[float, float, float]) -> tuple[float, float, float]:
@@ -179,11 +200,13 @@ def test_every_series_is_renderable_in_srgb(theme):
     browser will paint. It is listed last among the properties but it is
     logically first: it is what makes the others describe reality.
     """
-    out_of_gamut = [idx for idx, c in enumerate(_series(theme), start=1) if not _in_srgb_gamut(c)]
-    assert not out_of_gamut, (
-        f"{theme} theme: series {out_of_gamut} fall outside sRGB and will be clipped by the "
-        "browser, so the colour shipped is not the colour authored. Re-author them inside "
-        "the gamut rather than relaxing this check."
+    tight = {idx: _gamut_headroom(c) for idx, c in enumerate(_series(theme), start=1) if not _in_srgb_gamut(c)}
+    assert not tight, (
+        f"{theme} theme: series {sorted(tight)} lack {_GAMUT_MARGIN} of sRGB headroom "
+        f"(measured { {k: round(v, 5) for k, v in tight.items()} }). A negative figure is "
+        "outside the gamut and will be clipped, so the colour shipped is not the colour "
+        "authored; a figure merely near zero survives only until its literal is rounded "
+        "again. Re-author the colour rather than relaxing this check."
     )
 
 
@@ -395,17 +418,28 @@ def test_tooltip_text_clears_aa_on_its_own_background(theme):
 # regardless of whether the assertions below still pass.
 
 # The measured floor across all three dichromacies and both themes, recorded in
-# ADR-082. A documented limit, not an aspiration: the true minimum is 0.0153
-# (protanopia, light, series 1 against 5). Pinned just under what is measured,
+# ADR-082. A documented limit, not an aspiration: the true minimum is 0.0299
+# (tritanopia, light). Pinned just under what is measured,
 # because a generous margin here would let the palette degrade silently, which
 # is the whole failure this figure exists to catch.
 #
-# This value moved once already, from 0.020, when the palette was re-authored
-# inside the sRGB gamut. That is the mechanism working: the gamut fix changed
-# the colours, the CVD figures moved with them, and this test failed rather
-# than quietly tracking the change. Re-measure and update deliberately when the
-# palette moves; never widen the margin to make a failure go away.
-_CVD_DOCUMENTED_FLOOR = 0.015
+# This value has moved twice, and how it moved matters. It went 0.020 to 0.015
+# when the palette was first re-authored inside the sRGB gamut: the gamut fix
+# changed the colours and dragged the CVD figures down with them. This test
+# failed rather than tracking the change silently, which is what a pinned
+# measurement is for.
+#
+# But a figure that only ever ratchets downward is a guarantee dissolving one
+# commit at a time. So rather than pin 0.0073 and move on, the palette was
+# re-solved with dichromatic separation as a RANKED OBJECTIVE among candidates
+# already meeting every hard constraint. That recovered it to 0.0299, four
+# times better than the gamut-only solve and twice the original 0.015.
+#
+# The lesson is the process, not the number: when a pinned measurement
+# degrades, ask whether it can be recovered before re-pinning it lower.
+# Re-measure and update deliberately; never widen the margin to make a failure
+# go away.
+_CVD_DOCUMENTED_FLOOR = 0.029
 
 _LMS_SIM = {
     "protanopia": lambda l_ch, m_ch, s_ch: (2.02344 * m_ch - 2.52581 * s_ch, m_ch, s_ch),

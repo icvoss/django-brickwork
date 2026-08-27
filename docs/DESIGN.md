@@ -421,19 +421,22 @@ themes, a user switching theme would see it change identity and any legend or
 support conversation naming a colour would break.
 
 **The series palette carries a guarantee, with a stated scope.** Any two series
-stay distinguishable (all-pairs minimum 0.1408 light, 0.1699 dark against a
-0.12 floor, measured at the worst point of the retint envelope rather than
-at full chroma, where the figures are 0.1595 and 0.1932),
-hold at least 36 degrees of hue separation, and clear WCAG 1.4.11's 3:1 against
-their own surface (minimum 3.24:1 in both themes), across brand retints down to
+stay distinguishable (all-pairs minimum 0.1398 light, 0.1565 dark against a
+0.12 floor, measured at the worst point of the retint envelope rather than at
+full chroma),
+hold at least 38 degrees of hue separation, and clear WCAG 1.4.11's 3:1 against
+their own surface (minimum 3.21:1 light, 3.29:1 dark), across brand retints down to
 70 percent of shipped chroma (`docs/BRANDING.md`).
 
 **Every one of those figures is measured on the colour a browser paints, not
 the value authored.** An oklch colour outside the sRGB gamut is clipped to the
 gamut boundary before it reaches a display, so an out-of-gamut palette's
 measured properties describe colours nobody sees. The whole palette is
-therefore solved with the gamut boundary as a hard constraint, and a test
-asserts every series is renderable. This is not theoretical: an earlier version
+therefore solved to keep real headroom inside the gamut rather than merely
+inside it, and a test asserts that headroom as a positive margin. Sitting on
+the boundary is not good enough: an earlier palette passed a gamut check with a
+0.001 tolerance while one series sat at -0.00053, outside the gamut and passing
+only because the tolerance was wider than the excursion. This is not theoretical: an earlier version
 of this palette had eleven of sixteen series out of gamut and measured 0.1632
 as authored against 0.0787 as displayed, failing its own floor on any ordinary
 monitor.
@@ -448,7 +451,7 @@ lightness.
 cannot be made mutually distinguishable under dichromatic vision: the best
 achievable all-pairs floor across normal vision and all three dichromacies is
 0.1025, below the range this package's own evidence treats as distinguishable,
-and this palette measures 0.0153 at worst (protanopia, light). That is a
+and this palette measures 0.0299 at worst (tritanopia, light). That is a
 property of eight-colour palettes, not of this one. COL-030's standing NO
 carries the case instead: meaning never rides on colour alone, and CHT-014's
 swatch-plus-text-label pairing is the mechanism. The measured figures are

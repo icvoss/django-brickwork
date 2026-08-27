@@ -144,57 +144,57 @@
       }
     },
     "chart": {
-      "$description": "Categorical data-series ramp (ADR-082). Unlike the hue ramps above this is a set of eight mutually-distinguishable series colours, not a lightness scale of one hue: 'light'/'dark' are the two authored themes (BR-BW-TOK-002), not scale steps. Hue is invariant per series across both themes because a series' identity is its hue; only lightness and chroma are authored per theme. Every value satisfies six properties verified in tests, all measured on the colour a browser actually paints rather than the authored value: renderable within sRGB without clipping, an all-pairs separation floor of 0.12 in oklab across the retint envelope, a minimum 28 degree hue separation, WCAG 1.4.11 3:1 against its own theme's surface, and hue stability across themes. Solved under all constraints simultaneously with the gamut boundary as a hard limit. See ADR-082 Decision 5.",
+      "$description": "Categorical data-series ramp (ADR-082). Unlike the hue ramps above this is a set of eight mutually-distinguishable series colours, not a lightness scale of one hue: 'light'/'dark' are the two authored themes (BR-BW-TOK-002), not scale steps. Hue is invariant per series across both themes because a series' identity is its hue; only lightness and chroma are authored per theme. Every value satisfies six properties verified in tests, all measured on the colour a browser actually paints rather than the authored value: renderable within sRGB without clipping, an all-pairs separation floor of 0.12 in oklab across the retint envelope, a minimum 28 degree hue separation, WCAG 1.4.11 3:1 against its own theme's surface, and hue stability across themes. Solved under all constraints simultaneously with a MARGIN inside the sRGB gamut boundary (every channel keeps at least 0.005 of linear-sRGB headroom), not merely inside it: a value sitting on the boundary survives only until the next rounding of its own literal. Colour-vision deficiency is a ranked objective in the solve rather than an afterthought: the palette is not guaranteed distinguishable under dichromacy (no eight-colour palette can be), but among candidates meeting every hard constraint the one with the best dichromatic separation is chosen. See ADR-082 Decision 5.",
       "light": {
         "1": {
-          "$value": "oklch(0.523 0.187 15)"
+          "$value": "oklch(0.448 0.160 28)"
         },
         "2": {
-          "$value": "oklch(0.260 0.065 58)"
+          "$value": "oklch(0.660 0.131 66)"
         },
         "3": {
-          "$value": "oklch(0.496 0.091 101)"
+          "$value": "oklch(0.315 0.051 114)"
         },
         "4": {
-          "$value": "oklch(0.631 0.174 149)"
+          "$value": "oklch(0.621 0.140 156)"
         },
         "5": {
-          "$value": "oklch(0.376 0.063 185)"
+          "$value": "oklch(0.483 0.051 201)"
         },
         "6": {
-          "$value": "oklch(0.570 0.103 229)"
+          "$value": "oklch(0.640 0.167 251)"
         },
         "7": {
-          "$value": "oklch(0.271 0.150 282)"
+          "$value": "oklch(0.423 0.181 296)"
         },
         "8": {
-          "$value": "oklch(0.632 0.274 320)"
+          "$value": "oklch(0.592 0.143 338)"
         }
       },
       "dark": {
         "1": {
-          "$value": "oklch(0.636 0.232 15)"
+          "$value": "oklch(0.749 0.119 28)"
         },
         "2": {
-          "$value": "oklch(0.806 0.106 58)"
+          "$value": "oklch(0.546 0.088 66)"
         },
         "3": {
-          "$value": "oklch(0.567 0.104 101)"
+          "$value": "oklch(0.876 0.182 114)"
         },
         "4": {
-          "$value": "oklch(0.764 0.209 149)"
+          "$value": "oklch(0.651 0.146 156)"
         },
         "5": {
-          "$value": "oklch(0.920 0.107 185)"
+          "$value": "oklch(0.794 0.123 201)"
         },
         "6": {
-          "$value": "oklch(0.693 0.129 229)"
+          "$value": "oklch(0.598 0.155 251)"
         },
         "7": {
-          "$value": "oklch(0.549 0.155 282)"
+          "$value": "oklch(0.920 0.040 296)"
         },
         "8": {
-          "$value": "oklch(0.649 0.294 320)"
+          "$value": "oklch(0.619 0.232 338)"
         }
       }
     }
