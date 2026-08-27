@@ -1763,8 +1763,17 @@
 }
 
 /* Only the title is the link here, not the whole row: the row is wide enough
- * that a full-row target would swallow the surrounding whitespace. */
+ * that a full-row target would swallow the surrounding whitespace.
+ * min-block-size (icvoss/django-brickwork#316): the heading-sm line-height
+ * alone renders at 17px, 7px under the WCAG 2.5.8 24px floor, since this is
+ * a text-run link (line-height), not a fixed-shape control. display: block
+ * is safe because the link is the sole content of its own <h3> in the
+ * shipped markup (media-list.html), so there is no sibling inline content
+ * on the same line to disturb; the same min-block-size: 1.5rem pattern as
+ * .bw-data-table__row-link (#208). */
 .bw-listing-list__link {
+  display: block;
+  min-block-size: 1.5rem;
   color: inherit;
   text-decoration: none;
   transition: var(--bw-transition-colors);

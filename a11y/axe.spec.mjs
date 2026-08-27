@@ -327,11 +327,21 @@ for (const width of MOBILE_WIDTHS) {
 // TAP_TARGET_EXEMPT_SELECTORS excludes elements that are not a defect in
 // this measurement's terms, each with its own reason; every entry was swept
 // up while widening this check for #208 and triaged individually rather
-// than blanket-excluded:
+// than blanket-excluded. An exemption justified by a claim about something
+// ELSE (a wrapping clickable, a governing container) is only sound if that
+// something else is itself measured; an unmeasured claim of that shape is
+// the same defect #316 found in this file's own .bw-toggle entry before
+// its fix, so the next exemption added on that argument should carry its
+// own check, not just the assertion.
 //   - '.bw-dropzone__input': deliberately visually-hidden (clip, not
 //     display:none) so it stays focusable/keyboard-activatable; the
 //     dropzone BOX is the real target, documented on the rule itself
-//     (components.css).
+//     (components.css). LOAD-BEARING, not redundant with the sweep's own
+//     `width > 0 && height > 0` filter: measured 1x1 (icvoss/
+//     django-brickwork#316), not 0x0, so a genuinely zero-size element
+//     would already pass the filter and this exemption would be provably
+//     dead. A 1x1 element is not zero-size, so removing this entry would
+//     turn the dropzone input into a real, currently-passing violation.
 //   - 'button:not([class])', 'input:not([class])': bare, unclassed native
 //     controls the a11y testapp fixtures compose directly (wizard/
 //     slide-over/table-selection's plain <button>/<input>, never a
@@ -356,26 +366,28 @@ for (const width of MOBILE_WIDTHS) {
 //     footer's own markup carries no class: the coarse-pointer tier is
 //     measured separately, below, by selector rather than by class
 //     presence, so this element-level exemption no longer means "unsized".
-//   - '.bw-toggle': a fixed-shape switch (a deliberate design proportion,
-//     not incidental line-height), always rendered inside a real clickable
-//     <label class="bw-toggle-field"> when used as the standalone {%
-//     bw_toggle %} tag; when opted into via CheckboxInput(attrs={"class":
-//     "bw-toggle"}) it instead renders bare through bw_field_widget (the
-//     same unwrapped shape .bw-checkbox had), so a track-only fix cannot
-//     honour both contexts without either inflating the switch's visible
-//     proportions or leaving the form-field usage unfixed. Tracked as its
-//     own follow-up rather than folded into #208's fix.
-//   - '.bw-listing-list__link': a text-run title link inside prose-style
-//     listing content ("Only the title is the link here, not the whole
-//     row", marketing.css's own comment), the WCAG 2.5.8 inline/text-run
-//     exception this codebase already invokes for .bw-badge__close.
+//     VOLUME (icvoss/django-brickwork#316, measured across every fixture):
+//     this exemption currently suppresses 74 undersized unclassed links.
+//     The rationale above is sound (this is consumer and testapp markup,
+//     not a brickwork component), but 74 is heavy lifting for one bare
+//     selector to be doing quietly, and reads as alarming cold; it is not
+//     evidence of a regression, it is the exemption doing exactly the job
+//     it is scoped for.
+//
+// '.bw-toggle' and '.bw-listing-list__link' were exempted here without a
+// stated reason until #316 measured both below the 24x24 floor and gave
+// each its own disposition: the toggle's own input box now clears 24px of
+// height directly (a hit-area fix on the input's block-size, decoupled
+// from the visible 20px-tall track via ::after, so the track's fixed
+// design proportion is unchanged; see the input.bw-toggle rule in
+// components.css) and the listing link now takes min-block-size: 1.5rem
+// (the same text-run pattern as .bw-data-table__row-link, #208; see
+// marketing.css). Neither is exempt any more.
 const TAP_TARGET_EXEMPT_SELECTORS = [
   ".bw-dropzone__input",
   "button:not([class])",
   "input:not([class])",
   "a:not([class])",
-  ".bw-toggle",
-  ".bw-listing-list__link",
 ].join(", ");
 
 test.describe("tap targets", () => {
