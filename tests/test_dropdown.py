@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 from django.template import engines
 from django.template.exceptions import TemplateSyntaxError
+from django.utils.safestring import mark_safe
 
 _DIST_JS = Path(__file__).resolve().parent.parent / "src/brickwork/static/brickwork/dist/brickwork.js"
 
@@ -109,6 +110,38 @@ def test_attrs_seam_passes_through_a_plain_data_attribute_escaped() -> None:
     items = [{"label": "Export", "url": "/export/", "attrs": {"data-kind": 'a"b'}}]
     html = _render(items=items)
     assert 'data-kind="a&quot;b"' in html
+
+
+def test_attrs_seam_escapes_a_safestring_value_it_did_not_produce() -> None:
+    # The name grammar cannot defend the VALUE channel: a value reaches the
+    # same markup position, so a SafeString closes the quote and injects
+    # arbitrary attributes. format_html does not escape an already-safe
+    # value, by its documented contract, and a consumer holds SafeStrings
+    # routinely (from format_html, a model property, any helper returning
+    # pre-escaped HTML) without intending anything.
+    #
+    # Verified before the fix: this payload rendered role="progressbar" onto
+    # the item, which is precisely the outcome ADR-083 exists to prevent.
+    # Every other test in this file varies the NAME and holds the value
+    # constant, which is the axis blindness that let this through.
+    html = _render(items=[{"label": "X", "url": "/x/", "attrs": {"data-x": mark_safe('" role="progressbar')}}])
+    # Asserted as the ESCAPED value, not as the absence of "role=": the
+    # escaped output legitimately contains that text inside its own quotes,
+    # so both `"role=" not in html` and a tag-scoped regex fail on CORRECT
+    # output, because &quot; contains no ">" to bound the tag match. What
+    # distinguishes safe from unsafe here is that the quote is entity-encoded,
+    # which is exactly what this asserts.
+    assert 'data-x="&quot; role=&quot;progressbar"' in html
+    assert '" role="progressbar' not in html
+
+
+def test_attrs_seam_does_not_double_escape_an_ordinary_value() -> None:
+    # The fix escapes explicitly rather than relying on format_html, so the
+    # ordinary path needs pinning too: a plain string must be escaped once,
+    # not twice, or every consumer's data attribute silently gains entities.
+    html = _render(items=[{"label": "X", "url": "/x/", "attrs": {"data-kind": 'a"b'}}])
+    assert 'data-kind="a&quot;b"' in html
+    assert "&amp;quot;" not in html
 
 
 def test_attrs_seam_rejects_the_reserved_data_bw_namespace() -> None:

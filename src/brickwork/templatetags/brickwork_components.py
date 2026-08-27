@@ -13,7 +13,7 @@ from decimal import Decimal, InvalidOperation
 
 from django import template
 from django.template.exceptions import TemplateSyntaxError
-from django.utils.html import format_html
+from django.utils.html import escape, format_html
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
 
@@ -76,7 +76,15 @@ def bw_data_attrs(attrs: object, subject: str = "data table row") -> SafeString:
     for name, value in attrs.items():
         if not isinstance(name, str) or not _DATA_ATTRIBUTE_NAME_RE.match(name) or name.startswith("data-bw-"):
             raise TemplateSyntaxError(f"{subject} data contains an invalid data-* attribute name: {name!r}")
-        parts.append(format_html(' {}="{}"', name, value))
+        # escape() rather than relying on format_html's own escaping: format_html
+        # does NOT escape a value that is already a SafeString, by its documented
+        # contract, so a consumer value carrying mark_safe (from format_html, a
+        # model property, or any helper returning pre-escaped HTML) closed the
+        # quote and injected arbitrary attributes. Verified: a SafeString value
+        # of '" role="progressbar' rendered role="progressbar" onto the element,
+        # which is the exact outcome ADR-083 exists to prevent. The name grammar
+        # cannot defend this, because the value reaches the same markup position.
+        parts.append(format_html(' {}="{}"', name, escape(str(value))))
     return mark_safe("".join(parts))
 
 

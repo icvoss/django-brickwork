@@ -26,7 +26,7 @@ from uuid import uuid4
 from django import template
 from django.forms import BoundField
 from django.template.exceptions import TemplateSyntaxError
-from django.utils.html import format_html
+from django.utils.html import escape, format_html
 from django.utils.http import urlencode
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
@@ -127,7 +127,15 @@ def _rendered_attrs(tag: str, attrs: object) -> SafeString:
                 "Where a component renders a stable id you can target that instead, but not every "
                 "component does, so check its own documentation rather than assuming one is available."
             )
-        parts.append(format_html(' {}="{}"', name, value))
+        # escape() rather than relying on format_html's own escaping: format_html
+        # does NOT escape a value that is already a SafeString, by its documented
+        # contract, so a consumer value carrying mark_safe (from format_html, a
+        # model property, or any helper returning pre-escaped HTML) closed the
+        # quote and injected arbitrary attributes. Verified: a SafeString value
+        # of '" role="progressbar' rendered role="progressbar" onto the element,
+        # which is the exact outcome ADR-083 exists to prevent. The name grammar
+        # cannot defend this, because the value reaches the same markup position.
+        parts.append(format_html(' {}="{}"', name, escape(str(value))))
     return mark_safe("".join(parts))
 
 
