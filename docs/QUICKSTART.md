@@ -77,7 +77,7 @@ if you want that.
 ## Accessibility
 
 Accessibility is tested, not asserted by design: CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 86 documents (43 fixtures, light and dark
+axe-core WCAG 2.2 AA scan across 112 documents (56 fixtures, light and dark
 themes), plus a no-JS floor suite, keyboard suites, mobile-overflow checks,
 and pixel-level composited contrast measurement. See [README.md](../README.md)
 for detail, including why the automated gate has a known ceiling and what

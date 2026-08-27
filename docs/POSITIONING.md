@@ -111,7 +111,7 @@ conformance; it can run consistently and be shown to catch real defects.
 
 | What runs | Scope |
 |---|---|
-| axe-core WCAG 2.2 AA scan | 138 documents across two fixture sets: 106 hand-maintained pages (53 fixtures x light and dark) plus 32 archetype pages (16 catalogue archetypes x light and dark), blocking every push (`a11y-gate` CI job) |
+| axe-core WCAG 2.2 AA scan | 144 documents across two fixture sets: 112 hand-maintained pages (56 fixtures x light and dark) plus 32 archetype pages (16 catalogue archetypes x light and dark), blocking every push (`a11y-gate` CI job) |
 | No-JS floor suite | blocking |
 | Keyboard suites | blocking |
 | Mobile-overflow checks | 4 widths: 320, 360, 375, 414px, blocking |
@@ -155,7 +155,7 @@ copy rather than omit it.
 
 **RTL has structural proof, not a tested fixture.** Logical-property counts
 (4.3 below) are real structural evidence for RTL support, but there is no
-`dir="rtl"` accessibility fixture in the 138-document gate. State this
+`dir="rtl"` accessibility fixture in the 144-document gate. State this
 distinction; do not imply RTL is axe-tested.
 
 ### 4.3 Token-first rebranding
@@ -203,7 +203,7 @@ sight, and are refreshed by hand at the next audit.
 | Examples | 42 | 16 archetype pages, 26 sections. **Gated** against `catalogue-manifest.json` |
 | Icons | 50 vendored Lucide SVG files | exposed as 53 callable names (3 aliases). State precisely; never a bare "50" or bare "53". **Dated** at 3.10.0 |
 | Tests | 1023 test functions | across 58 files containing at least one `def test_` (90 Python files exist under `tests/` in total; most are fixtures, conftest or helpers with no test functions of their own). **Dated** at 3.10.0 (counted via `git grep -hE '^def test_' -- tests \| wc -l` for the function count, `git grep -lE '^def test_' -- tests \| wc -l` for the file count); not gated, this count moves with every PR |
-| A11y gate | 142 axe-scanned documents | 110 hand-maintained (55 fixtures x light and dark) plus 32 archetype (16 catalogue archetypes x light and dark), blocking CI. Archetype fixture count **gated** against `catalogue-manifest.json`'s archetype count; the 110 hand-maintained fixtures are **gated** against the real `a11y/generate_fixtures.py` run's own written output by `tests/test_a11y_fixture_coverage.py` (icvoss/django-brickwork#226), so this figure can never drift from what the axe gate actually loads. Hand-maintained fixture COVERAGE (does every shell/component/section have at least one fixture) is separately **gated** by the same file against `catalogue-manifest.json`. The 53 to 55 fixture-file step (icvoss/django-brickwork#272, plus icvoss/django-brickwork#275's `bw_ranked_list` fixture landing independently on `main`) added `theme-switch-compact-<theme>.html`, the layout="compact" no-JS floor, and the ranked-list fixture: the pre-existing no-JS coverage only ever rendered layout="inline" |
+| A11y gate | 144 axe-scanned documents | 112 hand-maintained (56 fixtures x light and dark) plus 32 archetype (16 catalogue archetypes x light and dark), blocking CI. Archetype fixture count **gated** against `catalogue-manifest.json`'s archetype count; the 112 hand-maintained fixtures are **gated** against the real `a11y/generate_fixtures.py` run's own written output by `tests/test_a11y_fixture_coverage.py` (icvoss/django-brickwork#226), so this figure can never drift from what the axe gate actually loads. Hand-maintained fixture COVERAGE (does every shell/component/section have at least one fixture) is separately **gated** by the same file against `catalogue-manifest.json`. The 53 to 55 fixture-file step (icvoss/django-brickwork#272, plus icvoss/django-brickwork#275's `bw_ranked_list` fixture landing independently on `main`) added `theme-switch-compact-<theme>.html`, the layout="compact" no-JS floor, and the ranked-list fixture: the pre-existing no-JS coverage only ever rendered layout="inline". The 55 to 56 step (icvoss/django-brickwork#185) added `data-table-empty-cta-<theme>.html`, the `_data_table.html` empty-state action CTA |
 | Logical properties | 273 in source CSS | 500 in compiled dist. **Dated** at 3.10.0. Reproducible: `grep -oE '\b[a-z-]*(inline\|block)[a-z-]*\s*:' frontend/src/components.css \| grep -v 'display\s*:\|inline-block' \| wc -l` gives 269 (declarations whose property name contains `inline` or `block`, excluding `display: inline-block`), plus `grep -oE '(^\|[^-a-z])inset\s*:' frontend/src/components.css \| wc -l` gives 4 (bare `inset:` shorthand declarations); 269 + 4 = 273. The prior 274 figure's methodology was never recorded (commit 8ee225d only logs the audit correction from 142 to 274, no rule); it is not reproducible from the recorded rule above, so the 1-count delta cannot be attributed honestly beyond "not the same method" |
 | Version | 3.12.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py`. **Gated** |
 | Hard runtime dependency | Django only | |

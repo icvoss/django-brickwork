@@ -1,9 +1,10 @@
 """Direct render tests for _data_table.html's shapes and states.
 
 Covers the record/definition variants, the clickable-row link (#10), the
-definition-list mode (#18), and the empty/loading branches, by rendering the
-template with context rather than driving a full page (the integration suite
-covers the end-to-end server-side sort).
+definition-list mode (#18), the empty/loading branches, and the empty-state
+action CTA passthrough (#185), by rendering the template with context rather
+than driving a full page (the integration suite covers the end-to-end
+server-side sort).
 """
 
 from __future__ import annotations
@@ -171,6 +172,67 @@ def test_loading_shows_skeleton() -> None:
     out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS, loading=True)
     assert "bw-data-table__skeleton" in out
     assert "bw-skeleton--row" in out
+
+
+# --- empty-state action CTA (#185) ------------------------------------------
+
+
+def test_empty_state_action_cta_renders_when_both_supplied() -> None:
+    out = _render(
+        table_id="gadgets",
+        columns=_COLUMNS,
+        rows=[],
+        empty_heading="No gadgets yet",
+        empty_body="Create your first one to get started.",
+        empty_action_href="/gadgets/new/",
+        empty_action_label="Add your first gadget",
+    )
+    assert 'href="/gadgets/new/"' in out
+    assert "Add your first gadget" in out
+    assert "bw-btn--primary" in out
+
+
+def test_empty_state_omits_action_when_not_supplied() -> None:
+    out = _render(
+        table_id="gadgets",
+        columns=_COLUMNS,
+        rows=[],
+        empty_heading="No gadgets",
+        empty_body="Create one.",
+    )
+    assert "bw-empty-state" in out
+    # no action_href/action_label supplied, so no CTA anchor renders
+    assert "bw-btn--primary" not in out
+    assert "bw-empty-state__action-link" not in out
+
+
+def test_empty_state_action_href_alone_renders_no_cta() -> None:
+    # _empty_state.html requires BOTH action_href and action_label; supplying
+    # only one must not render a half-labelled or unlabelled anchor
+    out = _render(
+        table_id="gadgets",
+        columns=_COLUMNS,
+        rows=[],
+        empty_heading="No gadgets",
+        empty_body="Create one.",
+        empty_action_href="/gadgets/new/",
+    )
+    assert "bw-btn--primary" not in out
+    assert 'href="/gadgets/new/"' not in out
+
+
+def test_empty_state_action_cta_on_definition_variant() -> None:
+    out = _render(
+        table_id="facts",
+        variant="definition",
+        rows=[],
+        empty_heading="No facts",
+        empty_body="Nothing to show.",
+        empty_action_href="/facts/new/",
+        empty_action_label="Add a fact",
+    )
+    assert 'href="/facts/new/"' in out
+    assert "Add a fact" in out
 
 
 # --- derived sort toggle from sort_key + current_sort only (#23) ----------

@@ -47,6 +47,15 @@ Required context:
 Optional:
   variant ("records" default | "definition"), loading (bool),
   current_sort (str, e.g. "name" or "-name"), empty_heading, empty_body,
+  empty_action_href, empty_action_label (icvoss/django-brickwork#185:
+      passthrough to _empty_state.html's action anchor when rows is empty,
+      the same empty_action_href/empty_action_label naming
+      _ranked_list.html already uses for its own empty branch; a consumer
+      wanting "No properties yet" plus an "Add your first property" button
+      supplies both rather than wrapping the table in a separate
+      _empty_state.html include. Either without the other renders no
+      action, matching _empty_state.html's own action_href/action_label
+      pairing rule),
   querystring, selectable (bool, records only, see below), sticky_header
   sticky_header (bool, either name, see below), responsive
   ("scroll" default | "stack", see below).
@@ -90,7 +99,8 @@ data-label="<column label>" (read from ``columns`` by position via the
 read) so a narrow-viewport CSS rule can render each row as a labelled card.
 
 States: loading (a skeleton row set, aria-hidden), empty (zero rows renders
-  _empty_state.html instead of a table), sortable-column ascending/
+  _empty_state.html instead of a table, optionally with an action CTA via
+  empty_action_href/empty_action_label, #185), sortable-column ascending/
   descending/unsorted (aria-sort plus an icon per state), row selected
   (records variant, selectable=True), sticky header on/off, responsive
   "scroll" (default, unconditional overflow-x on the wrap) vs "stack"
@@ -99,12 +109,16 @@ Accessibility: sortable headers carry aria-sort; every selection checkbox
   (row and select-all) has a visually-hidden accessible label, never a
   bare unlabelled control (WCAG 4.1.2); a linked row's first cell is a real
   anchor so the row is keyboard-reachable without a synthetic click
-  handler. The no-JS floor is a real HTML table with real links/checkboxes/
+  handler. The empty-state action CTA is _empty_state.html's own real
+  <a class="bw-btn bw-btn--primary"> anchor (#185): keyboard-reachable and
+  labelled by empty_action_label with no extra wiring needed here. The
+  no-JS floor is a real HTML table with real links/checkboxes/
   a real GET-param sort; selection's enhanced count/indeterminate state is
   bwTableSelection, opt-in only. Covered by axe.spec.mjs against
   list-*.html/dashboard-*.html (records, sortable, definition tables all
-  appear across those fixtures) and table-selection-*.html (selectable);
-  the enhanced bwTableSelection behaviour has no dedicated browser-driven
+  appear across those fixtures), table-selection-*.html (selectable), and
+  data-table-empty-cta-*.html (the empty branch's action CTA, #185); the
+  enhanced bwTableSelection behaviour has no dedicated browser-driven
   interaction test today (see _bulk_actions_bar.html's own header).
 Responsive: unconditional horizontal scroll on .bw-data-table-wrap at every
   width (responsive="scroll", the default: no breakpoint gate, always on).
@@ -129,9 +143,9 @@ marker into ids and attributes; firstof resolves with failures ignored.
       {% for _ in "xxxxx" %}<div class="bw-skeleton bw-skeleton--row"></div>{% endfor %}
     </div>
   {% elif not rows %}
-    {% firstof empty_heading '' as empty_heading_resolved %}
-    {% firstof empty_body '' as empty_body_resolved %}
-    {% include "brickwork/components/_empty_state.html" with variant="no_data" heading=empty_heading_resolved body=empty_body_resolved %}
+    {% firstof empty_heading '' as empty_heading_resolved %}{% firstof empty_body '' as empty_body_resolved %}
+    {% firstof empty_action_href '' as empty_action_href_resolved %}{% firstof empty_action_label '' as empty_action_label_resolved %}
+    {% include "brickwork/components/_empty_state.html" with variant="no_data" heading=empty_heading_resolved body=empty_body_resolved action_href=empty_action_href_resolved action_label=empty_action_label_resolved %}
   {% elif variant == "definition" %}
     <table class="bw-data-table bw-data-table--definition">
       <tbody>
