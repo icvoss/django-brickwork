@@ -1,0 +1,147 @@
+{% extends "brickwork/components/_card.html" %}
+{% load i18n %}
+{% comment %}
+Chart card (CHT-001/002/008/009/010): the card chrome around a consumer's own
+charting engine. EXTENDS _card.html rather than reinventing elevation, radius,
+density padding or href handling: an extending template that fills only body
+renders exactly the base card's chrome, and an unfilled region emits nothing
+(verified against _card.html's own contract). Consumed via {% include %},
+matching _card.html and _ranked_list.html's own structural convention, never a
+tag: geometry here is a fixed box, not a Python computation, so there is
+nothing a tag would validate that an include cannot already carry.
+
+Named blocks (semver-public, BR-BW-TPL-001), in document order:
+  title, actions: from _card.html, NOT redeclared here (ADR-077 SS4 and
+      icvoss/django-brickwork#309): a component prefix on a block name
+      carries no information, since the declaring template is already the
+      scope. "chart_title" and "chart_toolbar" were the spec's original
+      names (CHT-002) and are superseded by #309, which amends the spec to
+      match the 3.4.0 concise-name convention _card.html and
+      _empty_state.html already use. Fill title/actions exactly as any
+      other _card.html caller would; chart_toolbar's role is _card.html's
+      own actions block (CHT-022: the toolbar, e.g. a period selector, is
+      consumer-authored markup, often an htmx swap target).
+  chart_legend: new, declared HERE (the base card does not declare it), so
+      it keeps the chart_ prefix. Empty by default. brickwork styles the
+      legend chrome (see legend_position below); the consumer supplies the
+      swatch+label markup, since only the engine or adapter knows the
+      series list (CHT-003, CHT-014's swatch+text pairing). The filler owns
+      the wrapper element (matching _card.html's own header/title/actions/
+      body/footer convention), so an unfilled block leaves no empty legend
+      chrome behind: a caller wraps its own swatch+label markup in
+      <div class="bw-chart-card__legend">...</div> for the row/column/wrap
+      rules in components.css to apply.
+  chart_mount: new, declared HERE for the same reason as chart_legend.
+      Renders one of four states, in this order of precedence: loading,
+      error, empty, then the mount box itself. A caller extending this
+      template to add its own markup around the mount OVERRIDES the whole
+      block, including the state branching below; a caller that only needs
+      the populated case should render the bw_chart_mount tag directly
+      inside its own override rather than fighting this block's structure.
+
+A block name this file does not define is SILENTLY DISCARDED by Django: no
+error, no warning, DEBUG=True does not catch it. Check this header against
+your pinned version before relying on a name (same caveat _card.html and
+_ranked_list.html both carry).
+
+Required context: none (every region is optional, matching _card.html).
+Optional:
+  legend_position ("top" | "bottom" | "side", CHT-003): a modifier class
+      for "bottom" and "side" only. "top" is the BASE layout (.bw-chart-card
+      is already a column with the legend first), so it deliberately emits no
+      modifier: a class carrying no rule is a false affordance, and the
+      package gates against exactly that (test_option_vocabularies asserts
+      every documented option value has a CSS rule). Passing
+      legend_position="top" and omitting it entirely render identically,
+      which is the honest expression of "top is the default". The modifier
+      drives where chart_legend sits relative to chart_mount; brickwork owns
+      the legend's layout, the consumer owns its content.
+
+      Because this is an {% include %}-only component, an unrecognised value
+      (a typo, or a value from a future release) is NOT validated and NOT
+      ignored: it reaches the class attribute verbatim as
+      bw-chart-card--legend-<whatever>, which matches no rule, so the legend
+      renders in the base (top) position and nothing errors at any point,
+      DEBUG included. The visible outcome resembles "ignored", but the class
+      really is emitted, which matters to a consumer whose own CSS or test
+      selectors read the root's class list.
+      Validating legend_position is therefore the CONSUMER's responsibility;
+      this template validates nothing, because {% include %} has no seam to
+      validate through. This is a deliberate consequence of choosing include
+      over a tag (see the revisit condition below), not an oversight.
+  loading (bool, default False, CHT-009): renders a chart-shaped skeleton
+      (raw .bw-skeleton classes, matching _ranked_list.html's own loading
+      branch) inside chart_mount instead of the mount box. The engine is not
+      initialised until data arrives, so this avoids a flash of a broken or
+      empty canvas/SVG element (no library, no bytes to paint, before the
+      consumer's own JS runs).
+  error (bool, default False, CHT-010): composes _alert.html at
+      variant="danger" (fixed, not a caller option: an error state IS the
+      danger variant) inside chart_mount instead of the mount box. Distinct
+      from the empty state below: an error means the fetch failed, not that
+      the fetch succeeded with zero rows. error_title, error_message:
+      passthrough to _alert.html's own title/message. Ignored when error is
+      False.
+  empty (bool, default False, CHT-008): composes _empty_state.html at
+      size="sm" inside chart_mount instead of the mount box, for the "fetch
+      succeeded, there is nothing to plot" case. empty_heading is optional
+      at size="sm" (matching _empty_state.html's own contract); empty_body
+      is required whenever empty=True, per _empty_state.html's STA-003 (no
+      package-supplied default copy). empty_action_href, empty_action_label:
+      passthrough to _empty_state.html's own action pair, rendered only when
+      both are given.
+  mount: pre-rendered chart_mount content (a SafeString), typically the
+      output of {% bw_chart_mount %}. Rendered only when loading, error and
+      empty are all falsy. Matches _stat.html's own sparkline seam
+      (consumer-rendered markup passed in already marked safe): the caller
+      renders its own mount tag call and passes the result here, or fills
+      the chart_mount block directly in an extending template instead of
+      using this context variable. Omitted (the default) with none of
+      loading/error/empty set renders an empty chart_mount block, matching
+      the unfilled-block convention every other structural component uses.
+
+Revisit condition: this stays an include for as long as its option surface
+stays small (legend_position plus the three state flags above). If the
+option surface grows past two or three more options, or a consumer reports a
+silently-ignored typo'd option (the exact failure mode described under
+legend_position), that is the signal to promote this to a tag the way
+_ranked_list.html was promoted, trading the include's simplicity for
+validation.
+
+States: loading (STA-004 skeleton), error (STA-008/009 alert, CHT-010),
+  empty (STA-001/002 empty state at size="sm", CHT-008), and populated
+  (the mount context variable or an overriding chart_mount block fill).
+  Precedence when more than one flag is set: loading first, then error,
+  then empty, then populated; a caller should only ever set one.
+Accessibility: purely structural, no role or live behaviour of its own,
+  inheriting _card.html's own href/interactive handling verbatim. The
+  states each inherit their own composed component's accessibility
+  contract (_alert.html's role="alert", _empty_state.html's heading/body
+  text, the skeleton's aria-busy grouping); chart_mount's own accessible
+  name (aria-label/aria-describedby, CHT-012) is the bw_chart_mount tag's
+  contract, not this template's, since this template never renders that
+  tag itself, only the markup a caller passes into it.
+Responsive: no breakpoint switch of its own; legend_position is a fixed
+  layout choice, not a viewport-driven one. Any width-dependent behaviour
+  belongs to the consumer's engine, never this chrome.
+{% endcomment %}
+{% block body %}
+<div class="bw-chart-card{% if legend_position and legend_position != 'top' %} bw-chart-card--legend-{{ legend_position }}{% endif %}">
+  {% block chart_legend %}{% endblock %}
+  <div class="bw-chart-card__mount">
+    {% block chart_mount %}
+      {% if loading %}
+        <div class="bw-chart-card__skeleton" aria-hidden="true">
+          <div class="bw-skeleton bw-skeleton--block"></div>
+        </div>
+      {% elif error %}
+        {% include "brickwork/components/_alert.html" with variant="danger" title=error_title message=error_message %}
+      {% elif empty %}
+        {% include "brickwork/components/_empty_state.html" with heading=empty_heading body=empty_body size="sm" action_href=empty_action_href action_label=empty_action_label %}
+      {% else %}
+        {{ mount }}
+      {% endif %}
+    {% endblock %}
+  </div>
+</div>
+{% endblock %}

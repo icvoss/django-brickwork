@@ -193,7 +193,7 @@ sight, and are refreshed by hand at the next audit.
 
 | Fact | Value | Note |
 |---|---|---|
-| Components | 41 | 32 core, 9 marketing. **Gated** against `catalogue-manifest.json` |
+| Components | 42 | 33 core, 9 marketing. **Gated** against `catalogue-manifest.json` |
 | Shells | 5 | base, app, auth, centred, marketing. **Gated** against `catalogue-manifest.json` |
 | Sections | 26 | **Gated** against `catalogue-manifest.json` |
 | Archetypes | 16 | **Gated** against `catalogue-manifest.json` |

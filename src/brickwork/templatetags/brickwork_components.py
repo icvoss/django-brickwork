@@ -13,7 +13,7 @@ from decimal import Decimal, InvalidOperation
 
 from django import template
 from django.template.exceptions import TemplateSyntaxError
-from django.utils.html import escape, format_html
+from django.utils.html import conditional_escape, escape, format_html
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
 
@@ -415,6 +415,134 @@ def _shape_ranked_list_row(raw: Mapping, *, amount: Decimal, denominator: Decima
         href=str(raw.get("href", "") or ""),
         attrs_html=bw_data_attrs(raw.get("data"), "ranked list row"),
     )
+
+
+@register.simple_tag
+def bw_chart_mount(
+    *,
+    aria_label: str = "",
+    aria_describedby: str = "",
+    decorative: bool = False,
+    min_height: str = "",
+    aspect_ratio: str = "",
+    css_class: str = "",
+) -> SafeString:
+    """The mount point a consumer's own charting engine paints into (CHT-001,
+    CHT-011: brickwork never bundles or auto-inits an engine). A TAG, not an
+    {% include %}, for exactly one reason: CHT-012's accessible name is
+    MANDATORY, and an include-only component cannot make anything required
+    (an unfilled context variable renders empty with no error, ADR-083
+    section 4). Emits a single ``<div data-bw-chart-mount>`` the consumer's
+    own JS selects and mounts a canvas/SVG engine into; brickwork ships no
+    chart renderer of its own (matching _stat.html's sparkline seam and
+    _data_table.html's no-virtualisation doctrine).
+
+    Accessibility (CHT-012, enforced, modelled exactly on bw_icon's ICO-007
+    pairing): the mount is EITHER meaningful (aria_label= or
+    aria_describedby=, an accessible summary of the chart, supplied by the
+    consumer since only the consumer knows what the chart shows, emitted with
+    ``role="img"``) OR decorative (decorative=True -> aria-hidden="true", no
+    role).
+
+    ``role="img"`` is load-bearing, not decoration, and removing it silently
+    undoes the whole contract: a bare ``<div>`` maps to ARIA's generic role,
+    which does not support an accessible name, so ``aria-label`` and
+    ``aria-describedby`` on one are ignored by most assistive technology. A
+    named mount without a role therefore renders valid markup, passes axe
+    (which does not flag a name that is merely ignored), and reaches nobody,
+    which is precisely the failure CHT-012 exists to prevent. It shipped that
+    way in this tag's first draft and was caught by reading bw_icon's
+    contract rather than by any gate. Supplying neither is
+    a render-time error: a canvas or SVG the engine paints into has no
+    accessible name of its own, so silence here is exactly the WCAG 1.1.1
+    defect this tag exists to close. Supplying both is also an error
+    (contradictory: a hidden element does not also carry an accessible
+    name). The decorative case is legitimate, not a loophole: CHT-012 also
+    specifies a chart_data_table fallback rendering the same series as an
+    accessible table, so a chart whose data is fully duplicated there is
+    genuinely decorative to a screen reader, which never needs the visual
+    plot at all once the table exists. Supplying both aria_label and
+    aria_describedby (rather than either against decorative) is not an
+    error, since the two are not mutually exclusive in HTML: aria_label
+    wins and aria_describedby is silently dropped, mirroring how
+    _alert.html's icon resolution takes the first of several possible
+    sources rather than rendering both.
+
+    Reservation (CHT-024, read d3fa3db before changing this): min_height
+    and/or aspect_ratio reserve the mount's box BEFORE the engine's JS
+    paints, so first render already occupies its final size and the engine
+    mounting in later causes no layout shift. Both are plain CSS length/
+    ratio strings (e.g. min_height="20rem", aspect_ratio="16 / 9"), emitted
+    as the --bw-chart-mount-min-height / --bw-chart-mount-aspect-ratio
+    inline custom properties (matching bw_skeleton's own width/height
+    override seam): a caller-supplied CSS length is not markup, so Django's
+    ordinary attribute-value escaping inside the style="..." attribute is
+    the correct and sufficient protection, same reasoning bw_skeleton's own
+    style_attr documents. Neither is required: a component or card that
+    already constrains its own box (a fixed-height dashboard tile, say)
+    may need neither, and the CSS ships no default of its own to reserve
+    (there is no one right chart height), so omitting both renders a mount
+    with no inline reservation and whatever height its container gives it.
+
+    css_class: extra CSS classes appended after the base bw-chart-mount
+        class, for a caller that needs to compose this with its own layout
+        (mirrors bw_icon's own css_class seam).
+
+    Does NOT carry a data=/attrs= passthrough seam (blocked on #308, out of
+    scope per ADR-083): the only attributes this tag emits are the ones
+    named above, never arbitrary consumer-supplied attributes.
+    """
+    if decorative and (aria_label or aria_describedby):
+        raise TemplateSyntaxError(
+            "bw_chart_mount: pass either decorative=True or aria_label=/aria_describedby=, not both "
+            "(a hidden mount does not also carry an accessible name)."
+        )
+    if not decorative and not aria_label and not aria_describedby:
+        raise TemplateSyntaxError(
+            "bw_chart_mount requires either aria_label=/aria_describedby= (an accessible summary of "
+            "the chart) or decorative=True (only when a chart_data_table fallback carries the same "
+            "data). A canvas or SVG with no accessible name is invisible to assistive technology "
+            "(WCAG 1.1.1, CHT-012)."
+        )
+
+    classes = "bw-chart-mount"
+    if css_class:
+        classes += " " + conditional_escape(css_class)
+
+    style_parts = []
+    if min_height:
+        style_parts.append(f"--bw-chart-mount-min-height: {min_height}")
+    if aspect_ratio:
+        style_parts.append(f"--bw-chart-mount-aspect-ratio: {aspect_ratio}")
+    style_attr = f' style="{conditional_escape("; ".join(style_parts))}"' if style_parts else ""
+
+    # role="img" accompanies BOTH naming paths, matching bw_icon's contract
+    # (brickwork_icons.py:19). A bare <div> maps to ARIA's generic role, which
+    # does not support an accessible name: aria-label and aria-describedby on
+    # a generic element are ignored by most assistive technology, so a mount
+    # named without a role is exactly the invisible-chart failure CHT-012
+    # exists to prevent, in the code enforcing CHT-012. role="img" is correct
+    # for the mounted render specifically: a canvas or SVG chart is a single
+    # graphical object to a screen reader, and its detail is carried by the
+    # chart_data_table fallback rather than by traversable children.
+    #
+    # The decorative branch takes no role: aria-hidden="true" removes the
+    # element from the accessibility tree entirely, so a role on it would
+    # describe something nothing can reach.
+    if decorative:
+        a11y = 'aria-hidden="true"'
+    elif aria_label:
+        a11y = f'role="img" aria-label="{conditional_escape(aria_label)}"'
+    else:
+        a11y = f'role="img" aria-describedby="{conditional_escape(aria_describedby)}"'
+
+    div = f'<div class="{classes}" data-bw-chart-mount{style_attr} {a11y}></div>'
+    # noqa justification (S308): every interpolated value above is either a fixed
+    # literal (the base class, data-bw-chart-mount, the a11y attribute names) or
+    # conditional_escape'd caller input (css_class, min_height/aspect_ratio inside
+    # style_attr, aria_label/aria_describedby). No untrusted string reaches this
+    # SafeString unescaped.
+    return mark_safe(div)  # noqa: S308
 
 
 @register.inclusion_tag("brickwork/components/_ranked_list.html")

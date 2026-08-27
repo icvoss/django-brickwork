@@ -46,6 +46,7 @@
       "declaredIn": [
         "brickwork/components/_alert.html",
         "brickwork/components/_card.html",
+        "brickwork/components/_chart_card.html",
         "brickwork/components/_empty_state.html",
         "brickwork/components/_modal.html",
         "brickwork/components/_slide_over.html"
@@ -172,6 +173,24 @@
       "name": "card_title",
       "declaredIn": [
         "brickwork/components/_card.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "chart_legend",
+      "declaredIn": [
+        "brickwork/components/_chart_card.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "chart_mount",
+      "declaredIn": [
+        "brickwork/components/_chart_card.html"
       ],
       "consumption": [
         "include"

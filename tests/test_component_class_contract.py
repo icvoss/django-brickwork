@@ -249,6 +249,38 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     "bw_ranked_list (loading)": lambda: _tag(
         "brickwork_components", "{% bw_ranked_list rows=rows loading=True %}", rows=[]
     ),
+    "_chart_card (populated, legend, title/actions)": lambda: _extend(
+        "brickwork/components/_chart_card.html",
+        '{% block title %}<h2 class="bw-card__title">Revenue by month</h2>{% endblock %}'
+        '{% block actions %}<div class="bw-card__actions">{% bw_button label="Export" variant="secondary" size="sm" %}'
+        "</div>{% endblock %}"
+        '{% block chart_legend %}<div class="bw-chart-card__legend">Legend swatch</div>{% endblock %}',
+        legend_position="side",
+        mount=mark_safe(  # noqa: S308 (test-authored trusted markup)
+            '<div class="bw-chart-mount" data-bw-chart-mount role="img" aria-label="Revenue by month"></div>'
+        ),
+    ),
+    "_chart_card (loading)": lambda: _include("brickwork/components/_chart_card.html", loading=True),
+    "_chart_card (error)": lambda: _include(
+        "brickwork/components/_chart_card.html",
+        error=True,
+        error_title="Could not load",
+        error_message="Try again later.",
+    ),
+    "_chart_card (empty, with action)": lambda: _include(
+        "brickwork/components/_chart_card.html",
+        empty=True,
+        empty_body="Nothing to plot yet.",
+        empty_action_href="/reports/new/",
+        empty_action_label="Create a report",
+    ),
+    "bw_chart_mount (named)": lambda: _tag(
+        "brickwork_components",
+        '{% bw_chart_mount aria_label="Revenue by month" min_height="20rem" aspect_ratio="16 / 9" %}',
+    ),
+    "bw_chart_mount (decorative)": lambda: _tag(
+        "brickwork_components", '{% bw_chart_mount decorative=True min_height="20rem" %}'
+    ),
     "_data_table (records, selectable, sticky, stack, sorted)": lambda: _include(
         "brickwork/components/_data_table.html",
         table_id="invoices",
@@ -638,6 +670,13 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
         placement=value,
     ),
     "_toast_region": lambda value: _include("brickwork/components/_toast_region.html", placement=value),
+    "_chart_card": lambda value: _include(
+        "brickwork/components/_chart_card.html",
+        legend_position=value,
+        mount=mark_safe(  # noqa: S308 (test-authored trusted markup)
+            '<div class="bw-chart-mount" data-bw-chart-mount role="img" aria-label="Revenue by month"></div>'
+        ),
+    ),
     "_feature_grid": lambda value: _include(
         "brickwork_marketing/components/_feature_grid.html",
         items=[{"heading": "Feature", "body": "Body"}],
@@ -741,6 +780,7 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_card",
         "_stat",
         "_ranked_list",
+        "_chart_card",
         "_data_table",
         "_stepper",
         "_modal",
