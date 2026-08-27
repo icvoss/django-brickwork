@@ -162,6 +162,44 @@ per-tenant runtime-branding recipe; this section is a pointer only, the
 worked recipe (multi-tenant lookup, caching, template wiring) lives in
 [BRANDING.md](BRANDING.md).
 
+### 3b. Cascade claims are verified by rendering, never by reading
+
+**A claim about what the cascade does is verified by rendering it.** Reading
+the CSS is not evidence. This is an instrument rule, not a caution: three
+separate cascade claims in this package were wrong, every one survived a
+careful source read, and every one died to a browser measurement.
+
+The operational test when judging whether a declaration is redundant is not
+"does an ancestor set this property" but **"does anything else set this
+property on a path that reaches this element"**, which covers ancestors and
+same-element competitors in one question. An auditor with the narrow version
+finds one mechanism and deletes the other.
+
+Two mechanisms make a declaration load-bearing, and **neither is visible in
+the declaration itself**:
+
+- **Inheritance barrier.** For an inherited property, setting it to its own
+  initial value blocks an ancestor's value. `.bw-content` h2 and `.bw-footer`
+  both set `letter-spacing` to the `normal` tracking token; both resolve to
+  `0em`; both read as redundant. Removing either lets a wrapper's tracking
+  through, measured at 4.8px under a `letter-spacing: 0.3em` ancestor.
+- **Modifier reset.** `.bw-data-table__th--label` sets `letter-spacing:
+  var(--bw-font-tracking-normal)` to cancel the tracking its own base class
+  `.bw-data-table__th` sets for uppercase column headers. No ancestor is
+  involved; the competitor is a rule on the same element.
+
+The corollary is that **an explicit initial value is not evidence of
+redundancy**, and the inverse also holds: an omitted property is not evidence
+that the property is unwanted. `.bw-prose code` and `pre` bind no
+`letter-spacing`, so an ancestor's tracking reaches them today; binding
+`--bw-text-code-tracking` would resolve to `0em` and remove that inherited
+value rather than adding an unused one (icvoss/django-brickwork#312).
+
+The three instances behind this rule: `!important` does not beat a
+descendant's own value, so a hiding mechanism must target descendants
+explicitly; the two `0em` barriers above; and a paragraph in section 7.4 that
+stated the tracking case exactly backwards until it was measured.
+
 ## 4. Colour
 
 ### 4.1 Surfaces
