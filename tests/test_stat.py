@@ -217,3 +217,35 @@ def test_sparkline_ignored_while_loading() -> None:
     assert "bw-skeleton" in out
     assert "bw-stat__sparkline" not in out
     assert "<svg" not in out
+
+
+def test_a_real_bw_sparkline_survives_the_stat_slot_intact() -> None:
+    """The documented composition, exercised end to end rather than with a stub.
+
+    _stat.html's sparkline slot takes pre-rendered trusted markup, and
+    bw_sparkline is the thing that renders it. Both halves are tested
+    separately; this is the boundary between them, which is where a
+    SafeString can be lost and the markup arrive escaped into visible
+    angle brackets instead of an <svg>.
+
+    The stub above proves the slot renders SOME markup. Only this proves it
+    renders THE markup the package's own tag produces, which is the pairing
+    a consumer actually writes.
+    """
+    from django.template import Context, Template
+
+    out = Template(
+        "{% load brickwork_components %}"
+        '{% bw_sparkline points=pts label="Revenue trend" value="1,234" as spark %}'
+        '{% include "brickwork/components/_stat.html" with label="Revenue" '
+        'value="1,234" sparkline=spark %}'
+    ).render(Context({"pts": [4, 7, 5, 9, 8]}))
+
+    # The stat chrome and the sparkline both arrive, in the slot's own wrapper.
+    assert "bw-stat__sparkline" in out
+    assert "bw-sparkline__svg" in out
+    # Not double-escaped: a lost SafeString shows as literal angle brackets.
+    assert "&lt;svg" not in out
+    assert "<svg" in out
+    # And the geometry survives rather than being stripped or re-escaped.
+    assert 'd="M' in out

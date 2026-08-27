@@ -14,6 +14,7 @@ from decimal import Decimal, InvalidOperation
 
 from django import template
 from django.template.exceptions import TemplateSyntaxError
+from django.template.loader import render_to_string
 from django.utils.html import escape, format_html
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
@@ -775,7 +776,7 @@ def _sparkline_point(points: list[float], index: int, *, width: float, height: f
     return f"{cx:.2f}", f"{cy:.2f}"
 
 
-@register.inclusion_tag("brickwork/components/_sparkline.html")
+@register.simple_tag
 def bw_sparkline(
     points: object,
     *,
@@ -786,7 +787,7 @@ def bw_sparkline(
     width: float = 100,
     height: float = 32,
     data: object = None,
-) -> dict:
+) -> SafeString:
     """An inline sparkline (VIZ-003/004/005/006): a single-series trend line
     drawn as a pure server-rendered SVG ``<path>``, no engine, no JS, working
     identically with scripts disabled (VIZ-006: a sparkline is geometry, not
@@ -820,6 +821,16 @@ def bw_sparkline(
     claim that cannot be true, and #329 is where that went wrong. A component
     that escaped its label would be wrong in the other direction: it would
     break every caller passing a formatted string.
+
+    ``--bw-color-sparkline-stroke`` defaults to ``--bw-color-chart-1``, whose
+    contrast was measured **against the chart card surface**. A sparkline is
+    placed by its consumer, so it may sit in a table row, a stat tile, or a
+    surface this package never sees. **The default is verified for the card
+    and nowhere else**: a consumer placing a sparkline elsewhere verifies the
+    stroke against that surface or overrides the token, which is exactly what
+    the token exists for. Documented rather than tested because the set of
+    surfaces is unbounded by construction, so a test would enumerate the ones
+    we imagined rather than the ones a consumer uses.
 
     Composes with ``_stat.html``'s ``sparkline=`` slot (#60): that slot takes
     pre-rendered, ALREADY-TRUSTED markup and does not sanitise it, so this
@@ -928,15 +939,35 @@ def bw_sparkline(
         delta = numeric_points[-1] - numeric_points[0]
         direction = "up" if delta > 0 else "down" if delta < 0 else "flat"
 
-    return {
-        "path_d": path_d,
-        "label": label,
-        "value": value,
-        "tone": tone,
-        "direction": direction,
-        "marker_cx": marker_cx,
-        "marker_cy": marker_cy,
-        "width": width,
-        "height": height,
-        "attrs_html": bw_data_attrs(data, "sparkline"),
-    }
+    # A simple_tag returning rendered markup, NOT an inclusion_tag, and the
+    # reason is the composition this component exists for: _stat.html's
+    # sparkline slot takes pre-rendered markup, so a caller needs
+    # {% bw_sparkline ... as spark %} to hand it over. Django's inclusion_tag
+    # cannot do `as var` at all (its parser reads `as` as a positional
+    # argument after keywords and raises), so registering it that way made the
+    # documented call unwritable. bw_icon is the same shape for the same
+    # reason: a tag whose output a caller composes with, rather than a block a
+    # caller places.
+    #
+    # Safety is earned at assembly, exactly as bw_data_attrs earns it: every
+    # value in the context below is either machine-built (the coordinates, as
+    # f"{float:.2f}") or escaped by the template that renders it, so the
+    # SafeString is a statement about how this string was made, not a request
+    # to trust its origin.
+    return mark_safe(  # noqa: S308
+        render_to_string(
+            "brickwork/components/_sparkline.html",
+            {
+                "path_d": path_d,
+                "label": label,
+                "value": value,
+                "tone": tone,
+                "direction": direction,
+                "marker_cx": marker_cx,
+                "marker_cy": marker_cy,
+                "width": width,
+                "height": height,
+                "attrs_html": bw_data_attrs(data, "sparkline"),
+            },
+        )
+    )
