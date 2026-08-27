@@ -361,6 +361,31 @@ def test_label_and_value_spans_carry_no_accessible_name_override() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    "label",
+    ["Hidden costs by vendor", "Inert gas suppliers", "Spend, hidden fees excluded"],
+)
+def test_an_ordinary_label_containing_a_mechanism_word_is_not_read_as_hiding(label: str) -> None:
+    # the shipped label= option lands in aria-label on the root, and the
+    # boolean-attribute searches once ran against the tag's whole attribute
+    # TEXT, so the WORD "hidden" or "inert" inside that value was read as
+    # the boolean attribute and every text element beneath the root was
+    # reported as hidden. Correct markup, ordinary English, both text
+    # helpers failing.
+    #
+    # A false failure on correct markup is worse than a missed detection: a
+    # gap is a gap, but a helper that fails on legitimate usage teaches the
+    # next author that the assertion is noise and the honest fix is to
+    # delete it. That is how a suite gets gutted by someone reasonable.
+    out = _render("{% bw_ranked_list rows=rows label=lbl %}", lbl=label)
+    assert f'aria-label="{label}"' in out, "the label option no longer reaches aria-label: fixture assumption is stale"
+    text_classes = ("bw-ranked-list__label", "bw-ranked-list__value")
+    assert_text_nodes_are_not_aria_hidden(out, text_classes=text_classes, expected_count=6)
+    assert_text_survives_colour_and_style_stripped(
+        out, "Acme Corp", "Globex", "Initech", "400", "300", "100", text_classes=text_classes
+    )
+
+
 def test_a_data_prefixed_lookalike_is_not_read_as_aria_hidden() -> None:
     # the bar check once used its own looser aria-hidden regex than the
     # ancestor scan, and it matched data-aria-hidden, so a bar that was

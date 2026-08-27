@@ -71,9 +71,41 @@ different tag regex, which is exactly how ``assert_geometry_is_a_unitless_custom
 and ``assert_bar_is_aria_hidden_and_empty`` previously ended up disagreeing
 with each other on which elements they could even see.
 
-THE SCOPE LADDER for "this text is available to the accessibility tree"
-(COL-030). Each fix so far closed one rung and left the rest untested;
-enumerating the whole ladder is what this module now guards, rung by rung:
+THE SCOPE LADDER, and read its claim carefully because it is deliberately
+NARROWER than it once said.
+
+This ladder checks FIVE NAMED HIDING MECHANISMS at every rung. It does NOT
+check the general property "this text is available to the accessibility
+tree", and the difference is not pedantry: the module has twice been wrong
+by conflating them, most recently by enumerating ARIA mechanisms only
+while its title promised the whole tree. A real Chromium accessibility
+tree disproved that enumeration immediately.
+
+KNOWN UNCOVERED, verified against a real accessibility tree as genuinely
+removing or degrading the text, and named rather than left to "other
+mechanisms may exist" so a reader can tell whether their case is covered
+without running the experiment:
+
+  * ``content-visibility:hidden`` on any ancestor
+  * a closed ``<details>`` wrapping the component
+  * a ``<dialog>`` without ``open``
+  * ``role="presentation"``/``role="none"`` on the list element, which
+    keeps the text but destroys the list semantics that rank order
+    depends on
+
+Those are recorded as acceptance criteria on icvoss/django-brickwork#290,
+which rebuilds this machinery on a real parser. They are NOT covered here.
+Widening the ladder again was considered and rejected: rounds five through
+eight each found the same shape, a plausible enumeration a real
+accessibility tree disproves, and each widening introduced its own defect
+(the most recent one made ``label="Hidden costs by vendor"``, ordinary
+English through a shipped option, fail as though the component were
+hidden). An honest partial guarantee is a sound foundation, because the
+next author reads what is covered, believes it, and knows where the edge
+is. A complete-sounding dishonest one is what got this module's
+predecessor reverted.
+
+Within those five named mechanisms, the ladder is closed rung by rung:
 
 Each rung names the helper(s) that cover it, deliberately. "Covered" on
 its own is the ambiguity that hid a real gap: the own-tag rung was covered
@@ -355,6 +387,36 @@ _DISPLAY_NONE = re.compile(r"(?<![\w-])display\s*:\s*none\b", re.IGNORECASE)
 _VISIBILITY_HIDDEN = re.compile(r"(?<![\w-])visibility\s*:\s*hidden\b", re.IGNORECASE)
 
 
+_QUOTED_ATTR_VALUE = re.compile(r'=\s*("[^"]*"|\'[^\']*\')')
+
+
+def _attribute_names_only(opening_tag: str) -> str:
+    """Return ``opening_tag`` with every quoted attribute VALUE replaced by
+    same-length filler, so a boolean-attribute search can only ever match an
+    attribute NAME.
+
+    Without this, a search for the boolean ``hidden`` attribute matches the
+    word "hidden" sitting inside another attribute's value, and the shipped
+    ``label=`` option makes that an ordinary thing for a consumer to write:
+    ``{% bw_ranked_list label="Hidden costs by vendor" %}`` renders
+    ``aria-label="Hidden costs by vendor"`` on the root and every text
+    element beneath it was reported as hidden. Correct markup, ordinary
+    English, both text helpers failing. A false failure on correct markup is
+    worse than a missed detection, because it teaches the next author that
+    the assertion is noise and the honest fix is to delete it.
+
+    Same shape as the ``data-aria-hidden`` defect (icvoss/django-brickwork
+    #286): a pattern that reads an attribute's value as though it were the
+    attribute. Same filler technique as ``_mask_comments`` and for the same
+    reason: offsets must not move, since callers hold offsets computed
+    against the original string."""
+
+    def _fill(match: re.Match[str]) -> str:
+        return "=" + "-" * (match.end() - match.start() - 1)
+
+    return _QUOTED_ATTR_VALUE.sub(_fill, opening_tag)
+
+
 def _mask_comments(html: str) -> str:
     """Return ``html`` with every HTML comment's content replaced by
     same-length filler that contains no ``<``/``>``, so a comment
@@ -402,11 +464,25 @@ def _removes_element_from_a11y_tree(opening_tag_attrs: str) -> bool:
     treating it here would claim a coverage this module does not actually
     have. No current family member renders inside ``<template>``, so this
     is a stated boundary, not a silent gap."""
+    # The boolean-attribute searches run against attribute NAMES only.
+    # Against the raw tag text they matched the word inside another
+    # attribute's value, and the shipped label= option makes that ordinary:
+    # label="Hidden costs by vendor" reported every text element beneath the
+    # root as hidden.
+    #
+    # _ARIA_HIDDEN_TRUE deliberately runs on the UNMASKED text: it matches a
+    # name AND its value together, so masking values makes it match nothing
+    # at all. Its own anchor already stops the data-aria-hidden shape, and
+    # requiring the literal "true" is what stops it reading a value as a
+    # name. Verified both ways rather than assumed: an earlier draft of this
+    # very comment claimed masking was harmless here, and masking silently
+    # turned every aria-hidden="true" into a miss.
+    attribute_names = _attribute_names_only(opening_tag_attrs)
     if _ARIA_HIDDEN_TRUE.search(opening_tag_attrs) is not None:
         return True
-    if _HIDDEN_ATTR.search(opening_tag_attrs) is not None:
+    if _HIDDEN_ATTR.search(attribute_names) is not None:
         return True
-    if _INERT_ATTR.search(opening_tag_attrs) is not None:
+    if _INERT_ATTR.search(attribute_names) is not None:
         return True
     style_value = _attr_value("style", f"<x {opening_tag_attrs}>")
     return style_value is not None and (
@@ -890,7 +966,22 @@ def assert_ordered_list_element_survives_stripping(html: str, *, list_class: str
     this module: a single-quoted ``class='...'`` element is exactly as real
     as a double-quoted one, and a double-quote-only match here would find
     nothing on it, silently reporting "no element carrying this class"
-    instead of asserting the property against it."""
+    instead of asserting the property against it.
+
+    KNOWN GAP, stated here because it is the sharpest kind: this helper
+    checks the TAG NAME and not whether the element still has LIST
+    SEMANTICS, so ``<ol role="presentation" class="...">`` passes it while a
+    real accessibility tree reports no ``list``/``listitem`` at all and
+    demotes the rank markers to plain text. **It therefore permits exactly
+    the loss it exists to prevent.** The assertion does not match the
+    purpose, which is a different and worse thing than a scope gap: a
+    reader trusts this helper precisely for rank order.
+
+    Not closed here deliberately, since covering it means checking role
+    semantics rather than tag names, which is the axis this module is
+    narrowed away from (see the ladder above). Carried as an acceptance
+    criterion on icvoss/django-brickwork#290; do not read the helper's
+    passing as evidence that rank order survived."""
     element_match = re.search(
         rf"""<(\w+)((?:\s[^>]*)?\sclass=(?:"{re.escape(list_class)}"|'{re.escape(list_class)}')[^>]*)>""", html
     )
