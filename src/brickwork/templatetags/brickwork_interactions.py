@@ -124,8 +124,8 @@ def _rendered_attrs(tag: str, attrs: object) -> SafeString:
                 "own reserved data-bw-* namespace); it is not a general attribute passthrough (ADR-083). "
                 "For an htmx interaction, author hx-* on an element you render yourself, or use a named "
                 "option where the component ships one (as _filter_bar.html does with hx_get/hx_target). "
-                "Where a component renders a stable id you can target that instead, but not every "
-                "component does, so check its own documentation rather than assuming one is available."
+                "Some components render stable ids you can target instead (_data_table.html does), so "
+                f"check {tag}'s own documentation rather than assuming one is available."
             )
         # escape() rather than relying on format_html's own escaping: format_html
         # does NOT escape a value that is already a SafeString, by its documented

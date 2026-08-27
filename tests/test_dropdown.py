@@ -256,3 +256,30 @@ def test_bundle_never_starts_alpine_and_ships_no_sui_namespace() -> None:
     bundle = _DIST_JS.read_text()
     assert "Alpine.start(" not in bundle
     assert "sui:" not in bundle
+
+
+def test_only_one_module_defines_the_seam_grammar() -> None:
+    # ADR-083's whole decision is that there is ONE grammar, not two rules
+    # that happen to overlap. Nothing enforced it, so "one rule" was a
+    # convention held by a comment.
+    #
+    # Asserted as SOURCE TEXT, not object identity. An identity check
+    # (`a is b`) cannot fail here: re caches compiled patterns, so two
+    # separate re.compile calls with the same source return the SAME object.
+    # It would only start failing once a copy had already diverged, which is
+    # exactly when it is too late to be useful. Verified: re-duplicating the
+    # pattern in brickwork_interactions left an identity assertion green.
+    #
+    # What must stay true is that the pattern is WRITTEN once. A second
+    # compile site is the thing that lets the two drift, whatever it
+    # currently compiles to.
+    import pathlib
+
+    import brickwork
+
+    tags = pathlib.Path(brickwork.__file__).parent / "templatetags"
+    defining = sorted(f.name for f in tags.glob("*.py") if "_DATA_ATTRIBUTE_NAME_RE = re.compile" in f.read_text())
+    assert defining == ["brickwork_components.py"], (
+        f"the seam grammar must be compiled in exactly one module, found it in {defining}; "
+        "a second definition is how bw_dropdown's validator drifted from bw_data_attrs' in the first place"
+    )

@@ -83,11 +83,21 @@ def test_row_without_data_keeps_its_existing_opening_tag() -> None:
 
 @pytest.mark.parametrize(
     "data",
-    [{"aria-label": "Widget"}, {"data-": "Widget"}, {"data-bw-row-select": ""}, ["data-item-id"]],
+    [{"aria-label": "Widget"}, {"data-": "Widget"}, {"data-bw-row-select": ""}],
 )
-def test_row_data_mapping_rejects_non_data_attributes_or_non_mapping(data: object) -> None:
+def test_row_data_mapping_rejects_non_data_attribute_names(data: object) -> None:
     rows = [{"id": 1, "cells": ["Widget", "Active"], "data": data}]
-    with pytest.raises(TemplateSyntaxError, match="row data"):
+    with pytest.raises(TemplateSyntaxError, match="contains an invalid data-\\* attribute name"):
+        _render(table_id="gadgets", columns=_COLUMNS, rows=rows)
+
+
+def test_row_data_rejects_a_non_mapping_with_its_own_message() -> None:
+    # Split from the parametrised policy test above, and pinned separately.
+    # Both were pinned to "row data", which is a substring of BOTH the policy
+    # rejection and this precondition, so a policy case could pass on the
+    # precondition message and nobody would see it.
+    rows = [{"id": 1, "cells": ["Widget", "Active"], "data": ["data-item-id"]}]
+    with pytest.raises(TemplateSyntaxError, match="must be a mapping"):
         _render(table_id="gadgets", columns=_COLUMNS, rows=rows)
 
 

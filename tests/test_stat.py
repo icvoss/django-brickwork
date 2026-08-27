@@ -157,10 +157,19 @@ def test_data_mapping_emits_escaped_consumer_owned_attributes() -> None:
     assert 'data-label="A &quot;quoted&quot; metric"' in out
 
 
-@pytest.mark.parametrize("data", [{"aria-label": "Visitors"}, {"data-bw-stat": ""}, ["data-metric"]])
-def test_data_mapping_rejects_non_consumer_data_attributes(data: object) -> None:
-    with pytest.raises(TemplateSyntaxError, match="stat data"):
+@pytest.mark.parametrize("data", [{"aria-label": "Visitors"}, {"data-bw-stat": ""}])
+def test_data_mapping_rejects_non_consumer_data_attribute_names(data: object) -> None:
+    with pytest.raises(TemplateSyntaxError, match="contains an invalid data-\\* attribute name"):
         _render(label="Visitors", value="1,234", data=data)
+
+
+def test_data_rejects_a_non_mapping_with_its_own_message() -> None:
+    # Split from the parametrised policy test above, and pinned separately.
+    # Both were pinned to "stat data", a substring of BOTH the policy
+    # rejection and this precondition, so a policy case could pass on the
+    # precondition message and nobody would see it.
+    with pytest.raises(TemplateSyntaxError, match="must be a mapping"):
+        _render(label="Visitors", value="1,234", data=["data-metric"])
 
 
 def test_data_omitted_keeps_the_existing_opening_tag() -> None:
