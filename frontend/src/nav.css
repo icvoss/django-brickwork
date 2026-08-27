@@ -151,6 +151,7 @@
   padding-inline: var(--bw-density-row-padding-inline);
   padding-block-end: var(--bw-space-1);
   color: var(--bw-component-nav-section-text);
+  font-family: var(--bw-text-overline-family);
   font-size: var(--bw-text-overline-size);
   font-weight: var(--bw-text-overline-weight);
   line-height: var(--bw-text-overline-line-height);

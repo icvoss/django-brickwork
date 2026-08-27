@@ -542,6 +542,43 @@ Each role is a bundle of five properties
 `var()` reference into the scales above so overrides cascade. Components
 consume roles, never raw scale steps, so nothing drifts out of rhythm.
 
+**A role token that no rule consumes is a false affordance, not a spare.**
+Shipping a `-family` (or any) property on a role promises a consumer that
+setting it changes the render; a token the build emits and nothing reads
+breaks that promise silently, since neither the type system nor a visual
+check flags an override with no effect (icvoss/django-brickwork#288, 7 of 13
+`-family` tokens shipped this way with no accessibility impact and no broken
+render). Each role property is therefore either wired into a consuming rule
+or removed from the role's source definition; a property is never left
+defined "for completeness" once a decision has been made about whether the
+role binds it. `tests/test_tokens.py::test_every_text_family_token_is_consumed_by_a_font_family_rule`
+enforces this for `-family` specifically, deriving the shipped set from the
+token manifest rather than a hardcoded list, so a newly added dead token
+fails the build instead of shipping unnoticed.
+
+**Not every role carries a `-family` token** (**CHANGED**, icvoss/django-brickwork#288). `body-lg`,
+`body-sm` and `label` deliberately have no `-family` property: those roles
+inherit the sans stack from `.bw-body` rather than pinning it per role, so a
+per-size body family cannot be set without also touching `--bw-font-family-sans`,
+which is the intended override point. A per-size body family would make body
+copy internally inconsistent rather than giving a consumer a real theming
+lever, so this is a deliberate design choice, not an oversight; a consumer
+who wants a different label face changes `--bw-font-family-sans` instead.
+
+**`code` is a known, separately tracked gap, not a wired role.**
+`.bw-prose code` and `.bw-prose pre` read `--bw-font-family-mono` directly,
+bypassing the role layer entirely (they never resolve through
+`--bw-text-code-family`), which is the "components consume roles, never raw
+scale steps" rule stated above, violated. `--bw-text-code-family` is
+therefore shipped but consumed by nothing: exactly the false-affordance
+shape #288 fixed for the other nine `-family` tokens, except here the fix
+is wiring the existing rules to the role rather than deleting an unused
+property, and it changes a live rendering path in every consumer's prose,
+so it ships as its own change under its own review rather than riding in on
+#288. `tests/test_tokens.py` carries a single, named exemption for
+`--bw-text-code-family` in `_TEXT_FAMILY_EXEMPT` for exactly this reason;
+every other role's `-family` token is consumed by at least one rule.
+
 | Role | Family | Size | Leading | Weight | Tracking |
 |---|---|---|---|---|---|
 | `heading-display` **[NEW 1.2.0]** | display | 5xl | tight | bold | tight |
@@ -550,13 +587,13 @@ consume roles, never raw scale steps, so nothing drifts out of rhythm.
 | `heading-lg` | sans | lg | snug | semibold | normal |
 | `heading-md` | sans | md | snug | semibold | normal |
 | `heading-sm` | sans | sm | snug | semibold | normal |
-| `body-lg` | sans | lg | relaxed | normal | normal |
+| `body-lg` | *(none, inherits `.bw-body`)* | lg | relaxed | normal | normal |
 | `body-md` | sans | md | normal | normal | normal |
-| `body-sm` | sans | sm | normal | normal | normal |
-| `label` | sans | sm | none | medium | normal |
+| `body-sm` | *(none, inherits `.bw-body`)* | sm | normal | normal | normal |
+| `label` | *(none, inherits `.bw-body`)* | sm | none | medium | normal |
 | `caption` | sans | xs | normal | normal | normal |
 | `overline` | sans | 2xs | none | semibold | wider |
-| `code` | mono | sm | normal | normal | normal |
+| `code` | mono (defined, not yet wired; see below) | sm | normal | normal | normal |
 
 **Component map:** page-header title heading-xl (description body-md +
 fg-muted); empty-state heading heading-lg, body body-md + fg-muted +

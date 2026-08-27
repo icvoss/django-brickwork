@@ -312,6 +312,7 @@
     h3[class="htmx-settling"],
     h3[class="htmx-swapping"]
   ) {
+  font-family: var(--bw-text-heading-md-family);
   font-size: var(--bw-text-heading-md-size);
   font-weight: var(--bw-text-heading-md-weight);
   line-height: var(--bw-text-heading-md-line-height);
@@ -324,6 +325,7 @@
     h4[class="htmx-settling"], h5[class="htmx-settling"], h6[class="htmx-settling"],
     h4[class="htmx-swapping"], h5[class="htmx-swapping"], h6[class="htmx-swapping"]
   ) {
+  font-family: var(--bw-text-heading-sm-family);
   font-size: var(--bw-text-heading-sm-size);
   font-weight: var(--bw-text-heading-sm-weight);
   line-height: var(--bw-text-heading-sm-line-height);

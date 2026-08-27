@@ -227,6 +227,7 @@
 }
 .bw-alert__title {
   margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
   font-size: var(--bw-text-heading-sm-size);
   font-weight: var(--bw-text-heading-sm-weight);
   line-height: var(--bw-text-heading-sm-line-height);
@@ -819,6 +820,7 @@ input.bw-toggle:disabled {
 }
 .bw-form-errors__title {
   margin: 0 0 var(--bw-space-2);
+  font-family: var(--bw-text-heading-sm-family);
   font-size: var(--bw-text-heading-sm-size);
   font-weight: var(--bw-text-heading-sm-weight);
   line-height: var(--bw-text-heading-sm-line-height);
@@ -1781,6 +1783,7 @@ a.bw-card {
 /* Card titles speak in the heading-md role (DESIGN.md 7.4 component map). */
 .bw-card__title {
   margin: 0;
+  font-family: var(--bw-text-heading-md-family);
   font-size: var(--bw-text-heading-md-size);
   font-weight: var(--bw-text-heading-md-weight);
   line-height: var(--bw-text-heading-md-line-height);
@@ -1831,6 +1834,7 @@ a.bw-stat:hover {
    the role contract), on muted ink. */
 .bw-stat__label {
   color: var(--bw-color-fg-muted);
+  font-family: var(--bw-text-overline-family);
   font-size: var(--bw-text-overline-size);
   font-weight: var(--bw-text-overline-weight);
   line-height: var(--bw-text-overline-line-height);
@@ -2463,6 +2467,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 /* Dialog titles speak in the heading-sm role (DESIGN.md 7.4 dialog row). */
 .bw-modal__title {
   margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
   font-size: var(--bw-text-heading-sm-size);
   font-weight: var(--bw-text-heading-sm-weight);
   line-height: var(--bw-text-heading-sm-line-height);
@@ -2655,6 +2660,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 }
 .bw-slide-over__title {
   margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
   font-size: var(--bw-text-heading-sm-size);
   font-weight: var(--bw-text-heading-sm-weight);
   line-height: var(--bw-text-heading-sm-line-height);
@@ -3472,11 +3478,13 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   letter-spacing: var(--bw-text-heading-xl-tracking);
 }
 .bw-prose :where(h3) {
+  font-family: var(--bw-text-heading-lg-family);
   font-size: var(--bw-text-heading-lg-size);
   font-weight: var(--bw-text-heading-lg-weight);
   line-height: var(--bw-text-heading-lg-line-height);
 }
 .bw-prose :where(h4, h5, h6) {
+  font-family: var(--bw-text-heading-md-family);
   font-size: var(--bw-text-heading-md-size);
   font-weight: var(--bw-text-heading-md-weight);
   line-height: var(--bw-text-heading-md-line-height);
