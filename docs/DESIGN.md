@@ -734,19 +734,24 @@ copy internally inconsistent rather than giving a consumer a real theming
 lever, so this is a deliberate design choice, not an oversight; a consumer
 who wants a different label face changes `--bw-font-family-sans` instead.
 
-**`code` is a known, separately tracked gap, not a wired role.**
-`.bw-prose code` and `.bw-prose pre` read `--bw-font-family-mono` directly,
-bypassing the role layer entirely (they never resolve through
-`--bw-text-code-family`), which is the "components consume roles, never raw
-scale steps" rule stated above, violated. `--bw-text-code-family` is
-therefore shipped but consumed by nothing: exactly the false-affordance
-shape #288 fixed for the other nine `-family` tokens, except here the fix
-is wiring the existing rules to the role rather than deleting an unused
-property, and it changes a live rendering path in every consumer's prose,
-so it ships as its own change under its own review rather than riding in on
-#288. `tests/test_tokens.py` carries a single, named exemption for
-`--bw-text-code-family` in `_TEXT_FAMILY_EXEMPT` for exactly this reason;
-every other role's `-family` token is consumed by at least one rule.
+**`code` is wired** (icvoss/django-brickwork#293). `.bw-prose code` consumes
+`--bw-text-code-family`; `.bw-prose pre` consumes `--bw-text-code-family`,
+`--bw-text-code-size` and `--bw-text-code-line-height`. Neither rule binds
+`-weight` or `-tracking`: neither previously set an explicit `font-weight`
+or `letter-spacing`, so binding those two would add an opinion the rule
+never expressed rather than close a gap, and the role's `normal`/`0em`
+defaults already match the inherited values a consumer would otherwise get.
+Wiring was a visual no-op at package default: `--bw-text-code-family`
+already resolved to `var(--bw-font-family-mono)`, and `--bw-text-code-size`
+and the previously-read `--bw-text-body-sm-size` both resolved to
+`var(--bw-font-size-sm)`; `--bw-text-code-line-height` likewise matches the
+`--bw-font-line-height-normal` the `pre` rule read directly before. Inline
+`code`'s `font-size: 0.9em` is untouched: a deliberate relative unit so
+inline code tracks whichever role it is nested in, not a raw scale-step
+reference. `--bw-text-code-family` is consumed like every other role's
+`-family` token; the exemption that previously excluded it from
+`test_every_text_family_token_is_consumed_by_a_font_family_rule` is
+removed, not left empty.
 
 | Role | Family | Size | Leading | Weight | Tracking |
 |---|---|---|---|---|---|
@@ -762,7 +767,7 @@ every other role's `-family` token is consumed by at least one rule.
 | `label` | *(none, inherits `.bw-body`)* | sm | none | medium | normal |
 | `caption` | sans | xs | normal | normal | normal |
 | `overline` | sans | 2xs | none | semibold | wider |
-| `code` | mono (defined, not yet wired; see below) | sm | normal | normal | normal |
+| `code` | mono | sm | normal | normal | normal (weight/tracking defined, not wired; see below) |
 
 **Component map:** page-header title heading-xl (description body-md +
 fg-muted); empty-state heading heading-lg, body body-md + fg-muted +
