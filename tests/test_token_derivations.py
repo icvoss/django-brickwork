@@ -260,25 +260,31 @@ def test_dark_theme_contains_a_chromatic_partner_mix() -> None:
     7.7 degrees on it, per the token's own $description.
     """
     dark = _Theme("dark")
-    mix_partner_pattern = re.compile(
-        r"^color-mix\(in oklab, var\(--bw-color-[a-z0-9-]+\) [\d.]+%, var\((--bw-color-[a-z0-9-]+)\)\)$"
+    # Capture BOTH operands and the mix fraction. The polar comparator must be
+    # built from the two INPUT colours; building it from the token's own
+    # resolved baseline would run the polar formula on the Cartesian answer and
+    # compare a number to a perturbation of itself, which passes for the wrong
+    # reason.
+    mix_pattern = re.compile(
+        r"^color-mix\(in oklab, var\((--bw-color-[a-z0-9-]+)\) ([\d.]+)%, "
+        r"var\((--bw-color-[a-z0-9-]+)\)\)$"
     )
     chromatic_hue_divergent: list[str] = []
     for css_name, expression in dark.derived.items():
-        m = mix_partner_pattern.match(expression)
+        m = mix_pattern.match(expression)
         if not m:
             continue
-        base_l, base_c, base_h, _ = dark.components(css_name)
-        _, partner_c, partner_h, _ = dark.components(m.group(1))
-        if partner_c < 0.002:
+        base_name, pct, partner_name = m.group(1), float(m.group(2)), m.group(3)
+        _, base_c, base_h, _ = dark.components(base_name)
+        _, partner_c, partner_h, _ = dark.components(partner_name)
+        # Both operands must carry hue for a hue comparison to mean anything.
+        if base_c < 0.002 or partner_c < 0.002:
             continue
         lightness, chroma, hue, alpha = _evaluate(dark, expression)
         if chroma < _HUE_CHROMA_FLOOR:
             continue
         d = (partner_h - base_h + 180) % 360 - 180
-        # Reconstruct the mix fraction from the expression to build the polar comparator.
-        pct_match = re.match(r"^color-mix\(in oklab, var\([^)]+\) ([\d.]+)%", expression)
-        p = float(pct_match.group(1)) / 100.0
+        p = pct / 100.0
         polar_hue = (base_h + (1 - p) * d) % 360.0
         if _hue_distance(hue, polar_hue) > _TOL_H:
             chromatic_hue_divergent.append(css_name)
