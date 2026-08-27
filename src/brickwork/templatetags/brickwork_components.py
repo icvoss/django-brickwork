@@ -13,7 +13,7 @@ from decimal import Decimal, InvalidOperation
 
 from django import template
 from django.template.exceptions import TemplateSyntaxError
-from django.utils.html import conditional_escape, escape, format_html
+from django.utils.html import escape, format_html
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
 
@@ -530,14 +530,14 @@ def bw_chart_mount(
 
     classes = "bw-chart-mount"
     if css_class:
-        classes += " " + conditional_escape(css_class)
+        classes += " " + escape(css_class)
 
     style_parts = []
     if min_height:
         style_parts.append(f"--bw-chart-mount-min-height: {min_height}")
     if aspect_ratio:
         style_parts.append(f"--bw-chart-mount-aspect-ratio: {aspect_ratio}")
-    style_attr = f' style="{conditional_escape("; ".join(style_parts))}"' if style_parts else ""
+    style_attr = f' style="{escape("; ".join(style_parts))}"' if style_parts else ""
 
     # role="img" accompanies BOTH naming paths, matching bw_icon's contract
     # (brickwork_icons.py:19). A bare <div> maps to ARIA's generic role, which
@@ -555,16 +555,26 @@ def bw_chart_mount(
     if decorative:
         a11y = 'aria-hidden="true"'
     elif aria_label:
-        a11y = f'role="img" aria-label="{conditional_escape(aria_label)}"'
+        a11y = f'role="img" aria-label="{escape(aria_label)}"'
     else:
-        a11y = f'role="img" aria-describedby="{conditional_escape(aria_describedby)}"'
+        a11y = f'role="img" aria-describedby="{escape(aria_describedby)}"'
 
     div = f'<div class="{classes}" data-bw-chart-mount{style_attr} {a11y}></div>'
     # noqa justification (S308): every interpolated value above is either a fixed
     # literal (the base class, data-bw-chart-mount, the a11y attribute names) or
-    # conditional_escape'd caller input (css_class, min_height/aspect_ratio inside
+    # escape()d caller input (css_class, min_height/aspect_ratio inside
     # style_attr, aria_label/aria_describedby). No untrusted string reaches this
     # SafeString unescaped.
+    #
+    # escape(), never conditional_escape(): every value here is an ATTRIBUTE
+    # VALUE, never markup, and conditional_escape honours __html__, so a
+    # SafeString passes through verbatim. That is a real break-out, not a
+    # theoretical one: css_class=mark_safe('a" onmouseover="alert(1)') closed
+    # the class attribute and landed a handler on the element. The a11y
+    # arguments happened to be safe only because .strip() returns a plain str
+    # and destroys the SafeString marker, which is protection by accident
+    # rather than by design. A component that never emits consumer markup
+    # wants escape() everywhere.
     return mark_safe(div)  # noqa: S308
 
 
