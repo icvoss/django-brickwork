@@ -186,7 +186,10 @@
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-danger) 87%, var(--bw-color-status-fg-ink))",
-          "contrastPair": ["color-danger-subtle", "color-surface"],
+          "contrastPair": [
+            "color-danger-subtle",
+            "color-surface"
+          ],
           "minContrast": 4.5
         }
       }
@@ -234,7 +237,10 @@
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-warning) 68%, var(--bw-color-status-fg-ink))",
-          "contrastPair": ["color-warning-subtle", "color-surface"],
+          "contrastPair": [
+            "color-warning-subtle",
+            "color-surface"
+          ],
           "minContrast": 4.5
         }
       }
@@ -282,7 +288,10 @@
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-success) 69%, var(--bw-color-status-fg-ink))",
-          "contrastPair": ["color-success-subtle", "color-surface"],
+          "contrastPair": [
+            "color-success-subtle",
+            "color-surface"
+          ],
           "minContrast": 4.5
         }
       }
@@ -333,7 +342,10 @@
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-info) 75%, var(--bw-color-status-fg-ink))",
-          "contrastPair": ["color-info-subtle", "color-surface"],
+          "contrastPair": [
+            "color-info-subtle",
+            "color-surface"
+          ],
           "minContrast": 4.5
         }
       }
@@ -568,6 +580,10 @@
           "authoredPerTheme": true
         }
       }
+    },
+    "sparkline-stroke": {
+      "$value": "{primitive.chart.light.1}",
+      "$description": "Sparkline stroke for tone=\"neutral\" (VIZ-004). Defaults to --bw-color-chart-1 so a lone sparkline matches the chart palette's first series, and exists as a token precisely so a consumer can override it: VIZ-026 lets any VIZ stroke resolve --bw-color-chart-1..8 to colour-match a chart shown alongside, and a sparkline whose stroke was baked into a CSS rule would leave that consumer nothing to override but the component's own internals, which docs/BRANDING.md forbids in terms. The seam is the point; the default value is incidental. tone=\"trend\" deliberately does NOT read this token: it reads --bw-color-success-fg/--bw-color-danger-fg, which are derived from --bw-color-status-fg-ink and so inherit the status contrast contract that a parallel sparkline-positive/-negative pair would not."
     }
   },
   "state": {

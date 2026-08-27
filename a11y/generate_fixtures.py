@@ -1021,6 +1021,108 @@ def render_ranked_list(theme: str) -> str:
     )
 
 
+# --- Sparkline (VIZ-003/004/005/006) -----------------------------------------
+#
+# Covers: neutral tone (the plain single-series line), trend tone in all
+# three directions (up/down/flat, each pairing the stroke colour with the
+# decorative glyph + visually-hidden text VIZ-004/COL-030 require), and a
+# highlighted point (VIZ-005). Sized inside a fixed-height wrapper so the
+# viewBox-scaling <svg> (no intrinsic size of its own, per the component's
+# own Responsive note) renders at a sane on-page size for axe/visual
+# inspection, mirroring how _stat.html's own bw-stat__sparkline slot
+# constrains this same shape.
+
+_SPARKLINE_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sparkline (__THEME__)</title>
+__CSS__
+<style>.sparkline-demo { max-width: 16rem; block-size: 3rem; }</style>
+</head>
+<body class="bw-body">
+<main>
+  <h1>Sparkline</h1>
+
+  <section aria-labelledby="sparkline-neutral-heading">
+    <h2 id="sparkline-neutral-heading">Neutral</h2>
+    <div class="sparkline-demo">__SPARKLINE_NEUTRAL__</div>
+  </section>
+
+  <section aria-labelledby="sparkline-trend-up-heading">
+    <h2 id="sparkline-trend-up-heading">Trend, up</h2>
+    <div class="sparkline-demo">__SPARKLINE_TREND_UP__</div>
+  </section>
+
+  <section aria-labelledby="sparkline-trend-down-heading">
+    <h2 id="sparkline-trend-down-heading">Trend, down</h2>
+    <div class="sparkline-demo">__SPARKLINE_TREND_DOWN__</div>
+  </section>
+
+  <section aria-labelledby="sparkline-trend-flat-heading">
+    <h2 id="sparkline-trend-flat-heading">Trend, flat</h2>
+    <div class="sparkline-demo">__SPARKLINE_TREND_FLAT__</div>
+  </section>
+
+  <section aria-labelledby="sparkline-highlight-heading">
+    <h2 id="sparkline-highlight-heading">Highlighted point</h2>
+    <div class="sparkline-demo">__SPARKLINE_HIGHLIGHT__</div>
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_sparkline_fixture(**ctx: object) -> str:
+    from django.template import Context, Template
+
+    return Template(
+        "{% load brickwork_components %}"
+        "{% bw_sparkline points=points label=label value=value tone=tone highlight_index=highlight_index %}"
+    ).render(
+        Context(
+            {
+                "points": [10, 12, 9, 14, 18, 15, 20],
+                "label": "Revenue, last 7 days",
+                "value": "",
+                "tone": "neutral",
+                "highlight_index": None,
+                **ctx,
+            }
+        )
+    )
+
+
+def render_sparkline(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _SPARKLINE_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace(
+            "__SPARKLINE_NEUTRAL__",
+            _render_sparkline_fixture(value="1,234"),
+        )
+        .replace(
+            "__SPARKLINE_TREND_UP__",
+            _render_sparkline_fixture(points=[10, 11, 13, 16, 20], tone="trend", value="20"),
+        )
+        .replace(
+            "__SPARKLINE_TREND_DOWN__",
+            _render_sparkline_fixture(points=[20, 16, 13, 11, 10], tone="trend", value="10"),
+        )
+        .replace(
+            "__SPARKLINE_TREND_FLAT__",
+            _render_sparkline_fixture(points=[10, 10, 10, 10], tone="trend", value="10"),
+        )
+        .replace(
+            "__SPARKLINE_HIGHLIGHT__",
+            _render_sparkline_fixture(highlight_index=6, value="20"),
+        )
+    )
+
+
 # --- the _data_table.html empty-state action CTA (icvoss/django-brickwork#185)
 #
 # data-table-empty-cta-<theme>.html is a standalone (non-shell) page,
@@ -3145,6 +3247,11 @@ def main() -> None:
         # bw_ranked_list (#183): populated (linked rows), empty (with
         # action), and loading skeleton variants on one page
         _emit(OUT / f"ranked-list-{theme}.html", render_ranked_list(theme), written)
+        # bw_sparkline (VIZ-003/004/005/006): neutral tone, trend tone in all
+        # three directions (each pairing the stroke colour with the
+        # decorative glyph + hidden text COL-030 requires), and a
+        # highlighted point, all on one page
+        _emit(OUT / f"sparkline-{theme}.html", render_sparkline(theme), written)
         # _chart_card (chart card work): populated (real bw_chart_mount tag,
         # title/actions/legend fills), legend_position="side", loading,
         # error and empty states, all on one page

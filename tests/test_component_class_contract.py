@@ -260,6 +260,20 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             '<div class="bw-chart-mount" data-bw-chart-mount role="img" aria-label="Revenue by month"></div>'
         ),
     ),
+    # _sparkline renders through {% bw_sparkline %}, so it registers with _tag
+    # rather than _include. Both tones are exercised: neutral takes the
+    # overridable stroke token, trend adds the glyph-plus-visually-hidden-text
+    # pairing COL-030 requires, and the two emit different modifier classes.
+    "_sparkline (neutral, highlighted)": lambda: _tag(
+        "brickwork_components",
+        '{% bw_sparkline points=pts label="Revenue trend" value="1,234" highlight_index=3 %}',
+        pts=[4, 7, 5, 9, 8],
+    ),
+    "_sparkline (trend)": lambda: _tag(
+        "brickwork_components",
+        '{% bw_sparkline points=pts label="Signups" tone="trend" %}',
+        pts=[2, 4, 9],
+    ),
     "_chart_card (loading)": lambda: _include("brickwork/components/_chart_card.html", loading=True),
     "_chart_card (error)": lambda: _include(
         "brickwork/components/_chart_card.html",
@@ -781,6 +795,7 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_stat",
         "_ranked_list",
         "_chart_card",
+        "_sparkline",
         "_data_table",
         "_stepper",
         "_modal",

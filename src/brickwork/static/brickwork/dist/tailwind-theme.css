@@ -77,6 +77,7 @@
   --color-chart-tooltip-bg: var(--bw-color-chart-tooltip-bg);
   --color-chart-tooltip-text: var(--bw-color-chart-tooltip-text);
   --color-chart-tooltip-border: var(--bw-color-chart-tooltip-border);
+  --color-sparkline-stroke: var(--bw-color-sparkline-stroke);
   --radius-none: var(--bw-radius-none);
   --radius-sm: var(--bw-radius-sm);
   --radius-md: var(--bw-radius-md);

@@ -67,6 +67,8 @@
   --bw-component-progress-track-height: 0.5rem;
   --bw-component-ranked-list-bar-thickness: 0.375rem;
   --bw-component-ranked-list-row-gap: 0.75rem;
+  --bw-component-sparkline-stroke-width: 2;
+  --bw-component-sparkline-marker-radius: 2.5;
   --bw-component-tooltip-max-width: 16rem;
   --bw-component-disabled-opacity: 0.5;
   --bw-component-content-max-width: 72rem;
@@ -262,6 +264,7 @@
   --bw-color-chart-tooltip-bg: oklch(0.205 0.005 265);
   --bw-color-chart-tooltip-text: oklch(0.985 0.001 265);
   --bw-color-chart-tooltip-border: oklch(0.279 0.006 265);
+  --bw-color-sparkline-stroke: oklch(0.590 0.151 46);
   --bw-state-hover-overlay: oklch(0 0 0 / 0.04);
   --bw-state-active-overlay: oklch(0 0 0 / 0.08);
   --bw-state-selected-bg: var(--bw-color-accent-subtle);
@@ -356,6 +359,7 @@
   --bw-color-chart-tooltip-bg: oklch(0.205 0.005 265);
   --bw-color-chart-tooltip-text: oklch(0.985 0.001 265);
   --bw-color-chart-tooltip-border: oklch(0.279 0.006 265);
+  --bw-color-sparkline-stroke: oklch(0.590 0.151 46);
   --bw-state-hover-overlay: oklch(0 0 0 / 0.04);
   --bw-state-active-overlay: oklch(0 0 0 / 0.08);
   --bw-state-selected-bg: var(--bw-color-accent-subtle);
@@ -435,6 +439,7 @@
   --bw-color-chart-tooltip-bg: oklch(0.279 0.006 265);
   --bw-color-chart-tooltip-text: oklch(0.985 0.001 265);
   --bw-color-chart-tooltip-border: oklch(0.371 0.007 265);
+  --bw-color-sparkline-stroke: oklch(0.595 0.138 46);
   --bw-state-hover-overlay: oklch(1 0 0 / 0.06);
   --bw-state-active-overlay: oklch(1 0 0 / 0.12);
   --bw-state-selected-bg: var(--bw-color-accent-subtle);
@@ -552,6 +557,8 @@
   --bw-size-space-8: var(--bw-space-8);
   --bw-size-space-9: var(--bw-space-9);
   --bw-size-space-px: var(--bw-space-px);
+  --bw-sparkline-marker-radius: var(--bw-component-sparkline-marker-radius);
+  --bw-sparkline-stroke-width: var(--bw-component-sparkline-stroke-width);
   --bw-stat-tile-sparkline-height: var(--bw-component-stat-tile-sparkline-height);
   --bw-stat-tile-value-size: var(--bw-component-stat-tile-value-size);
   --bw-toast-max-width: var(--bw-component-toast-max-width);

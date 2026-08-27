@@ -6,6 +6,7 @@ accessible-name enforcement), so they are tags rather than bare {% include %}.
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -715,4 +716,227 @@ def bw_ranked_list(
         "empty_action_href": empty_action_href,
         "empty_action_label": empty_action_label,
         "attrs_html": bw_data_attrs(data, "ranked list"),
+    }
+
+
+_SPARKLINE_TONES = {"neutral", "trend"}
+
+
+def _sparkline_path(points: list[float], *, width: float, height: float) -> str:
+    """Return an SVG ``<path>`` ``d=`` attribute value tracing ``points`` as a
+    polyline across a ``width`` x ``height`` viewBox (VIZ-003: pure geometry,
+    computed here so the template only ever consumes the finished string,
+    matching ``_shape_ranked_list_row``'s split between Python geometry and
+    template rendering).
+
+    ``points`` has already been checked non-empty by the caller. A single
+    point draws a flat line across the full width at its own height (there is
+    no second x position to interpolate toward), and a flat series (every
+    value equal) draws a flat line at vertical centre rather than dividing by
+    zero: both degrade to a visible, honest line rather than raising or
+    collapsing to a zero-height sliver.
+
+    Coordinates are rounded to 2 decimal places: full float repr (e.g.
+    ``33.33333333333333``) would still be valid SVG but bloats every rendered
+    page for precision no viewBox at typical sparkline sizes can resolve.
+    """
+    count = len(points)
+    lo = min(points)
+    hi = max(points)
+    spread = hi - lo
+
+    def _y(value: float) -> float:
+        if spread == 0:
+            return height / 2
+        # SVG y grows downward, so the largest value maps to the SMALLEST y
+        # (the top of the box), matching every chart reading convention.
+        return height - (value - lo) / spread * height
+
+    def _x(index: int) -> float:
+        if count == 1:
+            return 0.0
+        return index / (count - 1) * width
+
+    coords = [f"{_x(i):.2f},{_y(v):.2f}" for i, v in enumerate(points)]
+    return "M" + " L".join(coords)
+
+
+def _sparkline_point(points: list[float], index: int, *, width: float, height: float) -> tuple[str, str]:
+    """Return the ``(cx, cy)`` string pair for ``points[index]``, using the
+    SAME normalisation ``_sparkline_path`` uses, so a highlighted point (VIZ-
+    005) always lands exactly on the line it is marking rather than drifting
+    from a second, slightly different calculation."""
+    count = len(points)
+    lo = min(points)
+    hi = max(points)
+    spread = hi - lo
+    cy = height / 2 if spread == 0 else height - (points[index] - lo) / spread * height
+    cx = 0.0 if count == 1 else index / (count - 1) * width
+    return f"{cx:.2f}", f"{cy:.2f}"
+
+
+@register.inclusion_tag("brickwork/components/_sparkline.html")
+def bw_sparkline(
+    points: object,
+    *,
+    label: str,
+    value: str = "",
+    tone: str = "neutral",
+    highlight_index: int | None = None,
+    width: float = 100,
+    height: float = 32,
+    data: object = None,
+) -> dict:
+    """An inline sparkline (VIZ-003/004/005/006): a single-series trend line
+    drawn as a pure server-rendered SVG ``<path>``, no engine, no JS, working
+    identically with scripts disabled (VIZ-006: a sparkline is geometry, not
+    an interactive chart; an interactive-tooltip sparkline mounts a real
+    engine at ``{% bw_chart_mount %}`` instead, which this component is not).
+
+    Because that slot does not sanitise, this output is safe BY
+    CONSTRUCTION rather than by the caller's diligence. Every interpolated
+    value is classified as exactly one of three things, and the class decides
+    the handling:
+
+    * **attribute value** (``tone``, ``direction``, and every SVG coordinate):
+      ``escape()``, never ``conditional_escape``, which honours ``__html__``
+      and would let a ``SafeString`` break out of the attribute. The
+      coordinates go further and are safe by construction, not by escaping:
+      each is built as ``f"{float:.2f}"``, so no quote character can reach a
+      ``d=`` or ``viewBox=`` attribute at all. A type constraint is stronger
+      than an escaping step, because escaping is something a later edit can
+      remove.
+    * **text content** (``label``, ``value``): Django's ordinary
+      auto-escaping, which DELIBERATELY honours ``mark_safe``.
+    * **trusted markup** (``attrs_html`` from ``bw_data_attrs``): already a
+      ``SafeString``, assembled from values that were escaped individually.
+
+    That middle case looks alarming next to icvoss/django-brickwork#329 and
+    is not the same defect. A ``mark_safe``'d ``label`` renders its markup
+    raw, exactly as ``_stat.html`` and ``_ranked_list.html`` do, because
+    ``mark_safe`` there is the caller asserting "this is HTML I authored and
+    vouch for", which is Django's contract. In an ATTRIBUTE value no markup
+    can ever be legitimate, so honouring that assertion means honouring a
+    claim that cannot be true, and #329 is where that went wrong. A component
+    that escaped its label would be wrong in the other direction: it would
+    break every caller passing a formatted string.
+
+    Composes with ``_stat.html``'s ``sparkline=`` slot (#60): that slot takes
+    pre-rendered, ALREADY-TRUSTED markup and does not sanitise it, so this
+    tag is the thing a caller renders and passes in, e.g.::
+
+        {% bw_sparkline points=values label="Revenue trend" value="1,234" as spark %}
+        {% include "brickwork/components/_stat.html" with label="Revenue" value="1,234" sparkline=spark %}
+
+    The two never need to change together: ``_stat.html`` accepts any safe
+    markup in that slot, and this tag is only one possible source of it.
+
+    Required context:
+      points: a non-empty list/tuple of numbers (int, float, or Decimal; VIZ-
+          020 numbers are never formatted by the package, so the geometry
+          accepts whatever numeric type the caller already has). Fewer than
+          two points still renders (a flat line, see ``_sparkline_path``),
+          but a sparkline of one point communicates nothing: that is a
+          caller authoring choice, not something this tag corrects for.
+      label: the accessible summary of what the line shows (e.g. "Revenue,
+          last 12 months"), rendered as VISIBLE text (COL-030): a sparkline
+          has no adjacent row/heading of its own the way a ranked-list row or
+          a stat tile's label does, so unlike ``bw_ranked_list``'s optional
+          ``label`` (which only sets an aria-label because the visible text
+          lives in each row), this one is REQUIRED and always visible, or the
+          line's meaning rides on shape alone for a screen reader.
+    Optional:
+      value (str): a pre-formatted current/latest-value string (VIZ-020: the
+          package never formats numbers), rendered as visible text beside
+          the label. Omitted renders no value text, only the label.
+      tone ("neutral" | "trend", default "neutral"): "neutral" strokes the
+          line with the shared chart palette's first colour (VIZ-026:
+          --bw-color-chart-1, reused rather than a new sparkline-only token,
+          since nothing about a neutral sparkline needs a colour distinct
+          from any other single-series chart line the package already
+          tokenises). "trend" strokes positive or negative (--bw-color-
+          success-fg / --bw-color-danger-fg: the SAME per-theme-authored,
+          AA-verified ink _stat.html's own trend text already uses, reused
+          rather than a duplicate --bw-sparkline-stroke-positive/-negative
+          pair with identical values) based on the DIRECTION COMPUTED HERE
+          from points[-1] vs points[0], never a caller-supplied flag: the
+          direction is a fact about the data, not an opinion a call site
+          could get out of sync with the line it is describing.
+
+          COL-030 (colour is never the only signal): "trend" ALWAYS pairs
+          the stroke colour with a decorative directional glyph (arrow-up/
+          arrow-down/minus, matching _stat.html's own trend iconography
+          exactly) plus visually-hidden text naming the direction in words
+          ("increased"/"decreased"/"unchanged"), rendered by the template
+          regardless of whether the caller supplies a visible ``value``.
+          This mirrors _stat.html's BR-BW-TPL-007 contract precisely: a
+          second implementation of the identical rule would only invite the
+          two drifting apart.
+      highlight_index (int): renders a filled --bw-sparkline-marker circle
+          (VIZ-005) at ``points[highlight_index]``, e.g. the latest point or
+          a caller-chosen point of interest. Silently ignored (no marker
+          rendered) when out of range, matching ``list_item``'s own
+          fail-quiet convention elsewhere in this module, since a marker is
+          decorative reinforcement, not a contract a bad index should 500 a
+          page over.
+      width, height (default 100 x 32): the SVG viewBox dimensions in
+          unitless user units. The rendered element fills its container at
+          100% width/height (CSS), so these only set the ASPECT RATIO the
+          line is drawn against, not an on-page pixel size; a caller wanting
+          a taller or shallower line passes a different height for a more or
+          less dramatic-looking trend.
+      data: a mapping of consumer-owned data-* attributes for the component
+          root (component-level test hooks, mirroring _stat.html's and
+          _ranked_list.html's own root data seam).
+
+    States: neutral and trend (positive/negative sub-states, always paired
+      with the glyph+hidden-text signal above); no loading or empty state
+      (VIZ-003: a caller with no data yet simply does not render this tag,
+      matching how _stat.html's own sparkline slot is omitted rather than
+      rendering an empty box).
+    Accessibility: the label and, when given, the value render as VISIBLE
+      text (COL-030); the line itself and any highlight marker are
+      aria-hidden="true" and carry no text of their own (the numeric meaning
+      never rides on the line's shape or colour alone). tone="trend" adds
+      the decorative glyph + visually-hidden direction text pairing
+      described above.
+    Responsive: no breakpoint switch; the SVG scales to its container via
+      viewBox (no width-dependent CSS on any .bw-sparkline* selector), so a
+      caller controls on-page size entirely through the container it places
+      this component in (matching _stat.html's own bw-stat__sparkline slot,
+      which this tag is designed to fill).
+    """
+    if not isinstance(points, list | tuple) or not points:
+        raise TemplateSyntaxError(f"bw_sparkline points must be a non-empty list/tuple of numbers, got {points!r}")
+    try:
+        numeric_points = [float(point) for point in points]
+    except (TypeError, ValueError) as exc:
+        raise TemplateSyntaxError(f"bw_sparkline points must all be numbers, got {points!r}") from exc
+    if not all(math.isfinite(point) for point in numeric_points):
+        raise TemplateSyntaxError(f"bw_sparkline points must all be finite numbers, got {points!r}")
+    if tone not in _SPARKLINE_TONES:
+        raise TemplateSyntaxError(f"bw_sparkline tone must be one of {sorted(_SPARKLINE_TONES)}, got {tone!r}")
+
+    path_d = _sparkline_path(numeric_points, width=width, height=height)
+
+    marker_cx = marker_cy = ""
+    if highlight_index is not None and 0 <= highlight_index < len(numeric_points):
+        marker_cx, marker_cy = _sparkline_point(numeric_points, highlight_index, width=width, height=height)
+
+    direction = ""
+    if tone == "trend":
+        delta = numeric_points[-1] - numeric_points[0]
+        direction = "up" if delta > 0 else "down" if delta < 0 else "flat"
+
+    return {
+        "path_d": path_d,
+        "label": label,
+        "value": value,
+        "tone": tone,
+        "direction": direction,
+        "marker_cx": marker_cx,
+        "marker_cy": marker_cy,
+        "width": width,
+        "height": height,
+        "attrs_html": bw_data_attrs(data, "sparkline"),
     }

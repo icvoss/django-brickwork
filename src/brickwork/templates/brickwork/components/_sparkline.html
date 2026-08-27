@@ -1,0 +1,79 @@
+{% load brickwork_icons i18n %}
+{% comment %}
+Sparkline (VIZ-003/004/005/006): an inline single-series trend line, drawn as
+a pure server-rendered SVG <path>, no JS engine (VIZ-006: an interactive-
+tooltip sparkline mounts a real engine at {% bw_chart_mount %} instead; this
+component is the non-interactive, no-JS floor). Consumed via the
+{% bw_sparkline %} tag, never a plain {% include %}: geometry (point
+normalisation to the viewBox, the path's d= string, the highlighted point's
+cx/cy, and the trend direction) is computed in Python, and this template only
+ever renders the finished numbers and strings (matching _ranked_list.html's
+own split between Python geometry and template rendering).
+
+Composes with _stat.html's sparkline= slot (#60), which takes pre-rendered,
+ALREADY-TRUSTED markup and does not sanitise it: this tag is one thing a
+caller can render and pass into that slot ({% bw_sparkline ... as spark %}
+then sparkline=spark on the include). The two components never change
+together; _stat.html accepts any safe markup there, not only this one.
+
+Required context (already validated and shaped by the tag):
+  path_d: the finished SVG path "d" attribute value tracing every point.
+  label: the accessible summary of what the line shows, rendered as VISIBLE
+      text (COL-030): unlike _ranked_list.html's optional label (which only
+      sets an aria-label, because the visible text lives in each row), this
+      one is always visible, since a sparkline has no adjacent row of its
+      own to carry the meaning instead.
+  width, height: the SVG viewBox dimensions (unitless user units).
+Optional:
+  value: a pre-formatted current/latest-value string, rendered as visible
+      text beside the label. Empty renders no value text.
+  tone ("neutral" | "trend"): "neutral" strokes with the shared chart
+      palette (--bw-color-chart-1, VIZ-026 reuse, no sparkline-only stroke
+      token). "trend" strokes positive or negative using the SAME per-theme
+      ink _stat.html's own trend text already uses (--bw-color-success-fg /
+      --bw-color-danger-fg), and additionally renders the decorative
+      direction glyph + visually-hidden text pairing below.
+  direction ("up" | "down" | "flat" | ""): computed by the tag from
+      points[-1] vs points[0]; empty when tone is "neutral". Drives both the
+      --bw-sparkline--positive/--negative modifier class and, when tone is
+      "trend", the glyph + hidden text pairing (mirrors _stat.html's own
+      trend markup exactly, BR-BW-TPL-007).
+  marker_cx, marker_cy: the highlighted point's coordinates (VIZ-005),
+      empty strings when highlight_index was omitted or out of range, in
+      which case no <circle> is rendered at all.
+  attrs_html: pre-rendered consumer data-* attributes for the component
+      root (bw_data_attrs, mirroring _stat.html's and _ranked_list.html's
+      own root data seam).
+
+States: neutral and trend (positive/negative), the latter always paired
+  with a decorative glyph and visually-hidden direction text (COL-030,
+  BR-BW-TPL-007), regardless of whether the caller supplied a visible
+  value; an optional highlighted point (VIZ-005).
+Accessibility: label and, when given, value are VISIBLE text nodes; the
+  <path> and any highlight <circle> are aria-hidden="true" and carry no
+  text of their own, so the line's shape or colour is never the only
+  channel the numeric meaning travels on (COL-030). Deliberately no
+  role="img" on the <svg> itself: the accessible name already lives in the
+  adjacent visible label/value text, and a second, redundant name on the
+  graphic would risk disagreeing with it rather than reinforcing it (unlike
+  bw_chart_mount, whose <div> has no other accessible text of its own and
+  therefore needs the name ON the mount).
+Responsive: no breakpoint switch; the <svg> scales to its container via
+  viewBox with no width-dependent CSS on any .bw-sparkline* selector, so
+  on-page size is entirely the caller's container (matching _stat.html's
+  own bw-stat__sparkline slot, which this tag is designed to fill).
+{% endcomment %}
+<span class="bw-sparkline bw-sparkline--{{ tone }}{% if direction %} bw-sparkline--{{ direction }}{% endif %}"{{ attrs_html }}>
+  <span class="bw-sparkline__label">{{ label }}</span>
+  {% if value %}<span class="bw-sparkline__value">{{ value }}</span>{% endif %}
+  {% if tone == "trend" %}
+    <span class="bw-sparkline__trend">
+      {% if direction == "up" %}{% bw_icon "arrow-up" size="sm" decorative=True %}{% elif direction == "down" %}{% bw_icon "arrow-down" size="sm" decorative=True %}{% else %}{% bw_icon "minus" size="sm" decorative=True %}{% endif %}
+      <span class="bw-visually-hidden">{% if direction == "up" %}{% translate "increased" %}{% elif direction == "down" %}{% translate "decreased" %}{% else %}{% translate "unchanged" %}{% endif %}</span>
+    </span>
+  {% endif %}
+  <svg class="bw-sparkline__svg" viewBox="0 0 {{ width }} {{ height }}" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path class="bw-sparkline__line" d="{{ path_d }}" fill="none"></path>
+    {% if marker_cx %}<circle class="bw-sparkline__marker" cx="{{ marker_cx }}" cy="{{ marker_cy }}"></circle>{% endif %}
+  </svg>
+</span>
