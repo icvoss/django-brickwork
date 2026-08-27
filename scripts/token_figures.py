@@ -9,8 +9,15 @@ Run from the repo root:
 This exists for figures QUOTED INTO PROSE: pull request bodies, issue
 comments, review notes, release notes. The counts that gate CI are already
 derived from the shipped manifests by ``tests/test_positioning.py``, so this
-duplicates none of that machinery and is not a second source of truth for
-them; it reads the same artefacts and reports what they say.
+duplicates none of that counting machinery and is not a second source of
+truth for them; it reads the same artefacts and reports what they say.
+
+The count DEFINITIONS are deliberately the same, though: ``overridable`` here
+means what it means in ``test_positioning.py``, and it must, or a figure
+quoted from this output would not be the figure the gate checks. If the
+manifest's shape ever changes, both move together. What differs is the data
+source (a git ref rather than the shipped tree) and the consumer (a person
+quoting a number rather than CI gating one).
 
 Why it reads a git ref rather than the working tree: every token figure this
 project has published wrongly was a correct measurement of the wrong tree,

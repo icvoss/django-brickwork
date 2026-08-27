@@ -22,6 +22,7 @@ by coincidence.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -87,13 +88,9 @@ def _figures_in(repo: Path, ref: str) -> dict[str, object]:
     """Run the helper with ``repo`` as the working directory."""
     original = Path.cwd()
     try:
-        import os
-
         os.chdir(repo)
         return figures(ref)
     finally:
-        import os
-
         os.chdir(original)
 
 
@@ -149,3 +146,39 @@ def test_an_unknown_ref_fails_loudly_rather_than_falling_back(repo: Path) -> Non
     """A silent fallback to the working tree is the failure mode to avoid."""
     with pytest.raises(SystemExit):
         _figures_in(repo, "definitely-not-a-ref")
+
+
+def test_the_printed_output_carries_the_ref(repo: Path, refs: tuple[str, str]) -> None:
+    """The command's OUTPUT is the product, not the dict it returns internally.
+
+    Everything above tests ``figures()``. What a person actually copies into a
+    pull request body is what ``main()`` prints, so that path gets its own
+    check: a helper whose return value carried the ref while its output did
+    not would satisfy every other test here and fail at the only moment that
+    matters.
+    """
+    old_ref, new_ref = refs
+    script = Path(__file__).resolve().parents[1] / "scripts" / "token_figures.py"
+    result = subprocess.run(
+        [sys.executable, str(script), old_ref],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert old_ref[:7] in result.stdout, "the ref does not appear in the output"
+    assert "unique --bw-*   2" in result.stdout
+    assert "overridable     2" in result.stdout
+
+    newer = subprocess.run(
+        [sys.executable, str(script), new_ref],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert new_ref[:7] in newer.stdout
+    assert "unique --bw-*   3" in newer.stdout
+    assert newer.stdout != result.stdout, (
+        "both refs printed identical output, so the printed figures do not track the ref they were asked for"
+    )
