@@ -387,6 +387,90 @@ only the names move.
 | `--bw-component-skeleton-bg` (was `--bw-color-skeleton-bg` through 0.10.0; kept as a courtesy alias) | D | `color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black)` (0.4.0: constant retuned 94% to 96% to hold the gray.200 landing, one step deeper than the deepened 96.5% sunken) | **direction flips**: `color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white)` |
 | `--bw-component-skeleton-shimmer` (was `--bw-color-skeleton-shimmer` through 0.10.0; kept as a courtesy alias) | D | `color-mix(in oklab, var(--bw-component-skeleton-bg) 96%, black)` | **direction flips**: `color-mix(in oklab, var(--bw-component-skeleton-bg) 86%, white)` |
 
+### 4.8 Chart tokens (categorical series and chart chrome) **[NEW]**
+
+Fourteen tokens, fixed by ADR-082 in the umbrella. Eight categorical series
+plus six chrome tokens. Every one is **authored per theme**, carrying
+`authoredPerTheme: true` in the token source, and none derives from its light
+counterpart.
+
+| Token | LB/D | Light | Dark |
+|---|---|---|---|
+| `--bw-color-chart-1` .. `-chart-8` | authored | authored per series, in gamut | authored per series (hue held, L and C re-authored), in gamut |
+| `--bw-color-chart-axis` | authored | `oklch(0.45 0.004 265)`, 7.44:1 on surface | `oklch(0.62 0.004 265)`, 4.55:1 on raised |
+| `--bw-color-chart-grid` | authored | `oklch(0.922 0.003 265)`, 1.40:1 | `oklch(0.33 0.004 265)`, 1.39:1 |
+| `--bw-color-chart-axis-label` | authored | `oklch(0.48 0.003 265)`, 6.54:1 | `oklch(0.72 0.003 265)`, 6.69:1 |
+| `--bw-color-chart-tooltip-bg` | authored | `oklch(0.205 0.005 265)` (inverts) | `oklch(0.279 0.006 265)` (lifts, never inverts) |
+| `--bw-color-chart-tooltip-text` | authored | 17.2:1 on tooltip-bg | 14.0:1 on tooltip-bg |
+| `--bw-color-chart-tooltip-border` | authored | subtle lift, not a contrast affordance | subtle lift |
+
+**Why authored and not derived**, since the rest of section 4 derives heavily.
+BR-BW-TOK-002 already requires the load-bearing set be authored per theme, and
+these join it for a reason specific to a categorical palette: a single uniform
+formula applied across eight hues degrades the separation between them. Measured,
+mixing each colour toward white by a fixed percentage drops the all-pairs
+minimum from 0.1031 to 0.0877, 0.0774 and 0.0670 at 15, 25 and 35 percent. It
+does not destroy separation, so derivation is not impossible; it spends margin
+the brand retints need. `--bw-color-fg-on-accent` is the existing precedent for
+authoring where a value's correctness is a verified property of the specific
+colours rather than a percentage mix.
+
+**Hue is invariant across themes.** A series' identity is its hue, so only
+lightness and chroma are re-authored for dark. If a series changed hue between
+themes, a user switching theme would see it change identity and any legend or
+support conversation naming a colour would break.
+
+**A series must also stay clear of the chart's own chrome.** No series may sit
+within 0.08 in oklab of the axis, axis-label or gridline tokens, in either
+theme. That floor is lower than the 0.12 used between series, deliberately: two
+series must be told apart to read the data correctly, while a series confused
+with an axis label is a legibility annoyance rather than a misreading, and
+applying the stricter floor to the looser task would over-constrain a palette
+already carrying six other properties. The shipped palette holds 0.0870 light
+and 0.1202 dark.
+
+**The series palette carries a guarantee, with a stated scope.** Any two series
+stay distinguishable (all-pairs minimum 0.1453 light, 0.1520 dark against a
+0.12 floor, measured at the worst point of the retint envelope rather than at
+full chroma),
+hold at least 38 degrees of hue separation, and clear WCAG 1.4.11's 3:1 against
+their own surface (minimum 3.23:1 light, 3.27:1 dark), across brand retints down to
+70 percent of shipped chroma (`docs/BRANDING.md`).
+
+**Every one of those figures is measured on the colour a browser paints, not
+the value authored.** An oklch colour outside the sRGB gamut is clipped to the
+gamut boundary before it reaches a display, so an out-of-gamut palette's
+measured properties describe colours nobody sees. The whole palette is
+therefore solved to keep real headroom inside the gamut rather than merely
+inside it, and a test asserts that headroom as a positive margin. Sitting on
+the boundary is not good enough: an earlier palette passed a gamut check with a
+0.001 tolerance while one series sat at -0.00053, outside the gamut and passing
+only because the tolerance was wider than the excursion. This is not theoretical: an earlier version
+of this palette had eleven of sixteen series out of gamut and measured 0.1632
+as authored against 0.0787 as displayed, failing its own floor on any ordinary
+monitor.
+
+All six properties are executable in `tests/test_chart_series_contract.py`,
+which reads the built `tokens.css` rather than these sources. Contrast figures
+throughout this section are true sRGB relative luminance (oklch to oklab to
+linear sRGB, then the WCAG coefficients), not an approximation from oklch
+lightness.
+
+**The guarantee is scoped to normal colour vision.** Eight categorical colours
+cannot be made mutually distinguishable under dichromatic vision: the best
+achievable all-pairs floor across normal vision and all three dichromacies is
+0.1025, below the range this package's own evidence treats as distinguishable,
+and this palette measures 0.0430 at worst (deuteranopia, light). That is a
+property of eight-colour palettes, not of this one. COL-030's standing NO
+carries the case instead: meaning never rides on colour alone, and CHT-014's
+swatch-plus-text-label pairing is the mechanism. The measured figures are
+pinned by tests so they cannot degrade unnoticed.
+
+**Gridlines are deliberately exempt from the 3:1 floor.** A gridline is
+decoration that must recede behind the data, not a graphical object conveying
+information. The axis line, the axis label and the series are all held to a
+floor; the grid is not, and that is a decision rather than an oversight.
+
 ## 5. Elevation
 
 Six levels, values adopted from Tailwind 4's `--shadow-*` ramp (industry
@@ -758,6 +842,16 @@ unshipped extension point.
 | `--bw-component-htmx-indicator-opacity` **[NEW 0.9.0]** | `0.6` | STA-006 in-flight dimming of an htmx swap target via the `htmx-request` class convention; between disabled (0.5) and muted (0.7) so in-flight never reads as disabled; was `--bw-htmx-indicator-opacity` through 0.10.0, kept as a courtesy alias |
 
 ## 10. Reserved names (documented, deliberately not shipped)
+
+**Two kinds of reservation, which this section previously conflated.** A name
+here is *undecided*: documented so it is not accidentally reused, shipped only
+when a real consumer names the need. That is different from a name the spec has
+already committed to, whose shipping date alone is open. `--bw-color-chart-1`
+through `-chart-8` were the second kind before 3.13.0 and are now shipped; the
+avatar-fallback series below (ILL-006, `--bw-avatar-fallback-bg-{1..6}`) is also
+spec-committed rather than undecided, and is listed here only because it has no
+implementation yet. The distinction matters because a spec-committed name is not
+a candidate for reuse or renaming the way an undecided one is.
 
 `--bw-avatar-size-{sm,md,lg,xl}`, `--bw-aspect-ratio-avatar`,
 `--bw-aspect-ratio-media`, `--bw-motion-scale`, `--bw-backdrop-blur`,

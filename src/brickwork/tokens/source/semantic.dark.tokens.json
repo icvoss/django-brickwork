@@ -426,6 +426,132 @@
           "derived": "color-mix(in oklab, var(--bw-color-accent) 12%, var(--bw-color-surface))"
         }
       }
+    },
+    "chart-1": {
+      "$value": "{primitive.chart.dark.1}",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true,
+          "series": 1
+        }
+      }
+    },
+    "chart-2": {
+      "$value": "{primitive.chart.dark.2}",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true,
+          "series": 2
+        }
+      }
+    },
+    "chart-3": {
+      "$value": "{primitive.chart.dark.3}",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true,
+          "series": 3
+        }
+      }
+    },
+    "chart-4": {
+      "$value": "{primitive.chart.dark.4}",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true,
+          "series": 4
+        }
+      }
+    },
+    "chart-5": {
+      "$value": "{primitive.chart.dark.5}",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true,
+          "series": 5
+        }
+      }
+    },
+    "chart-6": {
+      "$value": "{primitive.chart.dark.6}",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true,
+          "series": 6
+        }
+      }
+    },
+    "chart-7": {
+      "$value": "{primitive.chart.dark.7}",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true,
+          "series": 7
+        }
+      }
+    },
+    "chart-8": {
+      "$value": "{primitive.chart.dark.8}",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true,
+          "series": 8
+        }
+      }
+    },
+    "chart-axis": {
+      "$value": "oklch(0.62 0.004 265)",
+      "$description": "Axis line and ticks. Authored, not derived from light (CHT-005, BR-BW-TOK-002). Measures 4.55:1 on the raised surface a chart card sits on.",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true
+        }
+      }
+    },
+    "chart-grid": {
+      "$value": "oklch(0.33 0.004 265)",
+      "$description": "Gridlines. Deliberately low contrast (1.39:1) on the raised surface, mirroring light's intent rather than its value: decoration that recedes behind the data.",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true
+        }
+      }
+    },
+    "chart-axis-label": {
+      "$value": "oklch(0.72 0.003 265)",
+      "$description": "Axis tick labels. Measures 6.69:1 on the raised surface.",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true
+        }
+      }
+    },
+    "chart-tooltip-bg": {
+      "$value": "oklch(0.279 0.006 265)",
+      "$description": "Chart tooltip background. In dark the tooltip lifts ABOVE the surface rather than inverting: an inverted (near-white) tooltip in a dark theme is a glare source.",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true
+        }
+      }
+    },
+    "chart-tooltip-text": {
+      "$value": "oklch(0.985 0.001 265)",
+      "$description": "Chart tooltip text. Measures 14.0:1 on the dark tooltip-bg, comfortably clear of AA.",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true
+        }
+      }
+    },
+    "chart-tooltip-border": {
+      "$value": "oklch(0.371 0.007 265)",
+      "$description": "Chart tooltip border: a subtle lift off the tooltip background.",
+      "$extensions": {
+        "bw": {
+          "authoredPerTheme": true
+        }
+      }
     }
   },
   "state": {
