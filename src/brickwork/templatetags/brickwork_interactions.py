@@ -122,9 +122,10 @@ def _rendered_attrs(tag: str, attrs: object) -> SafeString:
                 f"{tag} item attrs contains an invalid attribute name: {name!r}. This seam accepts only "
                 'consumer-owned data-* metadata (matching "data-[a-z][a-z0-9_.:-]*", excluding brickwork\'s '
                 "own reserved data-bw-* namespace); it is not a general attribute passthrough (ADR-083). "
-                "For an htmx interaction, author hx-* on your own element against a stable id the component "
-                "already renders, or use a named kwarg if the component ships one (as _filter_bar.html does "
-                "with hx_get/hx_target)."
+                "For an htmx interaction, author hx-* on an element you render yourself, or use a named "
+                "option where the component ships one (as _filter_bar.html does with hx_get/hx_target). "
+                "Where a component renders a stable id you can target that instead, but not every "
+                "component does, so check its own documentation rather than assuming one is available."
             )
         parts.append(format_html(' {}="{}"', name, value))
     return mark_safe("".join(parts))
