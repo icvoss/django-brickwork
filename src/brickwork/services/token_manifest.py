@@ -10,6 +10,7 @@ could move.
 
 Public surface (semver-stable names):
 - ``load_bearing()`` -> the load-bearing brand set as ``LoadBearingToken`` entries.
+- ``contrast_pairs()`` -> derived-pair contrast constraints as ``ContrastPairToken`` entries.
 - ``overridable_names()`` -> the full frozenset of overridable ``--bw-*`` names.
 - ``is_overridable(name)`` -> membership test against that set.
 - ``manifest()`` -> the whole parsed manifest dict (escape hatch).
@@ -45,6 +46,27 @@ class LoadBearingToken(TypedDict, total=False):
     collapsesTo: str
 
 
+class ContrastPairToken(TypedDict):
+    """One entry in the derived-pair contrast set (brickwork#289).
+
+    Distinct from ``LoadBearingToken``: a ``loadBearing`` entry is a token a
+    brand directly authors. A ``contrastPairs`` entry constrains two DERIVED
+    tokens neither of which a brand authors directly (e.g.
+    ``--bw-color-danger-fg`` against ``--bw-color-danger-subtle``), so it
+    carries both sides' live ``color-mix()`` expressions: a brand can still
+    break the pairing indirectly, by overriding one of the tokens the
+    expressions reference (the status hue, or ``--bw-color-surface``), and
+    neither derived token itself needs to appear in the brand's override dict
+    for that to happen.
+    """
+
+    name: str
+    derived: str | None
+    contrastPair: str
+    pairDerived: str | None
+    minContrast: float
+
+
 @lru_cache(maxsize=1)
 def manifest() -> dict:
     """The whole parsed token manifest (cached; read once per process)."""
@@ -61,6 +83,18 @@ def load_bearing() -> tuple[LoadBearingToken, ...]:
     manifest's order.
     """
     return tuple(manifest()["loadBearing"])
+
+
+@lru_cache(maxsize=1)
+def contrast_pairs() -> tuple[ContrastPairToken, ...]:
+    """Derived-pair contrast constraints (brickwork#289): two DERIVED tokens
+    that must clear ``minContrast`` against each other, independent of the
+    load-bearing brand set. Returned as an immutable tuple in the manifest's
+    order. Absent on a manifest built before brickwork#289 shipped (older
+    package pin), in which case this returns an empty tuple rather than
+    raising, so a caller does not need a version check.
+    """
+    return tuple(manifest().get("contrastPairs", ()))
 
 
 @lru_cache(maxsize=1)

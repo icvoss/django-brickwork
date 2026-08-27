@@ -174,11 +174,13 @@
       }
     },
     "danger-fg": {
-      "$value": "{primitive.red.700}",
-      "$description": "Text on danger-subtle. Mixed toward black to land on the 700 ramp step: the 600 base fails AA on the subtle tint (4.41); this lands at 5.84.",
+      "$value": "oklch(0.529 0.187 26.83)",
+      "$description": "brickwork#289: text on danger-subtle (and on plain surface: .bw-field__error, .bw-account-menu__item--danger). Was a fixed mix toward literal black, independent of --bw-color-surface; danger-subtle mixes toward surface, so a brand darkening surface closed the gap and dropped contrast below AA with no warning. Now mixed toward var(--bw-color-fg) (the theme's own ink), so darkening surface darkens danger-fg too: verified >= 4.5:1 against both danger-subtle and plain surface for surface L down to 0.939 (default is 5.33 on subtle, 5.84 on plain, at L=1.0; the issue's own crossing point for the old formula was L=0.986). Not the red.700 alias: mixing toward the ink token resolves a fractionally different hue than a pure-black mix.",
       "$extensions": {
         "bw": {
-          "derived": "color-mix(in oklab, var(--bw-color-danger) 88%, black)"
+          "derived": "color-mix(in oklab, var(--bw-color-danger) 87%, var(--bw-color-fg))",
+          "contrastPair": "color-danger-subtle",
+          "minContrast": 4.5
         }
       }
     },
@@ -220,11 +222,13 @@
       }
     },
     "warning-fg": {
-      "$value": "oklch(0.553 0.135 58)",
-      "$description": "Text on warning-subtle. Mixed toward black to land on the 700 ramp depth: the 600 base fails AA on the subtle tint (2.97); this lands at 4.67. A literal, not the amber.700 alias, because the amber ramp drifts toward hue 49 as it darkens while the black mix preserves the base's 58.",
+      "$value": "oklch(0.518 0.109 57.62)",
+      "$description": "brickwork#289: text on warning-subtle (and on plain surface: .bw-field__error, .bw-stat__trend). Was a fixed mix toward literal black, independent of --bw-color-surface; warning-subtle mixes toward surface, so darkening surface closed the gap and dropped contrast below AA (the reported defect: default was only 4.67, and any surface darker than L 0.986 failed). Now mixed toward var(--bw-color-fg): verified >= 4.5:1 against both warning-subtle and plain surface for surface L down to 0.937 (default is 5.36 on subtle, 5.74 on plain, at L=1.0).",
       "$extensions": {
         "bw": {
-          "derived": "color-mix(in oklab, var(--bw-color-warning) 83%, black)"
+          "derived": "color-mix(in oklab, var(--bw-color-warning) 68%, var(--bw-color-fg))",
+          "contrastPair": "color-warning-subtle",
+          "minContrast": 4.5
         }
       }
     },
@@ -266,11 +270,13 @@
       }
     },
     "success-fg": {
-      "$value": "{primitive.green.700}",
-      "$description": "Text on success-subtle. Mixed toward black to land on the 700 ramp step: the 600 base fails AA on the subtle tint (3.09); this lands at 4.70.",
+      "$value": "oklch(0.496 0.106 149.75)",
+      "$description": "brickwork#289: text on success-subtle (and on plain surface: .bw-field__error, .bw-stat__trend). Was a fixed mix toward literal black, independent of --bw-color-surface; success-subtle mixes toward surface, so darkening surface closed the gap and dropped contrast below AA. Now mixed toward var(--bw-color-fg): verified >= 4.5:1 against both success-subtle and plain surface for surface L down to 0.935 (default is 5.40 on subtle, 5.80 on plain, at L=1.0). Not the green.700 alias: mixing toward the ink token resolves a fractionally different hue than a pure-black mix.",
       "$extensions": {
         "bw": {
-          "derived": "color-mix(in oklab, var(--bw-color-success) 84%, black)"
+          "derived": "color-mix(in oklab, var(--bw-color-success) 69%, var(--bw-color-fg))",
+          "contrastPair": "color-success-subtle",
+          "minContrast": 4.5
         }
       }
     },
@@ -315,11 +321,13 @@
       }
     },
     "info-fg": {
-      "$value": "{primitive.cyan.700}",
-      "$description": "Text on info-subtle. Mixed toward black to land on the 700 ramp step: the 600 base fails AA on the subtle tint (3.54); this lands at 5.17.",
+      "$value": "oklch(0.501 0.083 225.55)",
+      "$description": "brickwork#289: text on info-subtle (and on plain surface: .bw-field__error, .bw-stat__trend). Was a fixed mix toward literal black, independent of --bw-color-surface; info-subtle mixes toward surface, so darkening surface closed the gap and dropped contrast below AA. Now mixed toward var(--bw-color-fg): verified >= 4.5:1 against both info-subtle and plain surface for surface L down to 0.936 (default is 5.38 on subtle, 5.82 on plain, at L=1.0). Not the cyan.700 alias: mixing toward the ink token resolves a fractionally different hue than a pure-black mix.",
       "$extensions": {
         "bw": {
-          "derived": "color-mix(in oklab, var(--bw-color-info) 85%, black)"
+          "derived": "color-mix(in oklab, var(--bw-color-info) 75%, var(--bw-color-fg))",
+          "contrastPair": "color-info-subtle",
+          "minContrast": 4.5
         }
       }
     },

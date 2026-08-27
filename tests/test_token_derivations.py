@@ -21,6 +21,7 @@ dangling var().
 from __future__ import annotations
 
 import json
+import math
 import re
 from pathlib import Path
 
@@ -107,14 +108,23 @@ def _hue_distance(h1: float, h2: float) -> float:
 
 
 def _evaluate(theme: _Theme, expression: str) -> tuple[float, float, float, float]:
-    """Linear oklch interpolation of a derived expression: (L, C, H, alpha).
+    """Cartesian oklab interpolation of a derived expression: (L, C, H, alpha).
 
     Baseline $values (never other derived expressions) resolve the var()
     references, so each token's tolerance is checked independently rather than
-    compounding down a chain. Hue follows CSS Color 4 interpolation: a
-    chroma-0 side is hue-powerless (treated as missing), so black, white,
-    transparent, and achromatic token partners pass the source hue through;
-    two chromatic sides interpolate along the shorter arc.
+    compounding down a chain. ``color-mix(in oklab, ...)`` interpolates the
+    RECTANGULAR (L, a, b) triple per CSS Color 4: there is no polar hue angle
+    inside oklab itself, only the a/b pair, so the mix is a linear blend of a
+    and b and the resulting hue is whatever ``atan2(b, a)`` says afterwards.
+    This naturally reproduces "an achromatic partner (black, white,
+    transparent, a chroma-0 token) passes the source hue through": achromatic
+    means a == b == 0, which leaves the source's own a/b, scaled by its
+    mix fraction, untouched by any hue-angle special case. A circular
+    shortest-arc hue interpolation (the previous model here) is an oklch
+    approximation and diverges from real color-mix(in oklab) once the
+    partner carries even a small nonzero chroma (e.g. the authored ink
+    token's C=0.005), which is why this function computes a/b directly
+    rather than interpolating L/C/H as three independent scalars.
     """
     var_match = _VAR.match(expression)
     if var_match:
@@ -127,26 +137,24 @@ def _evaluate(theme: _Theme, expression: str) -> tuple[float, float, float, floa
     base_name, percent, partner = mix_match.groups()
     p = float(percent) / 100.0
     l1, c1, h1, a1 = theme.components(base_name)
+    a_1, b_1 = c1 * math.cos(math.radians(h1)), c1 * math.sin(math.radians(h1))
     if partner == "transparent":
         # Premultiplied-alpha interpolation: the transparent side contributes no
         # colour, so the components pass through and only alpha scales.
         return (l1, c1, h1, p * a1)
     if partner == "black":
-        l2, c2, h2, a2 = 0.0, 0.0, None, 1.0
+        l2, a_2, b_2, a2 = 0.0, 0.0, 0.0, 1.0
     elif partner == "white":
-        l2, c2, h2, a2 = 1.0, 0.0, None, 1.0
+        l2, a_2, b_2, a2 = 1.0, 0.0, 0.0, 1.0
     else:
         l2, c2, h2, a2 = theme.components(partner[len("var(") : -1])
-        if c2 == 0.0:
-            h2 = None  # achromatic token partner: hue powerless
-    if h2 is None:
-        hue = h1
-    elif c1 == 0.0:
-        hue = h2
-    else:
-        delta = ((h2 - h1 + 180.0) % 360.0) - 180.0
-        hue = (h1 + (1 - p) * delta) % 360.0
-    return (p * l1 + (1 - p) * l2, p * c1 + (1 - p) * c2, hue, p * a1 + (1 - p) * a2)
+        a_2, b_2 = c2 * math.cos(math.radians(h2)), c2 * math.sin(math.radians(h2))
+    lightness = p * l1 + (1 - p) * l2
+    a_mix = p * a_1 + (1 - p) * a_2
+    b_mix = p * b_1 + (1 - p) * b_2
+    chroma = math.hypot(a_mix, b_mix)
+    hue = math.degrees(math.atan2(b_mix, a_mix)) % 360.0 if chroma > 0.0 else h1
+    return (lightness, chroma, hue, p * a1 + (1 - p) * a2)
 
 
 @pytest.mark.parametrize("theme", _themes(), ids=lambda t: t.name)

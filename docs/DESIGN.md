@@ -232,7 +232,7 @@ Six tiers per intent so an alert, badge, or toast never invents a value.
 | `--bw-color-X-subtle` | tinted bg | D | `color-mix(in oklab, var(--bw-color-X) 7%, var(--bw-color-surface))` | `color-mix(in oklab, var(--bw-color-X) P%, black)` (danger 26%, success 23%, warning 22%, info 26%; 0.4.0: lowered from 41/37/36/42 so the dark tints whisper like light; X-fg measures 7.22 to 10.77 on them) |
 | `--bw-color-X-border` **[NEW]** | tinted border | D | `color-mix(in oklab, var(--bw-color-X) 30%, var(--bw-color-surface))` (the badge/alert border, replacing invented inline mixes) | `color-mix(in oklab, var(--bw-color-X) 55%, black)` (clears the black-mixed subtle tint by delta-L >= 0.08, verified 0.184-0.254) |
 | `--bw-color-X-strong` **[NEW]** | border/emphasis | D | `color-mix(in oklab, var(--bw-color-X) 88%, black)` | **flips**: `color-mix(in oklab, var(--bw-color-X) 96%, white)` |
-| `--bw-color-X-fg` **[NEW]** | text on `X-subtle` | D | `color-mix(in oklab, var(--bw-color-X) P%, black)` (danger 88%, success 84%, warning 83%, info 85%), landing on the 700 ramp depth: the base itself fails AA on the subtle tint, the mix measures 5.84 / 4.70 / 4.67 / 5.17 | `color-mix(in oklab, var(--bw-color-X) 78%, white)` (lightness boost for AA on the dark tint) |
+| `--bw-color-X-fg` **[NEW]** | text on `X-subtle` (also painted on plain surface: `.bw-field__error`, `.bw-stat__trend`, `.bw-account-menu__item--danger`) | D | `color-mix(in oklab, var(--bw-color-X) P%, var(--bw-color-fg))` (danger 87%, success 69%, warning 68%, info 75%), mixed toward the theme's own ink rather than literal black: default measures 5.33-5.40 against `X-subtle` and 5.74-5.84 against plain surface (all at surface L=1.0), and stays >= 4.5:1 against BOTH backgrounds for `--bw-color-surface` overridden down to L ~0.937 (brickwork#289; see the trap note below) | `color-mix(in oklab, var(--bw-color-X) 78%, white)` (danger tightened to 73%, brickwork#289: the 78% value's plain-surface pairing degraded once dark surface lightened past ~L 0.35; warning/success/info already held at 78% and are unchanged); lightness boost for AA on the dark tint |
 | `--bw-color-X-on-fg` **[NEW]** | text on solid `X` | authored | `oklch(1 0 0)` for danger only (4.83, passes); near-black ink for warning, success, and info (white fails AA on the solid amber, green, and cyan bases: 3.19, 3.32, 3.83) | authored per hue, same rule (all four take near-black ink: the dark bases sit on the lighter 400/500 ramp steps, where white fails AA) |
 
 The dark `subtle` tier (accent included) mixes toward **black**, not the
@@ -243,12 +243,37 @@ is not chroma-free its 265 hue would dominate the interpolated hue, dragging
 a danger tint toward violet. Mixing toward black preserves the intent hue
 (black's hue is powerless) and reaches the authored depth.
 
+**brickwork#289: `X-fg` now tracks `--bw-color-surface`, closing a silent AA
+trap.** Through 3.12.0, `X-fg` mixed toward literal black regardless of
+surface, while `X-subtle` mixed toward `var(--bw-color-surface)`. Since
+`--bw-color-surface` is a documented, load-bearing, brand-overridable token,
+an ordinary customisation (darkening surface, with no status colour touched
+at all) closed the gap and dropped `warning-fg`/`success-fg` below 4.5:1 with
+no warning: default-surface warning measured only 4.68:1, and any surface
+darker than L ~0.986 failed. The fix mixes `X-fg` toward `var(--bw-color-fg)`
+(the theme's own ink) instead of literal black, so darkening surface darkens
+`X-fg` too, the same direction `X-subtle` moves. This is verified (both
+against `X-subtle` and against plain surface, the pairing `.bw-field__error`,
+`.bw-stat__trend`, and `.bw-account-menu__item--danger` actually use) to hold
+>= 4.5:1 for `--bw-color-surface` overridden anywhere down to about L 0.937,
+comfortably past BRANDING.md's own worked example (L 0.99) and the reported
+defect's crossing point (L 0.986). Below that floor the pairing is not
+guaranteed and a brand pushing a light theme's surface that dark should
+re-verify the status pairs directly. The `token-manifest.json` `contrastPairs`
+section (distinct from `loadBearing`: neither `X-fg` nor `X-subtle` is
+brand-authored) declares this constraint, and `render_brand_css()` enforces it
+even when the caller's override touches only `--bw-color-surface` or only the
+status base, with neither derived token named explicitly.
+
 **Branding note:** the account-menu's destructive item renders `danger-fg`
 text on `surface-raised` in dark. The default pair passes AA comfortably,
-but a brand whose dark `danger` is darker than about L 0.62 pushes the
-derived `danger-fg` (78% toward white) below AA on the raised surface; such
-a brand must re-verify the account-menu danger-on-raised pair and, if
-needed, author `--bw-color-danger-fg` directly.
+and the dark constant was tightened from 78% to 73% toward white
+(brickwork#289) so this pairing holds for a dark `--bw-color-surface`
+override up to about L 0.35 (double the default L 0.18); warning, success,
+and info already held at their existing 78% constant and are unchanged. A
+brand whose dark `danger` is darker than about L 0.62, or whose dark surface
+is lighter still, must re-verify the account-menu danger-on-raised pair and,
+if needed, author `--bw-color-danger-fg` directly.
 
 ### 4.6 Interactive state
 

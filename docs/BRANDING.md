@@ -139,7 +139,7 @@ load-bearing set:
 | the muted foregrounds (`-fg-muted`, `-fg-subtle`, `-icon-muted`) | mixed from `fg` toward `surface`, with theme-tuned constants. |
 | `-accent-hover` and `-accent-subtle` | shaded and tinted from `accent`. |
 | `--bw-color-focus-ring` | base theme derives a default from `accent`; `render_brand_css()` emits a separately verified OKLCH value for every tenant accent override. |
-| the status tiers (`X-subtle`, `X-strong`, `X-fg` for danger/success/warning/info) | derived per intent hue, so an alert, badge, or toast never invents a value. |
+| the status tiers (`X-subtle`, `X-strong`, `X-fg` for danger/success/warning/info) | derived per intent hue, so an alert, badge, or toast never invents a value. `X-fg` (the text painted on `X-subtle`, and on plain surface for `.bw-field__error`/`.bw-stat__trend`/the account-menu's danger item) tracks `--bw-color-surface` (brickwork#289): darkening your surface darkens the status text too, so overriding surface alone does not silently drop status contrast below AA. `render_brand_css()` checks this pairing (`token-manifest.json`'s `contrastPairs`) even when neither `X-fg` nor `X-subtle` is itself an override. |
 
 Hand-tuning the derived families is the override path, not the primary path: a
 flat value you set wins over the derivation through the CSS cascade. The focus

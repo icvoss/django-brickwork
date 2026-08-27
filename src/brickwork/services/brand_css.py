@@ -21,7 +21,7 @@ import re
 import warnings
 
 from brickwork.exceptions import BrickworkError
-from brickwork.services.token_manifest import load_bearing, overridable_names
+from brickwork.services.token_manifest import contrast_pairs, load_bearing, overridable_names
 
 # A brand value must be an oklch literal (BR-BW-TOK-003: brickwork's colour
 # contract is oklch) for a numeric contrast check. Tenant accent overrides and
@@ -80,6 +80,42 @@ _DEFAULT_FOCUS_SURFACES = {
         "--bw-color-surface-inverse": "oklch(0.93 0.002 265)",
     },
 }
+
+# brickwork#289: package-default oklch literals for every token a contrastPairs
+# derivation can reference, so _resolve_derived() below can evaluate a derived
+# pair's effective colour even when the caller overrode only ONE of its inputs
+# (the exact gap the contrastPairs manifest section exists to close: a brand
+# overriding only --bw-color-surface, with no explicit --bw-color-X-fg or
+# --bw-color-X-subtle in its override dict). Kept alongside
+# _DEFAULT_FOCUS_SURFACES rather than merged with it: this table is consulted
+# by expression resolution, not the focus-ring derivation.
+_DEFAULT_DERIVATION_INPUTS = {
+    "light": {
+        "--bw-color-surface": "oklch(1 0 0)",
+        "--bw-color-fg": "oklch(0.205 0.005 265)",
+        "--bw-color-danger": "oklch(0.577 0.215 27)",
+        "--bw-color-warning": "oklch(0.666 0.163 58)",
+        "--bw-color-success": "oklch(0.627 0.155 149)",
+        "--bw-color-info": "oklch(0.600 0.110 225)",
+    },
+    "dark": {
+        "--bw-color-surface": "oklch(0.18 0.005 265)",
+        "--bw-color-fg": "oklch(0.93 0.002 265)",
+        "--bw-color-danger": "oklch(0.637 0.208 25)",
+        "--bw-color-warning": "oklch(0.769 0.166 70)",
+        "--bw-color-success": "oklch(0.723 0.169 152)",
+        "--bw-color-info": "oklch(0.720 0.110 220)",
+    },
+}
+
+# The single-level color-mix grammar DESIGN.md section 3 restricts derived
+# expressions to (mirrors tests/test_token_derivations.py's _MIX so the two
+# never drift): color-mix(in oklab, var(--bw-color-X) N%, PARTNER), PARTNER
+# one of black, white, transparent, or var(--bw-color-*).
+_DERIVED_MIX = re.compile(
+    r"^color-mix\(in oklab, var\((--bw-color-[a-z0-9-]+)\) (\d+(?:\.\d+)?)%, "
+    r"(black|white|transparent|var\(--bw-color-[a-z0-9-]+\))\)$"
+)
 
 
 class BrandValidationError(BrickworkError):
@@ -183,6 +219,75 @@ def _contrast_ratio(a: str, b: str) -> float | None:
         return None
     lighter, darker = max(la, lb), min(la, lb)
     return (lighter + 0.05) / (darker + 0.05)
+
+
+def _resolve_token(name: str, values: dict[str, str], theme_label: str) -> str | None:
+    """The effective oklch literal for ``name``: the caller's override if given,
+    else the package default for that theme. Returns None for a name this table
+    does not know (the contrastPairs derivations only ever reference the status
+    bases, --bw-color-surface, and --bw-color-fg, all covered)."""
+    if name in values:
+        return values[name]
+    return _DEFAULT_DERIVATION_INPUTS.get(theme_label, {}).get(name)
+
+
+def _resolve_derived(expression: str, values: dict[str, str], theme_label: str) -> str | None:
+    """Evaluate a single-level ``color-mix(in oklab, var(--bw-color-X) N%, PARTNER)``
+    derived expression (DESIGN.md section 3 grammar) to a concrete ``oklch()``
+    literal, resolving each input against ``values`` (a brand's overrides) with a
+    package-default fallback. Returns None if the expression is not a recognised
+    var() or color-mix() reference, or if resolving an input fails (unparseable
+    override, or a reference outside the known input table).
+
+    This is what lets brickwork#289's contrastPairs check catch a brand that
+    overrides only --bw-color-surface (or only a status base): neither
+    --bw-color-X-fg nor --bw-color-X-subtle needs to be an explicit override for
+    their EFFECTIVE colours, under that one override, to be computed and checked.
+    Mirrors the Cartesian oklab mix in tests/test_token_derivations.py's
+    _evaluate(): color-mix(in oklab, ...) interpolates the rectangular (L, a, b)
+    triple, so an achromatic partner (black, white, transparent, or a token whose
+    own chroma is 0) passes the source hue through with no special-casing.
+    """
+    var_match = re.match(r"^var\((--bw-color-[a-z0-9-]+)\)$", expression)
+    if var_match:
+        return _resolve_token(var_match.group(1), values, theme_label)
+    mix_match = _DERIVED_MIX.match(expression)
+    if not mix_match:
+        return None
+    base_name, percent, partner = mix_match.groups()
+    base_value = _resolve_token(base_name, values, theme_label)
+    if base_value is None:
+        return None
+    base = _parse_oklch(base_value)
+    if base is None:
+        return None
+    p = float(percent) / 100.0
+    l1, c1, h1 = base
+    a1, b1 = c1 * math.cos(math.radians(h1)), c1 * math.sin(math.radians(h1))
+    if partner == "transparent":
+        # The status contrastPairs never mix toward transparent; guarded rather
+        # than silently mis-evaluated if that ever changes.
+        return None
+    if partner == "black":
+        l2, a2, b2 = 0.0, 0.0, 0.0
+    elif partner == "white":
+        l2, a2, b2 = 1.0, 0.0, 0.0
+    else:
+        partner_name = partner[len("var(") : -1]
+        partner_value = _resolve_token(partner_name, values, theme_label)
+        if partner_value is None:
+            return None
+        partner_parsed = _parse_oklch(partner_value)
+        if partner_parsed is None:
+            return None
+        l2, c2, h2 = partner_parsed
+        a2, b2 = c2 * math.cos(math.radians(h2)), c2 * math.sin(math.radians(h2))
+    lightness = p * l1 + (1 - p) * l2
+    a_mix = p * a1 + (1 - p) * a2
+    b_mix = p * b1 + (1 - p) * b2
+    chroma = math.hypot(a_mix, b_mix)
+    hue = math.degrees(math.atan2(b_mix, a_mix)) % 360.0 if chroma > 0.0 else h1
+    return f"oklch({lightness:.6f} {chroma:.6f} {hue:.4f})"
 
 
 def _focus_surfaces(values: dict[str, str], theme_label: str) -> tuple[str, str, str]:
@@ -293,6 +398,43 @@ def _validate(values: dict[str, str], theme_label: str) -> None:
                 f"brickwork: {entry['name']} fails contrast against {pair} in the {theme_label} block "
                 f"({ratio:.2f}:1 < {minimum}:1). The safe text colour flips per theme; do not assume "
                 f"white (docs/BRANDING.md, brickwork#35)."
+            )
+
+    # Derived-pair contrast constraints (brickwork#289): --bw-color-X-fg against
+    # --bw-color-X-subtle. Unlike the loadBearing loop above, NEITHER side needs
+    # to be an explicit override for this to fire: both are resolved through
+    # _resolve_derived(), which falls back to the package default for any input
+    # the caller did not override. This is what catches the reported defect
+    # (overriding --bw-color-surface alone, with neither -fg nor -subtle named)
+    # rather than only the case where a caller has typed a bad literal for both.
+    for pair_entry in contrast_pairs():
+        derived_expr = pair_entry.get("derived")
+        pair_derived_expr = pair_entry.get("pairDerived")
+        if not derived_expr or not pair_derived_expr:
+            continue
+        fg_value = _resolve_derived(derived_expr, normed, theme_label)
+        pair_value = _resolve_derived(pair_derived_expr, normed, theme_label)
+        if fg_value is None or pair_value is None:
+            # An override supplied a non-oklch literal for one of the inputs
+            # (hex, var(), a named colour): the pair genuinely cannot be
+            # resolved from here, so warn rather than silently skip.
+            warnings.warn(
+                f"brickwork: cannot resolve {pair_entry['name']} contrast against "
+                f"{pair_entry['contrastPair']} in the {theme_label} block (an input override is not "
+                f"a plain oklch() literal); verify it meets {pair_entry.get('minContrast', 4.5)}:1 "
+                f"yourself.",
+                stacklevel=3,
+            )
+            continue
+        ratio = _contrast_ratio(fg_value, pair_value)
+        minimum = pair_entry.get("minContrast", 4.5)
+        if ratio is not None and ratio < minimum:
+            raise BrandValidationError(
+                f"brickwork: {pair_entry['name']} would fail contrast against "
+                f"{pair_entry['contrastPair']} in the {theme_label} block ({ratio:.2f}:1 < "
+                f"{minimum}:1) under this override. Both are derived from --bw-color-surface (and "
+                f"the status hue itself); overriding surface alone can still break this pairing "
+                f"for an extreme enough value (brickwork#289)."
             )
 
     # Status hues collapsed onto accent: a warning, not an error (a brand may
