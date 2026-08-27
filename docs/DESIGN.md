@@ -737,10 +737,14 @@ who wants a different label face changes `--bw-font-family-sans` instead.
 **`code` is wired** (icvoss/django-brickwork#293). `.bw-prose code` consumes
 `--bw-text-code-family`; `.bw-prose pre` consumes `--bw-text-code-family`,
 `--bw-text-code-size` and `--bw-text-code-line-height`. Neither rule binds
-`-weight` or `-tracking`: neither previously set an explicit `font-weight`
-or `letter-spacing`, so binding those two would add an opinion the rule
-never expressed rather than close a gap, and the role's `normal`/`0em`
-defaults already match the inherited values a consumer would otherwise get.
+`-weight` or `-tracking`, and the reason differs between the two. `font-weight`
+is inert here: nothing on a path to either rule sets it, so binding it would
+change nothing today. `letter-spacing` is not. It inherits, and neither rule
+sets it, so a `.bw-prose` ancestor carrying tracking currently reaches code
+blocks; binding `--bw-text-code-tracking` would resolve to `0em` and act as a
+barrier, stopping it. **Binding tracking is a behaviour change, not a no-op**,
+which is the argument for deciding it deliberately rather than sweeping it in
+here.
 That is a deliberate exception to the wire-or-remove rule stated above, and
 it is held open rather than settled: `code` is not special here, its two are
 2 of 9 unconsumed role properties across the whole type scale, tracked and
