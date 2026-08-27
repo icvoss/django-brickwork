@@ -297,9 +297,11 @@ def test_documented_stat_tile_composition_actually_renders() -> None:
     # A documented composition that only ever lived in prose, never executed,
     # is how a sibling component shipped a docstring example that raised
     # TemplateSyntaxError; this proves the claim by rendering it.
-    gauge_markup = engines["django"].from_string(
-        '{% load brickwork_components %}{% bw_gauge value=73 size="sm" label="Storage used" %}'
-    ).render({})
+    gauge_markup = (
+        engines["django"]
+        .from_string('{% load brickwork_components %}{% bw_gauge value=73 size="sm" label="Storage used" %}')
+        .render({})
+    )
     out = render_to_string(
         "brickwork/components/_stat.html",
         {

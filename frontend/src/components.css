@@ -2158,9 +2158,13 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   /* --bw-gauge-dash-array/-offset are emitted inline as bare, fixed-format
      numbers (never a %/px-suffixed string): SVG's own stroke-dasharray/
      -dashoffset take unitless user-space units directly, so there is no
-     calc() translation step the way .bw-progress__fill's width needs. */
-  stroke-dasharray: var(--bw-gauge-dash-array);
-  stroke-dashoffset: var(--bw-gauge-dash-offset);
+     calc() translation step the way .bw-progress__fill's width needs.
+     Both carry a 0 fallback, which is the per-instance-hook convention
+     test_frontend_css_only_references_emitted_token_names keys on, and
+     degrades to an empty arc rather than invalid geometry if the inline
+     style is ever absent. */
+  stroke-dasharray: var(--bw-gauge-dash-array, 0);
+  stroke-dashoffset: var(--bw-gauge-dash-offset, 0);
   stroke-linecap: round;
   transition: stroke-dashoffset var(--bw-duration-normal) var(--bw-ease-standard);
 }

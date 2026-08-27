@@ -493,6 +493,16 @@
       "usedBySections": []
     },
     {
+      "name": "component/gauge",
+      "kind": "component",
+      "family": null,
+      "templatePath": "brickwork/components/_gauge.html",
+      "docSource": "brickwork/components/_gauge.html",
+      "consumption": "tag",
+      "usedByArchetypes": [],
+      "usedBySections": []
+    },
+    {
       "name": "component/hero",
       "kind": "component",
       "family": null,

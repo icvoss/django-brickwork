@@ -230,7 +230,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     accessible-name pairing plus the card's loading, error and empty
     states, moving the real count to 57/114. The sparkline work then added
     a sparkline fixture pair, covering the neutral and trend tones, the
-    highlight marker and the no-JS floor, moving the real count to 58/116.)
+    highlight marker and the no-JS floor, moving the real count to 59/118.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
