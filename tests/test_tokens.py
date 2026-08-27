@@ -435,9 +435,7 @@ def test_every_text_family_token_is_consumed_by_a_font_family_rule() -> None:
         "assertion cannot be exercised meaningfully against a singleton (see #286)"
     )
 
-    frontend_css = "\n".join(
-        path.read_text() for path in sorted(_FRONTEND_SRC.glob("*.css"))
-    )
+    frontend_css = "\n".join(path.read_text() for path in sorted(_FRONTEND_SRC.glob("*.css")))
     consumed_in_source = _consumed_text_family_tokens(frontend_css)
     consumed_in_dist = _consumed_text_family_tokens((_DIST / "brickwork.css").read_text())
 
@@ -445,8 +443,7 @@ def test_every_text_family_token_is_consumed_by_a_font_family_rule() -> None:
     dead_in_dist = sorted(defined - consumed_in_dist)
 
     assert not dead_in_source, (
-        f"--bw-text-*-family tokens defined but consumed by no font-family rule "
-        f"in frontend/src/*.css: {dead_in_source}"
+        f"--bw-text-*-family tokens defined but consumed by no font-family rule in frontend/src/*.css: {dead_in_source}"
     )
     assert not dead_in_dist, (
         f"--bw-text-*-family tokens defined but consumed by no font-family rule "
