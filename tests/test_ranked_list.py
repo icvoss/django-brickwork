@@ -891,16 +891,22 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     # comparison family, not a blanket ban across the package:
     # _progress.html is the ONE component built for a single quantity's
     # progress toward a known target, so it must go on carrying the full
-    # role/aria-valuenow/-valuemin/-valuemax wiring. The ARIA values
-    # themselves are already pinned by
-    # test_feedback.py::test_determinate_progress_has_full_aria_wiring, so
-    # this test does not re-assert those attributes (that would be a
-    # duplicate assertion on the same render, drifting into two slightly
-    # different opinions about the same wiring). Instead it encodes the
-    # boundary distinction using the group's own contract: the family's "no
-    # progressbar semantics" helper must actively RAISE against
-    # _progress.html's output, proving this component is deliberately
-    # outside the group rather than merely untested by it.
+    # role/aria-valuenow/-valuemin/-valuemax wiring.
+    #
+    # WHAT THIS TEST DOES AND DOES NOT PROVE, stated plainly because it was
+    # weakened deliberately and a reader should not have to infer that. It
+    # asserts _progress.html still carries the vocabulary, which is what
+    # makes "the ranked group forbids it" a SCOPED rule rather than a
+    # blanket one. It no longer proves that assertion via the group's own
+    # helper, so it no longer demonstrates the two components being judged
+    # by one contract; it now overlaps
+    # test_feedback.py::test_determinate_progress_has_full_aria_wiring,
+    # which pins the same attributes for a different reason. That overlap
+    # is a real cost, accepted knowingly: two tests asserting one property
+    # can drift into two opinions about it, and if this one ever
+    # contradicts test_feedback's, THIS one is the wrong one, because the
+    # ARIA wiring is that test's subject and only the boundary is this
+    # test's subject.
     #
     # Asserted directly rather than through assert_no_progressbar_semantics,
     # deliberately. That helper now locates its component through
