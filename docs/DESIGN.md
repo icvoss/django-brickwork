@@ -420,12 +420,21 @@ lightness and chroma are re-authored for dark. If a series changed hue between
 themes, a user switching theme would see it change identity and any legend or
 support conversation naming a colour would break.
 
+**A series must also stay clear of the chart's own chrome.** No series may sit
+within 0.08 in oklab of the axis, axis-label or gridline tokens, in either
+theme. That floor is lower than the 0.12 used between series, deliberately: two
+series must be told apart to read the data correctly, while a series confused
+with an axis label is a legibility annoyance rather than a misreading, and
+applying the stricter floor to the looser task would over-constrain a palette
+already carrying six other properties. The shipped palette holds 0.0870 light
+and 0.1202 dark.
+
 **The series palette carries a guarantee, with a stated scope.** Any two series
-stay distinguishable (all-pairs minimum 0.1398 light, 0.1565 dark against a
+stay distinguishable (all-pairs minimum 0.1453 light, 0.1520 dark against a
 0.12 floor, measured at the worst point of the retint envelope rather than at
 full chroma),
 hold at least 38 degrees of hue separation, and clear WCAG 1.4.11's 3:1 against
-their own surface (minimum 3.21:1 light, 3.29:1 dark), across brand retints down to
+their own surface (minimum 3.23:1 light, 3.27:1 dark), across brand retints down to
 70 percent of shipped chroma (`docs/BRANDING.md`).
 
 **Every one of those figures is measured on the colour a browser paints, not
@@ -451,7 +460,7 @@ lightness.
 cannot be made mutually distinguishable under dichromatic vision: the best
 achievable all-pairs floor across normal vision and all three dichromacies is
 0.1025, below the range this package's own evidence treats as distinguishable,
-and this palette measures 0.0299 at worst (tritanopia, light). That is a
+and this palette measures 0.0430 at worst (deuteranopia, light). That is a
 property of eight-colour palettes, not of this one. COL-030's standing NO
 carries the case instead: meaning never rides on colour alone, and CHT-014's
 swatch-plus-text-label pairing is the mechanism. The measured figures are

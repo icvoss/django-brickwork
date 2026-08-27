@@ -350,6 +350,16 @@ def test_axis_clears_the_non_text_contrast_floor(theme):
     information, so holding it to 3:1 would make it compete with the series.
     That exemption is a decision, recorded in the token's own $description,
     not an oversight.
+
+    **The exemption is from contrast against the SURFACE, and only that.** As
+    first written this docstring read as exempting gridlines generally, which
+    it never justified: "must recede behind the data" is an argument about the
+    page background and says nothing about whether a gridline may collide with
+    a series. A grid the colour of a series would make that series vanish
+    wherever the two cross. That separate question is covered by
+    test_series_stay_clear_of_chart_chrome below, where grid is measured rather
+    than exempted (it is the furthest chrome token from any series in both
+    themes, so it passes on evidence rather than on assertion).
     """
     ratio = _contrast(_relative_luminance(_token(theme, "chart-axis")), _relative_luminance(_SURFACE[theme]))
     assert ratio >= _CONTRAST_FLOOR, (
@@ -418,28 +428,29 @@ def test_tooltip_text_clears_aa_on_its_own_background(theme):
 # regardless of whether the assertions below still pass.
 
 # The measured floor across all three dichromacies and both themes, recorded in
-# ADR-082. A documented limit, not an aspiration: the true minimum is 0.0299
-# (tritanopia, light). Pinned just under what is measured,
+# ADR-082. A documented limit, not an aspiration: the true minimum is 0.0430
+# (deuteranopia, light). Pinned just under what is measured,
 # because a generous margin here would let the palette degrade silently, which
 # is the whole failure this figure exists to catch.
 #
-# This value has moved twice, and how it moved matters. It went 0.020 to 0.015
-# when the palette was first re-authored inside the sRGB gamut: the gamut fix
-# changed the colours and dragged the CVD figures down with them. This test
-# failed rather than tracking the change silently, which is what a pinned
-# measurement is for.
+# This value has moved four times and the DIRECTION is the point. It went 0.020
+# to 0.015 to 0.0073 as the palette was re-authored for sRGB gamut and then for
+# gamut headroom: each drop was a side effect of fixing something else, and each
+# re-pin would have been individually defensible.
 #
-# But a figure that only ever ratchets downward is a guarantee dissolving one
-# commit at a time. So rather than pin 0.0073 and move on, the palette was
-# re-solved with dichromatic separation as a RANKED OBJECTIVE among candidates
-# already meeting every hard constraint. That recovered it to 0.0299, four
-# times better than the gamut-only solve and twice the original 0.015.
+# A figure that only ever ratchets downward is a guarantee dissolving one commit
+# at a time, every step justified and the trend never examined. So instead of
+# pinning 0.0073, the palette was re-solved with dichromatic separation as a
+# RANKED OBJECTIVE among candidates already meeting every hard constraint. That
+# recovered it to 0.0299, and a later re-solve for chrome separation recovered
+# it again to 0.0430, now twice the recovered figure and better than any earlier
+# value. It has since moved UP more often than down.
 #
-# The lesson is the process, not the number: when a pinned measurement
-# degrades, ask whether it can be recovered before re-pinning it lower.
-# Re-measure and update deliberately; never widen the margin to make a failure
-# go away.
-_CVD_DOCUMENTED_FLOOR = 0.029
+# So the rule is not 'never lower this'. It is: when a pinned measurement
+# degrades, try to recover it before re-pinning it lower, and record which
+# happened. A floor that has only ever been re-pinned is a formality; one with
+# a recorded refusal has teeth.
+_CVD_DOCUMENTED_FLOOR = 0.042
 
 _LMS_SIM = {
     "protanopia": lambda l_ch, m_ch, s_ch: (2.02344 * m_ch - 2.52581 * s_ch, m_ch, s_ch),
@@ -540,4 +551,57 @@ def test_dichromatic_separation_is_no_worse_than_documented(theme, kind):
         f"worse than the {_CVD_DOCUMENTED_FLOOR} figure ADR-082 records. The palette has "
         "degraded for dichromatic viewers; ADR-082's recorded figures need re-measuring "
         "and the change needs justifying, not the floor lowering."
+    )
+
+
+# --- the seventh property: series against the chrome drawn over the same area
+# Found by enumerating the pairings rather than by inspection: the properties
+# above cover series-to-series, series-to-surface, series-to-itself-across-
+# themes, and series-to-display. None named series-to-chrome, and nothing else
+# in the suite did either.
+#
+# It was not hypothetical. A previous palette placed light series 5 at
+# oklch(0.483 0.051 201) while the axis label sits at oklch(0.480 0.003 265):
+# a lightness delta of 0.003, and so little chroma on the series that it read
+# as grey. A data series visually indistinguishable from the chart's own axis
+# furniture, which a line chart draws straight through.
+#
+# The floor is 0.08 rather than the 0.12 used between series, and the
+# difference is deliberate. The 0.12 floor exists because a reader must
+# attribute one line to one legend entry, so confusing two series means
+# misreading the data. Confusing a series with an axis label is a legibility
+# annoyance, not a misreading. Applying a floor calibrated for one task to a
+# different task is how a constraint set becomes unsatisfiable for no benefit.
+#
+# A blanket chroma floor was considered and rejected: at matched lightness a
+# series needs chroma above roughly 0.124 to clear 0.12 from near-achromatic
+# chrome, which would force all eight series unreasonably saturated and fight
+# the gamut and dichromacy constraints directly. The constraint has to be
+# lightness-aware, which a distance floor already is.
+_CHROME_SEPARATION_FLOOR = 0.08
+
+# Chrome a series is measured against. tooltip-bg and tooltip-border are
+# EXEMPT, and the reason is compositing rather than colour: a tooltip is an
+# opaque overlay, so a series behind it is occluded, not confused. That holds
+# whatever the values are. Whether a series swatch is ever drawn INSIDE a
+# tooltip is engine-determined (CHT-014 places the swatch in the legend, which
+# sits on the card surface and is covered by the surface-contrast test), so if
+# an adapter ever renders one there, this exemption needs revisiting.
+_CHROME_TOKENS = ("chart-axis", "chart-axis-label", "chart-grid")
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_series_stay_clear_of_chart_chrome(theme):
+    """No series may read as the chart's own axis, label or gridline."""
+    too_close = []
+    for name in _CHROME_TOKENS:
+        chrome = _as_displayed(_token(theme, name))
+        for idx, series in enumerate(_series(theme), start=1):
+            gap = _distance(chrome, _as_displayed(series))
+            if gap < _CHROME_SEPARATION_FLOOR:
+                too_close.append((name, idx, round(gap, 4)))
+    assert not too_close, (
+        f"{theme} theme: {too_close} sit closer than {_CHROME_SEPARATION_FLOOR} "
+        "in oklab, so a data series would read as chart furniture. Move the "
+        "series rather than the floor."
     )
