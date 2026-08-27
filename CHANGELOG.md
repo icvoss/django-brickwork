@@ -20,6 +20,17 @@ versioning contract).
   now rejected everywhere the seam exists, matching the rule's existing
   behaviour at every other call site.
 
+### Added
+
+- **`{% bw_dropdown %}`'s item `attrs` seam is documented** for the first
+  time, in the tag's own docstring and in `README.md` beside the equivalent
+  `data` seam on `_data_table.html`, `_stat.html` and `bw_ranked_list`, so
+  the two read as the one rule they now are. The seam has existed since
+  0.8.0 with no mention in any docstring, doc page, README or changelog
+  entry; that absence is why the narrowing above ships without a
+  deprecation window, since nobody could have learned the capability from
+  the package's own documentation.
+
 ### Changed
 
 - **`{% bw_dropdown %}` item `attrs` now accepts only `data-*` names**
@@ -37,9 +48,10 @@ versioning contract).
   for the consumer's own JS or htmx to read back. **Breaking**: a call
   passing a non-`data-*` name (including the previously-working `hx-post`)
   now raises `TemplateSyntaxError`. For an htmx interaction on a rendered
-  item, author `hx-*` on your own element against a stable id the component
-  already renders, or wait for a named kwarg on the component itself (the
-  `_filter_bar.html` `hx_get`/`hx_target` pattern) if that need resurfaces.
+  item, author `hx-*` on an element you render yourself (`bw_dropdown`
+  renders no id of its own to target), or wait for a named option on the
+  component itself (the `_filter_bar.html` `hx_get`/`hx_target` pattern) if
+  that need resurfaces.
 
 ## [3.12.0] - 2026-08-26
 
