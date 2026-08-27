@@ -314,8 +314,14 @@ def test_label_and_value_text_survive_with_all_colour_and_style_stripped() -> No
 
 
 def test_bar_is_aria_hidden_and_carries_no_visible_text_of_its_own() -> None:
-    out = _render(rows=[{"label": "Acme", "amount": 400}])
-    assert_bar_is_aria_hidden_and_empty(out, bar_class="bw-ranked-list__bar", expected_count=1)
+    # a fixture of THREE rows, not one: a single-row fixture cannot tell
+    # "every bar is aria-hidden" from "the only bar is aria-hidden", so it
+    # cannot exercise the "every element" guarantee this helper claims. A
+    # template that aria-hid only its first bar (e.g. `{% if forloop.first
+    # %}`) would still pass a one-row check while leaving every other row's
+    # geometry exposed to the accessibility tree.
+    out = _render()
+    assert_bar_is_aria_hidden_and_empty(out, bar_class="bw-ranked-list__bar", expected_count=3)
 
 
 def test_no_progressbar_role_on_any_row() -> None:
@@ -332,8 +338,13 @@ def test_label_and_value_spans_are_never_aria_hidden_only_the_bar_is() -> None:
     # a regression that copied aria-hidden from the bar onto the text spans
     # would remove the one channel COL-030 depends on while still passing
     # the "bar is aria-hidden" check above; guard the text spans separately.
-    out = _render(rows=[{"label": "Acme", "amount": 400}])
-    assert_text_nodes_are_not_aria_hidden(out, text_classes=("bw-ranked-list__label", "bw-ranked-list__value"))
+    # A fixture of THREE rows (six spans total), not one: see the "every
+    # element" reasoning on the bar test above; the same vacuity applies
+    # here identically.
+    out = _render()
+    assert_text_nodes_are_not_aria_hidden(
+        out, text_classes=("bw-ranked-list__label", "bw-ranked-list__value"), expected_count=6
+    )
 
 
 def test_geometry_is_a_unitless_custom_property_not_a_width_or_percent_string() -> None:
