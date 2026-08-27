@@ -754,43 +754,75 @@ def assert_bar_is_aria_hidden_and_empty(
 _FORBIDDEN_PROGRESS_ROLES = ("progressbar", "meter", "slider", "spinbutton", "scrollbar")
 
 
-def assert_no_progressbar_semantics(html: str) -> None:
+def assert_no_progressbar_semantics(html: str, *, component_tag: str, component_class: str) -> None:
     """Assert none of the single-quantity-progress ARIA vocabulary leaks
-    into an N-way comparison component (VIZ-015): the ``<progress>``/
-    ``<meter>`` elements themselves; ``role`` of ``progressbar``, ``meter``,
-    ``slider``, ``spinbutton`` or ``scrollbar`` (each carries an implicit or
-    explicit numeric value, the thing VIZ-015 forbids per row), including as
-    ONE TOKEN of a role token list (``role="presentation progressbar"`` is
-    legal ARIA and must still be caught); ``aria-valuenow``/-valuemin``/
-    -valuemax``/-valuetext``; and ``aria-roledescription="progress bar"``.
-    Case-insensitive, quote-agnostic (including entirely unquoted attribute
-    values) and whitespace-tolerant, so ``role='progressbar'``,
-    ``ROLE="METER"``, ``role = slider`` and ``role=progressbar`` are all
-    caught, not just the single canonical spelling.
+    into an N-way comparison component's own rendered element (VIZ-015): the
+    ``<progress>``/``<meter>`` elements themselves; ``role`` of
+    ``progressbar``, ``meter``, ``slider``, ``spinbutton`` or ``scrollbar``
+    (each carries an implicit or explicit numeric value, the thing VIZ-015
+    forbids per row), including as ONE TOKEN of a role token list
+    (``role="presentation progressbar"`` is legal ARIA and must still be
+    caught); ``aria-valuenow``/-valuemin``/-valuemax``/-valuetext``; and
+    ``aria-roledescription="progress bar"``. Case-insensitive, quote-agnostic
+    (including entirely unquoted attribute values) and whitespace-tolerant,
+    so ``role='progressbar'``, ``ROLE="METER"``, ``role = slider`` and
+    ``role=progressbar`` are all caught, not just the single canonical
+    spelling.
+
+    Scoped to the caller's own component, located via ``_find_elements``
+    exactly as every other helper in this module locates its subject before
+    asserting anything about it: ``component_tag``/``component_class`` name
+    the component's own root element (e.g. ``component_tag="ol",
+    component_class="bw-ranked-list"``), and every check below runs only against
+    that element's own subtree, never the whole document. A page that
+    renders a compliant fragment of this component ALONGSIDE an unrelated
+    ``role="progressbar"`` element elsewhere (a different component on the
+    same archetype/fixture page, or, tellingly, ``_progress.html`` itself,
+    which legitimately carries this vocabulary as the one component built
+    for that contract) must not fail this assertion merely because the
+    vocabulary exists somewhere in the document; a whole-document scan
+    cannot tell the two apart, which is exactly the defect this module's own
+    opening docstring names as the reason every helper locates its element
+    first. Asserts its own precondition first, matching ``_find_elements``'
+    other callers: the named component must actually be found, or "it
+    carries none of this vocabulary" is vacuously true of an element that
+    was never located.
 
     Deliberately OUT OF SCOPE: ``role="img"`` paired with a progress-shaped
     ``aria-label`` (e.g. "42% complete") is a semantic judgement about what
     the label text MEANS, which a mechanical regex over markup cannot make;
     catching that would need reading and understanding label text, not
-    matching structure, so it is not attempted here.
-
-    Scoped to the caller's own rendered fragment: it does not, and cannot,
-    assert anything about ``_progress.html``, which legitimately carries
-    this vocabulary as the one component built for that contract."""
-    lowered = html.lower()
-    for element in ("progress", "meter"):
-        assert not re.search(rf"<{element}\b", lowered), f"forbidden <{element}> element found"
-    role_values = re.findall(r'role\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))', lowered)
-    for double_quoted, single_quoted, unquoted in role_values:
-        role_value = double_quoted or single_quoted or unquoted
-        tokens = role_value.split()
-        forbidden_tokens = [token for token in tokens if token in _FORBIDDEN_PROGRESS_ROLES]
-        assert not forbidden_tokens, f"forbidden role token(s) {forbidden_tokens} found in role={role_value!r}"
-    for forbidden in ("aria-valuenow", "aria-valuemin", "aria-valuemax", "aria-valuetext"):
-        assert forbidden not in lowered, f"forbidden {forbidden!r} attribute found"
-    assert re.search(r'aria-roledescription\s*=\s*[\'"]?\s*progress\s*bar', lowered) is None, (
-        'forbidden aria-roledescription="progress bar" found'
-    )
+    matching structure, so it is not attempted here."""
+    component_matches = _find_elements(html, tag=component_tag, class_name=component_class)
+    assert component_matches, f"no <{component_tag} class={component_class!r}> element found in the rendered html"
+    for component_match in component_matches:
+        lowered = component_match.group(0).lower()
+        for element in ("progress", "meter"):
+            assert not re.search(rf"<{element}\b", lowered), (
+                f"forbidden <{element}> element found in <{component_tag} class={component_class!r}>"
+            )
+        # (?<![\w-]) anchors "role" to a real attribute-name boundary, the
+        # same convention _ARIA_HIDDEN_TRUE/_HIDDEN_ATTR use elsewhere in
+        # this module: without it, a search for "role=" is satisfied by the
+        # SUBSTRING inside a consumer-facing "data-role=" attribute, a false
+        # fail on markup that carries none of the vocabulary this helper
+        # forbids.
+        role_values = re.findall(r'(?<![\w-])role\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+))', lowered)
+        for double_quoted, single_quoted, unquoted in role_values:
+            role_value = double_quoted or single_quoted or unquoted
+            tokens = role_value.split()
+            forbidden_tokens = [token for token in tokens if token in _FORBIDDEN_PROGRESS_ROLES]
+            assert not forbidden_tokens, (
+                f"forbidden role token(s) {forbidden_tokens} found in role={role_value!r} "
+                f"inside <{component_tag} class={component_class!r}>"
+            )
+        for forbidden in ("aria-valuenow", "aria-valuemin", "aria-valuemax", "aria-valuetext"):
+            assert re.search(rf"(?<![\w-]){forbidden}", lowered) is None, (
+                f"forbidden {forbidden!r} attribute found in <{component_tag} class={component_class!r}>"
+            )
+        assert re.search(r'(?<![\w-])aria-roledescription\s*=\s*[\'"]?\s*progress\s*bar', lowered) is None, (
+            f'forbidden aria-roledescription="progress bar" found in <{component_tag} class={component_class!r}>'
+        )
 
 
 def assert_text_nodes_are_not_aria_hidden(

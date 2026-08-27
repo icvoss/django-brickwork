@@ -330,9 +330,178 @@ def test_no_progressbar_role_on_any_row() -> None:
     # progress toward a known target, so it deliberately carries no
     # progressbar semantics per row. _progress.html is the one component
     # that legitimately keeps full progressbar wiring; see the family
-    # boundary test near the end of this file.
+    # boundary test near the end of this file. Scoped to the <ol
+    # class="bw-ranked-list"> root itself, not the whole rendered string:
+    # see test_no_progressbar_semantics_is_scoped_to_the_named_component
+    # below for why that scoping matters.
     out = _render()
-    assert_no_progressbar_semantics(out)
+    assert_no_progressbar_semantics(out, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_no_progressbar_semantics_is_scoped_to_the_named_component() -> None:
+    # the helper once scanned the WHOLE rendered string, so a compliant
+    # ranked-list fragment sitting on a page alongside an unrelated
+    # role="progressbar" element (a different component on the same
+    # archetype/fixture page) failed, even though the ranked list itself
+    # carried none of the forbidden vocabulary. Scoping to the named
+    # component's own root element is what fixes that: the unrelated
+    # element must be invisible to this assertion.
+    out = _render()
+    page = f'{out}\n<div role="progressbar" aria-valuenow="40">unrelated widget</div>'
+    assert page != out, "the page-composition mutation did not change the rendered html: fixture assumption is stale"
+    assert_no_progressbar_semantics(page, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_data_prefixed_role_lookalike_does_not_false_fail() -> None:
+    # unanchored, a search for "role=" is satisfied by the SUBSTRING inside
+    # a consumer-facing "data-role=" attribute, which the component's own
+    # attrs_html/data seam can legitimately emit. Same defect class as
+    # data-aria-hidden elsewhere in this module (icvoss/django-brickwork#286).
+    out = _render()
+    mutated = out.replace(
+        '<span class="bw-ranked-list__label">', '<span class="bw-ranked-list__label" data-role="progressbar">', 1
+    )
+    assert mutated != out, "the data-role mutation did not change the rendered html: fixture assumption is stale"
+    assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_data_prefixed_aria_value_lookalikes_do_not_false_fail() -> None:
+    # same defect, the aria-value* attributes: "aria-valuenow" is a
+    # substring of "data-aria-valuenow", a legitimate consumer-facing
+    # data-* attribute name, and an unanchored bare-substring check cannot
+    # tell them apart.
+    out = _render()
+    mutated = out.replace(
+        '<span class="bw-ranked-list__label">',
+        '<span class="bw-ranked-list__label" data-aria-valuenow="1" data-aria-valuemin="0" '
+        'data-aria-valuemax="100" data-aria-valuetext="forty percent">',
+        1,
+    )
+    assert mutated != out, "the data-aria-value* mutation did not change the rendered html: fixture assumption is stale"
+    assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_role_progressbar_on_a_non_first_row_is_still_caught() -> None:
+    # mutate the SECOND row's <div>, not the first: the three rows render
+    # byte-identical, so a first-row-only mutation could not distinguish a
+    # genuine per-element check from one that only ever looks at the first
+    # match.
+    out = _render()
+    marker = '<div class="bw-ranked-list__row"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = f'{before}{marker}{second_before}<div class="bw-ranked-list__row" role="progressbar"{second_rest}'
+    assert mutated != out, "the role mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="progressbar"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_role_meter_is_caught() -> None:
+    out = _render()
+    marker = '<div class="bw-ranked-list__row"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = f'{before}{marker}{second_before}<div class="bw-ranked-list__row" role="meter"{second_rest}'
+    assert mutated != out, "the role mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="meter"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_role_slider_as_one_token_of_a_role_list_is_caught() -> None:
+    # role="presentation slider" is legal ARIA (a token list) and must still
+    # be caught: the forbidden vocabulary need not be the sole token.
+    out = _render()
+    marker = '<div class="bw-ranked-list__row"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = f'{before}{marker}{second_before}<div class="bw-ranked-list__row" role="presentation slider"{second_rest}'
+    assert mutated != out, "the role mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="slider"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_aria_valuenow_on_a_non_first_row_is_still_caught() -> None:
+    out = _render()
+    marker = '<div class="bw-ranked-list__row"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = f'{before}{marker}{second_before}<div class="bw-ranked-list__row" aria-valuenow="40"{second_rest}'
+    assert mutated != out, "the aria-valuenow mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="aria-valuenow"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_aria_valuemin_is_caught() -> None:
+    out = _render()
+    marker = '<div class="bw-ranked-list__row"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = f'{before}{marker}{second_before}<div class="bw-ranked-list__row" aria-valuemin="0"{second_rest}'
+    assert mutated != out, "the aria-valuemin mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="aria-valuemin"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_aria_valuemax_is_caught() -> None:
+    out = _render()
+    marker = '<div class="bw-ranked-list__row"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = f'{before}{marker}{second_before}<div class="bw-ranked-list__row" aria-valuemax="100"{second_rest}'
+    assert mutated != out, "the aria-valuemax mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="aria-valuemax"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_aria_valuetext_is_caught() -> None:
+    out = _render()
+    marker = '<div class="bw-ranked-list__row"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = (
+        f'{before}{marker}{second_before}<div class="bw-ranked-list__row" aria-valuetext="forty percent"{second_rest}'
+    )
+    assert mutated != out, "the aria-valuetext mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="aria-valuetext"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_progress_element_is_caught() -> None:
+    out = _render()
+    marker = '<span class="bw-ranked-list__bar"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = f"{before}{marker}{second_before}<progress></progress>{marker}{second_rest}"
+    assert mutated != out, "the <progress> mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="progress"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_meter_element_is_caught() -> None:
+    out = _render()
+    marker = '<span class="bw-ranked-list__bar"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = f"{before}{marker}{second_before}<meter></meter>{marker}{second_rest}"
+    assert mutated != out, "the <meter> mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="meter"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
+
+
+def test_aria_roledescription_progress_bar_is_caught() -> None:
+    out = _render()
+    marker = '<div class="bw-ranked-list__row"'
+    before, _, rest = out.partition(marker)
+    second_before, _, second_rest = rest.partition(marker)
+    mutated = (
+        f'{before}{marker}{second_before}<div class="bw-ranked-list__row" '
+        f'aria-roledescription="progress bar"{second_rest}'
+    )
+    assert mutated != out, (
+        "the aria-roledescription mutation did not change the rendered html: fixture assumption is stale"
+    )
+    with pytest.raises(AssertionError, match="aria-roledescription"):
+        assert_no_progressbar_semantics(mutated, component_tag="ol", component_class="bw-ranked-list")
 
 
 def test_label_and_value_spans_are_never_aria_hidden_only_the_bar_is() -> None:
@@ -734,4 +903,4 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     # outside the group rather than merely untested by it.
     out = render_to_string("brickwork/components/_progress.html", {"label": "Import progress", "value": 42})
     with pytest.raises(AssertionError):
-        assert_no_progressbar_semantics(out)
+        assert_no_progressbar_semantics(out, component_tag="div", component_class="bw-progress")
