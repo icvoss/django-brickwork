@@ -1021,6 +1021,81 @@ def render_ranked_list(theme: str) -> str:
     )
 
 
+# --- the _data_table.html empty-state action CTA (icvoss/django-brickwork#185)
+#
+# data-table-empty-cta-<theme>.html is a standalone (non-shell) page,
+# mirroring render_ranked_list's shape above: list-*/dashboard-*.html
+# already cover the populated/sortable/definition/selected states with
+# non-empty rows (AC-BW-077), so the empty branch's new action CTA is the
+# one surface not otherwise reached: neither fixture ever renders
+# _data_table.html with an empty rows list. Covers: the empty state's real
+# <a class="bw-btn bw-btn--primary"> anchor, keyboard-reachable and labelled
+# by empty_action_label, for both the records and definition variants.
+
+_DATA_TABLE_EMPTY_CTA_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data table empty state (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Data table empty state</h1>
+
+  <section aria-labelledby="data-table-empty-cta-records-heading">
+    <h2 id="data-table-empty-cta-records-heading">Records, empty, with action</h2>
+    __DATA_TABLE_EMPTY_CTA_RECORDS__
+  </section>
+
+  <section aria-labelledby="data-table-empty-cta-definition-heading">
+    <h2 id="data-table-empty-cta-definition-heading">Definition, empty, with action</h2>
+    __DATA_TABLE_EMPTY_CTA_DEFINITION__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def render_data_table_empty_cta(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    records_table = render_to_string(
+        "brickwork/components/_data_table.html",
+        {
+            "table_id": "properties-table",
+            "columns": [
+                {"label": "Name", "sortable": False},
+                {"label": "Status", "sortable": False},
+            ],
+            "rows": [],
+            "empty_heading": "No properties yet",
+            "empty_body": "Add your first property to see it listed here.",
+            "empty_action_href": "/properties/new/",
+            "empty_action_label": "Add your first property",
+        },
+    )
+    definition_table = render_to_string(
+        "brickwork/components/_data_table.html",
+        {
+            "table_id": "facts-table",
+            "variant": "definition",
+            "rows": [],
+            "empty_heading": "No facts yet",
+            "empty_body": "Facts appear here once the record is complete.",
+            "empty_action_href": "/facts/new/",
+            "empty_action_label": "Add a fact",
+        },
+    )
+    return (
+        _DATA_TABLE_EMPTY_CTA_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__DATA_TABLE_EMPTY_CTA_RECORDS__", records_table)
+        .replace("__DATA_TABLE_EMPTY_CTA_DEFINITION__", definition_table)
+    )
+
+
 # --- the bw_theme_switch fixtures (icvoss/django-brickwork#117) ---------------
 #
 # theme-switch-<theme>.html    a standalone page (mirrors render_inputs'
@@ -2807,6 +2882,10 @@ def main() -> None:
         # bw_ranked_list (#183): populated (linked rows), empty (with
         # action), and loading skeleton variants on one page
         (OUT / f"ranked-list-{theme}.html").write_text(render_ranked_list(theme))
+        # _data_table.html's empty-state action CTA (#185): records and
+        # definition variants, both rendered with zero rows and the new
+        # empty_action_href/empty_action_label passthrough
+        (OUT / f"data-table-empty-cta-{theme}.html").write_text(render_data_table_empty_cta(theme))
         # bw_theme_switch (#117): the no-JS floor (renders nothing usable,
         # the control ships the bw-theme-switch--pre-init class, icvoss/
         # django-brickwork#272, supersedes the unconditional hidden
