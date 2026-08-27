@@ -506,6 +506,15 @@ def bw_chart_mount(
     scope per ADR-083): the only attributes this tag emits are the ones
     named above, never arbitrary consumer-supplied attributes.
     """
+    # Stripped before testing, not merely truthiness-tested: a whitespace-only
+    # aria_label is truthy in Python and is NOT an accessible name to any
+    # screen reader, so testing truthiness alone would let a consumer satisfy
+    # a hard-required check by supplying nothing. A requirement that can be
+    # met with " " is not a requirement, and this one exists precisely because
+    # an unnamed chart is invisible.
+    aria_label = aria_label.strip()
+    aria_describedby = aria_describedby.strip()
+
     if decorative and (aria_label or aria_describedby):
         raise TemplateSyntaxError(
             "bw_chart_mount: pass either decorative=True or aria_label=/aria_describedby=, not both "

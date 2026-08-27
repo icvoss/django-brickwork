@@ -25,6 +25,8 @@ from django.template import Context, Template
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 
+from brickwork.templatetags.brickwork_components import bw_chart_mount
+
 
 def _mount(snippet: str, **context: object) -> str:
     return Template("{% load brickwork_components %}" + snippet).render(Context(context))
@@ -403,3 +405,29 @@ def test_mount_box_itself_reserves_min_block_size_and_aspect_ratio_via_css() -> 
     body = rule.group(1)
     assert "min-block-size: var(--bw-chart-mount-min-height" in body
     assert "aspect-ratio: var(--bw-chart-mount-aspect-ratio" in body
+
+
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_a_whitespace_only_accessible_name_is_not_a_name(blank: str) -> None:
+    """A hard-required check that " " satisfies is not a requirement.
+
+    A whitespace-only aria_label is truthy in Python and is NOT an accessible
+    name to any screen reader, so testing truthiness alone would let a
+    consumer meet CHT-012's mandatory contract by supplying nothing. That is
+    the same failure the missing role="img" produced: valid markup, a green
+    gate, and nothing reaching the user.
+    """
+    # Calls the tag function directly rather than through a template literal:
+    # a raw newline inside {% ... aria_label="..." %} does not survive Django's
+    # parser, so the template route would test the parser rather than this
+    # contract for two of the four cases.
+    with pytest.raises(TemplateSyntaxError):
+        bw_chart_mount(aria_label=blank)
+    with pytest.raises(TemplateSyntaxError):
+        bw_chart_mount(aria_describedby=blank)
+
+
+def test_a_padded_accessible_name_is_stripped_not_rejected() -> None:
+    """Stripping must not turn a real name with stray spaces into an error."""
+    out = _mount('{% bw_chart_mount aria_label="  Revenue by quarter  " %}')
+    assert 'aria-label="Revenue by quarter"' in out
