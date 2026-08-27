@@ -936,6 +936,17 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     # "Regex pattern did not match" rather than reporting the real state.
     # It still failed, so it was not vacuous, but it failed for a reason
     # that misdescribes what happened, and the pairing could shift again.
+    # Consequence, and it looks like a hole until you check: deleting ONLY
+    # role="progressbar" from _progress.html leaves this test PASSING, and
+    # that is correct rather than a gap. The role and aria-valuenow vary
+    # independently there (_progress.html:7 and :17-18: determinate carries
+    # both, indeterminate keeps the role and omits aria-valuenow), so a
+    # render missing one still carries progressbar semantics through the
+    # other and the family boundary is genuinely intact. Deleting BOTH
+    # fails, which is the real boundary loss. Do not "re-tighten" this by
+    # naming a single attribute: that is the mistake the previous guard
+    # made, reporting a healthy state as broken.
+    #
     # "forbidden" opens every detection message and appears in none of the
     # precondition messages, which is the distinction that matters. Note
     # "found in" does NOT work here even though it reads as though it
