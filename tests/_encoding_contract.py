@@ -75,15 +75,37 @@ THE SCOPE LADDER for "this text is available to the accessibility tree"
 (COL-030). Each fix so far closed one rung and left the rest untested;
 enumerating the whole ladder is what this module now guards, rung by rung:
 
-  1. the text node itself                              -- covered
-  2. the text element's own attributes                  -- covered
-  3. its subtree (a nested hiding child)                -- covered
-  4a. its immediate ancestor (the row wrapper)           -- covered
-  4b. an ancestor at the fragment root (the component's
-      own list element)                                 -- covered
-  5. ``aria-label`` overriding the element's own text    -- covered
-     ``aria-labelledby`` present at all                  -- covered, by
-        refusing the attribute outright rather than resolving it
+Each rung names the helper(s) that cover it, deliberately. "Covered" on
+its own is the ambiguity that hid a real gap: the own-tag rung was covered
+by one helper while the other that also claims it was blind, and because
+the sibling failed, the SUITE went red and the rung read as closed. A rung
+is covered by a helper only when THAT helper can see it, so the table has
+to say which, and a change adding a helper to a rung updates this table in
+the same commit.
+
+Read HIDDEN below as all five mechanisms at once: ``aria-hidden="true"``,
+the boolean ``hidden`` and ``inert`` attributes, and inline
+``display:none``/``visibility:hidden``. Every rung marked HIDDEN checks all
+five, via the single ``_removes_element_from_a11y_tree`` predicate rather
+than each site holding its own opinion about what hiding means.
+
+  1/2. the text node and the element's own
+       attributes, HIDDEN on its own tag     -- assert_text_nodes_are_not_aria_hidden
+                                                assert_text_survives_colour_and_style_stripped
+  3.   its subtree, HIDDEN on a nested child -- assert_text_nodes_are_not_aria_hidden
+                                                assert_text_survives_colour_and_style_stripped
+                                                (the latter via _visible_text)
+  4a.  its immediate ancestor, HIDDEN        -- assert_text_nodes_are_not_aria_hidden
+                                                assert_text_survives_colour_and_style_stripped
+  4b.  an ancestor at the fragment root      -- as 4a: the same ancestor range
+                                                scan, no depth limit
+  5.   ``aria-label`` overriding the text    -- assert_text_nodes_carry_no_accessible_name_override
+       ``aria-labelledby`` present at all    -- as above, by REFUSING the
+                                                attribute rather than resolving it
+
+Rungs 1/2 are one entry rather than two because no helper distinguishes
+them: an element's own attributes are read from its own opening tag, which
+is the same read either way.
 
 Rungs 1-4b were, until now, ARIA-only: each rung above enumerated
 ``aria-hidden`` and accessible-name overrides and stopped there, while the
