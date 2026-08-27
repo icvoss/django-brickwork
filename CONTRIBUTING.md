@@ -98,6 +98,51 @@ unreturned `.then()` chain carrying an `expect()`. See icvoss/django-brickwork#2
 CI runs this as its own step in the `a11y-gate` job. Run it locally before
 pushing if you touch a spec file.
 
+### Figures and claims about the codebase
+
+**A change that moves a figure or a claim about the codebase updates every
+occurrence of it, gated and ungated. The gated one is not the check.**
+
+Several documents state facts about what the package contains: token counts,
+fixture counts, "every X does Y", "component A already uses B". A few of those
+are gated by a test that derives them from a shipped artefact. Most are not,
+and the ungated ones sit in the same sentence, the same table, or the file
+next door.
+
+The failure is not forgetting the figure. It is fixing the gated one, watching
+the suite go green, and reading that as the figure being handled. It is not:
+the gate covers the occurrence it was written for, and says nothing about the
+prose beside it.
+
+This is not only about numbers. A claim about a set ("every other interactive
+control already meets this floor") and a claim about a mechanism ("`_x.html`
+already uses that passthrough") rot the same way and are harder to spot,
+because nothing about them looks like a fact that could go stale.
+
+**Five instances were found in a single day, in one package. None was caught
+by a gate. Every one was caught by grepping for the old value and reading each
+hit.** One had been wrong since 3.11.0, across two shipped releases, because
+the maintained figure beside it moved and it did not. Another appeared in a
+3.12.0 release note, describing a passthrough that the component it named did
+not have at the tag.
+
+When you change something a document counts or describes:
+
+- Grep for the old value or phrasing across `docs/`, `README.md`,
+  `CONTRIBUTING.md` and `CHANGELOG.md`, and read every hit rather than
+  replacing blind. Some are dated historical snapshots that must stay as they
+  are.
+- Derive figures from the shipped artefact rather than editing them by hand,
+  and read that artefact at an explicit git ref rather than from your working
+  tree. A worktree that is behind, mid-edit, or on another branch produces a
+  correct measurement of the wrong tree, which is how most of these got
+  published. Quote the ref with the number: a figure without it cannot be
+  checked by anyone else, even when it is right.
+- If a claim asserts the behaviour of code your change does not touch, verify
+  it or drop it. At the time of writing, the claim about your own change is
+  checked by the work in front of you and the claim about the other thing is
+  recalled, and nothing re-checks the recalled half before it ships.
+
 ---
 
 ## Repository Structure
