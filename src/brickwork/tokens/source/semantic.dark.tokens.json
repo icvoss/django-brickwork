@@ -88,6 +88,13 @@
         }
       }
     },
+    "status-fg-ink": {
+      "$value": "oklch(0.93 0.002 265)",
+      "$description": "brickwork#289 review round 2: the light-theme companion mixes X-fg toward this rather than var(--bw-color-fg) (see semantic.light.tokens.json for the full rationale). Dark X-fg already mixes toward literal white, not fg, so this token is unreferenced by any dark derivation; it is declared here only to keep the token name present in both theme files, matching every other semantic token (BR-BW-TOK-002), and so a brand that overrides it in light for symmetry has a defined dark counterpart rather than an inherited light leftover.",
+      "$extensions": {
+        "bw": {}
+      }
+    },
     "border": {
       "$value": "{primitive.gray.800}",
       "$extensions": {

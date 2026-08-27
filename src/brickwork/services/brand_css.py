@@ -89,10 +89,18 @@ _DEFAULT_FOCUS_SURFACES = {
 # --bw-color-X-subtle in its override dict). Kept alongside
 # _DEFAULT_FOCUS_SURFACES rather than merged with it: this table is consulted
 # by expression resolution, not the focus-ring derivation.
+#
+# --bw-color-status-fg-ink (brickwork#289 review round 2): the fixed mix
+# partner for every X-fg, deliberately distinct from --bw-color-fg so an
+# ordinary, documented fg override does not silently move status-text
+# contrast. Its default equals the light/dark fg default numerically, but the
+# two are independent inputs from here on: a caller's --bw-color-fg override
+# is NOT consulted when resolving status-fg-ink, matching the token source.
 _DEFAULT_DERIVATION_INPUTS = {
     "light": {
         "--bw-color-surface": "oklch(1 0 0)",
         "--bw-color-fg": "oklch(0.205 0.005 265)",
+        "--bw-color-status-fg-ink": "oklch(0.205 0.005 265)",
         "--bw-color-danger": "oklch(0.577 0.215 27)",
         "--bw-color-warning": "oklch(0.666 0.163 58)",
         "--bw-color-success": "oklch(0.627 0.155 149)",
@@ -101,6 +109,7 @@ _DEFAULT_DERIVATION_INPUTS = {
     "dark": {
         "--bw-color-surface": "oklch(0.18 0.005 265)",
         "--bw-color-fg": "oklch(0.93 0.002 265)",
+        "--bw-color-status-fg-ink": "oklch(0.93 0.002 265)",
         "--bw-color-danger": "oklch(0.637 0.208 25)",
         "--bw-color-warning": "oklch(0.769 0.166 70)",
         "--bw-color-success": "oklch(0.723 0.169 152)",
@@ -225,7 +234,8 @@ def _resolve_token(name: str, values: dict[str, str], theme_label: str) -> str |
     """The effective oklch literal for ``name``: the caller's override if given,
     else the package default for that theme. Returns None for a name this table
     does not know (the contrastPairs derivations only ever reference the status
-    bases, --bw-color-surface, and --bw-color-fg, all covered)."""
+    bases, --bw-color-surface, --bw-color-fg, and --bw-color-status-fg-ink, all
+    covered)."""
     if name in values:
         return values[name]
     return _DEFAULT_DERIVATION_INPUTS.get(theme_label, {}).get(name)

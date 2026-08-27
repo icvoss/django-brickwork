@@ -29,6 +29,7 @@
   --color-fg-subtle: var(--bw-color-fg-subtle);
   --color-fg-on-accent: var(--bw-color-fg-on-accent);
   --color-fg-on-inverse: var(--bw-color-fg-on-inverse);
+  --color-status-fg-ink: var(--bw-color-status-fg-ink);
   --color-border: var(--bw-color-border);
   --color-border-strong: var(--bw-color-border-strong);
   --color-border-control: var(--bw-color-border-control);

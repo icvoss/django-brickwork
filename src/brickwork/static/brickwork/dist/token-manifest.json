@@ -43,30 +43,58 @@
   "contrastPairs": [
     {
       "name": "--bw-color-danger-fg",
-      "derived": "color-mix(in oklab, var(--bw-color-danger) 87%, var(--bw-color-fg))",
+      "derived": "color-mix(in oklab, var(--bw-color-danger) 87%, var(--bw-color-status-fg-ink))",
       "contrastPair": "--bw-color-danger-subtle",
       "pairDerived": "color-mix(in oklab, var(--bw-color-danger) 7%, var(--bw-color-surface))",
       "minContrast": 4.5
     },
     {
+      "name": "--bw-color-danger-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-danger) 87%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-surface",
+      "pairDerived": "var(--bw-color-surface)",
+      "minContrast": 4.5
+    },
+    {
       "name": "--bw-color-warning-fg",
-      "derived": "color-mix(in oklab, var(--bw-color-warning) 68%, var(--bw-color-fg))",
+      "derived": "color-mix(in oklab, var(--bw-color-warning) 68%, var(--bw-color-status-fg-ink))",
       "contrastPair": "--bw-color-warning-subtle",
       "pairDerived": "color-mix(in oklab, var(--bw-color-warning) 7%, var(--bw-color-surface))",
       "minContrast": 4.5
     },
     {
+      "name": "--bw-color-warning-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-warning) 68%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-surface",
+      "pairDerived": "var(--bw-color-surface)",
+      "minContrast": 4.5
+    },
+    {
       "name": "--bw-color-success-fg",
-      "derived": "color-mix(in oklab, var(--bw-color-success) 69%, var(--bw-color-fg))",
+      "derived": "color-mix(in oklab, var(--bw-color-success) 69%, var(--bw-color-status-fg-ink))",
       "contrastPair": "--bw-color-success-subtle",
       "pairDerived": "color-mix(in oklab, var(--bw-color-success) 7%, var(--bw-color-surface))",
       "minContrast": 4.5
     },
     {
+      "name": "--bw-color-success-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-success) 69%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-surface",
+      "pairDerived": "var(--bw-color-surface)",
+      "minContrast": 4.5
+    },
+    {
       "name": "--bw-color-info-fg",
-      "derived": "color-mix(in oklab, var(--bw-color-info) 75%, var(--bw-color-fg))",
+      "derived": "color-mix(in oklab, var(--bw-color-info) 75%, var(--bw-color-status-fg-ink))",
       "contrastPair": "--bw-color-info-subtle",
       "pairDerived": "color-mix(in oklab, var(--bw-color-info) 7%, var(--bw-color-surface))",
+      "minContrast": 4.5
+    },
+    {
+      "name": "--bw-color-info-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-info) 75%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-surface",
+      "pairDerived": "var(--bw-color-surface)",
       "minContrast": 4.5
     }
   ],
@@ -100,6 +128,7 @@
     "--bw-color-info-on-fg",
     "--bw-color-info-strong",
     "--bw-color-info-subtle",
+    "--bw-color-status-fg-ink",
     "--bw-color-success",
     "--bw-color-success-border",
     "--bw-color-success-fg",

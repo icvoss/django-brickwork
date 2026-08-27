@@ -149,6 +149,61 @@ def test_status_hue_equal_to_accent_warns_not_raises() -> None:
     assert "--bw-color-danger:" in css
 
 
+def test_surface_override_that_breaks_status_subtle_pairing_raises() -> None:
+    # brickwork#289: darkening surface alone, with no status colour or X-fg/
+    # X-subtle override, breaks the danger-fg vs danger-subtle pairing at this
+    # lightness (measured 4.02:1 < 4.5:1). This is the reported defect.
+    with pytest.raises(BrandValidationError, match="danger-fg.*fail contrast against.*danger-subtle"):
+        render_brand_css({"color-surface": "oklch(0.90 0 0)"})
+
+
+def test_surface_override_that_breaks_status_plain_surface_pairing_raises() -> None:
+    # brickwork#289 blocker 2: X-fg is also painted directly on plain surface
+    # (.bw-field__error, .bw-stat__trend, .bw-account-menu__item--danger), not
+    # only on X-subtle. A gate declaring only the -subtle pairing would miss a
+    # surface override breaking this one; both are declared and both are
+    # independently violated by this same override (verified separately in
+    # test_token_manifest.py's contrastPairs coverage test).
+    with pytest.raises(BrandValidationError, match="danger-fg"):
+        render_brand_css({"color-surface": "oklch(0.90 0 0)"})
+
+
+def test_surface_override_at_the_published_floor_passes() -> None:
+    # The conservative published floor (DESIGN.md section 4.5): L 0.94, rounded
+    # toward safety from the measured worst-family crossing (danger, L 0.9390).
+    css = render_brand_css({"color-surface": "oklch(0.94 0 0)"})
+    assert "--bw-color-surface:" in css
+
+
+def test_status_base_override_that_breaks_status_contrast_raises() -> None:
+    # The contrastPairs check re-resolves every input the derivation
+    # references, not only --bw-color-surface: an extreme --bw-color-danger
+    # override raises the same way a surface override does.
+    with pytest.raises(BrandValidationError, match="danger-fg"):
+        render_brand_css({"color-danger": "oklch(0.95 0.02 27)"})
+
+
+def test_status_fg_ink_override_that_breaks_status_contrast_raises() -> None:
+    # A brand authoring --bw-color-status-fg-ink directly (rare) is choosing a
+    # formula input, not bypassing the derivation, so it is checked the same
+    # way an --bw-color-fg override to the SAME extreme value is not (the
+    # whole point of the two being independent tokens).
+    with pytest.raises(BrandValidationError, match="danger-fg"):
+        render_brand_css({"color-status-fg-ink": "oklch(0.95 0.01 265)"})
+
+
+def test_fg_override_alone_does_not_break_status_text_contrast() -> None:
+    # brickwork#289 review round 2 (blocker 3): an earlier fix mixed X-fg
+    # toward var(--bw-color-fg), which traded the surface trap for an
+    # equivalent fg trap, since --bw-color-fg is itself one of the seven
+    # load-bearing tokens BRANDING.md tells every brand to author. This light
+    # fg override measured danger-fg on danger-subtle at 3.55:1 under that
+    # derivation. X-fg now mixes toward the dedicated --bw-color-status-fg-ink
+    # token instead, so the same override must raise nothing.
+    css = render_brand_css({"color-fg": "oklch(0.95 0.01 265)"})
+    assert "--bw-color-fg:" in css
+
+
 def test_validate_false_skips_all_checks() -> None:
     # an unknown name and a failing contrast pair would both raise under
     # validate=True; validate=False must emit them unchecked.
