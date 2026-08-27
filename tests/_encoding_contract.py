@@ -81,8 +81,9 @@ enumerating the whole ladder is what this module now guards, rung by rung:
   4a. its immediate ancestor (the row wrapper)           -- covered
   4b. an ancestor at the fragment root (the component's
       own list element)                                 -- covered
-  5. ``aria-label``/``aria-labelledby`` overriding the
-      element's own text                                -- PARTIALLY covered
+  5. ``aria-label`` overriding the element's own text    -- covered
+     ``aria-labelledby`` present at all                  -- covered, by
+        refusing the attribute outright rather than resolving it
 
 Rungs 1-3 are what the original nested-``aria-hidden``-child fix closed:
 the element's own tag and everything strictly inside it. Rungs 4a/4b are
@@ -94,24 +95,27 @@ ancestor, so wrapping the row (4a) or the whole ``<ol>`` (4b) in
 accessibility tree while every prior check, scoped to the element's own
 tag and descendants, stayed green.
 
-Rung 5 is only partially reachable by a regex over markup, and that
-boundary is deliberate rather than an oversight. An element's own
+Rung 5 is closed in two different ways, and the difference is deliberate
+rather than an oversight. An element's own
 ``aria-label`` REPLACES its text content as the accessible name, so text
 that survives stripping can still be unreachable to a screen reader.
 ``assert_text_nodes_carry_no_accessible_name_override`` below closes that
 case explicitly. Note the text-content checks alone do NOT catch it: they
 read rendered inner text and never inspect ``aria-label``, so a needle
 goes on matching while the accessible name is something else entirely.
-``aria-labelledby`` pointing at an ID elsewhere in the document
-is NOT reachable here: resolving it needs finding the referenced element
-by ID anywhere in the fragment and reading ITS hidden state, which is a
-second, ID-indexed lookup this module does not build, so a text element
-whose accessible name is overridden by a hidden ``aria-labelledby``
-target elsewhere in the document can pass every check here while its
-real accessible name is empty or wrong. Neither the ranked-list template
-nor any current family member uses ``aria-labelledby``, so this is a
-structural limit of the regex approach, stated here rather than implied
-as covered.
+RESOLVING an ``aria-labelledby`` is not reachable here: it needs finding
+the referenced element by ID anywhere in the fragment and reading ITS
+text and hidden state, which is a second, ID-indexed lookup this module
+does not build. So the helper does not resolve the attribute, it REFUSES
+it: any ``aria-labelledby`` on a text-bearing element fails, whatever it
+points at. That is deliberately conservative, and it is the honest shape
+available. Resolving it would mean claiming to check a name this module
+cannot compute, and passing it silently would mean a text element whose
+accessible name comes from a hidden target elsewhere sails through every
+check with its real name empty or wrong. Refusing says plainly which of
+the two it does. No current family member uses ``aria-labelledby``, so
+the refusal costs nothing today; a member that genuinely needs it should
+change this helper deliberately rather than work around it.
 """
 
 from __future__ import annotations
@@ -415,13 +419,13 @@ def assert_bar_is_aria_hidden_and_empty(
         )
     for match in bar_matches:
         element = match.group(0)
-        # quote-agnostic, matching what _find_elements itself accepts: the
-        # element matcher tolerates single quotes, so a double-quoted
-        # substring check here would reject markup the matcher just found
-        # and report it as "not aria-hidden" when it plainly is.
-        assert re.search(r'aria-hidden\s*=\s*["\']?\s*true', element, re.IGNORECASE) is not None, (
-            f"{bar_class!r} element is not aria-hidden: {element!r}"
-        )
+        # _ARIA_HIDDEN_TRUE, the SAME constant _enclosing_aria_hidden_ranges
+        # uses, rather than a second pattern written here. Two patterns for
+        # one attribute disagreed: a looser local version accepted mismatched
+        # quotes AND matched data-aria-hidden, so a bar that was never hidden
+        # passed as hidden, while the ancestor scan (correctly anchored)
+        # disagreed about the same markup. One attribute, one pattern.
+        assert _ARIA_HIDDEN_TRUE.search(element) is not None, f"{bar_class!r} element is not aria-hidden: {element!r}"
         if not element.endswith("/>"):
             inner = element[element.index(">") + 1 : element.rindex("<")]
             assert inner == "", f"{bar_class!r} element carries visible text of its own: {inner!r}"

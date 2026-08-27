@@ -361,6 +361,19 @@ def test_label_and_value_spans_carry_no_accessible_name_override() -> None:
     )
 
 
+def test_a_data_prefixed_lookalike_is_not_read_as_aria_hidden() -> None:
+    # the bar check once used its own looser aria-hidden regex than the
+    # ancestor scan, and it matched data-aria-hidden, so a bar that was
+    # never hidden passed as hidden. One attribute must mean one pattern:
+    # a second pattern for the same attribute is a disagreement waiting to
+    # become a false pass.
+    out = _render(rows=[{"label": "Acme", "amount": 400}])
+    lookalike = out.replace('aria-hidden="true"', 'data-aria-hidden="true"')
+    assert lookalike != out, "the data- prefix mutation did not change the rendered html: fixture assumption is stale"
+    with pytest.raises(AssertionError, match="not aria-hidden"):
+        assert_bar_is_aria_hidden_and_empty(lookalike, bar_class="bw-ranked-list__bar", expected_count=1)
+
+
 def test_an_aria_label_on_a_text_span_is_caught_as_a_name_override() -> None:
     # teeth-check for the helper above, in the matched-the-wrong-thing
     # direction: the needles still match because the inner text is
