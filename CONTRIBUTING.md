@@ -73,6 +73,31 @@ ruff format .
 
 CI will fail if either check reports errors. Run both before pushing.
 
+### Accessibility spec linting
+
+The `a11y/**/*.spec.mjs` Playwright specs are linted separately with ESLint
+and `eslint-plugin-playwright` (`eslint.config.mjs`, scoped to that
+directory only; this is not general JS linting for the repo).
+
+```bash
+npm run a11y:lint
+```
+
+The rule set targets one specific defect class: a synchronous matcher
+wrapping an async callback, most often `expect(async () => {...}).not.toThrow()`,
+makes an assertion that cannot fail. `.not.toThrow()` checks whether the
+*call* threw, not whether the returned promise rejects, so the unawaited
+work inside the callback leaks past test teardown and surfaces later as
+`Error: page.evaluate: Test ended`, which reads as infrastructure flake
+rather than the assertion bug it is. `playwright/no-restricted-matchers`
+bans `toThrow`/`not.toThrow` outright for this reason.
+`playwright/missing-playwright-await` and `playwright/valid-expect-in-promise`
+catch the related shapes of a missing `await` on a Playwright matcher or an
+unreturned `.then()` chain carrying an `expect()`. See icvoss/django-brickwork#276.
+
+CI runs this as its own step in the `a11y-gate` job. Run it locally before
+pushing if you touch a spec file.
+
 ---
 
 ## Repository Structure
