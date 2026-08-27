@@ -908,6 +908,14 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     # ARIA wiring is that test's subject and only the boundary is this
     # test's subject.
     #
+    # THE OVERLAP IS TEMPORARY AND OWNED BY #290. When the rewrite makes
+    # _progress.html's root locatable, this test goes back to calling
+    # assert_no_progressbar_semantics and the duplication is deleted. That
+    # is written down here and in #290's acceptance criteria so the rewrite
+    # has a specific thing to remove, rather than inheriting a duplication
+    # nobody remembers was deliberate: an accepted cost with no owner
+    # decays into a residue that later reads as an accident.
+    #
     # Asserted directly rather than through assert_no_progressbar_semantics,
     # deliberately. That helper now locates its component through
     # _find_elements, which cannot match _progress.html's root: the root
