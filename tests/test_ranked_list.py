@@ -901,6 +901,24 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     # progressbar semantics" helper must actively RAISE against
     # _progress.html's output, proving this component is deliberately
     # outside the group rather than merely untested by it.
+    #
+    # Asserted directly rather than through assert_no_progressbar_semantics,
+    # deliberately. That helper now locates its component through
+    # _find_elements, which cannot match _progress.html's root: the root
+    # <div> nests further <div>s and the matcher is documented as not a
+    # general nested-tag parser. Routing the boundary through it therefore
+    # raised on "no element found" rather than on the vocabulary, and went
+    # on passing with every progressbar attribute scrubbed out of the
+    # markup. A test that cannot fail is worse than an absent one, and this
+    # is the single test certifying the family boundary.
+    #
+    # Wrapping the render in a locatable probe element does not rescue it
+    # either, for the same nesting reason, so the honest shape is to assert
+    # the property here and say why. Locating a root that contains same-tag
+    # children is #290's job; this test must not depend on it.
     out = render_to_string("brickwork/components/_progress.html", {"label": "Import progress", "value": 42})
-    with pytest.raises(AssertionError):
-        assert_no_progressbar_semantics(out, component_tag="div", component_class="bw-progress")
+    assert 'role="progressbar"' in out, (
+        "_progress.html no longer carries role='progressbar': the family boundary has moved, and the "
+        "ranked group's no-progressbar rule can no longer be described as scoped rather than blanket"
+    )
+    assert "aria-valuenow" in out, "_progress.html no longer carries aria-valuenow: see above"
