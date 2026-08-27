@@ -501,7 +501,7 @@
     },
     "chart-axis": {
       "$value": "oklch(0.62 0.004 265)",
-      "$description": "Axis line and ticks. Authored, not derived from light (CHT-005, BR-BW-TOK-002). Measures 3.93:1 on the raised surface a chart card sits on.",
+      "$description": "Axis line and ticks. Authored, not derived from light (CHT-005, BR-BW-TOK-002). Measures 4.55:1 on the raised surface a chart card sits on.",
       "$extensions": {
         "bw": {
           "authoredPerTheme": true
@@ -519,7 +519,7 @@
     },
     "chart-axis-label": {
       "$value": "oklch(0.72 0.003 265)",
-      "$description": "Axis tick labels. Measures 5.40:1 on the raised surface.",
+      "$description": "Axis tick labels. Measures 6.69:1 on the raised surface.",
       "$extensions": {
         "bw": {
           "authoredPerTheme": true
@@ -537,7 +537,7 @@
     },
     "chart-tooltip-text": {
       "$value": "oklch(0.985 0.001 265)",
-      "$description": "Chart tooltip text. Measures 12.1:1 on the dark tooltip-bg.",
+      "$description": "Chart tooltip text. Measures 14.0:1 on the dark tooltip-bg, comfortably clear of AA.",
       "$extensions": {
         "bw": {
           "authoredPerTheme": true

@@ -517,7 +517,7 @@
     },
     "chart-axis": {
       "$value": "oklch(0.45 0.004 265)",
-      "$description": "Axis line and ticks. Authored per theme, never derived (CHT-005). Measures 5.37:1 on the default surface: an axis is a non-text graphical object and clears WCAG 1.4.11's 3:1.",
+      "$description": "Axis line and ticks. Authored per theme, never derived (CHT-005). Measures 7.44:1 on the default surface: an axis is a non-text graphical object and clears WCAG 1.4.11's 3:1.",
       "$extensions": {
         "bw": {
           "authoredPerTheme": true
@@ -534,8 +534,8 @@
       }
     },
     "chart-axis-label": {
-      "$value": "oklch(0.507 0.003 265)",
-      "$description": "Axis tick labels. Matches fg-muted's authored value rather than referencing it, because CHT-005 requires axis chrome be authored per theme and a consumer retinting body text should not silently move chart axis labels. Measures 4.37:1: this is text, so it clears AA.",
+      "$value": "oklch(0.48 0.003 265)",
+      "$description": "Axis tick labels. Authored per theme (CHT-005), and deliberately DARKER than fg-muted's 0.507 rather than reusing it: fg-muted is tuned for body text and measures 4.37:1 on the base surface, which is below the 4.5:1 AA floor once the value is held to a text standard. Chart axis labels are small text on a card, so they are authored at 6.5:1 instead. Caught by test_axis_label_clears_the_text_contrast_floor, which did not exist when the value was first copied from fg-muted.",
       "$extensions": {
         "bw": {
           "authoredPerTheme": true
@@ -553,7 +553,7 @@
     },
     "chart-tooltip-text": {
       "$value": "oklch(0.985 0.001 265)",
-      "$description": "Chart tooltip text. Measures 14.7:1 on tooltip-bg.",
+      "$description": "Chart tooltip text. Measures 17.2:1 on tooltip-bg, comfortably clear of AA for the small text a tooltip carries.",
       "$extensions": {
         "bw": {
           "authoredPerTheme": true
