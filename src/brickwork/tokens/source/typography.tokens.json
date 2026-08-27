@@ -35,40 +35,34 @@
       "family": { "$value": "var(--bw-font-family-sans)" },
       "size": { "$value": "var(--bw-font-size-md)" },
       "line-height": { "$value": "var(--bw-font-line-height-snug)" },
-      "weight": { "$value": "var(--bw-font-weight-semibold)" },
-      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+      "weight": { "$value": "var(--bw-font-weight-semibold)" }
     },
     "heading-sm": {
       "family": { "$value": "var(--bw-font-family-sans)" },
       "size": { "$value": "var(--bw-font-size-sm)" },
       "line-height": { "$value": "var(--bw-font-line-height-snug)" },
-      "weight": { "$value": "var(--bw-font-weight-semibold)" },
-      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+      "weight": { "$value": "var(--bw-font-weight-semibold)" }
     },
     "body-lg": {
       "size": { "$value": "var(--bw-font-size-lg)" },
       "line-height": { "$value": "var(--bw-font-line-height-relaxed)" },
-      "weight": { "$value": "var(--bw-font-weight-normal)" },
-      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+      "weight": { "$value": "var(--bw-font-weight-normal)" }
     },
     "body-md": {
       "family": { "$value": "var(--bw-font-family-sans)" },
       "size": { "$value": "var(--bw-font-size-md)" },
       "line-height": { "$value": "var(--bw-font-line-height-normal)" },
-      "weight": { "$value": "var(--bw-font-weight-normal)" },
-      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+      "weight": { "$value": "var(--bw-font-weight-normal)" }
     },
     "body-sm": {
       "size": { "$value": "var(--bw-font-size-sm)" },
       "line-height": { "$value": "var(--bw-font-line-height-normal)" },
-      "weight": { "$value": "var(--bw-font-weight-normal)" },
-      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+      "weight": { "$value": "var(--bw-font-weight-normal)" }
     },
     "label": {
       "size": { "$value": "var(--bw-font-size-sm)" },
       "line-height": { "$value": "var(--bw-font-line-height-none)" },
-      "weight": { "$value": "var(--bw-font-weight-medium)" },
-      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+      "weight": { "$value": "var(--bw-font-weight-medium)" }
     },
     "caption": {
       "family": { "$value": "var(--bw-font-family-sans)" },
@@ -88,8 +82,7 @@
       "family": { "$value": "var(--bw-font-family-mono)" },
       "size": { "$value": "var(--bw-font-size-sm)" },
       "line-height": { "$value": "var(--bw-font-line-height-normal)" },
-      "weight": { "$value": "var(--bw-font-weight-normal)" },
-      "tracking": { "$value": "var(--bw-font-tracking-normal)" }
+      "weight": { "$value": "var(--bw-font-weight-normal)" }
     }
   }
 }
