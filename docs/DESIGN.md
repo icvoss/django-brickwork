@@ -560,9 +560,24 @@ fails the build instead of shipping unnoticed.
 `body-sm` and `label` deliberately have no `-family` property: those roles
 inherit the sans stack from `.bw-body` rather than pinning it per role, so a
 per-size body family cannot be set without also touching `--bw-font-family-sans`,
-which is the intended override point. Every other role's `-family` token is
-consumed by at least one rule; there is no role in this list whose `-family`
-token is defined but unused by any component.
+which is the intended override point. A per-size body family would make body
+copy internally inconsistent rather than giving a consumer a real theming
+lever, so this is a deliberate design choice, not an oversight; a consumer
+who wants a different label face changes `--bw-font-family-sans` instead.
+
+**`code` is a known, separately tracked gap, not a wired role.**
+`.bw-prose code` and `.bw-prose pre` read `--bw-font-family-mono` directly,
+bypassing the role layer entirely (they never resolve through
+`--bw-text-code-family`), which is the "components consume roles, never raw
+scale steps" rule stated above, violated. `--bw-text-code-family` is
+therefore shipped but consumed by nothing: exactly the false-affordance
+shape #288 fixed for the other nine `-family` tokens, except here the fix
+is wiring the existing rules to the role rather than deleting an unused
+property, and it changes a live rendering path in every consumer's prose,
+so it ships as its own change under its own review rather than riding in on
+#288. `tests/test_tokens.py` carries a single, named exemption for
+`--bw-text-code-family` in `_TEXT_FAMILY_EXEMPT` for exactly this reason;
+every other role's `-family` token is consumed by at least one rule.
 
 | Role | Family | Size | Leading | Weight | Tracking |
 |---|---|---|---|---|---|
@@ -578,7 +593,7 @@ token is defined but unused by any component.
 | `label` | *(none, inherits `.bw-body`)* | sm | none | medium | normal |
 | `caption` | sans | xs | normal | normal | normal |
 | `overline` | sans | 2xs | none | semibold | wider |
-| `code` | mono | sm | normal | normal | normal |
+| `code` | mono (defined, not yet wired; see below) | sm | normal | normal | normal |
 
 **Component map:** page-header title heading-xl (description body-md +
 fg-muted); empty-state heading heading-lg, body body-md + fg-muted +

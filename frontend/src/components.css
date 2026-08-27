@@ -3546,7 +3546,7 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   border-radius: var(--bw-radius-sm);
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg);
-  font-family: var(--bw-text-code-family);
+  font-family: var(--bw-font-family-mono);
   /* Relative, so inline code tracks whichever role it is nested in (a heading,
    * a table cell, body text) rather than pinning to one absolute size. */
   font-size: 0.9em;
@@ -3572,9 +3572,9 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   /* A long code line scrolls its own block instead of widening the page: the
    * mobile-first floor ADR-057 section 1 requires. */
   overflow-x: auto;
-  font-family: var(--bw-text-code-family);
-  font-size: var(--bw-text-code-size);
-  line-height: var(--bw-text-code-line-height);
+  font-family: var(--bw-font-family-mono);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-font-line-height-normal);
 }
 /* A code element inside a pre is the block's own text: the inline chip
  * treatment (background, padding, radius) must not apply twice. */

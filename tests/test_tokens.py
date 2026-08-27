@@ -355,6 +355,17 @@ def test_dist_brickwork_css_has_no_var_inside_a_media_condition() -> None:
 # block in tokens.css (the 0.10.0 courtesy-alias block) could quietly break.
 _TEXT_FAMILY_TOKEN = re.compile(r"--bw-text-[a-z0-9]+(?:-[a-z0-9]+)*-family")
 
+# The `code` role deliberately bypasses the role layer: .bw-prose code/pre
+# read --bw-font-family-mono directly (DESIGN.md 7.4), not this token, so
+# --bw-text-code-family is a genuine token-nothing-reads exemption, not a
+# bug. Wiring it means changing what a live rendering path (every
+# consumer's prose) resolves through, which is out of scope for the #288
+# false-affordance fix and is tracked as its own issue. This is a named,
+# single-token exemption, never a pattern: a second token added here
+# without the same justification is a regression, not a fix, and the
+# quantifier assertion below still fails for it.
+_TEXT_FAMILY_EXEMPT = frozenset({"--bw-text-code-family"})
+
 
 def _defined_text_family_tokens() -> set[str]:
     manifest = json.loads((_DIST / "token-manifest.json").read_text())
@@ -389,6 +400,19 @@ def _consumed_text_family_tokens(css: str) -> set[str]:
     return consumed
 
 
+def test_text_family_exemption_list_is_not_stale() -> None:
+    # The exemption above is only honest if the token it names still exists.
+    # If the code role is later wired (or the token deleted outright), this
+    # fails and forces the exemption to be removed in the same change,
+    # rather than it sitting there silently exempting nothing forever.
+    defined = _defined_text_family_tokens()
+    stale = sorted(_TEXT_FAMILY_EXEMPT - defined)
+    assert not stale, (
+        f"--bw-text-*-family exemption names a token no longer in the manifest "
+        f"(remove it from _TEXT_FAMILY_EXEMPT): {stale}"
+    )
+
+
 def test_every_text_family_token_is_consumed_by_a_font_family_rule() -> None:
     # #288: 7 of 13 shipped --bw-text-*-family tokens were read by nothing,
     # so setting them had no effect (a false affordance). This is the
@@ -398,7 +422,13 @@ def test_every_text_family_token_is_consumed_by_a_font_family_rule() -> None:
     # (frontend/src/*.css, what a contributor actually writes) and the
     # compiled bundle (dist/brickwork.css, what a consumer actually loads),
     # so a build-pipeline drop between the two is caught either way.
-    defined = _defined_text_family_tokens()
+    #
+    # --bw-text-code-family is excluded via the named _TEXT_FAMILY_EXEMPT
+    # set above (the `code` role bypasses the role layer by design pending
+    # its own issue); every other token must still be consumed, and adding
+    # a second token to that exemption without matching justification does
+    # not shrink what this assertion checks.
+    defined = _defined_text_family_tokens() - _TEXT_FAMILY_EXEMPT
     assert defined, "expected at least one --bw-text-*-family token in the manifest"
     assert len(defined) > 1, (
         "the defined set has only one member; an 'every token has a consumer' "
