@@ -145,6 +145,48 @@ def _contrast(l1: float, l2: float) -> float:
     return (a + 0.05) / (b + 0.05)
 
 
+def _in_srgb_gamut(colour: tuple[float, float, float], tolerance: float = 0.001) -> bool:
+    """Is this oklch colour renderable in sRGB without clipping?"""
+    return all(-tolerance <= v <= 1.0 + tolerance for v in _oklab_to_linear_rgb(*_oklab(*colour)))
+
+
+def _as_displayed(colour: tuple[float, float, float]) -> tuple[float, float, float]:
+    """The colour a browser actually paints, in oklab.
+
+    CSS Color 4 clips an out-of-gamut colour to the destination gamut, so an
+    authored value outside sRGB is NOT what a viewer sees. Every property in
+    this module is asserted on this function's output rather than on the
+    authored oklch, because a guarantee about colours no display can produce
+    is not a guarantee.
+
+    This is the defect that made the sixth property necessary. Eleven of the
+    sixteen originally-authored series were out of gamut, and the light
+    palette measured 0.1632 as authored against 0.0787 as displayed, failing
+    its own floor on every ordinary monitor. The authored figures were not
+    merely optimistic: the worst pair moved from 6/7 to 5/7 under clipping, so
+    they pointed at the wrong problem as well as the wrong magnitude.
+    """
+    r, g, b = _oklab_to_linear_rgb(*_oklab(*colour))
+    r, g, b = (max(0.0, min(1.0, v)) for v in (r, g, b))
+    return _linear_rgb_to_oklab(r, g, b)
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_every_series_is_renderable_in_srgb(theme):
+    """The sixth property: an authored colour outside sRGB is not the shipped colour.
+
+    Without this, every other assertion in this module can measure a colour no
+    browser will paint. It is listed last among the properties but it is
+    logically first: it is what makes the others describe reality.
+    """
+    out_of_gamut = [idx for idx, c in enumerate(_series(theme), start=1) if not _in_srgb_gamut(c)]
+    assert not out_of_gamut, (
+        f"{theme} theme: series {out_of_gamut} fall outside sRGB and will be clipped by the "
+        "browser, so the colour shipped is not the colour authored. Re-author them inside "
+        "the gamut rather than relaxing this check."
+    )
+
+
 @pytest.mark.parametrize("theme", ["light", "dark"])
 @pytest.mark.parametrize("chroma_scale", _RETINT_CHROMA_STEPS)
 def test_all_pairs_separation_holds_across_the_retint_envelope(theme, chroma_scale):
@@ -155,7 +197,7 @@ def test_all_pairs_separation_holds_across_the_retint_envelope(theme, chroma_sca
     authored and can see. The guarantee bites on brand palettes the package will
     never observe, so the retint is simulated here.
     """
-    palette = [_oklab(L, C * chroma_scale, h) for L, C, h in _series(theme)]
+    palette = [_as_displayed((L, C * chroma_scale, h)) for L, C, h in _series(theme)]
     worst, i, j = _all_pairs_min(palette)
     assert worst >= _SEPARATION_FLOOR, (
         f"{theme} theme at chroma x{chroma_scale}: series {i + 1} and {j + 1} are "
@@ -190,7 +232,7 @@ def test_contrast_against_own_surface(theme):
     """
     surface = _relative_luminance(_SURFACE[theme])
     for idx, colour in enumerate(_series(theme), start=1):
-        ratio = _contrast(_relative_luminance(colour), surface)
+        ratio = _contrast(_relative_luminance(colour), surface)  # clipped inside
         assert ratio >= _CONTRAST_FLOOR, (
             f"{theme} theme: series {idx} measures {ratio:.2f}:1 against its surface, "
             f"below WCAG 1.4.11's {_CONTRAST_FLOOR}:1 for non-text graphical objects."
