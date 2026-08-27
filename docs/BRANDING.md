@@ -156,6 +156,39 @@ decoration. Almost every brand has a red and a green intent even if not in the
 logo palette; author them rather than reusing the accent, so destructive and
 positive actions read correctly.
 
+### The retint envelope for categorical series (chroma x0.7)
+
+One brand override carries a guarantee the others do not, and that guarantee
+has a stated limit. The chart series palette (`--bw-color-chart-1` through
+`-chart-8`) promises that any two series stay visually distinguishable from
+each other, including after you retint them (ADR-082). Distinguishability
+between eight colours is a property of the whole set, so unlike a contrast
+check it can be destroyed by a change that leaves every individual colour
+looking fine.
+
+**The limit: brickwork guarantees the series stay distinguishable while your
+retinted palette keeps at least 70 percent of the shipped chroma.** Below
+that, the guarantee no longer holds and you should verify your own palette.
+
+This is a statement about what the package guarantees, not a prohibition. You
+may retint however your brand requires. But desaturating the series heavily
+compresses exactly the dimension their distinctness is carried on: as chroma
+falls, the hue differences between series shrink with it while lightness
+differences do not, so a heavily desaturated palette converges toward a set of
+greys separated only by lightness. Measured across candidate palettes, no
+eight-series palette can hold the separation threshold once chroma falls to 60
+percent of shipped, which is why the guaranteed envelope stops above that
+rather than at the point where colours become individually unattractive.
+
+If you need a heavily desaturated chart palette, the supported route is to
+author the eight series yourself with lightness deliberately spread, rather
+than scaling the shipped values down uniformly: lightness separation survives
+desaturation and hue separation does not.
+
+The envelope is stated here because an unstated one goes vacuous exactly when
+it matters. Without it, a consumer retints past the limit, series collide, and
+nothing in the documentation says whose expectation was wrong.
+
 ## The four axes
 
 - **Theme (`data-theme="light|dark"`)** is the required dark-mode mechanism, and
