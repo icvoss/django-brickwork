@@ -10,6 +10,32 @@ versioning contract).
 
 ### Fixed
 
+- **Consumer attribute values are now escaped even when already marked
+  safe** (ADR-083). `format_html` does not escape a value that is already a
+  `SafeString`, by its documented contract, so a consumer value carrying
+  `mark_safe` closed the attribute's quote and injected arbitrary live
+  attributes onto the component's own element. A value of
+  `mark_safe('" role="progressbar"')` rendered a real `role="progressbar"`,
+  which is precisely the outcome ADR-083's abstentions argument exists to
+  prevent: the seam's name grammar cannot defend it, because the value
+  reaches the same markup position. Affected every call site of both
+  seams (`_stat.html`, `_data_table.html` rows, `bw_ranked_list` roots and
+  rows, `bw_dropdown` items), and both now escape explicitly.
+
+  A consumer holds a `SafeString` routinely, from `format_html`, a model
+  property, or any helper returning pre-escaped HTML, without intending
+  anything by it. Plain string values were always escaped correctly and are
+  unaffected; verified byte-identical rendering for strings, integers,
+  `Decimal`, `None`, booleans, lists and lazy translations.
+
+  **Also a behaviour change worth naming separately:** a value implementing
+  the `__html__` protocol is now escaped through its `__str__` rather than
+  being trusted as pre-rendered HTML. That closed the same injection by a
+  second route. If you were relying on `__html__` to emit markup through
+  this seam, that never worked as a supported path and now does not work at
+  all: this seam carries consumer metadata, never HTML.
+
+
 - **`{% bw_dropdown %}` item `attrs` no longer accepts `data-bw-*`**
   (icvoss/django-brickwork#305). The reserved namespace exclusion that
   `bw_data_attrs` already enforces for `_data_table.html`, `_stat.html` and
