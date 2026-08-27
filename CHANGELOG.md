@@ -8,6 +8,77 @@ versioning contract).
 
 ## Unreleased
 
+### Fixed
+
+- **Consumer attribute values are now escaped even when already marked
+  safe** (ADR-083). `format_html` does not escape a value that is already a
+  `SafeString`, by its documented contract, so a consumer value carrying
+  `mark_safe` closed the attribute's quote and injected arbitrary live
+  attributes onto the component's own element. A value of
+  `mark_safe('" role="progressbar"')` rendered a real `role="progressbar"`,
+  which is precisely the outcome ADR-083's abstentions argument exists to
+  prevent: the seam's name grammar cannot defend it, because the value
+  reaches the same markup position. Affected every call site of both
+  seams (`_stat.html`, `_data_table.html` rows, `bw_ranked_list` roots and
+  rows, `bw_dropdown` items), and both now escape explicitly.
+
+  A consumer holds a `SafeString` routinely, from `format_html`, a model
+  property, or any helper returning pre-escaped HTML, without intending
+  anything by it. Plain string values were always escaped correctly and are
+  unaffected; verified byte-identical rendering for strings, integers,
+  `Decimal`, `None`, booleans, lists and lazy translations.
+
+  **Also a behaviour change worth naming separately:** a value implementing
+  the `__html__` protocol is now escaped through its `__str__` rather than
+  being trusted as pre-rendered HTML. That closed the same injection by a
+  second route. If you were relying on `__html__` to emit markup through
+  this seam, that never worked as a supported path and now does not work at
+  all: this seam carries consumer metadata, never HTML.
+
+
+- **`{% bw_dropdown %}` item `attrs` no longer accepts `data-bw-*`**
+  (icvoss/django-brickwork#305). The reserved namespace exclusion that
+  `bw_data_attrs` already enforces for `_data_table.html`, `_stat.html` and
+  `bw_ranked_list` had never been applied to `bw_dropdown`'s own `attrs`
+  seam, so a consumer could stamp `data-bw-dropdown-item` (or any other
+  `data-bw-*` name) beside the package's own reserved hooks on the same
+  element, indistinguishable to any later reader of that namespace. It is
+  now rejected everywhere the seam exists, matching the rule's existing
+  behaviour at every other call site.
+
+### Added
+
+- **`{% bw_dropdown %}`'s item `attrs` seam is documented** for the first
+  time, in the tag's own docstring and in `README.md` beside the equivalent
+  `data` seam on `_data_table.html`, `_stat.html` and `bw_ranked_list`, so
+  the two read as the one rule they now are. The seam has existed since
+  0.8.0 with no mention in any docstring, doc page, README or changelog
+  entry; that absence is why the narrowing above ships without a
+  deprecation window, since nobody could have learned the capability from
+  the package's own documentation.
+
+### Changed
+
+- **`{% bw_dropdown %}` item `attrs` now accepts only `data-*` names**
+  (ADR-083). Previously the seam accepted any syntactically valid HTML
+  attribute name, so a consumer could pass `role`, `aria-*`, `hx-*`,
+  `onclick`, `style` or any other attribute onto a rendered dropdown item.
+  That protected what the component emits (a browser honours the first of a
+  duplicate attribute), but gave no protection at all for what a component
+  deliberately withholds, such as `bw_ranked_list`'s own reasoned decision
+  not to stamp `role="progressbar"` on each row (VIZ-015): an open seam let
+  a consumer add exactly that, uncontested, on any component that reached
+  for the same mechanism. The seam is narrowed to the same grammar
+  `bw_data_attrs` already enforces (`^data-[a-z][a-z0-9_.:-]*$`, excluding
+  `data-bw-*`), so it is now, and can only ever be, consumer-owned metadata
+  for the consumer's own JS or htmx to read back. **Breaking**: a call
+  passing a non-`data-*` name (including the previously-working `hx-post`)
+  now raises `TemplateSyntaxError`. For an htmx interaction on a rendered
+  item, author `hx-*` on an element you render yourself (`bw_dropdown`
+  renders no id of its own to target), or wait for a named option on the
+  component itself (the `_filter_bar.html` `hx_get`/`hx_target` pattern) if
+  that need resurfaces.
+
 ## [3.12.0] - 2026-08-26
 
 The first Wave 1 data-visualisation component, and a layout-shift fix to the
