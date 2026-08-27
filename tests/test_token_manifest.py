@@ -13,6 +13,7 @@ import re
 from pathlib import Path
 
 from brickwork.services.token_manifest import (
+    contrast_pairs,
     is_overridable,
     load_bearing,
     manifest,
@@ -114,6 +115,32 @@ def test_manifest_escape_hatch_matches_typed_accessors() -> None:
     raw = manifest()
     assert set(raw["overridable"]) == overridable_names()
     assert [entry["name"] for entry in raw["loadBearing"]] == [entry["name"] for entry in load_bearing()]
+
+
+def test_status_fg_declares_both_backgrounds_it_is_painted_on() -> None:
+    """brickwork#289 blocker 2: X-fg is painted on X-subtle AND on plain surface
+    (.bw-field__error, .bw-stat__trend, .bw-account-menu__item--danger), so both
+    pairings must be declared, not just the -subtle one. A DTCG token's
+    contrastPair extension may be an array; the build emits one contrastPairs
+    entry per pair on that array."""
+    pairs = contrast_pairs()
+    for family in ("danger", "warning", "success", "info"):
+        name = f"--bw-color-{family}-fg"
+        declared = {entry["contrastPair"] for entry in pairs if entry["name"] == name}
+        assert declared == {f"--bw-color-{family}-subtle", "--bw-color-surface"}, (
+            f"{name} must declare both its -subtle and plain-surface pairings, got {declared}"
+        )
+
+
+def test_status_fg_ink_is_overridable_but_not_load_bearing() -> None:
+    """brickwork#289 review round 2: --bw-color-status-fg-ink is the fixed mix
+    partner X-fg uses instead of --bw-color-fg (so an ordinary, documented fg
+    override cannot silently move status-text contrast). It is deliberately NOT
+    part of the load-bearing brand set (a brand does not author it as part of
+    the standard seven/fourteen), but remains in the overridable vocabulary for
+    the rare brand that wants distinct status-text ink."""
+    assert is_overridable("--bw-color-status-fg-ink") is True
+    assert "--bw-color-status-fg-ink" not in {entry["name"] for entry in load_bearing()}
 
 
 def test_overridable_set_matches_names_actually_emitted_in_tokens_css() -> None:

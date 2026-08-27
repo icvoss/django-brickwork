@@ -161,8 +161,8 @@ distinction; do not imply RTL is axe-tested.
 ### 4.3 Token-first rebranding
 
 `docs/BRANDING.md:3-4`: rebranding is done by overriding `--bw-*` tokens, not
-by touching component classes. 337 unique `--bw-*` tokens exist (dated at
-3.12.0), 268 overridable. 10 are load-bearing, of which 8 are unconditional:
+by touching component classes. 338 unique `--bw-*` tokens exist (dated at
+3.12.0), 269 overridable. 10 are load-bearing, of which 8 are unconditional:
 a brand supplies roughly 16 lines of CSS (8 tokens x light and dark) to
 rebrand the whole system, because base-theme derives its fine colour tokens
 live from that small load-bearing set (`docs/BRANDING.md:6-8`).
@@ -198,7 +198,7 @@ sight, and are refreshed by hand at the next audit.
 | Sections | 26 | **Gated** against `catalogue-manifest.json` |
 | Archetypes | 16 | **Gated** against `catalogue-manifest.json` |
 | Template tag registrations | 20 total | 16 `inclusion_tag`, 3 `simple_tag`, 1 `filter`. Write "16 component tags" or state the 20 total; never a bare "16 template tags". **Gated** by importing the templatetags libraries and counting `register.tags`/`register.filters` |
-| Tokens | 337 unique `--bw-*` | 268 overridable; 10 load-bearing, 8 unconditional. **Overridable count gated** against `token-manifest.json`; the 337 total (all custom properties in compiled `tokens.css`) is **dated** at 3.12.0 |
+| Tokens | 338 unique `--bw-*` | 269 overridable; 10 load-bearing, 8 unconditional. **Overridable count gated** against `token-manifest.json`; the 338 total (all custom properties in compiled `tokens.css`) is **dated** at 3.12.0 |
 | Alpine components | 15 | bwDropdown, bwTabs, bwModal, bwToastRegion, bwToast, bwCombobox, bwDismissible, bwTooltip, bwTagInput, bwDropzone, bwSidebarCollapse, bwSlideOver, bwTableSelection, bwSortable, bwThemeSwitch. **Gated** by parsing the `Alpine.data(...)` calls in `frontend/src/js/index.js`'s single registration point |
 | Examples | 42 | 16 archetype pages, 26 sections. **Gated** against `catalogue-manifest.json` |
 | Icons | 50 vendored Lucide SVG files | exposed as 53 callable names (3 aliases). State precisely; never a bare "50" or bare "53". **Dated** at 3.10.0 |

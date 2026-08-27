@@ -89,6 +89,13 @@
         }
       }
     },
+    "status-fg-ink": {
+      "$value": "{primitive.gray.900}",
+      "$description": "brickwork#289 review round 2: the fixed dark-ink partner every X-fg (danger/success/warning/info) mixes toward. Deliberately NOT var(--bw-color-fg): fg is one of the seven load-bearing tokens BRANDING.md tells every brand to author, so a derivation that tracked fg would let an ordinary, documented fg override quietly break status-text contrast (the same AA trap #289 closed for --bw-color-surface, one token over). This token defaults to the same value as --bw-color-fg (gray.900) so the shipped X-fg ratios are unchanged, but it is a distinct name a brand does not touch when it authors fg: overriding fg alone leaves status-text contrast exactly where base-theme verified it. A brand wanting different status-text ink authors this token directly (rare) and re-verifies the contrastPairs pairings itself.",
+      "$extensions": {
+        "bw": {}
+      }
+    },
     "border": {
       "$value": "{primitive.gray.200}",
       "$extensions": {
@@ -174,11 +181,13 @@
       }
     },
     "danger-fg": {
-      "$value": "{primitive.red.700}",
-      "$description": "Text on danger-subtle. Mixed toward black to land on the 700 ramp step: the 600 base fails AA on the subtle tint (4.41); this lands at 5.84.",
+      "$value": "oklch(0.529 0.187 26.83)",
+      "$description": "brickwork#289: text on danger-subtle (and on plain surface: .bw-field__error, .bw-account-menu__item--danger). Was a fixed mix toward literal black, independent of --bw-color-surface; danger-subtle mixes toward surface, so a brand darkening surface closed the gap and dropped contrast below AA with no warning. brickwork#289 review round 2: mixing toward var(--bw-color-fg) traded that failure for an equivalent one under an --bw-color-fg override (fg is itself a documented, brand-authored token, BRANDING.md's load-bearing seven), so the mix now targets var(--bw-color-status-fg-ink), a dedicated token defaulting to the same gray.900 ink but never moved by an ordinary --bw-color-fg override. This keeps the SAME numeric floor as the var(--bw-color-fg) attempt (status-fg-ink defaults to that attempt's resolution) while closing the fg-override hole: verified >= 4.5:1 against both danger-subtle and plain surface for --bw-color-surface overridden anywhere down to L 0.94 (conservative; the measured worst-family crossing is L 0.9390), independent of any --bw-color-fg value. Not the red.700 alias: mixing toward status-fg-ink resolves a fractionally different hue than a pure-black mix. Robustness is one-directional: this pairing is NOT protected against overriding --bw-color-danger itself to an extreme lightness, which is out of scope for #289 (that failure mode is the fg-on-accent class, docs/BRANDING.md).",
       "$extensions": {
         "bw": {
-          "derived": "color-mix(in oklab, var(--bw-color-danger) 88%, black)"
+          "derived": "color-mix(in oklab, var(--bw-color-danger) 87%, var(--bw-color-status-fg-ink))",
+          "contrastPair": ["color-danger-subtle", "color-surface"],
+          "minContrast": 4.5
         }
       }
     },
@@ -220,11 +229,13 @@
       }
     },
     "warning-fg": {
-      "$value": "oklch(0.553 0.135 58)",
-      "$description": "Text on warning-subtle. Mixed toward black to land on the 700 ramp depth: the 600 base fails AA on the subtle tint (2.97); this lands at 4.67. A literal, not the amber.700 alias, because the amber ramp drifts toward hue 49 as it darkens while the black mix preserves the base's 58.",
+      "$value": "oklch(0.518 0.109 57.62)",
+      "$description": "brickwork#289: text on warning-subtle (and on plain surface: .bw-field__error, .bw-stat__trend). Was a fixed mix toward literal black, independent of --bw-color-surface; warning-subtle mixes toward surface, so darkening surface closed the gap and dropped contrast below AA (the reported defect: default was only 4.67, and any surface darker than L 0.986 failed). brickwork#289 review round 2: mixing toward var(--bw-color-fg) traded that failure for an equivalent one under an --bw-color-fg override, so the mix now targets var(--bw-color-status-fg-ink), a dedicated token defaulting to the same gray.900 ink but never moved by an ordinary --bw-color-fg override. Verified >= 4.5:1 against both warning-subtle and plain surface for --bw-color-surface overridden anywhere down to L 0.94 (conservative; measured worst-family crossing L 0.9390), independent of --bw-color-fg.",
       "$extensions": {
         "bw": {
-          "derived": "color-mix(in oklab, var(--bw-color-warning) 83%, black)"
+          "derived": "color-mix(in oklab, var(--bw-color-warning) 68%, var(--bw-color-status-fg-ink))",
+          "contrastPair": ["color-warning-subtle", "color-surface"],
+          "minContrast": 4.5
         }
       }
     },
@@ -266,11 +277,13 @@
       }
     },
     "success-fg": {
-      "$value": "{primitive.green.700}",
-      "$description": "Text on success-subtle. Mixed toward black to land on the 700 ramp step: the 600 base fails AA on the subtle tint (3.09); this lands at 4.70.",
+      "$value": "oklch(0.496 0.106 149.75)",
+      "$description": "brickwork#289: text on success-subtle (and on plain surface: .bw-field__error, .bw-stat__trend). Was a fixed mix toward literal black, independent of --bw-color-surface; success-subtle mixes toward surface, so darkening surface closed the gap and dropped contrast below AA. brickwork#289 review round 2: mixing toward var(--bw-color-fg) traded that failure for an equivalent one under an --bw-color-fg override, so the mix now targets var(--bw-color-status-fg-ink), a dedicated token defaulting to the same gray.900 ink but never moved by an ordinary --bw-color-fg override. Verified >= 4.5:1 against both success-subtle and plain surface for --bw-color-surface overridden anywhere down to L 0.94 (conservative; measured worst-family crossing L 0.9390), independent of --bw-color-fg. Not the green.700 alias: mixing toward the ink literal resolves a fractionally different hue than a pure-black mix.",
       "$extensions": {
         "bw": {
-          "derived": "color-mix(in oklab, var(--bw-color-success) 84%, black)"
+          "derived": "color-mix(in oklab, var(--bw-color-success) 69%, var(--bw-color-status-fg-ink))",
+          "contrastPair": ["color-success-subtle", "color-surface"],
+          "minContrast": 4.5
         }
       }
     },
@@ -315,11 +328,13 @@
       }
     },
     "info-fg": {
-      "$value": "{primitive.cyan.700}",
-      "$description": "Text on info-subtle. Mixed toward black to land on the 700 ramp step: the 600 base fails AA on the subtle tint (3.54); this lands at 5.17.",
+      "$value": "oklch(0.501 0.083 225.55)",
+      "$description": "brickwork#289: text on info-subtle (and on plain surface: .bw-field__error, .bw-stat__trend). Was a fixed mix toward literal black, independent of --bw-color-surface; info-subtle mixes toward surface, so darkening surface closed the gap and dropped contrast below AA. brickwork#289 review round 2: mixing toward var(--bw-color-fg) traded that failure for an equivalent one under an --bw-color-fg override, so the mix now targets var(--bw-color-status-fg-ink), a dedicated token defaulting to the same gray.900 ink but never moved by an ordinary --bw-color-fg override. Verified >= 4.5:1 against both info-subtle and plain surface for --bw-color-surface overridden anywhere down to L 0.94 (conservative; measured worst-family crossing L 0.9390), independent of --bw-color-fg. Not the cyan.700 alias: mixing toward the ink literal resolves a fractionally different hue than a pure-black mix.",
       "$extensions": {
         "bw": {
-          "derived": "color-mix(in oklab, var(--bw-color-info) 85%, black)"
+          "derived": "color-mix(in oklab, var(--bw-color-info) 75%, var(--bw-color-status-fg-ink))",
+          "contrastPair": ["color-info-subtle", "color-surface"],
+          "minContrast": 4.5
         }
       }
     },

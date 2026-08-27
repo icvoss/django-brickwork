@@ -30,6 +30,7 @@ export const tokens = Object.freeze({
   "color_info_on_fg": "var(--bw-color-info-on-fg)",
   "color_info_strong": "var(--bw-color-info-strong)",
   "color_info_subtle": "var(--bw-color-info-subtle)",
+  "color_status_fg_ink": "var(--bw-color-status-fg-ink)",
   "color_success": "var(--bw-color-success)",
   "color_success_border": "var(--bw-color-success-border)",
   "color_success_fg": "var(--bw-color-success-fg)",

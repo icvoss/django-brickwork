@@ -88,6 +88,13 @@
         }
       }
     },
+    "status-fg-ink": {
+      "$value": "oklch(0.93 0.002 265)",
+      "$description": "brickwork#289 review round 2: the light-theme companion mixes X-fg toward this rather than var(--bw-color-fg) (see semantic.light.tokens.json for the full rationale). Dark X-fg already mixes toward literal white, not fg, so this token is unreferenced by any dark derivation; it is declared here only to keep the token name present in both theme files, matching every other semantic token (BR-BW-TOK-002), and so a brand that overrides it in light for symmetry has a defined dark counterpart rather than an inherited light leftover.",
+      "$extensions": {
+        "bw": {}
+      }
+    },
     "border": {
       "$value": "{primitive.gray.800}",
       "$extensions": {
@@ -173,10 +180,11 @@
       }
     },
     "danger-fg": {
-      "$value": "oklch(0.717 0.162 25)",
+      "$value": "oklch(0.735 0.152 25)",
+      "$description": "brickwork#289: constant tightened from 78% to 73% toward white. Dark-subtle mixes toward black (BR-BW-TOK-002 correction, not toward surface), so it does not carry this defect against danger-subtle; but danger-fg is also painted on plain surface/surface-raised (.bw-account-menu__item--danger), and DESIGN.md's own branding note already flagged that pairing degrades for a brand whose dark danger sits below about L 0.62. The retuned constant verifies >= 4.5:1 against plain surface for dark-surface L up to 0.35 (default dark surface is 0.18, surface-raised 0.237), well past any documented brand recipe. warning/success/info keep their existing 78% constant: it already clears this same plain-surface sweep without adjustment.",
       "$extensions": {
         "bw": {
-          "derived": "color-mix(in oklab, var(--bw-color-danger) 78%, white)"
+          "derived": "color-mix(in oklab, var(--bw-color-danger) 73%, white)"
         }
       }
     },
@@ -411,8 +419,8 @@
       }
     },
     "surface-marketing-tint": {
-      "$value": "oklch(0.2432 0.0242 263.68)",
-      "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens), AUTHORED for dark per BR-BW-TOK-002 (never derived from the light value). Mixed toward the dark surface at 12% (mirroring the light theme's own accent-toward-surface shape, unlike accent-subtle's mix-toward-black, which would read as near-black at this low a percentage on an already-dark surface): a faint lift off surface (dark surface L 0.18, surface-raised L 0.237) rather than a heavy tint; text placed on it clears WCAG AA in both themes (BR-BW-MKT-002).",
+      "$value": "oklch(0.2432 0.0241 255.99)",
+      "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens), AUTHORED for dark per BR-BW-TOK-002 (never derived from the light value). Mixed toward the dark surface at 12% (mirroring the light theme's own accent-toward-surface shape, unlike accent-subtle's mix-toward-black, which would read as near-black at this low a percentage on an already-dark surface): a faint lift off surface (dark surface L 0.18, surface-raised L 0.237) rather than a heavy tint; text placed on it clears WCAG AA in both themes (BR-BW-MKT-002). brickwork#289: hue corrected from 263.68 to 255.99, the true resolved hue of mixing two chromatic sides (accent and the dark surface's own C 0.005) in Cartesian oklab; the previous value was computed by a circular hue-angle approximation the test harness used before that model was corrected, and never matched what color-mix(in oklab) actually renders.",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-accent) 12%, var(--bw-color-surface))"

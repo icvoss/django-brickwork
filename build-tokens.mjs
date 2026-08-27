@@ -411,20 +411,68 @@ async function main() {
   // theme-independent (both themes carry the same flags), so we read it off the
   // light layer; a token's presence in the theme-only set marks it theme-variant.
   const loadBearing = [];
+  // contrastPairs (brickwork#289): constraints between a DERIVED token and one
+  // or more backgrounds it is actually painted on, as opposed to loadBearing's
+  // "a brand authors this" list. --bw-color-X-fg is never brand-authored under
+  // the DERIVE fix (it tracks --bw-color-surface live), so it does not belong
+  // in loadBearing, but the pairings it forms still need an independently
+  // checkable contrast floor: a brand overriding the status hue, or
+  // hand-authoring one side of a pair, can still break it. A source token may
+  // declare more than one contrastPair (blocker 2, review round 2): X-fg is
+  // painted on both X-subtle AND plain surface (.bw-field__error,
+  // .bw-stat__trend, .bw-account-menu__item--danger), so both backgrounds get
+  // their own manifest entry, not just the first one found. Each entry carries
+  // BOTH sides' derived expressions (not just the source token's; a
+  // load-bearing pair target like --bw-color-surface resolves to a var()
+  // reference to itself, since it IS the value), so a validator can resolve
+  // the pair's effective colours even when neither side is an explicit
+  // override (e.g. only --bw-color-surface was overridden).
+  const contrastPairs = [];
+  const byName = new Map(themeOnly(light).map((t) => [t.name, t]));
   for (const t of themeOnly(light)) {
     const meta = t.bw;
-    if (!meta?.loadBearing) continue;
-    // Names are the --bw-* custom-property form throughout the manifest, so a
-    // consumer uses them directly (no prefix reconstruction).
-    const entry = { name: `--${t.name}` };
-    if (meta.conditional) entry.conditional = true;
-    if (meta.authoredPerTheme) entry.authoredPerTheme = true;
-    if (meta.contrastPair) {
-      entry.contrastPair = `--bw-${meta.contrastPair}`;
-      entry.minContrast = meta.minContrast ?? 4.5;
+    if (meta?.loadBearing) {
+      // Names are the --bw-* custom-property form throughout the manifest, so a
+      // consumer uses them directly (no prefix reconstruction).
+      const entry = { name: `--${t.name}` };
+      if (meta.conditional) entry.conditional = true;
+      if (meta.authoredPerTheme) entry.authoredPerTheme = true;
+      if (meta.contrastPair) {
+        entry.contrastPair = `--bw-${meta.contrastPair}`;
+        entry.minContrast = meta.minContrast ?? 4.5;
+      }
+      if (meta.collapsesTo) entry.collapsesTo = `--bw-${meta.collapsesTo}`;
+      loadBearing.push(entry);
+    } else if (meta?.contrastPair) {
+      // brickwork#289 blocker 2: a status -fg token is painted on more than one
+      // background (its own -subtle tint AND, via .bw-field__error /
+      // .bw-stat__trend / .bw-account-menu__item--danger, plain surface), so
+      // contrastPair accepts either a single string (the common case) or an
+      // array of strings, one manifest entry per background. minContrast is
+      // shared across every pair on this token (all four families use 4.5
+      // today; a per-pair override would need a parallel array, not needed yet).
+      const pairs = Array.isArray(meta.contrastPair) ? meta.contrastPair : [meta.contrastPair];
+      for (const rawPair of pairs) {
+        const pairShortName = rawPair.startsWith("color-") ? `bw-${rawPair}` : `bw-color-${rawPair}`;
+        const pairToken = byName.get(pairShortName);
+        if (!pairToken) {
+          throw new Error(`contrastPair ${rawPair} declared on ${t.name} does not resolve to an emitted token`);
+        }
+        // A load-bearing pair target (e.g. --bw-color-surface) carries no
+        // `derived` expression of its own: it IS the value, so its resolution
+        // expression is simply a reference to itself (var(--bw-color-surface)),
+        // which _resolve_derived()'s var() branch in brand_css.py already
+        // handles. Only a genuinely undefined pair target falls back to null.
+        const pairDerived = pairToken.derived ?? (pairToken.bw?.loadBearing ? `var(--${pairToken.name})` : null);
+        contrastPairs.push({
+          name: `--${t.name}`,
+          derived: t.derived ?? null,
+          contrastPair: `--${pairToken.name}`,
+          pairDerived,
+          minContrast: meta.minContrast ?? 4.5,
+        });
+      }
     }
-    if (meta.collapsesTo) entry.collapsesTo = `--bw-${meta.collapsesTo}`;
-    loadBearing.push(entry);
   }
   // The full set of overridable custom-property names: every emitted semantic and
   // component token (NOT primitives, NOT the raw font/space ramps a brand should
@@ -439,8 +487,12 @@ async function main() {
     version: 1,
     description:
       "brickwork token contract: the load-bearing brand set and its constraints (brickwork#39), " +
-      "and the full overridable --bw-* vocabulary. Generated from the DTCG source; do not edit by hand.",
+      "the full overridable --bw-* vocabulary, and derived-pair contrast constraints (brickwork#289, " +
+      "distinct from loadBearing: a contrastPairs entry holds between two DERIVED tokens that a brand " +
+      "does not directly author but can still break by overriding one of their inputs). " +
+      "Generated from the DTCG source; do not edit by hand.",
     loadBearing,
+    contrastPairs,
     overridable,
   };
   writeFileSync(resolve(DIST, "token-manifest.json"), JSON.stringify(manifest, null, 2) + "\n", "utf8");

@@ -1,7 +1,7 @@
 {
   "$schema": "https://brickwork.icvoss.dev/token-manifest/v1",
   "version": 1,
-  "description": "brickwork token contract: the load-bearing brand set and its constraints (brickwork#39), and the full overridable --bw-* vocabulary. Generated from the DTCG source; do not edit by hand.",
+  "description": "brickwork token contract: the load-bearing brand set and its constraints (brickwork#39), the full overridable --bw-* vocabulary, and derived-pair contrast constraints (brickwork#289, distinct from loadBearing: a contrastPairs entry holds between two DERIVED tokens that a brand does not directly author but can still break by overriding one of their inputs). Generated from the DTCG source; do not edit by hand.",
   "loadBearing": [
     {
       "name": "--bw-color-surface"
@@ -40,6 +40,64 @@
       "collapsesTo": "--bw-color-accent"
     }
   ],
+  "contrastPairs": [
+    {
+      "name": "--bw-color-danger-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-danger) 87%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-danger-subtle",
+      "pairDerived": "color-mix(in oklab, var(--bw-color-danger) 7%, var(--bw-color-surface))",
+      "minContrast": 4.5
+    },
+    {
+      "name": "--bw-color-danger-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-danger) 87%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-surface",
+      "pairDerived": "var(--bw-color-surface)",
+      "minContrast": 4.5
+    },
+    {
+      "name": "--bw-color-warning-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-warning) 68%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-warning-subtle",
+      "pairDerived": "color-mix(in oklab, var(--bw-color-warning) 7%, var(--bw-color-surface))",
+      "minContrast": 4.5
+    },
+    {
+      "name": "--bw-color-warning-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-warning) 68%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-surface",
+      "pairDerived": "var(--bw-color-surface)",
+      "minContrast": 4.5
+    },
+    {
+      "name": "--bw-color-success-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-success) 69%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-success-subtle",
+      "pairDerived": "color-mix(in oklab, var(--bw-color-success) 7%, var(--bw-color-surface))",
+      "minContrast": 4.5
+    },
+    {
+      "name": "--bw-color-success-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-success) 69%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-surface",
+      "pairDerived": "var(--bw-color-surface)",
+      "minContrast": 4.5
+    },
+    {
+      "name": "--bw-color-info-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-info) 75%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-info-subtle",
+      "pairDerived": "color-mix(in oklab, var(--bw-color-info) 7%, var(--bw-color-surface))",
+      "minContrast": 4.5
+    },
+    {
+      "name": "--bw-color-info-fg",
+      "derived": "color-mix(in oklab, var(--bw-color-info) 75%, var(--bw-color-status-fg-ink))",
+      "contrastPair": "--bw-color-surface",
+      "pairDerived": "var(--bw-color-surface)",
+      "minContrast": 4.5
+    }
+  ],
   "overridable": [
     "--bw-breakpoint-lg",
     "--bw-breakpoint-md",
@@ -70,6 +128,7 @@
     "--bw-color-info-on-fg",
     "--bw-color-info-strong",
     "--bw-color-info-subtle",
+    "--bw-color-status-fg-ink",
     "--bw-color-success",
     "--bw-color-success-border",
     "--bw-color-success-fg",
