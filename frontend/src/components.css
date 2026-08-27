@@ -3478,6 +3478,7 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   letter-spacing: var(--bw-text-heading-xl-tracking);
 }
 .bw-prose :where(h3) {
+  font-family: var(--bw-text-heading-lg-family);
   font-size: var(--bw-text-heading-lg-size);
   font-weight: var(--bw-text-heading-lg-weight);
   line-height: var(--bw-text-heading-lg-line-height);
