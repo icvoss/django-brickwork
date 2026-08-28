@@ -30,8 +30,6 @@ by touching component classes.
 Accessibility is tested, not asserted by design. CI blocks every push on an
 axe-core WCAG 2.2 AA scan across 164 documents (122 hand-maintained fixtures
 plus 42 catalogue archetypes, each x light and dark themes), plus a no-JS
-axe-core WCAG 2.2 AA scan across 160 documents (122 hand-maintained fixtures
-plus 36 catalogue archetypes, each x light and dark themes), plus a no-JS
 floor suite, keyboard suites, mobile-overflow checks at
 320/360/375/414px, and pixel-level composited contrast measurement. That last
 check exists because the axe gate itself once ran green over a real 4.25:1
