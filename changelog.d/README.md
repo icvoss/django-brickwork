@@ -49,7 +49,10 @@ as one or more markdown list items, without the section heading:
 ```
 
 House style applies: British English, no em or en dashes, issues referenced as
-`icvoss/django-brickwork#N`, no session links.
+`icvoss/django-brickwork#N`, no session links. A fragment comparing your
+change to another component's current behaviour is bound by CONTRIBUTING.md,
+"Figures and claims about the codebase" (icvoss/django-brickwork#315): verify
+it, drop it, or cite the issue/ADR instead.
 
 ## Assembling a release
 
