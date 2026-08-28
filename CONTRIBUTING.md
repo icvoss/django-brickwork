@@ -161,21 +161,39 @@ that compares against something you did not change:
   published. Quote the ref with the number: a figure without it cannot be
   checked by anyone else, even when it is right.
 - If a claim asserts the behaviour of code your change does not touch, verify
-  it, drop it, or cite the issue or ADR that established the convention
-  instead of describing the other component's implementation from memory (the
-  3.12.0 entry's "matching the existing no-JS floor (#117)" is this shape,
-  and held up where the two claims corrected under #315 did not). At the
-  time of writing, the claim about your own change is checked by the work in
-  front of you and the claim about the other thing is recalled, and nothing
-  re-checks the recalled half before it ships; a citation stays correct as
-  the other component changes, a description of its current state does not.
-  Two riders, both learned by getting them wrong while writing the #315
-  correction itself. An issue number names a request, not a change, so cite
-  what actually landed: a reader following `#185` to check a claim about
-  `_data_table.html` reaches a feature request and can verify nothing, where
-  `#317` reaches the diff. And this governs *current* behaviour asserted from
-  memory, not history: what a component did at a named tag or commit is
-  checkable by anyone, and is exactly how a correction has to be written.
+  it, drop it, or cite **what landed** (the merge commit, the PR, or the tag
+  it shipped in) instead of describing the other component's implementation
+  from memory. At the time of writing, the claim about your own change is
+  checked by the work in front of you and the claim about the other thing is
+  recalled, and nothing re-checks the recalled half before it ships; a
+  citation stays correct as the other component changes, a description of its
+  current state does not.
+
+  **Cite the change, not the request.** An issue or ADR number names something
+  that was asked for, which is not evidence it exists in the tree or that it
+  shipped in the form described. A reader following `#185` to check a claim
+  about `_data_table.html` reaches a feature request and can verify nothing;
+  `#317`, or `c5524e4`, reaches the diff. This failure is easy to miss because
+  **an issue citation looks like a citation**: it has a number, it resolves,
+  and it is about the right subject. It just cannot answer the question the
+  reader is asking, which is whether the thing landed and in what form. That
+  is the same shape as a figure quoted without its ref: correct-looking
+  provenance pointing at the wrong object.
+
+  The exception is a claim about a *convention* rather than about code: an ADR
+  or an issue that establishes a rule is the thing being cited, and it is
+  checkable on its own terms. The 3.12.0 entry's "matching the existing no-JS
+  floor (#117)" is that shape, and held up where the two claims corrected under
+  #315 did not. The test is what a reader has to do to check you: for a
+  convention they read the decision, for an implementation they read the diff.
+
+  **This governs current behaviour asserted from memory, not history.** What a
+  component did at a named tag or commit is checkable by anyone, and is
+  exactly how a correction has to be written.
+
+  Both riders were learned by getting them wrong while writing the #315
+  correction itself, which propagated a mis-attribution into three files
+  before `git log -S` caught it.
 
 ---
 
