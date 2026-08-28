@@ -138,11 +138,7 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
   include {% templatetag closeblock %} of this component does nothing at all:
   Django discards a value that has no matching variable, and it discards an
   unmatched block name silently too, with no error even in DEBUG. The card
-  simply renders untitled and you will not be told. To title the card itself,
-  write a small template that EXTENDS _chart_card.html and fills its title
-  block, then include THAT. This page instead gives the band a real visible
-  heading of its own, which is the honest thing to do when the section already
-  needs a heading for its landmark.
+  simply renders untitled and you will not be told.
 
   The heading below is deliberately visually hidden, and that is a compromise
   rather than a preference, so it is worth saying why before you copy it. A
