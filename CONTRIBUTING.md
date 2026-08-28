@@ -76,12 +76,27 @@ CI will fail if either check reports errors. Run both before pushing.
 ### Accessibility spec linting
 
 The `a11y/**/*.spec.mjs` Playwright specs are linted separately with ESLint
-and `eslint-plugin-playwright` (`eslint.config.mjs`, scoped to that
-directory only; this is not general JS linting for the repo).
+and `eslint-plugin-playwright` (`eslint.config.mjs`; this is not general JS
+linting for the repo).
 
 ```bash
 npm run a11y:lint
 ```
+
+`eslint.config.mjs` has two scoping mechanisms that do different jobs and
+are easy to conflate (icvoss/django-brickwork#313). The block with a
+`files: ["a11y/**/*.spec.mjs"]` key scopes which *rules* apply to a matched
+file; in ESLint's flat config it does not scope which files ESLint *walks*.
+Discovery is scoped separately, by the `ignores`-only block earlier in the
+config, which excludes `.venv/**`, `venv/**` and `env/**`. Without that
+block, `eslint .` walks the whole working tree regardless of the `files`
+key, and if a Python virtualenv is checked out locally (as the umbrella
+setup instructions produce), it reaches Django's vendored admin JS and
+`i18n_catalog.js`, a Django template that is not JavaScript and that no
+parser configuration can accept. CI never had a local venv to walk into, so
+the gate passed there while failing on every contributor's clean checkout,
+which is the shape to watch for: read `ignores`, not `files`, when deciding
+what a flat config actually discovers.
 
 The rule set targets one specific defect class: a synchronous matcher
 wrapping an async callback, most often `expect(async () => {...}).not.toThrow()`,
