@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import re
 
+import pytest
 from django.template.loader import render_to_string
 
 from brickwork.icons import get_icon
@@ -109,6 +110,55 @@ def test_any_other_trend_value_takes_the_flat_treatment() -> None:
     assert re.search(_SR_WRAPPED % "unchanged", out)
 
 
+# --- colour channel: the bw-trend--<state> modifier class -------------------
+#
+# The three fallback tests above pin the glyph and hidden-text channels but
+# never mention the modifier class, so a template that stopped emitting
+# bw-trend--up/--down/--flat, or emitted the wrong one for a given trend,
+# would leave every test above still green. These assertions pin the third
+# channel directly and in the same render as the glyph and hidden text, so
+# the "three redundant channels" claim (template header comment,
+# changelog.d/trend-indicator.added.md) is verified together rather than
+# only via the styling-stripped tests (which strip class/style entirely and
+# so cannot see the modifier either) or only via the cross-template
+# equivalence tests below (which only prove this partial agrees with
+# _stat.html, not that either is correct against the absolute up/down/flat
+# contract, and would stay green if both templates were wrong identically).
+
+
+def test_trend_up_emits_the_up_modifier_class_with_glyph_and_hidden_text() -> None:
+    out = _render(trend="up")
+    assert 'class="bw-trend bw-trend--up"' in out
+    assert get_icon("arrow-up") in out
+    assert re.search(_SR_WRAPPED % "increased", out)
+
+
+def test_trend_down_emits_the_down_modifier_class_with_glyph_and_hidden_text() -> None:
+    out = _render(trend="down")
+    assert 'class="bw-trend bw-trend--down"' in out
+    assert get_icon("arrow-down") in out
+    assert re.search(_SR_WRAPPED % "decreased", out)
+
+
+def test_trend_flat_emits_the_flat_modifier_class_with_glyph_and_hidden_text() -> None:
+    out = _render(trend="flat")
+    assert 'class="bw-trend bw-trend--flat"' in out
+    assert get_icon("minus") in out
+    assert re.search(_SR_WRAPPED % "unchanged", out)
+
+
+def test_up_and_down_modifier_classes_are_not_interchangeable() -> None:
+    # A template that swapped the up/down branches of the modifier ladder
+    # (while leaving the glyph and hidden-text ladders untouched) would pass
+    # every fallback test above. This asserts the state class actually
+    # differs per state and matches the trend it was rendered for, so such a
+    # swap fails here even if it fails nowhere else.
+    up_out = _render(trend="up")
+    down_out = _render(trend="down")
+    assert "bw-trend--up" in up_out and "bw-trend--down" not in up_out
+    assert "bw-trend--down" in down_out and "bw-trend--up" not in down_out
+
+
 # --- AC-BW-074: directional meaning survives with colour stripped -----------
 
 
@@ -157,3 +207,36 @@ def test_extracted_partial_matches_stat_html_trend_output_flat() -> None:
     stat_fragment = _render_stat_trend(trend="flat")
     indicator_fragment = _render_indicator_fragment(trend="flat")
     assert _normalise(stat_fragment) == _normalise(indicator_fragment)
+
+
+# --- the falsy trend guard: no data means no trend row, not "unchanged" -----
+#
+# _stat.html:79 wraps its whole trend row in {% if trend %}. The three
+# equivalence tests above all pass a truthy trend, so the one input where a
+# missing guard would diverge (any falsy trend) was never compared. These
+# assert BOTH templates render no trend markup at all for None, "", 0,
+# False, and the key absent entirely, so a dropped guard fails here even
+# though it fails nowhere else in this file.
+
+
+@pytest.mark.parametrize("trend_value", [None, "", 0, False])
+def test_falsy_trend_renders_no_trend_row_matching_stat_html(trend_value: object) -> None:
+    stat_out = render_to_string(
+        "brickwork/components/_stat.html", {"label": "Active", "value": "12", "trend": trend_value}
+    )
+    indicator_out = _render(trend=trend_value)
+    assert "bw-stat__trend" not in stat_out, f"_stat.html rendered a trend row for trend={trend_value!r}"
+    assert "bw-trend" not in indicator_out, (
+        f"_trend_indicator.html rendered a trend row for trend={trend_value!r}, but _stat.html renders "
+        "nothing for this input: no data must mean no trend row, not a spurious 'unchanged'"
+    )
+
+
+def test_absent_trend_key_renders_no_trend_row_matching_stat_html() -> None:
+    stat_out = render_to_string("brickwork/components/_stat.html", {"label": "Active", "value": "12"})
+    indicator_out = _render()
+    assert "bw-stat__trend" not in stat_out
+    assert "bw-trend" not in indicator_out, (
+        "_trend_indicator.html rendered a trend row with the 'trend' key absent entirely, but "
+        "_stat.html renders nothing: the extraction must match the guard, not just the truthy branches"
+    )

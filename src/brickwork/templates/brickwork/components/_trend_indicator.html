@@ -29,17 +29,22 @@ names, and a future reader who greps for bw-data-table should find that
 rule rather than a bare-noun preference the compounds would falsify.
 
 Trend accessibility (BR-BW-TPL-007, AC-BW-073/074, unchanged from _stat.html):
-the template ALWAYS renders a directional glyph (arrow-up / arrow-down /
-minus, decorative) PLUS a visually hidden text fallback ("increased" /
-"decreased" / "unchanged"), so the direction never rides on colour alone by
-construction, even when the caller supplies no ``trend_label``. ``trend_label``,
-when given, refines the accessible text (e.g. "12% up on last month") and
-renders visibly beside the glyph. Colour (success or danger ink on the row)
-is reinforcement only, never the sole signal.
+whenever ``trend`` is set, the template renders a directional glyph
+(arrow-up / arrow-down / minus, decorative) PLUS a visually hidden text
+fallback ("increased" / "decreased" / "unchanged"), so the direction never
+rides on colour alone by construction, even when the caller supplies no
+``trend_label``. ``trend_label``, when given, refines the accessible text
+(e.g. "12% up on last month") and renders visibly beside the glyph. Colour
+(success or danger ink on the row) is reinforcement only, never the sole
+signal.
 
 Required context:
-  trend ("up" | "down" | "flat"): the direction of change. Any other value
-        takes the flat treatment, matching _stat.html's own fallback.
+  trend ("up" | "down" | "flat"): the direction of change. A falsy value
+        (None, "", 0, False, or the key absent) renders nothing, matching
+        _stat.html's own ``{% if trend %}`` guard: no data means no trend
+        row, not a spurious "unchanged". Any other, truthy but
+        unrecognised value takes the flat treatment, matching _stat.html's
+        own fallback.
 Optional:
   trend_label (str): the visible delta text beside the glyph.
 
@@ -48,10 +53,11 @@ Usage (a table cell, VIZ-017's own motivating case)::
     {% include "brickwork/components/_trend_indicator.html" with trend="up" trend_label="12% on last month" %}
 
 States: up/down/flat, each its own .bw-trend--<state> colour pairing;
-  the glyph and hidden text are identical in shape across all three (only
-  the flat state omits both the arrow glyph and the visible word "flat",
-  matching _stat.html's own treatment: flat renders the minus glyph and the
-  hidden "unchanged" text only).
+  the glyph and hidden text are identical in shape across up and down (only
+  the flat state renders a different, non-directional glyph (minus, not an
+  arrow) and never shows a visible word for the state itself: the visible
+  slot is always the caller-supplied trend_label, matching _stat.html's own
+  treatment).
 Accessibility: a trend is never colour-only: a directional glyph
   (decorative) always pairs with visually-hidden text naming the direction
   in words ("increased"/"decreased"/"unchanged"), regardless of whether the
@@ -59,8 +65,10 @@ Accessibility: a trend is never colour-only: a directional glyph
 Responsive: no breakpoint switch; no width-dependent CSS on any .bw-trend*
   selector.
 {% endcomment %}
+{% if trend %}
 <span class="bw-trend bw-trend--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}">
   {% if trend == "up" %}{% bw_icon "arrow-up" size="sm" decorative=True %}{% elif trend == "down" %}{% bw_icon "arrow-down" size="sm" decorative=True %}{% else %}{% bw_icon "minus" size="sm" decorative=True %}{% endif %}
   <span class="bw-visually-hidden">{% if trend == "up" %}{% translate "increased" %}{% elif trend == "down" %}{% translate "decreased" %}{% else %}{% translate "unchanged" %}{% endif %}</span>
   {% if trend_label %}<span>{{ trend_label }}</span>{% endif %}
 </span>
+{% endif %}
