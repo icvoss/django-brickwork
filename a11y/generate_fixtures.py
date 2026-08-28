@@ -1330,7 +1330,14 @@ def _render_theme_switch_locked_fixture(theme: str) -> str:
 # accessible-name pairing (role="img" + aria-label, CHT-012) in the populated
 # card, the loading skeleton (STA-004), the composed _alert.html error
 # surface (STA-008/009, CHT-010), and the composed _empty_state.html at
-# size="sm" with its action link (STA-001/002, CHT-008).
+# size="sm" with its action link (STA-001/002, CHT-008). It also covers
+# _chart_data_table.html in all three of CHT-013's data_table_mode values,
+# each rendered through the chart_data_table block as a SIBLING of the
+# role="img" mount (the CHT-012 placement contract): the hidden mode puts the
+# clip-pattern table (present in the accessibility tree, absent visually)
+# under axe, the toggle mode brings the native <details> disclosure under the
+# keyboard and no-JS legs, and the visible mode puts the table's own contrast
+# and hairlines under axe.
 
 _CHART_CARD_PAGE = """<!doctype html>
 <html lang="en" data-theme="__THEME__">
@@ -1368,6 +1375,21 @@ __CSS__
     <h2 id="chart-card-empty-heading">Empty</h2>
     __CHART_CARD_EMPTY__
   </section>
+
+  <section aria-labelledby="chart-card-table-hidden-heading">
+    <h2 id="chart-card-table-hidden-heading">Fallback table, hidden</h2>
+    __CHART_CARD_TABLE_HIDDEN__
+  </section>
+
+  <section aria-labelledby="chart-card-table-toggle-heading">
+    <h2 id="chart-card-table-toggle-heading">Fallback table, toggle</h2>
+    __CHART_CARD_TABLE_TOGGLE__
+  </section>
+
+  <section aria-labelledby="chart-card-table-visible-heading">
+    <h2 id="chart-card-table-visible-heading">Fallback table, visible</h2>
+    __CHART_CARD_TABLE_VISIBLE__
+  </section>
 </main>
 </body>
 </html>
@@ -1384,6 +1406,33 @@ def _render_chart_card_fixture(*, title: str = "", legend: str = "", **ctx: obje
         blocks += f'{{% block chart_legend %}}<div class="bw-chart-card__legend">{legend}</div>{{% endblock %}}'
     source = "{% extends 'brickwork/components/_chart_card.html' %}{% load brickwork_components %}" + blocks
     return Template(source).render(Context(ctx))
+
+
+def _render_chart_data_table(mode: str) -> str:
+    """CHT-012's fallback table at one of CHT-013's three modes, with a real
+    three-column, three-row series: a one-row table would exercise neither the
+    row-header contract past its first cell nor the wrapper's overflow."""
+    from django.template import Context, Template
+
+    return Template(
+        "{% load brickwork_components %}"
+        "{% bw_chart_data_table caption=caption columns=columns rows=rows "
+        "data_table_mode=mode toggle_label=toggle_label %}"
+    ).render(
+        Context(
+            {
+                "caption": "Revenue by month and channel",
+                "columns": ["Month", "Direct", "Referral"],
+                "rows": [
+                    ["January", "120", "45"],
+                    ["February", "150", "60"],
+                    ["March", "180", "75"],
+                ],
+                "mode": mode,
+                "toggle_label": "View as table",
+            }
+        )
+    )
 
 
 def render_chart_card(theme: str) -> str:
@@ -1429,6 +1478,30 @@ def render_chart_card(theme: str) -> str:
                 empty_body="Nothing to plot yet.",
                 empty_action_href="/reports/new/",
                 empty_action_label="Create a report",
+            ),
+        )
+        .replace(
+            "__CHART_CARD_TABLE_HIDDEN__",
+            _render_chart_card_fixture(
+                title="Revenue by month",
+                mount=mark_safe(mount),  # noqa: S308
+                data_table=_render_chart_data_table("hidden"),
+            ),
+        )
+        .replace(
+            "__CHART_CARD_TABLE_TOGGLE__",
+            _render_chart_card_fixture(
+                title="Revenue by month",
+                mount=mark_safe(mount),  # noqa: S308
+                data_table=_render_chart_data_table("toggle"),
+            ),
+        )
+        .replace(
+            "__CHART_CARD_TABLE_VISIBLE__",
+            _render_chart_card_fixture(
+                title="Revenue by month",
+                mount=mark_safe(mount),  # noqa: S308
+                data_table=_render_chart_data_table("visible"),
             ),
         )
     )

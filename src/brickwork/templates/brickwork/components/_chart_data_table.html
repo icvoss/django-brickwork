@@ -1,0 +1,123 @@
+{% load i18n %}
+{% comment %}
+Chart data table (CHT-012's fallback, CHT-013's data_table_mode): the same
+series a chart plots, rendered as a plain semantic <table> so a screen reader
+reaches the DATA a canvas or SVG cannot expose. Rendered by the
+{% bw_chart_data_table %} tag, never included directly: the tag validates
+data_table_mode against a closed set (an include has no seam to validate
+through, ADR-060 rule 2) and normalises the caption/columns/rows arguments
+into the flat shape below.
+
+THE SIBLING RULE, the load-bearing design decision (icvoss/django-brickwork#326).
+This table is a SIBLING of the chart mount, never a descendant of it, and
+_chart_card.html places it that way. The reason is ARIA, not layout:
+bw_chart_mount emits role="img", and role="img" makes every descendant of the
+mount PRESENTATIONAL, so a <table> rendered inside the mount is unreachable to
+assistive technology no matter how well formed it is. That is not a reason the
+fallback cannot exist; it is precisely the reason it must sit outside the
+mount.
+
+Read the other way round, the rule is self-evident: the mount is opaque
+BECAUSE it is one graphical object, and this table exists to carry exactly
+what an opaque object cannot. Nesting the compensation inside the thing whose
+opacity it compensates for would defeat it entirely.
+
+#326 is therefore NOT a blocker for this component, and this component does
+not resolve #326 and must not be read as resolving it. #326 is a DIFFERENT
+unserved case: an interactive chart whose engine paints focusable, traversable
+children, which wants its own role and its own keyboard story rather than a
+widened meaning for role="img". The sibling placement is exactly what lets
+this fallback ship correctly while #326 stays open, and it widens nothing:
+role="img" keeps meaning "one graphical object", and the table beside it keeps
+meaning "the data".
+
+Why NOT _data_table.html, in contract terms rather than preference: that
+component's rows are dicts of {id, cells, url, selected, data} carrying a
+stable per-row id for HTMX swap targeting (BR-BW-HTMX-005), and it ships a
+sortable-header/sort-link/querystring apparatus, a bulk-selection checkbox
+contract, an empty-state branch and a scroll/stack responsive contract. A
+chart fallback wants none of those: it is inert by definition (the chart is
+the interactive surface, this is its accessible transcript), so reusing it
+would mean synthesising row ids and dict wrappers purely to satisfy a
+contract this component then has to suppress. Its definition variant is not
+the answer either: that shape is one entity's key/value facts, whereas a
+chart fallback is a series-by-category matrix with real column headers.
+
+Required context (all supplied by the tag, never by a consumer directly):
+  mode:       "hidden" | "toggle" | "visible" (validated by the tag).
+  caption:    the table's accessible name, rendered as a real <caption>.
+  columns:    the column header labels, in order. The FIRST entry labels the
+              row-header column (the category axis, e.g. "Month"); the rest
+              label the series columns.
+  rows:       a list of lists. Each row's first cell is that row's header
+              (<th scope="row">), the remaining cells are data (<td>).
+  table_html: the rendered table itself, a SafeString the tag composes by
+              rendering this file's own ``table`` partial (below) and then
+              handing the result to the wrapper branch it needs. Markup by
+              construction, never a consumer value: every caption, header
+              and cell inside it was escaped exactly once, in text position,
+              by this template's own auto-escaping during that partial
+              render. The branches below only ever WRAP it, so nothing here
+              escapes anything a second time (the double-escape trap,
+              ADR-084).
+  toggle_label: the <summary> text in "toggle" mode. The tag supplies a
+              translated default when it is blank, so it is never empty
+              here, and it lands in text position inside _disclosure.html.
+
+Semver-public partial (BR-BW-TPL-001), reachable cross-file the same way
+_data_table.html's own table_rows partial is:
+
+  {% include "brickwork/components/_chart_data_table.html#table" %}
+
+  table: the <table> markup on its own, with no mode wrapper around it.
+      The tag renders THIS partial to build table_html, so the disclosure's
+      pre-rendered `content` requirement is met without a second template
+      file and without the tag ever assembling markup in Python. A consumer
+      that wants the table alone, in its own chrome, reaches for it here
+      rather than re-implementing the caption/scope contract.
+
+States: three, one per data_table_mode. "visible" is the BASE state and
+  deliberately emits no wrapper and no modifier class at all, matching
+  _chart_card.html's own legend_position="top" doctrine: a class carrying
+  no rule is a false affordance, and the package gates against exactly
+  that (tests/test_option_vocabularies.py). "hidden" wraps the table in
+  bw-visually-hidden (the clip-path pattern, NEVER display:none, which
+  would remove the table from the accessibility tree and defeat the entire
+  contract). "toggle" composes _disclosure.html's native <details>.
+Accessibility: this component IS an accessibility contract, not a component
+  that merely has one. The table carries a real <caption> (its accessible
+  name, announced when a screen reader enters the table), <th scope="col">
+  column headers and <th scope="row"> row headers, so every data cell is
+  announced with both of its coordinates rather than as a bare number. In
+  "hidden" mode the table is present in the accessibility tree and absent
+  from the visual render; in "toggle" mode the no-JS floor holds BY
+  CONSTRUCTION (BR-BW-HTMX-001), because _disclosure.html ships no
+  JavaScript at all and the browser owns the open/close entirely. The
+  table is inert in every mode (no links, no controls, no sort affordance,
+  nothing focusable), because the chart beside it is the interactive
+  surface and this is its transcript.
+Responsive: no breakpoint switch of its own. The table wrapper scrolls
+  horizontally rather than reflowing, so a many-series matrix never
+  overflows its card; in "hidden" mode there is no visual box at all, so
+  that overflow is inert.
+{% endcomment %}
+{% partialdef table %}
+<div class="bw-chart-data-table">
+  <table class="bw-chart-data-table__table">
+    <caption class="bw-chart-data-table__caption">{{ caption }}</caption>
+    <thead>
+      <tr>
+        {% for column in columns %}<th scope="col">{{ column }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          {% for cell in row %}{% if forloop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endpartialdef %}
+{% if mode == "toggle" %}{% include "brickwork/components/_disclosure.html" with label=toggle_label content=table_html only %}{% elif mode == "hidden" %}<div class="bw-visually-hidden">{{ table_html }}</div>{% else %}{{ table_html }}{% endif %}
