@@ -1,0 +1,144 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A work queue: items waiting on a person, triaged by status and priority, with
+bulk actions over a selection.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    queue_tabs / queue_active  the triage tabs, and which one is open
+    queue_columns / queue_rows the table's columns and pre-rendered rows
+    queue_page                 a page of items (a Django Page from Paginator)
+    filter_form                your own filter form (the bar renders its fields)
+    nav_items / nav_active     as in app/list.html
+The counts, headings and copy below are typed into the template, which is where
+you change them.
+
+A queue is a list whose rows are WORK, not records: every row is waiting on
+somebody, so the page answers "what is mine, what is stuck, what is late"
+before it answers "what exists". That is why the tabs carry counts, why the
+oldest item leads the stat row, and why the table's first column is the item
+rather than an id.
+
+On status: build each status cell as a rendered {% templatetag openblock %}
+bw_badge {% templatetag closeblock %} in your view, so the state reaches the
+reader as a word ("Blocked", "In review") and not as a colour. The badge
+variants (neutral, info, success, warning, danger) tint that word; they never
+replace it. Same rule for priority. A table row's own selected state IS
+colour-only in the component, which is why the checkbox, not the row tint, is
+the accessible signal for selection.
+
+The bulk actions bar and the table share ONE form, so the checkboxes the table
+renders are the inputs the bar's buttons submit. Read them server-side with
+request.POST.getlist("selected"). The live "n selected" count is an Alpine
+enhancement; with JavaScript off the bar still submits the checked rows.
+
+States: the tab set's active/inactive per tab (see _tabs.html's own
+  header); the table's loading/empty/row-link/selected states and its
+  sortable-column ascending/descending/unsorted states (see
+  _data_table.html's own header); pagination rendered/absent (a single
+  page renders no controls); the bulk bar's own empty/populated selection
+  count, which is populated by Alpine and empty without it.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; every status, priority and outcome reading is a
+  badge whose label carries the meaning in words, never colour alone, and
+  each row's checkbox carries a visually-hidden label naming its row.
+  Covered by the archetype harness's full gate sweep (render, axe WCAG 2.2
+  AA, no horizontal overflow, light/dark distinctness, skip-link
+  first-tab-stop with JS disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The stat row
+  (bw-stat-grid) reflows continuously with an auto-fit grid; the composed
+  table carries unconditional horizontal scroll (responsive="scroll", the
+  default) at every width.
+{% endcomment %}
+{% load brickwork_components brickwork_interactions brickwork_nav %}
+
+{% block page_title %}Review queue - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Review queue" description="Claims waiting on a decision. Oldest first, so nothing ages out unseen." %}
+{% endblock %}
+
+{% block page_actions %}
+  {% bw_button "Export queue" variant="secondary" icon="download" href="/queue/export/" %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  The queue's own vital signs, and the reason this is a queue page rather than
+  a list page: the numbers are about WAITING, not about volume. Each trend
+  pairs a direction glyph with visually hidden text, so the reading never
+  rides on colour.
+  {% endcomment %}
+  <div class="bw-stat-grid">
+    {% include "brickwork/components/_stat.html" with label="Waiting on you" value="18" icon="users" trend="up" trend_label="4 more than yesterday" %}
+    {% include "brickwork/components/_stat.html" with label="Oldest item" value="6 days" icon="calendar" trend="up" trend_label="past the 5 day target" %}
+    {% include "brickwork/components/_stat.html" with label="Cleared today" value="23" trend="up" trend_label="8 more than the daily average" %}
+    {% include "brickwork/components/_stat.html" with label="Blocked" value="4" icon="alert-triangle" trend="flat" trend_label="unchanged since Monday" %}
+  </div>
+
+  {% comment %}
+  Triage tabs. Each tab's badge is a plain count, not a bw_badge; pass 0 and it
+  still renders, which is what makes an emptied queue readable ("Blocked 0")
+  rather than ambiguous. Build the list in your view:
+
+      queue_tabs   [{"key": "mine", "label": "Waiting on you", "badge": 18}, ...]
+      queue_active "mine"
+
+  Each tab defaults its own url to ?tab=<key>, so a tab set filters with zero
+  JavaScript and survives a page reload.
+  {% endcomment %}
+  {% bw_tabs queue_tabs active=queue_active id="queue-triage" %}
+
+  {% comment %}
+  The filter bar is a plain <form method="get">, so it filters with no JS.
+  hx_get and hx_target enhance it to swap only the table body.
+  {% endcomment %}
+  {% include "brickwork/components/_filter_bar.html" with fields=filter_form submit_label="Filter" clear_href="/queue/" hx_get="/queue/" hx_target="#queue-table" %}
+
+  {% comment %}
+  One form wraps the bulk bar AND the table, because the bar's buttons submit
+  the table's own checkboxes. Splitting them into two forms is the mistake this
+  arrangement exists to prevent: the buttons would submit nothing.
+
+  The bulk actions bar is EXTENDS-consumed, not include-consumed: an include
+  cannot fill its bulk_actions_buttons block, so the buttons would vanish
+  silently. Write one small template in your own project and include THAT here:
+
+      {% templatetag openblock %} extends "brickwork/components/_bulk_actions_bar.html" {% templatetag closeblock %}
+      {% templatetag openblock %} block bulk_actions_buttons {% templatetag closeblock %}
+        {% templatetag openblock %} bw_button "Approve" variant="primary" type="submit" name="bulk_action" value="approve" {% templatetag closeblock %}
+        {% templatetag openblock %} bw_button "Reject" variant="danger" type="submit" name="bulk_action" value="reject" {% templatetag closeblock %}
+      {% templatetag openblock %} endblock {% templatetag closeblock %}
+
+  then include it where the marked line below is, inside this form. It is left
+  as a comment rather than a live include because this example renders from
+  your project's templates, and that template is yours, not brickwork's. Delete
+  the form wrapper entirely if your queue has no bulk actions.
+  {% endcomment %}
+  <form method="post" action="/queue/bulk/" x-data="bwTableSelection()">
+    {% comment %} Your CSRF token goes here. {% endcomment %}
+    {% comment %} Your bulk actions bar template goes here. {% endcomment %}
+
+    {% comment %}
+    selectable=True renders the per-row checkboxes the bar submits.
+    sticky_header keeps the column labels in view while a long queue scrolls,
+    which is the difference between scanning a queue and losing your place in
+    one. Cells are pre-rendered strings from your view, so a status cell can be
+    a rendered badge and an assignee cell can be a name plus an avatar.
+    {% endcomment %}
+    {% include "brickwork/components/_data_table.html" with table_id="queue-table" columns=queue_columns rows=queue_rows selectable=True sticky_header=True current_sort="age" empty_heading="Queue clear" empty_body="Nothing is waiting on you right now. New claims land here as they are submitted." %}
+  </form>
+
+  {% include "brickwork/components/_pagination.html" with page_obj=queue_page %}
+
+</div>
+{% endblock %}

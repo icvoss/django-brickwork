@@ -28,6 +28,7 @@ from django.template.loader import get_template
 from django.utils import dates as django_dates
 from django.utils.formats import get_format
 from django.utils.html import escape as django_escape
+from django.utils.safestring import mark_safe
 
 from brickwork import examples
 from tests._class_contract import unstyled_classes
@@ -130,6 +131,32 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     },
     "app/console.html": _NAV_CONTEXT,
     "app/confirm.html": {},
+    "ops/queue.html": {
+        **_NAV_CONTEXT,
+        "filter_form": (),
+        "queue_tabs": [
+            {"key": "mine", "label": "Waiting on you", "badge": 18},
+            {"key": "blocked", "label": "Blocked", "badge": 4},
+        ],
+        "queue_active": "mine",
+        "queue_columns": _TABLE_COLUMNS,
+        "queue_rows": _TABLE_ROWS,
+        "queue_page": None,
+    },
+    "ops/audit-trail.html": {
+        **_NAV_CONTEXT,
+        "filter_form": (),
+        "audit_columns": _TABLE_COLUMNS,
+        "audit_rows": _TABLE_ROWS,
+        "audit_page": None,
+        # Pre-rendered markup, exactly as _disclosure.html's content
+        # parameter documents: the caller marks it safe at the call site.
+        "entry_detail": mark_safe("<p>Plan changed from Team to Scale by Priya Raman.</p>"),
+        "top_actors": [
+            {"label": "Priya Raman", "amount": 412, "value": "412 actions"},
+            {"label": "Tom Ashworth", "amount": 198, "value": "198 actions"},
+        ],
+    },
     "auth/signin.html": {"form": _ExampleForm()},
     "auth/signup.html": {"form": _ExampleForm()},
     "auth/reset.html": {"form": _ExampleForm()},

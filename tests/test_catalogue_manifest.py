@@ -8,9 +8,9 @@ examples trees by ``scripts/generate_catalogue_manifest.py``) and exposes it
 as typed Python for this repo's own in-package consumers. These tests cover:
 
 1. **Manifest shape**: the typed reader's accessors match the raw JSON, and
-   the documented counts hold (5 shells, 41 components, 26 sections, 16
-   archetypes: verified against the tree post-W0.1/W0.4/#183 merge,
-   docs/CATALOGUE.md ss5).
+   the documented counts hold (5 shells, 47 components, 26 sections, 18
+   archetypes: verified against the tree post-W0.1/W0.4/#183/queue-audit
+   merge, docs/CATALOGUE.md ss5).
 2. **Manifest-vs-reality drift**: regenerating the manifest from the current
    template and examples trees produces byte-identical output (canonical
    bytes, not a parsed-dict comparison) to the committed file.
@@ -108,22 +108,24 @@ def test_counts_match_the_documented_wave_0_baseline() -> None:
     # 43rd, bw_sparkline/_sparkline.html. Further components shipped since
     # (bw_gauge/_gauge.html among them), and the scorecard/stat-comparison
     # work adds two more, _scorecard.html and _stat_comparison.html, taking
-    # the count to 47. The count below is verified directly against the
-    # repo post-merge, not copied from the plan: docs/CATALOGUE.md ss5
-    # records the same verification.
+    # the count to 47. The queue/audit-trail work then opened the Data-heavy
+    # operations family with two archetypes, taking archetypes to 18. The
+    # counts below are re-derived from a regenerated manifest after both
+    # branches landed, never incremented from either branch alone: each was
+    # correct for its own tree and wrong for the merge.
     counts = manifest()["counts"]
-    assert counts == {"shells": 5, "components": 47, "sections": 26, "archetypes": 16}
+    assert counts == {"shells": 5, "components": 47, "sections": 26, "archetypes": 18}
 
 
 def test_items_covers_every_shell_component_section_and_archetype() -> None:
-    assert len(items()) == 5 + 47 + 26 + 16 == 94
+    assert len(items()) == 5 + 47 + 26 + 18 == 96
 
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 5
     assert len(items_by_kind("component")) == 47
     assert len(items_by_kind("section")) == 26
-    assert len(items_by_kind("archetype")) == 16
+    assert len(items_by_kind("archetype")) == 18
 
 
 def test_item_returns_a_known_shell() -> None:
@@ -187,7 +189,12 @@ def test_most_sections_render_from_empty_context() -> None:
 
 def test_archetypes_are_scoped_to_their_shipped_family() -> None:
     families_seen = {entry["family"] for entry in items_by_kind("archetype") if entry["family"]}
-    assert families_seen == {"Product applications", "Transactional journeys", "Marketing and public web"}
+    assert families_seen == {
+        "Product applications",
+        "Transactional journeys",
+        "Marketing and public web",
+        "Data-heavy operations",
+    }
 
 
 def test_base_archetype_carries_no_family() -> None:
@@ -371,11 +378,17 @@ def test_families_carry_shipped_counts_only_no_status_or_wave() -> None:
 
 def test_families_only_lists_families_with_shipped_coverage() -> None:
     family_names = {entry["name"] for entry in families()}
-    assert family_names == {"Product applications", "Transactional journeys", "Marketing and public web"}
-    # Data-heavy operations, Documentation, and Editorial and publishing are
-    # named in INTERFACE-SYSTEM.md's required-archetype table but have no
-    # shipped archetype yet, so they are correctly absent here.
-    assert "Data-heavy operations" not in family_names
+    assert family_names == {
+        "Product applications",
+        "Transactional journeys",
+        "Marketing and public web",
+        "Data-heavy operations",
+    }
+    # Documentation and Editorial and publishing are named in
+    # INTERFACE-SYSTEM.md's required-archetype table but have no shipped
+    # archetype yet, so they are correctly absent here. Data-heavy operations
+    # shipped its first two archetypes (queue.html, audit-trail.html) and is
+    # no longer absent.
     assert "Documentation" not in family_names
     assert "Editorial and publishing" not in family_names
 
