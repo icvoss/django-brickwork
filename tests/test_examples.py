@@ -157,6 +157,15 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             {"label": "Tom Ashworth", "amount": 198, "value": "198 actions"},
         ],
     },
+    "ops/report.html": {
+        **_NAV_CONTEXT,
+        "top_accounts_rows": [
+            {"label": "Dunmore Retail Ltd", "amount": 18400, "value": "£18,400"},
+            {"label": "Prestwick Logistics", "amount": 11200, "value": "£11,200"},
+            {"label": "Carrick & Sons", "amount": 4300, "value": "£4,300"},
+        ],
+    },
+    "ops/comparison.html": _NAV_CONTEXT,
     "auth/signin.html": {"form": _ExampleForm()},
     "auth/signup.html": {"form": _ExampleForm()},
     "auth/reset.html": {"form": _ExampleForm()},

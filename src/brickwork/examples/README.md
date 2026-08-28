@@ -116,6 +116,8 @@ sanitise it.)
 | `app/confirm.html` | Destructive-action confirmation |
 | `ops/queue.html` | Work queue: triage tabs, bulk actions over a selection |
 | `ops/audit-trail.html` | Chronological record: who did what, and whether it worked |
+| `ops/report.html` | Long-form printable performance report: summary, stats, tables, methodology |
+| `ops/comparison.html` | This-versus-that data comparison: two measured periods on quantitative metrics |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |
