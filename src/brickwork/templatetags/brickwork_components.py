@@ -591,14 +591,42 @@ def bw_chart_mount(
     scope per ADR-083): the only attributes this tag emits are the ones
     named above, never arbitrary consumer-supplied attributes.
     """
+    # Coerced to str before anything else, deliberately with no SafeData gate
+    # (unlike normalise_accessible_name's conditional_escape route): str() on
+    # an already-str/SafeString value is a no-op (returns the same object,
+    # marker and all) and on a non-str value (int, model instance, lazy
+    # gettext proxy) resolves it the same way an f-string would
+    # (icvoss/django-brickwork#351): a consumer passing aria_label=some_count
+    # no longer raises AttributeError from a bare .strip(), which only str
+    # has. That is the real defect this coercion fixes.
+    #
+    # It does NOT, and must not, attempt to preserve a SafeString's marker
+    # through to the escape() call below. The .strip() immediately after
+    # this str() call already destroys the marker on its own (str.strip()
+    # never preserves a str subclass), purely as a side effect of stripping
+    # for the whitespace contract two lines down, not as a deliberate
+    # security measure: do not treat that marker loss as a defence to rely
+    # on, because a future change to how the value is trimmed could stop
+    # destroying it without anyone noticing. escape() a few lines down is
+    # the deliberate, primary defence regardless of what .strip() does to
+    # the marker, and it runs unconditionally: a caller-supplied SafeString
+    # is escaped a second time as a result, which has a real, measured cost
+    # (a screen reader announces the literal entity text rather than the
+    # intended character, see the noqa comment below for the full
+    # two-guard picture), accepted against the alternative of trusting the
+    # marker, which lets the same mechanism break out of the attribute and
+    # execute script. aria_label=/aria_describedby= are accessible names,
+    # not markup, and a SafeString is not a supported input for either: pass
+    # plain text (e.g. aria_label="Tom & more") and it escapes exactly once.
+    #
     # Stripped before testing, not merely truthiness-tested: a whitespace-only
     # aria_label is truthy in Python and is NOT an accessible name to any
     # screen reader, so testing truthiness alone would let a consumer satisfy
     # a hard-required check by supplying nothing. A requirement that can be
     # met with " " is not a requirement, and this one exists precisely because
     # an unnamed chart is invisible.
-    aria_label = aria_label.strip()
-    aria_describedby = aria_describedby.strip()
+    aria_label = str(aria_label).strip()
+    aria_describedby = str(aria_describedby).strip()
 
     if decorative and (aria_label or aria_describedby):
         raise TemplateSyntaxError(
@@ -655,11 +683,61 @@ def bw_chart_mount(
     # VALUE, never markup, and conditional_escape honours __html__, so a
     # SafeString passes through verbatim. That is a real break-out, not a
     # theoretical one: css_class=mark_safe('a" onmouseover="alert(1)') closed
-    # the class attribute and landed a handler on the element. The a11y
-    # arguments happened to be safe only because .strip() returns a plain str
-    # and destroys the SafeString marker, which is protection by accident
-    # rather than by design. A component that never emits consumer markup
-    # wants escape() everywhere.
+    # the class attribute and landed a handler on the element (this file's
+    # bw_data_attrs, above, records the same exploit independently: a
+    # SafeString value of '" role="progressbar' rendered a real
+    # role="progressbar" onto the element it escapes, "because the value
+    # reaches the same markup position"), and
+    # aria_label=mark_safe('a" onmouseover="alert(1)') does exactly the same
+    # thing to the a11y attribute (icvoss/django-brickwork#351).
+    #
+    # This is unconditional, and it has a real, measured cost: a
+    # caller-supplied SafeString (e.g. aria_label=format_html("Tom {} more",
+    # "&")) IS escaped a second time here, rendering aria-label="Tom &amp;amp;
+    # more" rather than "Tom &amp; more" (see
+    # test_safestring_is_escaped_again_because_an_attribute_is_not_markup).
+    # An attribute value is decoded by the browser before assistive
+    # technology reads it, so this is not cosmetic: a screen reader announces
+    # the literal characters "&amp;" instead of "&", corrupting the
+    # accessible name it exists to carry. That cost is accepted against the
+    # alternative: there is no way to distinguish, from the SafeString alone,
+    # "pre-escaped entities from a trusted helper" from "attacker-supplied
+    # attribute-breaking characters wrapped in mark_safe", so honouring the
+    # marker to avoid the corruption would also honour it for
+    # mark_safe('a" onmouseover="alert(1)'), which breaks out of the
+    # attribute and executes script. A corrupted announcement is accepted
+    # over arbitrary script execution.
+    #
+    # The consequence for a caller: a SafeString is not a supported input for
+    # aria_label=/aria_describedby=, because an accessible name is not
+    # markup. Pass plain text (e.g. aria_label="Tom & more"), which escapes
+    # exactly once and announces correctly.
+    #
+    # escape() here is the deliberate, PRIMARY defence, and it is the one to
+    # preserve. Do not replace it with conditional_escape() and do not remove
+    # it on the grounds that something upstream appears to make it redundant.
+    #
+    # It currently LOOKS redundant, which is the trap this note exists to
+    # close. str(value).strip() above degrades a SafeString to a plain str
+    # (str.strip() never preserves a str subclass), so by the time this line
+    # runs the marker is already gone, and escape() and conditional_escape()
+    # would behave identically on the result: forcing conditional_escape()
+    # here still blocks the break-out, because the strip removed the marker,
+    # NOT because conditional_escape() is safe in this position.
+    #
+    # That redundancy is a coincidence of today's strip() call, not a
+    # designed-in second defence. The marker loss is incidental to an
+    # unrelated purpose (the whitespace contract a few lines up, which needs
+    # .strip() for reasons that have nothing to do with HTML safety), so a
+    # future edit changing HOW the value is stripped, trimmed or normalised
+    # could stop destroying the marker without anyone noticing, at which
+    # point escape() is the only thing between a SafeString and a live
+    # break-out. Lean on the coincidence and the seam fails silently and
+    # much later.
+    #
+    # Because the marker is already gone, no black-box test can tell escape()
+    # from conditional_escape() here, so the requirement is pinned by
+    # test_interpolation_uses_escape_not_conditional_escape instead.
     return mark_safe(div)  # noqa: S308
 
 

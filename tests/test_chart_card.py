@@ -7,7 +7,14 @@ empty, populated) each rendering only what they claim, the unfilled-block
 convention, legend_position's modifier classes, and CHT-024's reservation
 (min_height/aspect_ratio reaching the rendered element), including against a
 real-shaped child (canvas/svg with their own intrinsic sizing) rather than an
-empty mount.
+empty mount. Also covers icvoss/django-brickwork#351: aria_label/
+aria_describedby coerce a non-str value instead of raising, and escape()
+runs unconditionally over a SafeString because the safe marker is
+meaningless in attribute position, at a real, accepted cost (a
+pre-escaped SafeString announces its entities literally to a screen
+reader) against the alternative (a mark_safe break-out payload executing
+script), which is the property the load-bearing regression test below
+pins.
 
 Every assertion is scoped to the element it is about (never a bare substring
 check against the whole document), and every test in the accessibility and
@@ -19,11 +26,15 @@ for the per-test teeth-check ledger; this module carries the tests only.
 from __future__ import annotations
 
 import re
+from html.parser import HTMLParser
 
 import pytest
 from django.template import Context, Template
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy
 
 from brickwork.templatetags.brickwork_components import bw_chart_mount
 
@@ -48,6 +59,33 @@ def _attrs_of(html: str, tag_class: str) -> str:
     match = re.search(rf'<[a-z0-9]+[^>]*class="[^"]*\b{re.escape(tag_class)}\b[^"]*"[^>]*>', html)
     assert match is not None, f"no element carrying class {tag_class!r} found in: {html!r}"
     return match.group(0)
+
+
+def _parsed_div_attrs(html: str) -> dict[str, str | None]:
+    """Parse the first ``<div>``'s attributes into a real name->value dict,
+    via html.parser rather than a regex.
+
+    Load-bearing for the break-out regression tests below: a regex for
+    ``onmouseover=`` matches the correctly-escaped TEXT inside
+    ``aria-label="a&quot; onmouseover=&quot;..."`` and reports a false
+    positive on a clean render (the escaped quotes never close the
+    attribute, so there is no separate onmouseover attribute, but the
+    literal substring "onmouseover=" is still present in the escaped text).
+    Only a real parse, checked against the resulting ATTRIBUTE NAMES rather
+    than the raw markup text, can tell the two apart.
+    """
+    parser_attrs: dict[str, str | None] | None = None
+
+    class _DivAttrParser(HTMLParser):
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            nonlocal parser_attrs
+            if tag == "div" and parser_attrs is None:
+                parser_attrs = dict(attrs)
+
+    parser = _DivAttrParser()
+    parser.feed(html)
+    assert parser_attrs is not None, f"no <div> found in: {html!r}"
+    return parser_attrs
 
 
 # --- bw_chart_mount: the four accessibility contract cases (CHT-012) --------
@@ -431,3 +469,134 @@ def test_a_padded_accessible_name_is_stripped_not_rejected() -> None:
     """Stripping must not turn a real name with stray spaces into an error."""
     out = _mount('{% bw_chart_mount aria_label="  Revenue by quarter  " %}')
     assert 'aria-label="Revenue by quarter"' in out
+
+
+# --- icvoss/django-brickwork#351: non-str coercion, and escape() is
+# unconditional even for a SafeString (an attribute value is not markup) ----
+
+
+@pytest.mark.parametrize("field", ["aria_label", "aria_describedby"])
+def test_a_plain_string_containing_ampersand_is_escaped_exactly_once(field: str) -> None:
+    out = bw_chart_mount(**{field: "Tom & Jerry"})
+    attrs = _parsed_div_attrs(out)
+    assert attrs[field.replace("_", "-")] == "Tom & Jerry"  # parser decodes entities: one escape round-trips
+
+
+@pytest.mark.parametrize("field", ["aria_label", "aria_describedby"])
+def test_safestring_is_escaped_again_because_an_attribute_is_not_markup(field: str) -> None:
+    """A caller-supplied SafeString (format_html, mark_safe, a model
+    property) IS escaped a second time here, at a real, measured cost: a
+    screen reader announces the literal characters "&amp;" rather than "&",
+    because the browser decodes entities in an attribute value before
+    assistive technology reads it. This is not corrected here, because
+    escape() runs unconditionally regardless of the safe marker (see
+    test_a_safestring_breakout_payload_does_not_produce_a_new_attribute
+    below): nothing about a SafeString distinguishes "pre-escaped entities
+    from a trusted helper" from "an attacker-supplied, attribute-breaking
+    payload wrapped in mark_safe", so trusting the marker to avoid this
+    corruption would also trust it for the break-out payload, which executes
+    script.
+
+    A SafeString is consequently not a supported input for
+    aria_label=/aria_describedby=, because an accessible name is not markup.
+    The supported path is plain text: aria_label="Tom & more" escapes
+    exactly once and announces correctly.
+    """
+    safe_value = format_html("Tom {} more", "&")
+    out = bw_chart_mount(**{field: safe_value})
+    attrs = _parsed_div_attrs(out)
+    # The escaped source is "Tom &amp; more"; escape()ing it again turns that
+    # literal "&" into "&amp;amp;", which the HTML parser decodes back to a
+    # literal "&amp;" (not a bare "&") when it reads the attribute value,
+    # i.e. the announced text is corrupted, which is the cost documented
+    # above.
+    assert attrs[field.replace("_", "-")] == "Tom &amp; more"
+
+
+@pytest.mark.parametrize("field", ["aria_label", "aria_describedby"])
+def test_a_safestring_breakout_payload_does_not_produce_a_new_attribute(field: str) -> None:
+    """The load-bearing regression test for icvoss/django-brickwork#351.
+
+    A mark_safe'd payload built to close the attribute and open a new one
+    must not do so. Asserted structurally (parse, then inspect the
+    resulting attribute NAMES), not via a substring/regex check against the
+    rendered text: a regex for onmouseover= matches the correctly-escaped
+    text inside aria-label="a&quot; onmouseover=&quot;..." and would report
+    a false positive on a clean render, since the literal substring
+    "onmouseover=" is still present even though it never becomes a real
+    attribute.
+
+    What this test actually pins, and what it does not (teeth-checked by
+    the coordinator, not just by construction): the seam is guarded twice
+    over here, by str(value).strip() degrading a SafeString to a plain str
+    (str.strip() never preserves a str subclass) BEFORE escape() ever
+    runs, and by escape() itself running unconditionally regardless of any
+    surviving marker. This test as written cannot distinguish which of the
+    two stopped the break-out: swapping escape() for conditional_escape()
+    at the interpolation still passes this test, because the strip already
+    destroyed the marker by then, so conditional_escape() sees a plain str
+    and escapes it anyway (confirmed by injecting exactly that swap). Only
+    a regression that ALSO re-marks the stripped value safe before
+    interpolation (bypassing both guards at once) makes this test fail,
+    which it does, with a real onmouseover attribute landing on the
+    element (confirmed by injecting that too). So this test does prove the
+    seam is safe today; it does not, on its own, prove escape() specifically
+    is required. See test_interpolation_uses_escape_not_conditional_escape
+    below for the test that pins that half directly.
+    """
+    payload = mark_safe('a" onmouseover="alert(1)')
+    out = bw_chart_mount(**{field: payload})
+    attrs = _parsed_div_attrs(out)
+    assert "onmouseover" not in attrs
+    assert set(attrs) == {"class", "data-bw-chart-mount", "role", field.replace("_", "-")}
+    assert attrs[field.replace("_", "-")] == 'a" onmouseover="alert(1)'
+
+
+def test_interpolation_uses_escape_not_conditional_escape() -> None:
+    """Pins escape() specifically as the primary defence at the a11y
+    interpolation, independent of whatever str(value).strip() does to a
+    SafeString's marker (icvoss/django-brickwork#351).
+
+    bw_chart_mount has no internal seam that lets a caller hand it a value
+    which is still SafeData by the time it reaches the aria-label=/
+    aria-describedby= interpolation: str(value).strip() runs first and
+    always destroys the marker (str.strip() never preserves a str
+    subclass), so a black-box call through the public function cannot
+    observe escape() and conditional_escape() behaving differently there
+    today, which is exactly the coordinator's finding above. Rather than
+    add a test that cannot fail for the reason it claims to (or reach into
+    the function to bypass the strip, which would test code this function
+    does not run), this asserts directly against the source: the two a11y
+    interpolation lines call escape(), never conditional_escape(). A
+    future edit that swaps escape() for conditional_escape() here (the
+    exact regression the coordinator injected) is caught by this test
+    regardless of what .strip() does, closing the gap the test above
+    documents rather than pins.
+    """
+    import inspect
+
+    from brickwork.templatetags import brickwork_components as tags_module
+
+    source = inspect.getsource(tags_module.bw_chart_mount)
+    a11y_lines = [line for line in source.splitlines() if re.search(r"a11y = f.*aria-(label|describedby)", line)]
+    assert len(a11y_lines) == 2, f"expected exactly 2 a11y interpolation lines, found: {a11y_lines!r}"
+    for line in a11y_lines:
+        assert re.search(r"\bescape\(aria_(label|describedby)\)", line), (
+            f"expected escape(), not conditional_escape() or anything else, at: {line!r}"
+        )
+        assert "conditional_escape" not in line, f"conditional_escape() must not appear at: {line!r}"
+
+
+@pytest.mark.parametrize("field", ["aria_label", "aria_describedby"])
+def test_a_non_str_value_renders_its_string_form_rather_than_raising(field: str) -> None:
+    """The real defect #351 closes: a bare .strip() raised AttributeError for
+    any value without a .strip() method (an int, a model instance, a lazy
+    translation proxy), which is ordinary through {% bw_chart_mount
+    aria_label=some_count %}."""
+    out = bw_chart_mount(**{field: 12345})
+    attrs = _parsed_div_attrs(out)
+    assert attrs[field.replace("_", "-")] == "12345"
+
+    out_lazy = bw_chart_mount(**{field: gettext_lazy("Revenue")})
+    attrs_lazy = _parsed_div_attrs(out_lazy)
+    assert attrs_lazy[field.replace("_", "-")] == "Revenue"
