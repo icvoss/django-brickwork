@@ -23,6 +23,13 @@ partial directly):
       percent_display. A TRUSTED markup slot exactly like _stat.html's own
       sparkline context variable: the caller renders its own markup and
       marks it safe, brickwork does not sanitise it.
+  gauge_label_has_text: the bw_gauge tag's own decision (COL-030) of whether
+      gauge_label carries any visible text, already computed in Python by
+      _gauge_label_has_visible_text. This template branches on THIS boolean,
+      never on gauge_label's own truthiness: a whitespace-only string or
+      markup with no text content (e.g. "   " or mark_safe("<span></span>"))
+      is truthy in Python but has no visible text, so a truthiness test here
+      would render an empty-looking label with no numeric fallback.
   attrs_html: pre-rendered consumer data-* attributes for the gauge root
       (bw_data_attrs, mirroring _ranked_list.html's own root data seam).
 
@@ -32,11 +39,13 @@ States: a single populated state; a gauge always has a value once rendered
   in which to omit it).
 Accessibility: role="img" on the SVG root, named by aria-label when label is
   given (mirrors bw_chart_mount's CHT-012 contract for a static, already-
-  resolved visual summary). The percentage is ALWAYS rendered as VISIBLE
-  text inside the ring (COL-030: the numeric meaning never rides on arc
-  length or colour alone), independent of whether threshold_bands resolved
-  a colour. Both circles (track and arc) are aria-hidden="true" and carry no
-  text of their own (decorative geometry). Deliberately NOT
+  resolved visual summary). VISIBLE text is ALWAYS rendered inside the ring
+  (COL-030: the numeric meaning never rides on arc length or colour alone),
+  independent of whether threshold_bands resolved a colour: either the
+  caller's own gauge_label, when gauge_label_has_text is true, or the
+  computed percentage otherwise, never neither. Both circles (track and arc)
+  are aria-hidden="true" and carry no text of their own (decorative
+  geometry). Deliberately NOT
   role="progressbar" (VIZ-015): that vocabulary's contract is a live
   quantity's progress toward completion, not a single already-resolved
   reading, and COL-030 is already satisfied by the visible text without it,
@@ -56,5 +65,5 @@ Responsive: no breakpoint switch; size is the fixed sm/md/lg token scale
       style="--bw-gauge-dash-array: {{ circumference }}; --bw-gauge-dash-offset: {{ dash_offset }}"
     ></circle>
   </svg>
-  <span class="bw-gauge__label">{% if gauge_label %}{{ gauge_label }}{% else %}{% blocktranslate with percent=percent_display %}{{ percent }}%{% endblocktranslate %}{% endif %}</span>
+  <span class="bw-gauge__label">{% if gauge_label_has_text %}{{ gauge_label }}{% else %}{% blocktranslate with percent=percent_display %}{{ percent }}%{% endblocktranslate %}{% endif %}</span>
 </div>

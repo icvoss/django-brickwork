@@ -28,6 +28,7 @@ from tests._encoding_contract import (
     assert_no_progressbar_semantics,
     assert_text_nodes_are_not_aria_hidden,
     assert_text_nodes_carry_no_accessible_name_override,
+    assert_text_survives_colour_and_style_stripped,
 )
 
 
@@ -180,11 +181,37 @@ def test_threshold_bands_rejects_a_token_outside_the_closed_vocabulary() -> None
 
 
 def test_threshold_banded_value_always_carries_its_visible_numeric_label() -> None:
-    # COL-030: a threshold colour must never ship without the paired visible
-    # number, at every band, not merely the default accent case.
+    # COL-030: a threshold colour must never ship without the paired VISIBLE
+    # number, at every band, not merely the default accent case. Deliberately
+    # NOT a literal '<span class="bw-gauge__label">73%</span>' substring
+    # check: that only proves the string is present in the markup, never that
+    # it is visible, so a component whose label is hidden entirely (an
+    # aria-hidden/hidden/inert/display:none/visibility:hidden label, or the
+    # number replaced by textless markup) would still satisfy a substring
+    # needle. assert_text_survives_colour_and_style_stripped reads the actual
+    # TEXT CONTENT of the bw-gauge__label element, excluding anything hidden
+    # by any of those mechanisms on the element's own tag, a nested child, or
+    # an ancestor (the same machinery test_ranked_list.py is proven against),
+    # so a textless or self-hidden label fails here even though the number
+    # still appears as a substring somewhere in the rendered markup.
     for value, expected_percent in ((10, "10"), (60, "60"), (95, "95")):
         out = _render("{% bw_gauge value=value threshold_bands=bands %}", value=value, bands=_BANDS)
-        assert f'<span class="bw-gauge__label">{expected_percent}%</span>' in out
+        assert_text_survives_colour_and_style_stripped(out, expected_percent, text_classes=("bw-gauge__label",))
+
+
+def test_threshold_banded_gauge_label_override_still_carries_visible_text() -> None:
+    # Pins that a caller-supplied gauge_label cannot defeat the COL-030
+    # guarantee above at any band: whichever band resolves, the label element
+    # must carry SOME visible text (the caller's override, or the numeric
+    # fallback when the override has none), never nothing.
+    for value in (10, 60, 95):
+        out = _render(
+            "{% bw_gauge value=value threshold_bands=bands gauge_label=custom %}",
+            value=value,
+            bands=_BANDS,
+            custom="On track",
+        )
+        assert_text_survives_colour_and_style_stripped(out, "On track", text_classes=("bw-gauge__label",))
 
 
 # --- gauge_label (VIZ-008): a trusted-markup slot, escaped default ---------
@@ -212,6 +239,57 @@ def test_gauge_label_accepts_pre_rendered_safe_markup() -> None:
         custom=mark_safe("<strong>42 of 100</strong>"),  # noqa: S308 (test-authored trusted markup)
     )
     assert '<span class="bw-gauge__label"><strong>42 of 100</strong></span>' in out
+
+
+# --- COL-030 defect class: a truthy gauge_label with no VISIBLE text must --
+# --- still fall back to the numeric percentage, never render blank --------
+
+
+def test_gauge_label_none_falls_back_to_the_percentage() -> None:
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom=None)
+    assert '<span class="bw-gauge__label">73%</span>' in out
+
+
+def test_gauge_label_empty_string_falls_back_to_the_percentage() -> None:
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom="")
+    assert '<span class="bw-gauge__label">73%</span>' in out
+
+
+def test_gauge_label_whitespace_only_falls_back_to_the_percentage() -> None:
+    # a whitespace-only string is truthy in Python: {% if gauge_label %}
+    # alone would render an empty-looking label with no numeric fallback.
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom="   ")
+    assert '<span class="bw-gauge__label">73%</span>' in out
+    assert '<span class="bw-gauge__label">   </span>' not in out
+
+
+def test_gauge_label_markup_with_no_text_content_falls_back_to_the_percentage() -> None:
+    # mark_safe'd markup is also truthy, and may carry no text of its own;
+    # the fallback decision is text CONTENT, not truthiness or markup-ness.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe("<span></span>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label">73%</span>' in out
+    assert "<span></span>" not in out
+
+
+def test_gauge_label_markup_with_text_renders_verbatim_never_falls_back() -> None:
+    # the regression guard above must not overcorrect into stripping or
+    # rejecting legitimate markup: a label WITH visible text renders the
+    # caller's own markup exactly, unescaped, with no fallback.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe("<span>73%</span>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label"><span>73%</span></span>' in out
+
+
+def test_gauge_label_plain_string_with_text_renders_verbatim_never_falls_back() -> None:
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom="On track")
+    assert '<span class="bw-gauge__label">On track</span>' in out
 
 
 # --- data attribute passthrough ---------------------------------------------

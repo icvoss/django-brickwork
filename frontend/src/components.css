@@ -2159,10 +2159,14 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
      numbers (never a %/px-suffixed string): SVG's own stroke-dasharray/
      -dashoffset take unitless user-space units directly, so there is no
      calc() translation step the way .bw-progress__fill's width needs.
-     Both carry a 0 fallback, which is the per-instance-hook convention
-     test_frontend_css_only_references_emitted_token_names keys on, and
-     degrades to an empty arc rather than invalid geometry if the inline
-     style is ever absent. */
+     Both carry a 0 fallback, which degrades to an empty arc rather than
+     invalid geometry if the inline style is ever absent. The fallback also
+     satisfies test_frontend_css_only_references_emitted_token_names, but
+     note what that does and does not prove: the test exempts ANY var() with
+     a fallback, so it cannot distinguish a genuine per-instance hook from a
+     misspelled token name (icvoss/django-brickwork#340). These two are hooks
+     because the template sets them inline per instance, not because the
+     comma is there. */
   stroke-dasharray: var(--bw-gauge-dash-array, 0);
   stroke-dashoffset: var(--bw-gauge-dash-offset, 0);
   stroke-linecap: round;

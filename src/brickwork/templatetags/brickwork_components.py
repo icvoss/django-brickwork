@@ -6,6 +6,7 @@ accessible-name enforcement), so they are tags rather than bare {% include %}.
 
 from __future__ import annotations
 
+import html
 import math
 import re
 from collections.abc import Mapping
@@ -15,7 +16,7 @@ from decimal import Decimal, InvalidOperation
 from django import template
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
-from django.utils.html import conditional_escape, escape, format_html
+from django.utils.html import conditional_escape, escape, format_html, strip_tags
 from django.utils.safestring import SafeData, SafeString, mark_safe
 from django.utils.translation import gettext
 
@@ -557,10 +558,13 @@ def _gauge_threshold_token(percent: Decimal, threshold_bands: object) -> str:
     COL-030 is enforced structurally, not by this function: the resolved
     token only ever selects a CSS class modifier on the decorative,
     aria-hidden arc (never inline colour), and the template ALWAYS renders
-    the numeric percentage as visible text regardless of which band, or
-    whether any band, resolved. A caller cannot construct a threshold-banded
-    gauge whose value is not also paired with visible text, because the
-    template does not expose a way to omit that text node."""
+    either the caller's own visible-text label or, when the label carries no
+    visible text (empty, whitespace-only, or markup with no text content;
+    see ``_gauge_label_has_visible_text``), the numeric percentage as visible
+    text instead, regardless of which band, or whether any band, resolved. A
+    caller cannot construct a threshold-banded gauge whose value is not also
+    paired with visible text, because the template does not expose a way to
+    omit that text node."""
     if threshold_bands is None:
         return "accent"
     if not isinstance(threshold_bands, list | tuple):
@@ -585,6 +589,43 @@ def _gauge_threshold_token(percent: Decimal, threshold_bands: object) -> str:
     # every band's max is below the current percent: the highest band wins,
     # matching a "90+ is success" band still applying at exactly 100.
     return parsed[-1][1]
+
+
+def _gauge_label_has_visible_text(gauge_label: object) -> bool:
+    """Whether ``gauge_label`` carries any visible text, the same "stripped,
+    not merely truthy" reasoning ``bw_chart_mount`` applies to ``aria_label``
+    (see that tag's own comment): a whitespace-only string is truthy in
+    Python and is not visible text, so testing truthiness alone would let
+    ``{% if gauge_label %}`` render an empty-looking label with no numeric
+    fallback, which is exactly the COL-030 defect this function exists to
+    close (icvoss/django-brickwork COL-030).
+
+    Unlike ``aria_label``, ``gauge_label`` is a TRUSTED MARKUP slot (VIZ-008):
+    a caller may legitimately pass ``mark_safe("<strong>73%</strong>")``, so
+    this cannot strip or reject markup the way ``bw_chart_mount`` does.
+    Instead it tests for text CONTENT: strip the tags with
+    ``django.utils.html.strip_tags`` and test what is left, while the caller
+    (``bw_gauge``) keeps passing the ORIGINAL value, safe marker intact, to
+    the template. This function only answers the yes/no question; it never
+    mutates or returns the label itself.
+
+    ``html.unescape`` runs before the final ``.strip()`` so an HTML entity
+    that renders as whitespace is treated as no text, the same as the raw
+    character would be: ``strip_tags`` removes tags but does not decode
+    entities, so a label of only ``"&nbsp;"`` would otherwise survive as a
+    non-empty string and wrongly count as visible text, even though a sighted
+    user sees nothing there but a single space. ``html.unescape`` is the
+    stdlib's own entity decoder (no new dependency), and is safe to use here
+    because its output is discarded immediately after the truthiness check:
+    it never reaches the template.
+
+    ``None`` is guarded explicitly before ``strip_tags`` sees it:
+    ``strip_tags(None)`` returns the literal string ``"None"`` (Django
+    stringifies its argument first), which would wrongly test as visible
+    text."""
+    if not gauge_label:
+        return False
+    return bool(html.unescape(strip_tags(str(gauge_label))).strip())
 
 
 @register.inclusion_tag("brickwork/components/_gauge.html")
@@ -650,8 +691,15 @@ def bw_gauge(
           sanitises it, never pass unescaped user input here) rather than a
           named block: this is an inclusion tag, and a plain
           ``{% include %}``/inclusion-tag context has no block-filling seam
-          the way ``{% extends %}`` does. Omitted (the default) renders the
-          computed percentage as ordinary escaped text, e.g. "73%".
+          the way ``{% extends %}`` does. Omitted (the default), empty, or
+          carrying no visible text (whitespace-only, or markup with no text
+          content, e.g. ``mark_safe("<span></span>")``) all render the
+          computed percentage as ordinary escaped text instead, e.g. "73%"
+          (COL-030): the fallback is decided by visible TEXT CONTENT, never
+          by truthiness, so a caller cannot accidentally satisfy this seam
+          with something that looks empty. A label WITH visible text (plain
+          string or markup) always renders the caller's own value verbatim,
+          never falls back.
       data: a mapping of consumer-owned ``data-*`` attributes for the gauge
           root (component-level test hooks, mirroring ``_stat.html``'s and
           ``bw_ranked_list``'s own root data seam).
@@ -718,6 +766,13 @@ def bw_gauge(
         "dash_offset": f"{dash_offset:.2f}",
         "radius": f"{_GAUGE_VIEWBOX_RADIUS:.2f}",
         "percent_display": str(int(percent.to_integral_value())),
+        # The DECISION (has visible text) is computed here, not left to the
+        # template's own truthiness test (COL-030 fix): the template branches
+        # on this boolean, never on `gauge_label` itself. `gauge_label` below
+        # is still the caller's ORIGINAL value, safe marker intact, so a
+        # `mark_safe(...)` label renders its markup verbatim rather than
+        # escaped; only the boolean decision is derived from a stripped copy.
+        "gauge_label_has_text": _gauge_label_has_visible_text(gauge_label),
         "gauge_label": gauge_label,
         "attrs_html": bw_data_attrs(data, "gauge"),
     }
