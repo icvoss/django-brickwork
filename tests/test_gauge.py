@@ -292,6 +292,127 @@ def test_gauge_label_plain_string_with_text_renders_verbatim_never_falls_back() 
     assert '<span class="bw-gauge__label">On track</span>' in out
 
 
+# --- COL-030 defect class, round two: found by adversarial review of the ---
+# --- fix above. Two further shapes are truthy, non-whitespace, and STILL --
+# --- carry no text a sighted user can see. ----------------------------------
+
+
+@pytest.mark.parametrize(
+    "name,character",
+    [
+        ("zero-width space", "​"),
+        ("zero-width non-joiner", "‌"),
+        ("zero-width joiner", "‍"),
+        ("byte order mark", "﻿"),
+        ("word joiner", "⁠"),
+    ],
+)
+def test_gauge_label_format_character_only_falls_back_to_the_percentage(name: str, character: str) -> None:
+    # Unicode category Cf ("format"): renders as literally nothing on
+    # screen, the same argument the nbsp (category Zs) handling already
+    # makes one category over. .strip() alone does not remove these, unlike
+    # an ordinary space or nbsp, which is why they survived the first fix.
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom=character)
+    assert '<span class="bw-gauge__label">73%</span>' in out, f"{name} ({character!r}) did not fall back"
+
+
+def test_gauge_label_format_character_mixed_with_real_text_still_renders_verbatim() -> None:
+    # a format character ALONGSIDE real text must not itself trigger a
+    # fallback: the rule is "no VISIBLE text at all", not "contains any
+    # format character".
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom="​73",
+    )
+    assert '<span class="bw-gauge__label">​73</span>' in out
+
+
+def test_gauge_label_svg_title_only_falls_back_to_the_percentage() -> None:
+    # <title> inside <svg> is an ACCESSIBLE NAME, announced to a screen
+    # reader and never rendered as on-screen text. django.utils.html.strip_tags
+    # (this function's first-round mechanism) keeps an element's text content
+    # while discarding only its tags, so it could not tell "73%" living
+    # inside <title> apart from "73%" living in ordinary flow text: exactly
+    # the user this guarantee protects (a sighted user who cannot distinguish
+    # the arc colours) is not reached by an accessible name.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe("<svg><title>73%</title></svg>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label">73%</span>' in out
+    # Read the rendered text content directly rather than trusting a
+    # '>73%<' substring needle: '<title>73%</title>' also contains that
+    # exact substring, so a substring check cannot tell the fallback from
+    # the caller's own accessible-only markup still being present verbatim.
+    assert "<svg>" not in out
+
+
+def test_gauge_label_img_alt_only_falls_back_to_the_percentage() -> None:
+    # alt text lives in an ATTRIBUTE, never a text node: an <img> with only
+    # an alt carries no visible text of its own, whatever the alt text says.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe('<img alt="73%">'),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label">73%</span>' in out
+    assert "<img" not in out
+
+
+def test_gauge_label_aria_hidden_markup_only_falls_back_to_the_percentage() -> None:
+    # text inside aria-hidden="true" is removed from the accessibility tree
+    # and is exactly the shape tests/_encoding_contract.py's own hiding-
+    # mechanism ladder checks on the RENDERED side of this component family;
+    # the fallback decision must agree with that ladder rather than treating
+    # hidden text as visible.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe('<span aria-hidden="true">73%</span>'),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label">73%</span>' in out
+
+
+def test_gauge_label_nested_markup_with_real_text_renders_verbatim_never_falls_back() -> None:
+    # the round-two guards above must not overcorrect into treating every
+    # nested element as suspect: ordinary nested inline markup with real
+    # visible text (not title/desc/script/style, not aria-hidden) still
+    # renders verbatim, with no fallback.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe("<span><em><b>73%</b></em></span>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label"><span><em><b>73%</b></em></span></span>' in out
+
+
+def test_gauge_label_plain_string_containing_tag_shaped_text_is_not_parsed_as_markup() -> None:
+    # A plain (unmarked) string is never fed to the HTML parser the round-two
+    # fix uses for TRUSTED markup: it is only ever going to be rendered as
+    # auto-escaped text, whatever characters it contains, so tag-shaped text
+    # such as "<script>" inside an ordinary caller-typed string must not be
+    # read as a real element and discarded. Regression guard for a defect
+    # this fix introduced and caught before landing: an earlier draft ran
+    # every gauge_label, safe or not, through the tag-aware extractor, which
+    # correctly discards a TRUSTED <script>'s text but wrongly did the same
+    # to a plain string that merely contains that substring, forcing an
+    # unwanted numeric fallback over the caller's own (soon to be escaped)
+    # text.
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom="<script>steal()</script>")
+    assert "<script>steal()</script>" not in out
+    assert "&lt;script&gt;steal()&lt;/script&gt;" in out
+
+
+def test_gauge_label_plain_zero_renders_verbatim_never_falls_back() -> None:
+    # "0" is falsy-adjacent by convention in many languages but is real,
+    # visible text: the guard must key off VISIBLE TEXT CONTENT, never a
+    # second truthiness test in disguise.
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom="0")
+    assert '<span class="bw-gauge__label">0</span>' in out
+
+
 # --- data attribute passthrough ---------------------------------------------
 
 

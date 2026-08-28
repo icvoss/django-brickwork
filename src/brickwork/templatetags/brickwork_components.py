@@ -6,12 +6,14 @@ accessible-name enforcement), so they are tags rather than bare {% include %}.
 
 from __future__ import annotations
 
-import html
 import math
 import re
+import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from html import unescape
+from html.parser import HTMLParser
 
 from django import template
 from django.template.exceptions import TemplateSyntaxError
@@ -591,6 +593,62 @@ def _gauge_threshold_token(percent: Decimal, threshold_bands: object) -> str:
     return parsed[-1][1]
 
 
+# Tags whose own text content is never rendered on screen, only exposed to
+# assistive technology (title/desc) or not rendered as text at all
+# (script/style): a plain strip-the-tags-keep-the-text approach (this
+# function's own first version, django.utils.html.strip_tags) cannot
+# distinguish "this text is on screen" from "this text is somewhere in the
+# subtree", so mark_safe("<svg><title>73%</title></svg>") read as visible
+# text when it is, by definition, an accessible name a sighted user never
+# sees (found by adversarial review after the first COL-030 fix landed,
+# icvoss/django-brickwork COL-030). <img alt="..."> also carries text that
+# is never a text NODE (it lives in an attribute), which strip_tags happened
+# to discard for the unrelated reason that it discards all attributes.
+_GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS = frozenset({"title", "desc", "script", "style"})
+
+
+class _GaugeLabelVisibleTextExtractor(HTMLParser):
+    """Collect only the text a sighted user would actually see when
+    ``gauge_label`` is rendered: text inside ``_GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS``
+    (accessible-name-only or non-text elements) and text inside any element
+    carrying ``aria-hidden="true"`` or the boolean ``hidden`` attribute is
+    excluded, everything else is kept, mirroring the same "own tag or any
+    ancestor" hiding shape ``tests/_encoding_contract.py`` already checks for
+    on the RENDERED side of this same component family.
+
+    Depth-tracked with a stack rather than a bare counter so a hidden
+    element's CLOSE only clears its own contribution: a counter that merely
+    incremented and decremented on tag name would also un-hide text that
+    follows a hidden sibling once a same-named tag anywhere closed.
+
+    ``convert_charrefs=True`` (the parser's own default from Python 3.5) also
+    replaces the earlier separate ``html.unescape`` call: entities are
+    decoded once, during parsing, rather than as a second pass afterwards."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.chunks: list[str] = []
+        self._non_visible_depth = 0
+        self._hidden_stack: list[bool] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attrs_dict = dict(attrs)
+        if tag in _GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS:
+            self._non_visible_depth += 1
+        is_hidden = attrs_dict.get("aria-hidden") == "true" or "hidden" in attrs_dict
+        self._hidden_stack.append(is_hidden)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in _GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS and self._non_visible_depth > 0:
+            self._non_visible_depth -= 1
+        if self._hidden_stack:
+            self._hidden_stack.pop()
+
+    def handle_data(self, data: str) -> None:
+        if self._non_visible_depth == 0 and not any(self._hidden_stack):
+            self.chunks.append(data)
+
+
 def _gauge_label_has_visible_text(gauge_label: object) -> bool:
     """Whether ``gauge_label`` carries any visible text, the same "stripped,
     not merely truthy" reasoning ``bw_chart_mount`` applies to ``aria_label``
@@ -603,29 +661,92 @@ def _gauge_label_has_visible_text(gauge_label: object) -> bool:
     Unlike ``aria_label``, ``gauge_label`` is a TRUSTED MARKUP slot (VIZ-008):
     a caller may legitimately pass ``mark_safe("<strong>73%</strong>")``, so
     this cannot strip or reject markup the way ``bw_chart_mount`` does.
-    Instead it tests for text CONTENT: strip the tags with
-    ``django.utils.html.strip_tags`` and test what is left, while the caller
-    (``bw_gauge``) keeps passing the ORIGINAL value, safe marker intact, to
-    the template. This function only answers the yes/no question; it never
-    mutates or returns the label itself.
+    Instead it tests for text CONTENT actually rendered on screen, via
+    ``_GaugeLabelVisibleTextExtractor`` above, while the caller (``bw_gauge``)
+    keeps passing the ORIGINAL value, safe marker intact, to the template.
+    This function only answers the yes/no question; it never mutates or
+    returns the label itself.
 
-    ``html.unescape`` runs before the final ``.strip()`` so an HTML entity
-    that renders as whitespace is treated as no text, the same as the raw
-    character would be: ``strip_tags`` removes tags but does not decode
-    entities, so a label of only ``"&nbsp;"`` would otherwise survive as a
-    non-empty string and wrongly count as visible text, even though a sighted
-    user sees nothing there but a single space. ``html.unescape`` is the
-    stdlib's own entity decoder (no new dependency), and is safe to use here
-    because its output is discarded immediately after the truthiness check:
-    it never reaches the template.
+    The parser runs ONLY when ``gauge_label`` is already a ``SafeString``:
+    that is exactly the condition under which the template will render it as
+    real markup rather than auto-escaped text (``_gauge.html``'s own
+    ``{{ gauge_label }}`` still auto-escapes an ordinary ``str``, matching
+    every other Django template variable). A plain ``str`` gets the simpler
+    "unescape entities, strip, test for a Cf-only remainder" check below with
+    no HTML-structural interpretation at all, because Django is going to
+    render its literal characters as escaped text, not as tags: parsing an
+    UNTRUSTED plain string as if it were markup is its own defect, not a
+    safety margin, and shipped as one. A caller-typed
+    ``gauge_label="<script>steal()</script>"`` (no ``mark_safe``, ordinary
+    text that merely contains angle brackets) is real, VISIBLE text once
+    escaped to ``&lt;script&gt;...``; running it through the tag-aware
+    extractor instead read the literal word "script" as a real ``<script>``
+    element, discarded its text content by the same rule that correctly
+    discards a genuine trusted ``<script>``, and wrongly forced the numeric
+    fallback over the caller's own escaped text. Found by rerunning this
+    fix's own pre-existing test suite before reporting it as done, which is
+    exactly the "verify your own report" habit that catches a defect a
+    per-case teeth-check on the intended cases alone would not: none of the
+    round-two defect cases are a plain string, so a teeth-check limited to
+    them would not have exercised this branch at all.
 
-    ``None`` is guarded explicitly before ``strip_tags`` sees it:
-    ``strip_tags(None)`` returns the literal string ``"None"`` (Django
-    stringifies its argument first), which would wrongly test as visible
-    text."""
+    A real HTML parser (the stdlib's ``html.parser.HTMLParser``, no new
+    dependency), not ``django.utils.html.strip_tags`` plus a text scrape, for
+    the SafeString branch: the first version of this function used exactly
+    that combination and passed every case in the original defect report,
+    but a later adversarial pass found ``strip_tags`` keeps the TEXT CONTENT
+    of elements it cannot render visibly, only discarding the tags
+    themselves, so ``mark_safe("<svg><title>73%</title></svg>")`` read as
+    visible text when a sighted user never sees it (an SVG ``<title>`` is an
+    accessible name only). A regex-based fix for that one shape would have
+    been the same "enumerate what I've seen so far" defect the
+    ``&nbsp;``/format-character fix below already rejects; a real parser
+    tracking element nesting is the proportionate tool once the property
+    being tested depends on WHERE in the tree a character sits, not merely
+    which characters they are.
+
+    Deliberately NOT a general accessibility-tree resolver: the SafeString
+    branch only answers "does this trusted markup contain any visible text",
+    via the four named non-visible-text tags and the
+    ``aria-hidden``/``hidden`` attributes, the same named, closed set
+    ``tests/_encoding_contract.py`` already documents as this codebase's
+    honest boundary for a markup-level check (its own module docstring: five
+    named hiding mechanisms, not "every way an element can be hidden"). A
+    CSS rule hiding the label via an external stylesheet selector
+    (``<style>.bw-gauge__label{display:none}</style>``) is genuinely outside
+    what parsing markup can resolve, since that needs a real CSS cascade,
+    and is not attempted here (see the encoding-contract test coverage table
+    in the test suite for what closes that gap instead).
+
+    After extracting the visible text (the SafeString branch) or unescaping
+    entities (the plain-string branch), a string is still treated as empty
+    when every remaining character is Unicode general category ``Cf``
+    ("format"): zero-width space, zero-width non-joiner, the BOM and the
+    word joiner are all ``Cf`` and render as literally nothing on screen, the
+    same invisible-to-a-sighted-user argument the ``&nbsp;`` handling already
+    makes one category over (``Zs``, "space separator", which ``.strip()``
+    already removes on its own). Checked via
+    ``unicodedata.category(ch) == "Cf"`` per character, deliberately not a
+    hand-enumerated set of the four characters named above: ``Cf`` is a
+    stable Unicode property covering every current and future format
+    character, and an enumeration goes stale the moment a fifth one is used.
+
+    ``None`` is guarded explicitly first: an unguarded ``str(None)`` would
+    be fed onward as the literal four-character text ``"None"``, which would
+    wrongly test as visible text."""
     if not gauge_label:
         return False
-    return bool(html.unescape(strip_tags(str(gauge_label))).strip())
+    if isinstance(gauge_label, SafeString):
+        extractor = _GaugeLabelVisibleTextExtractor()
+        extractor.feed(str(gauge_label))
+        visible_text = "".join(extractor.chunks).strip()
+    else:
+        # A plain str is never parsed as markup: the template auto-escapes
+        # it verbatim, so this only needs entity-decoding (the "&nbsp;"
+        # shape, unlikely but not impossible in caller-typed plain text) and
+        # a strip, exactly as bw_chart_mount's own aria_label.strip() does.
+        visible_text = unescape(str(gauge_label)).strip()
+    return any(unicodedata.category(ch) != "Cf" for ch in visible_text)
 
 
 @register.inclusion_tag("brickwork/components/_gauge.html")
