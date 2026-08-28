@@ -33,8 +33,20 @@ export default [
     // Governs discovery (the walk), not rule selection: any of these
     // three venv names can exist in a contributor's checkout depending
     // on which they used to follow the umbrella CLAUDE.md's `pip install
-    // -e ".[dev]"` setup. node_modules is already excluded by ESLint's
-    // own flat-config default and is not repeated here.
+    // -e ".[dev]"` setup.
+    //
+    // node_modules is deliberately absent: ESLint's flat config already
+    // ignores it by default, so repeating it here would imply the
+    // default cannot be relied on. To re-check that on an ESLint
+    // upgrade, plant a file that violates one of the rules below inside
+    // node_modules/ and run `npx eslint .`; a clean exit means the
+    // default still holds (verified on ESLint v10.9.1).
+    //
+    // These patterns do not reach inside the linted tree: a directory
+    // named env/ or venv/ nested under a11y/ is still walked and still
+    // linted, so the ignores cannot silently disarm the gate by name
+    // collision. Re-check the same way, by planting a violating spec at
+    // a11y/env/ and confirming it still errors.
     ignores: [".venv/**", "venv/**", "env/**"],
   },
   {
