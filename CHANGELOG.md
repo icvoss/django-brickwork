@@ -46,6 +46,23 @@ versioning contract).
   now rejected everywhere the seam exists, matching the rule's existing
   behaviour at every other call site.
 
+- **`bwTooltip` now opens on keyboard and touch focus, not just hover**
+  (icvoss/django-brickwork#355). The bubble never opened with the
+  component's own documented usage, a real focusable element (e.g. a
+  `<button>`) inside the trigger block, per `_tooltip.html`'s own header
+  example. Root cause: the component bound `focus`/`blur` directly on the
+  trigger wrapper span, but those events do not bubble and the wrapper is
+  not itself focusable, so focus landing on the inner button never reached
+  the listener; only `mouseenter`/`mouseleave` worked, because those do
+  bubble from a descendant. Fixed by binding `focusin`/`focusout` instead,
+  which bubble the same way, with `focusout` guarded so the bubble only
+  closes once focus genuinely leaves the trigger subtree (checked via
+  `event.relatedTarget`), so focus moving between elements inside the
+  trigger no longer flickers the bubble shut. Hover behaviour is
+  unchanged. **Behaviour change:** if your trigger block contains a
+  focusable element, keyboard and touch focus now opens the bubble, as the
+  header's "hover AND focus" contract has always documented.
+
 ### Added
 
 - **`{% bw_dropdown %}`'s item `attrs` seam is documented** for the first

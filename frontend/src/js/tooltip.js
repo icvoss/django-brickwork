@@ -55,8 +55,20 @@ export default function tooltip(config = {}) {
 
       this._trigger.addEventListener("mouseenter", () => this.open());
       this._trigger.addEventListener("mouseleave", () => this.close());
-      this._trigger.addEventListener("focus", () => this.open());
-      this._trigger.addEventListener("blur", () => this.close());
+      // focus/blur do not bubble, so a focusable element nested inside the
+      // trigger (the documented usage, e.g. a real <button> in the trigger
+      // block) would never reach a listener bound on the wrapper itself.
+      // focusin/focusout bubble, mirroring how mouseenter/mouseleave already
+      // reach the wrapper from descendants (#355).
+      this._trigger.addEventListener("focusin", () => this.open());
+      this._trigger.addEventListener("focusout", (event) => {
+        // Only close when focus genuinely leaves the trigger subtree: a
+        // relatedTarget still inside the trigger (focus moving between
+        // elements within it) must not flicker the bubble closed.
+        if (!event.relatedTarget || !this._trigger.contains(event.relatedTarget)) {
+          this.close();
+        }
+      });
       this._trigger.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && this.isOpen) {
           event.preventDefault();
