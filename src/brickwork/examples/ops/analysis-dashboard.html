@@ -131,10 +131,29 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
 
   The accessible name is REQUIRED unless you pass decorative=True, and a chart
   carrying the page's main finding is never decorative.
+
+  NOTE the card title, because it is a trap worth knowing before you copy this.
+  _chart_card.html EXTENDS _card.html, and a card's title is a BLOCK, not a
+  context variable. Passing title="..." to an {% templatetag openblock %}
+  include {% templatetag closeblock %} of this component does nothing at all:
+  Django discards a value that has no matching variable, and it discards an
+  unmatched block name silently too, with no error even in DEBUG. The card
+  simply renders untitled and you will not be told. To title the card itself,
+  write a small template that EXTENDS _chart_card.html and fills its title
+  block, then include THAT. This page instead gives the band a real visible
+  heading of its own, which is the honest thing to do when the section already
+  needs a heading for its landmark.
+
+  That heading sits inside bw-prose, and that is not decoration: a bare <h2> on
+  an app page inherits the heading font and colour but NO size step, so it
+  renders at body size. bw-prose is the only shipped route to a correctly sized
+  visible heading outside the page header's own <h1>. Wrapping the section in
+  it is a real constraint of the system today, worth knowing before you reach
+  for a class of your own.
   {% endcomment %}
-  <section aria-labelledby="trend-heading">
-    <h2 id="trend-heading" class="bw-visually-hidden">Revenue over time</h2>
-    {% include "brickwork/components/_chart_card.html" with title="Net revenue by month" mount=revenue_mount %}
+  <section aria-labelledby="trend-heading" class="bw-prose">
+    <h2 id="trend-heading">Net revenue by month</h2>
+    {% include "brickwork/components/_chart_card.html" with mount=revenue_mount %}
   </section>
 
   {% comment %}
