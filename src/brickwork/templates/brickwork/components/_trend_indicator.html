@@ -1,20 +1,36 @@
 {% load brickwork_icons i18n %}
 {% comment %}
 Trend indicator (VIZ-017): a standalone directional caption, extracted from
-_stat.html's own trend block (VIZ-002, BR-BW-TPL-007) so a table cell or a
-scorecard can render the same accessible trend contract without pulling in
-the whole KPI tile. Structural, consumed via {% include %} (no render-time
-enforcement needed, matching _stat.html's own consumption mode: this
-component carries the same trend/trend_label contract with zero Python-side
-validation, so introducing a tag here would add behaviour the extraction is
-not supposed to change).
+_stat.html's former inline trend block (VIZ-002, BR-BW-TPL-007) so a table
+cell or a scorecard can render the same accessible trend contract without
+pulling in the whole KPI tile. Structural, consumed via {% include %} (no
+render-time enforcement needed, matching _stat.html's own consumption mode:
+this component carries the same trend/trend_label contract with zero
+Python-side validation, so introducing a tag here would add behaviour the
+extraction is not supposed to change). Since icvoss/django-brickwork#334,
+_stat.html itself consumes this partial rather than keeping a second copy:
+there is one implementation of the trend contract, this one, not two.
 
-Class name: bw-trend, not bw-stat__trend. The shipped block's class is a BEM
+Class name: bw-trend, not the block's former bw-stat__trend. That was a BEM
 element scoped to .bw-stat, which is meaningless once this markup renders
 inside a table cell or a scorecard with no .bw-stat ancestor: keeping the
-scoped name would not match any selector a consumer or this package's own
-CSS reasonably targets. So the rename is required; only the replacement was
-a choice.
+scoped name here, unqualified, would not match any selector a consumer or
+this package's own CSS reasonably targets outside a .bw-stat. bw-trend is
+this partial's own root class as a standalone consumer sees it.
+
+css_class (optional, matching bw_icon's/bw_chart_mount's own seam): extra
+class tokens appended after bw-trend and the bw-trend--<state> modifier,
+space-joined, escaped. _stat.html (#334) uses this to add its own
+bw-stat__trend back onto the element it includes this partial for:
+bw-stat__trend was documented public surface before the extraction
+(docs/DESIGN.md, docs/BRANDING.md name it in prose about the X-fg token,
+and it carried its own styling) so #334 retains it alongside bw-trend on
+the SAME element rather than retiring it; a consumer selecting
+.bw-stat__trend directly still matches. This is one implementation (this
+partial) rendered with two class names when _stat.html is the caller, not
+two implementations: a table cell or scorecard that includes this partial
+directly gets only bw-trend, because they never had bw-stat__trend to
+begin with.
 
 bw-trend rather than bw-trend-indicator because this package uses the
 SHORTEST name that identifies the component, which is not the same rule as
@@ -47,6 +63,9 @@ Required context:
         own fallback.
 Optional:
   trend_label (str): the visible delta text beside the glyph.
+  css_class (str): extra class tokens appended after bw-trend and the
+        bw-trend--<state> modifier (see the header note above). Escaped;
+        never Brickwork's own trusted markup.
 
 Usage (a table cell, VIZ-017's own motivating case)::
 
@@ -66,7 +85,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-trend*
   selector.
 {% endcomment %}
 {% if trend %}
-<span class="bw-trend bw-trend--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}">
+<span class="bw-trend bw-trend--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}{% if css_class %} {{ css_class }} {{ css_class }}--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}{% endif %}">
   {% if trend == "up" %}{% bw_icon "arrow-up" size="sm" decorative=True %}{% elif trend == "down" %}{% bw_icon "arrow-down" size="sm" decorative=True %}{% else %}{% bw_icon "minus" size="sm" decorative=True %}{% endif %}
   <span class="bw-visually-hidden">{% if trend == "up" %}{% translate "increased" %}{% elif trend == "down" %}{% translate "decreased" %}{% else %}{% translate "unchanged" %}{% endif %}</span>
   {% if trend_label %}<span>{{ trend_label }}</span>{% endif %}

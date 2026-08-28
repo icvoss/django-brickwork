@@ -119,7 +119,7 @@ def test_manifest_escape_hatch_matches_typed_accessors() -> None:
 
 def test_status_fg_declares_both_backgrounds_it_is_painted_on() -> None:
     """brickwork#289 blocker 2: X-fg is painted on X-subtle AND on plain surface
-    (.bw-field__error, .bw-stat__trend, .bw-account-menu__item--danger), so both
+    (.bw-field__error, .bw-trend/.bw-stat__trend, .bw-account-menu__item--danger), so both
     pairings must be declared, not just the -subtle one. A DTCG token's
     contrastPair extension may be an array; the build emits one contrastPairs
     entry per pair on that array."""

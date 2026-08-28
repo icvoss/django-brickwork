@@ -156,7 +156,7 @@ def test_surface_override_that_breaks_status_subtle_pairing_raises() -> None:
     #
     # Both X-subtle and plain surface are declared as their own contrastPairs
     # entry (X-fg is also painted directly on plain surface:
-    # .bw-field__error, .bw-stat__trend, .bw-account-menu__item--danger; see
+    # .bw-field__error, .bw-trend/.bw-stat__trend, .bw-account-menu__item--danger; see
     # test_token_manifest.py's contrastPairs coverage test for both entries).
     # They are NOT independently reachable by the current derivation, though:
     # bisected across the whole surface-L range, X-subtle is always the

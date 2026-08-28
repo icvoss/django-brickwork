@@ -3,16 +3,31 @@
 Stat (VIZ-001/002/017): the KPI tile. Structural, consumed via {% include %}.
 Stacks an overline label, a tabular-numeral value (font-variant-numeric:
 tabular-nums via bw-stat__value, so a column of tiles never jitters as digits
-change width; AC-BW-075) and an optional trend caption.
+change width; AC-BW-075) and an optional trend caption, the latter delegated
+to _trend_indicator.html (VIZ-017; icvoss/django-brickwork#334) rather than
+rendered inline: one implementation of the trend contract, not two.
 
 Trend accessibility (BR-BW-TPL-007, AC-BW-073/074): whenever ``trend`` is set
-the template ALWAYS renders a directional glyph (arrow-up / arrow-down /
-minus, decorative) PLUS a visually hidden text fallback ("increased" /
-"decreased" / "unchanged"), so the direction never rides on colour alone by
-construction, even when the caller supplies no ``trend_label``.
-``trend_label``, when given, refines the accessible text (e.g. "12% up on
-last month") and renders visibly beside the glyph. Colour (success or danger
-ink on the trend row) is reinforcement only, never the sole signal.
+the included partial ALWAYS renders a directional glyph (arrow-up /
+arrow-down / minus, decorative) PLUS a visually hidden text fallback
+("increased" / "decreased" / "unchanged"), so the direction never rides on
+colour alone by construction, even when the caller supplies no
+``trend_label``. ``trend_label``, when given, refines the accessible text
+(e.g. "12% up on last month") and renders visibly beside the glyph. Colour
+(success or danger ink on the trend row) is reinforcement only, never the
+sole signal.
+
+Class name (#334): the trend row now renders via _trend_indicator.html
+rather than an inline copy of the same markup, so there is one
+implementation of the trend contract, not two. The element carries BOTH
+``bw-trend`` (_trend_indicator.html's own root class) and ``bw-stat__trend``
+(this tile's original class, passed through via _trend_indicator.html's
+``css_class`` seam): ``bw-stat__trend`` was documented public surface
+before this extraction (docs/DESIGN.md and docs/BRANDING.md name it in
+prose about the X-fg token contrast pairing, and frontend/src/components.css
+styled it directly), so it is retained alongside the new name rather than
+retired. Two class names on the one element is a naming question; this
+extraction is only ever one implementation underneath, never two.
 
 Required context:
   label: the metric's name (rendered in the overline voice).
@@ -76,13 +91,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-stat*
     {% if icon %}{% bw_icon icon size="md" decorative=True css_class="bw-stat__icon" %}{% endif %}
     <span class="bw-stat__label">{{ label }}</span>
     <span class="bw-stat__value">{{ value }}</span>
-    {% if trend %}
-      <span class="bw-stat__trend bw-stat__trend--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}">
-        {% if trend == "up" %}{% bw_icon "arrow-up" size="sm" decorative=True %}{% elif trend == "down" %}{% bw_icon "arrow-down" size="sm" decorative=True %}{% else %}{% bw_icon "minus" size="sm" decorative=True %}{% endif %}
-        <span class="bw-visually-hidden">{% if trend == "up" %}{% translate "increased" %}{% elif trend == "down" %}{% translate "decreased" %}{% else %}{% translate "unchanged" %}{% endif %}</span>
-        {% if trend_label %}<span>{{ trend_label }}</span>{% endif %}
-      </span>
-    {% endif %}
+    {% include "brickwork/components/_trend_indicator.html" with trend=trend trend_label=trend_label css_class="bw-stat__trend" %}
     {% if sparkline %}<div class="bw-stat__sparkline">{{ sparkline }}</div>{% endif %}
   {% endif %}
 {% if href %}</a>{% else %}</div>{% endif %}
