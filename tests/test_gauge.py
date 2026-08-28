@@ -350,6 +350,58 @@ def test_gauge_label_svg_title_only_falls_back_to_the_percentage() -> None:
     assert "<svg>" not in out
 
 
+def test_gauge_label_template_content_only_falls_back_to_the_percentage() -> None:
+    # <template> content is the HTML5 "template contents": an inert
+    # DocumentFragment that parsing alone never inserts into the rendered
+    # document. Verified directly in Chromium (innerText="", height=0), not
+    # merely reasoned from the tag name: a strip-and-scrape approach would
+    # have kept this text exactly like the <title>/<svg> case above.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe("<template>73%</template>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label">73%</span>' in out
+    assert "<template>" not in out
+
+
+def test_gauge_label_template_content_mixed_with_real_text_still_renders_verbatim() -> None:
+    # the guard above must not overcorrect: real visible text ALONGSIDE a
+    # <template> must still render, with no fallback.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe("<template>hidden</template>73%"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label"><template>hidden</template>73%</span>' in out
+
+
+def test_gauge_label_noscript_content_only_falls_back_to_the_percentage() -> None:
+    # <noscript> content is inert TEXT, not markup, whenever the HTML5
+    # parsing spec's "scripting flag" is enabled, which is the ordinary case
+    # for a real browser with JavaScript on (this package's own target
+    # audience). Verified directly in Chromium (innerText="", height=0):
+    # only a scripting-disabled browser would ever show this text.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe("<noscript>73%</noscript>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label">73%</span>' in out
+    assert "<noscript>" not in out
+
+
+def test_gauge_label_noscript_content_mixed_with_real_text_still_renders_verbatim() -> None:
+    # the guard above must not overcorrect: real visible text ALONGSIDE a
+    # <noscript> must still render, with no fallback.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe("<noscript>hidden</noscript>73%"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label"><noscript>hidden</noscript>73%</span>' in out
+
+
 def test_gauge_label_img_alt_only_falls_back_to_the_percentage() -> None:
     # alt text lives in an ATTRIBUTE, never a text node: an <img> with only
     # an alt carries no visible text of its own, whatever the alt text says.
@@ -374,6 +426,63 @@ def test_gauge_label_aria_hidden_markup_only_falls_back_to_the_percentage() -> N
         custom=mark_safe('<span aria-hidden="true">73%</span>'),  # noqa: S308 (test-authored trusted markup)
     )
     assert '<span class="bw-gauge__label">73%</span>' in out
+
+
+# --- regression pins: correctly VISIBLE shapes that must stay visible. -----
+# --- Over-fixing (excluding text that IS on screen) is the direction -------
+# --- nothing currently guards; these pin the boundary against a future ------
+# --- widening of the non-visible set. ---------------------------------------
+
+
+def test_gauge_label_option_text_is_visible_and_never_falls_back() -> None:
+    # <option> is NOT in _GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS: outside a
+    # <select>, and even inside one, its text is real rendered content
+    # (Chromium: innerText="OPTION", height=20.2 for a bare <option>73%
+    # </option> fixture), unlike <title>/<template>/<noscript>. A future
+    # "tidy the closed-form elements" pass must not fold this in.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe("<option>73%</option>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label"><option>73%</option></span>' in out
+
+
+def test_gauge_label_role_presentation_text_is_visible_and_never_falls_back() -> None:
+    # role="presentation" removes an element from the ACCESSIBILITY tree
+    # (nothing is announced) but the element still PAINTS: it is the mirror
+    # image of <title>, which is announced but never painted. COL-030
+    # protects the SIGHTED user, so role="presentation" text counts as
+    # visible, and aria-hidden/hidden (which do remove paint) remain the
+    # only attribute-driven hides this function recognises.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe('<span role="presentation">73%</span>'),  # noqa: S308
+    )
+    assert '<span class="bw-gauge__label"><span role="presentation">73%</span></span>' in out
+
+
+def test_gauge_label_combining_marks_are_visible_and_never_fall_back() -> None:
+    # combining diacritical marks (Unicode category Mn, "mark, nonspacing")
+    # render as visible glyphs stacked on the preceding base character; they
+    # are not Cf ("format") and must not be swept up by the Cf-only-
+    # remainder check that correctly discards zero-width/format characters.
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom="á̂̃")
+    assert '<span class="bw-gauge__label">á̂̃</span>' in out
+
+
+def test_gauge_label_input_value_attribute_is_not_a_text_node_and_falls_back() -> None:
+    # an <input value="..."> carries its text in an ATTRIBUTE, never a text
+    # NODE, exactly like <img alt="..."> above: whatever the value says, the
+    # element has no visible text content of its own.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe('<input value="73%">'),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<span class="bw-gauge__label">73%</span>' in out
+    assert "<input" not in out
 
 
 def test_gauge_label_nested_markup_with_real_text_renders_verbatim_never_falls_back() -> None:

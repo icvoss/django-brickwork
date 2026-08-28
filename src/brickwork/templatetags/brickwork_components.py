@@ -605,7 +605,23 @@ def _gauge_threshold_token(percent: Decimal, threshold_bands: object) -> str:
 # icvoss/django-brickwork COL-030). <img alt="..."> also carries text that
 # is never a text NODE (it lives in an attribute), which strip_tags happened
 # to discard for the unrelated reason that it discards all attributes.
-_GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS = frozenset({"title", "desc", "script", "style"})
+#
+# <template> and <noscript> were added after a further adversarial pass
+# found both render with an empty innerText and zero height in a real
+# browser (Chromium, verified directly rather than reasoned from the spec
+# alone). <template> content is the HTML5 "template contents", an inert
+# DocumentFragment that is never inserted into the rendered document by
+# parsing alone; nothing under it is ever on screen unless a caller's own
+# script clones and appends it, which this function cannot assume happened.
+# <noscript> is the mirror case: the HTML5 parsing spec places its content
+# in the "in head noscript"/"in body" insertion modes as literal, inert TEXT
+# when the "scripting flag" is enabled, which is the ordinary case for any
+# real browser with JavaScript on; only a scripting-disabled context (fixed
+# by the same spec) exposes and renders it. This package's own audience is a
+# sighted user in an ordinary browser with scripting enabled, so treating
+# <noscript> content as non-visible matches that browser's actual DEFAULT
+# rendering, not an unusual configuration.
+_GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS = frozenset({"title", "desc", "script", "style", "template", "noscript"})
 
 # The HTML5 VOID elements: by spec they can never have content (no closing
 # tag, nothing nested inside), so they can never themselves wrap visible
@@ -710,8 +726,34 @@ class _GaugeLabelVisibleTextExtractor(HTMLParser):
 
 
 def _gauge_label_has_visible_text(gauge_label: object) -> bool:
-    """Whether ``gauge_label`` carries any visible text, the same "stripped,
-    not merely truthy" reasoning ``bw_chart_mount`` applies to ``aria_label``
+    """Whether ``gauge_label`` carries text this function can identify as
+    visible under HTML's DEFAULT rendering, absent any CSS the caller applies.
+
+    That wording is the honest scope, not hedging. "Is this text visible" is a
+    LAYOUT question and this is a PARSE-TREE instrument, so the two can never
+    fully meet: no markup-only check can see a stylesheet rule, a zero-size
+    ancestor, ``text-indent: -9999px``, ``visibility: collapse``, or a clip
+    path. Seven rounds of this guarantee leaking were each a case where the
+    true answer needed rendering, and each fix narrowed the approximation
+    without closing it, because the target property is not decidable from
+    markup alone.
+
+    So ``_GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS`` is EMPIRICAL and dated, not a
+    spec table transcribed. It happens to converge with three separate spec
+    mechanisms rather than one: HTML's default UA stylesheet ``display: none``
+    set, ``<noscript>``'s parsing-mode rule (its content is inert text
+    whenever scripting is enabled, the ordinary case), and SVG's own
+    accessible-name elements, which the HTML UA stylesheet does not cover at
+    all. Deriving the list from any one of those would swap a hand-built list
+    for a differently-sourced one, still finite, still missing the others.
+
+    What makes this safe despite being incomplete is the FAILURE DIRECTION,
+    which is asserted and tested rather than hoped for: a case this cannot
+    detect degrades to discarding the caller's label in favour of the number.
+    That is a correctness annoyance, never the COL-030 violation the guarantee
+    exists to prevent. Over-hiding forces MORE fallbacks, never fewer.
+
+    The rest of the reasoning, "stripped, not merely truthy", is the same ``bw_chart_mount`` applies to ``aria_label``
     (see that tag's own comment): a whitespace-only string is truthy in
     Python and is not visible text, so testing truthiness alone would let
     ``{% if gauge_label %}`` render an empty-looking label with no numeric
