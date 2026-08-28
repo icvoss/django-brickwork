@@ -1556,6 +1556,91 @@ def _render_theme_switch_locked_fixture(theme: str) -> str:
     )
 
 
+_TREND_INDICATOR_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trend indicator (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Trend indicator</h1>
+
+  <section aria-labelledby="trend-indicator-up-heading">
+    <h2 id="trend-indicator-up-heading">Up, with label</h2>
+    __TREND_INDICATOR_UP__
+  </section>
+
+  <section aria-labelledby="trend-indicator-down-heading">
+    <h2 id="trend-indicator-down-heading">Down, no label</h2>
+    __TREND_INDICATOR_DOWN__
+  </section>
+
+  <section aria-labelledby="trend-indicator-flat-heading">
+    <h2 id="trend-indicator-flat-heading">Flat</h2>
+    __TREND_INDICATOR_FLAT__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_trend_indicator_fixture(**ctx: object) -> str:
+    return render_to_string("brickwork/components/_trend_indicator.html", ctx)
+
+
+def render_trend_indicator(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _TREND_INDICATOR_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__TREND_INDICATOR_UP__", _render_trend_indicator_fixture(trend="up", trend_label="17 days faster"))
+        .replace("__TREND_INDICATOR_DOWN__", _render_trend_indicator_fixture(trend="down"))
+        .replace("__TREND_INDICATOR_FLAT__", _render_trend_indicator_fixture(trend="flat"))
+    )
+
+
+# --- the _data_table.html empty-state action CTA (icvoss/django-brickwork#185)
+#
+# data-table-empty-cta-<theme>.html is a standalone (non-shell) page,
+# mirroring render_ranked_list's shape above: list-*/dashboard-*.html
+# already cover the populated/sortable/definition/selected states with
+# non-empty rows (AC-BW-077), so the empty branch's new action CTA is the
+# one surface not otherwise reached: neither fixture ever renders
+# _data_table.html with an empty rows list. Covers: the empty state's real
+# <a class="bw-btn bw-btn--primary"> anchor, keyboard-reachable and labelled
+# by empty_action_label, for both the records and definition variants.
+
+_DATA_TABLE_EMPTY_CTA_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data table empty state (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Data table empty state</h1>
+
+  <section aria-labelledby="data-table-empty-cta-records-heading">
+    <h2 id="data-table-empty-cta-records-heading">Records, empty, with action</h2>
+    __DATA_TABLE_EMPTY_CTA_RECORDS__
+  </section>
+
+  <section aria-labelledby="data-table-empty-cta-definition-heading">
+    <h2 id="data-table-empty-cta-definition-heading">Definition, empty, with action</h2>
+    __DATA_TABLE_EMPTY_CTA_DEFINITION__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
 def render_theme_switch(theme: str, *, inject_js: bool = False) -> str:
     css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
     page = (
@@ -3252,6 +3337,9 @@ def main() -> None:
         # decorative glyph + hidden text COL-030 requires), and a
         # highlighted point, all on one page
         _emit(OUT / f"sparkline-{theme}.html", render_sparkline(theme), written)
+        # _trend_indicator (VIZ-017): the standalone partial extracted from
+        # _stat.html, in a table cell and a scorecard, all three states
+        _emit(OUT / f"trend-indicator-{theme}.html", render_trend_indicator(theme), written)
         # _chart_card (chart card work): populated (real bw_chart_mount tag,
         # title/actions/legend fills), legend_position="side", loading,
         # error and empty states, all on one page
