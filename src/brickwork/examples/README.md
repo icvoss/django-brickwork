@@ -114,6 +114,8 @@ sanitise it.)
 | `app/settings.html` | Tabbed settings area |
 | `app/console.html` | Blank slate for a section with no data yet |
 | `app/confirm.html` | Destructive-action confirmation |
+| `ops/queue.html` | Work queue: triage tabs, bulk actions over a selection |
+| `ops/audit-trail.html` | Chronological record: who did what, and whether it worked |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |

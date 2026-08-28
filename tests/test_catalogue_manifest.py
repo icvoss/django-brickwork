@@ -108,22 +108,24 @@ def test_counts_match_the_documented_wave_0_baseline() -> None:
     # 43rd, bw_sparkline/_sparkline.html. Further components shipped since
     # (bw_gauge/_gauge.html among them), and the scorecard/stat-comparison
     # work adds two more, _scorecard.html and _stat_comparison.html, taking
-    # the count to 47. The count below is verified directly against the
-    # repo post-merge, not copied from the plan: docs/CATALOGUE.md ss5
-    # records the same verification.
+    # the count to 47. The queue/audit-trail work then opened the Data-heavy
+    # operations family with two archetypes, taking archetypes to 18. The
+    # counts below are re-derived from a regenerated manifest after both
+    # branches landed, never incremented from either branch alone: each was
+    # correct for its own tree and wrong for the merge.
     counts = manifest()["counts"]
-    assert counts == {"shells": 5, "components": 47, "sections": 26, "archetypes": 16}
+    assert counts == {"shells": 5, "components": 47, "sections": 26, "archetypes": 18}
 
 
 def test_items_covers_every_shell_component_section_and_archetype() -> None:
-    assert len(items()) == 5 + 47 + 26 + 16 == 94
+    assert len(items()) == 5 + 47 + 26 + 18 == 96
 
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 5
     assert len(items_by_kind("component")) == 47
     assert len(items_by_kind("section")) == 26
-    assert len(items_by_kind("archetype")) == 16
+    assert len(items_by_kind("archetype")) == 18
 
 
 def test_item_returns_a_known_shell() -> None:

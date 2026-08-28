@@ -1,0 +1,143 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+An audit trail: who did what to what, when, and whether it worked. A
+chronological, append-only record read for investigation, not for editing.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    audit_columns / audit_rows  the trail's columns and pre-rendered rows
+    audit_page                  a page of entries (a Django Page from Paginator)
+    filter_form                 your own filter form (the bar renders its fields)
+    top_actors                  ranked rows for the "most active" panel
+    nav_items / nav_active      as in app/list.html
+The headings and copy below are typed into the template, which is where you
+change them.
+
+An audit trail is not a list of records and not a queue. Nothing here is
+actionable: the reader is reconstructing a sequence after the fact, usually
+because something went wrong or somebody asked who authorised it. That changes
+the page's whole shape. Time is the primary axis, so the range being viewed is
+stated in the header rather than hidden in a filter. Rows are never editable
+and never bulk-selected, so there is no selection column and no actions bar.
+The reader arrives with a question ("who changed this setting", "what did this
+account do on Tuesday"), so filtering by actor, action and date is the page's
+main control rather than an afterthought.
+
+On outcome: build each outcome cell as a rendered {% templatetag openblock %}
+bw_badge {% templatetag closeblock %} in your view. "Succeeded", "Failed" and
+"Denied" must reach the reader as words; the badge variant (success, danger,
+warning) only tints the word it already says. An audit trail whose failures are
+red rows and nothing else is unreadable to anyone who cannot see the red, and
+unreadable to everyone once it is printed or pasted into a ticket.
+
+On immutability: the trail says what happened, so it must not offer to change
+it. There are no row links to an edit form, no destructive actions and no
+inline controls. If a reader needs the full payload of one entry, expand it in
+place rather than navigating away and losing their position in the sequence.
+
+States: the table's loading/empty states and its sortable-column
+  ascending/descending/unsorted states (see _data_table.html's own
+  header); pagination rendered/absent (a single page renders no controls);
+  each expandable entry's own open/closed state, which is native
+  <details> and needs no JavaScript; the ranked panel's own
+  loading/empty states (see _ranked_list.html's own header).
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; every outcome reading is a badge whose label carries
+  the meaning in words, never colour alone, and the entry expanders are
+  native disclosure elements that are keyboard-operable with JavaScript
+  disabled. Covered by the archetype harness's full gate sweep (render,
+  axe WCAG 2.2 AA, no horizontal overflow, light/dark distinctness,
+  skip-link first-tab-stop with JS disabled) at every W0.1 breakpoint,
+  both themes.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The stat row
+  (bw-stat-grid) reflows continuously with an auto-fit grid; the composed
+  table carries unconditional horizontal scroll (responsive="scroll", the
+  default) at every width.
+{% endcomment %}
+{% load brickwork_components brickwork_nav %}
+
+{% block page_title %}Audit trail - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% comment %}
+The range being read is part of the page's identity, not a filter setting, so
+it is stated in the description where a reader looking for "the week of the
+incident" can confirm it at a glance.
+{% endcomment %}
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Audit trail" description="Every change made to accounts, settings and permissions. 1 to 28 August 2026, newest first." %}
+{% endblock %}
+
+{% block page_actions %}
+  {% bw_button "Download CSV" variant="secondary" icon="download" href="/audit/export/" %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  A failed or denied action is the reason most people open an audit trail, so
+  the counts lead with those rather than with total volume. Do not make the
+  failure count a red tile and stop there: the label says "Failed", which is
+  what carries the meaning.
+  {% endcomment %}
+  <div class="bw-stat-grid">
+    {% include "brickwork/components/_stat.html" with label="Entries in range" value="4,812" icon="file" %}
+    {% include "brickwork/components/_stat.html" with label="Failed" value="37" icon="alert-circle" trend="down" trend_label="14 fewer than last month" %}
+    {% include "brickwork/components/_stat.html" with label="Permission denied" value="9" icon="lock" trend="up" trend_label="6 more than last month" %}
+    {% include "brickwork/components/_stat.html" with label="Distinct actors" value="64" icon="users" trend="flat" trend_label="unchanged on last month" %}
+  </div>
+
+  {% comment %}
+  Filtering IS the audit trail's primary control, so the bar sits above the
+  trail rather than beside it, and the fields your form should carry are the
+  three questions a reader arrives with: which actor, which action, which
+  dates. Copy examples/app/date-range-picker.html for the date pair.
+  {% endcomment %}
+  {% include "brickwork/components/_filter_bar.html" with fields=filter_form submit_label="Search trail" clear_href="/audit/" hx_get="/audit/" hx_target="#audit-table" %}
+
+  {% comment %}
+  The trail itself. No selectable, no row urls: nothing here is actionable, and
+  a row link would invite a reader to navigate away mid-sequence. sticky_header
+  keeps the column labels in view while a long trail scrolls.
+
+  Build each row's cells in your view as pre-rendered strings, one per column:
+  a timestamp, an actor, a rendered outcome badge, an action, and the target it
+  acted on. Format timestamps to the reader's timezone in the view; a trail
+  read in the wrong timezone is worse than no trail.
+  {% endcomment %}
+  {% include "brickwork/components/_data_table.html" with table_id="audit-table" columns=audit_columns rows=audit_rows current_sort="-occurred_at" sticky_header=True empty_heading="No entries match" empty_body="No recorded activity matches these filters. Widen the date range or clear the actor filter." %}
+
+  {% include "brickwork/components/_pagination.html" with page_obj=audit_page %}
+
+  {% comment %}
+  One entry expanded in full. A trail table can only show a summary per row, but
+  an investigation always ends up needing one entry's whole payload: the old and
+  new values, the request id, the source address. Expanding it in place keeps
+  the reader's position in the sequence, which navigating to a detail page
+  destroys.
+
+  This is a native <details>, so it opens and closes with no JavaScript. Pass
+  content as pre-rendered markup you mark safe at the call site. Sharing one
+  name across several disclosures makes them a single-open accordion.
+  {% endcomment %}
+  {% include "brickwork/components/_disclosure.html" with label="28 Aug 2026, 14:07 - Priya Raman changed billing plan on Acme Corp" content=entry_detail variant="bordered" %}
+
+  {% comment %}
+  Who is doing the most, which is the second question an investigation asks
+  after "what failed". Rows take label and amount; the component computes the
+  bar geometry and marks it aria-hidden, so the label and value carry the
+  reading in words:
+
+      top_actors  [{"label": "Priya Raman", "amount": 412, "value": "412 actions"}, ...]
+  {% endcomment %}
+  {% bw_ranked_list top_actors label="Most active accounts in range" basis="max" empty_heading="No activity in range" empty_body="Nothing was recorded between these dates." %}
+
+</div>
+{% endblock %}

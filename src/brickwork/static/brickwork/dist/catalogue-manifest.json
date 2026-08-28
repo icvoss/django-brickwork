@@ -6,9 +6,14 @@
     "shells": 5,
     "components": 47,
     "sections": 26,
-    "archetypes": 16
+    "archetypes": 18
   },
   "families": [
+    {
+      "name": "Data-heavy operations",
+      "archetypeCount": 2,
+      "sectionCount": 0
+    },
     {
       "name": "Marketing and public web",
       "archetypeCount": 3,
@@ -265,6 +270,45 @@
       ]
     },
     {
+      "name": "examples/ops/audit-trail.html",
+      "kind": "archetype",
+      "family": "Data-heavy operations",
+      "templatePath": "examples/ops/audit-trail.html",
+      "docSource": "examples/ops/audit-trail.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_disclosure.html",
+        "brickwork/components/_filter_bar.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_pagination.html",
+        "brickwork/components/_ranked_list.html",
+        "brickwork/components/_stat.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
+    {
+      "name": "examples/ops/queue.html",
+      "kind": "archetype",
+      "family": "Data-heavy operations",
+      "templatePath": "examples/ops/queue.html",
+      "docSource": "examples/ops/queue.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_filter_bar.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_pagination.html",
+        "brickwork/components/_stat.html",
+        "brickwork/components/_tabs.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
+    {
       "name": "component/account_menu",
       "kind": "component",
       "family": null,
@@ -342,7 +386,9 @@
         "auth/signup.html",
         "marketing/about.html",
         "marketing/landing.html",
-        "marketing/pricing.html"
+        "marketing/pricing.html",
+        "ops/audit-trail.html",
+        "ops/queue.html"
       ],
       "usedBySections": [
         "sections/cta/full-bleed.html",
@@ -405,7 +451,9 @@
       "usedByArchetypes": [
         "app/dashboard.html",
         "app/detail.html",
-        "app/list.html"
+        "app/list.html",
+        "ops/audit-trail.html",
+        "ops/queue.html"
       ],
       "usedBySections": []
     },
@@ -416,7 +464,9 @@
       "templatePath": "brickwork/components/_disclosure.html",
       "docSource": "brickwork/components/_disclosure.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "ops/audit-trail.html"
+      ],
       "usedBySections": [
         "sections/faq/single-column.html",
         "sections/faq/two-column.html"
@@ -488,7 +538,9 @@
       "docSource": "brickwork/components/_filter_bar.html",
       "consumption": "include",
       "usedByArchetypes": [
-        "app/list.html"
+        "app/list.html",
+        "ops/audit-trail.html",
+        "ops/queue.html"
       ],
       "usedBySections": []
     },
@@ -558,7 +610,9 @@
         "app/form.html",
         "app/list.html",
         "app/settings.html",
-        "app/wizard.html"
+        "app/wizard.html",
+        "ops/audit-trail.html",
+        "ops/queue.html"
       ],
       "usedBySections": []
     },
@@ -570,7 +624,9 @@
       "docSource": "brickwork/components/_pagination.html",
       "consumption": "include",
       "usedByArchetypes": [
-        "app/list.html"
+        "app/list.html",
+        "ops/audit-trail.html",
+        "ops/queue.html"
       ],
       "usedBySections": []
     },
@@ -617,7 +673,9 @@
       "templatePath": "brickwork/components/_ranked_list.html",
       "docSource": "brickwork/components/_ranked_list.html",
       "consumption": "tag",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "ops/audit-trail.html"
+      ],
       "usedBySections": []
     },
     {
@@ -688,7 +746,9 @@
       "docSource": "brickwork/components/_stat.html",
       "consumption": "include",
       "usedByArchetypes": [
-        "app/dashboard.html"
+        "app/dashboard.html",
+        "ops/audit-trail.html",
+        "ops/queue.html"
       ],
       "usedBySections": []
     },
@@ -737,7 +797,8 @@
       "docSource": "brickwork/components/_tabs.html",
       "consumption": "tag",
       "usedByArchetypes": [
-        "app/settings.html"
+        "app/settings.html",
+        "ops/queue.html"
       ],
       "usedBySections": []
     },
@@ -1113,7 +1174,9 @@
         "app/form.html",
         "app/list.html",
         "app/settings.html",
-        "app/wizard.html"
+        "app/wizard.html",
+        "ops/audit-trail.html",
+        "ops/queue.html"
       ],
       "usedBySections": []
     },

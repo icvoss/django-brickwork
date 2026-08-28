@@ -101,6 +101,7 @@ _FAMILY_BY_EXAMPLE_DIR = {
     "app": "Product applications",
     "auth": "Transactional journeys",
     "marketing": "Marketing and public web",
+    "ops": "Data-heavy operations",
 }
 
 _SHELL_ROOTS = (
