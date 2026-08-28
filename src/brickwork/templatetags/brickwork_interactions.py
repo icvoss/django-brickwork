@@ -31,7 +31,7 @@ from django.utils.http import urlencode
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
 
-from brickwork.templatetags.brickwork_components import _DATA_ATTRIBUTE_NAME_RE
+from brickwork.templatetags.brickwork_components import _DATA_ATTRIBUTE_NAME_RE, normalise_accessible_name
 
 register = template.Library()
 
@@ -151,13 +151,27 @@ def _shape_menu_item(raw: object) -> RenderedMenuItem:
         return RenderedMenuItem(label="", url="", icon="", variant="default", is_divider=True, attrs_html=mark_safe(""))
     label = raw.get("label")
     url = raw.get("url")
+    # label is an accessible name and gets the strip-and-rebind treatment (a
+    # whitespace-only label is truthy but is not a name to any screen reader,
+    # the bw_chart_mount aria_label precedent, brickwork_components.py:517);
+    # url is a URL, not a name, and keeps its plain truthiness test.
+    #
+    # normalise_accessible_name, not str(label).strip(): _dropdown.html
+    # renders item.label through plain auto-escaped {{ }} (never |safe), so a
+    # caller-supplied SafeString label (mark_safe, format_html, a model
+    # property) lost its __html__ marker on a bare .strip() and was
+    # double-escaped (icvoss/django-brickwork#330). None still maps to "".
+    label = normalise_accessible_name(label) if label is not None else ""
     if not label or not url:
         raise TemplateSyntaxError(f'bw_dropdown items require "label" and "url" (04-interfaces 4b), got {dict(raw)!r}')
     variant = raw.get("variant", "default")
     if variant not in _ITEM_VARIANTS:
         raise TemplateSyntaxError(f"bw_dropdown item variant must be one of {sorted(_ITEM_VARIANTS)}, got {variant!r}")
     return RenderedMenuItem(
-        label=str(label),
+        # label is already normalised (str-coerced, stripped, safety-preserved)
+        # above; re-wrapping with str() here would strip the safe marker right
+        # back off (str() of a SafeString is a plain str, same trap as .strip()).
+        label=label,
         url=str(url),
         icon=str(raw.get("icon", "") or ""),
         variant=variant,
@@ -211,6 +225,15 @@ def bw_dropdown(
         raise TemplateSyntaxError(
             f"bw_dropdown trigger_mode must be one of {sorted(_TRIGGER_MODES)}, got {trigger_mode!r}"
         )
+    # Stripped before testing, not merely truthiness-tested: a whitespace-only
+    # accessible name is truthy in Python and is not a name to any screen
+    # reader or, for trigger_label, a real visible label (the bw_chart_mount
+    # aria_label precedent, brickwork_components.py:517).
+    # normalise_accessible_name (not a bare .strip()) also coerces a non-str
+    # value and preserves an already-safe one without double-escaping it
+    # (icvoss/django-brickwork#330).
+    aria_label = normalise_accessible_name(aria_label)
+    trigger_label = normalise_accessible_name(trigger_label)
     if icon_only and not aria_label:
         raise TemplateSyntaxError(
             "bw_dropdown icon_only=True requires aria_label= (an icon-only trigger "
@@ -236,6 +259,17 @@ def _shape_tab(raw: object, *, tabs_id: str, active: str, current_path: str) -> 
         raise TemplateSyntaxError(f"bw_tabs tabs must be mappings, got {raw!r}")
     key = raw.get("key")
     label = raw.get("label")
+    # label is an accessible (and visible) name and gets the strip-and-rebind
+    # treatment (the bw_chart_mount aria_label precedent, brickwork_components.py:517);
+    # key is already correctly guarded below by _ID_TOKEN_RE, which rejects
+    # whitespace outright, so it is left alone.
+    #
+    # normalise_accessible_name, not str(label).strip(): _tabs.html renders
+    # tab.label through plain auto-escaped {{ }} (never |safe), so a
+    # caller-supplied SafeString label lost its __html__ marker on a bare
+    # .strip() and was double-escaped (icvoss/django-brickwork#330). None
+    # still maps to "".
+    label = normalise_accessible_name(label) if label is not None else ""
     if not key or not label:
         raise TemplateSyntaxError(f'bw_tabs tabs require "key" and "label" (04-interfaces 4b), got {dict(raw)!r}')
     key = str(key)
@@ -247,7 +281,7 @@ def _shape_tab(raw: object, *, tabs_id: str, active: str, current_path: str) -> 
     url = raw.get("url") or f"{current_path}?{urlencode({'tab': key})}"
     return RenderedTab(
         key=key,
-        label=str(label),
+        label=label,
         url=str(url),
         badge=raw.get("badge"),
         is_active=key == active,

@@ -10,6 +10,87 @@ versioning contract).
 
 ### Fixed
 
+- **Accessible-name stripping (#327) raised `AttributeError` on a non-`str`
+  value and double-escaped an already-safe one** (icvoss/django-brickwork#330).
+  `#327`'s whitespace-only fix called `.strip()` directly on `bw_icon` label,
+  `bw_button` `aria_label`, `bw_toggle` label, `bw_dropdown`
+  `aria_label`/`trigger_label`/item `label`, and `bw_tabs` tab `label`. Two
+  regressions followed: an int, a model instance, or any other
+  `__str__`-able value (ordinary through `{% bw_toggle some_obj id="x" %}`)
+  raised `AttributeError`, since only `str` has `.strip()`; and a
+  `SafeString` value (from `format_html`, a model property, or any helper
+  returning pre-escaped HTML, the same realistic sources #329 names) lost
+  its `__html__` marker on `.strip()`, since `str` subclass methods do not
+  preserve the subclass, so the template's own auto-escaping then escaped it
+  a second time and visibly corrupted the rendered text. The four
+  inclusion-tag/dict-field sites now coerce and strip via
+  `conditional_escape()` before re-marking the result safe, which fixes both
+  at once without marking an ordinary, never-safe string as safe (a plain
+  string is escaped exactly as before). `bw_icon`'s label needed only the
+  non-`str` coercion: it is separately, explicitly `escape()`d before
+  reaching the output markup, so losing `__html__` there was never a
+  double-escape risk.
+
+- **`{% bw_icon %}` now escapes `css_class`/`label` with `escape()` rather
+  than `conditional_escape()`** (icvoss/django-brickwork#329). Both are
+  attribute values, never markup, but `conditional_escape` honours
+  `__html__`, so a `SafeString` passed as either argument rendered
+  verbatim instead of being escaped. A `css_class` of
+  `mark_safe('a" onmouseover="alert(1)')` closed the `class` attribute's
+  quote and landed a live event handler on the rendered `<svg>`, exactly
+  the ADR-083 break-out class. A plain string was always escaped
+  correctly and is unaffected; only a caller passing a `SafeString` (from
+  `format_html`, a model property, or any helper returning pre-escaped
+  HTML) was exposed.
+
+- **Whitespace-only accessible names are no longer accepted as accessible
+  names** (icvoss/django-brickwork#327). `bool("   ")` is `True`, so every
+  hard-required accessible-name check in the package that tested plain
+  truthiness accepted a label/aria-label consisting only of spaces, which
+  is invisible to every screen reader. `{% bw_icon %}` `label`, `bw_button`
+  `aria_label`, `bw_dropdown` `aria_label`/`trigger_label`/item `label`,
+  `bw_tabs` tab `label`, and `bw_toggle` `label` now strip the value before
+  testing it, matching `bw_chart_mount`'s existing `aria_label` handling
+  (0.10.0). A whitespace-only value now raises `TemplateSyntaxError`
+  instead of silently rendering an unnamed control; a real name with
+  incidental leading/trailing whitespace (`"  Save  "`) is cleaned to
+  `"Save"` rather than rejected. `bw_icon(decorative=True, label="   ")`
+  is now accepted as decorative (the label is stripped before the
+  decorative-vs-meaningful pairing is tested), where it previously raised
+  a spurious "pass either decorative=True OR a label, not both" error.
+  `bw_dropdown` menu-item `key`/`bw_tabs` tab `key` are untouched: `key`
+  is already guarded by an id-safe token pattern that rejects whitespace
+  outright.
+
+  **Correction to the claim above:** "whitespace-only names are rejected"
+  is not absolute. Stripping is `str.strip()`, which trims per Python's
+  `str.isspace()`, matching what CPython treats as blank; it does not strip
+  every Unicode character a screen reader or a human eye would call blank.
+  U+200B (zero-width space), U+200E (left-to-right mark), U+FEFF (BOM),
+  U+2800 (braille pattern blank), U+180E, U+00AD (soft hyphen), and U+2060
+  (word joiner) all survive `.strip()` unchanged and reach the accessible
+  name as-is: a label of only U+2800 renders `aria-label="⠀"`, passing the
+  non-empty check while remaining silent or meaningless to assistive tech.
+  Ordinary whitespace is correctly caught, including the accidental case
+  most likely to occur in practice (a value pasted from Word or a rich text
+  editor, which commonly carries a trailing NBSP, U+00A0): `" "` (U+0020),
+  `" "` (NBSP), `"　"` (ideographic space) and `" "` (figure
+  space) are all rejected as expected. Filtering the Unicode-blank set is a
+  deliberate scope decision left for later, not an oversight; this entry
+  exists so the guarantee above is read in the consumer's terms rather than
+  as unconditional.
+
+- **`{% bw_button %}` `aria_label` consisting only of whitespace now
+  renders with no `aria-label` attribute at all, rather than the
+  attribute's original (unstripped) value** (icvoss/django-brickwork#330).
+  `aria_label` is optional on `bw_button`'s non-`icon_only` path (only
+  `icon_only=True` hard-requires it), so `bw_button(label="Save",
+  aria_label="   ")` previously rendered `aria-label="   "` and now strips
+  to `""`, which `_button.html`'s `{% if aria_label %}` then omits
+  entirely. No error is raised on this path, since `aria_label` is not
+  required here; a button that already carries a visible `label` remains
+  correctly named by that visible text regardless.
+
 - **Consumer attribute values are now escaped even when already marked
   safe** (ADR-083). `format_html` does not escape a value that is already a
   `SafeString`, by its documented contract, so a consumer value carrying

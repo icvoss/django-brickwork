@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from django import template
 from django.template.exceptions import TemplateSyntaxError
-from django.utils.html import conditional_escape
+from django.utils.html import escape
 from django.utils.safestring import SafeString, mark_safe
 
 from brickwork.icons import get_icon, is_directional
@@ -73,6 +73,23 @@ def bw_icon(
     if size not in _SIZE_TOKENS:
         raise TemplateSyntaxError(f"{{% bw_icon %}}: size must be one of {sorted(_SIZE_TOKENS)}, got {size!r}.")
 
+    # Stripped before testing, not merely truthiness-tested: a whitespace-only
+    # label is truthy in Python and is NOT an accessible name to any screen
+    # reader, so testing truthiness alone would let a consumer satisfy a
+    # hard-required check by supplying nothing (also see bw_chart_mount's own
+    # aria_label, brickwork_components.py:517, the precedent this follows).
+    #
+    # str(label) first, not a bare label.strip(): a non-str value (an int, a
+    # model instance, any ordinary __str__-able object reachable through
+    # {% bw_icon n label=n %}) raised AttributeError on .strip() otherwise
+    # (icvoss/django-brickwork#330). Unlike bw_button/bw_toggle/bw_dropdown,
+    # this site does NOT need conditional_escape/mark_safe to preserve an
+    # already-safe value: label is explicitly re-escaped by escape(label)
+    # below (line ~108) before it ever reaches the output SafeString, so a
+    # SafeString's __html__ marker being lost here is harmless, not a
+    # double-escape, because nothing here trusts it to already be escaped.
+    label = str(label).strip()
+
     # ICO-007: enforce the decorative-vs-meaningful pairing. Refuse to render an
     # icon that is neither (the "icon with no name and no aria-hidden" defect) or
     # both (contradictory intent).
@@ -91,9 +108,9 @@ def bw_icon(
     if is_directional(name):
         classes += " bw-icon-directional"  # flips under [dir="rtl"] (ICO-014)
     if css_class:
-        classes += " " + conditional_escape(css_class)
+        classes += " " + escape(css_class)
 
-    a11y = 'aria-hidden="true"' if decorative else f'role="img" aria-label="{conditional_escape(label)}"'
+    a11y = 'aria-hidden="true"' if decorative else f'role="img" aria-label="{escape(label)}"'
 
     svg = (
         f'<svg class="{classes}" '
@@ -103,7 +120,16 @@ def bw_icon(
         f'stroke-linecap="round" stroke-linejoin="round" '
         f"{a11y}>{inner}</svg>"
     )
-    # noqa justification (S308): `inner` is vetted registry artwork (never caller
-    # input); `label`/`css_class` are conditional_escape'd above; `size` is from a
-    # fixed allow-list. No untrusted string reaches this SafeString.
+    # noqa justification (S308): `label`/`css_class` are escape()d above (never
+    # conditional_escape, which honours __html__ and would let a SafeString
+    # break out of the attribute, ADR-083); `size` is from a fixed allow-list.
+    # `inner` is trusted by contract, not vetted at render time: it is
+    # whatever the registry holds for `name`, and register_icons() (ICO-002/
+    # ICO-012, brickwork.icons.registry) is a public API that merges a
+    # caller-supplied mapping into that registry with no validation
+    # (_ICONS.update(mapping)). A project that registers unsanitised markup
+    # under a name gets that markup rendered raw, exactly as mark_safe()
+    # itself trusts its caller: the registry is a mark_safe-shaped trust
+    # boundary, not a scanned one, and register_icons() callers own what
+    # they register, same as any other mark_safe call in this codebase.
     return mark_safe(svg)  # noqa: S308

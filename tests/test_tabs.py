@@ -160,6 +160,64 @@ def test_invalid_arguments_raise(src: str, ctx: dict) -> None:
         _render(src, **ctx)
 
 
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_whitespace_only_tab_label_is_not_an_accessible_name(blank: str) -> None:
+    # A whitespace-only label is truthy in Python and is not an accessible
+    # name to any screen reader; without the strip-and-rebind fix this
+    # passes the "not key or not label" check and renders. The violation is
+    # on the SECOND tab, not the first, so a bug that only checked tabs[0]
+    # would pass this fixture vacuously.
+    tabs = [{"key": "one", "label": "One"}, {"key": "two", "label": blank}]
+    with pytest.raises(TemplateSyntaxError):
+        _render(tabs=tabs, active="one")
+
+
+def test_padded_tab_label_is_stripped_not_rejected() -> None:
+    tabs = [{"key": "one", "label": "One"}, {"key": "two", "label": "  Two  "}]
+    html = _render(tabs=tabs, active="one")
+    assert '<span class="bw-tabs__label">Two</span>' in html
+    assert "  Two  " not in html
+
+
+def test_tab_key_with_whitespace_is_rejected_by_the_existing_id_token_guard() -> None:
+    # key is deliberately untouched by the #327 fix: _ID_TOKEN_RE already
+    # rejects any key containing whitespace (it only allows letters, digits,
+    # hyphen, underscore), so this documents that key needed no change.
+    tabs = [{"key": "one", "label": "One"}, {"key": "has space", "label": "Two"}]
+    with pytest.raises(TemplateSyntaxError):
+        _render(tabs=tabs, active="one")
+
+
+def test_non_str_tab_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: _shape_tab's str(label).strip() raised AttributeError
+    # on any non-str value (this dict-field site is not one of the five
+    # direct-kwarg sites but shares the same bug shape). Fails without the fix.
+    tabs = [{"key": "one", "label": 5}]
+    html = _render(tabs=tabs, active="one")
+    assert '<span class="bw-tabs__label">5</span>' in html
+
+
+def test_mark_safed_tab_label_is_not_double_escaped() -> None:
+    # #330 regression 2: str(label).strip() dropped __html__ from a caller-
+    # supplied SafeString, so the template's own auto-escaping (_tabs.html
+    # renders tab.label through plain {{ }}, never |safe) escaped it a
+    # second time. Fails without the fix.
+    from django.utils.html import format_html
+
+    tabs = [{"key": "one", "label": format_html("Tom {} more", "&")}]
+    html = _render(tabs=tabs, active="one")
+    assert "Tom &amp; more" in html
+    assert "&amp;amp;" not in html
+
+
+def test_plain_ampersand_tab_label_is_still_escaped() -> None:
+    # #330 requirement 8, the trap: an ordinary never-safe string must still
+    # be escaped normally.
+    tabs = [{"key": "one", "label": "Tom & more"}]
+    html = _render(tabs=tabs, active="one")
+    assert "Tom &amp; more" in html
+
+
 # --- the tab_panel partial (semver-public, BR-BW-TPL-001) --------------------
 
 

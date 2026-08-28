@@ -239,6 +239,123 @@ def test_invalid_items_raise(items: list) -> None:
         _render(items=items)
 
 
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_icon_only_whitespace_only_aria_label_is_not_a_name(blank: str) -> None:
+    # A whitespace-only aria_label is truthy in Python and is not an
+    # accessible name to any screen reader; without the strip-and-rebind fix
+    # this passes the icon_only truthiness check and renders. Calls the tag
+    # directly: a raw newline inside aria_label="..." does not survive
+    # Django's template parser.
+    from brickwork.templatetags.brickwork_interactions import bw_dropdown
+
+    with pytest.raises(TemplateSyntaxError):
+        bw_dropdown(_ITEMS, icon_only=True, aria_label=blank)
+
+
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_whitespace_only_trigger_label_is_not_a_visible_label(blank: str) -> None:
+    from brickwork.templatetags.brickwork_interactions import bw_dropdown
+
+    with pytest.raises(TemplateSyntaxError):
+        bw_dropdown(_ITEMS, trigger_label=blank)
+
+
+def test_icon_only_padded_aria_label_is_stripped_not_rejected() -> None:
+    html = _render(
+        "{% bw_dropdown items=items icon_only=True aria_label='  Widget actions  ' trigger_icon='more-horizontal' %}"
+    )
+    assert 'aria-label="Widget actions"' in html
+
+
+def test_padded_trigger_label_is_stripped_not_rejected() -> None:
+    html = _render("{% bw_dropdown items=items trigger_label='  Actions  ' %}")
+    assert 'aria-label="Actions"' in html
+    assert 'bw-btn__label">Actions<' in html
+
+
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_item_whitespace_only_label_is_not_an_accessible_name(blank: str) -> None:
+    # The item dict's own "label" field feeds both the visible link text and
+    # the item's accessible name; a whitespace-only value is truthy and, before
+    # the fix, satisfied the combined "not label or not url" check. The
+    # violation is on the SECOND item, not the first, so a bug that only
+    # checked items[0] would pass this fixture vacuously.
+    items = [{"label": "Real item", "url": "/y/"}, {"label": blank, "url": "/x/"}]
+    with pytest.raises(TemplateSyntaxError):
+        _render(items=items)
+
+
+def test_item_padded_label_is_stripped_not_rejected() -> None:
+    items = [{"label": "Real item", "url": "/y/"}, {"label": "  Widgets  ", "url": "/x/"}]
+    html = _render(items=items)
+    assert 'class="bw-dropdown__item-label">Widgets</span>' in html
+    assert "  Widgets  " not in html
+
+
+# --- #330: strip regressions (AttributeError on non-str, double-escape on
+# --- an already-safe value) across aria_label/trigger_label/item label ------
+
+
+def test_non_str_trigger_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: trigger_label.strip() raised AttributeError on any
+    # non-str value. Fails without the fix.
+    html = _render("{% bw_dropdown items=items trigger_label=n %}", n=5)
+    assert 'bw-btn__label">5<' in html
+
+
+def test_non_str_aria_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    html = _render(
+        "{% bw_dropdown items=items icon_only=True aria_label=n trigger_icon='more-horizontal' %}",
+        n=5,
+    )
+    assert 'aria-label="5"' in html
+
+
+def test_mark_safed_trigger_label_is_not_double_escaped() -> None:
+    # #330 regression 2: a bare .strip() dropped __html__ from a caller-
+    # supplied SafeString, so the template's own auto-escaping escaped it a
+    # second time. Fails without the fix.
+    from django.utils.html import format_html
+
+    label = format_html("Tom {} more", "&")
+    html = _render("{% bw_dropdown items=items trigger_label=n %}", n=label)
+    assert "Tom &amp; more" in html
+    assert "&amp;amp;" not in html
+
+
+def test_plain_ampersand_trigger_label_is_still_escaped() -> None:
+    # #330 requirement 8, the trap: an ordinary never-safe string must still
+    # be escaped normally, not blanket-marked safe.
+    #
+    # Passed through a context variable, not a template literal: a quoted
+    # literal in the template's own source is marked SafeString by Django's
+    # parser itself (Variable.__init__, unconditionally, since before this
+    # fix existed), indistinguishable from a genuine mark_safe() value by
+    # the time it reaches the tag function. The real attack surface is
+    # consumer/runtime data arriving via a context variable, which this
+    # exercises.
+    html = _render("{% bw_dropdown items=items trigger_label=n %}", n="Tom & more")
+    assert "Tom &amp; more" in html
+
+
+def test_mark_safed_item_label_is_not_double_escaped() -> None:
+    from django.utils.html import format_html
+
+    items = [{"label": format_html("Tom {} more", "&"), "url": "/x/"}]
+    html = _render(items=items)
+    assert "Tom &amp; more" in html
+    assert "&amp;amp;" not in html
+
+
+def test_non_str_item_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: _shape_menu_item's str(label).strip() (the dict-field
+    # site) also needed the fix; this is not one of the five direct-kwarg
+    # sites but shares the same bug shape. None-safety must be preserved too.
+    items = [{"label": 5, "url": "/x/"}]
+    html = _render(items=items)
+    assert 'class="bw-dropdown__item-label">5</span>' in html
+
+
 # --- the shipped JS bundle contract ------------------------------------------
 
 

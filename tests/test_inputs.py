@@ -78,6 +78,81 @@ def test_toggle_empty_label_raises() -> None:
         _render_toggle('{% bw_toggle "" id="email-alerts" %}')
 
 
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_toggle_whitespace_only_label_is_not_an_accessible_name(blank: str) -> None:
+    # A whitespace-only label is truthy in Python, so the existing "not label"
+    # check the docstring/error already claims to enforce did not actually
+    # reject it before the strip-and-rebind fix. Calls the tag directly: a raw
+    # newline inside {% bw_toggle "..." %} does not survive Django's parser.
+    from brickwork.templatetags.brickwork_components import bw_toggle
+
+    with pytest.raises(TemplateSyntaxError):
+        bw_toggle(blank, id="email-alerts")
+
+
+def test_toggle_padded_label_is_stripped_not_rejected() -> None:
+    out = _render_toggle('{% bw_toggle "  Email alerts  " id="email-alerts" %}')
+    assert re.search(r'class="bw-toggle-field__label">\s*Email alerts\s*</span>', out)
+    assert "  Email alerts  " not in out
+
+
+def test_toggle_non_str_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: bw_toggle's label = label.strip() raised AttributeError
+    # on any non-str value. {% bw_toggle n id='x' %} with an int context
+    # variable is ordinary Django, not a contrived call; this is the exact
+    # repro from the #330 report. Fails without the fix.
+    out = _render_toggle('{% bw_toggle n id="email-alerts" %}', n=5)
+    assert re.search(r'class="bw-toggle-field__label">\s*5\s*</span>', out)
+
+
+def test_toggle_mark_safed_label_is_not_double_escaped() -> None:
+    # #330 regression 2: label.strip() dropped __html__ from a caller-supplied
+    # SafeString (format_html, a model property, or any pre-escaped-HTML
+    # helper), so the template's own auto-escaping then escaped it a second
+    # time. Fails without the fix: "Tom &amp; more" renders as
+    # "Tom &amp;amp; more" instead of the correct single-escaped source.
+    from django.utils.html import format_html
+
+    label = format_html("Tom {} more", "&")
+    out = _render_toggle('{% bw_toggle n id="email-alerts" %}', n=label)
+    assert "Tom &amp; more" in out
+    assert "&amp;amp;" not in out
+
+
+def test_toggle_plain_ampersand_label_is_still_escaped() -> None:
+    # #330 requirement 8, the trap: an ordinary never-safe string must still
+    # be escaped as normal. Fails if the fix over-corrects into marking
+    # every label safe (the #329 defect class).
+    #
+    # Passed through a context variable, not a template literal: a quoted
+    # literal in the template's own source is marked SafeString by Django's
+    # parser itself (Variable.__init__, unconditionally, since before this
+    # fix existed), indistinguishable from a genuine mark_safe() value by
+    # the time it reaches the tag function. The real attack surface is
+    # consumer/runtime data arriving via a context variable, which this
+    # exercises.
+    out = _render_toggle('{% bw_toggle n id="email-alerts" %}', n="Tom & more")
+    assert "Tom &amp; more" in out
+
+
+def test_toggle_mark_safe_bold_label_is_not_re_escaped() -> None:
+    # #330 requirement 6: mark_safe's existing documented pass-through must
+    # not regress into escaped text.
+    from django.utils.safestring import mark_safe
+
+    out = _render_toggle('{% bw_toggle n id="email-alerts" %}', n=mark_safe("<b>Email alerts</b>"))
+    assert "<b>Email alerts</b>" in out
+
+
+def test_toggle_gettext_lazy_label_still_works_and_is_stripped() -> None:
+    # #330 requirement 7: gettext_lazy worked before the #327 strip was
+    # added and must keep working.
+    from django.utils.translation import gettext_lazy
+
+    out = _render_toggle('{% bw_toggle n id="email-alerts" %}', n=gettext_lazy("  Email alerts  "))
+    assert re.search(r'class="bw-toggle-field__label">\s*Email alerts\s*</span>', out)
+
+
 def test_toggle_missing_id_raises() -> None:
     with pytest.raises(TemplateSyntaxError):
         _render_toggle('{% bw_toggle "Email alerts" %}')

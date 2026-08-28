@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 from django.template import Context, Template
 from django.template.exceptions import TemplateSyntaxError
+from django.utils.safestring import mark_safe
 
 import brickwork.icons as icons  # for the live ICON_NAMES re-export (see below)
 from brickwork.icons import (
@@ -22,6 +23,7 @@ from brickwork.icons import (
     is_directional,
     register_icons,
 )
+from brickwork.templatetags.brickwork_icons import bw_icon
 
 # ICON_NAMES is a live, computed re-export (module __getattr__), so it must be
 # read as an attribute (icons.ICON_NAMES) to reflect register_icons() calls;
@@ -153,6 +155,59 @@ def test_icon_with_both_label_and_decorative_is_a_render_error() -> None:
         _render('{% bw_icon "trash" label="x" decorative=True %}')
 
 
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_whitespace_only_label_is_not_an_accessible_name(blank: str) -> None:
+    """A hard-required check that " " satisfies is not a requirement.
+
+    Calls the tag function directly rather than through a template literal:
+    a raw newline inside {% bw_icon label="..." %} does not survive Django's
+    template parser, so the template route would test the parser rather than
+    this contract for two of the four parametrised cases.
+    """
+    with pytest.raises(TemplateSyntaxError):
+        bw_icon("trash", label=blank)
+
+
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_whitespace_only_label_with_decorative_is_accepted_as_decorative(blank: str) -> None:
+    # Before the fix, a whitespace-only label is truthy, so decorative=True
+    # plus label="   " hit the "pass either...not both" branch and raised.
+    # After stripping, label collapses to "" before either branch is tested,
+    # so this renders decorative and never raises. Fails without the fix.
+    out = bw_icon("trash", decorative=True, label=blank)
+    assert 'aria-hidden="true"' in out
+    assert "role=" not in out
+
+
+def test_padded_label_is_stripped_not_rejected() -> None:
+    # Stripping must not turn a real name with stray spaces into an error.
+    out = bw_icon("trash", label="  Delete item  ")
+    assert 'aria-label="Delete item"' in out
+
+
+def test_non_str_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: bw_icon's label = label.strip() raised AttributeError
+    # on any non-str value. Rendered through ordinary template syntax (not a
+    # direct call), since that is how the regression actually reaches a
+    # consumer: {% bw_icon n label=n %} with an int context variable is
+    # entirely ordinary Django, not a contrived call. Fails without the fix
+    # (AttributeError: 'int' object has no attribute 'strip').
+    out = _render('{% bw_icon "trash" label=n %}', n=5)
+    assert 'aria-label="5"' in out
+
+
+def test_str_able_object_label_renders_its_str_form() -> None:
+    # A model instance or any other __str__-able object as a label is
+    # ordinary Django usage. Fails without the fix for the same reason as
+    # the int case above.
+    class _Labelled:
+        def __str__(self) -> str:
+            return "Widget One"
+
+    out = _render('{% bw_icon "trash" label=obj %}', obj=_Labelled())
+    assert 'aria-label="Widget One"' in out
+
+
 # --- injection safety (ICO-003) -------------------------------------------
 
 
@@ -160,6 +215,40 @@ def test_label_is_html_escaped_never_raw() -> None:
     out = _render('{% bw_icon "trash" label=evil %}', evil='"><script>alert(1)</script>')
     assert "<script>" not in out
     assert "&lt;script&gt;" in out
+
+
+def test_css_class_is_html_escaped_never_raw() -> None:
+    out = _render('{% bw_icon "trash" decorative=True css_class=evil %}', evil='"><script>alert(1)</script>')
+    assert "<script>" not in out
+    assert "&lt;script&gt;" in out
+
+
+def test_mark_safed_css_class_is_still_escaped_not_a_breakout() -> None:
+    # The #329 repro: conditional_escape honours __html__, so a SafeString
+    # passed through it renders VERBATIM in the class attribute, closing the
+    # quote and landing a live attribute on the element. A plain string was
+    # always escaped correctly (the test above already covers that); this is
+    # the case that only fails without the fix, because only a SafeString
+    # exercises conditional_escape's __html__ passthrough at all.
+    out = _render(
+        '{% bw_icon "trash" decorative=True css_class=evil %}',
+        evil=mark_safe('a" onmouseover="alert(1)'),
+    )
+    assert 'onmouseover="alert(1)"' not in out
+    assert "&quot;" in out
+
+
+def test_mark_safed_label_is_still_escaped_not_a_breakout() -> None:
+    # Same repro as the css_class case above, on the other attribute-value
+    # call site (brickwork_icons.py:96's aria-label). Fails without the fix
+    # for the same reason: a plain string was already safe, only a
+    # SafeString exercises conditional_escape's __html__ passthrough.
+    out = _render(
+        '{% bw_icon "trash" label=evil %}',
+        evil=mark_safe('a" onmouseover="alert(1)'),
+    )
+    assert 'onmouseover="alert(1)"' not in out
+    assert "&quot;" in out
 
 
 def test_name_is_not_a_raw_svg_injection_vector() -> None:
@@ -278,6 +367,23 @@ def test_reregistering_a_seed_name_overrides_and_keeps_the_directional_flag() ->
         assert is_directional("chevron-forward")
     finally:
         register_icons({"chevron-forward": original})  # revert = register back
+
+
+def test_registered_icon_markup_is_trusted_by_contract_not_vetted() -> None:
+    # Documents the corrected bw_icon noqa justification (icvoss/django-brickwork
+    # #330): register_icons() is a public, documented API (ICO-002/ICO-012) that
+    # merges its mapping into the registry with no validation. This is NOT a bug
+    # to fix here (that is a separate, deliberately out-of-scope design
+    # decision): it is the same trust boundary as any other mark_safe call, and
+    # this test exists so the "inner is vetted" claim never silently regresses
+    # back into the noqa comment without a test noticing the registry has no
+    # gate. A consumer registering unsanitised markup gets it rendered raw.
+    try:
+        register_icons({"pwn-330": '"><script>alert(1)</script>'})
+        out = bw_icon("pwn-330", decorative=True)
+        assert "<script>alert(1)</script>" in out
+    finally:
+        icons._registry._ICONS.pop("pwn-330", None)
 
 
 # --- the chrome-internal name list is documented and cannot rot (#77) ------
