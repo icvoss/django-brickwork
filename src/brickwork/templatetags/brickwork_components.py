@@ -16,7 +16,7 @@ from django import template
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.html import conditional_escape, escape, format_html
-from django.utils.safestring import SafeString, mark_safe
+from django.utils.safestring import SafeData, SafeString, mark_safe
 from django.utils.translation import gettext
 
 register = template.Library()
@@ -80,12 +80,29 @@ def normalise_accessible_name(value: object) -> SafeString:
     unescaped, fixing 2) and otherwise escapes, so a plain object first
     needs coercing to ``str`` (fixing 1: ``conditional_escape`` itself is
     typed for ``str | lazy | SafeData``, not arbitrary objects, mirroring
-    ``bw_data_attrs``'s own ``escape(str(value))`` above). A value that is
-    already a ``str``/``SafeString``/lazy proxy passes through ``str()``
-    unchanged (``str(x) is x`` for a plain ``str``, and ``str()`` of a lazy
-    proxy resolves it, which ``conditional_escape`` already does internally
-    too), so this coercion never double-resolves or reformats a value
-    ``conditional_escape`` would otherwise have handled directly.
+    ``bw_data_attrs``'s own ``escape(str(value))`` above).
+
+    The coercion guard tests ``SafeData``, not ``str``, so that a plain
+    ``str`` arriving at runtime is never mistaken for vetted markup.
+    ``SafeString`` subclasses ``str``, so gating on ``str`` would have
+    skipped the ``str()`` coercion for every already-safe value and, worse,
+    conflated the two.
+
+    What this helper does NOT do, stated plainly because the boundary is
+    easy to misread: it does not escape a quoted template literal. Django's
+    parser marks every literal safe before a tag ever sees it
+    (``Variable.__init__``: ``self.literal = mark_safe(...)``,
+    unconditional), so ``{% bw_toggle "Tom & more" id="x" %}`` renders a raw
+    ``&``, and no tag-level change can alter that. This is not the #329
+    defect class: a literal is template-author text, trusted by the same
+    rule as ``mark_safe``, and it is indistinguishable from ``mark_safe``
+    at this boundary.
+
+    The path that DOES carry consumer data is a context variable
+    (``{% bw_toggle obj.name id="x" %}``, a DB value, a form field, a
+    computed label). That arrives as a plain ``str``, takes the ``str()``
+    branch, and is escaped by ``conditional_escape`` like any other
+    untrusted value, so ``<script>`` reaches the DOM as text, never live.
 
     Stripping the *escaped* text cannot reintroduce the double-escape,
     because whitespace trimming never touches markup content, and the
@@ -98,10 +115,10 @@ def normalise_accessible_name(value: object) -> SafeString:
     own auto-escaping would have, so wrapping that already-escaped result in
     ``mark_safe`` and letting the auto-escaping no-op over it renders
     identically to leaving it unescaped and auto-escaped once. Only a value
-    that was ALREADY safe changes behaviour, which is the point: that is the
-    one case ordinary auto-escaping alone gets wrong.
+    that was ALREADY safe (``SafeData``) changes behaviour, which is the
+    point: that is the one case ordinary auto-escaping alone gets wrong.
     """
-    return mark_safe(conditional_escape(str(value) if not isinstance(value, str) else value).strip())
+    return mark_safe(conditional_escape(value if isinstance(value, SafeData) else str(value)).strip())
 
 
 @register.simple_tag

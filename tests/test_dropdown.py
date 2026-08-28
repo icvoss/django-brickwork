@@ -326,7 +326,15 @@ def test_mark_safed_trigger_label_is_not_double_escaped() -> None:
 def test_plain_ampersand_trigger_label_is_still_escaped() -> None:
     # #330 requirement 8, the trap: an ordinary never-safe string must still
     # be escaped normally, not blanket-marked safe.
-    html = _render("{% bw_dropdown items=items trigger_label='Tom & more' %}")
+    #
+    # Passed through a context variable, not a template literal: a quoted
+    # literal in the template's own source is marked SafeString by Django's
+    # parser itself (Variable.__init__, unconditionally, since before this
+    # fix existed), indistinguishable from a genuine mark_safe() value by
+    # the time it reaches the tag function. The real attack surface is
+    # consumer/runtime data arriving via a context variable, which this
+    # exercises.
+    html = _render("{% bw_dropdown items=items trigger_label=n %}", n="Tom & more")
     assert "Tom &amp; more" in html
 
 

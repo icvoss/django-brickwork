@@ -179,7 +179,17 @@ def test_button_plain_ampersand_aria_label_is_still_escaped() -> None:
     # be escaped normally. If the fix instead blanket-marked every aria_label
     # safe, this would regress to an injection vector (the exact #329 defect
     # class). Fails if the fix over-corrects into "everything is safe".
-    out = _render('{% bw_button icon="trash" icon_only=True aria_label="Tom & more" %}')
+    #
+    # Passed through a context variable, not a template literal: a quoted
+    # literal in the template's own source (aria_label="Tom & more") is
+    # marked SafeString by Django's parser itself (Variable.__init__,
+    # unconditionally, for every tag, since before this fix existed), so it
+    # is indistinguishable from a genuine mark_safe() value by the time it
+    # reaches the tag function, and no helper here can or should try to
+    # un-trust it. The real attack surface, and the one #329 was about, is
+    # consumer/runtime data arriving via a context variable, which this
+    # exercises.
+    out = _render('{% bw_button icon="trash" icon_only=True aria_label=n %}', n="Tom & more")
     assert 'aria-label="Tom &amp; more"' in out
 
 
