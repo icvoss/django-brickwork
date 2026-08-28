@@ -154,6 +154,13 @@ that compares against something you did not change:
   front of you and the claim about the other thing is recalled, and nothing
   re-checks the recalled half before it ships; a citation stays correct as
   the other component changes, a description of its current state does not.
+  Two riders, both learned by getting them wrong while writing the #315
+  correction itself. An issue number names a request, not a change, so cite
+  what actually landed: a reader following `#185` to check a claim about
+  `_data_table.html` reaches a feature request and can verify nothing, where
+  `#317` reaches the diff. And this governs *current* behaviour asserted from
+  memory, not history: what a component did at a named tag or commit is
+  checkable by anyone, and is exactly how a correction has to be written.
 
 ---
 

@@ -180,7 +180,11 @@ so a reader who acted on it can see exactly what changed and why.
   above, **this one became true after the fact rather than being corrected**:
   icvoss/django-brickwork#323 brought both exempted components to the floor,
   closing icvoss/django-brickwork#316, so by the time of this note both
-  exemptions are gone and the sweep is unconditional.
+  exemptions are gone and the sweep is unconditional. The sentence is
+  therefore left exactly as published because it is now accurate, not
+  because it was judged not worth fixing: rewording it would make the
+  record of what 3.12.0 claimed harder to read, and the claim it made is
+  the claim the package now meets.
 
 Root cause and the standing rule that stops this recurring are in
 `CONTRIBUTING.md`, "Figures and claims about the codebase".
