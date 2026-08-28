@@ -83,6 +83,42 @@ analytical and reporting interfaces.
 consistent filters, tables, metrics and visualisation without introducing a
 second design language.
 
+**Delivery status, 2026-08-29.** Recorded against the four bullets above
+rather than as a single done or not-done, because they did not land evenly.
+
+*Data primitives: shipped, except three.* `_ranked_list.html` (#183),
+`_sparkline.html`, `_trend_indicator.html`, `_gauge.html`, `_scorecard.html`
+(VIZ-011/012, the shared dashboard grid CHT-026 makes serve stat tiles and
+chart cards alike) and `_stat_comparison.html` (VIZ-019/020) are all on
+`main`. **Timeline, saved views and advanced filters did not ship and are
+not merely pending**: they have no spec brick, and building the audit-trail
+archetype showed the timeline gap is real (expanding one entry means a
+disclosure below the table rather than inside the row it belongs to).
+Scoping decision for all five unshipped slice 3 patterns is
+icvoss/django-brickwork#362.
+
+*Chart contract: shipped.* ADR-081 settled the ownership boundary and
+ADR-082 the token vocabulary. `_chart_card.html` carries the frame, legend
+chrome and the loading, error and empty states; `bw_chart_mount` carries the
+mount and enforces its accessible name; `_chart_data_table.html` (CHT-012,
+CHT-013) carries the data fallback as a SIBLING of the `role="img"` mount,
+never a descendant, since `role="img"` makes every descendant presentational
+and nesting the compensation inside the opaque thing defeats it. **Annotation
+and an export seam did not ship**, and neither has a spec brick backing the
+roadmap's mention of them.
+
+*Chart components: shipped engine-free, as ADR-081 requires.* Bundling an
+engine remains forbidden; the mount is the consumer's seam.
+
+*Archetypes: the Data-heavy operations family opened.* `queue.html` and
+`audit-trail.html` are on `main`; `report.html`, `comparison.html` and the
+analysis dashboard are in flight. The cross-wave design-coherence gate ran on
+this wave's first archetype and passed.
+
+**Exit criterion is met by the archetypes, not the components.** The
+criterion is a statement about pages shipping, so it closes when the
+dashboard and report land, not when the primitives did.
+
 ### Wave 2: documentation and editorial
 
 **Outcome:** Brickwork supports long-form reading and technical reference work
