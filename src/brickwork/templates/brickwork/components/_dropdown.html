@@ -62,7 +62,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
     {% if not icon_only %}<span class="bw-btn__label">{{ trigger_label }}</span>{% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-dropdown__caret" %}{% endif %}
   </summary>
   <nav class="bw-dropdown__panel"
-       aria-label="{% if icon_only %}{{ aria_label }}{% else %}{{ trigger_label }}{% endif %}"
+       aria-label="{% if icon_only %}{{ aria_label }}{% else %}{{ trigger_label_attr }}{% endif %}"
        data-bw-dropdown-panel>
     {% for item in items %}
       {% if item.is_divider %}
