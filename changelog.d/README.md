@@ -52,7 +52,11 @@ House style applies: British English, no em or en dashes, issues referenced as
 `icvoss/django-brickwork#N`, no session links. A fragment comparing your
 change to another component's current behaviour is bound by CONTRIBUTING.md,
 "Figures and claims about the codebase" (icvoss/django-brickwork#315): verify
-it, drop it, or cite the issue/ADR instead.
+it, drop it, or cite what landed instead (the merge commit, the PR, or
+the tag it shipped in). An issue number names a request, not a change:
+a reader following it cannot tell whether the thing landed or in what
+form. Cite an issue or ADR only when the claim is about a convention it
+establishes rather than about code.
 
 ## Assembling a release
 
