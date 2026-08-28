@@ -1,0 +1,257 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A long-form, printable performance report: the document someone actually
+circulates at month end, not a dashboard.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    nav_items / nav_active     as in list.html
+    top_accounts_rows          bw_ranked_list rows: label/amount/value pairs,
+                                a list of dicts a Django template cannot build
+                                inline (see tests/test_examples.py for the
+                                exact shape)
+Everything else, the headline figures, the narrative, the breakdown tables and
+the methodology notes, is typed straight into the template. That is what makes
+a report genuinely copy-paste: replace the words and the numbers, keep the
+structure.
+
+ON PRINT. This page ships NO print stylesheet: there is not one @media print
+rule anywhere in brickwork's shipped CSS (ICO-023 leaves print to the
+consumer, deliberately). Printing this page today prints the app shell too:
+sidebar, topbar, skip link and all. What the page DOES give you structurally,
+so that adding print styles later is your only job rather than a rewrite:
+every section is a real <section> under one heading, the data lives in real
+<table> elements rather than styled divs, and no figure's meaning depends on
+colour (every delta in this report pairs its glyph with visually hidden
+direction text). A `@media print` block in your own stylesheet that hides
+[data-bw-shell-chrome] siblings of #bw-main and widens bw-prose's measure is
+normally enough; brickwork does not ship that block for you.
+
+States: none of its own: a static document render. The ranked list composed
+  below carries its own loading/empty states (see _ranked_list.html's header)
+  if your view ever renders it that way; a circulated report is normally
+  rendered once, fully populated.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region. The report body is real semantic markup throughout
+  (h2/h3, p, table with scope="col"/scope="row" headers, an ordered ranked
+  list), which is what bw-prose styles rather than replaces (see
+  sections/content/prose-block.html's own header). Every wide table sits in
+  its own scrollable, keyboard-reachable region (role="region" plus
+  aria-label, tabindex="0") so a narrow viewport never scrolls the whole
+  page sideways. Every trend figure pairs a decorative glyph with visually
+  hidden increased/decreased/unchanged text, so no reading here rides on
+  colour alone.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). bw-prose holds a
+  fixed 65ch measure at every width; each data table scrolls horizontally
+  within its own region rather than reflowing.
+{% endcomment %}
+{% load brickwork_components brickwork_nav %}
+
+{% block page_title %}Q2 performance report - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Q2 2026 performance report" description="1 April to 30 June 2026, prepared for the leadership team." %}
+{% endblock %}
+
+{% block page_actions %}
+  {% bw_button "Download PDF" variant="secondary" icon="download" href="/reports/q2-2026.pdf" %}
+  {% bw_button "Share" variant="ghost" icon="external-link" href="/reports/q2-2026/share/" %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  Executive summary. This is the paragraph a director reads if they read
+  nothing else, so it carries the whole story in prose before a single table
+  appears: what happened, why, and what changes next quarter.
+  {% endcomment %}
+  <section class="bw-content-section">
+    <div class="bw-prose">
+      <h2>Executive summary</h2>
+      <p class="bw-prose__lede">
+        Collections improved for the third straight quarter while the invoice
+        book kept growing, which is the combination we set out to prove was
+        possible rather than a trade-off.
+      </p>
+      <p>
+        Revenue billed reached £612,400 across the quarter, up 9.4% on Q1. Average
+        days to pay fell to 18.2 days, the lowest since we began tracking it, and
+        overdue balances fell in absolute terms even as the number of invoices
+        raised grew by 14%. The reminder-schedule change rolled out in March
+        (see Methodology) accounts for most of the improvement: accounts on the
+        new schedule pay 3.1 days faster on average than accounts still on the
+        old one.
+      </p>
+      <p>
+        The one area to watch is the Northern region, where overdue balances rose
+        against the trend. That is broken out in its own section below, with the
+        two accounts responsible for most of it.
+      </p>
+    </div>
+  </section>
+
+  {% comment %}
+  Headline figures. bw-stat-grid reflows on its own; every trend here renders
+  through _stat.html's composed _trend_indicator.html, which ALWAYS pairs the
+  glyph with visually hidden increased/decreased/unchanged text, so the
+  direction reaches a screen reader in words and never rides on green or red.
+
+  Note what that hidden word actually says: trend names the DIRECTION THE
+  NUMBER MOVED, not whether the news is good. Days to pay and overdue balance
+  both FELL this quarter, so both take trend="down" even though falling is
+  the outcome we wanted; the judgement goes in trend_label, in words. Passing
+  trend="up" for "this improved" would announce "increased" over a figure the
+  reader can see has gone down.
+  {% endcomment %}
+  <section class="bw-content-section">
+    <div class="bw-stat-grid">
+      {% include "brickwork/components/_stat.html" with label="Revenue billed" value="£612,400" trend="up" trend_label="9.4% on Q1" %}
+      {% include "brickwork/components/_stat.html" with label="Invoices raised" value="1,486" trend="up" trend_label="14% on Q1" %}
+      {% include "brickwork/components/_stat.html" with label="Average days to pay" value="18.2" trend="down" trend_label="2.6 days lower than Q1, which is better" %}
+      {% include "brickwork/components/_stat.html" with label="Overdue balance" value="£41,900" trend="down" trend_label="6.7% lower than Q1, which is better" %}
+    </div>
+  </section>
+
+  {% comment %}
+  Regional breakdown. Narrative first, then the table it is describing: a
+  report earns its tables rather than opening with one.
+  {% endcomment %}
+  <section class="bw-content-section">
+    <div class="bw-prose">
+      <h2>Revenue and collections by region</h2>
+      <p>
+        Every region grew revenue this quarter. Collections speed improved
+        everywhere except the North, where two accounts (below) are carrying
+        most of an increase that would otherwise read as a regional problem
+        rather than a concentrated one.
+      </p>
+
+      <div class="bw-prose__table-wrap" tabindex="0" role="region" aria-label="Revenue and collections by region, Q2 2026">
+        <table>
+          <caption>Revenue billed and average days to pay, by region, Q2 2026 versus Q1 2026.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Region</th>
+              <th scope="col">Revenue billed</th>
+              <th scope="col">Change on Q1</th>
+              <th scope="col">Avg. days to pay</th>
+              <th scope="col">Change on Q1</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>South</td>
+              <td>£248,100</td>
+              <td>
+                {% include "brickwork/components/_trend_indicator.html" with trend="up" trend_label="11.2%" %}
+              </td>
+              <td>16.4 days</td>
+              <td>
+                {% include "brickwork/components/_trend_indicator.html" with trend="down" trend_label="3.0 days lower, which is better" %}
+              </td>
+            </tr>
+            <tr>
+              <td>Midlands</td>
+              <td>£189,700</td>
+              <td>
+                {% include "brickwork/components/_trend_indicator.html" with trend="up" trend_label="8.6%" %}
+              </td>
+              <td>17.9 days</td>
+              <td>
+                {% include "brickwork/components/_trend_indicator.html" with trend="down" trend_label="2.1 days lower, which is better" %}
+              </td>
+            </tr>
+            <tr>
+              <td>North</td>
+              <td>£132,400</td>
+              <td>
+                {% include "brickwork/components/_trend_indicator.html" with trend="up" trend_label="6.9%" %}
+              </td>
+              <td>22.6 days</td>
+              <td>
+                {% include "brickwork/components/_trend_indicator.html" with trend="up" trend_label="1.4 days higher, which is worse" %}
+              </td>
+            </tr>
+            <tr>
+              <td>Wales and South West</td>
+              <td>£42,200</td>
+              <td>
+                {% include "brickwork/components/_trend_indicator.html" with trend="up" trend_label="10.5%" %}
+              </td>
+              <td>15.1 days</td>
+              <td>
+                {% include "brickwork/components/_trend_indicator.html" with trend="down" trend_label="1.9 days lower, which is better" %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Read the North row alongside the account breakdown below before drawing
+        a regional conclusion: this is a concentration story, not a systemic
+        slowdown in that region's chasing.
+      </p>
+    </div>
+  </section>
+
+  {% comment %}
+  Top overdue accounts. bw_ranked_list is the right shape for "which N things
+  contribute most", here basis="max" so the bar reads as a leaderboard against
+  the largest single balance. The package never formats numbers, so "value" is
+  supplied pre-formatted by the view; see top_accounts_rows in this file's own
+  header.
+  {% endcomment %}
+  <section class="bw-content-section">
+    <div class="bw-prose">
+      <h2>Where the North's overdue balance sits</h2>
+      <p>
+        Two accounts hold most of the North region's overdue total. Both are
+        past the final reminder stage and are now with the account owner
+        rather than the automated schedule.
+      </p>
+    </div>
+    {% bw_ranked_list top_accounts_rows basis="max" label="Top overdue accounts by balance, North region, Q2 2026" %}
+  </section>
+
+  {% comment %}
+  Methodology and footnotes tail. Every report worth circulating says how the
+  numbers were produced, so a reader can trust or challenge them.
+  {% endcomment %}
+  <section class="bw-content-section">
+    <div class="bw-prose">
+      <h2>Methodology</h2>
+      <p>
+        Revenue billed is invoice value raised within the quarter, exclusive of
+        VAT. Average days to pay is the mean of (payment date minus due date)
+        across invoices settled within the quarter, so a late invoice still
+        paid this quarter counts, and one paid next quarter does not yet. Overdue
+        balance is the outstanding value of invoices past their due date as at
+        30 June 2026.
+      </p>
+      <p>
+        The revised reminder schedule (first reminder seven days before the due
+        date, rather than three) rolled out to 60% of accounts on 3 March 2026
+        and to the remainder on 14 April 2026. The 3.1-day improvement figure in
+        the summary compares accounts on the new schedule for the full quarter
+        against accounts still on the old one.
+      </p>
+      <hr>
+      <p>
+        Prepared by the finance operations team. Figures are unaudited management
+        figures, not statutory accounts. Questions to
+        <a href="mailto:financeops@northwind.example">financeops@northwind.example</a>.
+      </p>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
