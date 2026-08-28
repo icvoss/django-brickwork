@@ -78,6 +78,24 @@ def test_toggle_empty_label_raises() -> None:
         _render_toggle('{% bw_toggle "" id="email-alerts" %}')
 
 
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_toggle_whitespace_only_label_is_not_an_accessible_name(blank: str) -> None:
+    # A whitespace-only label is truthy in Python, so the existing "not label"
+    # check the docstring/error already claims to enforce did not actually
+    # reject it before the strip-and-rebind fix. Calls the tag directly: a raw
+    # newline inside {% bw_toggle "..." %} does not survive Django's parser.
+    from brickwork.templatetags.brickwork_components import bw_toggle
+
+    with pytest.raises(TemplateSyntaxError):
+        bw_toggle(blank, id="email-alerts")
+
+
+def test_toggle_padded_label_is_stripped_not_rejected() -> None:
+    out = _render_toggle('{% bw_toggle "  Email alerts  " id="email-alerts" %}')
+    assert re.search(r'class="bw-toggle-field__label">\s*Email alerts\s*</span>', out)
+    assert "  Email alerts  " not in out
+
+
 def test_toggle_missing_id_raises() -> None:
     with pytest.raises(TemplateSyntaxError):
         _render_toggle('{% bw_toggle "Email alerts" %}')

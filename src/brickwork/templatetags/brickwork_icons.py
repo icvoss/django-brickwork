@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from django import template
 from django.template.exceptions import TemplateSyntaxError
-from django.utils.html import conditional_escape
+from django.utils.html import escape
 from django.utils.safestring import SafeString, mark_safe
 
 from brickwork.icons import get_icon, is_directional
@@ -73,6 +73,13 @@ def bw_icon(
     if size not in _SIZE_TOKENS:
         raise TemplateSyntaxError(f"{{% bw_icon %}}: size must be one of {sorted(_SIZE_TOKENS)}, got {size!r}.")
 
+    # Stripped before testing, not merely truthiness-tested: a whitespace-only
+    # label is truthy in Python and is NOT an accessible name to any screen
+    # reader, so testing truthiness alone would let a consumer satisfy a
+    # hard-required check by supplying nothing (also see bw_chart_mount's own
+    # aria_label, brickwork_components.py:517, the precedent this follows).
+    label = label.strip()
+
     # ICO-007: enforce the decorative-vs-meaningful pairing. Refuse to render an
     # icon that is neither (the "icon with no name and no aria-hidden" defect) or
     # both (contradictory intent).
@@ -91,9 +98,9 @@ def bw_icon(
     if is_directional(name):
         classes += " bw-icon-directional"  # flips under [dir="rtl"] (ICO-014)
     if css_class:
-        classes += " " + conditional_escape(css_class)
+        classes += " " + escape(css_class)
 
-    a11y = 'aria-hidden="true"' if decorative else f'role="img" aria-label="{conditional_escape(label)}"'
+    a11y = 'aria-hidden="true"' if decorative else f'role="img" aria-label="{escape(label)}"'
 
     svg = (
         f'<svg class="{classes}" '
@@ -104,6 +111,8 @@ def bw_icon(
         f"{a11y}>{inner}</svg>"
     )
     # noqa justification (S308): `inner` is vetted registry artwork (never caller
-    # input); `label`/`css_class` are conditional_escape'd above; `size` is from a
-    # fixed allow-list. No untrusted string reaches this SafeString.
+    # input); `label`/`css_class` are escape()d above (never conditional_escape,
+    # which honours __html__ and would let a SafeString break out of the
+    # attribute, ADR-083); `size` is from a fixed allow-list. No untrusted
+    # string reaches this SafeString.
     return mark_safe(svg)  # noqa: S308

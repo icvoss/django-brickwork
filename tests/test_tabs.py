@@ -160,6 +160,34 @@ def test_invalid_arguments_raise(src: str, ctx: dict) -> None:
         _render(src, **ctx)
 
 
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_whitespace_only_tab_label_is_not_an_accessible_name(blank: str) -> None:
+    # A whitespace-only label is truthy in Python and is not an accessible
+    # name to any screen reader; without the strip-and-rebind fix this
+    # passes the "not key or not label" check and renders. The violation is
+    # on the SECOND tab, not the first, so a bug that only checked tabs[0]
+    # would pass this fixture vacuously.
+    tabs = [{"key": "one", "label": "One"}, {"key": "two", "label": blank}]
+    with pytest.raises(TemplateSyntaxError):
+        _render(tabs=tabs, active="one")
+
+
+def test_padded_tab_label_is_stripped_not_rejected() -> None:
+    tabs = [{"key": "one", "label": "One"}, {"key": "two", "label": "  Two  "}]
+    html = _render(tabs=tabs, active="one")
+    assert '<span class="bw-tabs__label">Two</span>' in html
+    assert "  Two  " not in html
+
+
+def test_tab_key_with_whitespace_is_rejected_by_the_existing_id_token_guard() -> None:
+    # key is deliberately untouched by the #327 fix: _ID_TOKEN_RE already
+    # rejects any key containing whitespace (it only allows letters, digits,
+    # hyphen, underscore), so this documents that key needed no change.
+    tabs = [{"key": "one", "label": "One"}, {"key": "has space", "label": "Two"}]
+    with pytest.raises(TemplateSyntaxError):
+        _render(tabs=tabs, active="one")
+
+
 # --- the tab_panel partial (semver-public, BR-BW-TPL-001) --------------------
 
 

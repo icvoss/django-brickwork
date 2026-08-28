@@ -45,6 +45,24 @@ def test_button_icon_only_requires_aria_label() -> None:
         _render('{% bw_button icon="trash" icon_only=True aria_label="" %}')
 
 
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_button_icon_only_whitespace_only_aria_label_is_not_a_name(blank: str) -> None:
+    # A whitespace-only aria_label is truthy in Python and is not an accessible
+    # name to any screen reader; without the strip-and-rebind fix this passes
+    # the truthiness check and renders. Calls the tag function directly: a raw
+    # newline inside {% ... aria_label="..." %} does not survive Django's
+    # template parser.
+    from brickwork.templatetags.brickwork_components import bw_button
+
+    with pytest.raises(TemplateSyntaxError):
+        bw_button(icon="trash", icon_only=True, aria_label=blank)
+
+
+def test_button_icon_only_padded_aria_label_is_stripped_not_rejected() -> None:
+    out = _render('{% bw_button icon="trash" icon_only=True aria_label="  Delete  " %}')
+    assert 'aria-label="Delete"' in out
+
+
 def test_button_icon_only_with_label_omits_visible_text() -> None:
     out = _render('{% bw_button icon="trash" icon_only=True aria_label="Delete" %}')
     assert 'aria-label="Delete"' in out

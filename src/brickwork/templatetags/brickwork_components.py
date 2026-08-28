@@ -130,6 +130,11 @@ def bw_button(
         raise TemplateSyntaxError(f"bw_button variant must be one of {sorted(_BUTTON_VARIANTS)}, got {variant!r}")
     if size not in _SIZES:
         raise TemplateSyntaxError(f"bw_button size must be one of {sorted(_SIZES)}, got {size!r}")
+    # Stripped before testing, not merely truthiness-tested: a whitespace-only
+    # aria_label is truthy in Python and is NOT an accessible name to any
+    # screen reader (bw_chart_mount's own aria_label precedent,
+    # brickwork_components.py:517).
+    aria_label = aria_label.strip()
     if icon_only and not aria_label:
         raise TemplateSyntaxError(
             "bw_button icon_only=True requires aria_label= (an icon-only button "
@@ -259,6 +264,11 @@ def bw_toggle(
     key their field. For a form-bound checkbox use bw_field_widget's own
     BR-BW-INPUT-001 opt-in (forms.CheckboxInput(attrs={"class": "bw-toggle"}))
     instead of this tag."""
+    # Stripped before testing, not merely truthiness-tested: a whitespace-only
+    # label is truthy in Python and is NOT an accessible name to any screen
+    # reader (the bw_chart_mount aria_label precedent, brickwork_components.py:517),
+    # so the "requires a non-empty label" claim below is only true once this runs.
+    label = label.strip()
     if not label:
         raise TemplateSyntaxError(
             "bw_toggle requires a non-empty label (a switch with no accessible name is a WCAG 4.1.2 failure)."

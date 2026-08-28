@@ -239,6 +239,59 @@ def test_invalid_items_raise(items: list) -> None:
         _render(items=items)
 
 
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_icon_only_whitespace_only_aria_label_is_not_a_name(blank: str) -> None:
+    # A whitespace-only aria_label is truthy in Python and is not an
+    # accessible name to any screen reader; without the strip-and-rebind fix
+    # this passes the icon_only truthiness check and renders. Calls the tag
+    # directly: a raw newline inside aria_label="..." does not survive
+    # Django's template parser.
+    from brickwork.templatetags.brickwork_interactions import bw_dropdown
+
+    with pytest.raises(TemplateSyntaxError):
+        bw_dropdown(_ITEMS, icon_only=True, aria_label=blank)
+
+
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_whitespace_only_trigger_label_is_not_a_visible_label(blank: str) -> None:
+    from brickwork.templatetags.brickwork_interactions import bw_dropdown
+
+    with pytest.raises(TemplateSyntaxError):
+        bw_dropdown(_ITEMS, trigger_label=blank)
+
+
+def test_icon_only_padded_aria_label_is_stripped_not_rejected() -> None:
+    html = _render(
+        "{% bw_dropdown items=items icon_only=True aria_label='  Widget actions  ' trigger_icon='more-horizontal' %}"
+    )
+    assert 'aria-label="Widget actions"' in html
+
+
+def test_padded_trigger_label_is_stripped_not_rejected() -> None:
+    html = _render("{% bw_dropdown items=items trigger_label='  Actions  ' %}")
+    assert 'aria-label="Actions"' in html
+    assert 'bw-btn__label">Actions<' in html
+
+
+@pytest.mark.parametrize("blank", ["   ", "\t", "\n", " \t\n "])
+def test_item_whitespace_only_label_is_not_an_accessible_name(blank: str) -> None:
+    # The item dict's own "label" field feeds both the visible link text and
+    # the item's accessible name; a whitespace-only value is truthy and, before
+    # the fix, satisfied the combined "not label or not url" check. The
+    # violation is on the SECOND item, not the first, so a bug that only
+    # checked items[0] would pass this fixture vacuously.
+    items = [{"label": "Real item", "url": "/y/"}, {"label": blank, "url": "/x/"}]
+    with pytest.raises(TemplateSyntaxError):
+        _render(items=items)
+
+
+def test_item_padded_label_is_stripped_not_rejected() -> None:
+    items = [{"label": "Real item", "url": "/y/"}, {"label": "  Widgets  ", "url": "/x/"}]
+    html = _render(items=items)
+    assert 'class="bw-dropdown__item-label">Widgets</span>' in html
+    assert "  Widgets  " not in html
+
+
 # --- the shipped JS bundle contract ------------------------------------------
 
 

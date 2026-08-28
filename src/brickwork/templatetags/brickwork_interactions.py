@@ -151,6 +151,11 @@ def _shape_menu_item(raw: object) -> RenderedMenuItem:
         return RenderedMenuItem(label="", url="", icon="", variant="default", is_divider=True, attrs_html=mark_safe(""))
     label = raw.get("label")
     url = raw.get("url")
+    # label is an accessible name and gets the strip-and-rebind treatment (a
+    # whitespace-only label is truthy but is not a name to any screen reader,
+    # the bw_chart_mount aria_label precedent, brickwork_components.py:517);
+    # url is a URL, not a name, and keeps its plain truthiness test.
+    label = str(label).strip() if label is not None else ""
     if not label or not url:
         raise TemplateSyntaxError(f'bw_dropdown items require "label" and "url" (04-interfaces 4b), got {dict(raw)!r}')
     variant = raw.get("variant", "default")
@@ -211,6 +216,12 @@ def bw_dropdown(
         raise TemplateSyntaxError(
             f"bw_dropdown trigger_mode must be one of {sorted(_TRIGGER_MODES)}, got {trigger_mode!r}"
         )
+    # Stripped before testing, not merely truthiness-tested: a whitespace-only
+    # accessible name is truthy in Python and is not a name to any screen
+    # reader or, for trigger_label, a real visible label (the bw_chart_mount
+    # aria_label precedent, brickwork_components.py:517).
+    aria_label = aria_label.strip()
+    trigger_label = trigger_label.strip()
     if icon_only and not aria_label:
         raise TemplateSyntaxError(
             "bw_dropdown icon_only=True requires aria_label= (an icon-only trigger "
@@ -236,6 +247,11 @@ def _shape_tab(raw: object, *, tabs_id: str, active: str, current_path: str) -> 
         raise TemplateSyntaxError(f"bw_tabs tabs must be mappings, got {raw!r}")
     key = raw.get("key")
     label = raw.get("label")
+    # label is an accessible (and visible) name and gets the strip-and-rebind
+    # treatment (the bw_chart_mount aria_label precedent, brickwork_components.py:517);
+    # key is already correctly guarded below by _ID_TOKEN_RE, which rejects
+    # whitespace outright, so it is left alone.
+    label = str(label).strip() if label is not None else ""
     if not key or not label:
         raise TemplateSyntaxError(f'bw_tabs tabs require "key" and "label" (04-interfaces 4b), got {dict(raw)!r}')
     key = str(key)
@@ -247,7 +263,7 @@ def _shape_tab(raw: object, *, tabs_id: str, active: str, current_path: str) -> 
     url = raw.get("url") or f"{current_path}?{urlencode({'tab': key})}"
     return RenderedTab(
         key=key,
-        label=str(label),
+        label=label,
         url=str(url),
         badge=raw.get("badge"),
         is_active=key == active,

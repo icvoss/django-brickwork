@@ -10,6 +10,37 @@ versioning contract).
 
 ### Fixed
 
+- **`{% bw_icon %}` now escapes `css_class`/`label` with `escape()` rather
+  than `conditional_escape()`** (icvoss/django-brickwork#329). Both are
+  attribute values, never markup, but `conditional_escape` honours
+  `__html__`, so a `SafeString` passed as either argument rendered
+  verbatim instead of being escaped. A `css_class` of
+  `mark_safe('a" onmouseover="alert(1)')` closed the `class` attribute's
+  quote and landed a live event handler on the rendered `<svg>`, exactly
+  the ADR-083 break-out class. A plain string was always escaped
+  correctly and is unaffected; only a caller passing a `SafeString` (from
+  `format_html`, a model property, or any helper returning pre-escaped
+  HTML) was exposed.
+
+- **Whitespace-only accessible names are no longer accepted as accessible
+  names** (icvoss/django-brickwork#327). `bool("   ")` is `True`, so every
+  hard-required accessible-name check in the package that tested plain
+  truthiness accepted a label/aria-label consisting only of spaces, which
+  is invisible to every screen reader. `{% bw_icon %}` `label`, `bw_button`
+  `aria_label`, `bw_dropdown` `aria_label`/`trigger_label`/item `label`,
+  `bw_tabs` tab `label`, and `bw_toggle` `label` now strip the value before
+  testing it, matching `bw_chart_mount`'s existing `aria_label` handling
+  (0.10.0). A whitespace-only value now raises `TemplateSyntaxError`
+  instead of silently rendering an unnamed control; a real name with
+  incidental leading/trailing whitespace (`"  Save  "`) is cleaned to
+  `"Save"` rather than rejected. `bw_icon(decorative=True, label="   ")`
+  is now accepted as decorative (the label is stripped before the
+  decorative-vs-meaningful pairing is tested), where it previously raised
+  a spurious "pass either decorative=True OR a label, not both" error.
+  `bw_dropdown` menu-item `key`/`bw_tabs` tab `key` are untouched: `key`
+  is already guarded by an id-safe token pattern that rejects whitespace
+  outright.
+
 - **Consumer attribute values are now escaped even when already marked
   safe** (ADR-083). `format_html` does not escape a value that is already a
   `SafeString`, by its documented contract, so a consumer value carrying
