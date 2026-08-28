@@ -18,7 +18,8 @@ from html.parser import HTMLParser
 from django import template
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
-from django.utils.html import conditional_escape, escape, format_html, strip_tags
+from django.utils.encoding import force_str
+from django.utils.html import conditional_escape, escape, format_html
 from django.utils.safestring import SafeData, SafeString, mark_safe
 from django.utils.translation import gettext
 
@@ -1010,6 +1011,46 @@ def bw_gauge(
     dash_offset = _GAUGE_CIRCUMFERENCE * (1 - percent_float / 100)
 
     return {
+        # ATTRIBUTE position (icvoss/django-brickwork#339, #352): the template
+        # renders this INSIDE the quotes, as aria-label="{{ label }}", so it
+        # needs escape() and NOT normalise_accessible_name. That helper is
+        # right for a value the template escapes; it returns a SafeString, so
+        # here it would suppress the template's own escaping and the quote in
+        # mark_safe('" onload="alert(1)') would still close the attribute.
+        # Verified by render rather than assumed: with the helper applied the
+        # breakout survived; with escape() it does not.
+        #
+        # The contrast is _toggle.html's `{{ label }}`, which is TEXT content
+        # and correctly uses the helper. Identical-looking code, different
+        # position, opposite treatment: #351's "same value, same strip,
+        # different downstream". The position is a property of the TEMPLATE,
+        # not of the tag, so it must be read there rather than inferred from
+        # what neighbouring tags do.
+        #
+        # `gauge_label` below is the third case: a trusted-markup slot
+        # (VIZ-008), passed through raw, deliberately getting neither.
+        # ATTRIBUTE position (icvoss/django-brickwork#339, #352). The tag
+        # only strips and coerces; the ESCAPING is done in the template with
+        # an explicit |force_escape, because the position is a property of
+        # the template rather than of the tag.
+        #
+        # Neither of the two obvious tag-side fixes works here, both measured
+        # rather than reasoned about:
+        #   normalise_accessible_name alone -> returns a SafeString, so the
+        #     template does not escape it and mark_safe('" onload="...')
+        #     still closes the attribute.
+        #   escape(force_str(label).strip()) -> closes the breakout but
+        #     double-escapes, rendering format_html("Tom {} more", "&") as
+        #     "Tom &amp;amp; more", the exact corruption #352 fixed.
+        # The strip must therefore keep the value UNSAFE here, and the
+        # template escapes exactly once at the point that knows it is inside
+        # quotes.
+        #
+        # The contrast is _toggle.html's `{{ label }}`, TEXT content, where
+        # normalise_accessible_name IS correct. Identical-looking code,
+        # opposite treatment: #351's "same value, same strip, different
+        # downstream". `gauge_label` is a third case again, a trusted-markup
+        # slot (VIZ-008) passed through raw.
         "label": label,
         "size": size,
         "threshold_token": threshold_token,
