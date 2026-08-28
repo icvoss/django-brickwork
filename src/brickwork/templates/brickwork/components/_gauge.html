@@ -50,6 +50,35 @@ Accessibility: role="img" on the SVG root, named by aria-label when label is
   quantity's progress toward completion, not a single already-resolved
   reading, and COL-030 is already satisfied by the visible text without it,
   the same reasoning bw_ranked_list documents for its own rows.
+
+  This guarantee has TWO distinct failure directions, and only one of them
+  is the accessibility guarantee itself:
+    - Number suppressed, arc still coloured: meaning rides on colour alone.
+      This IS the COL-030 violation, and it is what gauge_label_has_text
+      exists to prevent.
+    - Fallback over-fires, a legitimate caller label is discarded in favour
+      of the number: the user still sees a number, so COL-030 holds. This
+      is a correctness bug (a good label thrown away), not an accessibility
+      one, even though the visible symptom (the label text changes) looks
+      similar at a glance.
+  When a defect is found in gauge_label_has_text or the extractor it uses
+  (_gauge_label_has_visible_text, _GaugeLabelVisibleTextExtractor in
+  brickwork_components.py), establish which of these two directions it
+  fails in before assigning severity: the guarantee's name sits on the
+  MECHANISM (which text counts as visible), not on which direction a defect
+  in that mechanism pushes the outcome. Malformed or unusual markup
+  (unclosed tags, void elements written without a closing slash) should
+  degrade toward showing the number, never toward hiding it; the extractor
+  is built so that an unclosed non-visible-text tag (title/desc/script/
+  style) suppresses the REST of the label, forcing the numeric fallback,
+  which is a real, verified consequence of its depth-tracking design (it
+  never resets on malformed input), not merely an untested coincidence, but
+  it is not independently enforced as its own guarantee either: nothing in
+  the code specifically detects "this markup is malformed" and forces the
+  safe branch. If a future change to that extractor ever made malformed
+  markup degrade the OTHER way (toward hiding a real number), that would be
+  a genuine regression on this guarantee even though no single line of code
+  currently promises the safe direction outright.
 Responsive: no breakpoint switch; size is the fixed sm/md/lg token scale
   (VIZ-010), never viewport-driven. The SVG viewBox and dash geometry are
   fixed at every size: only the rendered diameter (a CSS custom property per

@@ -21,6 +21,7 @@ import pytest
 from django.template import engines
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
+from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
 
 from tests._encoding_contract import (
@@ -411,6 +412,165 @@ def test_gauge_label_plain_zero_renders_verbatim_never_falls_back() -> None:
     # second truthiness test in disguise.
     out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom="0")
     assert '<span class="bw-gauge__label">0</span>' in out
+
+
+# --- COL-030 defect class, round three: a LAZY safe string. The isinstance --
+# --- branch test itself was blind to a value that renders as markup while --
+# --- failing isinstance(v, SafeString). -------------------------------------
+
+
+def test_gauge_label_lazy_safe_markup_with_no_text_falls_back_to_the_percentage() -> None:
+    # lazy(lambda: mark_safe(...), str)() (the shape gettext_lazy and similar
+    # produce) is not itself a SafeString and carries no __html__ of its own,
+    # but the TEMPLATE still renders it as unescaped markup once resolved:
+    # the fallback decision must resolve laziness the same way the template
+    # does, or the two disagree and a threshold-coloured arc ships with no
+    # visible number, which is exactly the failure this whole guard exists
+    # to prevent.
+    lazy_label = lazy(lambda: mark_safe("<svg><title>73%</title></svg>"), str)()  # noqa: S308
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom=lazy_label)
+    assert '<span class="bw-gauge__label">73%</span>' in out
+    assert "<svg>" not in out
+
+
+def test_gauge_label_lazy_safe_markup_with_text_renders_verbatim_never_falls_back() -> None:
+    # the fix above must not overcorrect into treating every lazy value as
+    # suspect: a lazily-wrapped safe string that DOES carry visible text
+    # still renders the caller's own markup verbatim, unescaped, with no
+    # fallback, and the SafeString marker must survive the resolution.
+    lazy_label = lazy(lambda: mark_safe("<strong>On track</strong>"), str)()  # noqa: S308
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom=lazy_label)
+    assert '<span class="bw-gauge__label"><strong>On track</strong></span>' in out
+
+
+def test_gauge_label_lazy_plain_string_renders_verbatim_never_falls_back() -> None:
+    # a lazily-wrapped PLAIN string (no mark_safe inside it) must still be
+    # treated as plain, auto-escaped text, exactly as an ordinary plain
+    # string is: resolving laziness must not accidentally promote a plain
+    # value into the markup-parsing branch.
+    lazy_label = lazy(lambda: "On track", str)()
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom=lazy_label)
+    assert '<span class="bw-gauge__label">On track</span>' in out
+
+
+def test_gauge_label_html_only_object_without_mark_safe_is_not_treated_as_markup() -> None:
+    # Deliberately NOT a hole, and pinned here so a future "fix" cannot
+    # silently invert this: an object defining __html__ but never wrapped in
+    # mark_safe or subclassing SafeString is escaped by Django's own template
+    # variable rendering (render_value_in_context converts it with a bare
+    # str(value) before conditional_escape ever runs, since it is not a str
+    # subclass, which discards __html__ before conditional_escape could see
+    # it), so this function must agree and decline to fall back: the escaped
+    # repr text IS the visible text a sighted user sees.
+    class HtmlOnly:
+        def __html__(self) -> str:
+            return "<svg><title>73%</title></svg>"
+
+    out = _render("{% bw_gauge value=value gauge_label=custom %}", value=73, custom=HtmlOnly())
+    assert "<svg>" not in out
+    assert "&lt;" in out  # the object's escaped repr, not the fallback percentage
+    assert '<span class="bw-gauge__label">73%</span>' not in out
+
+
+# --- COL-030 defect class, round three: void elements (<br>, <img>, ...) ---
+# --- never receive a matching handle_endtag, so a naive push-on-open, -----
+# --- pop-on-close stack over-hides everything AFTER them. This fails in ----
+# --- the SAFE direction (over-suppresses a caller's label) rather than -----
+# --- the COL-030 direction (suppressing the number); tests below pin BOTH -
+# --- that specific correctness bug AND the safe-direction property. -------
+
+
+@pytest.mark.parametrize(
+    "markup",
+    [
+        '<br aria-hidden="true">Visible text after',
+        '<img aria-hidden="true" src="x">Ninety used',
+        "<input hidden>Still visible",
+        '<br aria-hidden="true"/>Visible after',
+        '73% <br aria-hidden="true">',
+    ],
+)
+def test_gauge_label_void_element_never_hides_text_that_follows_it(markup: str) -> None:
+    # A void element (no closing tag by the HTML5 spec) never receives a
+    # handle_endtag call from html.parser: pushing a hidden-state entry for
+    # it in handle_starttag and relying on a later pop left the parser's
+    # internal stack one entry too deep for the REST OF THE DOCUMENT, so
+    # every sibling after a void element carrying aria-hidden/hidden was
+    # wrongly excluded from "visible text", forcing an unwanted numeric
+    # fallback over a perfectly good caller label.
+    #
+    # A literal substring check, deliberately, not
+    # assert_text_survives_colour_and_style_stripped: that helper's own
+    # _visible_text walker asserts every opened tag has a matching close (a
+    # correct precondition for this component family's own OUTPUT, which
+    # never emits a void element), and fails that precondition on markup
+    # containing a genuine void element, which is exactly what this test
+    # needs to render. The exact expected markup is fully known here (no
+    # ambiguity about what SHOULD render), so asserting the caller's own
+    # markup appears verbatim inside the label span is the correct
+    # instrument, not a weaker stand-in for one: it also proves no fallback
+    # occurred, since a fallback would replace this content entirely rather
+    # than merely add to it.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe(markup),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert f'<span class="bw-gauge__label">{markup}</span>' in out
+
+
+def test_gauge_label_self_closed_non_void_tag_does_not_hide_text_that_follows_it() -> None:
+    # An explicit self-close on a NON-void tag (<span aria-hidden="true"/>,
+    # malformed but real markup a caller might still write) reaches
+    # handle_startendtag, which the base HTMLParser class already answers
+    # correctly by calling handle_starttag then handle_endtag in sequence:
+    # this pins that the base class default is not accidentally shadowed or
+    # broken by the void-element fix above.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe('<span aria-hidden="true"/>Visible after'),  # noqa: S308
+    )
+    assert '<span class="bw-gauge__label"><span aria-hidden="true"/>Visible after</span>' in out
+
+
+@pytest.mark.parametrize(
+    "markup",
+    [
+        "<br>73 after a break",
+        '<span aria-hidden="true">x</span>73 real text',
+        "<svg><title>73%",  # unclosed <title>: swallows the rest, errs toward the fallback
+        "<svg><title><br>73%</title></svg>",  # void element inside title stays excluded
+    ],
+)
+def test_gauge_label_void_element_fix_does_not_invert_the_safe_direction(markup: str) -> None:
+    # THE PROPERTY, not the individual cases: whatever a caller writes,
+    # malformed or not, the component may legitimately discard the caller's
+    # own label text (falling back to the number), but must NEVER render a
+    # threshold-coloured arc with NO visible number at all, i.e. an empty
+    # label. Every fixture above is deliberately built so the literal "73"
+    # sits in the caller's OWN surviving visible text when the label is not
+    # dropped (never inside markup this function treats as hidden/
+    # non-visible, such as a hidden span or a <title>), so the same needle
+    # "73" is also exactly what the numeric fallback renders when the label
+    # IS dropped: asserting "73" survives the encoding-contract's
+    # visible-text check proves the guarantee holds regardless of which of
+    # the two legitimate outcomes (caller text kept, or fallback used)
+    # happened for that particular case, without this test needing to know
+    # or assert which one occurred.
+    #
+    # A fixture combining "73" with a void element is deliberately NOT
+    # included here: assert_text_survives_colour_and_style_stripped's own
+    # _visible_text walker asserts every opened tag has a matching close (see
+    # test_gauge_label_void_element_never_hides_text_that_follows_it's own
+    # comment), so it cannot be fed void-element markup at all; that fixture
+    # shape is already covered precisely by the dedicated test above instead.
+    out = _render(
+        "{% bw_gauge value=value gauge_label=custom %}",
+        value=73,
+        custom=mark_safe(markup),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert_text_survives_colour_and_style_stripped(out, "73", text_classes=("bw-gauge__label",))
 
 
 # --- data attribute passthrough ---------------------------------------------

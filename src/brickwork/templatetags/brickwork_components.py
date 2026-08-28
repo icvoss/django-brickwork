@@ -606,6 +606,23 @@ def _gauge_threshold_token(percent: Decimal, threshold_bands: object) -> str:
 # to discard for the unrelated reason that it discards all attributes.
 _GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS = frozenset({"title", "desc", "script", "style"})
 
+# The HTML5 VOID elements: by spec they can never have content (no closing
+# tag, nothing nested inside), so they can never themselves wrap visible
+# text and correctly never push a hiding state that would need popping.
+# Hand-enumerated, deliberately, rather than reached for a stdlib constant:
+# xml.etree.ElementTree.HTML_EMPTY exists but is an undocumented internal
+# detail of that module's own (deprecated) legacy HTML serialiser, not a
+# published "void elements" API, and its contents differ from the current
+# HTML5 spec (it also carries basefont/frame/isindex/param, obsolete HTML4
+# elements the current spec does not call void). Unlike the Unicode Cf
+# category used elsewhere in this function, where new characters are
+# assigned over time and a hand-enumerated set goes stale, the HTML5 void
+# element set is fixed by spec (WHATWG "void elements"): this list is not
+# expected to grow.
+_GAUGE_LABEL_VOID_TAGS = frozenset(
+    {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
+)
+
 
 class _GaugeLabelVisibleTextExtractor(HTMLParser):
     """Collect only the text a sighted user would actually see when
@@ -621,6 +638,36 @@ class _GaugeLabelVisibleTextExtractor(HTMLParser):
     incremented and decremented on tag name would also un-hide text that
     follows a hidden sibling once a same-named tag anywhere closed.
 
+    VOID elements (``<br>``, ``<img>``, and the rest of
+    ``_GAUGE_LABEL_VOID_TAGS``) never push onto the hidden stack at all,
+    whether or not they carry ``aria-hidden``/``hidden``: ``HTMLParser``
+    never calls ``handle_endtag`` for a void element written without a
+    trailing slash (``<br aria-hidden="true">``, the ordinary spelling), so
+    pushing there and relying on a later pop left the stack permanently one
+    entry too deep, treating every sibling AFTER the void element as hidden
+    for the rest of the document (found by a further adversarial pass,
+    icvoss/django-brickwork COL-030). A void element can never have content
+    by the HTML5 spec (no closing tag, nothing nested inside it), so its own
+    hiding attributes are correctly irrelevant here regardless: there is no
+    text inside it that could need hiding, so not pushing for it loses
+    nothing. ``handle_startendtag`` (an explicit self-closing spelling,
+    ``<br aria-hidden="true"/>``, or a non-void tag mistakenly self-closed,
+    ``<span aria-hidden="true"/>``) is NOT overridden separately: the base
+    class's own default implementation calls ``handle_starttag`` then
+    ``handle_endtag`` in sequence for it, which is already exactly correct
+    once ``handle_starttag``/``handle_endtag`` are themselves correct, since
+    a self-closed element has no body either.
+
+    This failure mode is checked and confirmed to run in the SAFE direction
+    for every case exercised: unbalanced or void-heavy markup either loses a
+    caller's own label text (falls back to the number early) or leaves it
+    intact, but never the reverse (suppressing the number while the arc
+    keeps its threshold colour, which is the actual COL-030 violation this
+    whole function exists to prevent). A parser that pushed but never popped
+    correctly, as this one did before this fix, still failed on the SAFE
+    side of that line: it over-hid text, which forces MORE fallbacks to the
+    number, not fewer.
+
     ``convert_charrefs=True`` (the parser's own default from Python 3.5) also
     replaces the earlier separate ``html.unescape`` call: entities are
     decoded once, during parsing, rather than as a second pass afterwards."""
@@ -632,6 +679,11 @@ class _GaugeLabelVisibleTextExtractor(HTMLParser):
         self._hidden_stack: list[bool] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in _GAUGE_LABEL_VOID_TAGS:
+            # no handle_endtag will ever arrive for this tag (no slash), and
+            # it can carry no content anyway: contribute nothing to either
+            # stack rather than push an entry that would never be popped.
+            return
         attrs_dict = dict(attrs)
         if tag in _GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS:
             self._non_visible_depth += 1
@@ -639,6 +691,13 @@ class _GaugeLabelVisibleTextExtractor(HTMLParser):
         self._hidden_stack.append(is_hidden)
 
     def handle_endtag(self, tag: str) -> None:
+        if tag in _GAUGE_LABEL_VOID_TAGS:
+            # nothing was pushed for this tag in handle_starttag; nothing to
+            # pop. A real browser's parser does not treat a stray closing
+            # tag for a void element (malformed input) as balancing some
+            # OTHER element's opening tag either, so doing nothing here is
+            # the correct, conservative response, not merely a no-op default.
+            return
         if tag in _GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS and self._non_visible_depth > 0:
             self._non_visible_depth -= 1
         if self._hidden_stack:
@@ -658,6 +717,17 @@ def _gauge_label_has_visible_text(gauge_label: object) -> bool:
     fallback, which is exactly the COL-030 defect this function exists to
     close (icvoss/django-brickwork COL-030).
 
+    A defect HERE has two distinct failure directions, and only one of them
+    is the COL-030 violation: returning ``True`` for a label with no real
+    visible text (the number gets suppressed while the arc keeps its
+    threshold colour, meaning riding on colour alone) versus returning
+    ``False`` for a label that DOES carry visible text (a legitimate label
+    gets discarded in favour of the number, which is a correctness bug, not
+    an accessibility one, since the user still sees a number either way).
+    See ``_gauge.html``'s own Accessibility comment for the full statement
+    of this distinction and how to apply it when triaging a report against
+    this function.
+
     Unlike ``aria_label``, ``gauge_label`` is a TRUSTED MARKUP slot (VIZ-008):
     a caller may legitimately pass ``mark_safe("<strong>73%</strong>")``, so
     this cannot strip or reject markup the way ``bw_chart_mount`` does.
@@ -667,28 +737,82 @@ def _gauge_label_has_visible_text(gauge_label: object) -> bool:
     This function only answers the yes/no question; it never mutates or
     returns the label itself.
 
-    The parser runs ONLY when ``gauge_label`` is already a ``SafeString``:
-    that is exactly the condition under which the template will render it as
-    real markup rather than auto-escaped text (``_gauge.html``'s own
-    ``{{ gauge_label }}`` still auto-escapes an ordinary ``str``, matching
-    every other Django template variable). A plain ``str`` gets the simpler
-    "unescape entities, strip, test for a Cf-only remainder" check below with
-    no HTML-structural interpretation at all, because Django is going to
-    render its literal characters as escaped text, not as tags: parsing an
-    UNTRUSTED plain string as if it were markup is its own defect, not a
-    safety margin, and shipped as one. A caller-typed
-    ``gauge_label="<script>steal()</script>"`` (no ``mark_safe``, ordinary
-    text that merely contains angle brackets) is real, VISIBLE text once
-    escaped to ``&lt;script&gt;...``; running it through the tag-aware
-    extractor instead read the literal word "script" as a real ``<script>``
-    element, discarded its text content by the same rule that correctly
-    discards a genuine trusted ``<script>``, and wrongly forced the numeric
-    fallback over the caller's own escaped text. Found by rerunning this
-    fix's own pre-existing test suite before reporting it as done, which is
-    exactly the "verify your own report" habit that catches a defect a
-    per-case teeth-check on the intended cases alone would not: none of the
-    round-two defect cases are a plain string, so a teeth-check limited to
-    them would not have exercised this branch at all.
+    ``force_str(gauge_label)`` resolves LAZINESS first, before anything else
+    runs, because the branch below must see exactly what the template will
+    see. A lazily-wrapped safe string (``lazy(lambda: mark_safe(...), str)()``,
+    the shape ``gettext_lazy`` and similar produce) is an ordinary object of
+    that lazy library's own ``__proxy__`` type: it is not a ``str`` subclass
+    and carries no ``__html__`` attribute of its own, so a naive
+    ``isinstance(gauge_label, SafeString)`` check reads it as "plain", and a
+    naive plain-string branch that never parses markup would then read
+    ``<svg><title>73%</title></svg>`` as literal, ordinary characters and
+    conclude there is visible text (found by a further adversarial pass,
+    icvoss/django-brickwork COL-030). Django's own template variable
+    rendering (``django.template.base.render_value_in_context``) resolves
+    exactly this shape by calling ``str(value)`` on anything that is not
+    already a ``str`` subclass, which is what actually makes the lazy
+    wrapper's own ``__html__``-carrying result reach the template's
+    ``conditional_escape`` unescaped in the first place; ``force_str`` is the
+    named, public Django utility for that same "resolve to what will
+    actually be rendered" operation, so using it here rather than a bespoke
+    resolution keeps this function's decision aligned with the template's
+    own, rather than a second, independently-arrived-at opinion that could
+    drift from it.
+
+    Resolving via ``force_str`` does NOT itself repeat the ``.strip()``
+    failure mode this function documents below (a genuine string operation
+    that builds a fresh, unmarked ``str`` even when its input was safe):
+    ``force_str`` returns its argument UNCHANGED, by identity, when it is
+    already a ``str`` subclass (``issubclass(type(s), str): return s``), and
+    only falls through to a real ``str(s)`` call for a non-``str``-subclass
+    input. For the lazy case that matters here, ``str()`` on a
+    ``str``-resultclass lazy proxy invokes the wrapped callable and then
+    ``str()``s ITS result: if that result is already a ``SafeString`` (a
+    ``str`` subclass), THAT ``str()`` call is also an identity return by the
+    same rule, so the ``SafeString`` marker survives the whole resolution
+    intact, verified directly (``force_str(lazy(lambda: mark_safe(...), str)())``
+    returns a ``SafeString``, not a downgraded plain ``str``) rather than
+    assumed from reading the source alone.
+
+    Unlike ``aria_label``, ``gauge_label`` is a TRUSTED MARKUP slot (VIZ-008):
+    a caller may legitimately pass ``mark_safe("<strong>73%</strong>")``, so
+    this cannot strip or reject markup. The parser runs ONLY when the
+    RESOLVED value is a ``SafeString``: that is exactly the condition under
+    which the template will render it as real markup rather than
+    auto-escaped text (``_gauge.html``'s own ``{{ gauge_label }}`` still
+    auto-escapes an ordinary ``str``, matching every other Django template
+    variable). A plain ``str`` gets the simpler "unescape entities, strip,
+    test for a Cf-only remainder" check below with no HTML-structural
+    interpretation at all, because Django is going to render its literal
+    characters as escaped text, not as tags: parsing an UNTRUSTED plain
+    string as if it were markup is its own defect, not a safety margin, and
+    shipped as one. A caller-typed ``gauge_label="<script>steal()</script>"``
+    (no ``mark_safe``, ordinary text that merely contains angle brackets) is
+    real, VISIBLE text once escaped to ``&lt;script&gt;...``; running it
+    through the tag-aware extractor instead read the literal word "script"
+    as a real ``<script>`` element, discarded its text content by the same
+    rule that correctly discards a genuine trusted ``<script>``, and wrongly
+    forced the numeric fallback over the caller's own escaped text. Found by
+    rerunning this fix's own pre-existing test suite before reporting it as
+    done, which is exactly the "verify your own report" habit that catches a
+    defect a per-case teeth-check on the intended cases alone would not:
+    none of the round-two defect cases are a plain string, so a teeth-check
+    limited to them would not have exercised this branch at all.
+
+    An object defining only ``__html__`` (no ``mark_safe``, no ``SafeString``
+    subclass, e.g. a hand-written class with an ``__html__`` method and no
+    ``__str__``) is deliberately NOT treated as markup here, and this is
+    correct rather than a gap: Django's own ``render_value_in_context``
+    converts such an object with a bare ``str(value)`` BEFORE
+    ``conditional_escape`` ever runs (since it is not a ``str`` subclass),
+    which discards access to ``__html__`` entirely, so the template renders
+    it as escaped plain text too. Verified by rendering ``{{ v }}`` directly
+    for such an object rather than reasoned about from
+    ``conditional_escape``'s own logic in isolation: ``conditional_escape``
+    alone WOULD honour ``__html__`` on any object carrying it, which is a
+    different and wider rule than what the template's variable-output path
+    actually applies, and trusting that wider rule here would have "fixed" a
+    case that was never broken.
 
     A real HTML parser (the stdlib's ``html.parser.HTMLParser``, no new
     dependency), not ``django.utils.html.strip_tags`` plus a text scrape, for
@@ -736,16 +860,22 @@ def _gauge_label_has_visible_text(gauge_label: object) -> bool:
     wrongly test as visible text."""
     if not gauge_label:
         return False
-    if isinstance(gauge_label, SafeString):
+    # Resolve laziness BEFORE the isinstance check, not after: the branch
+    # below must see what the template will see, and force_str is a no-op
+    # (returns the same object) for anything already a str subclass, so this
+    # costs nothing for the ordinary str/SafeString cases the rest of this
+    # function was already written for.
+    resolved_label = force_str(gauge_label)
+    if isinstance(resolved_label, SafeString):
         extractor = _GaugeLabelVisibleTextExtractor()
-        extractor.feed(str(gauge_label))
+        extractor.feed(str(resolved_label))
         visible_text = "".join(extractor.chunks).strip()
     else:
         # A plain str is never parsed as markup: the template auto-escapes
         # it verbatim, so this only needs entity-decoding (the "&nbsp;"
         # shape, unlikely but not impossible in caller-typed plain text) and
         # a strip, exactly as bw_chart_mount's own aria_label.strip() does.
-        visible_text = unescape(str(gauge_label)).strip()
+        visible_text = unescape(resolved_label).strip()
     return any(unicodedata.category(ch) != "Cf" for ch in visible_text)
 
 
