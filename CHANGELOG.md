@@ -8,6 +8,8 @@ versioning contract).
 
 ## Unreleased
 
+## [3.13.0] - 2026-08-28
+
 ### Fixed
 
 - **Accessible-name stripping (#327) raised `AttributeError` on a non-`str`
