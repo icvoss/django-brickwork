@@ -1,15 +1,33 @@
 """Direct render tests for _trend_indicator.html (VIZ-017).
 
-VIZ-017 extracts _stat.html's own trend block (VIZ-002, BR-BW-TPL-007,
+VIZ-017 extracted _stat.html's own trend block (VIZ-002, BR-BW-TPL-007,
 AC-BW-073/074) into a standalone partial so a table cell or scorecard can
-reuse the same accessible trend contract without the whole KPI tile. This
-extraction is faithful by construction only if the extracted output matches
-_stat.html's own output under the same inputs, so the tests below mirror
-test_stat.py's own trend assertions one-for-one AND add the equivalence
-check the extraction is graded on: the same trend/trend_label inputs must
-produce the same glyph, the same hidden fallback word, and the same visible
-label text, differing only in the (deliberately renamed, see the template's
-own header comment) root class.
+reuse the same accessible trend contract without the whole KPI tile. Since
+icvoss/django-brickwork#334, _stat.html itself {% include %}s this partial
+rather than keeping its own inline copy, so the tests below mirror
+test_stat.py's own trend assertions one-for-one against _trend_indicator.html
+directly (the standalone-consumer contract: a table cell or scorecard
+including this partial on its own gets the full accessible trend contract).
+
+What the tests in this file do NOT prove any more: a "does _stat.html's own
+render match _trend_indicator.html's own render" comparison is now
+tautological, because _stat.html's trend row IS _trend_indicator.html's
+render, reached via {% include %} rather than a second copy of the markup.
+Comparing the two is comparing the partial against itself through two call
+sites, which cannot fail short of Django's own {% include %} implementation
+breaking. The real acceptance criterion for #334 (byte-identical _stat.html
+output before and after the switch, across every documented trend case) is
+covered instead by
+test_stat_trend_output_is_unchanged_by_the_switch_to_include below, which
+pins _stat.html's post-#334 output against the literal pre-#334 output,
+captured by rendering the inline block that shipped up to and including
+commit 65a4c78 (icvoss/django-brickwork#337, the last commit before #334)
+outside the normal template loader. The only two differences are the
+announced class rename (bw-stat__trend -> bw-trend, template header comment)
+and insignificant inter-tag whitespace introduced by the {% include %}
+template-file boundary (compared with Django's own whitespace collapsed);
+the accessible glyph/hidden-text/visible-label markup, its ordering, and its
+presence-or-absence per case are unchanged bytes.
 """
 
 from __future__ import annotations
@@ -28,24 +46,6 @@ _SR_WRAPPED = r'class="[^"]*(?:sr-only|visually-hidden)[^"]*"[^>]*>\s*%s'
 
 def _render(**ctx: object) -> str:
     return render_to_string("brickwork/components/_trend_indicator.html", ctx)
-
-
-def _render_stat_trend(**ctx: object) -> str:
-    """Render _stat.html with a fixed label/value and return only its trend
-    fragment (the <span class="bw-stat__trend ..."> ... </span> block), so
-    the equivalence test compares the trend markup alone rather than the
-    whole tile."""
-    out = render_to_string("brickwork/components/_stat.html", {"label": "Active", "value": "12", **ctx})
-    match = re.search(r'<span class="bw-stat__trend[^"]*">.*?</span>\s*</span>', out, re.DOTALL)
-    assert match is not None, "no bw-stat__trend fragment found in _stat.html's own rendered output"
-    return match.group(0)
-
-
-def _render_indicator_fragment(**ctx: object) -> str:
-    out = _render(**ctx)
-    match = re.search(r'<span class="bw-trend[^"]*">.*?</span>\s*</span>', out, re.DOTALL)
-    assert match is not None, "no bw-trend fragment found in _trend_indicator.html's own rendered output"
-    return match.group(0)
 
 
 # --- the documented usage example (header comment) must actually render -----
@@ -176,67 +176,130 @@ def test_bare_trend_meaning_survives_with_all_colour_styling_stripped() -> None:
     assert "decreased" in stripped
 
 
-# --- the extraction's own acceptance criterion: identical to _stat.html -----
+# --- #334's own acceptance criterion: _stat.html unchanged by the switch ---
+#
+# _stat.html now {% include %}s _trend_indicator.html rather than rendering
+# its own copy of the trend block, so comparing the two templates' output to
+# each other (the shape the tests above this comment took prior to #334)
+# would compare the partial's render against itself through two call sites:
+# it cannot fail short of Django's {% include %} tag itself breaking. The
+# real question #334 must answer is different: does _stat.html's OWN output
+# still carry the same accessibility contract it carried before the switch?
+#
+# _GOLDEN_TREND_UP/_DOWN/_FLAT/_NONE below are the literal trend fragments
+# _stat.html rendered from its inline block at commit 65a4c78 (the last
+# commit before #334, icvoss/django-brickwork#337), captured by rendering
+# that commit's _stat.html outside the normal template loader. They pin two
+# things at once: the announced class rename (bw-stat__trend -> bw-trend,
+# the only intentional difference, reasoned about in _stat.html's and
+# _trend_indicator.html's own header comments) is applied to the golden
+# strings before comparison, and insignificant inter-tag whitespace (the
+# {% include %} template-file boundary adds newlines/indentation the inline
+# block never had) is collapsed on both sides. Everything that carries
+# meaning -- which glyph the SVG resolves to, the hidden fallback word, the
+# visible trend_label text, element nesting and ordering, and whether the
+# row renders at all -- is compared exactly, so a dropped guard, a swapped
+# glyph, or a lost trend_label fails here even though {% include %} itself
+# working correctly means the tautological old comparison could not have
+# caught it.
 
 
-def _normalise(fragment: str) -> str:
-    """Rename the class prefix and collapse inter-tag whitespace, so the
-    comparison below is exact on everything that carries meaning (which
-    class the SVG icon resolves to, the hidden fallback word, the visible
-    trend_label text, the element nesting and ordering) while ignoring the
-    one intentional difference (bw-stat__trend vs bw-trend, reasoned about in
-    _trend_indicator.html's own header comment) and incidental indentation
-    from the two templates' different surrounding context."""
-    renamed = fragment.replace("bw-stat__trend", "bw-trend")
-    return re.sub(r">\s+<", "><", renamed.strip())
+def _apply_permitted_differences(golden: str) -> str:
+    """Apply the ENUMERATED permitted differences to a pre-#334 golden.
+
+    The acceptance criterion (icvoss/django-brickwork#334) is byte-identity
+    with an explicit exception list, deliberately not a normalisation
+    function: a list is a criterion, because anything not on it fails, while
+    a normalisation grows silently whenever something else stops matching.
+
+    Exactly two differences are permitted, and nothing else:
+
+    1. The ``bw-trend`` class tokens are ADDED before the retained
+       ``bw-stat__trend`` ones. Both families ship (#334 retains the alias
+       and its modifiers), so the golden's own classes must still be present
+       rather than renamed away.
+    2. The newline-and-indent introduced at the ``{% include %}`` template
+       boundary, and only there: the blank line before the closing tag of
+       the trend row. Every other byte of whitespace is compared exactly,
+       because whitespace at an include boundary is precisely where a
+       faithless extraction would show up.
+    """
+    direction = "up" if "--up" in golden else "down" if "--down" in golden else "flat"
+    with_alias = golden.replace(
+        f'<span class="bw-stat__trend bw-stat__trend--{direction}">',
+        f'<span class="bw-trend bw-trend--{direction} bw-stat__trend bw-stat__trend--{direction}">',
+        1,
+    )
+    # Difference 2, named exactly and MEASURED rather than assumed: at the
+    # include boundary the blank line before the row's closing tag carries
+    # the includer's two-space indent, so "</span>\n\n</span>" becomes
+    # "</span>\n  \n</span>". Anchored to that exact position and that exact
+    # string, never a general whitespace collapse.
+    return with_alias.replace("</span>\n\n</span>", "</span>\n  \n</span>", 1)
 
 
-def test_extracted_partial_matches_stat_html_trend_output_up() -> None:
-    stat_fragment = _render_stat_trend(trend="up", trend_label="17 days faster")
-    indicator_fragment = _render_indicator_fragment(trend="up", trend_label="17 days faster")
-    assert _normalise(stat_fragment) == _normalise(indicator_fragment)
+# Captured verbatim from commit 65a4c78's _stat.html (pre-#334), rendered
+# with label="Active" value="12" and the trend/trend_label shown, using
+# bw-stat__trend (renamed to bw-trend below before comparison, matching the
+# one announced difference).
+_GOLDEN_TREND_UP_WITH_LABEL = """
+<span class="bw-stat__trend bw-stat__trend--up">
+  <svg class="bw-icon" style="--bw-icon-size: var(--bw-component-icon-size-sm)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="var(--bw-component-icon-stroke-width, 2)" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /></svg>
+  <span class="bw-visually-hidden">increased</span>
+  <span>17 days faster</span>
+</span>
+"""
+
+_GOLDEN_TREND_DOWN_NO_LABEL = """
+<span class="bw-stat__trend bw-stat__trend--down">
+  <svg class="bw-icon" style="--bw-icon-size: var(--bw-component-icon-size-sm)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="var(--bw-component-icon-stroke-width, 2)" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14" /> <path d="m19 12-7 7-7-7" /></svg>
+  <span class="bw-visually-hidden">decreased</span>
+
+</span>
+"""
+
+_GOLDEN_TREND_FLAT_NO_LABEL = """
+<span class="bw-stat__trend bw-stat__trend--flat">
+  <svg class="bw-icon" style="--bw-icon-size: var(--bw-component-icon-size-sm)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="var(--bw-component-icon-stroke-width, 2)" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /></svg>
+  <span class="bw-visually-hidden">unchanged</span>
+
+</span>
+"""
 
 
-def test_extracted_partial_matches_stat_html_trend_output_down_no_label() -> None:
-    stat_fragment = _render_stat_trend(trend="down")
-    indicator_fragment = _render_indicator_fragment(trend="down")
-    assert _normalise(stat_fragment) == _normalise(indicator_fragment)
-
-
-def test_extracted_partial_matches_stat_html_trend_output_flat() -> None:
-    stat_fragment = _render_stat_trend(trend="flat")
-    indicator_fragment = _render_indicator_fragment(trend="flat")
-    assert _normalise(stat_fragment) == _normalise(indicator_fragment)
+@pytest.mark.parametrize(
+    ("ctx", "golden"),
+    [
+        ({"trend": "up", "trend_label": "17 days faster"}, _GOLDEN_TREND_UP_WITH_LABEL),
+        ({"trend": "down"}, _GOLDEN_TREND_DOWN_NO_LABEL),
+        ({"trend": "flat"}, _GOLDEN_TREND_FLAT_NO_LABEL),
+    ],
+)
+def test_stat_trend_output_is_unchanged_by_the_switch_to_include(ctx: dict[str, object], golden: str) -> None:
+    out = render_to_string("brickwork/components/_stat.html", {"label": "Active", "value": "12", **ctx})
+    match = re.search(r'<span class="bw-trend[^"]*">.*?</span>\s*</span>', out, re.DOTALL)
+    assert match is not None, "no bw-trend fragment found in _stat.html's rendered output"
+    assert match.group(0) == _apply_permitted_differences(golden).strip()
 
 
 # --- the falsy trend guard: no data means no trend row, not "unchanged" -----
 #
-# _stat.html:79 wraps its whole trend row in {% if trend %}. The three
-# equivalence tests above all pass a truthy trend, so the one input where a
-# missing guard would diverge (any falsy trend) was never compared. These
-# assert BOTH templates render no trend markup at all for None, "", 0,
-# False, and the key absent entirely, so a dropped guard fails here even
-# though it fails nowhere else in this file.
+# _stat.html's include of _trend_indicator.html carries trend/trend_label
+# straight through with no guard of its own, so this asserts directly on
+# _stat.html's own output: no trend markup at all for None, "", 0, False,
+# and the key absent entirely, so a dropped guard (in either template) fails
+# here even though the tautological old comparison against
+# _trend_indicator.html's own render could not have caught it.
 
 
 @pytest.mark.parametrize("trend_value", [None, "", 0, False])
-def test_falsy_trend_renders_no_trend_row_matching_stat_html(trend_value: object) -> None:
+def test_falsy_trend_renders_no_trend_row_on_stat_html(trend_value: object) -> None:
     stat_out = render_to_string(
         "brickwork/components/_stat.html", {"label": "Active", "value": "12", "trend": trend_value}
     )
-    indicator_out = _render(trend=trend_value)
-    assert "bw-stat__trend" not in stat_out, f"_stat.html rendered a trend row for trend={trend_value!r}"
-    assert "bw-trend" not in indicator_out, (
-        f"_trend_indicator.html rendered a trend row for trend={trend_value!r}, but _stat.html renders "
-        "nothing for this input: no data must mean no trend row, not a spurious 'unchanged'"
-    )
+    assert "bw-trend" not in stat_out, f"_stat.html rendered a trend row for trend={trend_value!r}"
 
 
-def test_absent_trend_key_renders_no_trend_row_matching_stat_html() -> None:
+def test_absent_trend_key_renders_no_trend_row_on_stat_html() -> None:
     stat_out = render_to_string("brickwork/components/_stat.html", {"label": "Active", "value": "12"})
-    indicator_out = _render()
-    assert "bw-stat__trend" not in stat_out
-    assert "bw-trend" not in indicator_out, (
-        "_trend_indicator.html rendered a trend row with the 'trend' key absent entirely, but "
-        "_stat.html renders nothing: the extraction must match the guard, not just the truthy branches"
-    )
+    assert "bw-trend" not in stat_out, "_stat.html rendered a trend row with the 'trend' key absent entirely"

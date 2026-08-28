@@ -49,6 +49,7 @@ def test_label_and_value_only_renders_a_working_tile() -> None:
     assert "bw-stat" in out
     assert re.search(r'class="[^"]*bw-stat__label[^"]*"[^>]*>[^<]*Revenue', out)
     assert re.search(r'class="[^"]*bw-stat__value[^"]*"[^>]*>[^<]*1,234', out)
+    assert "bw-trend" not in out
     assert "bw-stat__trend" not in out
     assert "increased" not in out and "decreased" not in out
 
@@ -71,6 +72,10 @@ def test_trend_down_renders_glyph_and_hidden_fallback_without_trend_label() -> N
 
 def test_trend_flat_renders_no_directional_arrow_or_words() -> None:
     out = _render(label="Archived", value="0", trend="flat")
+    assert "bw-trend" in out
+    # bw-stat__trend is retained alongside bw-trend on the same element
+    # (icvoss/django-brickwork#334): documented public surface pre-dating the
+    # _trend_indicator.html extraction, not retired by it.
     assert "bw-stat__trend" in out
     assert get_icon("arrow-up") not in out
     assert get_icon("arrow-down") not in out

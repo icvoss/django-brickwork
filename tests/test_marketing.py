@@ -990,7 +990,8 @@ def test_stat_band_trend_without_trend_label_still_pairs_glyph_with_hidden_text(
         "brickwork_marketing/components/_stat_band.html",
         stats=[{"value": "12%", "label": "Growth", "trend": "up"}],
     )
-    assert "bw-stat__trend--up" in html
+    assert "bw-trend--up" in html
+    assert "bw-stat__trend" in html  # retained alongside bw-trend (icvoss/django-brickwork#334)
     assert "bw-visually-hidden" in html  # the accessible fallback text
 
 

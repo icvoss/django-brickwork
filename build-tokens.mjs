@@ -422,9 +422,9 @@ async function main() {
   // hand-authoring one side of a pair, can still break it. A source token may
   // declare more than one contrastPair (blocker 2, review round 2): X-fg is
   // painted on both X-subtle AND plain surface (.bw-field__error,
-  // .bw-stat__trend, .bw-account-menu__item--danger), so both backgrounds get
-  // their own manifest entry, not just the first one found. Each entry carries
-  // BOTH sides' derived expressions (not just the source token's; a
+  // .bw-trend/.bw-stat__trend, .bw-account-menu__item--danger), so both
+  // backgrounds get their own manifest entry, not just the first one found.
+  // Each entry carries BOTH sides' derived expressions (not just the source token's; a
   // load-bearing pair target like --bw-color-surface resolves to a var()
   // reference to itself, since it IS the value), so a validator can resolve
   // the pair's effective colours even when neither side is an explicit
@@ -448,9 +448,9 @@ async function main() {
     } else if (meta?.contrastPair) {
       // brickwork#289 blocker 2: a status -fg token is painted on more than one
       // background (its own -subtle tint AND, via .bw-field__error /
-      // .bw-stat__trend / .bw-account-menu__item--danger, plain surface), so
-      // contrastPair accepts either a single string (the common case) or an
-      // array of strings, one manifest entry per background. minContrast is
+      // .bw-trend/.bw-stat__trend / .bw-account-menu__item--danger, plain
+      // surface), so contrastPair accepts either a single string (the common
+      // case) or an array of strings, one manifest entry per background. minContrast is
       // shared across every pair on this token (all four families use 4.5
       // today; a per-pair override would need a parallel array, not needed yet).
       const pairs = Array.isArray(meta.contrastPair) ? meta.contrastPair : [meta.contrastPair];

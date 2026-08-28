@@ -1878,27 +1878,12 @@ a.bw-stat:hover {
   line-height: var(--bw-font-line-height-tight);
   font-variant-numeric: tabular-nums; /* a column of tiles never jitters as digits change */
 }
-.bw-stat__trend {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--bw-space-1);
-  color: var(--bw-color-fg-muted);
-  font-size: var(--bw-text-caption-size);
-  font-weight: var(--bw-text-caption-weight);
-  line-height: var(--bw-text-caption-line-height);
-}
-/* Direction is carried by the glyph and the visually-hidden text fallback;
-   colour is reinforcement only (BR-BW-TPL-007, AC-BW-074). The X-fg text
-   tiers hold AA at caption size on the card surface. */
-.bw-stat__trend--up {
-  color: var(--bw-color-success-fg);
-}
-.bw-stat__trend--down {
-  color: var(--bw-color-danger-fg);
-}
-.bw-stat__trend--flat {
-  color: var(--bw-color-fg-muted);
-}
+/* The trend row itself (icvoss/django-brickwork#334): _stat.html now
+   {% include %}s _trend_indicator.html rather than rendering its own trend
+   markup, so the rule set lives once, under "--- Trend indicator ---"
+   below, targeted at both .bw-trend (the partial's own root class) and
+   .bw-stat__trend (retained alongside it on the SAME element for a
+   consumer stylesheet that selects .bw-stat__trend directly; #334). */
 /* size arg (VIZ-027): modifiers re-point the value-size component token, so
    the numeral rule itself never forks. */
 .bw-stat--sm {
@@ -1926,14 +1911,24 @@ a.bw-stat:hover {
   block-size: 100%;
 }
 
-/* --- Trend indicator (VIZ-017) ----------------------------------------------- */
+/* --- Trend indicator (VIZ-017/#334) ------------------------------------------ */
 
-/* Standalone extraction of the stat tile's own trend row (.bw-stat__trend
-   above): identical rule set under the bare-noun name, so a table cell or
-   scorecard consumer gets byte-identical visual treatment with no .bw-stat
-   ancestor required. Keep both rule sets in step: a change to one caption's
-   look is a change to the other, by the shared BR-BW-TPL-007 contract. */
-.bw-trend {
+/* The trend caption's only rule set: extracted from the stat tile's former
+   inline block (VIZ-017) and, since #334, the one _stat.html itself renders
+   via {% include %}, so a table cell, a scorecard, or a stat tile all get
+   this same rule set with no .bw-stat ancestor required. .bw-stat__trend is
+   the pre-#334 name for the exact same element inside a stat tile
+   (_stat.html passes it through _trend_indicator.html's css_class seam
+   alongside .bw-trend), retained as a selector here rather than aliased in
+   the template, so a consumer stylesheet selecting .bw-stat__trend directly
+   still matches: one implementation, one rule set, two selectors. The
+   direction modifier is only ever emitted as bw-trend--<state> (css_class
+   carries the bare bw-stat__trend token, not a second modifier), so the
+   colour rules below key off bw-trend--<state> alone; .bw-stat__trend
+   inherits the colour because it shares the element with bw-trend--<state>,
+   not because it has its own modifier class. */
+.bw-trend,
+.bw-stat__trend {
   display: inline-flex;
   align-items: center;
   gap: var(--bw-space-1);
@@ -1952,6 +1947,31 @@ a.bw-stat:hover {
   color: var(--bw-color-danger-fg);
 }
 .bw-trend--flat {
+  color: var(--bw-color-fg-muted);
+}
+
+/* Retained aliases of .bw-trend* (icvoss/django-brickwork#334). _stat.html
+   emits BOTH families on one element: there is one implementation, with two
+   names. The modifiers are retained alongside the base deliberately, because
+   the base carries layout and the MODIFIERS carry the colour, so a consumer
+   overriding trend colour selects a modifier. Retaining only the base would
+   break exactly the override these classes exist to enable. */
+.bw-stat__trend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-1);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
+}
+.bw-stat__trend--up {
+  color: var(--bw-color-success-fg);
+}
+.bw-stat__trend--down {
+  color: var(--bw-color-danger-fg);
+}
+.bw-stat__trend--flat {
   color: var(--bw-color-fg-muted);
 }
 
