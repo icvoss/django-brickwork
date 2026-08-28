@@ -8,9 +8,9 @@ examples trees by ``scripts/generate_catalogue_manifest.py``) and exposes it
 as typed Python for this repo's own in-package consumers. These tests cover:
 
 1. **Manifest shape**: the typed reader's accessors match the raw JSON, and
-   the documented counts hold (5 shells, 41 components, 26 sections, 16
-   archetypes: verified against the tree post-W0.1/W0.4/#183 merge,
-   docs/CATALOGUE.md ss5).
+   the documented counts hold (5 shells, 47 components, 26 sections, 18
+   archetypes: verified against the tree post-W0.1/W0.4/#183/queue-audit
+   merge, docs/CATALOGUE.md ss5).
 2. **Manifest-vs-reality drift**: regenerating the manifest from the current
    template and examples trees produces byte-identical output (canonical
    bytes, not a parsed-dict comparison) to the committed file.

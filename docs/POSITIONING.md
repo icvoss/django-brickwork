@@ -111,7 +111,7 @@ conformance; it can run consistently and be shown to catch real defects.
 
 | What runs | Scope |
 |---|---|
-| axe-core WCAG 2.2 AA scan | 144 documents across two fixture sets: 112 hand-maintained pages (56 fixtures x light and dark) plus 32 archetype pages (16 catalogue archetypes x light and dark), blocking every push (`a11y-gate` CI job) |
+| axe-core WCAG 2.2 AA scan | 158 documents across two fixture sets: 122 hand-maintained pages (61 fixtures x light and dark) plus 36 archetype pages (18 catalogue archetypes x light and dark), blocking every push (`a11y-gate` CI job) |
 | No-JS floor suite | blocking |
 | Keyboard suites | blocking |
 | Mobile-overflow checks | 4 widths: 320, 360, 375, 414px, blocking |
