@@ -151,9 +151,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "audit_page": None,
         # Pre-rendered markup, exactly as _disclosure.html's content
         # parameter documents: the caller marks it safe at the call site.
-        "entry_detail": mark_safe(
-            "<p>Plan changed from Team to Scale by Priya Raman.</p>"
-        ),
+        "entry_detail": mark_safe("<p>Plan changed from Team to Scale by Priya Raman.</p>"),
         "top_actors": [
             {"label": "Priya Raman", "amount": 412, "value": "412 actions"},
             {"label": "Tom Ashworth", "amount": 198, "value": "198 actions"},

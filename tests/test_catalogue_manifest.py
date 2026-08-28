@@ -189,7 +189,12 @@ def test_most_sections_render_from_empty_context() -> None:
 
 def test_archetypes_are_scoped_to_their_shipped_family() -> None:
     families_seen = {entry["family"] for entry in items_by_kind("archetype") if entry["family"]}
-    assert families_seen == {"Product applications", "Transactional journeys", "Marketing and public web"}
+    assert families_seen == {
+        "Product applications",
+        "Transactional journeys",
+        "Marketing and public web",
+        "Data-heavy operations",
+    }
 
 
 def test_base_archetype_carries_no_family() -> None:
@@ -373,11 +378,17 @@ def test_families_carry_shipped_counts_only_no_status_or_wave() -> None:
 
 def test_families_only_lists_families_with_shipped_coverage() -> None:
     family_names = {entry["name"] for entry in families()}
-    assert family_names == {"Product applications", "Transactional journeys", "Marketing and public web"}
-    # Data-heavy operations, Documentation, and Editorial and publishing are
-    # named in INTERFACE-SYSTEM.md's required-archetype table but have no
-    # shipped archetype yet, so they are correctly absent here.
-    assert "Data-heavy operations" not in family_names
+    assert family_names == {
+        "Product applications",
+        "Transactional journeys",
+        "Marketing and public web",
+        "Data-heavy operations",
+    }
+    # Documentation and Editorial and publishing are named in
+    # INTERFACE-SYSTEM.md's required-archetype table but have no shipped
+    # archetype yet, so they are correctly absent here. Data-heavy operations
+    # shipped its first two archetypes (queue.html, audit-trail.html) and is
+    # no longer absent.
     assert "Documentation" not in family_names
     assert "Editorial and publishing" not in family_names
 
