@@ -48,11 +48,11 @@ accessible, and is it beautiful by default.
 
 "Our defaults are beautiful" is an adjective, and a buyer discounts an
 adjective. It becomes a claim a buyer can verify rather than take on trust
-because the package ships 42 examples (16 pages, 26 sections) built from
+because the package ships 47 examples (21 pages, 26 sections) built from
 nothing but the shipped substrate, with source readable in the repo. A buyer
 checks the claim in one click instead of trusting the copy.
 
-**The composition proof.** 41 of the 42 examples are pure composition: zero
+**The composition proof.** 46 of the 47 examples are pure composition: zero
 bespoke CSS, built entirely from shipped tokens and components. One
 exception, stated openly because it strengthens rather than weakens the
 claim: `src/brickwork/examples/app/date-range-picker.html` adds a `<style>`
