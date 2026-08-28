@@ -157,21 +157,21 @@ def test_button_gettext_lazy_aria_label_still_works_and_is_stripped() -> None:
     assert 'aria-label="Delete"' in out
 
 
-def test_button_mark_safed_aria_label_is_not_double_escaped() -> None:
-    # #330 regression 2: SafeString.strip() (and str.strip(), which
-    # SafeString inherits unchanged) returns a plain str, dropping __html__,
-    # so a caller-supplied format_html value was escaped a SECOND time by the
-    # template's own auto-escaping. Fails without the fix: renders
-    # "Tom &amp; more" instead of the correct "Tom &amp; more" source that
-    # displays as "Tom & more" (i.e. it would show up as double-encoded
-    # &amp;amp; if the naive str(x).strip() fix were used, or the browser
-    # would show &amp; literally if the marker were simply lost).
+def test_button_format_html_aria_label_is_escaped_because_attribute_position_does_not_trust_safedata() -> None:
+    # Supersedes the old #330-regression-2 "preserve an already-safe value"
+    # expectation for THIS value, for the same reason as the mark_safe bold
+    # test above: aria_label is attribute-only, and SafeData records THAT a
+    # value was vetted safe, never for WHICH position, so it cannot be
+    # trusted to mean "safe as an attribute value" (icvoss/django-brickwork
+    # #349). A format_html value is an ordinary source of SafeData, not a
+    # special case: its already-escaped "&amp;" is escaped again here,
+    # visibly as literal "&amp;amp;" text, which is the accepted cost this
+    # fix trades for closing the break-out.
     from django.utils.html import format_html
 
     label = format_html("Tom {} more", "&")
     out = _render('{% bw_button icon="trash" icon_only=True aria_label=n %}', n=label)
-    assert 'aria-label="Tom &amp; more"' in out  # single-escaped source, correct
-    assert "&amp;amp;" not in out  # NOT double-escaped
+    assert 'aria-label="Tom &amp;amp; more"' in out
 
 
 def test_button_plain_ampersand_aria_label_is_still_escaped() -> None:
@@ -193,14 +193,68 @@ def test_button_plain_ampersand_aria_label_is_still_escaped() -> None:
     assert 'aria-label="Tom &amp; more"' in out
 
 
-def test_button_mark_safe_bold_aria_label_is_not_re_escaped() -> None:
-    # #330 requirement 6: mark_safe's existing documented pass-through
-    # behaviour (a consumer already trusted to author safe HTML) must not
-    # regress into escaped text.
+def test_button_mark_safe_bold_aria_label_is_escaped_because_attribute_position_is_not_text_position() -> None:
+    # Supersedes the old #330-requirement-6 expectation for THIS value.
+    # #330's "mark_safe pass-through" rule is right for TEXT position
+    # (bw_toggle's label, bw_tabs' tab label): a consumer already trusted to
+    # author safe HTML gets that markup rendered as markup. aria_label is
+    # never text position here, only an attribute value, and honouring
+    # __html__ in an attribute is exactly how a mark_safe'd aria_label broke
+    # out of the quote and landed a live event handler
+    # (icvoss/django-brickwork#349). The accepted cost: a mark_safe'd
+    # aria_label's markup now renders as literal escaped text, not as bold.
     from django.utils.safestring import mark_safe
 
     out = _render('{% bw_button icon="trash" icon_only=True aria_label=n %}', n=mark_safe("<b>x</b>"))
-    assert 'aria-label="<b>x</b>"' in out
+    assert 'aria-label="&lt;b&gt;x&lt;/b&gt;"' in out
+    assert 'aria-label="<b>x</b>"' not in out
+
+
+# --- icvoss/django-brickwork#349: a SafeString aria_label must not break out
+# --- of the attribute it is rendered into -------------------------------------
+
+
+def _on_star_attrs(html: str) -> list[tuple[str, str]]:
+    """Parse ``html`` and return every ``on*`` attribute actually present on
+    any element, using ``html.parser`` rather than a regex/substring search.
+
+    A regex for ``onclick=`` matches the correctly-escaped text INSIDE
+    ``aria-label="a&quot; onclick=&quot;..."``, which is a false positive on
+    clean output (icvoss/django-brickwork#349's own "Tests worth writing").
+    Parsing and checking parsed attribute NAMES is the only technique that
+    tells a live handler apart from its escaped, harmless text form.
+    """
+    from html.parser import HTMLParser
+
+    class _Finder(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.found: list[tuple[str, str]] = []
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            self.found.extend((tag, name) for name, _value in attrs if name.startswith("on"))
+
+    parser = _Finder()
+    parser.feed(html)
+    return parser.found
+
+
+def test_button_mark_safed_aria_label_cannot_break_out_of_the_attribute_it_renders_into() -> None:
+    # The attribute-position break-out this whole issue is about: a
+    # mark_safe'd aria_label closing the quote and landing a live handler.
+    # Reproduces #349's own repro string through ordinary template syntax.
+    from django.utils.safestring import mark_safe
+
+    attack = mark_safe('a" onclick="alert(1)')
+    out = _render('{% bw_button icon="trash" icon_only=True aria_label=n %}', n=attack)
+    assert _on_star_attrs(out) == []
+
+
+def test_button_plain_special_characters_in_aria_label_are_escaped_exactly_once_in_attribute_position() -> None:
+    out = _render('{% bw_button icon="trash" icon_only=True aria_label=n %}', n='a & b " c')
+    assert 'aria-label="a &amp; b &quot; c"' in out
+    assert "&amp;amp;" not in out
+    assert "&amp;quot;" not in out
 
 
 def test_button_whitespace_only_aria_label_on_non_icon_only_path_omits_attribute() -> None:

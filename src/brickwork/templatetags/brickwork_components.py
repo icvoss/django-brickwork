@@ -121,6 +121,39 @@ def normalise_accessible_name(value: object) -> SafeString:
     return mark_safe(conditional_escape(value if isinstance(value, SafeData) else str(value)).strip())
 
 
+def escape_attribute_value(value: object) -> SafeString:
+    """Coerce an accessible-name argument that is rendered ONLY into an
+    attribute value (``aria_label`` on ``bw_button``/``bw_dropdown``, and the
+    attribute-position half of ``bw_dropdown``'s ``trigger_label``) to a
+    stripped, unconditionally escaped string (icvoss/django-brickwork#349).
+
+    This is deliberately NOT ``normalise_accessible_name``. That helper
+    exists for TEXT-position values, where ``conditional_escape`` honouring
+    ``__html__`` is correct: a ``mark_safe``'d value is trusted markup and
+    renders as markup. An attribute value is never markup, so a ``SafeData``
+    marker there is meaningless, and honouring it is exactly how #349 let a
+    ``mark_safe('a" onclick="alert(1)')`` accessible name close the quote
+    and land a live event handler. ``escape()``, never ``conditional_escape``,
+    is the ADR-083 rule for every attribute-value seam in this module
+    (``bw_data_attrs``, ``bw_chart_mount``, ``bw_icon``'s ``label``): the
+    marker records THAT a value was vetted safe, never for WHICH position,
+    so it cannot be trusted to mean "safe as an attribute value" here.
+
+    ``str(value)`` first, matching ``normalise_accessible_name``, so a
+    non-str argument (an int, a model instance, any ordinary ``__str__``-able
+    object) does not raise, and a lazy-translated value resolves before
+    escaping.
+
+    Known, accepted cost, not a defect: a ``SafeString``/``format_html``
+    accessible name is escaped like any other value here, so its entities
+    render literally (e.g. an author-supplied ``&amp;`` shows as the text
+    "&amp;", not "&"). The supported path for an attribute-position
+    accessible name is plain text; script execution is the alternative this
+    trades against, and that trade is not close.
+    """
+    return mark_safe(escape(str(value)).strip())
+
+
 @register.simple_tag
 def bw_data_attrs(attrs: object, subject: str = "data table row") -> SafeString:
     """Render consumer-owned data attributes safely.
@@ -200,11 +233,18 @@ def bw_button(
         raise TemplateSyntaxError(f"bw_button size must be one of {sorted(_SIZES)}, got {size!r}")
     # Stripped before testing, not merely truthiness-tested: a whitespace-only
     # aria_label is truthy in Python and is NOT an accessible name to any
-    # screen reader (bw_chart_mount's own aria_label precedent,
-    # brickwork_components.py:517). normalise_accessible_name (not a bare
-    # .strip()) also coerces a non-str value and preserves an already-safe
-    # one without double-escaping it (icvoss/django-brickwork#330).
-    aria_label = normalise_accessible_name(aria_label)
+    # screen reader (the same accepted cost bw_chart_mount's own aria_label
+    # documents in this file, under icvoss/django-brickwork#351).
+    #
+    # escape_attribute_value, not normalise_accessible_name: aria_label is
+    # rendered ONLY into an aria-label ATTRIBUTE by _button.html (three
+    # sites), never into text position, so it must be unconditionally
+    # escaped rather than conditionally escaped. normalise_accessible_name's
+    # conditional_escape honours a SafeString's __html__ marker, which is
+    # correct for text position and is exactly how a mark_safe'd aria_label
+    # closed the attribute and landed a live event handler
+    # (icvoss/django-brickwork#349).
+    aria_label = escape_attribute_value(aria_label)
     if icon_only and not aria_label:
         raise TemplateSyntaxError(
             "bw_button icon_only=True requires aria_label= (an icon-only button "

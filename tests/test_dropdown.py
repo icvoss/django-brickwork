@@ -292,6 +292,97 @@ def test_item_padded_label_is_stripped_not_rejected() -> None:
     assert "  Widgets  " not in html
 
 
+# --- icvoss/django-brickwork#349: a SafeString aria_label/trigger_label must
+# --- not break out of the attribute it is rendered into ----------------------
+
+
+def _on_star_attrs(html: str) -> list[tuple[str, str]]:
+    """Parse ``html`` and return every ``on*`` attribute actually present on
+    any element, using ``html.parser`` rather than a regex/substring search.
+
+    A regex for ``onclick=`` matches the correctly-escaped text INSIDE
+    ``aria-label="a&quot; onclick=&quot;..."``, which is a false positive on
+    clean output (icvoss/django-brickwork#349's own "Tests worth writing").
+    Parsing and checking parsed attribute NAMES is the only technique that
+    tells a live handler apart from its escaped, harmless text form.
+    """
+    from html.parser import HTMLParser
+
+    class _Finder(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.found: list[tuple[str, str]] = []
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            self.found.extend((tag, name) for name, _value in attrs if name.startswith("on"))
+
+    parser = _Finder()
+    parser.feed(html)
+    return parser.found
+
+
+def test_icon_only_aria_label_cannot_break_out_of_either_attribute_it_names() -> None:
+    # icon_only names BOTH the <summary> trigger's aria-label AND, since
+    # aria_label doubles as the <nav> panel landmark's name in that branch,
+    # the <nav>'s aria-label too. Both are attribute position; neither may
+    # honour a SafeString's markup.
+    attack = mark_safe('a" onclick="alert(1)')
+    html = _render(
+        "{% bw_dropdown items=items icon_only=True aria_label=v trigger_icon='more-horizontal' %}",
+        v=attack,
+    )
+    assert _on_star_attrs(html) == []
+
+
+def test_trigger_label_cannot_break_out_of_the_nav_landmark_attribute_when_not_icon_only() -> None:
+    # The <nav> panel landmark's aria-label falls back to trigger_label when
+    # the trigger is not icon_only: that fallback is the entire reason
+    # trigger_label reaches attribute position at all, and it is the site
+    # #349 flagged as "likely, not yet confirmed" before this fix.
+    attack = mark_safe('a" onclick="alert(1)')
+    html = _render("{% bw_dropdown items=items trigger_label=v %}", v=attack)
+    assert _on_star_attrs(html) == []
+
+
+def test_trigger_label_in_the_visible_span_still_renders_markup_because_that_site_is_text_position_not_attribute_position() -> (
+    None
+):  # noqa: E501
+    # The load-bearing guard against over-correction: trigger_label is DUAL-
+    # position (the visible trigger <span> AND the <nav> landmark's
+    # aria-label), and only the attribute site may escape unconditionally.
+    # If a future change escaped trigger_label everywhere "for consistency",
+    # this is what would silently break: a mark_safe'd trigger_label would
+    # stop rendering as markup in the one position where the mark_safe
+    # contract is genuinely honoured, and the failure looks like a slightly
+    # wrong label rather than a broken contract, which is exactly why this
+    # needs its own named test rather than living only inside the break-out
+    # assertions above.
+    markup = mark_safe("<b>Bold Actions</b>")
+    html = _render("{% bw_dropdown items=items trigger_label=v %}", v=markup)
+    assert '<span class="bw-btn__label"><b>Bold Actions</b></span>' in html
+    # and the SAME value, at the attribute site, is escaped rather than live:
+    assert 'aria-label="&lt;b&gt;Bold Actions&lt;/b&gt;"' in html
+
+
+def test_dropdown_aria_label_plain_special_characters_are_escaped_exactly_once_in_attribute_position() -> None:
+    html = _render(
+        "{% bw_dropdown items=items icon_only=True aria_label=v trigger_icon='more-horizontal' %}",
+        v='a & b " c',
+    )
+    assert 'aria-label="a &amp; b &quot; c"' in html
+    assert "&amp;amp;" not in html
+    assert "&amp;quot;" not in html
+
+
+def test_dropdown_trigger_label_plain_special_characters_are_escaped_exactly_once_in_the_nav_attribute() -> None:
+    html = _render("{% bw_dropdown items=items trigger_label=v %}", v='a & b " c')
+    assert 'aria-label="a &amp; b &quot; c"' in html
+    assert "&amp;amp;" not in html
+    assert "&amp;quot;" not in html
+    # and the text-position span still renders the plain (once-escaped) text:
+    assert 'bw-btn__label">a &amp; b &quot; c<' in html
+
+
 # --- #330: strip regressions (AttributeError on non-str, double-escape on
 # --- an already-safe value) across aria_label/trigger_label/item label ------
 
@@ -311,16 +402,37 @@ def test_non_str_aria_label_via_ordinary_template_syntax_does_not_raise() -> Non
     assert 'aria-label="5"' in html
 
 
-def test_mark_safed_trigger_label_is_not_double_escaped() -> None:
+def test_mark_safed_trigger_label_is_not_double_escaped_in_the_visible_span() -> None:
     # #330 regression 2: a bare .strip() dropped __html__ from a caller-
     # supplied SafeString, so the template's own auto-escaping escaped it a
-    # second time. Fails without the fix.
+    # second time. Fails without the fix. Scoped to the TEXT-position span
+    # specifically: since #349, the attribute-position <nav> site for the
+    # same value is a different, deliberately unconditional escape (see
+    # test_dropdown_trigger_label_format_html_value_is_escaped_in_the_nav_attribute_because_attribute_position_does_not_trust_safedata
+    # below), so a blanket "no &amp;amp; anywhere in html" assertion would
+    # be wrong post-#349, not merely obsolete.
     from django.utils.html import format_html
 
     label = format_html("Tom {} more", "&")
     html = _render("{% bw_dropdown items=items trigger_label=n %}", n=label)
-    assert "Tom &amp; more" in html
-    assert "&amp;amp;" not in html
+    assert '<span class="bw-btn__label">Tom &amp; more</span>' in html
+
+
+def test_dropdown_trigger_label_format_html_value_is_escaped_in_the_nav_attribute_because_attribute_position_does_not_trust_safedata() -> (
+    None
+):  # noqa: E501
+    # The attribute-position counterpart to the text-position test above,
+    # for the SAME format_html value: SafeData records THAT a value was
+    # vetted safe, never for WHICH position, so the <nav> landmark's
+    # aria-label (attribute) escapes it unconditionally regardless of the
+    # marker, while the <span> (text) above honours it. Accepted cost: the
+    # value's already-escaped "&amp;" is escaped again, visibly, in the
+    # attribute (icvoss/django-brickwork#349).
+    from django.utils.html import format_html
+
+    label = format_html("Tom {} more", "&")
+    html = _render("{% bw_dropdown items=items trigger_label=n %}", n=label)
+    assert 'aria-label="Tom &amp;amp; more"' in html
 
 
 def test_plain_ampersand_trigger_label_is_still_escaped() -> None:
