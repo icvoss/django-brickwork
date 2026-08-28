@@ -1,0 +1,196 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+An analysis dashboard: one question answered at the top, the shape of the
+answer over time beneath it, then the breakdowns that explain it.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    headline_tiles     the weighted scorecard grid (see the shape note below)
+    revenue_mount      a {% templatetag openblock %} bw_chart_mount {% templatetag closeblock %} result, marked safe
+    channel_rows       ranked rows: label / amount / value dicts
+    region_rows        ranked rows: label / amount / value dicts
+    nav_items / nav_active  as in app/list.html
+Every heading, caption and judgement below is typed into the template, which is
+where you change them.
+
+WHY THIS PAGE IS SHAPED THIS WAY, since it is the part worth copying:
+
+A dashboard is not a list of numbers. It is an argument, and an argument has an
+order. This page reads top to bottom as one: the headline says what happened,
+the chart shows the shape of it, the breakdowns say where it came from, and the
+gauge says whether we are on track. A reader who stops after the first band has
+still learned the answer. That ordering, not the choice of components, is what
+makes a dashboard readable.
+
+So the first band is NOT four equal tiles. Equal tiles say every number matters
+equally, which is never true, and a reader scanning them has to work out the
+ranking themselves. The scorecard's span= carries that ranking instead: the
+metric this dashboard exists to report gets span=2 and is read first, and the
+supporting metrics take one column each. Change which tile is wide and you have
+changed what the dashboard is about, which is the right amount of effort for
+that decision.
+
+THE SCORECARD'S SHAPE, and why it needs your view:
+_scorecard.html takes items as a list of dicts, each {content, span}, where
+content is already-rendered, already-safe markup. A Django template cannot
+build a list of dicts and cannot capture an {% templatetag openblock %} include
+{% templatetag closeblock %} into a variable, so this one grid genuinely has to
+come from Python. Build it in your view:
+
+    from django.template.loader import render_to_string
+    from django.utils.safestring import mark_safe
+
+    headline_tiles = [
+        {"content": mark_safe(render_to_string(
+            "brickwork/components/_stat_comparison.html",
+            {"label": "Net revenue", "current": "GBP 1.24m", "previous": "GBP 1.08m",
+             "period_label": "same quarter last year", "trend": "up",
+             "trend_label": "15% higher", "size": "lg"})), "span": 2},
+        ...
+    ]
+
+The grid is 1 column on a phone, 2 at sm and 4 at lg, so a span=2 tile is full
+width on a phone, full width at sm, and half the row at lg. Spans read as
+designed at lg and clamp gracefully below it; there is nothing to write for the
+narrow case.
+
+ON TREND, and this is the trap worth reading twice: trend states the DIRECTION
+THE NUMBER MOVED, never whether that is good news. _trend_indicator.html renders
+trend="down" as a down arrow plus the hidden word "decreased", and you cannot
+override that word. A cost that fell moved DOWN, so it takes trend="down" even
+though falling is what you wanted; the judgement goes in trend_label, in words
+("18% lower, which is the target"). Get this backwards and a screen reader
+announces the opposite of what a sighted reader sees. No gate in this package
+catches it: not axe, not the render tests, not a visual check. Only reading it
+does.
+
+States: the scorecard has no states of its own, each tile carries its own
+  (see _stat.html and _stat_comparison.html's own headers); the chart card's
+  loading/error/empty/populated states, which are mutually exclusive and
+  resolve in that order (see _chart_card.html's own header); each ranked
+  list's own loading/empty states; the gauge's threshold bands.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region. Every number is visible text: the chart is a mount
+  whose accessible name is supplied at the call site, the sparkline and the
+  ranked bars are aria-hidden decoration reinforcing figures stated in
+  words beside them, and the gauge always renders its own numeric reading.
+  No reading on this page rides on colour or on a shape alone. Covered by
+  the archetype harness's full gate sweep (render, axe WCAG 2.2 AA, no
+  horizontal overflow, light/dark distinctness, skip-link first-tab-stop
+  with JS disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The scorecard
+  steps 1 to 2 to 4 columns at its own sm and lg breakpoints and clamps
+  wide spans automatically; the ranked lists and chart card reflow inside
+  whatever column they land in.
+{% endcomment %}
+{% load brickwork_components brickwork_nav %}
+
+{% block page_title %}Revenue analysis - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Revenue analysis" description="Q3 2026 against the same quarter last year. Figures settle 48 hours after period close." %}
+{% endblock %}
+
+{% block page_actions %}
+  {% bw_button "Export" variant="secondary" icon="download" href="/analysis/export/" %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  BAND 1, the answer. One weighted grid, not a row of equal tiles. The wide
+  tile is a comparison (this period against last), because the question this
+  dashboard answers is "how are we doing against last year", and a bare number
+  cannot answer a comparative question. The three supporting tiles are ordinary
+  stats, deliberately quieter.
+  {% endcomment %}
+  <section aria-labelledby="headline-heading">
+    <h2 id="headline-heading" class="bw-visually-hidden">Headline figures</h2>
+    {% include "brickwork/components/_scorecard.html" with items=headline_tiles %}
+  </section>
+
+  {% comment %}
+  BAND 2, the shape of the answer over time. This leads the body of the page
+  rather than sitting under a wall of counts, because a trend line answers "is
+  this getting better" faster than any number does.
+
+  The mount is where your charting library draws. brickwork ships the chrome,
+  the states and the accessible name; it does not ship a charting library and
+  does not care which one you use. Build the mount in your view:
+
+      revenue_mount = render_to_string(...)   or capture the tag:
+      {% templatetag openblock %} bw_chart_mount aria_label="Net revenue by month, Q3 2026" as revenue_mount {% templatetag closeblock %}
+
+  The accessible name is REQUIRED unless you pass decorative=True, and a chart
+  carrying the page's main finding is never decorative.
+
+  NOTE the card title, because it is a trap worth knowing before you copy this.
+  _chart_card.html EXTENDS _card.html, and a card's title is a BLOCK, not a
+  context variable. Passing title="..." to an {% templatetag openblock %}
+  include {% templatetag closeblock %} of this component does nothing at all:
+  Django discards a value that has no matching variable, and it discards an
+  unmatched block name silently too, with no error even in DEBUG. The card
+  simply renders untitled and you will not be told.
+
+  The heading below is deliberately visually hidden, and that is a compromise
+  rather than a preference, so it is worth saying why before you copy it. A
+  bare <h2> on an app page inherits the heading font and colour but NO size
+  step, so it renders at body size. The only shipped route to a correctly
+  sized heading is bw-prose, and bw-prose is a long-form CONTENT MEASURE
+  contract, not a heading utility: its first rule is max-inline-size 65ch,
+  which narrows whatever it wraps. Wrapping this band in it to size one
+  heading squeezed the chart to about two thirds the width of the bands above
+  and below it, which is a worse defect than an unlabelled band, and no gate
+  in this package catches it.
+
+  So this band carries its accessible name and leaves the visible title to the
+  card. To give the CARD a visible title, write a small template that EXTENDS
+  _chart_card.html and fills its title block, then include THAT here. There is
+  no way to do it from a single copy-paste file, which is the honest state of
+  the system today.
+  {% endcomment %}
+  <section aria-labelledby="trend-heading">
+    <h2 id="trend-heading" class="bw-visually-hidden">Net revenue by month</h2>
+    {% include "brickwork/components/_chart_card.html" with mount=revenue_mount %}
+  </section>
+
+  {% comment %}
+  BAND 3, where the answer came from. Two ranked lists side by side would be the
+  natural arrangement here, and it is worth saying plainly that brickwork ships
+  no way to do it: there is no general two-column layout helper on an app
+  surface, and the only shipped grids are the stat row, the scorecard and the
+  section stack. These stack vertically instead. That is a real limit of the
+  system today, not an oversight in this page.
+
+  Each list states its own figures as text beside the bar; the bars are
+  aria-hidden decoration, so the ranking is readable without seeing them.
+  {% endcomment %}
+  <section aria-labelledby="breakdown-heading">
+    <h2 id="breakdown-heading" class="bw-visually-hidden">Breakdowns</h2>
+    <div class="bw-section-stack">
+      {% bw_ranked_list channel_rows basis="total" label="Revenue by channel" empty_heading="No channel data" empty_body="Revenue attributed to a channel will appear here once the quarter opens." %}
+      {% bw_ranked_list region_rows basis="total" label="Revenue by region" empty_heading="No regional data" empty_body="Revenue attributed to a region will appear here once the quarter opens." %}
+    </div>
+  </section>
+
+  {% comment %}
+  BAND 4, are we on track. The gauge closes the argument the headline opened:
+  the first band said what happened, this one says what it means against a
+  target. Threshold bands tint the arc, but the percentage always renders as
+  visible text underneath, so the reading never depends on seeing the colour.
+  {% endcomment %}
+  <section aria-labelledby="target-heading">
+    <h2 id="target-heading" class="bw-visually-hidden">Progress against target</h2>
+    {% bw_gauge value=78 min=0 max=100 label="Progress to annual revenue target" size="lg" threshold_bands=target_bands %}
+  </section>
+
+</div>
+{% endblock %}

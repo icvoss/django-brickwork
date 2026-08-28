@@ -1,8 +1,8 @@
 # brickwork
 
-**Beautiful defaults, proved by the examples.** brickwork ships 42 examples
-(16 pages, 26 sections) built from nothing but its own shipped tokens and
-components. 41 of them add no CSS at all. The one that does is the date
+**Beautiful defaults, proved by the examples.** brickwork ships 47 examples
+(21 pages, 26 sections) built from nothing but its own shipped tokens and
+components. 46 of them add no CSS at all. The one that does is the date
 range picker, whose scoped `.bw-drp` block uses only existing `--bw-*`
 tokens, because brickwork ships no date picker component for it to compose
 (see [Example pages](#example-pages)). Every one is readable in the repo, so
@@ -28,8 +28,8 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 162 documents (122 hand-maintained fixtures
-plus 40 catalogue archetypes, each x light and dark themes), plus a no-JS
+axe-core WCAG 2.2 AA scan across 164 documents (122 hand-maintained fixtures
+plus 42 catalogue archetypes, each x light and dark themes), plus a no-JS
 floor suite, keyboard suites, mobile-overflow checks at
 320/360/375/414px, and pixel-level composited contrast measurement. That last
 check exists because the axe gate itself once ran green over a real 4.25:1

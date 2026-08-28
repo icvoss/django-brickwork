@@ -118,6 +118,7 @@ sanitise it.)
 | `ops/audit-trail.html` | Chronological record: who did what, and whether it worked |
 | `ops/report.html` | Long-form printable performance report: summary, stats, tables, methodology |
 | `ops/comparison.html` | This-versus-that data comparison: two measured periods on quantitative metrics |
+| `ops/analysis-dashboard.html` | Weighted headline grid, trend chart, breakdowns, progress gauge |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |
