@@ -365,5 +365,23 @@
       "$value": "8",
       "$description": "Gauge ring stroke width, a bare user-space number against the component's fixed 0-100 SVG viewBox (VIZ-007), the same unitless convention icon.stroke-width already uses for its own SVG stroke."
     }
+  },
+  "scorecard": {
+    "$description": "Scorecard grid column counts (VIZ-011), the shared dashboard grid for stat tiles and chart cards alike (CHT-026: a card is a card, no chart-specific grid duplicate). Bare numbers, consumed inside grid-template-columns: repeat(N, 1fr), the same unitless convention z.* and disabled.opacity already use for a non-dimension value.",
+    "columns": {
+      "$type": "number",
+      "base": {
+        "$value": "1",
+        "$description": "Below --bw-breakpoint-sm: a single column (VIZ-011 default floor)."
+      },
+      "sm": {
+        "$value": "2",
+        "$description": "From --bw-breakpoint-sm."
+      },
+      "lg": {
+        "$value": "4",
+        "$description": "From --bw-breakpoint-lg."
+      }
+    }
   }
 }

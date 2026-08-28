@@ -1975,6 +1975,90 @@ a.bw-stat:hover {
   color: var(--bw-color-fg-muted);
 }
 
+/* --- Stat comparison (VIZ-019/020) ------------------------------------------ */
+
+/* This-vs-last-period tile: same tile chrome as .bw-stat (surface, border,
+   radius, elevation, density padding), stacking a label, the current
+   value, a visible previous-period caption, and a trend row delegated to
+   _trend_indicator.html. Both current and previous arrive pre-formatted
+   from the caller (VIZ-020); this rule set never sizes text based on
+   content, only on the fixed sm/md/lg scale below. */
+.bw-stat-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
+  background: var(--bw-color-surface);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  box-shadow: var(--bw-elevation-1);
+  padding: var(--bw-density-card-padding);
+}
+.bw-stat-comparison__label {
+  color: var(--bw-color-fg-muted);
+  font-family: var(--bw-text-overline-family);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  line-height: var(--bw-text-overline-line-height);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
+}
+.bw-stat-comparison__current {
+  margin: 0;
+  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-3xl));
+  font-weight: var(--bw-font-weight-semibold);
+  line-height: var(--bw-font-line-height-tight);
+  font-variant-numeric: tabular-nums;
+}
+/* The previous-period value and its period_label caption share one line:
+   period_label qualifies previous by DOM adjacency (VIZ-019's "not left as
+   floating text"), not by an aria-describedby id, matching this template's
+   own header-comment reasoning. */
+.bw-stat-comparison__previous {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
+}
+.bw-stat-comparison__period {
+  color: var(--bw-color-fg-muted);
+}
+/* size arg (mirrors _stat.html's VIZ-027 seam): modifiers re-point the
+   same value-size component token _stat.html uses, so a comparison tile
+   sits at the same scale as a plain stat tile sharing its grid. */
+.bw-stat-comparison--sm {
+  --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
+  padding: var(--bw-space-3);
+}
+.bw-stat-comparison--lg {
+  --bw-component-stat-tile-value-size: var(--bw-font-size-4xl);
+  padding: var(--bw-space-6);
+}
+/* The trend row (_trend_indicator.html's css_class seam, matching #334's own
+   .bw-stat__trend alias above): this template passes
+   css_class="bw-stat-comparison__trend", so the rendered element carries
+   both .bw-trend and .bw-stat-comparison__trend (plus their matching
+   --up/--down/--flat modifiers). One implementation (.bw-trend, styled
+   above), one more retained alias, so a consumer stylesheet selecting
+   .bw-stat-comparison__trend directly still matches. */
+.bw-stat-comparison__trend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-1);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
+}
+.bw-stat-comparison__trend--up {
+  color: var(--bw-color-success-fg);
+}
+.bw-stat-comparison__trend--down {
+  color: var(--bw-color-danger-fg);
+}
+.bw-stat-comparison__trend--flat {
+  color: var(--bw-color-fg-muted);
+}
+
 /* --- Ranked list (icvoss/django-brickwork#183) ------------------------------ */
 
 /* An ordered <ol>: no default list-style/padding of its own (the numbering
@@ -2329,6 +2413,60 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+
+/* --- Scorecard (VIZ-011/012, CHT-026) --------------------------------------- */
+
+/* The shared dashboard grid for stat tiles AND chart cards (CHT-026: a card
+   is a card). A named-step grid, not _stat_band.html's continuous auto-fit:
+   --bw-component-scorecard-columns-* steps the column count at fixed
+   breakpoints, so a consumer overriding the token controls exactly how many
+   columns a dashboard shows at each width, which a continuous auto-fit grid
+   cannot expose as a single overridable number. Gap reuses the shared
+   density-aware stack-gap token (VIZ-025); no scorecard-specific gap token
+   is authored. */
+.bw-scorecard {
+  display: grid;
+  grid-template-columns: repeat(var(--bw-component-scorecard-columns-base), 1fr);
+  gap: var(--bw-density-stack-gap);
+}
+@media (width >= --theme(--breakpoint-sm)) {
+  .bw-scorecard {
+    grid-template-columns: repeat(var(--bw-component-scorecard-columns-sm), 1fr);
+  }
+}
+@media (width >= --theme(--breakpoint-lg)) {
+  .bw-scorecard {
+    grid-template-columns: repeat(var(--bw-component-scorecard-columns-lg), 1fr);
+  }
+}
+/* Every item, span or not, always carries the bare bw-scorecard__item class
+   (the template's own {% for %} loop): min-width: 0 is the one rule this
+   base class needs, the standard CSS grid fix that lets a long unbroken
+   value/label inside a card shrink with its column instead of forcing the
+   grid to overflow (the same fix _data_table.html's own responsive="stack"
+   rule applies at its own grid boundary). No other layout property belongs
+   here: column placement is the grid's own doing (equal by default, spanned
+   items via the modifiers below), and the item never has visual chrome of
+   its own (a scorecard is a layout device, this file's own docstring). */
+.bw-scorecard__item {
+  min-width: 0;
+}
+/* span= (VIZ-012): a closed 2/3/4 modifier set, matching every other
+   closed-vocabulary ARG in this package (_card.html size, _gauge.html size),
+   never an arbitrary caller integer forwarded into an inline
+   style="grid-column: span N" attribute. Equal (one column) by default,
+   with no modifier class. A span wider than the CURRENT column count at a
+   given breakpoint is simply clamped by the grid itself (CSS grid-column's
+   own documented behaviour), not by this stylesheet. */
+.bw-scorecard__item--span-2 {
+  grid-column: span 2;
+}
+.bw-scorecard__item--span-3 {
+  grid-column: span 3;
+}
+.bw-scorecard__item--span-4 {
+  grid-column: span 4;
 }
 
 /* --- Disclosure (0.8.0 interaction set, CBH-016/017, CMP-026/027) ------------ */

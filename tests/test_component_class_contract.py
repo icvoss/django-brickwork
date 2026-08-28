@@ -235,6 +235,64 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     ),
     "_trend_indicator (down, no label)": lambda: _include("brickwork/components/_trend_indicator.html", trend="down"),
     "_trend_indicator (flat)": lambda: _include("brickwork/components/_trend_indicator.html", trend="flat"),
+    "_stat_comparison (sm, trend up, label, period_label)": lambda: _include(
+        "brickwork/components/_stat_comparison.html",
+        label="Revenue",
+        current="12,400",
+        previous="10,900",
+        period_label="vs last month",
+        trend="up",
+        trend_label="14% up",
+        size="sm",
+    ),
+    "_stat_comparison (lg, trend down)": lambda: _include(
+        "brickwork/components/_stat_comparison.html",
+        label="Churn",
+        current="4.2%",
+        previous="3.1%",
+        period_label="vs last quarter",
+        trend="down",
+        trend_label="1.1pt worse",
+        size="lg",
+    ),
+    "_stat_comparison (md default, no trend, no period_label)": lambda: _include(
+        "brickwork/components/_stat_comparison.html",
+        current="987",
+        previous="1,234",
+    ),
+    "_scorecard (mixed spans, data attrs)": lambda: _include(
+        "brickwork/components/_scorecard.html",
+        items=[
+            {
+                "content": mark_safe(  # noqa: S308 (test-authored trusted markup)
+                    '<div class="bw-stat"><span class="bw-stat__label">Revenue</span>'
+                    '<span class="bw-stat__value">£12,400</span></div>'
+                ),
+                "span": 2,
+            },
+            {
+                "content": mark_safe(  # noqa: S308 (test-authored trusted markup)
+                    '<div class="bw-stat"><span class="bw-stat__label">Churn</span>'
+                    '<span class="bw-stat__value">4.2%</span></div>'
+                ),
+                "span": "3",
+            },
+            {
+                "content": mark_safe(  # noqa: S308 (test-authored trusted markup)
+                    '<div class="bw-stat"><span class="bw-stat__label">Signups</span>'
+                    '<span class="bw-stat__value">318</span></div>'
+                ),
+                "span": 4,
+            },
+            {
+                "content": mark_safe(  # noqa: S308 (test-authored trusted markup)
+                    '<div class="bw-stat"><span class="bw-stat__label">Uptime</span>'
+                    '<span class="bw-stat__value">99.98%</span></div>'
+                ),
+            },
+        ],
+        data={"data-testid": "kpi-grid"},
+    ),
     "bw_ranked_list (linked rows, basis=total, label, data)": lambda: _tag(
         "brickwork_components",
         "{% bw_ranked_list rows=rows basis='total' label='Top accounts' data=data %}",
@@ -811,6 +869,8 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_search",
         "_card",
         "_stat",
+        "_stat_comparison",
+        "_scorecard",
         "_trend_indicator",
         "_ranked_list",
         "_gauge",

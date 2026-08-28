@@ -1,0 +1,156 @@
+{% load i18n %}
+{% comment %}
+Stat comparison (VIZ-019): a this-vs-last-period KPI tile. Stacks an
+overline label, the current pre-formatted value, a visible previous-period
+caption, and an optional trend caption, the latter delegated to
+_trend_indicator.html (VIZ-017) rather than rendered inline: one
+implementation of the trend contract, not two, matching _stat.html's own
+composition (icvoss/django-brickwork#334).
+
+Structural, consumed via {% include %}: like _stat.html and
+_trend_indicator.html, nothing here needs variant validation or icon
+resolution at render time, so a tag would add behaviour this component does
+not have.
+
+VIZ-020 boundary, read this before changing anything below: brickwork does
+NOT compute the delta. current, previous and trend_label all arrive
+PRE-FORMATTED from the caller's own service/view. This template concatenates
+and escapes; it performs no arithmetic and no formatting on any of them.
+
+The trend direction question (VIZ-019 vs VIZ-020, resolved): VIZ-019 says
+the delta renders "via _trend_indicator.html internally", and
+_trend_indicator.html's own contract requires a trend ("up"/"down"/"flat")
+argument. The template could derive that direction by comparing current and
+previous itself (a sign check), but that is READING this as "VIZ-020 forbids
+only arithmetic on the numbers, not a comparison between them" -- a
+distinction this template does not rely on, because VIZ-002 already answers
+the general question for every other trend-bearing component in the package:
+trend="up|down|flat" is caller-supplied on _stat.html (VIZ-002, shipped
+0.5.0) and on _trend_indicator.html (VIZ-017) alike, with no precedent
+anywhere in brickwork for a component deriving a direction from two values
+handed to it. A sign check over current/previous is still a decision about
+what the comparison MEANS (a caller may reasonably treat a falling cost as
+"up" in the good direction, a rising error rate as "down" is meaningless,
+and a non-numeric pre-formatted string such as "12,400" or "48%" cannot be
+sign-checked at all without the template silently assuming a numeric
+grammar VIZ-020 never grants it). Comparing two values to decide a rendered
+outcome IS period-comparison business logic under VIZ-020's own wording
+("brickwork renders numbers, not period-comparison business logic"), so this
+template takes trend/trend_label as a THIRD, independent, caller-supplied
+argument pair, unrelated in the template's own logic to current/previous:
+the caller's service already knows the direction (it computed the delta to
+decide period_label's text in the first place) and passes it straight
+through, exactly as an existing _stat.html caller already does. If VIZ-019's
+"via _trend_indicator.html internally" is later read as requiring brickwork
+itself to derive up/down/flat from current/previous, that reading
+contradicts VIZ-020 as it stands and needs a spec ruling, not a silent
+choice made in this template.
+
+Escaping (ADR-084 discipline; see also #349/#352, brickwork_components.py):
+label, current, previous and period_label are all TEXT-position only in
+this template (no attribute position renders any of them), so Django's own
+default template auto-escaping (equivalent to escape_attribute_value's
+unconditional escape, never conditional_escape's __html__ passthrough) is
+the correct and sufficient mechanism here, with no Python-side coercion
+needed: none of the four reaches an attribute value anywhere in this
+template, so there is no dual-position tension to resolve (contrast
+bw_dropdown's aria_label/trigger_label, brickwork_interactions.py:237-262,
+which DOES reach both positions and therefore DOES need two independently-
+escaped values computed from the same raw input). A caller wanting trusted
+markup in any of these four slots has no seam here to do it through: unlike
+_stat.html's sparkline (deliberately a trusted-markup slot, documented as
+such), label/current/previous/period_label are plain caller text end to
+end.
+
+size is the one context variable that DOES reach attribute position
+(class="..." on the root), and escaping is deliberately NOT how this
+template defends that site: {{ size }} in an attribute is unconditionally
+escaped only via a template filter (escape/force_escape), which is a
+different mechanism from the Python-side escape_attribute_value helper
+this file cannot call (it is a plain {% include %}, not a tag), and
+carries its own caveat (a template autoescape block or a prior |safe on
+the value can still defeat a bare |escape at the call site, in a way a
+Python-side unconditional escape() cannot be). This template instead
+closes the seam entirely (ADR-084's stated option: constrain rather than
+escape): size is matched against explicit {% if %}/{% elif %} literals
+below, so only the two literal strings "sm" and "lg" ever reach the class
+attribute, and no caller-supplied value, safe or not, is interpolated into
+it at all. See the size entry below for the full reasoning.
+
+Required context:
+  current: the current period's value, pre-formatted by the caller
+      (tabular numerals, VIZ-020: brickwork never formats or computes this).
+  previous: the prior period's value, pre-formatted by the caller
+      (VIZ-020, same rule).
+Optional:
+  label: the metric's name (rendered in the overline voice, matching
+      _stat.html's own label). Omitted renders no label row.
+  period_label: the caller-supplied comparison caption (e.g. "vs last
+      month", VIZ-019), rendered as VISIBLE text immediately after the
+      previous-period value so it is associated with the figures it
+      qualifies by reading order (the same association mechanism
+      _stat.html's own label/value/trend stack already relies on: sibling
+      elements inside one container, no aria-describedby indirection
+      needed for a single caption qualifying the whole tile). Omitted
+      renders the previous-period value with no caption after it.
+  trend ("up" | "down" | "flat"): the direction of change, CALLER-SUPPLIED
+      (see the VIZ-020 note above: never derived from current/previous by
+      this template). Passed straight through to _trend_indicator.html.
+      Any other, truthy but unrecognised value takes the flat treatment
+      (_trend_indicator.html's own fallback). A falsy value renders no
+      trend row.
+  trend_label (str): the visible delta text beside the glyph, passed
+      straight through to _trend_indicator.html. Pre-formatted by the
+      caller (VIZ-020): this template never computes a percentage or a
+      difference from current/previous.
+  size ("sm" | "md" | "lg", default "md"): "sm"/"lg" emit
+      bw-stat-comparison--sm/--lg (mirroring _stat.html's own VIZ-027 size
+      seam, whose CSS defines only --sm/--lg, so a comparison tile sits at
+      the same scale tokens as a plain stat tile in the same grid); "md"
+      is the bare, unmodified class, matching _stat.html's own default
+      (which ships no .bw-stat--md rule either). Matched against the
+      closed set with EXPLICIT {% if %}/{% elif %} literals below, never
+      interpolated as {{ size }}: this is an include-only template with no
+      Python-side tag validation (unlike bw_badge/bw_alert, which raise
+      TemplateSyntaxError on an unrecognised variant before the template
+      ever renders), so a documented closed set here is a convention, not
+      an enforced one, and {{ size }} in class="..." would be a live
+      attribute-injection seam for any caller passing an unexpected value
+      (a SafeString or any other object whose str() contains a quote).
+      _empty_state.html, the package's other include-only component with a
+      documented size vocabulary, uses the same explicit-literal pattern
+      for exactly this reason (its size=="sm" branches, never {{ size }}
+      in an attribute). An unrecognised size value renders the bare
+      bw-stat-comparison class with no modifier, the same silent
+      no-match-no-render behaviour _empty_state.html's own size ladder
+      has, rather than raising: this template has no validation layer to
+      raise from.
+
+Usage::
+
+    {% include "brickwork/components/_stat_comparison.html" with label="Revenue" current="1,234" previous="987" period_label="vs last month" trend="up" trend_label="25% up" %}
+
+States: a trend reading carries up/down/flat sub-states (delegated to
+  _trend_indicator.html); no loading/empty/error state (VIZ-021/022/023
+  are _stat.html's own seams; a comparison tile with no current/previous
+  has nothing to compare, matching _gauge.html's own "no context in which
+  to omit it" reasoning for a component with no natural empty state).
+Accessibility: a trend is never colour-only: _trend_indicator.html always
+  pairs its decorative glyph with visually-hidden direction text
+  ("increased"/"decreased"/"unchanged"), and this template neither
+  duplicates nor suppresses that guarantee, it only supplies the
+  trend/trend_label arguments the partial already enforces (BR-BW-TPL-007,
+  AC-BW-073/074). period_label renders as ordinary visible text in the same
+  container as current and previous, immediately after previous, so a
+  screen reader announces it in reading order right after the value it
+  qualifies, never as floating text elsewhere on the page.
+Responsive: no breakpoint switch; no width-dependent CSS on any
+  .bw-stat-comparison* selector, matching _stat.html's own responsive
+  posture. Size is the fixed sm/md/lg token scale, never viewport-driven.
+{% endcomment %}
+<div class="bw-stat-comparison{% if size == "sm" %} bw-stat-comparison--sm{% elif size == "lg" %} bw-stat-comparison--lg{% endif %}">
+  {% if label %}<span class="bw-stat-comparison__label">{{ label }}</span>{% endif %}
+  <span class="bw-stat-comparison__current">{{ current }}</span>
+  <span class="bw-stat-comparison__previous">{{ previous }}{% if period_label %} <span class="bw-stat-comparison__period">{{ period_label }}</span>{% endif %}</span>
+  {% include "brickwork/components/_trend_indicator.html" with trend=trend trend_label=trend_label css_class="bw-stat-comparison__trend" %}
+</div>

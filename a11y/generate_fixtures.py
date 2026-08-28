@@ -1527,6 +1527,123 @@ def render_gauge(theme: str) -> str:
     )
 
 
+# --- the _scorecard and _stat_comparison fixtures (VIZ-011/012, VIZ-019/020) -
+#
+# scorecard-<theme>.html covers: the shared dashboard grid (_scorecard.html,
+# CHT-026) arranging real pre-rendered _stat.html cards across the span=2/3/4
+# modifiers plus an untagged (span=1) item, so axe walks the grid's own
+# markup AND every card it arranges; and _stat_comparison.html's sm/md/lg
+# sizes each paired with a different trend direction, so axe sees every
+# trend colour class and every size the component ships, not merely the
+# default md/up case.
+
+_SCORECARD_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scorecard and stat comparison (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Scorecard and stat comparison</h1>
+
+  <section aria-labelledby="scorecard-grid-heading">
+    <h2 id="scorecard-grid-heading">Scorecard grid</h2>
+    __SCORECARD_GRID__
+  </section>
+
+  <section aria-labelledby="stat-comparison-heading">
+    <h2 id="stat-comparison-heading">Stat comparison</h2>
+    __STAT_COMPARISON_SM__
+    __STAT_COMPARISON_MD__
+    __STAT_COMPARISON_LG__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_stat_comparison_fixture(**ctx: object) -> str:
+    return render_to_string("brickwork/components/_stat_comparison.html", ctx)
+
+
+def render_scorecard(theme: str) -> str:
+    from django.utils.safestring import mark_safe
+
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    items = [
+        {
+            "content": mark_safe(  # noqa: S308 (fixture-authored trusted markup)
+                render_to_string(
+                    "brickwork/components/_stat.html",
+                    {"label": "Revenue", "value": "£12,400", "trend": "up", "trend_label": "14% up"},
+                )
+            ),
+            "span": 2,
+        },
+        {
+            "content": mark_safe(  # noqa: S308 (fixture-authored trusted markup)
+                render_to_string(
+                    "brickwork/components/_stat.html",
+                    {"label": "Churn", "value": "4.2%", "trend": "down", "trend_label": "1.1pt worse"},
+                )
+            ),
+            "span": "3",
+        },
+        {
+            "content": mark_safe(  # noqa: S308 (fixture-authored trusted markup)
+                render_to_string(
+                    "brickwork/components/_stat.html",
+                    {"label": "Signups", "value": "318", "trend": "flat", "trend_label": "unchanged"},
+                )
+            ),
+            "span": 4,
+        },
+        {
+            "content": mark_safe(  # noqa: S308 (fixture-authored trusted markup)
+                render_to_string("brickwork/components/_stat.html", {"label": "Uptime", "value": "99.98%"})
+            ),
+        },
+    ]
+    scorecard_grid = render_to_string("brickwork/components/_scorecard.html", {"items": items})
+    return (
+        _SCORECARD_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__SCORECARD_GRID__", scorecard_grid)
+        .replace(
+            "__STAT_COMPARISON_SM__",
+            _render_stat_comparison_fixture(
+                label="Revenue",
+                current="12,400",
+                previous="10,900",
+                period_label="vs last month",
+                trend="up",
+                trend_label="14% up",
+                size="sm",
+            ),
+        )
+        .replace(
+            "__STAT_COMPARISON_MD__",
+            _render_stat_comparison_fixture(current="987", previous="1,234"),
+        )
+        .replace(
+            "__STAT_COMPARISON_LG__",
+            _render_stat_comparison_fixture(
+                label="Churn",
+                current="4.2%",
+                previous="3.1%",
+                period_label="vs last quarter",
+                trend="down",
+                trend_label="1.1pt worse",
+                size="lg",
+            ),
+        )
+    )
+
+
 # --- the bw_theme_switch fixtures (icvoss/django-brickwork#117) ---------------
 #
 # theme-switch-<theme>.html    a standalone page (mirrors render_inputs'
@@ -3441,6 +3558,11 @@ def main() -> None:
         # threshold_bands colours, and the sm/lg size modifiers, all on one
         # page
         _emit(OUT / f"gauge-{theme}.html", render_gauge(theme), written)
+        # _scorecard (VIZ-011/012) and _stat_comparison (VIZ-019/020): the
+        # shared dashboard grid arranging real _stat.html cards across every
+        # span= modifier, plus the comparison tile's sm/md/lg sizes each
+        # paired with a different trend direction, all on one page
+        _emit(OUT / f"scorecard-{theme}.html", render_scorecard(theme), written)
         # _data_table.html's empty-state action CTA (#185): records and
         # definition variants, both rendered with zero rows and the new
         # empty_action_href/empty_action_label passthrough
