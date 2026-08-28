@@ -126,7 +126,14 @@ the maintained figure beside it moved and it did not. Another appeared in a
 3.12.0 release note, describing a passthrough that the component it named did
 not have at the tag.
 
-When you change something a document counts or describes:
+This governs a fresh changelog fragment exactly as much as it governs
+editing an existing figure: a fragment that compares the new thing to another
+component's current behaviour is making a claim about a document, and nothing
+about writing it for the first time exempts it from the rule below
+(icvoss/django-brickwork#315).
+
+When you change something a document counts or describes, or write a fragment
+that compares against something you did not change:
 
 - Grep for the old value or phrasing across `docs/`, `README.md`,
   `CONTRIBUTING.md` and `CHANGELOG.md`, and read every hit rather than
@@ -139,9 +146,14 @@ When you change something a document counts or describes:
   published. Quote the ref with the number: a figure without it cannot be
   checked by anyone else, even when it is right.
 - If a claim asserts the behaviour of code your change does not touch, verify
-  it or drop it. At the time of writing, the claim about your own change is
-  checked by the work in front of you and the claim about the other thing is
-  recalled, and nothing re-checks the recalled half before it ships.
+  it, drop it, or cite the issue or ADR that established the convention
+  instead of describing the other component's implementation from memory (the
+  3.12.0 entry's "matching the existing no-JS floor (#117)" is this shape,
+  and held up where the two claims corrected under #315 did not). At the
+  time of writing, the claim about your own change is checked by the work in
+  front of you and the claim about the other thing is recalled, and nothing
+  re-checks the recalled half before it ships; a citation stays correct as
+  the other component changes, a description of its current state does not.
 
 ---
 

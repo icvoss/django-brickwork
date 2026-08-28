@@ -111,8 +111,9 @@ names are all unchanged.
   and consumer-owned `data-*` attributes. `loading=True` renders a skeleton
   row set; an empty `rows` composes `_empty_state.html` at `size="sm"` with
   the same `empty_heading`/`empty_body`/`empty_action_href`/
-  `empty_action_label` passthrough `_data_table.html` already uses. New
-  component tokens `--bw-component-ranked-list-bar-thickness` and
+  `empty_action_label` passthrough `_data_table.html` already uses [corrected,
+  see "Correction" note below]. New component tokens
+  `--bw-component-ranked-list-bar-thickness` and
   `--bw-component-ranked-list-row-gap`.
 
 ### Fixed
@@ -151,7 +152,38 @@ names are all unchanged.
   carries a 24x24 minimum box (sizing only, no chrome change: the control
   stays deliberately unstyled beyond native fieldset-of-radios), matching the
   WCAG 2.5.8 AA floor every other interactive control in this package already
-  meets.
+  meets [see "Correction" note below].
+
+### Correction (added 2026-08-28, icvoss/django-brickwork#315)
+
+Two comparison claims above were not verifiable when this section was
+published. The original wording is left in place above rather than rewritten,
+so a reader who acted on it can see exactly what changed and why.
+
+- **The `{% bw_ranked_list %}` entry's comparison to `_data_table.html` was
+  wrong and is corrected here.** At the `v3.12.0` tag,
+  `_data_table.html`'s empty-state composition passed only `variant`,
+  `heading` and `body`; it had no `empty_action_href`/`empty_action_label`
+  passthrough for the entry to compare against. `bw_ranked_list`'s own
+  four-way passthrough (`empty_heading`/`empty_body`/`empty_action_href`/
+  `empty_action_label`) is accurate as described. `_data_table.html` gained
+  the matching passthrough afterwards, in icvoss/django-brickwork#317,
+  closing icvoss/django-brickwork#185, so the comparison is true of the code
+  today but was false of the code this release shipped.
+- **The `{% bw_theme_switch %}` entry's claim that the 24x24 tap-target floor
+  matches what "every other interactive control in this package already
+  meets" needs no wording correction, but was not a true universal at the
+  time.** `a11y/axe.spec.mjs`'s `TAP_TARGET_EXEMPT_SELECTORS` exempted
+  `.bw-toggle` and `.bw-listing-list__link` from the 24x24 sweep when this
+  release shipped, so the claim asserted a floor over controls the
+  package's own gate declined to check. Unlike the `bw_ranked_list` claim
+  above, **this one became true after the fact rather than being corrected**:
+  icvoss/django-brickwork#323 brought both exempted components to the floor,
+  closing icvoss/django-brickwork#316, so by the time of this note both
+  exemptions are gone and the sweep is unconditional.
+
+Root cause and the standing rule that stops this recurring are in
+`CONTRIBUTING.md`, "Figures and claims about the codebase".
 
 ## [3.11.0] - 2026-08-26
 
