@@ -1434,6 +1434,99 @@ def render_chart_card(theme: str) -> str:
     )
 
 
+# --- the bw_gauge fixtures (icvoss/django-brickwork VIZ-007 to VIZ-010) -----
+#
+# gauge-<theme>.html covers: a plain determinate ring (default accent),
+# threshold_bands resolving each of the three non-accent tokens (danger,
+# warning, success), and the sm/lg size modifiers, so axe sees every
+# threshold colour class and every size the component ships, not merely the
+# default md/accent case.
+
+_GAUGE_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gauge (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Gauge</h1>
+
+  <section aria-labelledby="gauge-default-heading">
+    <h2 id="gauge-default-heading">Default (accent)</h2>
+    __GAUGE_DEFAULT__
+  </section>
+
+  <section aria-labelledby="gauge-thresholds-heading">
+    <h2 id="gauge-thresholds-heading">Threshold bands</h2>
+    __GAUGE_THRESHOLD_DANGER__
+    __GAUGE_THRESHOLD_WARNING__
+    __GAUGE_THRESHOLD_SUCCESS__
+  </section>
+
+  <section aria-labelledby="gauge-sizes-heading">
+    <h2 id="gauge-sizes-heading">Sizes</h2>
+    __GAUGE_SMALL__
+    __GAUGE_LARGE__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+_GAUGE_BANDS = [
+    {"max": 50, "token": "danger"},
+    {"max": 80, "token": "warning"},
+    {"max": 100, "token": "success"},
+]
+
+
+def _render_gauge_fixture(**ctx: object) -> str:
+    from django.template import Context, Template
+
+    return Template(
+        "{% load brickwork_components %}"
+        "{% bw_gauge value=value min=min max=max label=label size=size threshold_bands=threshold_bands %}"
+    ).render(
+        Context(
+            {
+                "value": 0,
+                "min": 0,
+                "max": 100,
+                "label": "",
+                "size": "md",
+                "threshold_bands": None,
+                **ctx,
+            }
+        )
+    )
+
+
+def render_gauge(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _GAUGE_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__GAUGE_DEFAULT__", _render_gauge_fixture(value=73, label="Storage used"))
+        .replace(
+            "__GAUGE_THRESHOLD_DANGER__",
+            _render_gauge_fixture(value=30, label="CPU load, danger band", threshold_bands=_GAUGE_BANDS),
+        )
+        .replace(
+            "__GAUGE_THRESHOLD_WARNING__",
+            _render_gauge_fixture(value=65, label="CPU load, warning band", threshold_bands=_GAUGE_BANDS),
+        )
+        .replace(
+            "__GAUGE_THRESHOLD_SUCCESS__",
+            _render_gauge_fixture(value=95, label="CPU load, success band", threshold_bands=_GAUGE_BANDS),
+        )
+        .replace("__GAUGE_SMALL__", _render_gauge_fixture(value=42, label="Small gauge", size="sm"))
+        .replace("__GAUGE_LARGE__", _render_gauge_fixture(value=88, label="Large gauge", size="lg"))
+    )
+
+
 # --- the bw_theme_switch fixtures (icvoss/django-brickwork#117) ---------------
 #
 # theme-switch-<theme>.html    a standalone page (mirrors render_inputs'
@@ -3344,6 +3437,10 @@ def main() -> None:
         # title/actions/legend fills), legend_position="side", loading,
         # error and empty states, all on one page
         _emit(OUT / f"chart-card-{theme}.html", render_chart_card(theme), written)
+        # bw_gauge (VIZ-007 to VIZ-010): the default accent ring, all three
+        # threshold_bands colours, and the sm/lg size modifiers, all on one
+        # page
+        _emit(OUT / f"gauge-{theme}.html", render_gauge(theme), written)
         # _data_table.html's empty-state action CTA (#185): records and
         # definition variants, both rendered with zero rows and the new
         # empty_action_href/empty_action_label passthrough

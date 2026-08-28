@@ -109,16 +109,16 @@ def test_counts_match_the_documented_wave_0_baseline() -> None:
     # directly against the repo post-merge, not copied from the plan:
     # docs/CATALOGUE.md ss5 records the same verification.
     counts = manifest()["counts"]
-    assert counts == {"shells": 5, "components": 44, "sections": 26, "archetypes": 16}
+    assert counts == {"shells": 5, "components": 45, "sections": 26, "archetypes": 16}
 
 
 def test_items_covers_every_shell_component_section_and_archetype() -> None:
-    assert len(items()) == 5 + 44 + 26 + 16 == 91
+    assert len(items()) == 5 + 45 + 26 + 16 == 92
 
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 5
-    assert len(items_by_kind("component")) == 44
+    assert len(items_by_kind("component")) == 45
     assert len(items_by_kind("section")) == 26
     assert len(items_by_kind("archetype")) == 16
 

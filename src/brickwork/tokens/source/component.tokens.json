@@ -28,7 +28,11 @@
     "radius": {
       "$type": "dimension",
       "$value": "{size.radius.md}",
-      "$extensions": { "bw": { "derived": "var(--bw-size-radius-md)" } }
+      "$extensions": {
+        "bw": {
+          "derived": "var(--bw-size-radius-md)"
+        }
+      }
     }
   },
   "menu": {
@@ -196,20 +200,42 @@
   "z": {
     "$description": "Stacking scale (DESIGN.md section 6.5). Chrome sits below overlay surfaces; dropdown content that opens inside the sticky topbar must not fight it.",
     "$type": "number",
-    "base": { "$value": "0" },
-    "dropdown": { "$value": "10" },
-    "sticky": { "$value": "20" },
-    "drawer": { "$value": "30" },
-    "overlay": { "$value": "40" },
-    "modal": { "$value": "50" },
-    "skip-link": { "$value": "60" },
-    "toast": { "$value": "70" },
-    "tooltip": { "$value": "80" }
+    "base": {
+      "$value": "0"
+    },
+    "dropdown": {
+      "$value": "10"
+    },
+    "sticky": {
+      "$value": "20"
+    },
+    "drawer": {
+      "$value": "30"
+    },
+    "overlay": {
+      "$value": "40"
+    },
+    "modal": {
+      "$value": "50"
+    },
+    "skip-link": {
+      "$value": "60"
+    },
+    "toast": {
+      "$value": "70"
+    },
+    "tooltip": {
+      "$value": "80"
+    }
   },
   "opacity": {
     "$type": "number",
-    "muted": { "$value": "0.7" },
-    "sort-idle": { "$value": "0.4" }
+    "muted": {
+      "$value": "0.7"
+    },
+    "sort-idle": {
+      "$value": "0.4"
+    }
   },
   "font": {
     "$description": "Typography tokens (semver-public, brand-overridable). Theme-agnostic. A consuming app rebrands its typeface the same token-first way it rebrands colour, by overriding --bw-font-family-* rather than reaching into brickwork's own classes. The default stack is a neutral system-font stack so an unbranded install still looks intentional.",
@@ -220,7 +246,11 @@
       },
       "display": {
         "$value": "{font.family.sans}",
-        "$extensions": { "bw": { "derived": "var(--bw-font-family-sans)" } }
+        "$extensions": {
+          "bw": {
+            "derived": "var(--bw-font-family-sans)"
+          }
+        }
       },
       "mono": {
         "$value": "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace"
@@ -228,40 +258,112 @@
     },
     "size": {
       "$type": "dimension",
-      "3xs": { "$value": "0.625rem" },
-      "2xs": { "$value": "0.6875rem" },
-      "xs": { "$value": "0.75rem" },
-      "sm": { "$value": "0.875rem" },
-      "md": { "$value": "1rem" },
-      "lg": { "$value": "1.125rem" },
-      "xl": { "$value": "1.5rem" },
-      "2xl": { "$value": "2rem" },
-      "3xl": { "$value": "2.5rem" },
-      "4xl": { "$value": "3rem" },
-      "5xl": { "$value": "3.75rem" }
+      "3xs": {
+        "$value": "0.625rem"
+      },
+      "2xs": {
+        "$value": "0.6875rem"
+      },
+      "xs": {
+        "$value": "0.75rem"
+      },
+      "sm": {
+        "$value": "0.875rem"
+      },
+      "md": {
+        "$value": "1rem"
+      },
+      "lg": {
+        "$value": "1.125rem"
+      },
+      "xl": {
+        "$value": "1.5rem"
+      },
+      "2xl": {
+        "$value": "2rem"
+      },
+      "3xl": {
+        "$value": "2.5rem"
+      },
+      "4xl": {
+        "$value": "3rem"
+      },
+      "5xl": {
+        "$value": "3.75rem"
+      }
     },
     "weight": {
       "$type": "number",
-      "normal": { "$value": "400" },
-      "medium": { "$value": "500" },
-      "semibold": { "$value": "600" },
-      "bold": { "$value": "700" }
+      "normal": {
+        "$value": "400"
+      },
+      "medium": {
+        "$value": "500"
+      },
+      "semibold": {
+        "$value": "600"
+      },
+      "bold": {
+        "$value": "700"
+      }
     },
     "line-height": {
       "$type": "number",
-      "none": { "$value": "1" },
-      "tight": { "$value": "1.25" },
-      "snug": { "$value": "1.375" },
-      "normal": { "$value": "1.5" },
-      "relaxed": { "$value": "1.625" },
-      "loose": { "$value": "2" }
+      "none": {
+        "$value": "1"
+      },
+      "tight": {
+        "$value": "1.25"
+      },
+      "snug": {
+        "$value": "1.375"
+      },
+      "normal": {
+        "$value": "1.5"
+      },
+      "relaxed": {
+        "$value": "1.625"
+      },
+      "loose": {
+        "$value": "2"
+      }
     },
     "tracking": {
       "$type": "dimension",
-      "tight": { "$value": "-0.025em" },
-      "normal": { "$value": "0em" },
-      "wide": { "$value": "0.025em" },
-      "wider": { "$value": "0.05em" }
+      "tight": {
+        "$value": "-0.025em"
+      },
+      "normal": {
+        "$value": "0em"
+      },
+      "wide": {
+        "$value": "0.025em"
+      },
+      "wider": {
+        "$value": "0.05em"
+      }
+    }
+  },
+  "gauge": {
+    "diameter": {
+      "$type": "dimension",
+      "sm": {
+        "$value": "{size.space.16}",
+        "$description": "Gauge rendered diameter, small (VIZ-010)."
+      },
+      "md": {
+        "$value": "{size.space.20}",
+        "$description": "Gauge rendered diameter, medium/default (VIZ-010)."
+      },
+      "lg": {
+        "$value": "{size.space.24}",
+        "$description": "Gauge rendered diameter, large (VIZ-010)."
+      }
+    },
+    "stroke-width": {
+      "$type": "dimension",
+      "$value": "8",
+      "$description": "Gauge ring stroke width, a bare user-space number against the component's fixed 0-100 SVG viewBox (VIZ-007), the same unitless convention icon.stroke-width already uses for its own SVG stroke."
     }
   }
 }

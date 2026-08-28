@@ -202,7 +202,7 @@ def test_examples_row_matches_the_shipped_catalogue_manifest() -> None:
 def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> None:
     """Only the archetype half of the a11y-gate row is cheaply gateable here.
 
-    The 118 hand-maintained fixtures (59 fixtures x light and dark) are no
+    The 120 hand-maintained fixtures (60 fixtures x light and dark) are no
     longer merely hand-counted from a11y/generate_fixtures.py's source: this
     file still deliberately does not re-parse that script (a second regex
     over its source would be exactly the kind of parallel, ungrounded
@@ -230,7 +230,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     accessible-name pairing plus the card's loading, error and empty
     states, moving the real count to 57/114. The sparkline work then added
     a sparkline fixture pair, covering the neutral and trend tones, the
-    highlight marker and the no-JS floor, moving the real count to 58/116.)
+    highlight marker and the no-JS floor, moving the real count to 60/120.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -239,7 +239,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     archetype_count = manifest["counts"]["archetypes"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 118 + (archetype_count * 2)
+    assert _leading_int(value) == 120 + (archetype_count * 2)
     assert f"{archetype_count} catalogue archetypes x light and dark" in note
 
 

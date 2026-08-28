@@ -2119,6 +2119,106 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   fill: var(--bw-color-accent);
   r: var(--bw-component-sparkline-marker-radius);
 }
+/* --- Gauge (icvoss/django-brickwork VIZ-007 to VIZ-010) --------------------- */
+
+/* A circular progress ring: two stacked SVG circles (track, then arc) inside
+   a fixed 0-100 viewBox, overlaid with the visible label text via a grid
+   that centres every child in the same cell. The diameter is the only thing
+   that changes per size modifier; the viewBox and stroke maths are fixed at
+   every size, so the ring never distorts. */
+.bw-gauge {
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--bw-component-gauge-diameter-md);
+  block-size: var(--bw-component-gauge-diameter-md);
+}
+.bw-gauge__svg {
+  grid-area: 1 / 1;
+  inline-size: 100%;
+  block-size: 100%;
+  /* The dash geometry below is computed for a circle whose arc should start
+     at 12 o'clock and fill clockwise; SVG's own 0deg is 3 o'clock, so the
+     whole svg is rotated -90deg here (a fixed, non-inline transform, never
+     a caller-influenced value) rather than adjusting the Python-computed
+     dash-offset maths to compensate. */
+  transform: rotate(-90deg);
+}
+.bw-gauge__track,
+.bw-gauge__arc {
+  fill: none;
+  stroke-width: var(--bw-component-gauge-stroke-width);
+}
+/* The track is the same "sunken trough" role .bw-progress__track and
+   .bw-ranked-list__bar already carry: visible contrast against the arc that
+   holds up even where the arc's own hue is hard to distinguish. */
+.bw-gauge__track {
+  stroke: var(--bw-color-surface-sunken);
+}
+.bw-gauge__arc {
+  /* --bw-gauge-dash-array/-offset are emitted inline as bare, fixed-format
+     numbers (never a %/px-suffixed string): SVG's own stroke-dasharray/
+     -dashoffset take unitless user-space units directly, so there is no
+     calc() translation step the way .bw-progress__fill's width needs.
+     Both carry a 0 fallback, which degrades to an empty arc rather than
+     invalid geometry if the inline style is ever absent. The fallback also
+     satisfies test_frontend_css_only_references_emitted_token_names, but
+     note what that does and does not prove: the test exempts ANY var() with
+     a fallback, so it cannot distinguish a genuine per-instance hook from a
+     misspelled token name (icvoss/django-brickwork#340). These two are hooks
+     because the template sets them inline per instance, not because the
+     comma is there. */
+  stroke-dasharray: var(--bw-gauge-dash-array, 0);
+  stroke-dashoffset: var(--bw-gauge-dash-offset, 0);
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--bw-duration-normal) var(--bw-ease-standard);
+}
+/* threshold_bands token (VIZ-009): a closed set of four ALREADY-SHIPPED
+   semantic colours, never a caller-chosen hue. No new colour token is
+   authored for this component. */
+.bw-gauge__arc--accent {
+  stroke: var(--bw-color-accent);
+}
+.bw-gauge__arc--success {
+  stroke: var(--bw-color-success);
+}
+.bw-gauge__arc--warning {
+  stroke: var(--bw-color-warning);
+}
+.bw-gauge__arc--danger {
+  stroke: var(--bw-color-danger);
+}
+/* The visible numeric label (COL-030, VIZ-008): stacked in the SAME grid
+   cell as the svg via grid-area, so it sits centred inside the ring without
+   absolute positioning. Never aria-hidden: this is the one channel the
+   gauge's meaning is guaranteed to survive on with every colour and the arc
+   itself stripped away. */
+.bw-gauge__label {
+  grid-area: 1 / 1;
+  color: var(--bw-color-fg);
+  font-size: var(--bw-text-body-md-size);
+  font-weight: var(--bw-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+/* size arg (VIZ-010): modifiers re-point the diameter component token, the
+   same mechanism .bw-stat--sm/--lg use for their own value-size token. */
+.bw-gauge--sm {
+  inline-size: var(--bw-component-gauge-diameter-sm);
+  block-size: var(--bw-component-gauge-diameter-sm);
+}
+.bw-gauge--md {
+  inline-size: var(--bw-component-gauge-diameter-md);
+  block-size: var(--bw-component-gauge-diameter-md);
+}
+.bw-gauge--lg {
+  inline-size: var(--bw-component-gauge-diameter-lg);
+  block-size: var(--bw-component-gauge-diameter-lg);
+}
+/* Reduced motion: the arc's transition above is a state-change transition
+   (a value changing on a later htmx swap, say), not a decorative looping
+   animation, matching .bw-progress__fill's own ungated width transition; no
+   prefers-reduced-motion gate is needed for the same reason that one has
+   none. */
 
 /* --- Chart card (icvoss/django-brickwork CHT-001/002/003/024) --------------- */
 

@@ -8,13 +8,17 @@ from __future__ import annotations
 
 import math
 import re
+import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from html import unescape
+from html.parser import HTMLParser
 
 from django import template
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
+from django.utils.encoding import force_str
 from django.utils.html import conditional_escape, escape, format_html
 from django.utils.safestring import SafeData, SafeString, mark_safe
 from django.utils.translation import gettext
@@ -540,6 +544,612 @@ def _shape_ranked_list_row(raw: Mapping, *, amount: Decimal, denominator: Decima
         href=str(raw.get("href", "") or ""),
         attrs_html=bw_data_attrs(raw.get("data"), "ranked list row"),
     )
+
+
+# icvoss/django-brickwork VIZ-007 to VIZ-010: a gauge reads one quantity
+# against a fixed min/max, not an N-way comparison (bw_ranked_list's own
+# family boundary), so it deliberately keeps the SVG geometry fixed at a
+# 0-100 viewBox and expresses only the arc's dash geometry per instance.
+# threshold_bands resolves to one of these four names, never a caller-chosen
+# colour string: each is an ALREADY-SHIPPED semantic token (danger/warning/
+# success carry their own status meaning; accent is the shared ink used for
+# every other determinate-progress fill in the package, .bw-progress__fill
+# and .bw-ranked-list__bar__before both key off --bw-color-accent), so this
+# component ships no new colour token at all (colour tokens are semantic-tier
+# and per-theme-authored; this closed set already exists in both themes).
+_GAUGE_SIZES = _SIZES
+_GAUGE_THRESHOLD_TOKENS = {"accent", "success", "warning", "danger"}
+# A full circle's centre-to-edge angle in a 0-100 viewBox: r=40 leaves enough
+# margin inside a 100x100 box for the stroke width without clipping (VIZ-010
+# sizes only change the box's rendered diameter via CSS, never this radius,
+# so the geometry maths below is the same for every size).
+_GAUGE_VIEWBOX_RADIUS = 40.0
+_GAUGE_CIRCUMFERENCE = 2 * 3.141592653589793 * _GAUGE_VIEWBOX_RADIUS
+
+
+def _gauge_numeric(raw: object, *, name: str) -> Decimal:
+    """Coerce a gauge numeric argument (value/min/max) to ``Decimal``, the
+    same conversion `_validate_ranked_list_row` uses and for the same reason:
+    ``Decimal(str(x))`` never round-trips through float, so it cannot
+    silently under/overflow the way a caller-supplied `Decimal("1e10000")`
+    already has for `_ranked_list.html` (icvoss/django-brickwork adversarial
+    review, see `_validate_ranked_list_row`'s own docstring)."""
+    try:
+        if isinstance(raw, Decimal):
+            decimal_value = raw
+        elif isinstance(raw, bool):
+            decimal_value = Decimal(int(raw))
+        else:
+            decimal_value = Decimal(str(raw))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise TemplateSyntaxError(f"bw_gauge {name} must be numeric, got {raw!r}") from exc
+    if not decimal_value.is_finite():
+        raise TemplateSyntaxError(f"bw_gauge {name} must be a finite number, got {raw!r}")
+    return decimal_value
+
+
+def _gauge_threshold_token(percent: Decimal, threshold_bands: object) -> str:
+    """Resolve the arc's colour token from ``threshold_bands`` (VIZ-009): a
+    list of ``{"max": <numeric>, "token": <one of _GAUGE_THRESHOLD_TOKENS>}``
+    mappings, sorted here by ``max`` ascending, the first band whose ``max``
+    is greater than or equal to the current percent. ``threshold_bands=None``
+    (the default) or an empty list resolves to "accent" unconditionally,
+    which is the same colour a bare `_progress.html` fill already uses, so an
+    ungated gauge call reads exactly like the plain determinate case rather
+    than an unstyled or missing arc.
+
+    COL-030 is enforced structurally, not by this function: the resolved
+    token only ever selects a CSS class modifier on the decorative,
+    aria-hidden arc (never inline colour), and the template ALWAYS renders
+    either the caller's own visible-text label or, when the label carries no
+    visible text (empty, whitespace-only, or markup with no text content;
+    see ``_gauge_label_has_visible_text``), the numeric percentage as visible
+    text instead, regardless of which band, or whether any band, resolved. A
+    caller cannot construct a threshold-banded gauge whose value is not also
+    paired with visible text, because the template does not expose a way to
+    omit that text node."""
+    if threshold_bands is None:
+        return "accent"
+    if not isinstance(threshold_bands, list | tuple):
+        raise TemplateSyntaxError(f"bw_gauge threshold_bands must be a list/tuple of mappings, got {threshold_bands!r}")
+    if not threshold_bands:
+        return "accent"
+    parsed: list[tuple[Decimal, str]] = []
+    for raw_band in threshold_bands:
+        if not isinstance(raw_band, Mapping):
+            raise TemplateSyntaxError(f"bw_gauge threshold_bands entries must be mappings, got {raw_band!r}")
+        band_max = _gauge_numeric(raw_band.get("max"), name="threshold_bands max")
+        token = raw_band.get("token")
+        if token not in _GAUGE_THRESHOLD_TOKENS:
+            raise TemplateSyntaxError(
+                f"bw_gauge threshold_bands token must be one of {sorted(_GAUGE_THRESHOLD_TOKENS)}, got {token!r}"
+            )
+        parsed.append((band_max, token))
+    parsed.sort(key=lambda band: band[0])
+    for band_max, token in parsed:
+        if percent <= band_max:
+            return token
+    # every band's max is below the current percent: the highest band wins,
+    # matching a "90+ is success" band still applying at exactly 100.
+    return parsed[-1][1]
+
+
+# Tags whose own text content is never rendered on screen, only exposed to
+# assistive technology (title/desc) or not rendered as text at all
+# (script/style): a plain strip-the-tags-keep-the-text approach (this
+# function's own first version, django.utils.html.strip_tags) cannot
+# distinguish "this text is on screen" from "this text is somewhere in the
+# subtree", so mark_safe("<svg><title>73%</title></svg>") read as visible
+# text when it is, by definition, an accessible name a sighted user never
+# sees (found by adversarial review after the first COL-030 fix landed,
+# icvoss/django-brickwork COL-030). <img alt="..."> also carries text that
+# is never a text NODE (it lives in an attribute), which strip_tags happened
+# to discard for the unrelated reason that it discards all attributes.
+#
+# <template> and <noscript> were added after a further adversarial pass
+# found both render with an empty innerText and zero height in a real
+# browser (Chromium, verified directly rather than reasoned from the spec
+# alone). <template> content is the HTML5 "template contents", an inert
+# DocumentFragment that is never inserted into the rendered document by
+# parsing alone; nothing under it is ever on screen unless a caller's own
+# script clones and appends it, which this function cannot assume happened.
+# <noscript> is the mirror case: the HTML5 parsing spec places its content
+# in the "in head noscript"/"in body" insertion modes as literal, inert TEXT
+# when the "scripting flag" is enabled, which is the ordinary case for any
+# real browser with JavaScript on; only a scripting-disabled context (fixed
+# by the same spec) exposes and renders it. This package's own audience is a
+# sighted user in an ordinary browser with scripting enabled, so treating
+# <noscript> content as non-visible matches that browser's actual DEFAULT
+# rendering, not an unusual configuration.
+_GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS = frozenset({"title", "desc", "script", "style", "template", "noscript"})
+
+# The HTML5 VOID elements: by spec they can never have content (no closing
+# tag, nothing nested inside), so they can never themselves wrap visible
+# text and correctly never push a hiding state that would need popping.
+# Hand-enumerated, deliberately, rather than reached for a stdlib constant:
+# xml.etree.ElementTree.HTML_EMPTY exists but is an undocumented internal
+# detail of that module's own (deprecated) legacy HTML serialiser, not a
+# published "void elements" API, and its contents differ from the current
+# HTML5 spec (it also carries basefont/frame/isindex/param, obsolete HTML4
+# elements the current spec does not call void). Unlike the Unicode Cf
+# category used elsewhere in this function, where new characters are
+# assigned over time and a hand-enumerated set goes stale, the HTML5 void
+# element set is fixed by spec (WHATWG "void elements"): this list is not
+# expected to grow.
+_GAUGE_LABEL_VOID_TAGS = frozenset(
+    {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
+)
+
+
+class _GaugeLabelVisibleTextExtractor(HTMLParser):
+    """Collect only the text a sighted user would actually see when
+    ``gauge_label`` is rendered: text inside ``_GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS``
+    (accessible-name-only or non-text elements) and text inside any element
+    carrying ``aria-hidden="true"`` or the boolean ``hidden`` attribute is
+    excluded, everything else is kept, mirroring the same "own tag or any
+    ancestor" hiding shape ``tests/_encoding_contract.py`` already checks for
+    on the RENDERED side of this same component family.
+
+    Depth-tracked with a stack rather than a bare counter so a hidden
+    element's CLOSE only clears its own contribution: a counter that merely
+    incremented and decremented on tag name would also un-hide text that
+    follows a hidden sibling once a same-named tag anywhere closed.
+
+    VOID elements (``<br>``, ``<img>``, and the rest of
+    ``_GAUGE_LABEL_VOID_TAGS``) never push onto the hidden stack at all,
+    whether or not they carry ``aria-hidden``/``hidden``: ``HTMLParser``
+    never calls ``handle_endtag`` for a void element written without a
+    trailing slash (``<br aria-hidden="true">``, the ordinary spelling), so
+    pushing there and relying on a later pop left the stack permanently one
+    entry too deep, treating every sibling AFTER the void element as hidden
+    for the rest of the document (found by a further adversarial pass,
+    icvoss/django-brickwork COL-030). A void element can never have content
+    by the HTML5 spec (no closing tag, nothing nested inside it), so its own
+    hiding attributes are correctly irrelevant here regardless: there is no
+    text inside it that could need hiding, so not pushing for it loses
+    nothing. ``handle_startendtag`` (an explicit self-closing spelling,
+    ``<br aria-hidden="true"/>``, or a non-void tag mistakenly self-closed,
+    ``<span aria-hidden="true"/>``) is NOT overridden separately: the base
+    class's own default implementation calls ``handle_starttag`` then
+    ``handle_endtag`` in sequence for it, which is already exactly correct
+    once ``handle_starttag``/``handle_endtag`` are themselves correct, since
+    a self-closed element has no body either.
+
+    This failure mode is checked and confirmed to run in the SAFE direction
+    for every case exercised: unbalanced or void-heavy markup either loses a
+    caller's own label text (falls back to the number early) or leaves it
+    intact, but never the reverse (suppressing the number while the arc
+    keeps its threshold colour, which is the actual COL-030 violation this
+    whole function exists to prevent). A parser that pushed but never popped
+    correctly, as this one did before this fix, still failed on the SAFE
+    side of that line: it over-hid text, which forces MORE fallbacks to the
+    number, not fewer.
+
+    ``convert_charrefs=True`` (the parser's own default from Python 3.5) also
+    replaces the earlier separate ``html.unescape`` call: entities are
+    decoded once, during parsing, rather than as a second pass afterwards."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.chunks: list[str] = []
+        self._non_visible_depth = 0
+        self._hidden_stack: list[bool] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in _GAUGE_LABEL_VOID_TAGS:
+            # no handle_endtag will ever arrive for this tag (no slash), and
+            # it can carry no content anyway: contribute nothing to either
+            # stack rather than push an entry that would never be popped.
+            return
+        attrs_dict = dict(attrs)
+        if tag in _GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS:
+            self._non_visible_depth += 1
+        is_hidden = attrs_dict.get("aria-hidden") == "true" or "hidden" in attrs_dict
+        self._hidden_stack.append(is_hidden)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in _GAUGE_LABEL_VOID_TAGS:
+            # nothing was pushed for this tag in handle_starttag; nothing to
+            # pop. A real browser's parser does not treat a stray closing
+            # tag for a void element (malformed input) as balancing some
+            # OTHER element's opening tag either, so doing nothing here is
+            # the correct, conservative response, not merely a no-op default.
+            return
+        if tag in _GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS and self._non_visible_depth > 0:
+            self._non_visible_depth -= 1
+        if self._hidden_stack:
+            self._hidden_stack.pop()
+
+    def handle_data(self, data: str) -> None:
+        if self._non_visible_depth == 0 and not any(self._hidden_stack):
+            self.chunks.append(data)
+
+
+def _gauge_label_has_visible_text(gauge_label: object) -> bool:
+    """Whether ``gauge_label`` carries text this function can identify as
+    visible under HTML's DEFAULT rendering, absent any CSS the caller applies.
+
+    That wording is the honest scope, not hedging. "Is this text visible" is a
+    LAYOUT question and this is a PARSE-TREE instrument, so the two can never
+    fully meet: no markup-only check can see a stylesheet rule, a zero-size
+    ancestor, ``text-indent: -9999px``, ``visibility: collapse``, or a clip
+    path. Seven rounds of this guarantee leaking were each a case where the
+    true answer needed rendering, and each fix narrowed the approximation
+    without closing it, because the target property is not decidable from
+    markup alone.
+
+    So ``_GAUGE_LABEL_NON_VISIBLE_TEXT_TAGS`` is EMPIRICAL and dated, not a
+    spec table transcribed. It happens to converge with three separate spec
+    mechanisms rather than one: HTML's default UA stylesheet ``display: none``
+    set, ``<noscript>``'s parsing-mode rule (its content is inert text
+    whenever scripting is enabled, the ordinary case), and SVG's own
+    accessible-name elements, which the HTML UA stylesheet does not cover at
+    all. Deriving the list from any one of those would swap a hand-built list
+    for a differently-sourced one, still finite, still missing the others.
+
+    What makes this safe despite being incomplete is the FAILURE DIRECTION,
+    which is asserted and tested rather than hoped for: a case this cannot
+    detect degrades to discarding the caller's label in favour of the number.
+    That is a correctness annoyance, never the COL-030 violation the guarantee
+    exists to prevent. Over-hiding forces MORE fallbacks, never fewer.
+
+    The rest of the reasoning, "stripped, not merely truthy", is the same ``bw_chart_mount`` applies to ``aria_label``
+    (see that tag's own comment): a whitespace-only string is truthy in
+    Python and is not visible text, so testing truthiness alone would let
+    ``{% if gauge_label %}`` render an empty-looking label with no numeric
+    fallback, which is exactly the COL-030 defect this function exists to
+    close (icvoss/django-brickwork COL-030).
+
+    A defect HERE has two distinct failure directions, and only one of them
+    is the COL-030 violation: returning ``True`` for a label with no real
+    visible text (the number gets suppressed while the arc keeps its
+    threshold colour, meaning riding on colour alone) versus returning
+    ``False`` for a label that DOES carry visible text (a legitimate label
+    gets discarded in favour of the number, which is a correctness bug, not
+    an accessibility one, since the user still sees a number either way).
+    See ``_gauge.html``'s own Accessibility comment for the full statement
+    of this distinction and how to apply it when triaging a report against
+    this function.
+
+    Unlike ``aria_label``, ``gauge_label`` is a TRUSTED MARKUP slot (VIZ-008):
+    a caller may legitimately pass ``mark_safe("<strong>73%</strong>")``, so
+    this cannot strip or reject markup the way ``bw_chart_mount`` does.
+    Instead it tests for text CONTENT actually rendered on screen, via
+    ``_GaugeLabelVisibleTextExtractor`` above, while the caller (``bw_gauge``)
+    keeps passing the ORIGINAL value, safe marker intact, to the template.
+    This function only answers the yes/no question; it never mutates or
+    returns the label itself.
+
+    ``force_str(gauge_label)`` resolves LAZINESS first, before anything else
+    runs, because the branch below must see exactly what the template will
+    see. A lazily-wrapped safe string (``lazy(lambda: mark_safe(...), str)()``,
+    the shape ``gettext_lazy`` and similar produce) is an ordinary object of
+    that lazy library's own ``__proxy__`` type: it is not a ``str`` subclass
+    and carries no ``__html__`` attribute of its own, so a naive
+    ``isinstance(gauge_label, SafeString)`` check reads it as "plain", and a
+    naive plain-string branch that never parses markup would then read
+    ``<svg><title>73%</title></svg>`` as literal, ordinary characters and
+    conclude there is visible text (found by a further adversarial pass,
+    icvoss/django-brickwork COL-030). Django's own template variable
+    rendering (``django.template.base.render_value_in_context``) resolves
+    exactly this shape by calling ``str(value)`` on anything that is not
+    already a ``str`` subclass, which is what actually makes the lazy
+    wrapper's own ``__html__``-carrying result reach the template's
+    ``conditional_escape`` unescaped in the first place; ``force_str`` is the
+    named, public Django utility for that same "resolve to what will
+    actually be rendered" operation, so using it here rather than a bespoke
+    resolution keeps this function's decision aligned with the template's
+    own, rather than a second, independently-arrived-at opinion that could
+    drift from it.
+
+    Resolving via ``force_str`` does NOT itself repeat the ``.strip()``
+    failure mode this function documents below (a genuine string operation
+    that builds a fresh, unmarked ``str`` even when its input was safe):
+    ``force_str`` returns its argument UNCHANGED, by identity, when it is
+    already a ``str`` subclass (``issubclass(type(s), str): return s``), and
+    only falls through to a real ``str(s)`` call for a non-``str``-subclass
+    input. For the lazy case that matters here, ``str()`` on a
+    ``str``-resultclass lazy proxy invokes the wrapped callable and then
+    ``str()``s ITS result: if that result is already a ``SafeString`` (a
+    ``str`` subclass), THAT ``str()`` call is also an identity return by the
+    same rule, so the ``SafeString`` marker survives the whole resolution
+    intact, verified directly (``force_str(lazy(lambda: mark_safe(...), str)())``
+    returns a ``SafeString``, not a downgraded plain ``str``) rather than
+    assumed from reading the source alone.
+
+    Unlike ``aria_label``, ``gauge_label`` is a TRUSTED MARKUP slot (VIZ-008):
+    a caller may legitimately pass ``mark_safe("<strong>73%</strong>")``, so
+    this cannot strip or reject markup. The parser runs ONLY when the
+    RESOLVED value is a ``SafeString``: that is exactly the condition under
+    which the template will render it as real markup rather than
+    auto-escaped text (``_gauge.html``'s own ``{{ gauge_label }}`` still
+    auto-escapes an ordinary ``str``, matching every other Django template
+    variable). A plain ``str`` gets the simpler "unescape entities, strip,
+    test for a Cf-only remainder" check below with no HTML-structural
+    interpretation at all, because Django is going to render its literal
+    characters as escaped text, not as tags: parsing an UNTRUSTED plain
+    string as if it were markup is its own defect, not a safety margin, and
+    shipped as one. A caller-typed ``gauge_label="<script>steal()</script>"``
+    (no ``mark_safe``, ordinary text that merely contains angle brackets) is
+    real, VISIBLE text once escaped to ``&lt;script&gt;...``; running it
+    through the tag-aware extractor instead read the literal word "script"
+    as a real ``<script>`` element, discarded its text content by the same
+    rule that correctly discards a genuine trusted ``<script>``, and wrongly
+    forced the numeric fallback over the caller's own escaped text. Found by
+    rerunning this fix's own pre-existing test suite before reporting it as
+    done, which is exactly the "verify your own report" habit that catches a
+    defect a per-case teeth-check on the intended cases alone would not:
+    none of the round-two defect cases are a plain string, so a teeth-check
+    limited to them would not have exercised this branch at all.
+
+    An object defining only ``__html__`` (no ``mark_safe``, no ``SafeString``
+    subclass, e.g. a hand-written class with an ``__html__`` method and no
+    ``__str__``) is deliberately NOT treated as markup here, and this is
+    correct rather than a gap: Django's own ``render_value_in_context``
+    converts such an object with a bare ``str(value)`` BEFORE
+    ``conditional_escape`` ever runs (since it is not a ``str`` subclass),
+    which discards access to ``__html__`` entirely, so the template renders
+    it as escaped plain text too. Verified by rendering ``{{ v }}`` directly
+    for such an object rather than reasoned about from
+    ``conditional_escape``'s own logic in isolation: ``conditional_escape``
+    alone WOULD honour ``__html__`` on any object carrying it, which is a
+    different and wider rule than what the template's variable-output path
+    actually applies, and trusting that wider rule here would have "fixed" a
+    case that was never broken.
+
+    A real HTML parser (the stdlib's ``html.parser.HTMLParser``, no new
+    dependency), not ``django.utils.html.strip_tags`` plus a text scrape, for
+    the SafeString branch: the first version of this function used exactly
+    that combination and passed every case in the original defect report,
+    but a later adversarial pass found ``strip_tags`` keeps the TEXT CONTENT
+    of elements it cannot render visibly, only discarding the tags
+    themselves, so ``mark_safe("<svg><title>73%</title></svg>")`` read as
+    visible text when a sighted user never sees it (an SVG ``<title>`` is an
+    accessible name only). A regex-based fix for that one shape would have
+    been the same "enumerate what I've seen so far" defect the
+    ``&nbsp;``/format-character fix below already rejects; a real parser
+    tracking element nesting is the proportionate tool once the property
+    being tested depends on WHERE in the tree a character sits, not merely
+    which characters they are.
+
+    Deliberately NOT a general accessibility-tree resolver: the SafeString
+    branch only answers "does this trusted markup contain any visible text",
+    via the four named non-visible-text tags and the
+    ``aria-hidden``/``hidden`` attributes, the same named, closed set
+    ``tests/_encoding_contract.py`` already documents as this codebase's
+    honest boundary for a markup-level check (its own module docstring: five
+    named hiding mechanisms, not "every way an element can be hidden"). A
+    CSS rule hiding the label via an external stylesheet selector
+    (``<style>.bw-gauge__label{display:none}</style>``) is genuinely outside
+    what parsing markup can resolve, since that needs a real CSS cascade,
+    and is not attempted here (see the encoding-contract test coverage table
+    in the test suite for what closes that gap instead).
+
+    After extracting the visible text (the SafeString branch) or unescaping
+    entities (the plain-string branch), a string is still treated as empty
+    when every remaining character is Unicode general category ``Cf``
+    ("format"): zero-width space, zero-width non-joiner, the BOM and the
+    word joiner are all ``Cf`` and render as literally nothing on screen, the
+    same invisible-to-a-sighted-user argument the ``&nbsp;`` handling already
+    makes one category over (``Zs``, "space separator", which ``.strip()``
+    already removes on its own). Checked via
+    ``unicodedata.category(ch) == "Cf"`` per character, deliberately not a
+    hand-enumerated set of the four characters named above: ``Cf`` is a
+    stable Unicode property covering every current and future format
+    character, and an enumeration goes stale the moment a fifth one is used.
+
+    ``None`` is guarded explicitly first: an unguarded ``str(None)`` would
+    be fed onward as the literal four-character text ``"None"``, which would
+    wrongly test as visible text."""
+    if not gauge_label:
+        return False
+    # Resolve laziness BEFORE the isinstance check, not after: the branch
+    # below must see what the template will see, and force_str is a no-op
+    # (returns the same object) for anything already a str subclass, so this
+    # costs nothing for the ordinary str/SafeString cases the rest of this
+    # function was already written for.
+    resolved_label = force_str(gauge_label)
+    if isinstance(resolved_label, SafeString):
+        extractor = _GaugeLabelVisibleTextExtractor()
+        extractor.feed(str(resolved_label))
+        visible_text = "".join(extractor.chunks).strip()
+    else:
+        # A plain str is never parsed as markup: the template auto-escapes
+        # it verbatim, so this only needs entity-decoding (the "&nbsp;"
+        # shape, unlikely but not impossible in caller-typed plain text) and
+        # a strip, exactly as bw_chart_mount's own aria_label.strip() does.
+        visible_text = unescape(resolved_label).strip()
+    return any(unicodedata.category(ch) != "Cf" for ch in visible_text)
+
+
+@register.inclusion_tag("brickwork/components/_gauge.html")
+def bw_gauge(
+    *,
+    value: object,
+    min: object = 0,  # shadows the builtin `min`, deliberately: VIZ-007 names the public kwarg min/max/value
+    max: object = 100,  # shadows the builtin `max`, deliberately: see `min` above
+    label: str = "",
+    size: str = "md",
+    threshold_bands: object = None,
+    gauge_label: str | SafeString = "",
+    data: object = None,
+) -> dict:
+    """A circular progress ring (VIZ-007 to VIZ-010): one quantity read
+    against a fixed ``min``/``max``, rendered as an SVG ``<circle>`` whose
+    ``stroke-dasharray``/``stroke-dashoffset`` encode the percentage. No JS
+    or canvas: the arc is pure CSS-driven SVG, geometry computed HERE in
+    Python (mirroring ``bw_ranked_list``'s own promotion from a plain
+    include), never left to the template to build a dash string. A TAG,
+    not an ``{% include %}``, for the same reason ``bw_ranked_list`` is one:
+    ``min``/``max``/``threshold_bands`` need real validation against a
+    render-time TemplateSyntaxError, which an include has no seam for
+    (ADR-060 rule 2).
+
+    Required context:
+      value: the reading, numeric (int/float/Decimal/numeric string).
+    Optional:
+      min (default 0), max (default 100): the fixed range ``value`` reads
+          against. ``max`` must be strictly greater than ``min``, or this is
+          a render-time TemplateSyntaxError (a zero or negative range has no
+          meaningful percentage). ``value`` is clamped into ``[min, max]``
+          before the percentage is computed, so an out-of-range reading
+          renders a full or empty ring rather than an invalid dash length.
+      label: the accessible name (``aria-label``, ``role="img"`` on the SVG
+          root, mirroring ``bw_chart_mount``'s CHT-012 contract for a static
+          one-shot visual summary rather than a live task-progress control).
+          Omitted renders no ``aria-label``: give one when the gauge's
+          meaning is not already carried by an adjacent, associated heading.
+      size ("sm" | "md" | "lg", default "md", VIZ-010): the ring's rendered
+          diameter, via the ``--bw-component-gauge-diameter-*`` component
+          token. Any other value is a render-time TemplateSyntaxError
+          (ADR-060 rule 2).
+      threshold_bands (VIZ-009): a list of ``{"max": <numeric>,
+          "token": "accent" | "success" | "warning" | "danger"}`` mappings.
+          The arc's colour resolves to the first band (sorted by ``max``
+          ascending, computed here) whose ``max`` is at or above the current
+          percentage, falling back to the highest band past its max, or
+          plain "accent" when omitted, empty, or no percentage-basis
+          reading applies. Every token is an EXISTING semantic status
+          colour (no new token is authored for this: --bw-color-danger/
+          -warning/-success already carry their own meaning, and --bw-
+          color-accent is the same ink _progress.html's own determinate
+          fill already uses). COL-030 is structural here, not merely
+          documented: the resolved token only ever selects a class modifier
+          on the decorative, aria-hidden arc, and the numeric percentage
+          always renders as visible text regardless of which band (or
+          none) resolved, so a threshold colour can never ship without its
+          paired visible number.
+      gauge_label (VIZ-008, a pre-rendered safe string): overrides the text
+          rendered inside the ring. Mirrors ``_stat.html``'s own
+          ``sparkline`` seam (a caller-supplied SafeString, brickwork never
+          sanitises it, never pass unescaped user input here) rather than a
+          named block: this is an inclusion tag, and a plain
+          ``{% include %}``/inclusion-tag context has no block-filling seam
+          the way ``{% extends %}`` does. Omitted (the default), empty, or
+          carrying no visible text (whitespace-only, or markup with no text
+          content, e.g. ``mark_safe("<span></span>")``) all render the
+          computed percentage as ordinary escaped text instead, e.g. "73%"
+          (COL-030): the fallback is decided by visible TEXT CONTENT, never
+          by truthiness, so a caller cannot accidentally satisfy this seam
+          with something that looks empty. A label WITH visible text (plain
+          string or markup) always renders the caller's own value verbatim,
+          never falls back.
+      data: a mapping of consumer-owned ``data-*`` attributes for the gauge
+          root (component-level test hooks, mirroring ``_stat.html``'s and
+          ``bw_ranked_list``'s own root data seam).
+
+    States: a single populated state (no loading/empty variant: a gauge
+      always has a value once rendered, matching ``_progress.html``'s own
+      determinate case); the threshold band (if any) changes only the arc's
+      colour class, never its markup shape.
+    Accessibility: ``role="img"`` with ``aria-label`` from ``label`` when
+      given (CHT-012's own reasoning: a bare SVG root maps to no accessible-
+      name-bearing role without one). The percentage is ALWAYS rendered as
+      visible text inside the ring (COL-030), and the decorative arc/track
+      circles are ``aria-hidden="true"`` and carry no text of their own
+      (VIZ-015: deliberately no ``role="progressbar"``/``aria-valuenow``,
+      since a static, already-resolved reading is not the "toward a live
+      target" contract that role implies; that vocabulary belongs to
+      ``_progress.html`` alone). Covered by the encoding-contract helpers in
+      ``tests/_encoding_contract.py`` (ADR-081), the same machinery
+      ``bw_ranked_list`` is proven against, and by axe.spec.mjs against
+      gauge-*.html, both themes.
+    Responsive: no breakpoint switch; ``size`` is the fixed sm/md/lg token
+      scale (VIZ-010), never viewport-driven. Geometry (the SVG viewBox and
+      dash maths) is fixed at every size: only the rendered diameter, via
+      CSS, changes.
+    """
+    if size not in _GAUGE_SIZES:
+        raise TemplateSyntaxError(f"bw_gauge size must be one of {sorted(_GAUGE_SIZES)}, got {size!r}")
+    min_value = _gauge_numeric(min, name="min")
+    max_value = _gauge_numeric(max, name="max")
+    if max_value <= min_value:
+        raise TemplateSyntaxError(f"bw_gauge max ({max_value}) must be strictly greater than min ({min_value})")
+    raw_value = _gauge_numeric(value, name="value")
+    # The `min`/`max` PARAMETERS above shadow the builtins for the rest of
+    # this function body, which is exactly why the clamp below is written as
+    # explicit comparisons rather than calling min()/max(): a bare min(...)
+    # here would call this function's own `min` argument (a Decimal), not
+    # the builtin, and raise TypeError immediately.
+    clamped_value = raw_value
+    if clamped_value < min_value:
+        clamped_value = min_value
+    elif clamped_value > max_value:
+        clamped_value = max_value
+    percent = ((clamped_value - min_value) / (max_value - min_value)) * 100
+    if percent < 0:
+        percent = Decimal(0)
+    elif percent > 100:
+        percent = Decimal(100)
+    threshold_token = _gauge_threshold_token(percent, threshold_bands)
+
+    # Geometry as floats formatted to a fixed 2-decimal-place pattern (never
+    # a Decimal or a caller-influenced string): a value built this way cannot
+    # carry a quote character into the style="..." attribute it lands in, so
+    # there is nothing here for an escaping step to defend, which is the
+    # safe-by-construction property this component is built to (see the
+    # module's own worked defect history on _validate_ranked_list_row).
+    percent_float = float(percent)
+    dash_offset = _GAUGE_CIRCUMFERENCE * (1 - percent_float / 100)
+
+    return {
+        # ATTRIBUTE position (icvoss/django-brickwork#339, #352): the template
+        # renders this INSIDE the quotes, as aria-label="{{ label }}", so it
+        # needs escape() and NOT normalise_accessible_name. That helper is
+        # right for a value the template escapes; it returns a SafeString, so
+        # here it would suppress the template's own escaping and the quote in
+        # mark_safe('" onload="alert(1)') would still close the attribute.
+        # Verified by render rather than assumed: with the helper applied the
+        # breakout survived; with escape() it does not.
+        #
+        # The contrast is _toggle.html's `{{ label }}`, which is TEXT content
+        # and correctly uses the helper. Identical-looking code, different
+        # position, opposite treatment: #351's "same value, same strip,
+        # different downstream". The position is a property of the TEMPLATE,
+        # not of the tag, so it must be read there rather than inferred from
+        # what neighbouring tags do.
+        #
+        # `gauge_label` below is the third case: a trusted-markup slot
+        # (VIZ-008), passed through raw, deliberately getting neither.
+        # ATTRIBUTE position (icvoss/django-brickwork#339, #352). The tag
+        # only strips and coerces; the ESCAPING is done in the template with
+        # an explicit |force_escape, because the position is a property of
+        # the template rather than of the tag.
+        #
+        # Neither of the two obvious tag-side fixes works here, both measured
+        # rather than reasoned about:
+        #   normalise_accessible_name alone -> returns a SafeString, so the
+        #     template does not escape it and mark_safe('" onload="...')
+        #     still closes the attribute.
+        #   escape(force_str(label).strip()) -> closes the breakout but
+        #     double-escapes, rendering format_html("Tom {} more", "&") as
+        #     "Tom &amp;amp; more", the exact corruption #352 fixed.
+        # The strip must therefore keep the value UNSAFE here, and the
+        # template escapes exactly once at the point that knows it is inside
+        # quotes.
+        #
+        # The contrast is _toggle.html's `{{ label }}`, TEXT content, where
+        # normalise_accessible_name IS correct. Identical-looking code,
+        # opposite treatment: #351's "same value, same strip, different
+        # downstream". `gauge_label` is a third case again, a trusted-markup
+        # slot (VIZ-008) passed through raw.
+        "label": label,
+        "size": size,
+        "threshold_token": threshold_token,
+        "circumference": f"{_GAUGE_CIRCUMFERENCE:.2f}",
+        "dash_offset": f"{dash_offset:.2f}",
+        "radius": f"{_GAUGE_VIEWBOX_RADIUS:.2f}",
+        "percent_display": str(int(percent.to_integral_value())),
+        # The DECISION (has visible text) is computed here, not left to the
+        # template's own truthiness test (COL-030 fix): the template branches
+        # on this boolean, never on `gauge_label` itself. `gauge_label` below
+        # is still the caller's ORIGINAL value, safe marker intact, so a
+        # `mark_safe(...)` label renders its markup verbatim rather than
+        # escaped; only the boolean decision is derived from a stripped copy.
+        "gauge_label_has_text": _gauge_label_has_visible_text(gauge_label),
+        "gauge_label": gauge_label,
+        "attrs_html": bw_data_attrs(data, "gauge"),
+    }
 
 
 @register.simple_tag

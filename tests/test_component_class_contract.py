@@ -300,6 +300,19 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     "bw_chart_mount (decorative)": lambda: _tag(
         "brickwork_components", '{% bw_chart_mount decorative=True min_height="20rem" %}'
     ),
+    "bw_gauge (threshold_bands, label, size=lg)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_gauge value=value label='CPU load' size='lg' threshold_bands=bands %}",
+        value=65,
+        bands=[
+            {"max": 50, "token": "danger"},
+            {"max": 80, "token": "warning"},
+            {"max": 100, "token": "success"},
+        ],
+    ),
+    "bw_gauge (default accent, size=sm)": lambda: _tag(
+        "brickwork_components", "{% bw_gauge value=value size='sm' %}", value=42
+    ),
     "_data_table (records, selectable, sticky, stack, sorted)": lambda: _include(
         "brickwork/components/_data_table.html",
         table_id="invoices",
@@ -800,6 +813,7 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_stat",
         "_trend_indicator",
         "_ranked_list",
+        "_gauge",
         "_chart_card",
         "_sparkline",
         "_data_table",

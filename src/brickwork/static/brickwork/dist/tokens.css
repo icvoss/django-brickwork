@@ -121,6 +121,10 @@
   --bw-font-tracking-normal: 0em;
   --bw-font-tracking-wide: 0.025em;
   --bw-font-tracking-wider: 0.05em;
+  --bw-component-gauge-diameter-sm: 4rem;
+  --bw-component-gauge-diameter-md: 5rem;
+  --bw-component-gauge-diameter-lg: 6rem;
+  --bw-component-gauge-stroke-width: 8;
   --bw-text-heading-display-family: var(--bw-font-family-display);
   --bw-text-heading-display-size: var(--bw-font-size-5xl);
   --bw-text-heading-display-line-height: var(--bw-font-line-height-tight);
@@ -512,6 +516,10 @@
   --bw-content-max-width-marketing: var(--bw-component-content-max-width-marketing);
   --bw-disabled-opacity: var(--bw-component-disabled-opacity);
   --bw-drawer-width: var(--bw-component-drawer-width);
+  --bw-gauge-diameter-lg: var(--bw-component-gauge-diameter-lg);
+  --bw-gauge-diameter-md: var(--bw-component-gauge-diameter-md);
+  --bw-gauge-diameter-sm: var(--bw-component-gauge-diameter-sm);
+  --bw-gauge-stroke-width: var(--bw-component-gauge-stroke-width);
   --bw-htmx-indicator-opacity: var(--bw-component-htmx-indicator-opacity);
   --bw-icon-size-2xl: var(--bw-component-icon-size-2xl);
   --bw-icon-size-lg: var(--bw-component-icon-size-lg);
