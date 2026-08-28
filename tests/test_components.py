@@ -26,6 +26,81 @@ def _render(snippet: str, **ctx: object) -> str:
     return Template("{% load brickwork_components %}" + snippet).render(Context(ctx))
 
 
+# --- normalise_accessible_name (icvoss/django-brickwork#330) ---------------
+#
+# The shared helper behind bw_button's aria_label, bw_toggle's label,
+# bw_dropdown's aria_label/trigger_label/item label, and bw_tabs' tab label.
+# Exercised directly here for the requirement-by-requirement pin from #330;
+# the per-tag tests elsewhere in this file and in test_inputs.py/
+# test_dropdown.py/test_tabs.py exercise the same requirements through
+# ordinary template syntax at each call site.
+
+
+def test_normalise_accessible_name_requirement_1_safe_ampersand_not_double_escaped() -> None:
+    from django.utils.html import format_html
+
+    from brickwork.templatetags.brickwork_components import normalise_accessible_name
+
+    label = format_html("Tom {} more", "&")
+    out = Template("{{ label }}").render(Context({"label": normalise_accessible_name(label)}))
+    assert out == "Tom &amp; more"  # single-escaped source; displays as "Tom & more"
+
+
+def test_normalise_accessible_name_requirement_2_non_str_does_not_raise() -> None:
+    from brickwork.templatetags.brickwork_components import normalise_accessible_name
+
+    assert normalise_accessible_name(5) == "5"
+
+
+def test_normalise_accessible_name_requirement_3_str_able_object_renders_str_form() -> None:
+    from brickwork.templatetags.brickwork_components import normalise_accessible_name
+
+    class _Obj:
+        def __str__(self) -> str:
+            return "Widget One"
+
+    assert normalise_accessible_name(_Obj()) == "Widget One"
+
+
+def test_normalise_accessible_name_requirement_4_padded_string_is_stripped() -> None:
+    from brickwork.templatetags.brickwork_components import normalise_accessible_name
+
+    assert normalise_accessible_name("  Save  ") == "Save"
+
+
+def test_normalise_accessible_name_requirement_5_blank_string_is_falsy() -> None:
+    from brickwork.templatetags.brickwork_components import normalise_accessible_name
+
+    assert not normalise_accessible_name("   ")
+
+
+def test_normalise_accessible_name_requirement_6_mark_safe_bold_not_escaped() -> None:
+    from django.utils.safestring import mark_safe
+
+    from brickwork.templatetags.brickwork_components import normalise_accessible_name
+
+    out = Template("{{ label }}").render(Context({"label": normalise_accessible_name(mark_safe("<b>x</b>"))}))
+    assert out == "<b>x</b>"  # bold, not escaped text
+
+
+def test_normalise_accessible_name_requirement_7_gettext_lazy_still_works() -> None:
+    from django.utils.translation import gettext_lazy
+
+    from brickwork.templatetags.brickwork_components import normalise_accessible_name
+
+    assert normalise_accessible_name(gettext_lazy("  Save  ")) == "Save"
+
+
+def test_normalise_accessible_name_requirement_8_plain_ampersand_still_escaped() -> None:
+    # The trap: an ordinary never-safe string must still render escaped, or
+    # every consumer label becomes an injection vector (the #329 defect
+    # class this whole fix exists downstream of).
+    from brickwork.templatetags.brickwork_components import normalise_accessible_name
+
+    out = Template("{{ label }}").render(Context({"label": normalise_accessible_name("Tom & more")}))
+    assert out == "Tom &amp; more"
+
+
 # --- button ---------------------------------------------------------------
 
 
@@ -61,6 +136,72 @@ def test_button_icon_only_whitespace_only_aria_label_is_not_a_name(blank: str) -
 def test_button_icon_only_padded_aria_label_is_stripped_not_rejected() -> None:
     out = _render('{% bw_button icon="trash" icon_only=True aria_label="  Delete  " %}')
     assert 'aria-label="Delete"' in out
+
+
+def test_button_non_str_aria_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: a bare aria_label.strip() raised AttributeError on any
+    # non-str value. Rendered through ordinary template syntax, the route the
+    # regression actually reaches a consumer through, not a direct call.
+    # Fails without the fix (AttributeError: 'int' object has no attribute
+    # 'strip').
+    out = _render('{% bw_button icon="trash" icon_only=True aria_label=n %}', n=5)
+    assert 'aria-label="5"' in out
+
+
+def test_button_gettext_lazy_aria_label_still_works_and_is_stripped() -> None:
+    # #330 requirement 7: gettext_lazy worked before the #327 strip was added
+    # (a lazy proxy only becomes a str when str()'d/escaped); must keep working.
+    from django.utils.translation import gettext_lazy
+
+    out = _render('{% bw_button icon="trash" icon_only=True aria_label=n %}', n=gettext_lazy("  Delete  "))
+    assert 'aria-label="Delete"' in out
+
+
+def test_button_mark_safed_aria_label_is_not_double_escaped() -> None:
+    # #330 regression 2: SafeString.strip() (and str.strip(), which
+    # SafeString inherits unchanged) returns a plain str, dropping __html__,
+    # so a caller-supplied format_html value was escaped a SECOND time by the
+    # template's own auto-escaping. Fails without the fix: renders
+    # "Tom &amp; more" instead of the correct "Tom &amp; more" source that
+    # displays as "Tom & more" (i.e. it would show up as double-encoded
+    # &amp;amp; if the naive str(x).strip() fix were used, or the browser
+    # would show &amp; literally if the marker were simply lost).
+    from django.utils.html import format_html
+
+    label = format_html("Tom {} more", "&")
+    out = _render('{% bw_button icon="trash" icon_only=True aria_label=n %}', n=label)
+    assert 'aria-label="Tom &amp; more"' in out  # single-escaped source, correct
+    assert "&amp;amp;" not in out  # NOT double-escaped
+
+
+def test_button_plain_ampersand_aria_label_is_still_escaped() -> None:
+    # #330 requirement 8, the trap: an ordinary never-safe string must still
+    # be escaped normally. If the fix instead blanket-marked every aria_label
+    # safe, this would regress to an injection vector (the exact #329 defect
+    # class). Fails if the fix over-corrects into "everything is safe".
+    out = _render('{% bw_button icon="trash" icon_only=True aria_label="Tom & more" %}')
+    assert 'aria-label="Tom &amp; more"' in out
+
+
+def test_button_mark_safe_bold_aria_label_is_not_re_escaped() -> None:
+    # #330 requirement 6: mark_safe's existing documented pass-through
+    # behaviour (a consumer already trusted to author safe HTML) must not
+    # regress into escaped text.
+    from django.utils.safestring import mark_safe
+
+    out = _render('{% bw_button icon="trash" icon_only=True aria_label=n %}', n=mark_safe("<b>x</b>"))
+    assert 'aria-label="<b>x</b>"' in out
+
+
+def test_button_whitespace_only_aria_label_on_non_icon_only_path_omits_attribute() -> None:
+    # #330 "ALSO" behaviour change: aria_label is optional (not hard-required)
+    # when icon_only is not set, so a whitespace-only value strips to "" and
+    # _button.html's {% if aria_label %} then omits the attribute entirely,
+    # rather than raising or emitting the stale unstripped value. The button
+    # still carries its own visible label, so it is not left unnamed.
+    out = _render('{% bw_button "Save" aria_label="   " %}')
+    assert "aria-label=" not in out
+    assert "Save" in out  # the visible label still names the control
 
 
 def test_button_icon_only_with_label_omits_visible_text() -> None:

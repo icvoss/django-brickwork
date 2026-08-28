@@ -185,6 +185,29 @@ def test_padded_label_is_stripped_not_rejected() -> None:
     assert 'aria-label="Delete item"' in out
 
 
+def test_non_str_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: bw_icon's label = label.strip() raised AttributeError
+    # on any non-str value. Rendered through ordinary template syntax (not a
+    # direct call), since that is how the regression actually reaches a
+    # consumer: {% bw_icon n label=n %} with an int context variable is
+    # entirely ordinary Django, not a contrived call. Fails without the fix
+    # (AttributeError: 'int' object has no attribute 'strip').
+    out = _render('{% bw_icon "trash" label=n %}', n=5)
+    assert 'aria-label="5"' in out
+
+
+def test_str_able_object_label_renders_its_str_form() -> None:
+    # A model instance or any other __str__-able object as a label is
+    # ordinary Django usage. Fails without the fix for the same reason as
+    # the int case above.
+    class _Labelled:
+        def __str__(self) -> str:
+            return "Widget One"
+
+    out = _render('{% bw_icon "trash" label=obj %}', obj=_Labelled())
+    assert 'aria-label="Widget One"' in out
+
+
 # --- injection safety (ICO-003) -------------------------------------------
 
 
@@ -344,6 +367,23 @@ def test_reregistering_a_seed_name_overrides_and_keeps_the_directional_flag() ->
         assert is_directional("chevron-forward")
     finally:
         register_icons({"chevron-forward": original})  # revert = register back
+
+
+def test_registered_icon_markup_is_trusted_by_contract_not_vetted() -> None:
+    # Documents the corrected bw_icon noqa justification (icvoss/django-brickwork
+    # #330): register_icons() is a public, documented API (ICO-002/ICO-012) that
+    # merges its mapping into the registry with no validation. This is NOT a bug
+    # to fix here (that is a separate, deliberately out-of-scope design
+    # decision): it is the same trust boundary as any other mark_safe call, and
+    # this test exists so the "inner is vetted" claim never silently regresses
+    # back into the noqa comment without a test noticing the registry has no
+    # gate. A consumer registering unsanitised markup gets it rendered raw.
+    try:
+        register_icons({"pwn-330": '"><script>alert(1)</script>'})
+        out = bw_icon("pwn-330", decorative=True)
+        assert "<script>alert(1)</script>" in out
+    finally:
+        icons._registry._ICONS.pop("pwn-330", None)
 
 
 # --- the chrome-internal name list is documented and cannot rot (#77) ------

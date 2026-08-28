@@ -188,6 +188,36 @@ def test_tab_key_with_whitespace_is_rejected_by_the_existing_id_token_guard() ->
         _render(tabs=tabs, active="one")
 
 
+def test_non_str_tab_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: _shape_tab's str(label).strip() raised AttributeError
+    # on any non-str value (this dict-field site is not one of the five
+    # direct-kwarg sites but shares the same bug shape). Fails without the fix.
+    tabs = [{"key": "one", "label": 5}]
+    html = _render(tabs=tabs, active="one")
+    assert '<span class="bw-tabs__label">5</span>' in html
+
+
+def test_mark_safed_tab_label_is_not_double_escaped() -> None:
+    # #330 regression 2: str(label).strip() dropped __html__ from a caller-
+    # supplied SafeString, so the template's own auto-escaping (_tabs.html
+    # renders tab.label through plain {{ }}, never |safe) escaped it a
+    # second time. Fails without the fix.
+    from django.utils.html import format_html
+
+    tabs = [{"key": "one", "label": format_html("Tom {} more", "&")}]
+    html = _render(tabs=tabs, active="one")
+    assert "Tom &amp; more" in html
+    assert "&amp;amp;" not in html
+
+
+def test_plain_ampersand_tab_label_is_still_escaped() -> None:
+    # #330 requirement 8, the trap: an ordinary never-safe string must still
+    # be escaped normally.
+    tabs = [{"key": "one", "label": "Tom & more"}]
+    html = _render(tabs=tabs, active="one")
+    assert "Tom &amp; more" in html
+
+
 # --- the tab_panel partial (semver-public, BR-BW-TPL-001) --------------------
 
 

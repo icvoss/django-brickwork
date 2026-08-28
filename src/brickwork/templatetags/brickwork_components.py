@@ -15,7 +15,7 @@ from decimal import Decimal, InvalidOperation
 from django import template
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
-from django.utils.html import escape, format_html
+from django.utils.html import conditional_escape, escape, format_html
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
 
@@ -51,6 +51,57 @@ _SKELETON_VARIANTS = {"text", "title", "row", "block"}
 # exactly that reason.
 _BADGE_VARIANTS = {"neutral", "info", "success", "warning", "danger"}
 _DATA_ATTRIBUTE_NAME_RE = re.compile(r"^data-[a-z][a-z0-9_.:-]*$")
+
+
+def normalise_accessible_name(value: object) -> SafeString:
+    """Coerce an accessible-name argument (label/aria_label/trigger_label/...)
+    to a stripped, template-safe string, without corrupting an already-safe
+    value or a non-str value (icvoss/django-brickwork#329, #330).
+
+    Two failure modes, both reproducible through ordinary template syntax,
+    made a bare ``value.strip()`` wrong for this seam:
+
+    1. **Non-str input.** A consumer passing an int, a model instance, or any
+       other ``__str__``-able object (all ordinary through
+       ``{% bw_toggle some_obj id="x" %}``) raised ``AttributeError`` on
+       ``.strip()``, since only ``str`` has that method.
+    2. **Double-escaping a SafeString.** ``str.strip()`` (and ``SafeString``
+       inherits it unchanged) always returns a plain ``str``, never a
+       ``SafeString``: Python's str subclass methods do not preserve the
+       subclass. A caller-supplied ``mark_safe``/``format_html`` value (a
+       realistic source per #329's own changelog entry: a model property, a
+       ``format_html`` call) lost its ``__html__`` marker on ``.strip()``, so
+       the template's own auto-escaping then escaped it a second time,
+       visibly corrupting text such as ``format_html("Tom {} more", "&")``
+       into a displayed ``Tom &amp; more``.
+
+    ``conditional_escape`` is the fix for both at once: it honours
+    ``__html__`` when present (a SafeString/lazy-safe value passes through
+    unescaped, fixing 2) and otherwise escapes, so a plain object first
+    needs coercing to ``str`` (fixing 1: ``conditional_escape`` itself is
+    typed for ``str | lazy | SafeData``, not arbitrary objects, mirroring
+    ``bw_data_attrs``'s own ``escape(str(value))`` above). A value that is
+    already a ``str``/``SafeString``/lazy proxy passes through ``str()``
+    unchanged (``str(x) is x`` for a plain ``str``, and ``str()`` of a lazy
+    proxy resolves it, which ``conditional_escape`` already does internally
+    too), so this coercion never double-resolves or reformats a value
+    ``conditional_escape`` would otherwise have handled directly.
+
+    Stripping the *escaped* text cannot reintroduce the double-escape,
+    because whitespace trimming never touches markup content, and the
+    result is re-wrapped in ``mark_safe`` because ``str.strip()`` degrades
+    even a ``SafeString`` input back to plain ``str`` (Python's ``str``
+    subclass methods do not preserve the subclass).
+
+    An ordinary, never-marked-safe string (the common case) is unaffected in
+    substance: ``conditional_escape`` escapes it exactly as the template's
+    own auto-escaping would have, so wrapping that already-escaped result in
+    ``mark_safe`` and letting the auto-escaping no-op over it renders
+    identically to leaving it unescaped and auto-escaped once. Only a value
+    that was ALREADY safe changes behaviour, which is the point: that is the
+    one case ordinary auto-escaping alone gets wrong.
+    """
+    return mark_safe(conditional_escape(str(value) if not isinstance(value, str) else value).strip())
 
 
 @register.simple_tag
@@ -133,8 +184,10 @@ def bw_button(
     # Stripped before testing, not merely truthiness-tested: a whitespace-only
     # aria_label is truthy in Python and is NOT an accessible name to any
     # screen reader (bw_chart_mount's own aria_label precedent,
-    # brickwork_components.py:517).
-    aria_label = aria_label.strip()
+    # brickwork_components.py:517). normalise_accessible_name (not a bare
+    # .strip()) also coerces a non-str value and preserves an already-safe
+    # one without double-escaping it (icvoss/django-brickwork#330).
+    aria_label = normalise_accessible_name(aria_label)
     if icon_only and not aria_label:
         raise TemplateSyntaxError(
             "bw_button icon_only=True requires aria_label= (an icon-only button "
@@ -268,7 +321,10 @@ def bw_toggle(
     # label is truthy in Python and is NOT an accessible name to any screen
     # reader (the bw_chart_mount aria_label precedent, brickwork_components.py:517),
     # so the "requires a non-empty label" claim below is only true once this runs.
-    label = label.strip()
+    # normalise_accessible_name (not a bare .strip()) also coerces a non-str
+    # value and preserves an already-safe one without double-escaping it
+    # (icvoss/django-brickwork#330).
+    label = normalise_accessible_name(label)
     if not label:
         raise TemplateSyntaxError(
             "bw_toggle requires a non-empty label (a switch with no accessible name is a WCAG 4.1.2 failure)."

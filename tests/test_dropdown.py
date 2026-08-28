@@ -292,6 +292,62 @@ def test_item_padded_label_is_stripped_not_rejected() -> None:
     assert "  Widgets  " not in html
 
 
+# --- #330: strip regressions (AttributeError on non-str, double-escape on
+# --- an already-safe value) across aria_label/trigger_label/item label ------
+
+
+def test_non_str_trigger_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: trigger_label.strip() raised AttributeError on any
+    # non-str value. Fails without the fix.
+    html = _render("{% bw_dropdown items=items trigger_label=n %}", n=5)
+    assert 'bw-btn__label">5<' in html
+
+
+def test_non_str_aria_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    html = _render(
+        "{% bw_dropdown items=items icon_only=True aria_label=n trigger_icon='more-horizontal' %}",
+        n=5,
+    )
+    assert 'aria-label="5"' in html
+
+
+def test_mark_safed_trigger_label_is_not_double_escaped() -> None:
+    # #330 regression 2: a bare .strip() dropped __html__ from a caller-
+    # supplied SafeString, so the template's own auto-escaping escaped it a
+    # second time. Fails without the fix.
+    from django.utils.html import format_html
+
+    label = format_html("Tom {} more", "&")
+    html = _render("{% bw_dropdown items=items trigger_label=n %}", n=label)
+    assert "Tom &amp; more" in html
+    assert "&amp;amp;" not in html
+
+
+def test_plain_ampersand_trigger_label_is_still_escaped() -> None:
+    # #330 requirement 8, the trap: an ordinary never-safe string must still
+    # be escaped normally, not blanket-marked safe.
+    html = _render("{% bw_dropdown items=items trigger_label='Tom & more' %}")
+    assert "Tom &amp; more" in html
+
+
+def test_mark_safed_item_label_is_not_double_escaped() -> None:
+    from django.utils.html import format_html
+
+    items = [{"label": format_html("Tom {} more", "&"), "url": "/x/"}]
+    html = _render(items=items)
+    assert "Tom &amp; more" in html
+    assert "&amp;amp;" not in html
+
+
+def test_non_str_item_label_via_ordinary_template_syntax_does_not_raise() -> None:
+    # #330 regression: _shape_menu_item's str(label).strip() (the dict-field
+    # site) also needed the fix; this is not one of the five direct-kwarg
+    # sites but shares the same bug shape. None-safety must be preserved too.
+    items = [{"label": 5, "url": "/x/"}]
+    html = _render(items=items)
+    assert 'class="bw-dropdown__item-label">5</span>' in html
+
+
 # --- the shipped JS bundle contract ------------------------------------------
 
 
