@@ -6,12 +6,12 @@
     "shells": 5,
     "components": 48,
     "sections": 26,
-    "archetypes": 20
+    "archetypes": 21
   },
   "families": [
     {
       "name": "Data-heavy operations",
-      "archetypeCount": 4,
+      "archetypeCount": 5,
       "sectionCount": 0
     },
     {
@@ -270,6 +270,24 @@
       ]
     },
     {
+      "name": "examples/ops/analysis-dashboard.html",
+      "kind": "archetype",
+      "family": "Data-heavy operations",
+      "templatePath": "examples/ops/analysis-dashboard.html",
+      "docSource": "examples/ops/analysis-dashboard.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_button.html",
+        "brickwork/components/_chart_card.html",
+        "brickwork/components/_gauge.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_ranked_list.html",
+        "brickwork/components/_scorecard.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
+    {
       "name": "examples/ops/audit-trail.html",
       "kind": "archetype",
       "family": "Data-heavy operations",
@@ -419,6 +437,7 @@
         "marketing/about.html",
         "marketing/landing.html",
         "marketing/pricing.html",
+        "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
         "ops/queue.html",
@@ -446,7 +465,9 @@
       "templatePath": "brickwork/components/_chart_card.html",
       "docSource": "brickwork/components/_chart_card.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "ops/analysis-dashboard.html"
+      ],
       "usedBySections": []
     },
     {
@@ -595,7 +616,9 @@
       "templatePath": "brickwork/components/_gauge.html",
       "docSource": "brickwork/components/_gauge.html",
       "consumption": "tag",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "ops/analysis-dashboard.html"
+      ],
       "usedBySections": []
     },
     {
@@ -655,6 +678,7 @@
         "app/list.html",
         "app/settings.html",
         "app/wizard.html",
+        "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
         "ops/queue.html",
@@ -720,6 +744,7 @@
       "docSource": "brickwork/components/_ranked_list.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/report.html"
       ],
@@ -732,7 +757,9 @@
       "templatePath": "brickwork/components/_scorecard.html",
       "docSource": "brickwork/components/_scorecard.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "ops/analysis-dashboard.html"
+      ],
       "usedBySections": []
     },
     {
@@ -1226,6 +1253,7 @@
         "app/list.html",
         "app/settings.html",
         "app/wizard.html",
+        "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
         "ops/queue.html",

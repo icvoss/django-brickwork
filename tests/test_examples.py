@@ -24,6 +24,7 @@ import pytest
 from django import forms
 from django.template import Context, Engine, TemplateDoesNotExist
 from django.template.backends.django import get_installed_libraries as get_default_libraries
+from django.template.loader import render_to_string
 from django.template.loader import get_template
 from django.utils import dates as django_dates
 from django.utils.formats import get_format
@@ -166,6 +167,74 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
     },
     "ops/comparison.html": _NAV_CONTEXT,
+    "ops/analysis-dashboard.html": {
+        **_NAV_CONTEXT,
+        # _scorecard.html takes {content, span} dicts whose content is
+        # already-rendered safe markup: a Django template can build neither the
+        # list nor the rendered content, so this one grid comes from the view.
+        # Mirrors a11y/generate_fixtures.py's own render_scorecard() shape.
+        "headline_tiles": [
+            {
+                "content": mark_safe(  # noqa: S308 (example-authored trusted markup)
+                    render_to_string(
+                        "brickwork/components/_stat_comparison.html",
+                        {
+                            "label": "Net revenue",
+                            "current": "GBP 1.24m",
+                            "previous": "GBP 1.08m",
+                            "period_label": "same quarter last year",
+                            "trend": "up",
+                            "trend_label": "15% higher",
+                            "size": "lg",
+                        },
+                    )
+                ),
+                "span": 2,
+            },
+            {
+                "content": mark_safe(  # noqa: S308 (example-authored trusted markup)
+                    render_to_string(
+                        "brickwork/components/_stat.html",
+                        {"label": "New accounts", "value": "412", "trend": "up", "trend_label": "38 more than Q2"},
+                    )
+                )
+            },
+            {
+                "content": mark_safe(  # noqa: S308 (example-authored trusted markup)
+                    render_to_string(
+                        "brickwork/components/_stat.html",
+                        # A falling cost moved DOWN, so trend="down"; the
+                        # judgement that this is good news lives in the label.
+                        {
+                            "label": "Cost per account",
+                            "value": "GBP 38.10",
+                            "trend": "down",
+                            "trend_label": "18% lower, which is the target",
+                        },
+                    )
+                )
+            },
+        ],
+        "revenue_mount": mark_safe(  # noqa: S308 (example-authored trusted markup)
+            '<div class="bw-chart-mount" data-bw-chart role="img" '
+            'aria-label="Net revenue by month, Q3 2026"></div>'
+        ),
+        "channel_rows": [
+            {"label": "Direct sales", "amount": 612000, "value": "GBP 612k"},
+            {"label": "Partner referrals", "amount": 398000, "value": "GBP 398k"},
+            {"label": "Self-serve", "amount": 230000, "value": "GBP 230k"},
+        ],
+        "region_rows": [
+            {"label": "United Kingdom", "amount": 704000, "value": "GBP 704k"},
+            {"label": "Ireland", "amount": 341000, "value": "GBP 341k"},
+            {"label": "Netherlands", "amount": 195000, "value": "GBP 195k"},
+        ],
+        "target_bands": [
+            {"max": 50, "token": "danger"},
+            {"max": 75, "token": "warning"},
+            {"max": 100, "token": "success"},
+        ],
+    },
     "auth/signin.html": {"form": _ExampleForm()},
     "auth/signup.html": {"form": _ExampleForm()},
     "auth/reset.html": {"form": _ExampleForm()},

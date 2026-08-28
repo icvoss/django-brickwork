@@ -115,18 +115,18 @@ def test_counts_match_the_documented_wave_0_baseline() -> None:
     # manifest after all branches landed, never incremented from any branch
     # alone: each was correct for its own tree and wrong for the merge.
     counts = manifest()["counts"]
-    assert counts == {"shells": 5, "components": 48, "sections": 26, "archetypes": 20}
+    assert counts == {"shells": 5, "components": 48, "sections": 26, "archetypes": 21}
 
 
 def test_items_covers_every_shell_component_section_and_archetype() -> None:
-    assert len(items()) == 5 + 48 + 26 + 20 == 99
+    assert len(items()) == 5 + 48 + 26 + 21 == 100
 
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 5
     assert len(items_by_kind("component")) == 48
     assert len(items_by_kind("section")) == 26
-    assert len(items_by_kind("archetype")) == 20
+    assert len(items_by_kind("archetype")) == 21
 
 
 def test_item_returns_a_known_shell() -> None:
