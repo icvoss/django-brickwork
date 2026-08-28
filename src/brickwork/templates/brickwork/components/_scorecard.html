@@ -1,0 +1,98 @@
+{% load brickwork_components %}
+{% comment %}
+Scorecard (VIZ-011/012): a responsive grid arranging N pre-rendered cards.
+Structural, consumed via {% include %} (matching _stat.html and
+_chart_card.html's own consumption mode): the grid does no computation of
+its own (no geometry, no closed-vocabulary validation beyond the fixed
+span= modifier set below), so there is nothing a tag would validate that a
+plain include cannot already carry, the same reasoning _chart_card.html's
+own docstring states for staying an include.
+
+CHT-026: this is the SHARED dashboard grid for stat tiles AND chart cards.
+"A card is a card": the grid only ever arranges pre-rendered markup a
+caller supplies, so it never imports or special-cases _stat.html or
+_chart_card.html itself. There is no chart-specific grid duplicate, and
+adding one would violate CHT-026 directly.
+
+Required context:
+  items: a non-empty list of mappings, each: {content: pre-rendered safe
+      string, span: optional int}. content is a caller-rendered include
+      (typically {% include "brickwork/components/_stat.html" ... %} or
+      {% include "brickwork/components/_chart_card.html" ... %}, but any
+      pre-rendered card-shaped markup is accepted, per CHT-026) already
+      marked safe. This mirrors _stat.html's own sparkline context
+      variable and _data_table.html's row.cells: the caller owns
+      escaping and rendering of its own card content, brickwork only
+      arranges it. Never pass user-supplied input here unescaped.
+      span (VIZ-012, optional): one of 2, 3 or 4 (int or the equivalent
+      numeric string), mapped to a bw-scorecard__item--span-<n> modifier
+      class. Omitted (the default, including a falsy 0) renders no
+      modifier, an item spanning exactly one column, equal to every other
+      untagged item.
+
+      Matched against the closed set with EXPLICIT {% if %}/{% elif %}
+      literals below, never interpolated as {{ item.span }}: this is an
+      include-only template with no Python-side tag validation (unlike
+      bw_badge/bw_alert, which raise TemplateSyntaxError on an
+      unrecognised variant before the template ever renders), so a
+      documented closed set here is a convention, not an enforced one,
+      and {{ item.span }} in class="..." would be a live
+      attribute-injection seam for any caller passing an unexpected value
+      (a SafeString or any other object whose str() contains a quote).
+      _stat_comparison.html's own size seam and _empty_state.html's size
+      ladder use the same explicit-literal pattern for exactly this
+      reason (constrain, not escape, per ADR-084's stated option for an
+      include-only template with no Python assembly step to route an
+      escape helper through). Both the int and the numeric-string form of
+      2/3/4 are matched, since a caller may reasonably pass either (the
+      scorecard.columns tokens this component's own CSS reads are bare
+      numbers, and a template author's {% include %} with= call and a
+      view supplying items from Python data are equally realistic
+      sources, one naturally stringly-typed, one not). A value outside
+      the matched set, of either type, renders the bare
+      bw-scorecard__item class with no modifier: the same silent
+      no-match-no-render behaviour _empty_state.html's own size ladder
+      has, rather than raising, since this template has no validation
+      layer to raise from.
+
+Optional:
+  data: a mapping of consumer-owned data-* attributes for the grid root
+      (test/lightweight-JavaScript hooks), via the same bw_data_attrs
+      seam _stat.html and _ranked_list.html use.
+
+An empty or omitted items list renders no grid at all (matching
+_stat_band.html's own "nothing to arrange, nothing rendered" rule):
+VIZ-021's zero/first-run state is each ITEM's own concern (a caller
+composes _empty_state.html as one of its cards, or renders its own empty
+dashboard state around the whole scorecard), not this grid's, since the
+grid has no way to distinguish "no data yet" from "this dashboard has no
+KPIs" from the outside.
+
+States: none of its own; every state (loading, error, empty) belongs to
+  whichever component supplied an item's content, per VIZ-021/022/023's
+  own "one empty-state language, applied per component" rule. This grid
+  never renders a loading/error/empty branch of its own.
+Accessibility: a bare grouping div, no landmark role, no heading and no
+  aria-label of its own, matching _ranked_list.html and _stat_band.html's
+  own bare grid: the caller's page already supplies the page/section
+  structure (a heading before the grid, e.g. _page_header.html), and each
+  item's own accessible name/role travels with its own pre-rendered
+  markup. A scorecard is a layout device, not a new semantic region.
+Responsive: --bw-component-scorecard-columns-base/-sm/-lg step the column
+  count at --bw-breakpoint-sm/-lg (1 -> 2 -> 4 columns), a named-step
+  grid rather than _stat_band.html's continuous auto-fit: VIZ-011 asks
+  for tokens the same way _stat_band.html's own auto-fit floor is a fixed
+  CSS decision, not a token, because a dashboard KPI/chart grid wants a
+  predictable, brand-overridable column count (a consumer retints or
+  restages the step points via the token), where the marketing display
+  band wants continuous reflow instead. Gap uses the shared
+  --bw-density-stack-gap token (VIZ-025: density-aware by construction,
+  no scorecard-specific gap token).
+{% endcomment %}
+{% if items %}
+<div class="bw-scorecard"{% bw_data_attrs data "scorecard" %}>
+  {% for item in items %}
+    <div class="bw-scorecard__item{% if item.span == 2 or item.span == "2" %} bw-scorecard__item--span-2{% elif item.span == 3 or item.span == "3" %} bw-scorecard__item--span-3{% elif item.span == 4 or item.span == "4" %} bw-scorecard__item--span-4{% endif %}">{{ item.content }}</div>
+  {% endfor %}
+</div>
+{% endif %}

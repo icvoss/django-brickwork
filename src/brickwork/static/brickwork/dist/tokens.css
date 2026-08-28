@@ -125,6 +125,9 @@
   --bw-component-gauge-diameter-md: 5rem;
   --bw-component-gauge-diameter-lg: 6rem;
   --bw-component-gauge-stroke-width: 8;
+  --bw-component-scorecard-columns-base: 1;
+  --bw-component-scorecard-columns-sm: 2;
+  --bw-component-scorecard-columns-lg: 4;
   --bw-text-heading-display-family: var(--bw-font-family-display);
   --bw-text-heading-display-size: var(--bw-font-size-5xl);
   --bw-text-heading-display-line-height: var(--bw-font-line-height-tight);
@@ -532,6 +535,9 @@
   --bw-progress-track-height: var(--bw-component-progress-track-height);
   --bw-ranked-list-bar-thickness: var(--bw-component-ranked-list-bar-thickness);
   --bw-ranked-list-row-gap: var(--bw-component-ranked-list-row-gap);
+  --bw-scorecard-columns-base: var(--bw-component-scorecard-columns-base);
+  --bw-scorecard-columns-lg: var(--bw-component-scorecard-columns-lg);
+  --bw-scorecard-columns-sm: var(--bw-component-scorecard-columns-sm);
   --bw-section-gap-marketing: var(--bw-component-section-gap-marketing);
   --bw-select-indicator: var(--bw-component-select-indicator);
   --bw-size-icon-2xl: var(--bw-component-icon-size-2xl);

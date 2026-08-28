@@ -95,6 +95,13 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     ("_feature_grid", "columns", "2", "bw-feature-grid--2"),
     ("_feature_grid", "columns", "3", "bw-feature-grid--3"),
     ("_feature_grid", "columns", "4", "bw-feature-grid--4"),
+    # --- scorecard span (VIZ-012) --------------------------------------------
+    # Equal (one column, no modifier) is the default and deliberately absent
+    # here, matching legend_position="top" above: there is no CSS rule to pin
+    # for a class the template correctly never renders.
+    ("_scorecard", "span", "2", "bw-scorecard__item--span-2"),
+    ("_scorecard", "span", "3", "bw-scorecard__item--span-3"),
+    ("_scorecard", "span", "4", "bw-scorecard__item--span-4"),
     # --- chart card legend_position (CHT-003) -------------------------------
     # "top" is deliberately absent: it is the BASE .bw-chart-card layout, so it
     # emits no modifier class. Listing it here would demand a CSS rule for a
