@@ -144,15 +144,25 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
   heading of its own, which is the honest thing to do when the section already
   needs a heading for its landmark.
 
-  That heading sits inside bw-prose, and that is not decoration: a bare <h2> on
-  an app page inherits the heading font and colour but NO size step, so it
-  renders at body size. bw-prose is the only shipped route to a correctly sized
-  visible heading outside the page header's own <h1>. Wrapping the section in
-  it is a real constraint of the system today, worth knowing before you reach
-  for a class of your own.
+  The heading below is deliberately visually hidden, and that is a compromise
+  rather than a preference, so it is worth saying why before you copy it. A
+  bare <h2> on an app page inherits the heading font and colour but NO size
+  step, so it renders at body size. The only shipped route to a correctly
+  sized heading is bw-prose, and bw-prose is a long-form CONTENT MEASURE
+  contract, not a heading utility: its first rule is max-inline-size 65ch,
+  which narrows whatever it wraps. Wrapping this band in it to size one
+  heading squeezed the chart to about two thirds the width of the bands above
+  and below it, which is a worse defect than an unlabelled band, and no gate
+  in this package catches it.
+
+  So this band carries its accessible name and leaves the visible title to the
+  card. To give the CARD a visible title, write a small template that EXTENDS
+  _chart_card.html and fills its title block, then include THAT here. There is
+  no way to do it from a single copy-paste file, which is the honest state of
+  the system today.
   {% endcomment %}
-  <section aria-labelledby="trend-heading" class="bw-prose">
-    <h2 id="trend-heading">Net revenue by month</h2>
+  <section aria-labelledby="trend-heading">
+    <h2 id="trend-heading" class="bw-visually-hidden">Net revenue by month</h2>
     {% include "brickwork/components/_chart_card.html" with mount=revenue_mount %}
   </section>
 
