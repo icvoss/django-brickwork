@@ -8,8 +8,8 @@ examples trees by ``scripts/generate_catalogue_manifest.py``) and exposes it
 as typed Python for this repo's own in-package consumers. These tests cover:
 
 1. **Manifest shape**: the typed reader's accessors match the raw JSON, and
-   the documented counts hold (5 shells, 47 components, 26 sections, 18
-   archetypes: verified against the tree post-W0.1/W0.4/#183/queue-audit
+   the documented counts hold (5 shells, 48 components, 26 sections, 18
+   archetypes: verified against the tree post-queue-audit/chart-data-table
    merge, docs/CATALOGUE.md ss5).
 2. **Manifest-vs-reality drift**: regenerating the manifest from the current
    template and examples trees produces byte-identical output (canonical
@@ -114,16 +114,16 @@ def test_counts_match_the_documented_wave_0_baseline() -> None:
     # branches landed, never incremented from either branch alone: each was
     # correct for its own tree and wrong for the merge.
     counts = manifest()["counts"]
-    assert counts == {"shells": 5, "components": 47, "sections": 26, "archetypes": 18}
+    assert counts == {"shells": 5, "components": 48, "sections": 26, "archetypes": 18}
 
 
 def test_items_covers_every_shell_component_section_and_archetype() -> None:
-    assert len(items()) == 5 + 47 + 26 + 18 == 96
+    assert len(items()) == 5 + 48 + 26 + 18 == 97
 
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 5
-    assert len(items_by_kind("component")) == 47
+    assert len(items_by_kind("component")) == 48
     assert len(items_by_kind("section")) == 26
     assert len(items_by_kind("archetype")) == 18
 

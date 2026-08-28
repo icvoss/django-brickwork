@@ -2394,6 +2394,100 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   min-block-size: var(--bw-chart-mount-min-height, auto);
   aspect-ratio: var(--bw-chart-mount-aspect-ratio, auto);
 }
+
+/* --- Chart data table (CHT-012's fallback, CHT-013's data_table_mode) ------- */
+
+/* The accessible transcript of what the chart plots, rendered by
+ * bw_chart_data_table as a SIBLING of the mount (never a descendant: the
+ * mount's role="img" makes its descendants presentational, so a table inside
+ * it reaches nobody). See _chart_data_table.html's own header for the full
+ * reasoning; this file only styles it.
+ *
+ * A SEPARATE class family from .bw-data-table, matching the separate template:
+ * that component's rules carry a sortable-header voice, zebra striping, a
+ * selection column and a stack/scroll responsive contract, none of which an
+ * inert fallback transcript wants. Reusing its classes here would inherit all
+ * of that apparatus visually while the markup carries none of it.
+ *
+ * Scoped ELEMENT selectors under the root, not a BEM class per cell: the
+ * markup is a fixed, closed shape (one caption, one thead row, N tbody rows)
+ * that no consumer composes into, so a class on every <th> and <td> would be
+ * naming things nothing can address separately. The three classes this
+ * component does emit are the ones a consumer's own CSS or test selectors
+ * reasonably target: the root, the table, and the caption. */
+.bw-chart-data-table {
+  /* Horizontal scroll rather than reflow: a many-series matrix keeps its
+     column/row header alignment intact, which is the whole point of the
+     table, whereas a stacked card layout would break the coordinate pairing
+     a screen reader announces. */
+  overflow-x: auto;
+  margin-block-start: var(--bw-space-4);
+}
+/* In data_table_mode="hidden" the table is clipped to a 1px box, so the
+   scroll container above would always overflow while being impossible to
+   see, reach or scroll. axe flags that as a keyboard-inaccessible scrollable
+   region (scrollable-region-focusable, WCAG 2.1.1), and it is right to: a
+   scroll affordance nobody can operate is a defect, not a false positive.
+   The honest fix is to stop claiming the region scrolls when there is no
+   visual box to scroll, rather than bolting tabindex="0" onto an element
+   that is deliberately not a stop on the visual tab order. The visible and
+   toggle modes keep the scroll container, because there the box is real and
+   a pointer or keyboard user can actually operate it. Targets the descendant
+   explicitly: a hiding mechanism on the ancestor cannot override a value the
+   descendant sets on itself. */
+.bw-visually-hidden > .bw-chart-data-table {
+  overflow-x: visible;
+  margin-block-start: 0;
+}
+.bw-chart-data-table__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+/* The caption IS the table's accessible name, so it is never hidden: a
+   consumer wanting it out of the visual render uses data_table_mode="hidden",
+   which hides the whole table (name included) rather than orphaning the
+   table from its own name. */
+.bw-chart-data-table__caption {
+  text-align: start;
+  padding-block-end: var(--bw-space-2);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
+}
+.bw-chart-data-table__table th,
+.bw-chart-data-table__table td {
+  padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  text-align: start;
+}
+/* Column headers take the muted apparatus voice .bw-data-table__th uses, so a
+   fallback table reads as the same species of object as a real data table
+   even though it shares none of its classes. Row headers stay in the body
+   voice: they are the category axis (data), not apparatus. */
+.bw-chart-data-table__table thead th {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-font-size-xs);
+  font-weight: var(--bw-font-weight-semibold);
+  letter-spacing: var(--bw-font-tracking-wide);
+  text-transform: uppercase;
+}
+.bw-chart-data-table__table tbody th {
+  font-weight: var(--bw-font-weight-medium);
+}
+/* Series values align digit-for-digit, the same reason .bw-data-table__td
+   carries tabular-nums: a column of numbers a reader scans vertically. */
+.bw-chart-data-table__table tbody td {
+  font-variant-numeric: tabular-nums;
+}
+/* The last row's hairline would double against the card's own border, exactly
+   as .bw-data-table__row:last-child already avoids. */
+.bw-chart-data-table__table tbody tr:last-child th,
+.bw-chart-data-table__table tbody tr:last-child td {
+  border-block-end: 0;
+}
 .bw-chart-card__skeleton .bw-skeleton--block {
   inline-size: 100%;
   block-size: 100%;

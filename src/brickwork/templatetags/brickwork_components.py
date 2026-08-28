@@ -1391,6 +1391,255 @@ def bw_chart_mount(
     return mark_safe(div)  # noqa: S308
 
 
+# CHT-013's mode vocabulary, CLOSED and enforced (ADR-060 rule 2). Adjacent to
+# bw_chart_data_table below, matching where _TRIGGER_MODES/_TRIGGER_VARIANTS sit
+# relative to their own tags in brickwork_interactions.py.
+#
+# A closed vocabulary is currently doing invisible escaping duty at several
+# sites across this package (ADR-084 section 6): because a value is validated
+# against a fixed set before it is ever interpolated, it cannot carry consumer
+# markup, so the site "happens to be safe" without any escaping seam being
+# visible in the code. That is a real property here too, since a
+# data_table_mode reaching the template is guaranteed to be one of exactly
+# three literals. It is deliberately NOT relied on: the value is routed
+# through the ordinary template seam like every other context value, so the
+# safety of this site is stated by the seam rather than inferred from a
+# validation several lines away. Reasoning about safety by tracing which
+# earlier check makes an interpolation harmless is exactly the analysis that
+# fails silently when someone later widens the set, moves the check, or copies
+# the interpolation to a site with no check at all.
+_CHART_DATA_TABLE_MODES = frozenset({"hidden", "toggle", "visible"})
+
+
+@register.simple_tag
+def bw_chart_data_table(
+    *,
+    caption: str = "",
+    columns: object = (),
+    rows: object = (),
+    data_table_mode: str = "hidden",
+    toggle_label: str = "",
+) -> SafeString:
+    """CHT-012's data-table fallback: the same series a chart plots, rendered
+    as a plain semantic table so a screen reader reaches the DATA a canvas or
+    SVG cannot expose, with CHT-013's ``data_table_mode`` choosing how it is
+    presented visually.
+
+    THE SIBLING RULE, the load-bearing design decision
+    (icvoss/django-brickwork#326). The table this tag renders is a SIBLING of
+    the chart mount, never a descendant of it, and ``_chart_card.html`` places
+    it that way. The reason is ARIA, not layout: ``bw_chart_mount`` emits
+    ``role="img"``, and ``role="img"`` makes every descendant of the mount
+    PRESENTATIONAL, so a ``<table>`` rendered inside the mount is unreachable
+    to assistive technology no matter how well formed it is. That is not a
+    reason CHT-012 cannot be implemented; it is precisely the reason the
+    fallback must sit OUTSIDE the mount.
+
+    Read the other way round, the rule is self-evident: the mount is opaque
+    BECAUSE it is one graphical object, and this table exists to carry exactly
+    what an opaque object cannot. Placing the table inside the thing whose
+    opacity it compensates for would be self-defeating.
+
+    #326 is therefore NOT a blocker for CHT-012, and this tag does NOT resolve
+    #326 and must not be read as resolving it. #326 is a DIFFERENT unserved
+    case: an interactive chart whose engine paints focusable, traversable
+    children, which wants its own role and its own keyboard story rather than
+    a widened meaning for ``role="img"``. The sibling placement is exactly
+    what lets CHT-012 ship correctly while #326 stays open, and it widens
+    nothing: ``role="img"`` keeps meaning "one graphical object", and the
+    table beside it keeps meaning "the data".
+
+    A TAG rather than an ``{% include %}``, for the same reason
+    ``bw_chart_mount`` is one: ``data_table_mode`` is a closed vocabulary and
+    an include-only component cannot validate anything (an unrecognised value
+    reaches the template verbatim, silently selects no branch and renders the
+    wrong thing, ADR-060 rule 2, the failure ``_chart_card.html``'s own
+    ``legend_position`` documents as its accepted cost).
+
+    A ``simple_tag`` rather than an ``inclusion_tag``, following
+    ``bw_sparkline``'s own precedent in this module and for the same reason:
+    the output is composed by the caller rather than placed by it. A caller
+    writes ``{% bw_chart_data_table ... as table %}`` and hands the result to
+    ``_chart_card.html``'s ``data_table`` context variable, and Django's
+    ``inclusion_tag`` cannot do ``as var`` at all (its parser reads ``as`` as
+    a positional argument after keywords and raises), so registering it that
+    way would make the documented call unwritable.
+
+    caption: the table's accessible name, rendered as a real ``<caption>``.
+        Required in substance: a table with no caption is announced as an
+        anonymous grid of numbers, which is the same WCAG 1.1.1 failure the
+        unnamed mount is. Whitespace-only is treated as absent, matching
+        ``bw_chart_mount``'s own aria_label contract: a requirement that can
+        be met with " " is not a requirement.
+    columns: the column header labels, in order, as a list/tuple. The FIRST
+        entry labels the row-header column (the category axis, e.g. "Month");
+        the rest label the series columns.
+    rows: a list/tuple of row sequences. Each row's first cell is that row's
+        header (``<th scope="row">``), the remaining cells are data
+        (``<td>``). Column and row headers together are what make each cell
+        announce with both of its coordinates instead of as a bare number.
+        The list/tuple shape is checked and raises, rather than being
+        rendered as given, because the wrong shape fails SILENTLY otherwise: a
+        flat list of values passed as ``rows`` makes the template iterate each
+        value's characters, rendering a table of single letters that raises
+        nowhere and looks like a data bug rather than a call-site one.
+    data_table_mode ("hidden" default | "toggle" | "visible", CHT-013):
+        "hidden" renders the table visually hidden but present in the
+        accessibility tree (the ``bw-visually-hidden`` clip-path pattern,
+        never ``display: none``, which would remove it from that tree and
+        defeat the whole contract); "visible" renders it plainly, as the
+        base state with no wrapper; "toggle" composes ``_disclosure.html``'s
+        native ``<details>``, whose no-JS floor holds by construction
+        (BR-BW-HTMX-001: that component ships no JavaScript at all).
+    toggle_label: the ``<summary>`` text, used in "toggle" mode only and
+        ignored in the other two. Blank in toggle mode falls back to a
+        translated default rather than rendering an unlabelled disclosure
+        control.
+
+    Escaping (ADR-084). Every consumer value this tag takes lands in TEXT
+    position, never in an attribute, and every one of them is escaped by
+    ``_chart_data_table.html``'s own auto-escaping at the point it is
+    interpolated. This tag therefore passes ``caption``, ``columns``, ``rows``
+    and ``toggle_label`` through RAW: pre-escaping them here and then letting
+    the template escape the result again is the documented double-escape trap,
+    and it is the trap this direction of the seam falls into
+    (``normalise_accessible_name``'s own docstring records it from the
+    opposite direction). ``escape_attribute_value`` has no site in this tag at
+    all, because no value here reaches an attribute value; a future change
+    that puts one there (a caller-supplied id, say) must derive a SECOND value
+    from the RAW input for that position rather than reusing one of these.
+
+    One consequence, stated because it is the thing a reader will want to
+    check: a ``mark_safe``/``format_html`` value passed as a caption, a column
+    header, a cell or a toggle label renders as MARKUP, because text position
+    is exactly where a safe marker means something. That is the ordinary
+    text-position rule every other slot in this package follows, not a hole,
+    and it is the deliberate opposite of ``bw_chart_mount``'s ``aria_label``,
+    which is an attribute value where the marker is meaningless and
+    ``escape()`` runs unconditionally. An ordinary consumer string (a DB
+    value, a form field, a computed label) is never ``SafeData`` and is
+    escaped normally. The blankness checks below therefore test a stripped
+    COPY and render the ORIGINAL, so this rule holds uniformly across all four
+    arguments rather than varying with which of them happens to be stripped.
+    """
+    if data_table_mode not in _CHART_DATA_TABLE_MODES:
+        raise TemplateSyntaxError(
+            f"bw_chart_data_table data_table_mode must be one of {sorted(_CHART_DATA_TABLE_MODES)}, "
+            f"got {data_table_mode!r}"
+        )
+
+    # The blankness DECISION is computed from a stripped copy; the value
+    # actually rendered stays the caller's ORIGINAL. This split is deliberate
+    # and it is the _gauge.html gauge_label precedent in this module
+    # (`gauge_label_has_text`), applied for the same reason.
+    #
+    # Why a stripped copy for the decision: a whitespace-only caption is truthy
+    # in Python and is not an accessible name to any screen reader, so a bare
+    # truthiness test would let a consumer satisfy a hard requirement by
+    # supplying nothing (bw_chart_mount's own aria_label contract, above). str()
+    # first, so a non-str value (an int, a lazy gettext proxy, a model instance)
+    # resolves rather than raising AttributeError from a bare .strip(), which
+    # only str has (icvoss/django-brickwork#351).
+    #
+    # Why the ORIGINAL is what gets rendered, rather than the stripped copy: a
+    # caption lands in TEXT position, where a SafeString means "trusted markup"
+    # and the template's auto-escaping honours it. str().strip() silently
+    # DEGRADES a SafeString to a plain str (str.strip() never preserves a str
+    # subclass), so rendering the stripped copy would escape a mark_safe caption
+    # while leaving a mark_safe column header or cell (neither of which is
+    # stripped) rendering as markup. That divergence would be invisible at the
+    # call site and decided by which argument a value happened to land in,
+    # rather than by its position in the output, which is the property that is
+    # actually supposed to govern escaping in this package.
+    #
+    # Deliberately NOT normalise_accessible_name, for either purpose: that
+    # helper conditionally escapes and re-wraps in mark_safe, which is right for
+    # a value the CALLER interpolates itself. Here the value is handed to a
+    # template that escapes it in text position, so pre-escaping it would
+    # double-escape it (the trap that helper's own docstring records, hit from
+    # this direction).
+    if not str(caption).strip():
+        raise TemplateSyntaxError(
+            "bw_chart_data_table requires caption=, the table's accessible name. A fallback table with "
+            "no caption is announced as an anonymous grid of numbers, which is the same WCAG 1.1.1 "
+            "failure an unnamed chart is (CHT-012)."
+        )
+
+    # Shape-checked before use, and raising rather than rendering a wrong-shaped
+    # table, matching bw_ranked_list's own rows= check in this module. The
+    # failure this prevents is specific: a caller passing a flat list of values
+    # instead of a list OF ROWS gets each value iterated character by character
+    # by the template's {% for cell in row %}, producing a table of single
+    # letters that renders cleanly and errors nowhere. A str is the exact shape
+    # that does this, which is why the row check is an isinstance test rather
+    # than a bare "is it iterable".
+    if not isinstance(columns, list | tuple):
+        raise TemplateSyntaxError(f"bw_chart_data_table columns must be a list/tuple of labels, got {columns!r}")
+    if not isinstance(rows, list | tuple):
+        raise TemplateSyntaxError(f"bw_chart_data_table rows must be a list/tuple of row sequences, got {rows!r}")
+    for index, row in enumerate(rows):
+        if not isinstance(row, list | tuple):
+            raise TemplateSyntaxError(
+                f"bw_chart_data_table rows[{index}] must be a list/tuple of cells, got {row!r}. A flat list "
+                "of values renders each one character by character, which produces a table of single "
+                "letters and raises nowhere."
+            )
+
+    # Materialised into lists so a one-shot iterator (a queryset's own lazy
+    # sequence, say) is not silently exhausted by the first of the two renders
+    # below. The table partial is rendered once, but "rendered once" is a
+    # property of today's control flow rather than of the argument.
+    columns = list(columns)
+    rows = [list(row) for row in rows]
+
+    if data_table_mode == "toggle":
+        # A blank toggle_label in toggle mode would render an unlabelled
+        # <summary>, i.e. a focusable control with no accessible name (WCAG
+        # 4.1.2), so it falls back rather than rendering empty. gettext, not
+        # gettext_lazy: the value is used immediately, in this call, and the
+        # module already imports the eager form for the same reason
+        # (_data_table.html's own "Select all rows" is the template-side
+        # {% translate %} equivalent of this).
+        #
+        # The blankness decision is computed from a stripped copy while the
+        # ORIGINAL is what gets rendered, exactly as caption above, and for the
+        # same reason: str().strip() would degrade a SafeString and escape a
+        # value that the identically-positioned column headers and cells render
+        # as markup. Only the fallback branch substitutes a new value, and that
+        # one is package-authored text, never consumer data.
+        toggle_label = toggle_label if str(toggle_label).strip() else gettext("View as table")
+
+    # The table markup is built by the TEMPLATE, never assembled here as an
+    # f-string, which is the whole reason this tag needs no noqa: S308
+    # justification of its own the way bw_chart_mount's hand-built <div> does.
+    # Two renders of one file: the `table` partial produces the <table> on its
+    # own, because _disclosure.html's `content` contract takes PRE-RENDERED
+    # HTML, and the outer render then wraps that SafeString per mode.
+    #
+    # The value handed between them is markup by construction, not a trusted
+    # consumer value: every caption, header and cell inside it was escaped
+    # exactly once, in text position, by the partial's own auto-escaping. The
+    # outer render only wraps it, so no value is escaped twice anywhere in
+    # this composition.
+    #
+    # No mark_safe() around table_html, deliberately: render_to_string already
+    # returns a SafeString (its return value is a rendered template, which is
+    # markup by definition), so re-marking it would be a no-op that reads like
+    # a security decision and invites the next reader to look for the untrusted
+    # value it is supposed to be vouching for. The safe marker matters here:
+    # without it {{ table_html }} in the wrapper template would escape the
+    # whole table into visible <table> text, which is the failure mode to
+    # watch for if this ever stops being a template render.
+    table_html = render_to_string(
+        "brickwork/components/_chart_data_table.html#table",
+        {"caption": caption, "columns": columns, "rows": rows},
+    )
+    return render_to_string(
+        "brickwork/components/_chart_data_table.html",
+        {"mode": data_table_mode, "table_html": table_html, "toggle_label": toggle_label},
+    )
+
+
 @register.inclusion_tag("brickwork/components/_ranked_list.html")
 def bw_ranked_list(
     rows: object,

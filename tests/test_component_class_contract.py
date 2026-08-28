@@ -358,6 +358,30 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     "bw_chart_mount (decorative)": lambda: _tag(
         "brickwork_components", '{% bw_chart_mount decorative=True min_height="20rem" %}'
     ),
+    # All three of CHT-013's data_table_mode values, because each emits a
+    # different wrapper: "visible" is the bare base state, "hidden" adds the
+    # bw-visually-hidden clip wrapper, and "toggle" pulls in _disclosure.html's
+    # own class family. Registering only one would leave the other two's
+    # classes ungated.
+    "bw_chart_data_table (visible)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_chart_data_table caption='Revenue by month' columns=cols rows=rws data_table_mode='visible' %}",
+        cols=["Month", "Direct", "Referral"],
+        rws=[["January", "120", "45"], ["February", "150", "60"]],
+    ),
+    "bw_chart_data_table (hidden)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_chart_data_table caption='Revenue by month' columns=cols rows=rws data_table_mode='hidden' %}",
+        cols=["Month", "Direct", "Referral"],
+        rws=[["January", "120", "45"], ["February", "150", "60"]],
+    ),
+    "bw_chart_data_table (toggle)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_chart_data_table caption='Revenue by month' columns=cols rows=rws data_table_mode='toggle' "
+        "toggle_label='View as table' %}",
+        cols=["Month", "Direct", "Referral"],
+        rws=[["January", "120", "45"], ["February", "150", "60"]],
+    ),
     "bw_gauge (threshold_bands, label, size=lg)": lambda: _tag(
         "brickwork_components",
         "{% bw_gauge value=value label='CPU load' size='lg' threshold_bands=bands %}",
@@ -875,6 +899,7 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_ranked_list",
         "_gauge",
         "_chart_card",
+        "_chart_data_table",
         "_sparkline",
         "_data_table",
         "_stepper",

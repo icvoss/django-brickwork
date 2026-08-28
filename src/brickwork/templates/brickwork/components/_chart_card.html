@@ -38,6 +38,34 @@ Named blocks (semver-public, BR-BW-TPL-001), in document order:
       block, including the state branching below; a caller that only needs
       the populated case should render the bw_chart_mount tag directly
       inside its own override rather than fighting this block's structure.
+  chart_data_table: new, declared HERE for the same reason as the two
+      above, so it keeps the chart_ prefix. Empty by default. Renders
+      CHT-012's accessible fallback table (the {% bw_chart_data_table %}
+      tag's output, passed in as the data_table context variable below, or
+      filled directly in an extending template).
+
+      Its position in this file is the contract, not an arrangement
+      preference: the block sits AFTER .bw-chart-card__mount and OUTSIDE
+      it, so the table is a SIBLING of the mount, never a descendant of it.
+      bw_chart_mount emits role="img", and role="img" makes every
+      descendant of the mount presentational, so a table rendered inside
+      the mount is unreachable to assistive technology however well formed
+      it is. The mount is opaque BECAUSE it is one graphical object, and
+      the table exists to carry exactly what an opaque object cannot, so
+      nesting the compensation inside the thing it compensates for would
+      defeat it. Moving this block inside .bw-chart-card__mount, or inside
+      the chart_mount block, silently breaks the whole contract while
+      rendering identical-looking markup: nothing errors, and axe does not
+      flag it (see icvoss/django-brickwork#326, which this does NOT
+      resolve: that issue is the different, still-unserved case of an
+      interactive chart with traversable focusable children wanting its
+      own role and keyboard story).
+
+      Unlike the state branching in chart_mount, this block renders
+      unconditionally alongside whichever state that one chose: a loading
+      or error card with a fallback table supplied still renders the
+      table, since the table's data does not depend on the engine having
+      painted. A caller that does not want it simply passes no data_table.
 
 A block name this file does not define is SILENTLY DISCARDED by Django: no
 error, no warning, DEBUG=True does not catch it. Check this header against
@@ -99,6 +127,19 @@ Optional:
       using this context variable. Omitted (the default) with none of
       loading/error/empty set renders an empty chart_mount block, matching
       the unfilled-block convention every other structural component uses.
+  data_table: pre-rendered chart_data_table content (a SafeString),
+      typically the output of
+      {% bw_chart_data_table ... as data_table %}. Exactly the same seam as mount above, in the same style and for the
+      same reason (_stat.html's sparkline precedent: consumer-rendered
+      markup passed in already marked safe), so a caller either passes this
+      variable or fills the chart_data_table block directly in an extending
+      template. Omitted (the default) renders an empty chart_data_table
+      block, matching the unfilled-block convention.
+
+      Unlike mount, this is NOT suppressed by loading/error/empty: it sits
+      outside the chart_mount block's state branching entirely, because it
+      is a sibling of the mount rather than one of the mount's states (see
+      chart_data_table above for why that placement is the contract).
 
 Revisit condition: this stays an include for as long as its option surface
 stays small (legend_position plus the three state flags above). If the
@@ -121,6 +162,19 @@ Accessibility: purely structural, no role or live behaviour of its own,
   name (aria-label/aria-describedby, CHT-012) is the bw_chart_mount tag's
   contract, not this template's, since this template never renders that
   tag itself, only the markup a caller passes into it.
+
+  This template DOES own one accessibility property of its own, and it is
+  the only one: WHERE the fallback table sits relative to the mount. The
+  chart_data_table block is a sibling of .bw-chart-card__mount, never
+  nested inside it, because role="img" on the mount makes every descendant
+  presentational and would render the table unreachable to the assistive
+  technology it exists for. That placement is this file's contract to
+  keep; the table's own internals (caption, th scope="col"/scope="row",
+  the visually-hidden/toggle/visible modes) are the bw_chart_data_table
+  tag's contract, in the same division of labour chart_mount already has.
+  The failure mode is silent in both directions: a nested table renders
+  valid-looking markup, errors nowhere, and passes axe, so this is pinned
+  by a structural test rather than left to review.
 Responsive: no breakpoint switch of its own; legend_position is a fixed
   layout choice, not a viewport-driven one. Any width-dependent behaviour
   belongs to the consumer's engine, never this chrome.
@@ -143,5 +197,14 @@ Responsive: no breakpoint switch of its own; legend_position is a fixed
       {% endif %}
     {% endblock %}
   </div>
+  {% comment %}
+  CHT-012: a SIBLING of .bw-chart-card__mount, deliberately outside it and
+  outside the chart_mount block. The mount carries role="img", which makes its
+  descendants presentational, so a fallback table nested inside it is
+  unreachable to assistive technology while still rendering valid markup and
+  passing axe. See the chart_data_table block's own entry in the header above;
+  do not move this inside the div.
+  {% endcomment %}
+  {% block chart_data_table %}{{ data_table }}{% endblock %}
 </div>
 {% endblock %}

@@ -179,6 +179,15 @@
       ]
     },
     {
+      "name": "chart_data_table",
+      "declaredIn": [
+        "brickwork/components/_chart_card.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "chart_legend",
       "declaredIn": [
         "brickwork/components/_chart_card.html"
@@ -730,6 +739,12 @@
       "declaredIn": "brickwork/components/_tabs.html",
       "inline": false,
       "consumption": "tag"
+    },
+    {
+      "name": "table",
+      "declaredIn": "brickwork/components/_chart_data_table.html",
+      "inline": false,
+      "consumption": "include"
     },
     {
       "name": "table_rows",
