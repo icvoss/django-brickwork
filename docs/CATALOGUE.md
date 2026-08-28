@@ -299,7 +299,7 @@ Reading the shipped tree confirms this directly, not by assumption:
   `requiresContext: true` set). THIS part could be encoded as a JSON shape
   hint (`{"features": [{"icon": "str", "heading": "str", ...}]}`), and
   would be genuinely useful.
-- But almost every ARCHETYPE (18 of 20; only `app/confirm.html` and
+- But almost every ARCHETYPE (19 of 21; only `app/confirm.html` and
   `base.html` render empty) needs context that is not a JSON shape at all: a
   bound Django `Form` instance (`auth/signin.html`, `app/form.html`,
   `app/wizard.html`, `app/settings.html`), a resolved nav tree (every

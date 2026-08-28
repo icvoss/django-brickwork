@@ -24,8 +24,7 @@ import pytest
 from django import forms
 from django.template import Context, Engine, TemplateDoesNotExist
 from django.template.backends.django import get_installed_libraries as get_default_libraries
-from django.template.loader import render_to_string
-from django.template.loader import get_template
+from django.template.loader import get_template, render_to_string
 from django.utils import dates as django_dates
 from django.utils.formats import get_format
 from django.utils.html import escape as django_escape
@@ -216,8 +215,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             },
         ],
         "revenue_mount": mark_safe(  # noqa: S308 (example-authored trusted markup)
-            '<div class="bw-chart-mount" data-bw-chart role="img" '
-            'aria-label="Net revenue by month, Q3 2026"></div>'
+            '<div class="bw-chart-mount" data-bw-chart role="img" aria-label="Net revenue by month, Q3 2026"></div>'
         ),
         "channel_rows": [
             {"label": "Direct sales", "amount": 612000, "value": "GBP 612k"},
