@@ -97,9 +97,17 @@ def main() -> int:
         help="release date as YYYY-MM-DD (default: today)",
     )
     parser.add_argument(
-        "--keep-fragments",
+        "--dry-run",
         action="store_true",
-        help="do not delete the consumed fragments (for a dry run)",
+        help=("print the rendered section to stdout; write nothing to CHANGELOG.md and delete no fragments"),
+    )
+    parser.add_argument(
+        "--no-delete-fragments",
+        action="store_true",
+        help=(
+            "write CHANGELOG.md but do not delete the consumed fragments "
+            "(NOT a dry run: still writes CHANGELOG.md; use --dry-run for that)"
+        ),
     )
     args = parser.parse_args()
 
@@ -109,12 +117,23 @@ def main() -> int:
         return 1
 
     section = render_section(args.version, grouped, args.date)
+
+    if args.dry_run:
+        print(section)
+        counts = ", ".join(f"{len(grouped[s])} {s}" for s in SECTIONS if grouped[s])
+        print(
+            f"Dry run: would write [{args.version}] - {args.date} to CHANGELOG.md "
+            f"({counts}), consuming {len(consumed)} fragment(s). Nothing written or deleted.",
+            file=sys.stderr,
+        )
+        return 0
+
     CHANGELOG.write_text(
         insert_section(CHANGELOG.read_text(encoding="utf-8"), section),
         encoding="utf-8",
     )
 
-    if not args.keep_fragments:
+    if not args.no_delete_fragments:
         for path in consumed:
             path.unlink()
 

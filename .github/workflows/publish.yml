@@ -89,6 +89,21 @@ jobs:
           fi
           echo "Found CHANGELOG entry for ${VERSION}."
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Require no leftover changelog fragments (icvoss/django-brickwork#375)
+        # Additive to the heading check above, not a replacement: a heading is
+        # satisfiable by a hand-written "## [<version>]" line with no fragment
+        # ever assembled into it, which is exactly how v3.13.0 shipped without
+        # naming four capabilities (icvoss/django-brickwork#361). This asserts
+        # the assembler actually ran against THIS commit: it deletes every
+        # fragment it consumes, so anything still in changelog.d/ here was
+        # missed.
+        run: python scripts/check_no_leftover_fragments.py
+
   # 2. Run the test suite before publishing
   test:
     name: Test django-brickwork
