@@ -134,6 +134,18 @@ from each file's own adding commit, not from memory: an earlier version of
 this sentence jumped from 42 to 46 and left three landings unnamed, including
 the gauge, which appeared nowhere in this document at all.
 
+**The original W0.2 baseline, as a fixed historical fact rather than a
+moving check** (ROADMAP.md's "Current baseline" section states the same
+figures in prose): 5 shells, 39 components, 42 examples split 16 archetypes
+plus 26 sections. Archetypes moved from that baseline too, independently of
+the component count above: the queue/audit-trail work opened the Data-heavy
+operations family with two archetypes (18), and the report/comparison work
+added two more to the same family (20); the analysis-dashboard work then
+added a 21st. This paragraph, not a test assertion, is where that baseline
+is recorded going forward (icvoss/django-brickwork#386): a frozen fact
+belongs where it does not need editing every time the shipped tree grows
+past it.
+
 **It is a sibling of `template-manifest.json`, never merged into it**
 (plan decision D8). `template-manifest.json` is the versioned
 BR-BW-VER-001 contract for block/partial names: renaming or removing one
