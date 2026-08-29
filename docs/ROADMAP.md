@@ -110,10 +110,20 @@ roadmap's mention of them.
 *Chart components: shipped engine-free, as ADR-081 requires.* Bundling an
 engine remains forbidden; the mount is the consumer's seam.
 
-*Archetypes: the Data-heavy operations family is complete.* All five ship on
-`main`: `analysis-dashboard.html`, `report.html`, `comparison.html`,
-`queue.html` and `audit-trail.html`. The cross-wave design-coherence gate ran
-on this wave's first archetype and passed.
+*Archetypes: the Data-heavy operations family is open, at five of the seven
+the contract requires.* All five planned for this wave ship on `main`:
+`analysis-dashboard.html`, `report.html`, `comparison.html`, `queue.html` and
+`audit-trail.html`. The cross-wave design-coherence gate ran on this wave's
+first archetype and passed.
+
+The two the contract still requires are the dense list and data-empty/error
+states (`docs/INTERFACE-SYSTEM.md`, required-archetype table), tracked as
+icvoss/django-brickwork#406 and icvoss/django-brickwork#407. This sentence
+previously read "the family is complete", which was false against the
+contract even though the exit criterion below it was met: the criterion is
+deliberately narrower than the family, and stating the narrow claim as the
+broad one is how a wave closes on a fiction. Say which of the two is being
+claimed, every time.
 
 **EXIT CRITERION MET, 2026-08-29.** The criterion is a statement about pages
 shipping, not components existing, so it closes on the archetypes: a
