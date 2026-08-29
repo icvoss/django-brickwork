@@ -61,6 +61,36 @@ jobs:
       - name: Run ruff format check
         run: ruff format --check .
 
+  # A PR that touches a component template or adds a new @register. template
+  # tag must add a changelog.d/ fragment (icvoss/django-brickwork#375). Only
+  # meaningful on pull_request, where a base ref to diff against exists: the
+  # push leg (a merge to main) has already passed this gate at PR time, and
+  # has no PR base to diff against, so it is skipped explicitly below rather
+  # than allowed to pass vacuously with no real check performed.
+  changelog-gate:
+    name: Changelog fragment required
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Full history: the script diffs against the merge base with the
+          # PR's target branch, which a shallow (depth-1) checkout cannot
+          # resolve.
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Fetch PR base branch
+        run: git fetch origin "${{ github.base_ref }}"
+      - name: Check changelog fragment
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python scripts/check_changelog_fragment_required.py \
+            "origin/${{ github.base_ref }}" HEAD
+
   mypy:
     name: Type check (mypy)
     runs-on: ubuntu-latest
