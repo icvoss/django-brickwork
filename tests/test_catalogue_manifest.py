@@ -98,28 +98,43 @@ _requires_context = _generator._requires_context
 # ---------------------------------------------------------------------------
 
 
-def test_counts_match_the_documented_wave_0_baseline() -> None:
-    # ROADMAP.md / the delivery plan's W0.2 exit criteria set the original
-    # baseline at 5 shells, 39 components, 42 examples (16 archetypes + 26
-    # sections). W0.4 (icvoss/django-brickwork#228) shipped a 40th
-    # component, bw_theme_switch/_theme_switch.html; #183 then shipped a
-    # 41st, bw_ranked_list/_ranked_list.html; the chart card work then
-    # shipped a 42nd, _chart_card.html; the sparkline work then shipped a
-    # 43rd, bw_sparkline/_sparkline.html. Further components shipped since
-    # (bw_gauge/_gauge.html among them), and the scorecard/stat-comparison
-    # work adds two more, _scorecard.html and _stat_comparison.html, taking
-    # the count to 47. The queue/audit-trail work then opened the Data-heavy
-    # operations family with two archetypes, taking archetypes to 18; the
-    # report/comparison work adds two more to the same family, taking
-    # archetypes to 20. The counts below are re-derived from a regenerated
-    # manifest after all branches landed, never incremented from any branch
-    # alone: each was correct for its own tree and wrong for the merge.
-    counts = manifest()["counts"]
-    assert counts == {"shells": 5, "components": 48, "sections": 26, "archetypes": 21}
+def test_counts_reflects_the_current_items_breakdown_by_kind() -> None:
+    # NOT a Wave 0 baseline check: the original W0.2 baseline (5 shells, 39
+    # components, 42 examples) is a fixed historical fact, and this
+    # assertion has never actually equalled it, not even in this test's own
+    # first commit (icvoss/django-brickwork#225 already shipped 40
+    # components by the time this test landed). Asserting a moving count
+    # under a name that claims a frozen baseline is a scheduled lie: the
+    # baseline itself now lives in docs/CATALOGUE.md ss5 (with the
+    # component/archetype landing history this comment used to carry),
+    # where a historical fact does not need editing every release
+    # (icvoss/django-brickwork#386). This test instead derives the
+    # manifest's own "counts" summary from its own "items" list, so it
+    # checks manifest-internal consistency (the summary agrees with the
+    # detail it summarises) rather than pinning either side as a literal.
+    manifest_data = manifest()
+    derived_counts = {f"{kind}s": len(items_by_kind(kind)) for kind in ("shell", "component", "section", "archetype")}
+    assert manifest_data["counts"] == derived_counts
 
 
 def test_items_covers_every_shell_component_section_and_archetype() -> None:
-    assert len(items()) == 5 + 48 + 26 + 21 == 100
+    # A count only catches a change in MAGNITUDE: swapping one shipped
+    # archetype for another at a constant total would still pass
+    # "len(items()) == 100" while silently dropping coverage the name
+    # promises ("covers every shell, component, section and archetype").
+    # items_by_kind() is a plain filter over items() (see
+    # _catalogue_manifest.py), so comparing items() against it cannot fail
+    # either: both read the same committed manifest. The only INDEPENDENT
+    # source in this file is the generator's own fresh walk of the real
+    # template/examples tree (build_manifest, the same mechanism
+    # test_committed_manifest_matches_a_fresh_regeneration_byte_for_byte
+    # already uses), so this checks item-name SET membership, both
+    # directions, against that independently-derived manifest
+    # (icvoss/django-brickwork#386).
+    committed_names = {entry["name"] for entry in items()}
+    fresh_names = {entry["name"] for entry in build_manifest()["items"]}
+    assert committed_names == fresh_names
+    assert len(items()) == len(committed_names), "items() carries a duplicate name"
 
 
 def test_items_by_kind_filters_correctly() -> None:
@@ -377,21 +392,44 @@ def test_families_carry_shipped_counts_only_no_status_or_wave() -> None:
         assert set(entry.keys()) == {"name", "archetypeCount", "sectionCount"}
 
 
+def _required_archetype_family_names() -> set[str]:
+    """Every family named in INTERFACE-SYSTEM.md's required-archetype table.
+
+    Read from the doc's own "Family" column (same markdown-table-row
+    convention test_examples.py already uses for README.md's file table),
+    never hand-copied: a family added to or removed from that table changes
+    this set on the next test run with no literal to edit.
+    """
+    doc_text = (_REPO_ROOT / "docs" / "INTERFACE-SYSTEM.md").read_text(encoding="utf-8")
+    table_match = re.search(r"\| Family \| Required archetypes \|\n\|---\|---\|\n((?:\|.*\|\n?)+)", doc_text)
+    assert table_match is not None, "INTERFACE-SYSTEM.md's required-archetype table is missing or its heading moved"
+    return {row.split("|")[1].strip() for row in table_match.group(1).splitlines() if row.strip()}
+
+
 def test_families_only_lists_families_with_shipped_coverage() -> None:
+    # DERIVE, not enumerate (icvoss/django-brickwork#386): the subject here
+    # MOVES release to release (a family ships its first archetype and
+    # stops being absent), so the invariant is computed from the manifest
+    # and INTERFACE-SYSTEM.md's own table rather than pinned as a literal
+    # set. A hand-written set has to be edited by the very release it is
+    # meant to guard (Data-heavy operations already forced one such edit),
+    # which invites the edit instead of catching the thing it names.
     family_names = {entry["name"] for entry in families()}
-    assert family_names == {
-        "Product applications",
-        "Transactional journeys",
-        "Marketing and public web",
-        "Data-heavy operations",
-    }
-    # Documentation and Editorial and publishing are named in
-    # INTERFACE-SYSTEM.md's required-archetype table but have no shipped
-    # archetype yet, so they are correctly absent here. Data-heavy operations
-    # shipped its first two archetypes (queue.html, audit-trail.html) and is
-    # no longer absent.
-    assert "Documentation" not in family_names
-    assert "Editorial and publishing" not in family_names
+    archetype_families_seen = {entry["family"] for entry in items_by_kind("archetype") if entry["family"] is not None}
+    required_families = _required_archetype_family_names()
+
+    # Invariant 1: families() lists exactly the families with a shipped
+    # archetype, no more and no less (docs/CATALOGUE.md ss8's own promise).
+    assert family_names == archetype_families_seen
+
+    # Invariant 2: every family families() lists is a real, documented
+    # family (catches a typo'd or invented family name, which invariant 1
+    # alone cannot: it would agree with archetype_families_seen either way).
+    # Neither side is a hand-written literal: a family shipping its first
+    # archetype (Documentation in Wave 2, Editorial and publishing in
+    # Wave 3) is picked up from the manifest automatically, and the set it
+    # is checked against is read from INTERFACE-SYSTEM.md, not copied here.
+    assert family_names <= required_families
 
 
 # ---------------------------------------------------------------------------
