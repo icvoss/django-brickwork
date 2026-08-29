@@ -207,9 +207,18 @@ jobs:
   #     fixture set (a11y/fixtures/archetypes/), rendered by its own generator
   #     (a11y/generate_archetype_fixtures.py, npm run a11y:fixtures:archetypes)
   #     BEFORE Playwright runs. Both fixture-generation steps must run every
-  #     time: the archetype fixtures are gitignored, so a skipped generation
-  #     step here means archetypes.spec.mjs auto-discovers zero fixtures and
-  #     passes vacuously rather than failing.
+  #     time: the archetype fixtures are gitignored, so a skipped or failed
+  #     generation step here means the specs auto-discover zero fixtures.
+  #     Closed by two separate, independently-teeth-checked assertions
+  #     (icvoss/django-brickwork#382), because they fail for different
+  #     reasons and a single combined check cannot tell them apart: a
+  #     non-zero fixture-count check straight after each generation step
+  #     below (a dead or skipped generator), and a non-zero
+  #     tests-ran check read from Playwright's own JSON reporter stats after
+  #     the suite runs (a scan that found fixtures and still registered
+  #     nothing). Both are on top of, not instead of, the in-spec length
+  #     guards in axe.spec.mjs and archetypes.spec.mjs themselves, which fire
+  #     when a spec is run directly rather than only under this wrapper.
   a11y-gate:
     name: Accessibility + no-JS gate (WCAG 2.2 AA)
     runs-on: ubuntu-latest
@@ -256,7 +265,47 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Render a11y fixtures (real pages, light + dark)
         run: npm run a11y:fixtures
+      - name: Assert page fixtures were generated (icvoss/django-brickwork#382)
+        # A dead or skipped generator leaves a11y/fixtures/ empty (or
+        # missing); axe.spec.mjs's own for-loops would then register zero
+        # tests and this job would go green having scanned nothing. Checked
+        # here, straight after generation and before Playwright starts, so
+        # the failure is attributed to the generator rather than surfacing
+        # three steps later as an unexplained "0 tests ran".
+        run: |
+          count=$(find a11y/fixtures -maxdepth 1 -name '*.html' | wc -l)
+          echo "page fixtures: $count"
+          test "$count" -gt 0 || { echo "a11y/fixtures/ has no .html fixtures; the generator produced nothing."; exit 1; }
       - name: Render archetype-harness fixtures (catalogue-manifest archetypes, light + dark)
         run: npm run a11y:fixtures:archetypes
+      - name: Assert archetype fixtures were generated (icvoss/django-brickwork#382)
+        # Same failure mode as the page-fixture check above, for the
+        # separate a11y/fixtures/archetypes/ tree archetypes.spec.mjs scans.
+        run: |
+          count=$(find a11y/fixtures/archetypes -maxdepth 1 -name '*.html' 2>/dev/null | wc -l)
+          echo "archetype fixtures: $count"
+          test "$count" -gt 0 || { echo "a11y/fixtures/archetypes/ has no .html fixtures; the generator produced nothing."; exit 1; }
       - name: Run axe-core WCAG 2.2 AA + no-JS + keyboard suite
         run: npm run a11y
+      - name: Assert the suite actually ran tests (icvoss/django-brickwork#382)
+        # Distinct failure mode from the fixture-count checks above: fixtures
+        # can exist while a spec's own enumeration still finds nothing (a
+        # filter bug, a path mismatch), which the fixture-count checks
+        # cannot see because they only look at the filesystem, never at what
+        # Playwright actually collected. Read from the json reporter's own
+        # stats (playwright.config.mjs), never grepped from console text: a
+        # console message can be reworded without this check noticing,
+        # the reporter's stats object cannot lie about what ran. Runs only
+        # when the suite step above itself succeeded (default GitHub Actions
+        # behaviour): a real violation already fails the job at that step,
+        # so this check exists purely for the exit-0-but-scanned-nothing case.
+        run: |
+          test -f a11y-results.json || { echo "a11y-results.json was not written; the json reporter did not run."; exit 1; }
+          python3 -c "
+          import json, sys
+          with open('a11y-results.json') as f:
+              stats = json.load(f)['stats']
+          ran = stats['expected'] + stats['unexpected'] + stats['flaky']
+          print(f'tests ran: {ran} (expected={stats[\"expected\"]}, unexpected={stats[\"unexpected\"]}, flaky={stats[\"flaky\"]}, skipped={stats[\"skipped\"]})')
+          sys.exit(0 if ran > 0 else 1)
+          " || { echo "the a11y suite registered and ran zero tests; a spec's own enumeration found nothing."; exit 1; }
