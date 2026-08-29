@@ -118,6 +118,162 @@ def test_the_marketing_shell_content_block_lands_inside_the_main_region() -> Non
     assert main_start < html.index("CONTENT-SENTINEL") < footer_start
 
 
+# --- shell/marketing.html: *_region wrapper blocks (icvoss/django-brickwork#263) --
+
+# marketing_nav_region, marketing_actions_region and marketing_footer_region
+# extend the app shell's subnav_region/breadcrumbs_region/page_header_region/
+# footer_region idiom (BR-BW-TPL-001) to the marketing shell: a second, outer
+# override seam around the wrapper ELEMENT, distinct from filling the inner
+# content block. #263's consumer needed exactly this: a mobile-nav toggle as
+# a sibling of the nav, without filling the outer marketing_header block and
+# reproducing brand_logo/brand_wordmark/marketing_nav/marketing_actions.
+
+
+def test_filling_only_the_inner_block_is_unaffected_by_the_new_region_wrappers() -> None:
+    # Behaviour-preserving (the measured guarantee this change must not
+    # break): a consumer who only ever filled the inner blocks (the pre-#263
+    # seam) still gets the same wrapper markup, in the same position, that
+    # existed before the _region blocks were added. The three wrapper
+    # elements and their attributes survive untouched, and the filled
+    # content still lands inside them, in header-then-footer document order.
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block marketing_nav %}<a href='/pricing/'>Pricing</a>{% endblock %}"
+        "{% block marketing_actions %}<a href='/signup/'>Get started</a>{% endblock %}"
+        "{% block marketing_footer %}<a href='/about/'>About</a>{% endblock %}",
+    )
+    assert '<nav class="bw-marketing-header__nav" aria-label="Primary">' in html
+    assert '<div class="bw-marketing-header__actions">' in html
+    assert '<footer class="bw-marketing-footer">' in html
+    nav_start = html.index('class="bw-marketing-header__nav"')
+    pricing_start = html.index("<a href='/pricing/'>Pricing</a>")
+    actions_start = html.index('class="bw-marketing-header__actions"')
+    get_started_start = html.index("<a href='/signup/'>Get started</a>")
+    footer_start = html.index('class="bw-marketing-footer"')
+    about_start = html.index("<a href='/about/'>About</a>")
+    assert nav_start < pricing_start < actions_start < get_started_start < footer_start < about_start
+
+
+def test_overriding_marketing_nav_region_replaces_the_nav_wrapper() -> None:
+    # The new capability: a consumer overrides the _region block to replace
+    # the <nav> element itself (here, to add a sibling mobile-nav toggle next
+    # to it), rather than the app shell forcing a wholesale marketing_header
+    # override to reach the same seam.
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block marketing_nav_region %}"
+        '<div id="nav-region-replacement">'
+        "<a href='/pricing/'>Pricing</a>"
+        "</div>"
+        "{% endblock %}",
+    )
+    assert '<div id="nav-region-replacement">' in html
+    assert "bw-marketing-header__nav" not in html
+    assert "<a href='/pricing/'>Pricing</a>" in html
+
+
+def test_overriding_marketing_actions_region_replaces_the_actions_wrapper() -> None:
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block marketing_actions_region %}"
+        '<div id="actions-region-replacement">'
+        "<a href='/signup/'>Get started</a>"
+        "</div>"
+        "{% endblock %}",
+    )
+    assert '<div id="actions-region-replacement">' in html
+    assert "bw-marketing-header__actions" not in html
+    assert "<a href='/signup/'>Get started</a>" in html
+
+
+def test_overriding_marketing_footer_region_replaces_the_footer_wrapper() -> None:
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block marketing_footer_region %}<div id='footer-region-replacement'>Replacement footer</div>{% endblock %}",
+    )
+    assert "<div id='footer-region-replacement'>Replacement footer</div>" in html
+    assert "bw-marketing-footer" not in html
+
+
+def test_overriding_marketing_nav_region_empty_removes_the_nav_and_its_chrome() -> None:
+    # The capability filling the inner block alone can never offer: the
+    # wrapper element itself is gone, not merely empty. marketing_actions
+    # still renders, proving the removal is scoped to the nav region only.
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block marketing_nav_region %}{% endblock %}"
+        "{% block marketing_actions %}<a href='/signup/'>Get started</a>{% endblock %}",
+    )
+    assert "bw-marketing-header__nav" not in html
+    assert "<nav" not in html
+    assert "bw-marketing-header__actions" in html
+    assert "<a href='/signup/'>Get started</a>" in html
+
+
+def test_overriding_marketing_actions_region_empty_removes_the_actions_and_its_chrome() -> None:
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block marketing_nav %}<a href='/pricing/'>Pricing</a>{% endblock %}"
+        "{% block marketing_actions_region %}{% endblock %}",
+    )
+    assert "bw-marketing-header__actions" not in html
+    assert "bw-marketing-header__nav" in html
+    assert "<a href='/pricing/'>Pricing</a>" in html
+
+
+def test_overriding_marketing_footer_region_empty_removes_the_footer_and_its_chrome() -> None:
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block content %}CONTENT-SENTINEL{% endblock %}{% block marketing_footer_region %}{% endblock %}",
+    )
+    assert "bw-marketing-footer" not in html
+    assert "<footer" not in html
+    # the rest of the document is untouched
+    assert "CONTENT-SENTINEL" in html
+    _assert_complete_document(html)
+
+
+def test_the_existing_eleven_block_names_all_still_render() -> None:
+    # Constraint 1: every pre-#263 block name survives unchanged, in the same
+    # position, once the region wrappers are added around some of them.
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block marketing_header %}HEADER-SENTINEL{% endblock %}"
+        "{% block brand_logo %}LOGO-SENTINEL{% endblock %}"
+        "{% block brand_wordmark %}WORDMARK-SENTINEL{% endblock %}"
+        "{% block marketing_nav %}NAV-SENTINEL{% endblock %}"
+        "{% block marketing_actions %}ACTIONS-SENTINEL{% endblock %}"
+        "{% block content %}CONTENT-SENTINEL{% endblock %}"
+        "{% block marketing_footer %}FOOTER-SENTINEL{% endblock %}"
+        "{% block footer_legal %}LEGAL-SENTINEL{% endblock %}",
+    )
+    # marketing_header is overridden wholesale here, so it wins outright and
+    # its own nested blocks (brand_logo etc.) are not independently rendered;
+    # this proves the block still exists and is fillable, matching the
+    # pre-existing single-block-override behaviour class.
+    assert "HEADER-SENTINEL" in html
+    assert "CONTENT-SENTINEL" in html
+    assert "FOOTER-SENTINEL" in html
+    assert "LEGAL-SENTINEL" in html
+
+    # Filled independently (without overriding the parent marketing_header
+    # block), each of the remaining names still renders in its own slot.
+    independently_filled = _extend(
+        _MARKETING_SHELL,
+        "{% block brand_logo %}LOGO-SENTINEL{% endblock %}"
+        "{% block brand_wordmark %}WORDMARK-SENTINEL{% endblock %}"
+        "{% block marketing_nav %}NAV-SENTINEL{% endblock %}"
+        "{% block marketing_actions %}ACTIONS-SENTINEL{% endblock %}",
+    )
+    assert "LOGO-SENTINEL" in independently_filled
+    assert "WORDMARK-SENTINEL" in independently_filled
+    assert "NAV-SENTINEL" in independently_filled
+    assert "ACTIONS-SENTINEL" in independently_filled
+    # shell_variant is also a pre-existing block name, asserted separately
+    # since it renders into a class attribute rather than visible content.
+    assert "bw-shell--marketing" in _extend(_MARKETING_SHELL, "")
+
+
 # --- Accessibility invariant: the hero owns the single <h1> -----------------
 
 

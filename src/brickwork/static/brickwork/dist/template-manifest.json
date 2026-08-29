@@ -351,7 +351,25 @@
       ]
     },
     {
+      "name": "marketing_actions_region",
+      "declaredIn": [
+        "brickwork_marketing/shell/marketing.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "marketing_footer",
+      "declaredIn": [
+        "brickwork_marketing/shell/marketing.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "marketing_footer_region",
       "declaredIn": [
         "brickwork_marketing/shell/marketing.html"
       ],
@@ -370,6 +388,15 @@
     },
     {
       "name": "marketing_nav",
+      "declaredIn": [
+        "brickwork_marketing/shell/marketing.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "marketing_nav_region",
       "declaredIn": [
         "brickwork_marketing/shell/marketing.html"
       ],
