@@ -84,17 +84,19 @@ def test_no_shipped_template_uses_a_multiline_inline_comment() -> None:
     # Source-level guard against the whole bug class: Django's {# #} inline comment
     # is single-line only; a {# that spans to a later line is NOT stripped and
     # renders literally. Every multi-line comment must use {% comment %} instead.
-    # This scans every shipped template so the bug cannot recur in one we do not
-    # have an explicit render test for.
+    # This scans every shipped template (not just src/brickwork/templates/) so the
+    # bug cannot recur in one we do not have an explicit render test for: examples/,
+    # marketing/templates/, and any future template-bearing directory are covered
+    # by construction rather than by an enumerated list of roots (issue #384).
     import pathlib
 
-    templates_dir = pathlib.Path(__file__).resolve().parent.parent / "src" / "brickwork" / "templates"
+    package_dir = pathlib.Path(__file__).resolve().parent.parent / "src" / "brickwork"
     offenders: list[str] = []
-    for path in templates_dir.rglob("*.html"):
+    for path in package_dir.rglob("*.html"):
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             # an opening {# with no closing #} on the same line = multi-line comment
             if "{#" in line and "#}" not in line.split("{#", 1)[1]:
-                offenders.append(f"{path.relative_to(templates_dir)}:{lineno}")
+                offenders.append(f"{path.relative_to(package_dir)}:{lineno}")
     assert not offenders, (
         f"multi-line {{# #}} inline comments render literally; use {{% comment %}} instead. Offenders: {offenders}"
     )
