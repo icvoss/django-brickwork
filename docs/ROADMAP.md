@@ -110,14 +110,33 @@ roadmap's mention of them.
 *Chart components: shipped engine-free, as ADR-081 requires.* Bundling an
 engine remains forbidden; the mount is the consumer's seam.
 
-*Archetypes: the Data-heavy operations family opened.* `queue.html` and
-`audit-trail.html` are on `main`; `report.html`, `comparison.html` and the
-analysis dashboard are in flight. The cross-wave design-coherence gate ran on
-this wave's first archetype and passed.
+*Archetypes: the Data-heavy operations family is complete.* All five ship on
+`main`: `analysis-dashboard.html`, `report.html`, `comparison.html`,
+`queue.html` and `audit-trail.html`. The cross-wave design-coherence gate ran
+on this wave's first archetype and passed.
 
-**Exit criterion is met by the archetypes, not the components.** The
-criterion is a statement about pages shipping, so it closes when the
-dashboard and report land, not when the primitives did.
+**EXIT CRITERION MET, 2026-08-29.** The criterion is a statement about pages
+shipping, not components existing, so it closes on the archetypes: a
+data-heavy dashboard and report both ship from Brickwork alone. Verified
+against the artefacts on `main` rather than against this list.
+
+**What Wave 1 did not deliver, carried forward rather than quietly dropped.**
+Timeline, saved views and advanced filters (no spec brick; the audit trail
+demonstrated the timeline gap is real, since expanding an entry means a
+disclosure below the table rather than inside the row it belongs to), and the
+chart contract's annotation and export seam (likewise no brick behind the
+roadmap's mention). Scoping for all five unshipped slice 3 patterns is
+icvoss/django-brickwork#362.
+
+**And what the wave proved about the substrate itself.** The design bar was
+tested against a pre-committed falsification condition on the analysis
+dashboard, and half fired. Weighted hierarchy and a leading visualisation are
+reachable; regional elevation, multi-column arrangement and a visible band
+caption are not. An app-surface page can express a vertical stack of
+full-width bands and nothing else. That is a finding about the package rather
+than about any author, and it is icvoss/django-brickwork#371. Wave 2 should
+read it before designing its shells, since documentation and editorial
+surfaces need the same arrangement vocabulary.
 
 ### Wave 2: documentation and editorial
 
