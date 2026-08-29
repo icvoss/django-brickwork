@@ -233,6 +233,24 @@ jobs:
         run: npm run a11y:lint
       - name: Build the frontend bundle (fixtures inline it)
         run: npm run build
+      # --with-deps shells out to the OS package manager for Chromium's system
+      # libraries, which needs root. That is fine HERE because every job in
+      # this workflow is runs-on: ubuntu-latest, a throwaway GitHub-hosted VM.
+      # It is a property of the runner class, not of this job.
+      #
+      # Anyone copying this step to a SELF-HOSTED runner should drop the flag:
+      # a runner with no_new_privs set cannot elevate, so sudo fails outright
+      # rather than degrading to a plain download, and the step dies before
+      # the gate runs. The browser download itself needs no root; the OS
+      # libraries belong on the runner image, since they are a property of the
+      # box rather than of a CI run. A failure to LAUNCH chromium there is a
+      # provisioning gap wanting a fix on the image, never a restored flag.
+      #
+      # Recorded because this step has already been copied verbatim into a
+      # consuming site's self-hosted workflow and failed there
+      # (icvoss/brickworkui.com#114): the job SHAPE transferred correctly and
+      # this one runner-class-dependent flag inside it did not. A working
+      # precedent is evidence about its own environment.
       - name: Install Playwright chromium
         run: npx playwright install --with-deps chromium
       - name: Render a11y fixtures (real pages, light + dark)
