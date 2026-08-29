@@ -233,9 +233,21 @@ def test_overriding_marketing_footer_region_empty_removes_the_footer_and_its_chr
     _assert_complete_document(html)
 
 
-def test_the_existing_eleven_block_names_all_still_render() -> None:
+def test_the_existing_block_names_all_still_render() -> None:
     # Constraint 1: every pre-#263 block name survives unchanged, in the same
     # position, once the region wrappers are added around some of them.
+    #
+    # The shell defines TEN unique block names on main (shell, shell_variant,
+    # marketing_header, brand_logo, brand_wordmark, marketing_nav,
+    # marketing_actions, content, marketing_footer, footer_legal). A bare
+    # `grep -c "{% block"` reports eleven because marketing_actions appears a
+    # second time inside the docstring's own auth-aware example, which is
+    # prose rather than a block: count the names, not the tag occurrences.
+    #
+    # Nine of the ten are asserted below. `shell` is deliberately excluded:
+    # overriding it replaces the entire shell body, so filling it would
+    # remove the very regions the other assertions look for, and it is
+    # covered by base.html's own tests rather than here.
     html = _extend(
         _MARKETING_SHELL,
         "{% block marketing_header %}HEADER-SENTINEL{% endblock %}"

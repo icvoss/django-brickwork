@@ -60,6 +60,16 @@ same seam.
   marketing_footer_region   wraps the whole <footer class="bw-marketing-footer">
                              element (mirroring the app shell's footer_region,
                              which also wraps its outer <footer>).
+Overriding marketing_nav_region or marketing_footer_region EMPTY removes a
+LANDMARK, not just chrome: the <nav aria-label="Primary"> and the <footer>
+respectively. Neither is a WCAG 2.2 AA conformance failure on its own (the
+a11y gate runs axe with WCAG tags only, so it will not fail you for it), and
+a site with genuinely no primary nav or no footer is a real case, which is
+why this is permitted rather than gated. But a consumer removing one owns
+what replaces it: navigation still reachable some other way, and site
+information still presented somewhere a screen-reader user can find. Remove
+the region because the region does not exist on your site, never merely to
+restyle it, which is what overriding the region non-empty is for.
 No region wraps <header class="bw-marketing-header"> itself: the existing
 marketing_header block already covers everything inside
 .bw-marketing-header__brand (brand_logo, brand_wordmark, and now the two nav/
