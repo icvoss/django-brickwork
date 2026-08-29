@@ -46,6 +46,12 @@ template using a name read from a newer checkout than the version you
 have pinned, check that name against your pinned version's own header
 before relying on it, or the region renders nothing.
 
+body stays markup-only by design (icvoss/django-brickwork#398 sweep): its
+role is "extra content" laid out under the existing title/message lines
+(themselves already plain context variables), not a replacement for
+either, so there is no single body= string it stands in for. Passing a
+body= context variable is therefore still silently discarded, correctly.
+
 States: dismissed/not-dismissed when dismissible=True (x-data="bwDismissible()",
   state { visible }); the no-JS floor renders the close button with the
   hidden attribute, removed at Alpine init, so a JS-disabled page shows no

@@ -217,3 +217,49 @@ def test_concise_and_deprecated_region_names_both_render_when_both_filled() -> N
     assert "BODY-SENTINEL" in out
     assert "LEGACY-SENTINEL" in out
     assert out.index("BODY-SENTINEL") < out.index("LEGACY-SENTINEL")
+
+
+# --- icvoss/django-brickwork#398: title accepted as a context variable, -----
+# --- alongside the pre-existing block, on {% include %} call sites ----------
+
+
+def test_include_with_title_context_renders_the_heading() -> None:
+    # The defect: {% include %} cannot fill a block, so before this fix a
+    # caller passing title= by include got an untitled card with no error.
+    out = _render(title="Net revenue by month")
+    assert '<h2 class="bw-card__title">Net revenue by month</h2>' in out
+
+
+def test_title_context_is_escaped() -> None:
+    out = _render(title="<b>bold</b>")
+    assert "<b>bold</b>" not in out
+    assert "&lt;b&gt;bold&lt;/b&gt;" in out
+
+
+def test_bare_card_with_no_title_context_emits_no_title_markup() -> None:
+    # The unfilled-region convention (AC-BW-070) must hold for the context
+    # variable path too: no title supplied, no bw-card__title wrapper.
+    out = _render()
+    assert "bw-card__title" not in out
+
+
+def test_block_title_still_renders_with_no_title_context() -> None:
+    # extends with {% block title %}, matching _modal.html's own coverage:
+    # a caller filling the block still gets the block's content unchanged.
+    out = _extend("{% block title %}Custom Heading{% endblock %}")
+    assert "Custom Heading" in out
+    assert "bw-card__title" not in out  # the filler owns its own wrapper
+
+
+def test_block_title_wins_over_the_title_context_when_both_are_supplied() -> None:
+    out = _extend("{% block title %}Block Wins{% endblock %}", title="Context Should Lose")
+    assert "Block Wins" in out
+    assert "Context Should Lose" not in out
+
+
+def test_card_title_deprecated_block_does_not_gain_a_context_passthrough() -> None:
+    # The retiring card_title block deliberately gets no new reason to be
+    # used: passing card_title as a context variable stays silently
+    # discarded, exactly as it was before this fix.
+    out = _render(card_title="Should not appear")
+    assert "Should not appear" not in out

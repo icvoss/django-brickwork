@@ -31,6 +31,15 @@ context-variable path) renders byte-identical output to before these blocks
 existed: every block's default content is exactly what used to render
 unconditionally in its place.
 
+actions, breadcrumb, tabs and title_badge stay markup-only by design
+(icvoss/django-brickwork#398 sweep): each is a cluster of composed calls
+(one or more {% bw_button %}, a {% include %} of _breadcrumbs.html, a
+{% bw_tabs %} call, a {% bw_badge %} call) rather than a single string, so
+none has a context variable a caller would reasonably pass by include.
+title and description already accept context variables (see Required
+context above); those are the two regions here shaped like content
+rather than markup.
+
 States: loading=True swaps the title and description for a skeleton
   (aria-hidden), never a spinner; not-loading is the normal title/
   description/actions render. No other interactive state of its own (the

@@ -72,6 +72,16 @@ error, no warning, DEBUG=True does not catch it. Check this header against
 your pinned version before relying on a name (same caveat _card.html and
 _ranked_list.html both carry).
 
+chart_legend, chart_mount and chart_data_table stay markup-only by design
+(icvoss/django-brickwork#398 sweep): chart_legend and chart_data_table are
+each a caller-authored fragment (swatch+label markup, an accessible
+fallback table), and chart_mount's own default content is a four-way state
+branch (loading/error/empty/populated), not a single string, so none has a
+context variable a caller would reasonably pass by include. title and
+actions are inherited unredeclared from _card.html and already accept
+title as a context variable there (icvoss/django-brickwork#398); this file
+adds nothing new for them.
+
 Required context: none (every region is optional, matching _card.html).
 Optional:
   legend_position ("top" | "bottom" | "side", CHT-003): a modifier class

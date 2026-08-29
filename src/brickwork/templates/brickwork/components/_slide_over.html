@@ -70,6 +70,16 @@ structurally valid, entirely empty panel that still passes template
 loading; check this header against your pinned version before relying
 on a name.
 
+body and footer stay markup-only by design (icvoss/django-brickwork#398
+sweep): body is the panel content, commonly a form wired to
+BR-BW-HTMX-003, and footer's filler owns its own <footer> wrapper
+element, matching _modal.html's footer convention, so neither has a
+single string a context variable could sensibly stand in for. Passing a
+body= or footer= context variable is therefore still silently discarded,
+correctly. title already accepts a context variable (see Required
+context below); that is the one region here shaped like content rather
+than markup.
+
 Required context:
   title: the accessible name, rendered as the dialog heading and wired via
          aria-labelledby. A slide-over with neither title nor an
