@@ -27,7 +27,13 @@ Required context:
   label: the accessible name (a plain string, rendered via aria-label). Every
       progress bar names what it is progress OF (STA-007): a progress bar
       with no label is an authoring error (structural include, so this
-      cannot raise at render time; the docstring is the enforcement).
+      cannot raise at render time; the docstring is the enforcement). Known
+      gap, not yet fixed here (icvoss/django-brickwork#339, #358): this
+      attribute renders with no escaping filter, so a mark_safe'd label
+      currently reaches aria-label unescaped and can break out of the
+      attribute. bw_gauge and bw_ranked_list carried the same defect and are
+      fixed; this include has no tag-side Python to route the fix through,
+      so it is tracked separately at #358 rather than patched here.
 Optional:
   value (int, 0-100): determinate progress. Omitted renders the
       indeterminate treatment.

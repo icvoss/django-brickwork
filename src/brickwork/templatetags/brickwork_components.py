@@ -1092,47 +1092,23 @@ def bw_gauge(
     percent_float = float(percent)
     dash_offset = _GAUGE_CIRCUMFERENCE * (1 - percent_float / 100)
 
+    # ATTRIBUTE position (icvoss/django-brickwork#339): _gauge.html renders
+    # this INSIDE the quotes, as aria-label="{{ label }}", with no template
+    # filter, so a mark_safe'd label reached that attribute unescaped and
+    # closed the quote (the #349 defect class this file's escape_attribute_
+    # value already exists for). This is computed from the RAW label
+    # parameter, never from a conditional_escape/normalise_accessible_name
+    # result, because feeding an already-escaped SafeString into a second
+    # unconditional escape() would double-escape it. escape_attribute_value,
+    # not normalise_accessible_name: that helper's conditional_escape
+    # honours a SafeString's __html__ marker, which is correct for TEXT
+    # position (_toggle.html's own `{{ label }}`) but is exactly how a
+    # mark_safe'd label closed this attribute in the first place. Stripped,
+    # not merely truthy, so a whitespace-only label renders no aria-label at
+    # all, matching bw_chart_mount's own aria_label precedent.
+    label = escape_attribute_value(label)
+
     return {
-        # ATTRIBUTE position (icvoss/django-brickwork#339, #352): the template
-        # renders this INSIDE the quotes, as aria-label="{{ label }}", so it
-        # needs escape() and NOT normalise_accessible_name. That helper is
-        # right for a value the template escapes; it returns a SafeString, so
-        # here it would suppress the template's own escaping and the quote in
-        # mark_safe('" onload="alert(1)') would still close the attribute.
-        # Verified by render rather than assumed: with the helper applied the
-        # breakout survived; with escape() it does not.
-        #
-        # The contrast is _toggle.html's `{{ label }}`, which is TEXT content
-        # and correctly uses the helper. Identical-looking code, different
-        # position, opposite treatment: #351's "same value, same strip,
-        # different downstream". The position is a property of the TEMPLATE,
-        # not of the tag, so it must be read there rather than inferred from
-        # what neighbouring tags do.
-        #
-        # `gauge_label` below is the third case: a trusted-markup slot
-        # (VIZ-008), passed through raw, deliberately getting neither.
-        # ATTRIBUTE position (icvoss/django-brickwork#339, #352). The tag
-        # only strips and coerces; the ESCAPING is done in the template with
-        # an explicit |force_escape, because the position is a property of
-        # the template rather than of the tag.
-        #
-        # Neither of the two obvious tag-side fixes works here, both measured
-        # rather than reasoned about:
-        #   normalise_accessible_name alone -> returns a SafeString, so the
-        #     template does not escape it and mark_safe('" onload="...')
-        #     still closes the attribute.
-        #   escape(force_str(label).strip()) -> closes the breakout but
-        #     double-escapes, rendering format_html("Tom {} more", "&") as
-        #     "Tom &amp;amp; more", the exact corruption #352 fixed.
-        # The strip must therefore keep the value UNSAFE here, and the
-        # template escapes exactly once at the point that knows it is inside
-        # quotes.
-        #
-        # The contrast is _toggle.html's `{{ label }}`, TEXT content, where
-        # normalise_accessible_name IS correct. Identical-looking code,
-        # opposite treatment: #351's "same value, same strip, different
-        # downstream". `gauge_label` is a third case again, a trusted-markup
-        # slot (VIZ-008) passed through raw.
         "label": label,
         "size": size,
         "threshold_token": threshold_token,
@@ -1768,6 +1744,20 @@ def bw_ranked_list(
             _shape_ranked_list_row(raw, amount=amount, denominator=denominator)
             for raw, amount in zip(rows, amounts, strict=True)
         ]
+    # ATTRIBUTE position (icvoss/django-brickwork#339): _ranked_list.html
+    # renders this INSIDE the quotes, as aria-label="{{ label }}", with no
+    # template filter, so a mark_safe'd label reached that attribute
+    # unescaped and closed the quote (the #349 defect class this file's
+    # escape_attribute_value already exists for). Computed from the RAW
+    # label parameter, never from a conditional_escape/normalise_accessible_
+    # name result, which would double-escape. Unlike row.label below (TEXT
+    # position inside the <ol>, correctly left raw for the template's own
+    # auto-escaping to handle), this list-level label is an accessible name
+    # rendered only into an attribute, so it takes escape_attribute_value's
+    # unconditional escape() rather than the row values' ordinary escaping.
+    # Stripped, not merely truthy, so a whitespace-only label renders no
+    # aria-label at all, matching bw_chart_mount's own aria_label precedent.
+    label = escape_attribute_value(label)
     return {
         "rows": rendered_rows,
         "label": label,
