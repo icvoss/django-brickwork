@@ -50,9 +50,40 @@ whenever ``trend`` is set, the template renders a directional glyph
 fallback ("increased" / "decreased" / "unchanged"), so the direction never
 rides on colour alone by construction, even when the caller supplies no
 ``trend_label``. ``trend_label``, when given, refines the accessible text
-(e.g. "12% up on last month") and renders visibly beside the glyph. Colour
-(success or danger ink on the row) is reinforcement only, never the sole
-signal.
+(e.g. "12% up on last month") and renders visibly beside the glyph.
+
+Colour (icvoss/django-brickwork#388, replacing the pre-3.15 behaviour):
+the bw-trend--<direction> modifier now carries NO colour of its own; all
+three direction states (up/down/flat) render in the same neutral ink
+(--bw-color-fg-muted). Direction is a fact about which way a number moved,
+never whether that is good news: hard-coding up=success-green and
+down=danger-red painted judgement onto direction and produced rows where a
+falling cost (trend="down", correctly announcing "decreased" to a screen
+reader) rendered danger-red while its own trend_label said "which is
+better" beside it. Sighted and assistive-tech readers got opposite
+meanings from the same element, which is exactly the failure the
+direction/judgement split exists to prevent.
+
+sentiment ("good" | "bad", optional): the ONLY way to get judgement colour
+now, set deliberately by the caller, independent of trend. Renders an
+additional bw-trend--good/bw-trend--bad modifier (and, when css_class is
+given, a matching <css_class>--good/<css_class>--bad) alongside the
+direction modifier, never instead of it: a caller with a falling cost that
+is good news passes trend="down" sentiment="good", so the accessible text
+still says "decreased" and the colour separately says "this is the good
+outcome". A falsy value (the default) renders no sentiment modifier and no
+judgement colour, matching this template's existing falsy-renders-nothing
+convention for trend_label/css_class. Any other, truthy but unrecognised
+value renders no sentiment modifier either (same closed-set, silent
+no-match-no-render posture as _stat_comparison.html's own size argument;
+this is an include-only template with no Python-side tag validation, so an
+unrecognised value is a caller error the template declines to guess at
+rather than raises). Matched against the closed set with explicit
+{% if %}/{% elif %} literals, never interpolated as {{ sentiment }}, for
+the same reason _stat_comparison.html's own size argument gives: this file
+has no validation layer, so a bare {{ sentiment }} in a class attribute
+would be a live attribute-injection seam for any caller passing an
+unexpected value.
 
 Required context:
   trend ("up" | "down" | "flat"): the direction of change. A falsy value
@@ -63,29 +94,41 @@ Required context:
         own fallback.
 Optional:
   trend_label (str): the visible delta text beside the glyph.
-  css_class (str): extra class tokens appended after bw-trend and the
-        bw-trend--<state> modifier (see the header note above). Escaped;
-        never Brickwork's own trusted markup.
+  sentiment ("good" | "bad"): opt-in judgement colour, independent of
+        trend (see the header note above). Omitted (the default) renders
+        the direction modifier only, in neutral ink.
+  css_class (str): extra class tokens appended after bw-trend, the
+        bw-trend--<direction> modifier, and (when sentiment is set) the
+        bw-trend--<sentiment> modifier (see the header note above).
+        Escaped; never Brickwork's own trusted markup.
 
 Usage (a table cell, VIZ-017's own motivating case)::
 
     {% include "brickwork/components/_trend_indicator.html" with trend="up" trend_label="12% on last month" %}
 
-States: up/down/flat, each its own .bw-trend--<state> colour pairing;
-  the glyph and hidden text are identical in shape across up and down (only
-  the flat state renders a different, non-directional glyph (minus, not an
-  arrow) and never shows a visible word for the state itself: the visible
-  slot is always the caller-supplied trend_label, matching _stat.html's own
-  treatment).
+Usage with opt-in judgement colour (a falling cost that is good news)::
+
+    {% include "brickwork/components/_trend_indicator.html" with trend="down" trend_label="2.6 days lower, which is better" sentiment="good" %}
+
+States: up/down/flat, each its own .bw-trend--<state> DIRECTION class,
+  neutral in colour; the glyph and hidden text are identical in shape
+  across up and down (only the flat state renders a different,
+  non-directional glyph (minus, not an arrow) and never shows a visible
+  word for the state itself: the visible slot is always the
+  caller-supplied trend_label, matching _stat.html's own treatment).
+  good/bad, when sentiment is set, are a SEPARATE, additive colour state
+  layered on top of the direction state, never replacing it.
 Accessibility: a trend is never colour-only: a directional glyph
   (decorative) always pairs with visually-hidden text naming the direction
   in words ("increased"/"decreased"/"unchanged"), regardless of whether the
-  caller supplies a visible trend_label.
+  caller supplies a visible trend_label. Judgement, when the caller states
+  one via sentiment, is reinforcement of what trend_label's words already
+  say, never the sole signal of it.
 Responsive: no breakpoint switch; no width-dependent CSS on any .bw-trend*
   selector.
 {% endcomment %}
 {% if trend %}
-<span class="bw-trend bw-trend--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}{% if css_class %} {{ css_class }} {{ css_class }}--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}{% endif %}">
+<span class="bw-trend bw-trend--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}{% if sentiment == "good" %} bw-trend--good{% elif sentiment == "bad" %} bw-trend--bad{% endif %}{% if css_class %} {{ css_class }} {{ css_class }}--{% if trend == "up" %}up{% elif trend == "down" %}down{% else %}flat{% endif %}{% if sentiment == "good" %} {{ css_class }}--good{% elif sentiment == "bad" %} {{ css_class }}--bad{% endif %}{% endif %}">
   {% if trend == "up" %}{% bw_icon "arrow-up" size="sm" decorative=True %}{% elif trend == "down" %}{% bw_icon "arrow-down" size="sm" decorative=True %}{% else %}{% bw_icon "minus" size="sm" decorative=True %}{% endif %}
   <span class="bw-visually-hidden">{% if trend == "up" %}{% translate "increased" %}{% elif trend == "down" %}{% translate "decreased" %}{% else %}{% translate "unchanged" %}{% endif %}</span>
   {% if trend_label %}<span>{{ trend_label }}</span>{% endif %}

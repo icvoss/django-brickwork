@@ -13,9 +13,16 @@ arrow-down / minus, decorative) PLUS a visually hidden text fallback
 ("increased" / "decreased" / "unchanged"), so the direction never rides on
 colour alone by construction, even when the caller supplies no
 ``trend_label``. ``trend_label``, when given, refines the accessible text
-(e.g. "12% up on last month") and renders visibly beside the glyph. Colour
-(success or danger ink on the trend row) is reinforcement only, never the
-sole signal.
+(e.g. "12% up on last month") and renders visibly beside the glyph.
+
+Trend colour (icvoss/django-brickwork#388): the direction modifier
+(bw-trend--up/--down/--flat) is neutral ink. ``trend`` names the way the
+number moved, never whether that is good news, so it carries no colour of
+its own; a falling cost is trend="down" whether the fall is good or bad
+news, and colouring --down danger-red by default painted a judgement onto
+every caller regardless of which. Judgement colour is opt-in via
+``sentiment``, passed straight through to _trend_indicator.html (see that
+partial's own header comment for the full contract).
 
 Class name (#334): the trend row now renders via _trend_indicator.html
 rather than an inline copy of the same markup, so there is one
@@ -36,6 +43,10 @@ Optional:
   trend ("up" | "down" | "flat"): the direction of change (VIZ-002). Any
         other value takes the flat treatment.
   trend_label (str): the visible delta text beside the glyph.
+  sentiment ("good" | "bad", #388): opt-in judgement colour on the trend
+        row, independent of trend, passed straight through to
+        _trend_indicator.html. Omitted (the default) renders the direction
+        modifier only, in neutral ink.
   icon (registry name): a leading flat glyph for the tile (VIZ-018).
   href: wraps the tile in an anchor (VIZ-024) which takes the interactive
         card's shadow raise. Omitted renders a plain non-interactive <div>,
@@ -71,8 +82,10 @@ States: loading (skeleton rows stand in for the whole tile), and, when
 Accessibility: a trend is never colour-only: a directional glyph
   (decorative) always pairs with visually-hidden text naming the direction
   in words ("increased"/"decreased"/"unchanged"), regardless of whether
-  the caller supplies a visible trend_label. A linked tile (href) renders
-  as a real anchor. Covered by axe.spec.mjs against dashboard-*.html
+  the caller supplies a visible trend_label. Judgement colour, when the
+  caller states one via sentiment, reinforces what trend_label's words
+  already say; it is never the sole signal of it. A linked tile (href)
+  renders as a real anchor. Covered by axe.spec.mjs against dashboard-*.html
   (app/dashboard.html's own KPI row, its native usage) and
   sections-*.html (stats/inline-band.html, via _stat_band.html); the
   standalone loading and href states are exercised directly by
@@ -91,7 +104,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-stat*
     {% if icon %}{% bw_icon icon size="md" decorative=True css_class="bw-stat__icon" %}{% endif %}
     <span class="bw-stat__label">{{ label }}</span>
     <span class="bw-stat__value">{{ value }}</span>
-    {% include "brickwork/components/_trend_indicator.html" with trend=trend trend_label=trend_label css_class="bw-stat__trend" %}
+    {% include "brickwork/components/_trend_indicator.html" with trend=trend trend_label=trend_label sentiment=sentiment css_class="bw-stat__trend" %}
     {% if sparkline %}<div class="bw-stat__sparkline">{{ sparkline }}</div>{% endif %}
   {% endif %}
 {% if href %}</a>{% else %}</div>{% endif %}
