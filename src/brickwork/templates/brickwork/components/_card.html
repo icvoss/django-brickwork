@@ -29,6 +29,32 @@ checkout gets a structurally valid, entirely empty region that still
 passes template loading; check this header against your pinned version
 before relying on a name.
 
+DUAL CONSUMPTION on `title` only (icvoss/django-brickwork#398): the
+`title` block also renders a `title` context variable, wrapped in the
+same <h2 class="bw-card__title"> a caller filling the block by hand
+would write itself (matching the header/title block's own filler example
+below), so `{% include %} with title="..."` (the shape a copy-paste band
+example uses, since {% include %} cannot fill a block at all) now
+renders a real heading instead of silently discarding the value. The
+wrapper is conditional on `title` being truthy, so a bare card with no
+title supplied still emits no empty region markup (matching the
+unfilled-region convention every other block on this file follows).
+`{% block title %}` still overrides the whole thing, exactly as block
+override already does everywhere else, so a caller who supplies both
+gets the block's content: no new precedence rule, just the block winning
+by construction. The deprecated `card_title` block deliberately does NOT
+get this treatment (BR-BW-TPL-001's retirement of the prefixed names
+would otherwise be undone by giving a retiring name a new reason to be
+used).
+
+header, footer, body, actions, and every card_-prefixed block remain
+markup-only extension points with no matching context variable: their
+own docstring paragraph below documents why (the filler owns the whole
+wrapper element for each, e.g. a header row pairing a heading with an
+actions cluster, not a bare string), so passing a context variable under
+these names is still silently discarded, correctly, because there is no
+single string these regions could sensibly wrap.
+
 Filling blocks from an include call site: {% include %} cannot fill a block,
 so a caller that needs a region writes a small template that EXTENDS this one
 and includes THAT (the mechanism patterns/_table_card.html uses):
@@ -58,6 +84,13 @@ If body content ever needs spacing of its own, style it on that content's
 element, not by adding weight to this class.
 
 Required context: none. Optional:
+  title: rendered inside the title block when that block is not overridden
+      (icvoss/django-brickwork#398). A caller that also fills
+      {% block title %} gets the block's content; the context variable is
+      the fallback for the common {% include %} case, since {% include %}
+      has no other way to reach a block-shaped region. header, footer,
+      body, actions and the card_-prefixed blocks have no equivalent
+      context variable: see the docstring paragraph above for why.
   interactive (bool, default False): rests at --bw-elevation-1 and raises to
       --bw-elevation-2 on hover/focus-within, shadow only, never a transform
       (MOT-010, AC-BW-071).
@@ -96,7 +129,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-card*
 {% if href %}<a class="bw-card bw-card--interactive{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-card{% if interactive %} bw-card--interactive{% endif %}{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}">{% endif %}
 {% block header %}{% endblock %}
 {% block card_header %}{% endblock %}
-{% block title %}{% endblock %}
+{% block title %}{% if title %}<h2 class="bw-card__title">{{ title }}</h2>{% endif %}{% endblock %}
 {% block card_title %}{% endblock %}
 {% block actions %}{% endblock %}
 {% block card_actions %}{% endblock %}

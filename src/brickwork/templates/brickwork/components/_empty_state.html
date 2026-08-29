@@ -69,6 +69,17 @@ template using a name read from a newer checkout than the version you
 have pinned, check that name against your pinned version's own header
 before relying on it, or the region renders nothing.
 
+action stays markup-only by design (icvoss/django-brickwork#398 sweep):
+its default content is conditional on the action_href/action_label PAIR
+and picks between a bw-btn and a plain link depending on size, so there
+is no single action= string a context variable could stand in for; the
+pair of existing context variables is already the content seam. heading
+and body already accept context variables (see Required context above);
+title and description are their deprecated predecessors and deliberately
+do NOT gain a passthrough of their own, since both are superseded names
+being retired (ADR-077 SS4) and giving either a new working path would
+undo that retirement.
+
 States: two content variants (no_data default, no_results, each pairing a
   different default icon and a different suggested action), and two scales
   (md default, sm). No interactive open/closed state: it is static markup,

@@ -32,6 +32,12 @@ structurally valid, entirely empty trigger span that still passes
 template loading; check this header against your pinned version before
 relying on a name.
 
+trigger stays markup-only by design (icvoss/django-brickwork#398 sweep):
+the worked example above fills it with a whole interactive element (a
+<button> carrying its own aria-label and icon), not a string, so there is
+no single trigger= context variable it could sensibly stand in for.
+Passing one is therefore still silently discarded, correctly.
+
 No-JS floor (BR-BW-HTMX-006): the trigger keeps a native title attribute set
 to ``text``, so a tooltip with zero JavaScript still has SOME accessible
 hint (the browser's own native title tooltip) rather than a silently absent
