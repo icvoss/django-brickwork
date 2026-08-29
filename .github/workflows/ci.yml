@@ -233,10 +233,11 @@ jobs:
         run: npm run a11y:lint
       - name: Build the frontend bundle (fixtures inline it)
         run: npm run build
-      # --with-deps shells out to the OS package manager for Chromium's system
-      # libraries, which needs root. That is fine HERE because every job in
-      # this workflow is runs-on: ubuntu-latest, a throwaway GitHub-hosted VM.
-      # It is a property of the runner class, not of this job.
+      # --with-deps IS SAFE HERE ONLY BECAUSE THIS JOB IS runs-on:
+      # ubuntu-latest. The flag shells out to the OS package manager for
+      # Chromium's system libraries, which needs root, and a throwaway
+      # GitHub-hosted VM has it. Read the flag and the runner class together:
+      # they are one fact, and they sit fifteen lines apart in this file.
       #
       # Anyone copying this step to a SELF-HOSTED runner should drop the flag:
       # a runner with no_new_privs set cannot elevate, so sudo fails outright
