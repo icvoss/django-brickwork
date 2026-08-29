@@ -17,6 +17,21 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(HERE, "fixtures");
 const pages = readdirSync(FIXTURES).filter((f) => f.endsWith(".html"));
 
+// icvoss/django-brickwork#382: every test below is registered by iterating
+// `pages`, so a skipped or failed a11y/generate_fixtures.py run (the
+// fixtures are gitignored, generated at CI run time) makes `pages` empty,
+// every `for (const page of pages)` loop below registers zero tests, and
+// Playwright exits 0 having scanned nothing. This guard fails loudly the
+// moment the spec is loaded (by Playwright directly, or by anything else
+// that imports it), rather than only under the CI wrapper's own separate
+// fixture-count check, which cannot see a spec run in isolation.
+test("fixtures were generated (the sweeps below are not vacuous)", () => {
+  expect(
+    pages.length,
+    `${FIXTURES} contains no .html fixtures; run npm run a11y:fixtures first`,
+  ).toBeGreaterThan(0);
+});
+
 // WCAG 2.2 AA tag set. axe maps these to the rule subset that gates the build.
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
