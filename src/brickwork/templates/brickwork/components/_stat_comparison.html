@@ -103,6 +103,12 @@ Optional:
       straight through to _trend_indicator.html. Pre-formatted by the
       caller (VIZ-020): this template never computes a percentage or a
       difference from current/previous.
+  sentiment ("good" | "bad", icvoss/django-brickwork#388): opt-in judgement
+      colour on the trend row, independent of trend, passed straight
+      through to _trend_indicator.html (see that partial's own header
+      comment). Omitted (the default) renders the direction modifier only,
+      in neutral ink: trend names the way the number moved, never whether
+      that is good news, so it carries no colour of its own.
   size ("sm" | "md" | "lg", default "md"): "sm"/"lg" emit
       bw-stat-comparison--sm/--lg (mirroring _stat.html's own VIZ-027 size
       seam, whose CSS defines only --sm/--lg, so a comparison tile sits at
@@ -139,9 +145,10 @@ Accessibility: a trend is never colour-only: _trend_indicator.html always
   pairs its decorative glyph with visually-hidden direction text
   ("increased"/"decreased"/"unchanged"), and this template neither
   duplicates nor suppresses that guarantee, it only supplies the
-  trend/trend_label arguments the partial already enforces (BR-BW-TPL-007,
-  AC-BW-073/074). period_label renders as ordinary visible text in the same
-  container as current and previous, immediately after previous, so a
+  trend/trend_label/sentiment arguments the partial already enforces
+  (BR-BW-TPL-007, AC-BW-073/074). period_label renders as ordinary visible
+  text in the same container as current and previous, immediately after
+  previous, so a
   screen reader announces it in reading order right after the value it
   qualifies, never as floating text elsewhere on the page.
 Responsive: no breakpoint switch; no width-dependent CSS on any
@@ -152,5 +159,5 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   {% if label %}<span class="bw-stat-comparison__label">{{ label }}</span>{% endif %}
   <span class="bw-stat-comparison__current">{{ current }}</span>
   <span class="bw-stat-comparison__previous">{{ previous }}{% if period_label %} <span class="bw-stat-comparison__period">{{ period_label }}</span>{% endif %}</span>
-  {% include "brickwork/components/_trend_indicator.html" with trend=trend trend_label=trend_label css_class="bw-stat-comparison__trend" %}
+  {% include "brickwork/components/_trend_indicator.html" with trend=trend trend_label=trend_label sentiment=sentiment css_class="bw-stat-comparison__trend" %}
 </div>

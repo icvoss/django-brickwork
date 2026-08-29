@@ -1937,17 +1937,41 @@ a.bw-stat:hover {
   font-weight: var(--bw-text-caption-weight);
   line-height: var(--bw-text-caption-line-height);
 }
-/* Direction is carried by the glyph and the visually-hidden text fallback;
-   colour is reinforcement only (BR-BW-TPL-007, AC-BW-074). The X-fg text
-   tiers hold AA at caption size on the card surface. */
-.bw-trend--up {
-  color: var(--bw-color-success-fg);
-}
-.bw-trend--down {
-  color: var(--bw-color-danger-fg);
-}
+/* Direction is neutral (icvoss/django-brickwork#388): trend names the way a
+   NUMBER moved, never whether that is good news (_trend_indicator.html's own
+   contract; "judgement belongs in trend_label"). Colouring --up green and
+   --down red hard-codes a judgement the component never establishes, so a
+   falling cost (trend="down", "which is better") rendered danger-red while
+   correctly announcing "decreased" to assistive tech: the two audiences got
+   opposite meanings from the same element. All three direction states
+   therefore share one neutral ink, --bw-color-fg-muted (the same token the
+   unmodified .bw-trend/.bw-stat__trend/.bw-stat-comparison__trend rules
+   above already use before any modifier applies, and the token this file's
+   other non-judgemental captions use: .bw-stat-comparison__previous/__period
+   above, .bw-badge's neutral default). It holds AA at caption size on the
+   card surface (docs/DESIGN.md: 5.82:1 on surface, 5.26:1 on the sunken
+   canvas; 4.5:1 required). Reinforcing DIRECTION only would be neutral;
+   reinforcing a judgement the caller has not stated is not, so this is not
+   "colour is reinforcement only" restated, it is colour removed from a slot
+   that had no basis for it. Judgement colour is opt-in via .bw-trend--good/
+   --bad, set deliberately by the caller through _trend_indicator.html's new
+   sentiment argument (see that template's header comment); it is layered on
+   top of, never instead of, the direction modifier below. */
+.bw-trend--up,
+.bw-trend--down,
 .bw-trend--flat {
   color: var(--bw-color-fg-muted);
+}
+/* Opt-in judgement colour (#388): caller-set via sentiment, independent of
+   direction. Matches BR-BW-TPL-007/AC-BW-074's colour-is-reinforcement-only
+   rule because the glyph and visually-hidden text already carry direction,
+   and trend_label already carries judgement in words; this only reinforces
+   a judgement the caller has explicitly stated, never implies one. */
+.bw-trend--good {
+  color: var(--bw-color-success-fg);
+}
+.bw-trend--bad {
+  color: var(--bw-color-danger-fg);
 }
 
 /* Retained aliases of .bw-trend* (icvoss/django-brickwork#334). _stat.html
@@ -1955,7 +1979,10 @@ a.bw-stat:hover {
    names. The modifiers are retained alongside the base deliberately, because
    the base carries layout and the MODIFIERS carry the colour, so a consumer
    overriding trend colour selects a modifier. Retaining only the base would
-   break exactly the override these classes exist to enable. */
+   break exactly the override these classes exist to enable. Direction is
+   neutral and judgement is opt-in here too (#388), matching .bw-trend*
+   above exactly: one implementation, so the alias family cannot disagree
+   with the base family on the same element. */
 .bw-stat__trend {
   display: inline-flex;
   align-items: center;
@@ -1965,14 +1992,16 @@ a.bw-stat:hover {
   font-weight: var(--bw-text-caption-weight);
   line-height: var(--bw-text-caption-line-height);
 }
-.bw-stat__trend--up {
-  color: var(--bw-color-success-fg);
-}
-.bw-stat__trend--down {
-  color: var(--bw-color-danger-fg);
-}
+.bw-stat__trend--up,
+.bw-stat__trend--down,
 .bw-stat__trend--flat {
   color: var(--bw-color-fg-muted);
+}
+.bw-stat__trend--good {
+  color: var(--bw-color-success-fg);
+}
+.bw-stat__trend--bad {
+  color: var(--bw-color-danger-fg);
 }
 
 /* --- Stat comparison (VIZ-019/020) ------------------------------------------ */
@@ -2037,9 +2066,11 @@ a.bw-stat:hover {
    .bw-stat__trend alias above): this template passes
    css_class="bw-stat-comparison__trend", so the rendered element carries
    both .bw-trend and .bw-stat-comparison__trend (plus their matching
-   --up/--down/--flat modifiers). One implementation (.bw-trend, styled
-   above), one more retained alias, so a consumer stylesheet selecting
-   .bw-stat-comparison__trend directly still matches. */
+   modifiers). One implementation (.bw-trend, styled above), one more
+   retained alias, so a consumer stylesheet selecting
+   .bw-stat-comparison__trend directly still matches. Direction is neutral
+   and judgement is opt-in here too (#388), matching .bw-trend* above
+   exactly, for the same one-implementation reason. */
 .bw-stat-comparison__trend {
   display: inline-flex;
   align-items: center;
@@ -2049,14 +2080,16 @@ a.bw-stat:hover {
   font-weight: var(--bw-text-caption-weight);
   line-height: var(--bw-text-caption-line-height);
 }
-.bw-stat-comparison__trend--up {
-  color: var(--bw-color-success-fg);
-}
-.bw-stat-comparison__trend--down {
-  color: var(--bw-color-danger-fg);
-}
+.bw-stat-comparison__trend--up,
+.bw-stat-comparison__trend--down,
 .bw-stat-comparison__trend--flat {
   color: var(--bw-color-fg-muted);
+}
+.bw-stat-comparison__trend--good {
+  color: var(--bw-color-success-fg);
+}
+.bw-stat-comparison__trend--bad {
+  color: var(--bw-color-danger-fg);
 }
 
 /* --- Ranked list (icvoss/django-brickwork#183) ------------------------------ */
