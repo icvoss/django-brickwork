@@ -1949,9 +1949,13 @@ a.bw-stat:hover {
    above already use before any modifier applies, and the token this file's
    other non-judgemental captions use: .bw-stat-comparison__previous/__period
    above, .bw-badge's neutral default). It holds AA at caption size on the
-   card surface (docs/DESIGN.md: 5.82:1 on surface, 5.26:1 on the sunken
-   canvas; 4.5:1 required). Reinforcing DIRECTION only would be neutral;
-   reinforcing a judgement the caller has not stated is not, so this is not
+   card surface, which is where this package renders it: 5.82:1, against
+   4.5:1 required (docs/DESIGN.md). No shipped trend site sets a sunken
+   background. The sunken pairing is cited only because this partial is
+   include-only, so a consumer may place it on that canvas; DESIGN.md
+   records 5.26:1 there, which also clears AA. Reinforcing DIRECTION only
+   would be neutral; reinforcing a judgement the caller has not stated is
+   not, so this is not
    "colour is reinforcement only" restated, it is colour removed from a slot
    that had no basis for it. Judgement colour is opt-in via .bw-trend--good/
    --bad, set deliberately by the caller through _trend_indicator.html's new
