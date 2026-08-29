@@ -8,6 +8,402 @@ versioning contract).
 
 ## Unreleased
 
+## [3.14.0] - 2026-08-29
+
+**Wave 1 of the interface-system delivery closes here: data-heavy
+applications.** The release completes the viz primitive set (gauge,
+scorecard, stat comparison), closes the chart contract's accessible-data half
+(`bw_chart_data_table`, CHT-012 and CHT-013), and opens the **Data-heavy
+operations archetype family** with all five of its pages: analysis dashboard,
+report, comparison, queue and audit trail. The wave's exit criterion is that
+a data-heavy dashboard and report ship from Brickwork alone, and they do.
+
+**Two things a consumer upgrading should read rather than skim.**
+
+The `### Added` section below also announces four capabilities that
+**shipped in 3.13.0 and were never named in its release notes**
+(icvoss/django-brickwork#361): the chart token vocabulary, `bw_sparkline`,
+`bw_chart_mount` with `_chart_card.html`, and `_trend_indicator.html`. They
+have been installable since 2026-08-28 and nothing about their behaviour has
+changed; only the announcement is late. If you are already on 3.13.0 you have
+had them all along.
+
+Attribute escaping changed at the package's seam (ADR-084). A consumer value
+reaching an HTML attribute is now escaped unconditionally, so a `mark_safe`
+value passed into a tag argument that lands in an attribute will be escaped
+rather than rendered as markup, and a pre-escaped `SafeString` accessible
+name will announce its literal entities. An attribute value has no legitimate
+use for embedded markup, so a correctly behaved consumer loses nothing, and
+the supported path is plain text. **URL-scheme validation is explicitly not
+part of what shipped**: brickwork emits `href` values as given, and a caller
+passing user-supplied URLs validates them itself.
+
+### Added
+
+- **`_data_table.html`'s empty state can carry an action CTA**
+  (icvoss/django-brickwork#185). The empty branch already composed
+  `_empty_state.html`, but the include never passed through an action, so a
+  consumer wanting "No properties yet" plus an "Add your first property"
+  button had to bypass the built-in empty state and wrap the table in a
+  separate `_empty_state.html` include. Two new optional context variables,
+  `empty_action_href` and `empty_action_label`, close the gap: supply both
+  and the empty state renders the same real `<a class="bw-btn bw-btn--primary">`
+  anchor `_empty_state.html` always has, keyboard-reachable and labelled with
+  no extra wiring. Supplying neither (or only one) renders exactly what the
+  empty branch always rendered; this is a purely additive, backwards
+  compatible change. The naming matches `_ranked_list.html`'s own
+  `empty_action_href`/`empty_action_label` passthrough, so the convention is
+  now the same across both components.
+
+- **ESLint guards the a11y Playwright specs against unawaited async assertions**
+  (icvoss/django-brickwork#276). `npm run a11y:lint`, wired into the CI
+  `a11y-gate` job, adopts `eslint-plugin-playwright` scoped to
+  `a11y/**/*.spec.mjs` only. It bans the `toThrow`/`not.toThrow` matchers
+  outright, since `expect(async () => {...}).not.toThrow()` is a
+  synchronous check on an async callback that can never fail: the
+  unawaited work inside leaks past teardown and surfaces later as
+  `Error: page.evaluate: Test ended`, which reads as infrastructure flake
+  rather than the assertion bug it is. `missing-playwright-await` and
+  `valid-expect-in-promise` catch the related missing-`await` and
+  unreturned-`.then()` shapes.
+
+- **Announced late: four capabilities that shipped in 3.13.0 and were never
+  named in its release notes** (icvoss/django-brickwork#361). `3.13.0`'s
+  `### Added` section carried a single entry, about a `bw_dropdown`
+  docstring, and named none of the following. They have been installable
+  since `v3.13.0` on 2026-08-28; only the announcement is new here, and
+  nothing about their behaviour has changed. A consumer already on 3.13.0
+  has had them all along.
+
+  - **The chart token vocabulary** (ADR-082): `--bw-color-chart-1` through
+    `--bw-color-chart-8` for categorical series, plus
+    `--bw-color-chart-axis`, `--bw-color-chart-axis-label`,
+    `--bw-color-chart-grid`, `--bw-color-chart-tooltip-bg`,
+    `--bw-color-chart-tooltip-border` and `--bw-color-chart-tooltip-text`.
+    Token names are public API under the versioning contract above.
+  - **`{% bw_sparkline %}`** (`_sparkline.html`): an inline trend
+    geometry, deliberately geometry rather than a chart.
+  - **`{% bw_chart_mount %}` and `_chart_card.html`**: the chart card
+    chrome (frame, legend, loading, error and empty states) and the mount
+    point a charting library attaches to. `_chart_card.html` extends
+    `_card.html`, so its `title` is a **block, not a context variable**:
+    passing `title="X"` through `{% include %}` is discarded silently and
+    renders untitled, with no error even under `DEBUG`.
+  - **`_trend_indicator.html`** (VIZ-017): the stat tile's trend caption as
+    a standalone partial, consumed via `{% include %}`. It renders a
+    directional glyph plus a visually hidden word ("increased" /
+    "decreased" / "unchanged") that a consumer cannot override, so `trend`
+    is the direction the number moved, never a judgement about whether that
+    is good news. A falling cost is `trend="down"` with the judgement put
+    in `trend_label`; conflating the two makes a screen reader announce the
+    opposite of what a sighted reader sees.
+
+  The cause was not a mis-assembled section. `scripts/assemble_changelog.py`
+  never ran for the release: the release commit (`0682459`) inserted a
+  `## [3.13.0]` heading above content that had accumulated under
+  `## Unreleased`, changing two lines in `CHANGELOG.md` and consuming no
+  fragments. Three of the four capabilities had written no fragment at all;
+  `changelog.d/trend-indicator.added.md` had, and survived the release
+  untouched, which is what made the omission visible. The publish gate
+  greps only for a `## [<version>]` heading, which a hand-written heading
+  satisfies, so nothing downstream could catch it.
+
+- **`{% bw_chart_data_table %}` (CHT-012/CHT-013): the chart's accessible
+  fallback table, rendered as a sibling of the mount rather than inside it.**
+  Renders `caption`, `columns` and `rows` as a plain semantic table (a real
+  `<caption>`, `<th scope="col">` column headers, `<th scope="row">` row
+  headers), so the series a canvas or SVG plots reach assistive technology as
+  data rather than as one opaque graphical object. `data_table_mode` is a
+  closed, validated vocabulary of `hidden` (the default: visually hidden via
+  the clip pattern, never `display: none`, so the table stays in the
+  accessibility tree), `toggle` (composing `_disclosure.html`'s native
+  `<details>`, so the no-JS floor holds by construction) and `visible` (the
+  base state, emitting no wrapper). `caption` is required: a fallback table
+  with no accessible name is announced as an anonymous grid of numbers.
+
+  The placement is the contract, not an arrangement choice. `bw_chart_mount`
+  emits `role="img"`, which makes every descendant presentational, so a table
+  rendered inside the mount is unreachable to the assistive technology it
+  exists for while still producing valid-looking markup that errors nowhere
+  and passes axe. `_chart_card.html` therefore gains a `chart_data_table`
+  block and a `data_table` context variable positioned OUTSIDE
+  `.bw-chart-card__mount`, and the nesting is pinned by a structural test that
+  parses the render rather than matching strings. This does not resolve
+  `icvoss/django-brickwork#326`, which is the separate, still-unserved case of
+  an interactive chart with traversable focusable children wanting its own
+  role and keyboard story; the sibling placement is what lets this ship
+  without widening what `role="img"` means.
+
+  `_data_table.html` is deliberately not reused: its rows are dicts carrying
+  stable per-row ids for HTMX swap targeting, and it ships sortable headers, a
+  bulk-selection contract, an empty-state branch and a scroll/stack responsive
+  contract, none of which an inert transcript wants. Its `definition` variant
+  is one entity's key/value facts, not a series-by-category matrix. No new
+  token is authored.
+
+- **`{% bw_gauge %}` (VIZ-007/VIZ-010): a radial gauge whose value is always
+  readable as text.** Renders an SVG arc for a `value` between `min` and `max`,
+  in three fixed sizes (`sm`/`md`/`lg`), with optional `threshold_bands`
+  recolouring the arc against the four already-shipped semantic tokens
+  (`accent`, `success`, `warning`, `danger`). No new colour token is authored.
+  COL-030 is enforced structurally rather than documented: the label falls back
+  to the computed percentage whenever `gauge_label` is absent, so there is no
+  code path that renders a threshold-coloured arc without its paired visible
+  numeric text. Arc geometry is computed in Python and passed as fixed-format
+  numbers, so the template never builds a dash string. Adds two dimension
+  tokens only (`gauge.diameter.sm/md/lg`, `gauge.stroke-width`).
+
+- **The Data-heavy operations archetype family opens, with a queue and an
+  audit trail** (`examples/ops/queue.html`, `examples/ops/audit-trail.html`).
+  Both are copy-paste page templates in the established shape: they extend
+  `brickwork/shell/app.html`, carry real content so they render from a
+  near-empty context, and are deliberately not on the template loader path
+  (ADR-056), so you copy them rather than extend them. `docs/CATALOGUE.md`
+  previously listed this family as planned and not yet shipped.
+
+  The two pages are structurally different on purpose rather than one table
+  page twice. The queue carries triage tabs with counts, a stat row about
+  waiting (oldest item, blocked) rather than volume, and a selectable table
+  sharing one form with a bulk actions bar, because the bar's buttons submit
+  the table's own checkboxes and splitting them into two forms would submit
+  nothing. The audit trail has no selection, no row links and no destructive
+  actions, because nothing in a trail is actionable; it adds a native
+  `<details>` disclosure to expand one entry in place and a ranked list of
+  most active accounts. Each page's header states that reasoning, so a
+  consumer copying one understands why the shapes differ.
+
+  Status, priority and outcome are badge labels throughout, never colour
+  alone, and each header says so at the point of use.
+
+  Known limitation, documented in `queue.html` rather than worked around:
+  `_bulk_actions_bar.html` is extends-consumed, so an example cannot fill its
+  block with an include. The page documents the small extending template to
+  write in your own project and marks where to include it.
+
+- **Two more archetypes for the Data-heavy operations family: a printable
+  performance report and a period comparison** (`examples/ops/report.html`,
+  `examples/ops/comparison.html`). Both are copy-paste page templates in the
+  established shape: they extend `brickwork/shell/app.html`, carry real
+  content so they render from a near-empty context, and are deliberately not
+  on the template loader path (ADR-056), so you copy them rather than extend
+  them.
+
+  The report is long-form and narrative-led: an executive summary in prose,
+  headline `_stat.html` figures, a regional breakdown table, a
+  `{% bw_ranked_list %}` of top accounts, and a methodology section, the
+  document someone actually circulates at month end rather than a dashboard.
+  The comparison page is table-led: two measured periods set side by side on
+  quantitative metrics with deltas, deliberately distinct from
+  `sections/pricing/comparison-table.html` (a marketing tick-or-dash grid
+  over plan tiers, not a measurement comparison) and built from ordinary
+  tables and `_trend_indicator.html` rather than that section's private
+  `bw-pricing-comparison__*` CSS.
+
+  Every delta on both pages renders through `_trend_indicator.html`, which
+  always pairs its glyph with visually hidden increased/decreased/unchanged
+  text, so meaning never rides on colour alone; each page's own header
+  documents the trend-direction-versus-good-news trap this pattern is prone
+  to getting backwards. Wide tables sit in their own scrollable,
+  keyboard-reachable region (`role="region"` plus `aria-label`,
+  `tabindex="0"`) so a narrow viewport never scrolls the whole page
+  sideways.
+
+- **`_scorecard.html` (VIZ-011/VIZ-012): a responsive grid arranging N
+  pre-rendered cards.** Structural, consumed via `{% include %}` with
+  `items=` (a list of `{content, span?}` mappings, each `content` a
+  caller-rendered card such as a `_stat.html` tile or a `_chart_card.html`
+  card, marked safe). Column count steps at `--bw-component-scorecard-columns-base/-sm/-lg`
+  (1 -> 2 -> 4 across the shared breakpoints); gap reuses the density-aware
+  `--bw-density-stack-gap` token, no scorecard-specific gap is authored. Per
+  VIZ-012, `span=2|3|4` widens an individual item via a closed CSS-class
+  vocabulary (`bw-scorecard__item--span-<n>`), equal by default. Per CHT-026
+  this is the SAME grid a dashboard composes stat tiles and chart cards
+  into: it never imports or special-cases either component, so there is no
+  chart-specific grid duplicate. Adds one number token family
+  (`scorecard.columns.base/sm/lg`) only.
+
+- **`_stat_comparison.html` (VIZ-019/020): a this-vs-last-period KPI tile.**
+  Stacks an overline label, the current pre-formatted value, a visible
+  previous-period caption (`period_label`, e.g. "vs last month"), and an
+  optional trend caption. The delta renders via `_trend_indicator.html`
+  internally (VIZ-017), never a second copy of its markup, matching
+  `_stat.html`'s own composition. VIZ-020 boundary: brickwork does not
+  compute the delta. `current`, `previous` and `trend_label` all arrive
+  pre-formatted from the caller, and `trend` ("up"/"down"/"flat") is
+  caller-supplied rather than derived from `current`/`previous`, following
+  the same rule VIZ-002 already sets for every other trend-bearing
+  component in the package. Structural, consumed via `{% include %}`, with
+  the same `size="sm"|"lg"` seam `_stat.html` ships (VIZ-027).
+
+- **`_trend_indicator.html` (VIZ-017): the stat tile's trend caption, now a
+  standalone reusable partial.** `_stat.html`'s own trend block (VIZ-002,
+  BR-BW-TPL-007) always rendered a directional glyph plus a visually
+  hidden text fallback ("increased"/"decreased"/"unchanged") whenever
+  `trend` was set, refined by an optional `trend_label`, so direction
+  never rode on colour alone. That contract was previously reachable only
+  inside the whole KPI tile. `_trend_indicator.html` extracts it unchanged
+  behind the same `trend`/`trend_label` context, so a table cell or a
+  scorecard can render the same accessible trend caption on its own,
+  structural and consumed via `{% include %}` exactly as `_stat.html`
+  itself is. The extracted root class is `bw-trend`, not
+  `bw-stat__trend`: the shipped name is a BEM element scoped to `.bw-stat`
+  and carries no meaning outside it. `_stat.html` is unchanged and keeps
+  rendering its own `bw-stat__trend` markup; wiring it to consume the new
+  partial is a separate, deliberately follow-up change.
+
+### Changed
+
+- **`_stat.html` now renders its trend row via `_trend_indicator.html`
+  (icvoss/django-brickwork#334).** One implementation instead of two: the
+  accessibility contract (BR-BW-TPL-007, AC-BW-073/074) that a directional
+  glyph always pairs with visually-hidden text, colour being reinforcement
+  only, now lives in one place rather than being duplicated between the tile
+  and the extracted partial.
+
+  **The rendered element carries additional classes.** It now emits
+  `bw-trend bw-trend--<direction> bw-stat__trend bw-stat__trend--<direction>`
+  where it previously emitted only the `bw-stat__trend` pair.
+  `bw-stat__trend` and its modifiers are **retained as live aliases**, not
+  deprecated and not removed, and the package still styles all four, so a
+  stylesheet selecting either family keeps working. The modifiers are
+  retained deliberately alongside the base: the base carries layout and the
+  modifiers carry the colour, so a consumer overriding trend colour selects a
+  modifier, and retaining only the base would break exactly the override
+  these classes exist to enable.
+
+  The one consumer affected is an exact-match selector such as
+  `[class="bw-stat__trend bw-stat__trend--up"]`, which is legal but unusual
+  and no longer matches. A normal `.bw-stat__trend--up` selector is unchanged.
+
+### Fixed
+
+- **Wired the dead `--bw-text-*-family` tokens, removed the rest** (icvoss/django-brickwork#288). Three roles (`heading-md`, `heading-sm`, `overline`) defined a `family` token that no rule consumed: a consumer setting it saw no effect. Every rule that already binds that role's size, weight or line-height now also binds `font-family`. Three roles (`body-lg`, `body-sm`, `label`) never had a consuming rule and were never meant to: body copy deliberately inherits the sans stack from `.bw-body`, so their `family` token is removed rather than wired. A brand wanting a different label face overrides `--bw-font-family-sans`. `--bw-text-code-family` remains defined but unwired: the `code` role's two rules (`.bw-prose code`, `.bw-prose pre`) bypass the role layer entirely and read the raw `--bw-font-family-mono` scale step, which is a different defect from the false affordance this fix addresses and is tracked as icvoss/django-brickwork#293.
+
+- **Status text (`--bw-color-X-fg` for danger/success/warning/info) now tracks `--bw-color-surface`, and is independent of `--bw-color-fg`, instead of mixing toward a fixed black or white** (icvoss/django-brickwork#289). Through 3.12.0, `X-fg` was a constant mix toward literal black in light mode (white in dark), while the `X-subtle` background it is most often painted on mixed toward `--bw-color-surface`. Because `--bw-color-surface` is a documented, load-bearing, brand-overridable token, an ordinary customisation, darkening surface with no status colour touched at all, silently dropped `warning-fg` and `success-fg` below WCAG AA: the shipped default measured only 4.68:1 against a 4.5:1 requirement, and any surface darker than roughly `oklch(0.986 ...)` failed outright. An initial fix mixed light `X-fg` toward `var(--bw-color-fg)` (the theme's own ink) instead of black, which closed that gap but opened an equivalent one: `--bw-color-fg` is itself one of the seven load-bearing tokens this package's own BRANDING.md tells every brand to author, so an ordinary, documented `fg` override (no surface or status colour touched) could silently drop status-text contrast the same way (a light `fg` override to `oklch(0.95 0.01 265)` measured `danger-fg` on `danger-subtle` at 3.55:1). **The shipped fix mixes `X-fg` toward a new, dedicated `--bw-color-status-fg-ink` token** instead, defaulting to the same ink `fg` defaults to but never moved by an `fg` override: status-text contrast now tracks surface exactly as before, and is unaffected by `fg`. This holds AA against both `X-subtle` and plain surface for `--bw-color-surface` overridden anywhere down to a conservative published floor of lightness 0.94 (measured worst-family crossing 0.9390), independently of any `--bw-color-fg` value; `render_brand_css()`'s check also re-resolves against an overridden status base or an overridden `--bw-color-status-fg-ink` itself, so an extreme value in either raises the same way a surface override does. What it does not, and cannot, check is a literal you author directly for `--bw-color-X-fg` or `--bw-color-X-subtle`, which bypasses the derivation the check verifies; that needs its own verification the same way `fg-on-accent` does. Dark `danger-fg`'s mix constant is tightened from 78% to 73% toward white for the equivalent plain-surface case (`.bw-account-menu__item--danger`), holding to a dark-surface lightness ceiling of 0.29 (a correction of the originally published, unverified "up to 0.35"); warning, success, and info already held at 78% and are unchanged. **Consumer-visible change:** if you override only `--bw-color-surface` (or a status base) and rely on the shipped default status text colours, those colours shift slightly, all four families measure roughly 5.3-5.8:1 against their `-subtle` background at the package default surface, up from 4.67-5.84:1, a small, deliberate increase in headroom, not a regression. If you have hand-authored `--bw-color-X-fg` directly, your override is unaffected: derivation is always the default, never a lock. The token manifest (`token-manifest.json`) gains a `contrastPairs` section declaring BOTH backgrounds `X-fg` is actually painted on (`X-subtle` and plain `surface`, distinct from `loadBearing` since none of the three need be brand-authored), and `render_brand_css()` now checks both even when your override touches only `--bw-color-surface` or a status base, with neither derived token named explicitly, catching the exact silent-failure pattern this issue reported.
+
+- **Wired the `code` type role** (icvoss/django-brickwork#293). `.bw-prose code` and `.bw-prose pre` bypassed the role layer and read raw scale steps, so the `code` role's tokens were shipped, documented as overridable, and read by nothing. Both rules now consume the role: `--bw-text-code-family` (both), plus `--bw-text-code-size` and `--bw-text-code-line-height` (the block rule). Overriding the `code` role now changes the render, which it previously could not. **If you size your code blocks by overriding `--bw-text-body-sm-size`, override `--bw-text-code-size` instead.** `.bw-prose pre` previously took its font size from the `body-sm` role, so it moved whenever you retuned small body copy; it now follows the `code` role, which does not reference `body-sm`. That override is silently dropped rather than erroring, so it is worth checking even though nothing looks different at package default. Overrides of `--bw-font-family-mono` and `--bw-font-line-height-normal` are unaffected: the role's family and line-height tokens still reference those scale steps, so setting either continues to reach code blocks. Renders identically at package default in both light and dark.
+
+- **`npm run a11y:lint` no longer walks into a local Python virtualenv** (icvoss/django-brickwork#313, duplicate #335). In ESLint's flat config, the `files` key on a rules block scopes which rules apply to a matched file, not which files ESLint discovers, so `eslint.config.mjs`'s `files: ["a11y/**/*.spec.mjs"]` never narrowed the walk itself. A contributor with a `.venv` checked out locally (the umbrella setup's own convention) hit errors from Django's vendored admin JS and a parse failure on `i18n_catalog.js`, a Django template rather than JavaScript that no parser configuration can accept. CI stayed green throughout only because its runner never has a local venv to walk into, so the gate was red locally and green in CI for anyone following the documented setup. `eslint.config.mjs` now carries a separate `ignores`-only block (`.venv/**`, `venv/**`, `env/**`) that governs discovery; the `files` key is unchanged and continues to scope the rule set to `a11y/**/*.spec.mjs`. `eslint.config.mjs`'s header comment and `CONTRIBUTING.md`'s "Accessibility spec linting" section are corrected to describe this distinction.
+
+- **Two comparison claims in the 3.12.0 release notes were not verifiable
+  when published; both are corrected in place with a marked note rather than
+  silently rewritten** (icvoss/django-brickwork#315). The `bw_ranked_list`
+  entry's claim that its empty-state passthrough matched what
+  `_data_table.html` "already uses" was false at the `v3.12.0` tag:
+  `_data_table.html` passed only `variant`, `heading` and `body`, and gained
+  the matching `empty_action_href`/`empty_action_label` passthrough
+  afterwards, in icvoss/django-brickwork#317, closing icvoss/django-brickwork#185.
+  The `bw_theme_switch` entry's claim that its new 24x24 tap-target floor
+  matched what "every other interactive control in this package already
+  meets" was asserted while the package's own tap-target sweep exempted
+  `.bw-toggle` and `.bw-listing-list__link`; this one needed no wording fix,
+  since icvoss/django-brickwork#323 has since closed both exemptions (issue
+  #316) and the claim now holds. `CONTRIBUTING.md` and `changelog.d/README.md`
+  gain a rule: a fragment should not assert the current behaviour of a
+  component the change does not touch, since that half of the claim is
+  recalled rather than checked by the work in front of the author.
+
+- **`.bw-toggle` and `.bw-listing-list__link` now clear the WCAG 2.5.8 24x24
+  tap-target floor; both were previously exempted from the sweep that would
+  have caught the shortfall** (icvoss/django-brickwork#316). Measured at
+  375px both were undersized in every fixture and both themes: the toggle
+  switch rendered 36x20 (4px short), the listing title link rendered
+  231x17/216x17/317x17 depending on entry (7px short). **This is a visual
+  layout change, not a silent internal fix.** `.bw-listing-list__link` now
+  takes `min-block-size: 1.5rem` and `display: block` (the same pattern as
+  `.bw-data-table__row-link`, #208): a row's title link grows from 17px to
+  24px, which adds up to 7px to the stacked layout below the `sm` (40rem)
+  breakpoint, where the row height is the link-and-summary column rather
+  than the thumbnail; above `sm` the thumbnail column already governs row
+  height and absorbs the change invisibly. `.bw-toggle` keeps its 20px-tall
+  visible track (a deliberate fixed-shape switch proportion, not
+  incidental line-height, so it is not grown) and instead grows its own
+  hit area to 24px tall via the input's `block-size`, with the track drawn
+  independently on `::after` so the visible proportion is unchanged; a
+  settings row using the standalone `{% bw_toggle %}` tag grows 4px taller
+  as a result. Both changes hold across all three densities and both
+  themes. The two exemptions are removed from `TAP_TARGET_EXEMPT_SELECTORS`
+  in `a11y/axe.spec.mjs`; the remaining four are now documented in place
+  with their own load-bearing reasons, including that `.bw-dropzone__input`
+  measures 1x1 (not 0x0, so the sweep's own zero-size filter does not make
+  it redundant) and that `a:not([class])` is currently suppressing 74
+  undersized consumer/testapp links, which is sound but worth knowing.
+
+- **The changelog claim rule now says to cite what landed, not the issue that
+  asked for it** (icvoss/django-brickwork#347). The rule adopted under
+  icvoss/django-brickwork#315 told an author to "cite the issue or ADR that
+  established the convention", and an issue number names a request rather than
+  a change: a reader following it cannot tell whether the thing landed, or in
+  what form. That failure is easy to miss because an issue citation looks like
+  a citation, having a number that resolves to the right subject while being
+  unable to answer the question the reader is asking. `CONTRIBUTING.md` and
+  `changelog.d/README.md` now say to cite the merge commit, the PR, or the tag
+  a change shipped in, and keep the issue or ADR citation for the case it is
+  right for, a claim about a convention rather than about code.
+
+- **`bw_button` and `bw_dropdown` no longer honour a `mark_safe`'d `aria_label`
+  or `trigger_label` in attribute position, closing a break-out that could
+  land a live event handler** (icvoss/django-brickwork#349). `aria_label` on
+  `bw_button` (all three root branches) and on `bw_dropdown`'s trigger and
+  panel landmark, and `trigger_label` where it names the panel landmark when
+  the trigger is not icon-only, are rendered only into an `aria-label`
+  attribute, never into markup. Both previously ran through the same
+  `conditional_escape`-based helper text-position accessible names use, which
+  honours a `SafeString`'s `__html__` marker: a caller-supplied
+  `mark_safe('a" onclick="alert(1)')` closed the attribute's quote and added a
+  live `onclick` to the element. Attribute-position accessible names now go
+  through a separate, unconditional `escape()` (never `conditional_escape`),
+  matching this package's existing rule for every other attribute-value seam
+  (`bw_data_attrs`, `bw_chart_mount`, `bw_icon`'s `label`). `trigger_label` is
+  rendered in both text position (the visible trigger label) and attribute
+  position (the panel landmark's fallback name) from the same argument, so the
+  tag now carries the two independently: the text-position value keeps the
+  existing `mark_safe` pass-through, and a second, attribute-only value is
+  escaped separately for the landmark. **Accepted cost, not a defect:** an
+  accessible name that is a `mark_safe`'d or `format_html`-produced
+  `SafeString` is escaped like any other value in attribute position, so its
+  entities are escaped again there, so a screen reader announces the literal
+  characters `&amp;` rather than `&` (browsers decode entities in an attribute
+  value before assistive technology reads it). The same value still renders as
+  markup at the text-position site, which is why the tag carries two values
+  rather than one: unifying them would either reintroduce the break-out or
+  strip markup the text site is meant to render. The supported path for an
+  attribute-position accessible name is plain text; the trade is against
+  script execution, and it is not close.
+
+  **What this does not cover.** The same defect class, a consumer-supplied
+  value reaching an HTML attribute where auto-escaping does not fire for a
+  `SafeString`, exists at further sites beyond the three fixed here, including
+  attributes that are not accessible names. Those are measured and tracked
+  separately in icvoss/django-brickwork#358.
+
+- **`{% bw_chart_mount %}` no longer raises `AttributeError` for a non-str
+  `aria_label=`/`aria_describedby=`** (icvoss/django-brickwork#351). Both
+  arguments were stripped with a bare `.strip()`, which only `str` has, so an
+  int, a model instance, or any other ordinary `__str__`-able value raised
+  `AttributeError` instead of rendering. Both are now coerced with `str()`
+  before stripping, so `aria_label=some_count` and
+  `aria_label=some_model_instance` render their string form like any other
+  template value.
+
+  **A `SafeString` (`format_html()`, `mark_safe()`, a model property marked
+  safe) is not a supported input for `aria_label=`/`aria_describedby=`,
+  because an accessible name is not markup.** Escaping at this seam is
+  unconditional `escape()`, including for a `SafeString`, since nothing
+  distinguishes a `SafeString` carrying pre-escaped entities from one
+  carrying an attacker-supplied, attribute-breaking payload
+  (`mark_safe('a" onmouseover="alert(1)')`), and honouring the marker to
+  avoid the former would also honour it for the latter, a real break-out.
+  The accepted cost: a `SafeString` accessible name is escaped a second
+  time, so a screen reader announces the literal entity text (`&amp;`)
+  rather than the intended character. Pass plain text instead
+  (`aria_label="Tom & more"`), which escapes exactly once and announces
+  correctly; this is unchanged from before this fix.
+
+### Removed
+
+- **Removed seven dead `--bw-text-*-tracking` tokens** (icvoss/django-brickwork#312). `heading-md`, `heading-sm`, `body-lg`, `body-md`, `body-sm`, `label` and `code` each defined a `tracking` token that no rule consumed: setting it changed nothing. If you overrode one of these seven, the override already had no effect and continues to have no effect, but the token itself no longer exists, so a typo or a stale override in your brand stylesheet is now visibly an unknown custom property rather than a silently inert one. `--bw-text-heading-lg-tracking` and `--bw-text-caption-tracking` are unchanged: both are read by `shell.css` to hold `letter-spacing` at `0em` against an inheriting ancestor, and remain overridable. `--bw-text-heading-display-tracking`, `--bw-text-heading-2xl-tracking`, `--bw-text-heading-xl-tracking` and `--bw-text-overline-tracking` are unchanged; each carries a real typographic value (`tight` or `wider`) and is read by its role's rules. `--bw-text-body-lg-weight` and `--bw-text-code-weight` are also unchanged, decided separately on their own merits.
+
 ## [3.13.0] - 2026-08-28
 
 ### Fixed
