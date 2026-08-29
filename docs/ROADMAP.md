@@ -153,13 +153,27 @@ surfaces need the same arrangement vocabulary.
 **Outcome:** Brickwork supports long-form reading and technical reference work
 as well as product applications.
 
-- Ship documentation and editorial shells with contextual navigation, mobile
-  navigation, table of contents, search-result, version and feedback regions.
+- Ship the documentation and editorial surfaces with contextual navigation,
+  mobile navigation, table of contents, search-result, version and feedback
+  regions, as overrideable regions on a shell rather than as new shells. Every
+  shell derives from one `base.html`, so a family diverges by exposing its own
+  regions, not by forking the document. The app shell's
+  `subnav_region`/`breadcrumbs_region`/`page_header_region`/`footer_region`
+  idiom is the pattern; icvoss/django-brickwork#434 extended it to the
+  marketing shell, and icvoss/django-brickwork#257 decides the documentation
+  surface's own region set.
 - Extend content primitives for code examples, API references, citations,
   figures, notices, tabs and cross-links while retaining the existing
   `bw-prose` floor.
-- Add documentation-home, article, API-reference, search-results, author,
-  category, archive and series archetypes.
+- Add all fourteen archetypes the contract's two Wave 2 families require,
+  not the eight this bullet previously named. Documentation (7): documentation
+  home, article, API reference, search results, navigation, table of contents,
+  versioned content. Editorial and publishing (7): article, author, category,
+  archive, series, related content, reading-progress patterns. The earlier
+  list omitted navigation, table of contents, versioned content, related
+  content and reading progress, and merged the two families' separate article
+  archetypes into one. All fourteen are filed as
+  icvoss/django-brickwork#408 to #421.
 - Define content accessibility rules: heading order, landmark structure, code
   labelling, table responsiveness, reading measure and reading progress.
 
