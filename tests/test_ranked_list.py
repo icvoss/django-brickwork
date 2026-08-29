@@ -15,11 +15,13 @@ from __future__ import annotations
 
 import re
 from decimal import Decimal
+from html.parser import HTMLParser
 
 import pytest
 from django.template import engines
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 
 from tests._encoding_contract import (
     assert_bar_is_aria_hidden_and_empty,
@@ -958,3 +960,75 @@ def test_progress_keeps_full_progressbar_semantics_outside_the_ranked_group() ->
     page = f'<section class="bw-boundary-probe">{out}</section>'
     with pytest.raises(AssertionError, match="forbidden"):
         assert_no_progressbar_semantics(page, component_tag="section", component_class="bw-boundary-probe")
+
+
+# --- label attribute-injection regression (icvoss/django-brickwork#339) ----
+#
+# aria-label="{{ label }}" on the <ol> interpolated the list-level label
+# with no escaping filter, and the tag passed label through raw, so a
+# mark_safe'd label reached that attribute unescaped and could close the
+# quote and land a live event handler. The fix routes label through
+# escape_attribute_value in the tag's Python (an unconditional escape(),
+# never conditional_escape), so a SafeData marker on the caller's value is
+# never honoured in this position. This is the list-level label only: each
+# row's own row.label renders in TEXT position (a <span> inside the <ol>)
+# and is unaffected, correctly left raw for the template's own
+# auto-escaping to handle.
+
+
+class _AttributeCollector(HTMLParser):
+    """Collects (tag, attribute-name) pairs from real parsed attributes.
+
+    Deliberately not a substring/regex check: a payload that lands as text
+    content, or correctly escaped inside a quoted attribute value, must not
+    be mistaken for a live attribute by a test that only greps for the
+    substring "onclick".
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.attrs: list[tuple[str, str]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        for name, _value in attrs:
+            self.attrs.append((tag, name))
+
+
+def _event_handler_attrs(html: str) -> list[tuple[str, str]]:
+    parser = _AttributeCollector()
+    parser.feed(html)
+    return [(tag, name) for tag, name in parser.attrs if name.startswith("on")]
+
+
+def test_the_detector_itself_catches_the_defect_339_found() -> None:
+    # Non-vacuity guard for the regression test below: proves the (payload,
+    # parser, assertion) machinery actually CAN fail, by running it against
+    # the literal vulnerable shape bw_ranked_list's own label emitted before
+    # this fix (aria-label="{{ label }}" with no escaping filter, label
+    # passed through raw), reproduced here as an inline template rather than
+    # by reverting the real file. If this test cannot fail, the regression
+    # test after it proves nothing.
+    payload = mark_safe('a" onload="alert(1)')  # noqa: S308 (test-authored attack payload)
+    vulnerable_html = engines["django"].from_string('<ol aria-label="{{ label }}"></ol>').render({"label": payload})
+    assert _event_handler_attrs(vulnerable_html) == [("ol", "onload")], (
+        "the detector did not catch the known-vulnerable interpolation shape; "
+        "the regression test below cannot be trusted"
+    )
+
+
+def test_label_attribute_injection_payload_cannot_open_a_live_event_handler() -> None:
+    # Regression for icvoss/django-brickwork#339: a mark_safe'd label used to
+    # reach aria-label unescaped and could close the attribute and open a new
+    # one. The assertion below is real, not vacuous, because
+    # test_the_detector_itself_catches_the_defect_339_found above proves the
+    # same payload/parser pair DOES catch this exact shape when it is
+    # actually present.
+    payload = mark_safe('a" onload="alert(1)')  # noqa: S308 (test-authored attack payload)
+    out = _render("{% bw_ranked_list rows=rows label=label %}", label=payload)
+
+    assert _event_handler_attrs(out) == [], "a live event-handler attribute was injected via label"
+
+    # The payload must survive escaped, not be silently dropped: this proves
+    # the fix is an escape, not a suppression, of the caller's value.
+    assert 'aria-label="a&quot; onload=&quot;alert(1)"' in out
+    assert 'onload="alert(1)"' not in out
