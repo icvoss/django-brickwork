@@ -952,6 +952,29 @@ input.bw-toggle:disabled {
   max-inline-size: var(--bw-size-max-width-prose);
 }
 
+/* The band heading primitive (icvoss/django-brickwork#399, ruling on #371
+ * gap 2): a standalone visible <h2> caption for one band in an app-surface
+ * page, outside `bw-prose`. Measured consequence of the trap this replaces:
+ * a band wrapped in `bw-prose` to get a heading rendered 655px against its
+ * siblings' 976px, because `bw-prose`'s first declaration is
+ * `max-inline-size: var(--bw-size-max-width-prose)`, a content-measure
+ * contract, not a heading utility. Borrowing the class borrows its whole
+ * contract, so this primitive carries no inline-size rule of its own.
+ *
+ * Sized at heading-lg: one step under the page title's heading-xl
+ * (.bw-page-header__title above), matching .bw-empty-state__heading's own
+ * precedent for a standalone in-page heading outside prose. Deliberately
+ * NOT heading-md, which DESIGN.md's component map (7.4) reserves for the
+ * card-title role (.bw-card__title): a band heading sits above a band, at
+ * the page's own structural level, not inside a card region. */
+.bw-band-heading {
+  margin: 0;
+  font-family: var(--bw-text-heading-lg-family);
+  font-size: var(--bw-text-heading-lg-size);
+  font-weight: var(--bw-text-heading-lg-weight);
+  line-height: var(--bw-text-heading-lg-line-height);
+}
+
 /* --- Empty state ----------------------------------------------------------- */
 
 .bw-empty-state {

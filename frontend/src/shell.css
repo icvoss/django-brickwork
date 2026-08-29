@@ -401,10 +401,62 @@
   min-inline-size: 0;
 }
 
+/* The app-surface N-column arrangement primitive (icvoss/django-brickwork#399,
+   ruling on #371 gap 3): before this, an app-surface page could express a
+   vertical stack of full-width bands and nothing else. Two ranked lists side
+   by side is the motivating case (#371).
+
+   Deliberately NOT `bw-feature-grid`/`bw-media-text`/`bw-listing-list__item`,
+   which ship in the same `brickwork.css` bundle and would work mechanically:
+   those are marketing-family, styled for marketing surfaces and restyled for
+   marketing reasons, so permitting them here would make a marketing visual
+   change silently an app-surface regression. `bw-band-grid` is the app
+   family's own primitive; `tests/test_family_boundary.py` is the check that
+   keeps marketing-family classes out of app-surface templates.
+
+   Same auto-fit idiom as `.bw-stat-grid` above: `minmax(min(X, 100%), 1fr)`
+   keeps a single column on viewports narrower than one tile. The floor
+   widens as the explicit column count drops, so a 2-up pair of ranked lists
+   does not fragment into four narrow columns on a wide viewport: the bare
+   class and `--2` share a 24rem floor (two comfortable reading-width
+   columns), `--3` steps to 18rem, and `--4` reuses `.bw-stat-grid`'s own
+   14rem floor, below which a tile stops reading as a tile. */
+.bw-band-grid,
+.bw-band-grid--2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(24rem, 100%), 1fr));
+  gap: var(--bw-density-section-gap);
+}
+.bw-band-grid--3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: var(--bw-density-section-gap);
+}
+.bw-band-grid--4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+  gap: var(--bw-density-section-gap);
+}
+/* Same trap, same guard, same fix as .bw-section-stack above
+ * (icvoss/django-brickwork#136): a grid item's default min-inline-size is
+ * auto, not 0, so a wide child refuses to shrink below its content width,
+ * blows out the track, and an inner scroll container never gets a
+ * constrained width to scroll within. */
+.bw-band-grid > *,
+.bw-band-grid--2 > *,
+.bw-band-grid--3 > *,
+.bw-band-grid--4 > * {
+  min-inline-size: 0;
+}
+
 /* An unfilled pattern region renders nothing, never empty chrome or a stray
    gap (BR-BW-TPL-006). */
 .bw-stat-grid:empty,
-.bw-section-stack:empty {
+.bw-section-stack:empty,
+.bw-band-grid:empty,
+.bw-band-grid--2:empty,
+.bw-band-grid--3:empty,
+.bw-band-grid--4:empty {
   display: none;
 }
 
