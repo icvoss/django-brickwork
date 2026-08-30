@@ -90,12 +90,13 @@ rather than as a single done or not-done, because they did not land evenly.
 `_sparkline.html`, `_trend_indicator.html`, `_gauge.html`, `_scorecard.html`
 (VIZ-011/012, the shared dashboard grid CHT-026 makes serve stat tiles and
 chart cards alike) and `_stat_comparison.html` (VIZ-019/020) are all on
-`main`. **Timeline, saved views and advanced filters did not ship and are
-not merely pending**: they have no spec brick, and building the audit-trail
-archetype showed the timeline gap is real (expanding one entry means a
-disclosure below the table rather than inside the row it belongs to).
-Scoping decision for all five unshipped slice 3 patterns is
-icvoss/django-brickwork#362.
+`main`. **Timeline, saved views and advanced filters did not ship**, and
+each is now scoped rather than pending: ADR-092 bricked timeline (VIZ-029)
+and saved views (TBL-023), and dropped advanced filters (TBL-024, TBL-003's
+refusal of a filter DSL standing). Building the audit-trail archetype showed
+the timeline gap is real (expanding one entry means a disclosure below the
+table rather than inside the row it belongs to). The per-pattern outcomes for
+all seven carried-forward items are at the end of this section.
 
 *Chart contract: shipped.* ADR-081 settled the ownership boundary and
 ADR-082 the token vocabulary. `_chart_card.html` carries the frame, legend
@@ -104,8 +105,10 @@ mount and enforces its accessible name; `_chart_data_table.html` (CHT-012,
 CHT-013) carries the data fallback as a SIBLING of the `role="img"` mount,
 never a descendant, since `role="img"` makes every descendant presentational
 and nesting the compensation inside the opaque thing defeats it. **Annotation
-and an export seam did not ship**, and neither has a spec brick backing the
-roadmap's mention of them.
+and an export seam did not ship**, and ADR-092 refuses both rather than
+carrying them: annotation is CHT-027 (the engine draws in its own coordinate
+space, which a package not owning the engine cannot own), and export is
+answered by CHT-022's existing `chart_toolbar` slot, following TBL-019.
 
 *Chart components: shipped engine-free, as ADR-081 requires.* Bundling an
 engine remains forbidden; the mount is the consumer's seam.
@@ -130,13 +133,52 @@ shipping, not components existing, so it closes on the archetypes: a
 data-heavy dashboard and report both ship from Brickwork alone. Verified
 against the artefacts on `main` rather than against this list.
 
-**What Wave 1 did not deliver, carried forward rather than quietly dropped.**
-Timeline, saved views and advanced filters (no spec brick; the audit trail
-demonstrated the timeline gap is real, since expanding an entry means a
-disclosure below the table rather than inside the row it belongs to), and the
-chart contract's annotation and export seam (likewise no brick behind the
-roadmap's mention). Scoping for all five unshipped slice 3 patterns is
-icvoss/django-brickwork#362.
+**What Wave 1 did not deliver, now scoped per pattern rather than carried
+as a list.** ADR-092 (ratified 2026-08-30) gave each of the seven items one
+of three outcomes, closing icvoss/django-brickwork#362. Two became bricks,
+two archetype entries were duplication, and three are refused with reasons.
+Nothing is left in the ambiguous state that let these survive a whole wave
+unscoped.
+
+- **Timeline: bricked, not scheduled** (VIZ-029). The one item with
+  affirmative rather than absence evidence: the audit-trail archetype tried
+  to expand an entry in place, could not, and shipped a single hardcoded
+  disclosure naming one entry beneath a table of many. That establishes
+  `_data_table.html` has no in-row expansion seam. It does **not** establish
+  that a timeline component is the answer, and the brick says so: a row
+  expansion seam was an equally live candidate. VIZ-029 picks a standalone
+  `_timeline.html` for chronology with no tabular structure to anchor to,
+  and leaves the audit trail's own gap to TBL-022, which already answers it.
+- **Saved views: bricked, lower priority** (TBL-023). Presentation only:
+  brickwork may own the control, its list and the active state; it must not
+  own persistence, naming, sharing or permissions, all of which are
+  application data and application authorisation.
+- **Advanced filters: dropped** (TBL-024). TBL-003 had already refused a
+  filter-definition DSL, which is what makes a filter "advanced". The
+  umbrella term bundled that refusal together with a possible component,
+  which is why it survived unscoped. A filter chip stack is a display of
+  applied state rather than a definition language, and can be bricked on its
+  own merits if asked for by name.
+- **Audit trail and queue: archetype-only, and the slice 3 entries were
+  duplication.** Both shipped in 3.14.0 as pure compositions introducing no
+  primitive. The delivery plan listed both in slice 3 and slice 4 with no
+  qualifier; what shipped settles it. This closes the double-count in the
+  direction of "counted twice", not "silently dropped". The overlap is two
+  items, not three: timeline is not named in slice 4 at all.
+- **Chart annotation: dropped** (CHT-027). Under ADR-081 the package does not
+  bundle an engine, and annotations are drawn by the engine in the engine's
+  own coordinate space. A package that does not own the engine cannot own the
+  annotation without either an adapter contract per engine or shipping
+  geometry it cannot position.
+- **Chart export: dropped**, with CHT-022's `chart_toolbar` slot affirmed as
+  the complete answer: the package provides the place, the consumer authors
+  the button. Consistent with TBL-019 (table export, NO) and ICO-023.
+
+A correction this scoping surfaced, recorded here because it predates
+ADR-092 and the ADR did not know it: TBL-022 and CBH-024 were two
+mutually inconsistent unshipped answers to the same row-expansion question,
+a SLOT and an ARG. TBL-022 stands as the answer; CBH-024 is closed as a
+duplicate rather than kept as a second mechanism.
 
 **And what the wave proved about the substrate itself.** The design bar was
 tested against a pre-committed falsification condition on the analysis
