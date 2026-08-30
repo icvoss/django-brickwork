@@ -80,6 +80,12 @@ Decide, up front and in writing, what migrates and what does not:
 Writing the boundary down stops scope creep mid-migration, where "while we are in
 here" quietly pulls non-goals into the cutover.
 
+If your editorial content comes from a block-based CMS rather than a single
+rich-text field, wiring it onto `.bw-prose` has one extra step: see
+[INTEGRATION.md section 11](INTEGRATION.md#11-putting-cms-rendered-content-on-the-prose-floor-icvossdjango-brickwork448)
+before you migrate the first content-heavy cluster, not after a page ships
+with flat paragraphs.
+
 ### 4. Gate the final "delete the old kit" step on a stability signal
 
 The last step, removing the old kit entirely, is the one with no rollback. Gate
