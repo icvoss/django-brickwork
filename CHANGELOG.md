@@ -8,6 +8,362 @@ versioning contract).
 
 ## Unreleased
 
+## [3.15.0] - 2026-08-30
+
+**Wave 2 of the interface-system delivery opens here: the documentation
+surface.** The release ships `brickwork/shell/docs.html`, the package's fifth
+shell and the first with a contextual navigation rail, so a documentation page
+no longer hand-builds its own two-column layout on the marketing shell. It also
+closes out Wave 1's loose ends: the app-surface arrangement primitives shipped
+in 3.14.0 are now actually emitted by a shipped template and documented, and
+the ops archetype's comments no longer describe limits that two earlier
+releases removed.
+
+**Three things a consumer upgrading should read rather than skim.**
+
+**A wide table inside `bw-prose` renders differently, and this is the point.**
+`.bw-prose__table-wrap` gains `contain: paint`. If you already use that class,
+a wide table that previously dragged the whole document sideways now scrolls
+within its own box. That is the fix, but it is a visible rendering change on a
+page you did not edit, so look at any long-form page carrying a wide table.
+
+**`_card.html` accepts `title` as a context variable.** Passing
+`title="..."` to an `{% include %}` of `_card.html` (or anything extending it,
+including `_chart_card.html`) previously rendered nothing at all, silently:
+`title` was block-only, and Django discards both an unmatched context variable
+and an unmatched block name without an error, even in DEBUG. It now renders. A
+caller filling `{% block title %}` by extending the template is unaffected and
+still wins.
+
+**The changelog gate's opt-out is stricter.** If your workflow relies on
+`changelog-fragment-not-required`, that marker must now stand alone on its own
+line of the PR body. It previously matched anywhere in the body as a substring,
+so a PR merely mentioning the marker waived the gate.
+
+### Added
+
+- **The marketing shell gained three `*_region` wrapper blocks**
+  (icvoss/django-brickwork#263): `marketing_nav_region` (wraps the primary
+  `<nav>`), `marketing_actions_region` (wraps the header-end actions cluster)
+  and `marketing_footer_region` (wraps the whole `<footer>`), extending the
+  app shell's `subnav_region`/`breadcrumbs_region`/`page_header_region`/
+  `footer_region` idiom to the marketing shell for the first time. Before
+  this, adding a mobile navigation toggle as a sibling of the marketing nav
+  meant filling the outer `marketing_header` block and reproducing
+  `brand_logo`, `brand_wordmark`, `marketing_nav` and `marketing_actions`
+  verbatim, pinning the consumer to that shell version's internal markup. A
+  consumer can now override `marketing_nav_region` (or
+  `marketing_actions_region`) to insert a sibling element next to the
+  existing `<nav>`/`<div>` without touching anything else in the header, or
+  override a `_region` block empty to remove that region and its chrome
+  entirely, a capability filling the inner block alone could never offer.
+  Filling only the existing inner blocks is unaffected: the markup a
+  consumer already writes is unchanged and renders the same elements,
+  attributes and document order as before. The rendered bytes differ only by
+  the whitespace-only lines the new wrapper tags leave behind, so a consumer
+  comparing raw rendered HTML in a snapshot test should collapse whitespace
+  before comparing.
+
+- **Changelog gate, wired in both directions** (icvoss/django-brickwork#375).
+  A PR that changes a component template under
+  `src/brickwork/templates/brickwork/components/` or adds a new
+  `@register.` template tag now fails CI unless it also adds a
+  `changelog.d/` fragment; opt out deliberately by adding the line
+  `changelog-fragment-not-required` to the PR body. Separately, the release
+  workflow now fails if `changelog.d/` still holds unconsumed fragments at
+  the tagged commit, since `scripts/assemble_changelog.py` deletes every
+  fragment it consumes. Both close the gap that let v3.13.0 ship without
+  naming four capabilities (icvoss/django-brickwork#361): a heading-only
+  check could not tell a hand-written `## [<version>]` section from one the
+  assembler actually produced.
+- **`scripts/assemble_changelog.py` gained a real `--dry-run`** that prints
+  the rendered section to stdout and writes nothing. The previous
+  `--keep-fragments` flag is renamed to `--no-delete-fragments`: its help
+  text said "for a dry run" while it still wrote `CHANGELOG.md`, which is
+  not a dry run.
+
+- **An app-surface N-column arrangement primitive, a band heading primitive,
+  and a check that keeps marketing-family classes out of app-surface
+  templates** (icvoss/django-brickwork#399, the ruling on
+  icvoss/django-brickwork#371 gap 3). Before this, an app-surface page could
+  express a vertical stack of full-width bands and nothing else: two ranked
+  lists side by side had no shipped route.
+
+  `.bw-band-grid` (an alias of `.bw-band-grid--2`) plus `.bw-band-grid--3`
+  and `.bw-band-grid--4` are the app family's own N-column arrangement,
+  matching `.bw-stat-grid`'s `auto-fit`/`minmax(min(X, 100%), 1fr)` idiom
+  and single-column collapse on narrow viewports, and carrying the same
+  `min-inline-size: 0` guard on every direct child that `.bw-section-stack`
+  already carries (icvoss/django-brickwork#136), so a wide child (a card
+  wrapping a data-table scroll wrap) does not blow out the track.
+
+  `bw-feature-grid`, `bw-media-text` and `bw-listing-list__item` ship in the
+  same compiled `brickwork.css` bundle an app-surface page loads and would
+  work there mechanically, but they are marketing-family: styled for
+  marketing surfaces and restyled for marketing reasons. Permitting them on
+  app pages would make a marketing visual change silently an app-surface
+  regression. `.bw-band-grid` is the app family's own primitive instead, and
+  `tests/test_family_boundary.py` is the check that keeps the boundary real
+  rather than reviewer memory: it derives the marketing-family class list
+  from `frontend/src/marketing.css` itself, so a new marketing class is
+  covered the moment it ships, and fails if any of them appear in a template
+  extending `brickwork/shell/app.html`, `auth.html` or `centred.html`.
+
+  `.bw-band-heading` is a standalone visible heading for one band, sized at
+  the heading-lg role (one step under the page title's heading-xl, matching
+  `.bw-empty-state__heading`'s own precedent for a heading outside
+  `bw-prose`). It replaces reaching for `bw-prose` to get a sized `<h2>`,
+  which borrows that class's whole `max-inline-size: 65ch` content-measure
+  contract along with its typography: a band wrapped in `bw-prose` for a
+  heading measured 655px against its siblings' 976px.
+
+- **`.bw-band-grid` and `.bw-band-heading` are now adopted by a shipped
+  template and documented** (icvoss/django-brickwork#438, ADR-090 decision
+  5). Both classes shipped in 3.14.0 but were used by no template and
+  documented in no doc, so the option-vocabulary and unstyled-class
+  contract tests had no rendered markup to check them against. ADR-090
+  makes this a standing rule: a CSS primitive is not complete until a
+  shipped template emits it.
+
+  `examples/ops/analysis-dashboard.html` is the first consumer: its two
+  side-by-side ranked lists (previously a `.bw-section-stack`, with a
+  comment saying side-by-side was impossible) now use `.bw-band-grid--2`,
+  and three of its four bands now carry a real, visible `.bw-band-heading`
+  in place of a visually hidden `<h2>`, wherever the band's title was not
+  already carried by a card.
+
+  `docs/DESIGN.md` section 6.9 documents both classes at the token level:
+  the auto-fit floors (24rem/18rem/14rem), that the grid is content-driven
+  rather than breakpoint-driven and deliberately does not consume the
+  ADR-079 breakpoint tokens, that `.bw-band-heading` is sized at the
+  `heading-lg` role (one step under the page title, deliberately not
+  `heading-md`, which is reserved for card titles) with no `inline-size`
+  rule of its own, and that these two classes are the complete and closed
+  app-family arrangement vocabulary, with marketing-family classes forbidden
+  on app-family surfaces per `tests/test_family_boundary.py`.
+  `docs/CATALOGUE.md` cross-references the same section from the family
+  matrix.
+
+- **A new documentation shell, `brickwork/shell/docs.html`** (ADR-091,
+  icvoss/django-brickwork#439): the package's first shipped answer for a
+  documentation surface, rather than a consumer hand-building a two-column
+  layout on top of the marketing shell. It carries a single `content` block
+  for the article, `docs_header`/`docs_footer` blocks inside it, and a
+  `docs_nav` block for the section rail, each wrapped in a `docs_header_region`/
+  `docs_footer_region`/`docs_nav_region` override seam (the `*_region` idiom
+  from #263/#434): filling an inner block is unaffected by the wrappers,
+  overriding a `_region` block replaces its wrapper element, and overriding
+  one empty removes the region and its landmark entirely. Source order is
+  normative: the article always renders before the rail in the DOM, restored
+  to the visual inline-start by `order: -1` only at the `--bw-breakpoint-lg`
+  layout breakpoint, so a consumer's own docs pages cannot regress the
+  accessibility defect this shape was built to avoid (an article heading
+  sitting a full screen below an unread nav rail on narrow viewports). The
+  rail's mobile disclosure is a native `<details>`/`<summary>`, no
+  JavaScript required. A table of contents, version switcher, and feedback
+  region were considered and declined: none has a driving consumer yet, so
+  none ships as an empty seam with nothing behind it; each has a documented
+  home to compose into instead (`docs_nav_region`, `docs_header_region`,
+  `docs_footer_region` respectively). `docs/INTEGRATION.md` gains the shell
+  contract (extend `base.html`, override `shell_variant` and `shell`, render
+  `<main id="bw-main" tabindex="-1">` exactly once, provide `content`, write
+  the structured docstring) and the migration path for a consumer moving a
+  docs page off the marketing shell.
+
+  A bare `<a>` in `docs_footer` takes themed ink rather than the browser
+  default link blue, mirroring the marketing footer's rule (BR-BW-MKT-002)
+  and carrying the same WCAG 2.5.8 target-size floor and coarse-pointer
+  tier. Without it a plain anchor, which is the obvious thing to write in a
+  consumer-owned block, measured 2.12:1 against the dark theme's surface.
+
+### Changed
+
+- **Wave 1's carry-forward is scoped per pattern rather than carried as a list**
+  (icvoss/django-brickwork#440, ADR-092). `docs/ROADMAP.md` previously named
+  five unshipped slice 3 patterns and two chart items with no outcome for any
+  of them, and asserted three times that they had no spec brick. Each of the
+  seven now has one of three outcomes: timeline and saved views are bricked
+  (VIZ-029, TBL-023) and available to be scheduled; advanced filters, chart
+  annotation and chart export are refused with reasons (TBL-024, CHT-027, and
+  CHT-022's existing `chart_toolbar` slot affirmed as the answer); audit trail
+  and queue were duplication between the delivery plan's slice 3 and slice 4,
+  and shipped in 3.14.0 as archetype-only compositions.
+
+  Documentation only. No package behaviour changes.
+
+### Fixed
+
+- **`bw_gauge` and `bw_ranked_list` no longer honour a `mark_safe`'d `label` in
+  attribute position, closing a break-out that could land a live event
+  handler** (icvoss/django-brickwork#339). Both tags render `label` only into
+  an `aria-label` attribute (the SVG root for `bw_gauge`, the `<ol>` root for
+  `bw_ranked_list`), never into markup, and both templates interpolated it
+  with no escaping filter, passing the tag's raw value straight through. A
+  caller-supplied `mark_safe('a" onload="alert(1)')` closed the attribute's
+  quote and added a live `onload` to the element, the same defect class
+  #349 fixed for `bw_button` and `bw_dropdown`. `label` on both tags now goes
+  through `escape_attribute_value`, the same unconditional `escape()` (never
+  `conditional_escape`) this package already uses for every other
+  attribute-value seam (`bw_data_attrs`, `bw_chart_mount`, `bw_button`'s and
+  `bw_dropdown`'s own `aria_label`). **Accepted cost, not a defect:** an
+  accessible name that is a `mark_safe`'d or `format_html`-produced
+  `SafeString` is escaped like any other value here, so its entities are
+  escaped again in attribute position, so a screen reader announces the
+  literal characters `&amp;` rather than `&`. The supported path for an
+  attribute-position accessible name is plain text; the trade is against
+  script execution, and it is not close.
+
+  **What this does not cover.** `_progress.html`'s own `label` renders into
+  `aria-label` the same unescaped way and is NOT fixed here: it is a
+  structural include with no tag-side Python to route a fix through (no
+  render-time enforcement seam at all), so it needs a different mechanism
+  than the tag-side fix `bw_gauge` and `bw_ranked_list` use. That mechanism
+  is tracked separately at icvoss/django-brickwork#358, alongside any other
+  attribute-value seam the same defect class turns up at, not just accessible
+  names.
+
+- **A wide table inside `bw-prose` no longer drags the page sideways**
+  (icvoss/django-brickwork#370). `.bw-prose__table-wrap` set `overflow-x: auto`
+  and nothing else, which is not sufficient on its own: an ancestor that blows
+  out its own box can let the wrap's overflow paint outside that box instead of
+  clipping to it, so the wide table scrolled the whole document rather than
+  scrolling within its own container. It now also sets `contain: paint`, making
+  the wrap the clipping boundary for its own descendants whatever an ancestor
+  does.
+
+  This is the fix `.bw-data-table-wrap` already carried from
+  icvoss/django-brickwork#136, and that the pricing comparison table states
+  independently in its own header. It was never propagated to `bw-prose`, which
+  is the general-purpose long-form wrapper and so the surface most likely to
+  hold a wide table from a CMS or a Markdown renderer.
+
+  Measured on a five-column table in `bw-prose`: the document scrolled to 374px
+  at both 300px and 340px viewports without the declaration, and to the viewport
+  width with it. No markup change is needed; a consumer already using
+  `.bw-prose__table-wrap` gets the fix on upgrade.
+
+- **The changelog gate's opt-out marker must now stand alone on its own line**
+  (icvoss/django-brickwork#380). `check_changelog_fragment_required.py` waived
+  its fragment requirement whenever `changelog-fragment-not-required` appeared
+  anywhere in the PR body, as a substring. So a PR that merely mentioned the
+  marker waived the gate: prose describing the escape hatch, a linked
+  discussion of it, or a body quoting the gate's own failure message, which
+  names the marker in full. The script's docstring has always said "the exact
+  line"; the check now matches that, accepting the marker only when it is the
+  whole of a line, with surrounding whitespace tolerated.
+
+  A PR that genuinely opts out is unaffected: the marker on its own line
+  works exactly as documented. Nothing else about the gate changes.
+
+  The script shipped with no tests of its own, which is why the gap between
+  its stated contract and its check went unnoticed. It has them now, and they
+  fail against the old substring behaviour rather than merely passing against
+  the new one.
+
+- **The multi-line `{# #}` guard now scans every shipped template, not just
+  `src/brickwork/templates/`** (icvoss/django-brickwork#384).
+  `test_no_shipped_template_uses_a_multiline_inline_comment` walked only the
+  `templates/` tree, so the 47 templates under `src/brickwork/examples/`
+  (archetypes and sections shipped as package data, which consumers copy
+  verbatim) and the templates under `src/brickwork/marketing/templates/`
+  were never scanned: a multi-line `{# #}` in any of them would render as
+  literal page text in whatever project copied it, the same defect class the
+  guard exists to catch. The walk's root is now `src/brickwork` filtered to
+  `*.html`, so `templates/`, `examples/`, `marketing/templates/`, and any
+  future template-bearing directory are covered by construction rather than
+  by an enumerated list of roots. All 106 shipped templates are clean today.
+
+- **`ops/comparison.html` closed `.bw-prose` before its two tables, so no
+  prose table styling applied** (icvoss/django-brickwork#387). Both
+  `bw-prose__table-wrap` sites (headline metrics, revenue by region) sat as
+  siblings of `.bw-prose` rather than descendants, so every prose table rule
+  (`.bw-prose :where(table)`, `.bw-prose :where(th, td)`, and the rest) is a
+  descendant selector that could not match: no cell padding, no borders,
+  colliding columns. Both wrappers, and the prose text either side of them,
+  now sit inside one continuous `.bw-prose` div per section, matching the
+  shape `ops/report.html` already used correctly. Swept every other
+  `bw-prose`-bearing example and section template (`ops/analysis-dashboard.html`,
+  `ops/report.html`, `sections/content/callout.html`,
+  `sections/content/media-and-text.html`, `sections/content/prose-block.html`)
+  for the same class of defect (any `.bw-prose`-styled element sitting
+  outside its `.bw-prose` ancestor): none found. `ops/report.html`'s two
+  wrappers were already correctly nested.
+
+- **`.bw-trend--up`/`--down` no longer hard-code judgement colour onto
+  direction** (icvoss/django-brickwork#388). `_trend_indicator.html`'s own
+  contract is that `trend` names the way a number moved, never whether that
+  is good news ("judgement belongs in `trend_label`"), but the shipped CSS
+  painted `trend="up"` success-green and `trend="down"` danger-red
+  regardless. A falling cost (`trend="down"`, correctly announcing
+  "decreased" to assistive tech) rendered danger-red beside a `trend_label`
+  reading "which is better": sighted and assistive-tech readers got opposite
+  meanings from the same element, visible in production on
+  `/examples/ops/comparison/` and `/examples/ops/report/`. All three
+  direction states (`up`/`down`/`flat`) now render in the same neutral ink,
+  `--bw-color-fg-muted`, on `.bw-trend`, `.bw-stat__trend` and
+  `.bw-stat-comparison__trend` alike (the retained aliases of one
+  implementation, icvoss/django-brickwork#334).
+
+  Judgement colour is now opt-in: `_trend_indicator.html`, `_stat.html` and
+  `_stat_comparison.html` all take a new `sentiment` argument (`"good"` or
+  `"bad"`), rendering an additional `bw-trend--good`/`bw-trend--bad` modifier
+  (and its matching alias) layered on top of the direction modifier, never
+  instead of it. A caller with a falling cost that is good news now passes
+  `trend="down" sentiment="good"`, keeping the accessible text correct
+  ("decreased") while stating the judgement deliberately, rather than
+  getting it wrong by default.
+
+  **Every existing caller keeps working**: omitting `sentiment` (the
+  existing shape of every call site) renders the direction modifier only,
+  in neutral ink, which is a strict loss of an implication that was wrong
+  for roughly half of them and never a signal any caller relied on for
+  correctness.
+
+- **`_card.html`'s `title` block now also accepts a `title` context variable**
+  (icvoss/django-brickwork#398). `{% include "brickwork/components/_card.html"
+  with title="Net revenue by month" %}` previously rendered untitled with no
+  error, because `title` is a block and `{% include %}` cannot fill one: the
+  value and the unmatched block were both silently discarded, even in DEBUG.
+  A caller filling `{% block title %}` by extending the template is
+  unaffected and still wins when both are supplied, since block override
+  already takes precedence by construction. The deprecated `card_title`
+  block does not gain the same treatment, so it keeps no working path beyond
+  its existing block-only one ahead of its 4.0 removal.
+
+  A wider sweep run against the same defect shape found 41 block-named
+  arguments silently discarded across 9 components in total. Of those, 7
+  already had a working context-variable passthrough (`_disclosure.html`,
+  `_empty_state.html`, `_modal.html`, `_page_header.html`,
+  `_slide_over.html`), and the remaining 33 are markup-shaped regions with no
+  single string a context variable could stand in for (button clusters,
+  composed tag calls, forms, deprecated names being retired): each is now
+  documented as such in its component's own header comment, rather than
+  fixed, so the judgement is recorded at the component rather than
+  rediscovered per caller.
+
+- **`examples/ops/analysis-dashboard.html`'s three stale comment blocks now
+  describe what is true today** (icvoss/django-brickwork#437, tracked by
+  ADR-090). They asserted three limits that #431 and #432 had already
+  removed, and steered a consumer copying the file toward workarounds that
+  are no longer necessary:
+
+  - That a card's `title` is block-only and `{% include %} with title="..."`
+    does nothing. Fixed by #398/#432: `_card.html:132` renders its own
+    `title` context variable inside the block, so an include-passed title
+    now renders, and the comment now says so, on both the chart card band
+    and the band that adopts it.
+  - That there is no general two-column layout helper on an app surface and
+    the only shipped grids are the stat row, the scorecard and the section
+    stack. Fixed by #431: `.bw-band-grid`/`--2`/`--3`/`--4` ship. The
+    comment now points at `.bw-band-grid--2` instead.
+  - That the only shipped route to a correctly sized band heading is
+    `bw-prose`, whose 65ch measure narrows the band, so a visually hidden
+    heading is the necessary compromise. Fixed by #431: `.bw-band-heading`
+    is sized `heading-lg` and carries no `inline-size` rule, which is
+    exactly the fix for that trap. The comment now explains when a band
+    still keeps a hidden heading (its title is genuinely carried by a card)
+    against when it should not (nothing else on the band carries one).
+
 ## [3.14.0] - 2026-08-29
 
 **Wave 1 of the interface-system delivery closes here: data-heavy
