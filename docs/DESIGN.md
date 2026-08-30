@@ -705,6 +705,65 @@ package rebuild. This is the one axis in the token system that is
 build-time only; every other axis in this file (brand, theme, density) is
 genuinely live via `var()`.
 
+### 6.9 App-surface arrangement (`.bw-band-grid`, `.bw-band-heading`) **[NEW]**
+
+**Authority:** ADR-090. Two classes, and together they are the **complete and
+closed** app-family arrangement vocabulary (decision 1): how an app-surface
+page arranges its bands side by side, and how it titles one. Public API under
+the package's versioning contract, in the same sense as a template block name
+or a token name, even though neither is itself a `--bw-*` token.
+
+**`.bw-band-grid`** (bare, aliasing `--2`) plus `.bw-band-grid--3` and
+`.bw-band-grid--4` are the app family's own N-column primitive, matching
+`.bw-stat-grid`'s own `auto-fit`/`minmax(min(X, 100%), 1fr)` idiom and its
+`min-inline-size: 0` child guard (icvoss/django-brickwork#136) and `:empty`
+suppression (BR-BW-TPL-006). The floors step down as the explicit column
+count rises, so a wide viewport does not fragment a small count into narrow
+columns: bare/`--2` floor at 24rem (two comfortable reading-width columns),
+`--3` at 18rem, `--4` reuses `.bw-stat-grid`'s own 14rem floor. **Deliberately
+content-driven, not breakpoint-driven**: a band grid reflows when its own
+columns no longer fit, which is a property of the band's width, not the
+viewport's, so it does not consume the `--bw-breakpoint-*` tokens in section
+6.8. A consumer needing viewport-keyed arrangement writes it themselves.
+
+**`.bw-band-heading`** is a standalone visible `<h2>` caption for one band on
+an app-surface page, outside `bw-prose`. Sized at the `heading-lg` type role
+(section 7.4): one step under the page title's `heading-xl`, and deliberately
+**not** `heading-md`, which is reserved for the card-title role
+(`.bw-card__title`); a band heading sits at the page's own structural level,
+not inside a card region. It carries **no `inline-size` rule of its own**,
+which is the fix for the trap that motivated it: wrapping a band in
+`bw-prose` to get a sized heading borrows that class's whole contract along
+with the size, and `bw-prose`'s first declaration is a 65ch content-measure
+cap, not a heading utility, so it narrows whatever it wraps. Measured: a band
+wrapped in `bw-prose` for this reason rendered 655px against its siblings'
+976px.
+
+**The family boundary is a test, not a habit.** `bw-feature-grid--2/3/4`,
+`bw-media-text` and `bw-listing-list__item` ship in the same compiled
+`brickwork.css` bundle an app-surface page loads, and work there
+mechanically. They are marketing-family regardless: styled for marketing
+surfaces and restyled for marketing reasons, so permitting them on an app
+page would make a marketing visual change silently an app-surface regression
+(ADR-090 decision 2). A template extending an app-family shell (`app.html`,
+`auth.html`, `centred.html`) must not use a class `frontend/src/marketing.css`
+defines a rule for. `tests/test_family_boundary.py` **is** the normative
+statement of this rule: it derives the marketing-family class list from the
+CSS itself, so a new marketing class is covered the moment it ships, and it
+fails a build using one of them on an app-family template. The derivation and
+its two vacuity guards (a template-count floor, and a positive check that it
+can find known marketing classes) are not decoration; replacing either with a
+hand-maintained list is the failure mode the rule exists to prevent.
+
+**Shipped since 3.14.0, adopted by a template since the following release**:
+`src/brickwork/examples/ops/analysis-dashboard.html` is the first shipped
+consumer of both classes (icvoss/django-brickwork#438), converting its two
+side-by-side ranked lists to `.bw-band-grid--2` and giving three of its four
+bands a visible `.bw-band-heading` in place of a hidden one. A CSS primitive
+in this package is not complete until a shipped template emits it (ADR-090
+decision 5): a class nothing renders is outside the contract surface, and an
+edit breaking its child guard or `:empty` rule would fail nothing until then.
+
 ## 7. Typography
 
 ### 7.1 Families (the brand's dial)
