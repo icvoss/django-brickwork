@@ -4244,6 +4244,19 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
  * -focusable), matching the shipped _data_table.html contract. */
 .bw-prose :where(.bw-prose__table-wrap) {
   overflow-x: auto;
+  /* contain: paint is load-bearing here, not an optimisation, and this is the
+   * same lesson .bw-data-table-wrap learned on icvoss/django-brickwork#136.
+   * overflow-x: auto alone does NOT stop a wide table dragging the whole
+   * document sideways: an ancestor that still blows out (a consumer's own
+   * wrapper, not only the .bw-card/.bw-section-stack cases already fixed) can
+   * let this wrap's overflow paint outside its own box instead of clipping to
+   * it. contain: paint guarantees this element is the clipping boundary for
+   * its own descendants whatever an ancestor does. Measured at 300px and
+   * 340px viewports on a five-column table: the document scrolled to 374px
+   * without it and to the viewport width with it
+   * (icvoss/django-brickwork#370). bw-prose is the general-purpose long-form
+   * wrapper, so it is the surface most likely to hold a wide table. */
+  contain: paint;
 }
 
 .bw-prose :where(table) {
