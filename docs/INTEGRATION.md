@@ -846,6 +846,73 @@ page-local and live inside `<main id="bw-main">`; `docs_site_header` /
 skip-link target and ahead of the rail in the accessibility tree, which is
 not where a repeating site landmark belongs. See `docs.html`'s own header
 comment, "Site chrome vs page-local blocks", for the full contract.
+## 11. Putting CMS-rendered content on the prose floor (icvoss/django-brickwork#448)
+
+`.bw-prose` gives long-form content (blog posts, documentation, rich-text
+fields) its typographic floor: heading scale, measure, and vertical rhythm.
+The rhythm rule is a **child combinator**, and that has a consequence for
+block-based CMS output specifically.
+
+```css
+.bw-prose > * + * { margin-block-start: var(--bw-space-5); }
+```
+
+This only spaces elements that are **direct children** of `.bw-prose`. A
+block-based CMS (a page built from a sequence of typed blocks: text, quote,
+tabs, and so on) wraps each block's own content in at least one element of
+its own, so the actual paragraphs render two levels deeper than `.bw-prose`
+itself, outside the reach of the child combinator. The symptom is easy to
+spot once you know the cause: **the blocks are spaced correctly from each
+other, but paragraphs inside a block sit flush against each other with no
+gap**, as if the flow rhythm were simply missing.
+
+Measured against icv-cms 1.0.0rc9, whose block markup nests two levels below
+`.bw-prose`:
+
+```
+.bw-prose                     depth 0
+  article.cms-block--text     depth 1   (the child combinator reaches this)
+    div.cms-text__body        depth 2
+      p                       depth 3   (unreachable: not a child of .bw-prose)
+```
+
+**This is not a `bw-prose` defect, and the fix is not to widen the rule.**
+The child combinator is deliberate: `.bw-prose` spaces flow siblings rather
+than putting a margin on each element, specifically so the first and last
+child never introduce a stray outer margin that the surrounding section band
+would then have to cancel out. Rewriting the rule as a descendant selector
+would solve the CMS case but apply flow spacing inside every other nested
+thing a consumer puts in prose too (a card, a callout, a nested component),
+which is worse than the gap it would close. The rule stays as it is; the
+consumer adds one small rule of their own.
+
+**The fix, generalised to any block-based renderer**, is a single
+descendant-scoped rhythm rule targeting each block's own inner wrapper:
+
+```css
+.bw-prose :where(.your-block__body, .your-other-block__content) > * + * {
+  margin-block-start: var(--bw-space-5);
+}
+```
+
+For icv-cms 1.0.0rc9 specifically, that is:
+
+```css
+.bw-prose :where(.cms-text__body, .cms-tab__content, .cms-quote__content) > * + * {
+  margin-block-start: var(--bw-space-5);
+}
+```
+
+This works with no `!important` because `.bw-prose` writes every one of its
+descendant rules through `:where()`, which holds them at zero specificity
+(`docs/DESIGN.md` section 3b and the block comment above `.bw-prose` in
+`frontend/src/components.css` both describe this). A zero-specificity rule
+never wins a specificity fight, so an ordinary class selector on the
+consumer's side (`.bw-prose :where(...) > * + *` above has a specificity of
+one class, from the consumer's own wrapper name) overrides it outright. That
+is what keeps `.bw-prose` a floor a consumer builds on rather than a style
+they have to fight: reach for the pattern above, not `!important`, whenever
+you need to extend prose rhythm into a wrapper `.bw-prose` cannot see.
 
 ## Contribute back
 
