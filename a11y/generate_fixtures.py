@@ -3561,6 +3561,7 @@ def render_search(theme: str) -> str:
 _DOCS_SOURCE = (
     '{% extends "brickwork/shell/docs.html" %}'
     "{% load brickwork_components brickwork_nav %}"
+    "{% block page_title %}Configuring widget filters{% endblock %}"
     "{% block docs_header %}"
     "<h1>Configuring widget filters</h1>"
     '<p class="bw-prose__lede">How the filter bar resolves query parameters'
