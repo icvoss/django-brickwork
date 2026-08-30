@@ -692,6 +692,84 @@ from `main` or the current docs while pinned below 3.4.0. If you are not
 certain which names your pin ships, check that version's own template file,
 not this one.
 
+## 10. Adding a shell: the six-point contract, and migrating docs pages off the marketing shell (ADR-091, icvoss/django-brickwork#439)
+
+The four shells this package ships (`app.html`, `auth.html`, `centred.html`,
+`brickwork_marketing/shell/marketing.html`) and the docs shell
+(`brickwork/shell/docs.html`) all carry the same tacit contract. It was never
+written down until ADR-091, since building the fifth shell was the point at
+which the gap became a real cost rather than a convention every prior shell
+happened to follow by imitation. If you are composing a page against any
+shipped shell, or building your own site-level shell that extends `base.html`
+directly, this is the whole of it:
+
+1. **Extend `brickwork/shell/base.html`.** It owns the document skeleton: the
+   `{% static %}` CSS link, the theme/density/dir attributes on `<html>`, the
+   skip link, the no-JS floor, and the toast/modal/slide-over roots. A shell
+   never rebuilds these.
+2. **Override `{% block shell_variant %}` with your family name.** It renders
+   into `<body class="bw-body bw-shell--{{ shell_variant }}">`, so pick a
+   short, stable slug (`app`, `auth`, `centred`, `marketing`, `docs`) rather
+   than anything you expect to rename.
+3. **Override `{% block shell %}` with your layout.** This is the whole of
+   what a concrete shell adds: the chrome, the named blocks, and the
+   `*_region` wrapper seams your family needs (see the marketing shell's own
+   header comment and `docs.html`'s for the worked idiom).
+4. **Render `<main id="bw-main" tabindex="-1">` exactly once.** This is
+   **load-bearing, not stylistic**: `base.html`'s skip link
+   (`<a class="bw-skip-link" href="#bw-main">`, `base.html:66`) hard-codes
+   that `href`, so a shell with no `#bw-main`, or with it duplicated, breaks
+   the skip link silently: not a template error, just a link that jumps
+   nowhere (or to the first of two matching IDs, which is almost never the
+   one you meant). Nothing checks this for you at render time.
+5. **Provide `content`** (or, for the docs shell, `content` inside the
+   article region): the one block every concrete shell reserves for the page
+   body it does not itself supply.
+6. **Write the structured docstring.** A `States` / `Accessibility` /
+   `Responsive` header comment, matching the four shipped shells and the docs
+   shell. The Accessibility section names every landmark your shell renders
+   and, if any `*_region` block can remove one, says so in **both** the
+   region-block documentation and the Accessibility section: stating
+   landmarks unconditionally when a region can remove them is the
+   icvoss/django-brickwork#433 defect, and writing a new shell against this
+   contract from the start is how it avoids repeating it.
+
+### Migrating a docs page off the marketing shell
+
+Before this shell existed, a docs surface's only option was the marketing
+shell with a site-composed two-column layout bolted on (`{% block content %}`
+holding a `.bw-docs-layout` grid, plus a site-owned rail partial). If that is
+your current shape, moving to `brickwork/shell/docs.html` is a small,
+mechanical migration:
+
+1. **Switch `{% extends %}`** from `brickwork_marketing/shell/marketing.html`
+   to `brickwork/shell/docs.html`.
+2. **Delete your own `.bw-docs-layout` CSS and grid markup.** The shell now
+   owns the two-column split, the mobile `<details>` disclosure, and the
+   `--bw-breakpoint-lg` scale-up; your site-level copy of that layout (and its
+   own `order: -1` comment) is redundant once the shell ships it.
+3. **Move your rail markup into `docs_nav_region`** (or just fill the inner
+   `docs_nav` block if you were not overriding the wrapper element itself).
+   Your `{% bw_nav items=... active=... %}` composition over your own nav
+   items is unchanged; only the surrounding `<details>`/`<nav>` markup moves
+   from your own partial into the shell.
+4. **Move any page header markup into `docs_header`** (or `docs_header_region`
+   if you need to replace its wrapper `<div>`), and any footer/feedback
+   markup into `docs_footer` / `docs_footer_region`.
+5. **Drop your marketing header/footer block overrides** for docs pages only
+   if your docs surface never needed the marketing chrome; keep them if your
+   docs pages still want the site's marketing header/footer around the new
+   docs layout (the docs shell does not ship one of its own: see `docs.html`'s
+   own header comment for what it does and does not carry).
+
+What the docs shell deliberately does not give you: a table of contents / in-
+page navigation region, a version-switcher region, or a feedback region.
+None of these has a driving consumer yet (ADR-091 decision 2), so none ships
+as an empty seam with nothing behind it. Build a table of contents, a version
+switcher, or a feedback control into `docs_nav_region`, `docs_header_region`
+or `docs_footer_region` respectively, as your own site-owned markup, exactly
+as you already build `{% bw_nav %}` composition into the nav rail today.
+
 ## Contribute back
 
 If a seam here was thin for your integration, or you hit a paper-cut this guide

@@ -1,0 +1,158 @@
+{% extends "brickwork/shell/base.html" %}
+{% load i18n %}
+{% comment %}
+Docs shell (ADR-091, icvoss/django-brickwork#439): the documentation
+surface, a new shell rather than regions bolted onto the marketing shell. It
+reuses base.html's document skeleton (the {% static %} CSS link, the theme/
+density/dir attributes on <html>, the skip link, the no-JS floor, the toast/
+modal roots) and adds the [rail | article] two-column layout no other shell
+carries. A docs page {% extends %} this shell and is itself {% extends %}d by
+a consuming page (BR-BW-PAGE-001 at docs scope), never {% include %}d.
+
+Why a new shell and not marketing regions (ADR-091 decision 1): the deciding
+fact is source order. A docs page must emit article-then-rail; the marketing
+shell emits a single content block inside <main>. A conditional layout inside
+one template sharing both shapes would be a fork wearing a flag.
+
+Named blocks (semver-public, BR-BW-TPL-001), all empty-graceful:
+  content        the article body: the one region every page fills. Lands
+                 inside the <article> element, inside <main id="bw-main">,
+                 before the rail in document order (see Source order below).
+  docs_header    an optional page header inside the article, above content
+                 (e.g. a title, a breadcrumb, a version switcher a consumer
+                 composes itself: ADR-091 declines a package-owned version
+                 region, since the package cannot know a consumer's version
+                 scheme).
+  docs_footer    an optional page footer inside the article, below content
+                 (e.g. prev/next links, a feedback control a consumer
+                 composes itself: ADR-091 declines a package-owned feedback
+                 region for the same reason).
+  docs_nav       the rail's inner content: a consumer composes {% bw_nav %}
+                 here over its own docs_nav_items (brickwork ships no docs
+                 nav component: the mechanism is the existing {% bw_nav %},
+                 not a new one). Wrapped in a native <details>/<summary>
+                 disclosure so the rail collapses on narrow viewports with
+                 zero JavaScript.
+
+Region blocks (ADR-091 decision 2, following #434's shape exactly): a
+`*_region` block wraps the ELEMENT around an inner content block of the same
+stem, as a second, outer override seam. Filling only the inner block
+(docs_nav, docs_header, docs_footer) is unaffected: the wrapper markup is
+unchanged; overriding the `_region` block instead replaces the wrapper
+element itself; overriding a `_region` block EMPTY removes the region and its
+chrome entirely, which the inner-block-only seam can never do.
+  docs_header_region  wraps the page header <div>, inside the article.
+                       Carries no landmark.
+  docs_footer_region  wraps the whole <footer> element, inside the article.
+  docs_nav_region     wraps the <details> disclosure rail containing
+                       <nav aria-label="Documentation">.
+Overriding docs_nav_region or docs_footer_region EMPTY removes a LANDMARK,
+not just chrome: the <nav aria-label="Documentation"> and the <footer>
+respectively. Neither is a WCAG 2.2 AA conformance failure on its own (the
+a11y gate runs axe with WCAG tags only, so it will not fail you for it), and a
+docs surface with genuinely no section rail or no page footer is a real case,
+which is why this is permitted rather than gated. But a consumer removing one
+owns what replaces it: navigation still reachable some other way, and any
+footer information still presented somewhere a screen-reader user can find.
+Remove the region because the region does not exist on your site, never
+merely to restyle it, which is what overriding the region non-empty is for.
+
+Declined regions (ADR-091 decision 2, reasons stated rather than deferred
+silently): a table of contents / in-page navigation is not shipped, since a
+TOC is generated from rendered heading structure, a content-pipeline concern
+this package does not own; a version region is not shipped, since version
+switching is application routing the package cannot know the shape of
+(docs_header_region is the home for a consumer-authored switcher); a feedback
+region is not shipped, since a feedback control posts to a consumer endpoint
+(docs_footer_region is its home). Revisit each when a consumer has built one
+and can say what it needed.
+
+Source order is normative (ADR-091 decision 3): the article (content) MUST
+render before the rail (docs_nav_region) in document order. This is the one
+constraint here purchased with a real consumer defect: brickworkui.com
+originally rendered its rail first in DOM, putting the article's own <h1> a
+full screen down on mobile, and its docs index told a reader to "pick a page
+from the sidebar" above text they had not reached yet (main.css:935-945,
+page.html:23-32 at 8311fba). `order: -1` in shell.css restores the rail to
+the visual inline-start at the --bw-breakpoint-lg layout breakpoint, so DOM
+order and reading order agree at both viewports. A future change reversing
+this source order is a regression regardless of how the rendered page looks;
+if a future change ever hides either column at any viewport, the `order`
+usage must be re-examined rather than preserved (ADR-091 decision 3).
+
+The layout root (.bw-docs-layout) is a SINGLE DIRECT CHILD of <main>, so the
+shell's own measure/centring/gutter rule applies once to the whole layout
+rather than each column claiming it independently (carried from the
+consumer's main.css:930-933, ADR-091 decision 4).
+
+No-JS floor (BR-BW-HTMX-001): the rail's mobile disclosure is a native
+<details>/<summary>, matching _disclosure.html's existing position; nothing
+here requires Alpine or htmx. A consumer wanting a mobile nav toggle beyond
+the disclosure composes its own enhancement, never a brickwork default.
+
+No docs nav component ships here (ADR-091 context section 2): the mechanism
+is the package's own {% bw_nav %}, the same component the app shell's sidebar
+uses. A consumer supplies its own nav items, already visibility-filtered and
+active-resolved, the same responsibility model as the app shell's nav
+(ADR-025).
+
+States: none of its own; the rail's open/closed state is the native <details>
+  element's own [open] attribute, with no default set here (a consumer's page
+  sets it if it wants the rail open by default on load, matching the
+  disclosure component's own convention).
+Accessibility: inherits the skip link and lang/dir/theme attributes from
+  base.html. Its own contribution is <main id="bw-main" tabindex="-1">
+  wrapping the two-column layout, with the article emitted first so the skip
+  link's target and the page's own heading are reachable before the rail on
+  every viewport (see Source order above). The rail's <nav aria-label=
+  "Documentation"> landmark is present unless a consumer empties
+  docs_nav_region, which removes that landmark: see the Region blocks section
+  above. The docs_footer_region's <footer> landmark is likewise removable.
+  Neither this shell's landmarks, nor any other shell's, are unconditional:
+  a `_region` block can always remove one, and a consumer doing so owns what
+  replaces it (this is the icvoss/django-brickwork#433 defect on app.html;
+  writing this shell correctly from the start does not fix #433 there).
+Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
+  breakpoint, chosen over the shell's --bw-breakpoint-md sidebar-collapse
+  token since a 16rem rail plus a readable measure does not fit at 48rem).
+  Below the breakpoint the layout is a single column: the article first, the
+  rail second as a collapsed <details> disclosure. At and above the
+  breakpoint the layout becomes a persistent two-column grid
+  (16rem minmax(0, 1fr)), the disclosure's summary is hidden (nothing to
+  disclose, the rail is always shown) and its nav body is forced visible
+  regardless of the [open] state, with the rail sticky at the inline start
+  and restored to the visual inline-start via `order: -1` (see Source order
+  above).
+{% endcomment %}
+{% block shell_variant %}docs{% endblock %}
+
+{% block shell %}
+<main id="bw-main" class="bw-docs" tabindex="-1">
+  <div class="bw-docs-layout">
+    <article class="bw-docs-layout__main">
+      {% block docs_header_region %}
+      <div class="bw-docs-layout__header">
+        {% block docs_header %}{% endblock %}
+      </div>
+      {% endblock %}
+
+      {% block content %}{% endblock %}
+
+      {% block docs_footer_region %}
+      <footer class="bw-docs-layout__footer">
+        {% block docs_footer %}{% endblock %}
+      </footer>
+      {% endblock %}
+    </article>
+
+    {% block docs_nav_region %}
+    <details class="bw-docs-layout__nav">
+      <summary class="bw-docs-layout__nav-summary">{% translate "Documentation" %}</summary>
+      <nav class="bw-docs-layout__nav-body" aria-label="{% translate 'Documentation' %}">
+        {% block docs_nav %}{% endblock %}
+      </nav>
+    </details>
+    {% endblock %}
+  </div>
+</main>
+{% endblock %}

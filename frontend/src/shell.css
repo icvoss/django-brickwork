@@ -590,6 +590,109 @@
   z-index: var(--bw-z-drawer);
 }
 
+/* --- Docs shell: [article | rail] two-column layout (ADR-091, #439) ------- */
+
+/* .bw-docs is the shell's own <main>; the layout root .bw-docs-layout is a
+ * SINGLE DIRECT CHILD of it, so the shell can apply the content measure,
+ * inline centring, and page gutter to the whole layout once rather than each
+ * column claiming it independently (carried from the consumer's own
+ * main.css:930-933, ADR-091 decision 4). */
+.bw-docs {
+  display: block;
+  max-inline-size: var(--bw-component-content-max-width-marketing);
+  margin-inline: auto;
+  padding-inline: var(--bw-density-page-gutter-inline);
+  padding-block: var(--bw-density-section-gap);
+}
+
+/* Mobile-first: the BASE (narrow, < --bw-breakpoint-lg) layout is a single
+ * column. Source order in docs.html is article-then-rail (ADR-091 decision
+ * 3, the normative constraint): the article renders first so its own
+ * heading is reachable before the rail on every viewport, and the rail
+ * collapses to a <details> disclosure below it. */
+.bw-docs-layout {
+  display: grid;
+  gap: var(--bw-density-section-gap);
+}
+
+.bw-docs-layout__nav-summary {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--bw-size-touch-target-min);
+  padding-inline: var(--bw-space-3);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-md);
+  font-family: var(--bw-font-family-display);
+  font-weight: var(--bw-font-weight-semibold);
+  color: var(--bw-color-fg);
+  cursor: pointer;
+}
+
+.bw-docs-layout__nav-summary:focus-visible {
+  outline: 2px solid var(--bw-color-accent);
+  outline-offset: 2px;
+}
+
+.bw-docs-layout__nav-body {
+  padding-block-start: var(--bw-space-3);
+}
+
+/* Desktop scale-up (>= --bw-breakpoint-lg, 64rem): a persistent two-column
+ * layout. --bw-breakpoint-md (48rem, the sidebar/drawer collapse point) is
+ * the wrong token here: a 16rem rail plus a readable measure does not fit at
+ * 48rem, and --bw-breakpoint-lg is already exactly the value a consumer
+ * chose independently, so no new token is added (ADR-091 decision 5).
+ *
+ * The <details> summary is hidden (nothing to disclose, the rail is always
+ * shown) and the nav body is forced visible regardless of the [open] state,
+ * so a user who collapsed the rail on a narrow viewport before resizing
+ * still sees it at this breakpoint. `order: -1` puts the rail back in the
+ * FIRST visual grid column even though it is second in DOM order (the
+ * mobile-first source order above): at this single persistent two-column
+ * viewport both the rail and the article are always visible together, so
+ * reordering the grid item here is the standard, a11y-safe use of `order`
+ * (no content is hidden or reachable only out of visual sequence, unlike an
+ * `order`-based mobile reflow). If a future change ever hides either column
+ * at any viewport, this `order` usage must be re-examined, not preserved
+ * (ADR-091 decision 3). */
+@media (width >= --theme(--breakpoint-lg)) {
+  .bw-docs-layout {
+    grid-template-columns: 16rem minmax(0, 1fr);
+    gap: var(--bw-space-10);
+    align-items: start;
+  }
+
+  .bw-docs-layout__nav {
+    order: -1;
+    position: sticky;
+    inset-block-start: var(--bw-space-6);
+  }
+
+  .bw-docs-layout__nav-summary {
+    display: none;
+  }
+
+  .bw-docs-layout__nav-body {
+    display: block;
+    padding-block-start: 0;
+  }
+}
+
+/* A grid item's default min-inline-size is auto, not 0: without this the
+ * article column refuses to shrink below its content width (a wide code
+ * sample or data table) and blows out the track, the same trap
+ * .bw-section-stack and .bw-band-grid guard against (icvoss/django-brickwork#136). */
+.bw-docs-layout > * {
+  min-inline-size: 0;
+}
+
+/* An unfilled region renders nothing, never empty chrome or a stray gap
+ * (BR-BW-TPL-006), matching .bw-subnav/.bw-breadcrumbs/.bw-footer above. */
+.bw-docs-layout__header:empty,
+.bw-docs-layout__footer:empty {
+  display: none;
+}
+
 /* --- Auth + centred shells ------------------------------------------------- */
 
 /* grid-template-columns (icvoss/django-brickwork#209): a single implicit
