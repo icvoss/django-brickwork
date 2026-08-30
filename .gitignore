@@ -44,3 +44,10 @@ a11y-results.json
 # Agent worktrees and local session state (umbrella convention: every repo
 # gitignores .claude/, so worktree files never pollute the parent checkout).
 .claude/
+
+# Ad-hoc screenshots captured while driving the browser gates locally.
+# Committed visual fixtures live under a11y/ and tests/, never at the root.
+/*.png
+
+# Playwright MCP session logs and page snapshots from local browser driving.
+.playwright-mcp/
