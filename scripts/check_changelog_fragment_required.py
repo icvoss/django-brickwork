@@ -32,7 +32,9 @@ Escape hatch: a PR that genuinely changes no user-visible behaviour (a pure
 refactor of a component's internal markup, a template tag renamed and
 re-registered with no behaviour change already covered by an existing
 fragment) may opt out by adding the exact line
-``changelog-fragment-not-required`` to the PR body. This is deliberately the
+``changelog-fragment-not-required`` to the PR body. The marker must stand
+ALONE on its own line: prose merely mentioning it does not waive the gate
+(icvoss/django-brickwork#380). This is deliberately the
 only mechanism, and deliberately narrow: it requires a human decision recorded
 in the PR body itself, visible in review, greppable in PR history, and not
 satisfiable by accident (unlike an empty fragment file, which would pollute
@@ -56,6 +58,22 @@ COMPONENT_TEMPLATE_RE = re.compile(r"^src/brickwork/templates/brickwork/componen
 TEMPLATETAGS_PATH_PREFIX = "src/brickwork/templatetags/"
 REGISTER_DECORATOR_RE = re.compile(r"^@register\.")
 OPT_OUT_MARKER = "changelog-fragment-not-required"
+
+
+def opt_out_requested(pr_body: str) -> bool:
+    """True only when the marker stands alone on a line of the PR body.
+
+    A substring test (``OPT_OUT_MARKER in pr_body``) waives the gate for any
+    PR whose body merely MENTIONS the marker, including a PR discussing this
+    gate or quoting the failure message the gate itself prints
+    (icvoss/django-brickwork#380). The docstring above has always said "the
+    exact line"; this is the check that makes that true.
+
+    Surrounding whitespace is tolerated because a body is human-typed and a
+    trailing space is not a decision. Anything else on the line is not,
+    because that is the prose case the substring test could not tell apart.
+    """
+    return any(line.strip() == OPT_OUT_MARKER for line in pr_body.splitlines())
 
 
 def run_git(*args: str) -> str:
@@ -147,7 +165,7 @@ def main(argv: list[str]) -> int:
         print(f"Fragment(s) found: {', '.join(fragments)}. Gate satisfied.")
         return 0
 
-    if OPT_OUT_MARKER in read_pr_body():
+    if opt_out_requested(read_pr_body()):
         print(f"'{OPT_OUT_MARKER}' present in the PR body. Fragment requirement waived.")
         return 0
 
