@@ -111,9 +111,15 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
   dashboard answers is "how are we doing against last year", and a bare number
   cannot answer a comparative question. The three supporting tiles are ordinary
   stats, deliberately quieter.
+
+  The heading is visible via .bw-band-heading rather than hidden: _scorecard.html
+  is view-only tiles with no title mechanism of its own (ADR-090 decision 4), so
+  nothing else on the page carries "Headline figures" for a reader to see, and
+  hiding it would leave the page's opening band unlabelled to anyone but a
+  screen reader user.
   {% endcomment %}
   <section aria-labelledby="headline-heading">
-    <h2 id="headline-heading" class="bw-visually-hidden">Headline figures</h2>
+    <h2 id="headline-heading" class="bw-band-heading">Headline figures</h2>
     {% include "brickwork/components/_scorecard.html" with items=headline_tiles %}
   </section>
 
@@ -132,50 +138,57 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
   The accessible name is REQUIRED unless you pass decorative=True, and a chart
   carrying the page's main finding is never decorative.
 
-  NOTE the card title, because it is a trap worth knowing before you copy this.
-  _chart_card.html EXTENDS _card.html, and a card's title is a BLOCK, not a
-  context variable. Passing title="..." to an {% templatetag openblock %}
-  include {% templatetag closeblock %} of this component does nothing at all:
-  Django discards a value that has no matching variable, and it discards an
-  unmatched block name silently too, with no error even in DEBUG. The card
-  simply renders untitled and you will not be told.
+  NOTE the card title, which used to be a trap and no longer is. _chart_card.html
+  EXTENDS _card.html and does not redeclare the title block, so it inherits
+  _card.html's dual consumption on that one region (icvoss/django-brickwork#398,
+  ADR-090 decision 3): title="..." on the include below now renders the same
+  <h2 class="bw-card__title"> a caller filling {% templatetag openblock %} block
+  title {% templatetag closeblock %} by hand would write. A caller who instead
+  extends the template and fills the block still wins, since block override
+  takes precedence by construction; nothing here changes that path.
 
-  The heading below is deliberately visually hidden, and that is a compromise
-  rather than a preference, so it is worth saying why before you copy it. A
-  bare <h2> on an app page inherits the heading font and colour but NO size
-  step, so it renders at body size. The only shipped route to a correctly
-  sized heading is bw-prose, and bw-prose is a long-form CONTENT MEASURE
-  contract, not a heading utility: its first rule is max-inline-size 65ch,
-  which narrows whatever it wraps. Wrapping this band in it to size one
-  heading squeezed the chart to about two thirds the width of the bands above
-  and below it, which is a worse defect than an unlabelled band, and no gate
-  in this package catches it.
-
-  So this band carries its accessible name and leaves the visible title to the
-  card. To give the CARD a visible title, write a small template that EXTENDS
-  _chart_card.html and fills its title block, then include THAT here. There is
-  no way to do it from a single copy-paste file, which is the honest state of
-  the system today.
+  The band's own <h2> stays visually hidden here even so, because this band's
+  title is genuinely carried by the card rather than by the band: one card, one
+  chart, one title, and duplicating it as a second visible heading immediately
+  above the card would read as two headings for one thing. The band-level <h2>
+  exists only to give the <section> its accessible name via aria-labelledby;
+  give the CARD the visible title with title="Net revenue by month" below, and
+  it, not the hidden band heading, is what a sighted reader sees.
   {% endcomment %}
   <section aria-labelledby="trend-heading">
     <h2 id="trend-heading" class="bw-visually-hidden">Net revenue by month</h2>
-    {% include "brickwork/components/_chart_card.html" with mount=revenue_mount %}
+    {% include "brickwork/components/_chart_card.html" with mount=revenue_mount title="Net revenue by month" %}
   </section>
 
   {% comment %}
-  BAND 3, where the answer came from. Two ranked lists side by side would be the
-  natural arrangement here, and it is worth saying plainly that brickwork ships
-  no way to do it: there is no general two-column layout helper on an app
-  surface, and the only shipped grids are the stat row, the scorecard and the
-  section stack. These stack vertically instead. That is a real limit of the
-  system today, not an oversight in this page.
+  BAND 3, where the answer came from. Two ranked lists side by side IS the
+  natural arrangement here, and .bw-band-grid--2 is the shipped route to it
+  (ADR-090 decision 1): the app family's own N-column primitive, content-driven
+  rather than breakpoint-driven, so the pair reflows to one column on its own
+  once a list no longer fits at 24rem rather than waiting for a viewport
+  breakpoint. Do not reach for bw-feature-grid--2 or any other class
+  marketing.css defines instead: it works mechanically in the same compiled
+  bundle, but it is marketing-family, styled for marketing rhythm, and
+  tests/test_family_boundary.py fails a build that uses it on an app-family
+  shell (ADR-090 decision 2).
+
+  The band gets a real, visible heading via .bw-band-heading rather than the
+  hidden-<h2>-plus-aria-labelledby pattern the other bands use: unlike the
+  scorecard or the chart card, no single component here carries a title of its
+  own for "Breakdowns" to duplicate, so hiding the heading would leave the band
+  genuinely unlabelled to a sighted reader. .bw-band-heading is sized at the
+  heading-lg role with no inline-size rule of its own, so it reads at a proper
+  heading size without narrowing the band the way wrapping it in bw-prose
+  would (bw-prose's first rule is a 65ch content measure, not a heading
+  utility). The id/aria-labelledby wiring is unchanged: a visible heading still
+  needs both, exactly as a hidden one does.
 
   Each list states its own figures as text beside the bar; the bars are
   aria-hidden decoration, so the ranking is readable without seeing them.
   {% endcomment %}
   <section aria-labelledby="breakdown-heading">
-    <h2 id="breakdown-heading" class="bw-visually-hidden">Breakdowns</h2>
-    <div class="bw-section-stack">
+    <h2 id="breakdown-heading" class="bw-band-heading">Breakdowns</h2>
+    <div class="bw-band-grid--2">
       {% bw_ranked_list channel_rows basis="total" label="Revenue by channel" empty_heading="No channel data" empty_body="Revenue attributed to a channel will appear here once the quarter opens." %}
       {% bw_ranked_list region_rows basis="total" label="Revenue by region" empty_heading="No regional data" empty_body="Revenue attributed to a region will appear here once the quarter opens." %}
     </div>
@@ -186,9 +199,13 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
   the first band said what happened, this one says what it means against a
   target. Threshold bands tint the arc, but the percentage always renders as
   visible text underneath, so the reading never depends on seeing the colour.
+
+  The heading is visible via .bw-band-heading, matching bands 1 and 3: the
+  gauge's own label= only sets the SVG's aria-label, so nothing on this band
+  carries a visible caption for a reader who is not using a screen reader.
   {% endcomment %}
   <section aria-labelledby="target-heading">
-    <h2 id="target-heading" class="bw-visually-hidden">Progress against target</h2>
+    <h2 id="target-heading" class="bw-band-heading">Progress against target</h2>
     {% bw_gauge value=78 min=0 max=100 label="Progress to annual revenue target" size="lg" threshold_bands=target_bands %}
   </section>
 
