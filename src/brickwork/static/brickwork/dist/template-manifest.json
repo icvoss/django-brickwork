@@ -211,6 +211,7 @@
         "brickwork/shell/app.html",
         "brickwork/shell/auth.html",
         "brickwork/shell/centred.html",
+        "brickwork/shell/docs.html",
         "brickwork_marketing/shell/marketing.html"
       ],
       "consumption": [
@@ -222,6 +223,60 @@
       "declaredIn": [
         "brickwork/components/_empty_state.html",
         "brickwork/components/_page_header.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "docs_footer",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "docs_footer_region",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "docs_header",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "docs_header_region",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "docs_nav",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "docs_nav_region",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
       ],
       "consumption": [
         "include"
@@ -510,6 +565,7 @@
         "brickwork/shell/auth.html",
         "brickwork/shell/base.html",
         "brickwork/shell/centred.html",
+        "brickwork/shell/docs.html",
         "brickwork_marketing/shell/marketing.html"
       ],
       "consumption": [
@@ -523,6 +579,7 @@
         "brickwork/shell/auth.html",
         "brickwork/shell/base.html",
         "brickwork/shell/centred.html",
+        "brickwork/shell/docs.html",
         "brickwork_marketing/shell/marketing.html"
       ],
       "consumption": [
