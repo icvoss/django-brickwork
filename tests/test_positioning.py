@@ -235,7 +235,10 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     trio (up/down/flat), which this docstring never recorded a step for; the
     scorecard/stat-comparison work then added a scorecard fixture, covering
     the shared dashboard grid's span= modifiers plus the comparison tile's
-    sm/md/lg sizes, moving the real count to 61/122.)
+    sm/md/lg sizes, moving the real count to 61/122. The docs shell work
+    (ADR-091, icvoss/django-brickwork#439) then added a docs fixture, the
+    new shell's own two-column [article | rail] page, moving the real
+    count to 62/124.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -244,7 +247,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     archetype_count = manifest["counts"]["archetypes"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 122 + (archetype_count * 2)
+    assert _leading_int(value) == 124 + (archetype_count * 2)
     assert f"{archetype_count} catalogue archetypes x light and dark" in note
 
 

@@ -3543,6 +3543,130 @@ def render_search(theme: str) -> str:
     )
 
 
+# --- the docs shell (ADR-091, icvoss/django-brickwork#439) ---------------
+#
+# shell/docs.html is a new shell this branch adds: the [article | rail]
+# two-column layout, article-then-rail in source order with CSS `order: -1`
+# restoring the rail visually at --bw-breakpoint-lg (the shell's own normative
+# rule, see its header comment). This fixture exercises the real contract
+# rather than an empty page: a populated article (docs_header, long-form
+# content wrapped in .bw-prose with a heading hierarchy, a code block and a
+# list, docs_footer) plus a real {% bw_nav %} rail in docs_nav, since the
+# package ships no docs nav component and a consumer composes the existing
+# nav mechanism there (the shell's own docSource, "the mechanism is the
+# package's own {% bw_nav %}"). The layout CSS is not overridden or
+# suppressed here, so the axe gate's multi-breakpoint sweep genuinely
+# observes the source-order/visual-order split the shell's header calls out
+# as the one constraint bought with a real consumer defect.
+_DOCS_SOURCE = (
+    '{% extends "brickwork/shell/docs.html" %}'
+    "{% load brickwork_components brickwork_nav %}"
+    "{% block docs_header %}"
+    "<h1>Configuring widget filters</h1>"
+    '<p class="bw-prose__lede">How the filter bar resolves query parameters'
+    " into the records table, and the options available to a consumer"
+    " composing their own filter set.</p>"
+    "{% endblock %}"
+    "{% block content %}"
+    '<div class="bw-prose">'
+    "<p>Every list page ships a filter bar backed by a plain Django form:"
+    " each bound field becomes one query parameter, and the records table"
+    " re-renders from the resolved queryset on every request.</p>"
+    "<h2>Declaring the filter form</h2>"
+    "<p>A filter form is a normal <code>forms.Form</code> subclass. Nothing"
+    " about it is brickwork-specific until it is passed to the filter bar"
+    " include:</p>"
+    "<pre><code>class WidgetFilterForm(forms.Form):\n"
+    "    status = forms.ChoiceField(\n"
+    "        choices=STATUS_CHOICES,\n"
+    "        required=False,\n"
+    "    )\n"
+    "    q = forms.CharField(required=False)</code></pre>"
+    "<p>Bind it from the request's query string in the view, then include the"
+    " filter bar with the bound instance:</p>"
+    "<h2>Behaviour worth knowing</h2>"
+    "<ul>"
+    "<li>An empty field is dropped from the query string entirely rather than"
+    " kept as an empty parameter.</li>"
+    "<li>The clear link resets to the bare list URL, not to the form's"
+    " initial values.</li>"
+    "<li>Sortable columns compose with the filter set: the sort parameter is"
+    " preserved across a filter change.</li>"
+    "</ul>"
+    "<h3>Common mistakes</h3>"
+    "<p>Passing an unbound form renders the filter bar with no applied"
+    " filters, which is easy to miss in review because the bar still renders"
+    " correctly, just against an empty query.</p>"
+    "</div>"
+    "{% endblock %}"
+    "{% block docs_footer %}"
+    '<p><a href="/widgets/">&larr; Back to widgets</a></p>'
+    "{% endblock %}"
+    "{% block docs_nav %}"
+    "{% bw_nav items=docs_nav_items active=docs_nav_active %}"
+    "{% endblock %}"
+)
+
+
+def render_docs(theme: str) -> str:
+    from django.urls import resolve
+
+    from brickwork.models import NavContext, NavItem
+    from brickwork.services.navigation import resolve_active_item, visible_items
+
+    # A real docs sidebar shape: section headers grouping topic pages, one
+    # active leaf (Widgets, matching the /widgets/ request below and the
+    # article content, which documents the widget filter bar) so the rail's
+    # active-state treatment is examined alongside the two-column layout.
+    # Built the same way render_list builds its own nav context: a real
+    # NavItem tree resolved through visible_items + resolve_active_item,
+    # never a hand-rolled active flag.
+    tree = (
+        NavItem(
+            key="fx-docs-getting-started",
+            label="Getting started",
+            section_header=True,
+            children=(
+                NavItem(key="fx-docs-dashboard", label="Dashboard", url_name="testapp:dashboard"),
+                NavItem(key="fx-docs-widgets", label="Widgets", url_name="testapp:widget-list"),
+            ),
+        ),
+        NavItem(
+            key="fx-docs-filters",
+            label="Filtering",
+            section_header=True,
+            children=(
+                NavItem(key="fx-docs-widget-create", label="Creating a widget", url_name="testapp:widget-create"),
+                NavItem(key="fx-docs-settings", label="Settings", url_name="testapp:settings-index"),
+            ),
+        ),
+        NavItem(
+            key="fx-docs-interactions",
+            label="Interactions",
+            section_header=True,
+            children=(
+                NavItem(key="fx-docs-toasts", label="Toasts", url_name="testapp:toast-demo"),
+                NavItem(key="fx-docs-comboboxes", label="Comboboxes", url_name="testapp:combobox-demo"),
+            ),
+        ),
+    )
+    request = RequestFactory().get("/widgets/")
+    request.resolver_match = resolve("/widgets/")
+    nav_context = NavContext(request=request)
+    items = visible_items(tree, nav_context)
+    active = resolve_active_item(items, request.resolver_match)
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "docs_nav_items": items,
+        "docs_nav_active": active,
+    }
+    html = engines["django"].from_string(_DOCS_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
+
+
 def _emit(path: Path, html: str, written: list[str], name: str | None = None) -> None:
     """Write a fixture and record its name in the same call.
 
@@ -3710,6 +3834,10 @@ def main() -> None:
         # search + loading button (#226): bw_search and _spinner.html's
         # loading=True mount, neither previously rendered by any fixture
         _emit(OUT / f"search-{theme}.html", render_search(theme), written)
+        # the docs shell (ADR-091, #439): a populated two-column docs page
+        # (real article content in .bw-prose, a real {% bw_nav %} rail),
+        # never rendered by any other fixture before this shell existed
+        _emit(OUT / f"docs-{theme}.html", render_docs(theme), written)
         # every example section (3.1.0, plan Phase 6a gate 3), stacked in a
         # real marketing shell so heading order and landmarks are meaningful
         _emit(OUT / f"sections-{theme}.html", render_sections(theme), written)
