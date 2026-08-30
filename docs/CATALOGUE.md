@@ -54,6 +54,15 @@ ROADMAP.md directly for current wave assignments, which move as waves land.
 - Documentation
 - Editorial and publishing
 
+**Arranging bands within an app-surface archetype** (product applications and
+data-heavy operations both extend an app-family shell) uses a closed,
+two-class vocabulary: `.bw-band-grid` (with `--2`/`--3`/`--4`) for N-column
+arrangement and `.bw-band-heading` for a band's own visible title. See
+`docs/DESIGN.md` section 6.9 for the token-level detail (floors, the
+type-role sizing, and the family-boundary test that keeps marketing-family
+classes off these surfaces); `examples/ops/analysis-dashboard.html` is the
+first shipped consumer of both.
+
 Shells and components are cross-family building blocks, not scoped to one
 family; the manifest's `usedByArchetypes` field on each names the shipped
 archetypes drawing on it, from which the families in play can be read off
