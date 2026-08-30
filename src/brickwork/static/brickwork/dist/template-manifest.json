@@ -283,6 +283,42 @@
       ]
     },
     {
+      "name": "docs_site_footer",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "docs_site_footer_region",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "docs_site_header",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "docs_site_header_region",
+      "declaredIn": [
+        "brickwork/shell/docs.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "empty_state_action",
       "declaredIn": [
         "brickwork/components/_empty_state.html"

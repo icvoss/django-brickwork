@@ -44,6 +44,24 @@ _APP_SHELLS = {
     "brickwork/shell/app.html",
     "brickwork/shell/auth.html",
     "brickwork/shell/centred.html",
+    # docs.html joined this set with the site-chrome regions
+    # (icvoss/django-brickwork#448). ADR-090 named only the three shells that
+    # existed when it was ratified; the docs shell is not marketing-family
+    # either (it derives from base.html and carries its own bw-docs-* classes),
+    # so the same rule applies to it.
+    #
+    # This is a FORWARD guard and catches nothing today: no shipped template
+    # extends docs.html yet, so adding it changes no current result. It binds
+    # from the first Wave 2 docs archetype (icvoss/django-brickwork#408 to
+    # #421), which is precisely when a page migrating off the marketing shell
+    # is most likely to keep reaching for bw-feature-grid or bw-media-text.
+    # Adding it now costs nothing and means the archetypes cannot land
+    # unguarded; the alternative is remembering to add it later.
+    #
+    # Note this set gates templates that EXTEND these shells, never the shell
+    # files themselves: a marketing class written directly into docs.html is
+    # not caught here.
+    "brickwork/shell/docs.html",
 }
 
 _EXTENDS_RE = re.compile(r'{%\s*extends\s+["\']([^"\']+)["\']\s*%}')
