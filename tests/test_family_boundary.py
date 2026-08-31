@@ -112,6 +112,7 @@ def test_marketing_class_derivation_finds_marketing_only_classes() -> None:
     assert "bw-btn" not in classes  # only ever appears inside :not(.bw-btn)
     assert "bw-stat" not in classes  # only ever appears as a descendant, .bw-stat-band .bw-stat
     assert "bw-stat-grid" not in classes  # only ever mentioned in a comment
+    assert "bw-callout" not in classes  # content primitive, lives in components.css per ADR-090's amendment (#452)
 
 
 def test_app_surface_templates_are_found() -> None:

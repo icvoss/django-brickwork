@@ -764,6 +764,29 @@ in this package is not complete until a shipped template emits it (ADR-090
 decision 5): a class nothing renders is outside the contract surface, and an
 edit breaking its child guard or `:empty` rule would fail nothing until then.
 
+### 6.10 Placement: content primitives versus surface chrome **[NEW]**
+
+**Authority:** ADR-090, amended 2026-08-31. A class's family is a property of
+its **kind**, not of the file its rules happen to sit in. Two kinds:
+
+- **Surface chrome** (arrangement bands, heroes, pricing, testimonials) is
+  styled and restyled for marketing reasons. It is marketing-family, lives in
+  `frontend/src/marketing.css`, and stays forbidden on app-family surfaces
+  under the family-boundary test in section 6.9.
+- **Content primitives** (notices, code display, figures, citations,
+  cross-links, tabs) are family-neutral: they compose with the `.bw-prose`
+  floor and are legal on every shell, including the docs shell. `.bw-callout`
+  is the first example (icvoss/django-brickwork#452): it lives in
+  `frontend/src/components.css`, adjacent to `.bw-prose`, rather than in
+  `frontend/src/marketing.css`, because it is content a docs or blog page
+  pulls out of its own flow, not marketing surface chrome.
+
+The file a rule sits in follows this classification; it never decides it.
+`tests/test_family_boundary.py` derives the marketing-family set from
+whatever `marketing.css` defines a rule for, so moving a content primitive
+into `components.css` is what makes it usable on the docs shell, not a
+docstring or an allowlist entry.
+
 ## 7. Typography
 
 ### 7.1 Families (the brand's dial)
