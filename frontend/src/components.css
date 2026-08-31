@@ -4202,7 +4202,22 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   overflow-wrap: break-word;
 }
 
-.bw-prose :where(pre) {
+/* :not(.bw-code__pre) so a _code.html panel nested inside .bw-prose keeps ONE
+ * scroll region rather than two (icvoss/django-brickwork#462). The panel's
+ * scroller is .bw-code__body, which carries overflow-x AND the tabindex="0"
+ * plus role="region" that make it reachable from a keyboard. Without this
+ * exclusion the inner <pre> also matched the bare-element rule below, picked
+ * up its own overflow-x, and became a second scrollable region with no
+ * tabindex: axe's scrollable-region-focusable, failing at 375px on
+ * examples/docs/article.html once a panel's content genuinely overflowed.
+ * The comment on .bw-code__code below claimed both selectors "resolve to the
+ * identical declarations" and that nesting "never doubles up"; that was true
+ * of the code element and never of the pre, which the prose rule also gives a
+ * border, background, padding and overflow the panel deliberately does not
+ * want (its own chrome supplies them). Found by rendering, not by a suite:
+ * the markup was correct and the gate only fires at a width where the sample
+ * is actually wider than the column. */
+.bw-prose :where(pre):not(.bw-code__pre) {
   margin: 0;
   /* A grid/flex or block child sizes to its content by default, so a long code
    * line made the <pre> itself wider than the page instead of scrolling inside
@@ -4310,6 +4325,84 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 .bw-prose :where(dd) {
   margin-inline-start: 0;
   color: var(--bw-color-fg-muted);
+}
+
+/* Prose / heading anchor ---------------------------------------------------- */
+
+/* A permalink affordance next to a heading that already carries an id, so a
+ * reader can copy a link straight to that section. It lives here rather than
+ * in marketing.css for the same reason as the callout and code blocks below:
+ * it composes with the .bw-prose floor (a docs or blog heading), never
+ * surface chrome, so ADR-090's amended rule (a class's family follows its
+ * KIND, not the file its rules happen to sit in) makes it family-neutral and
+ * legal on the docs shell as well as marketing. icvoss/django-brickwork#457.
+ *
+ * Contract: the package styles the affordance, the consumer supplies the
+ * heading id and the accessible name. This deliberately does NOT generate
+ * heading ids or parse content; that is the content pipeline's job, the same
+ * boundary ADR-091 draws for the table of contents (icvoss/django-brickwork
+ * #413, a separate, larger primitive that this is not). The markup shape:
+ *
+ *   <h2 id="installation">
+ *     Installation
+ *     <a class="bw-prose__anchor" href="#installation" aria-label="Link to
+ *        the Installation section">#</a>
+ *   </h2>
+ *
+ * The consumer writes aria-label from the heading's own text, because CSS has
+ * no way to read it: a bare "Link" repeated at every heading fails WCAG 2.4.4
+ * (link purpose) the moment a screen reader user tabs through two of them.
+ * "Link to the X section" is the shape; the X is the one thing only the
+ * consumer's template knows.
+ *
+ * Visibility state: opacity: 0 at rest, not display: none or
+ * visibility: hidden. Both of those pull the element out of the accessibility
+ * tree AND out of the tab order, so a keyboard user could never reach it at
+ * all; opacity does neither; the anchor stays focusable and present, just
+ * not painted. It is then revealed two ways, and both must be there:
+ *   - on :hover of the whole heading, for a pointer user scanning the page;
+ *   - on the anchor's own :focus-visible, for a keyboard user tabbing
+ *     through. Without this second rule a keyboard user can Tab onto the
+ *     link and land on a focus ring around nothing, which is worse than not
+ *     having the affordance at all; this is the exact trap #457 names.
+ *
+ * Touch has no hover state, so gating reveal on hover alone would leave a
+ * touch user with an affordance they can never see and therefore never
+ * activate: nothing to press-and-hold on, nothing to discover by exploring
+ * the page. @media (hover: hover) scopes the "hidden until hovered" rule to
+ * devices that actually have a hover concept; everywhere else (the query's
+ * negative case, touch included) the anchor stays permanently visible, which
+ * is the only way a touch user can ever copy a section link.
+ *
+ * Opacity is the only property transitioning, and the global unconditional
+ * prefers-reduced-motion floor (index.css) already caps every transition
+ * duration to near-zero, so no separate media query is needed here. */
+
+.bw-prose :where(h1, h2, h3, h4, h5, h6) :where(.bw-prose__anchor) {
+  margin-inline-start: var(--bw-space-2);
+  color: var(--bw-color-fg-subtle);
+  font-family: var(--bw-text-body-md-family);
+  font-weight: var(--bw-font-weight-normal);
+  text-decoration: none;
+  opacity: 1;
+  transition: var(--bw-transition-opacity), var(--bw-transition-colors);
+}
+
+@media (hover: hover) {
+  .bw-prose :where(h1, h2, h3, h4, h5, h6) :where(.bw-prose__anchor) {
+    opacity: 0;
+  }
+  .bw-prose :where(h1, h2, h3, h4, h5, h6):hover :where(.bw-prose__anchor) {
+    opacity: 1;
+  }
+}
+
+.bw-prose :where(.bw-prose__anchor):focus-visible {
+  opacity: 1;
+}
+
+.bw-prose :where(.bw-prose__anchor):hover {
+  color: var(--bw-color-accent);
 }
 
 /* Content / callout -------------------------------------------------------- */
@@ -4478,12 +4571,20 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 /* Laid out as the pre's own scrollable content rather than as an inline box
  * that can paint past __body's scroll boundary: the exact double-measure
  * trap .bw-prose :where(pre) :where(code) already documents at
- * components.css:4231. A consumer nesting this panel inside .bw-prose gets
- * the SAME rule from either selector (this one and the prose one both
- * resolve to the identical declarations), so nesting never doubles up or
- * conflicts; standalone use is never dependent on .bw-prose being present
- * at all, which is the whole point of shipping __pre/__code here rather
- * than relying on the prose floor's own bare-element selectors. */
+ * components.css:4231. For THIS element, the code, a consumer nesting the
+ * panel inside .bw-prose gets the same declarations from either selector, so
+ * nesting does not double up; standalone use is never dependent on .bw-prose
+ * being present at all, which is the whole point of shipping __pre/__code
+ * here rather than relying on the prose floor's own bare-element selectors.
+ *
+ * That equivalence held for the code element and NEVER for the pre, though
+ * this comment used to claim it for both (icvoss/django-brickwork#462). The
+ * prose rule gives a bare <pre> a border, background, padding and overflow-x
+ * that a panel does not want, since .bw-code supplies its own chrome, and the
+ * overflow-x in particular turned the nested <pre> into a second scrollable
+ * region with no tabindex, next to the properly focusable .bw-code__body.
+ * .bw-prose :where(pre) now excludes .bw-code__pre for that reason; see its
+ * own comment above. */
 .bw-code__code {
   display: block;
   overflow-wrap: normal;

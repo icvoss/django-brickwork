@@ -52,7 +52,7 @@ from your view.
 | `hero` | `centred`, `split-media`, `media-behind`, `minimal` |
 | `features` | `icon-grid`, `alternating-rows`, `simple-list` |
 | `cta` | `centred-band`, `split`, `full-bleed` |
-| `content` | `prose-block`, `media-and-text`, `callout` |
+| `content` | `prose-block`, `media-and-text`, `callout`, `code` |
 | `pricing` | `three-tier`, `single-plan`, `comparison-table` |
 | `testimonial` | `single-quote`, `quote-grid`, `logo-and-quote` |
 | `faq` | `single-column`, `two-column` |
@@ -119,6 +119,8 @@ sanitise it.)
 | `ops/report.html` | Long-form printable performance report: summary, stats, tables, methodology |
 | `ops/comparison.html` | This-versus-that data comparison: two measured periods on quantitative metrics |
 | `ops/analysis-dashboard.html` | Weighted headline grid, trend chart, breakdowns, progress gauge |
+| `docs/home.html` | Documentation home: search, start-here cards, popular pages |
+| `docs/article.html` | Documentation article: prose, code panels, callout, linkable headings |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |

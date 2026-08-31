@@ -1,0 +1,384 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+A documentation article: one topic explained in full, with code, a warning,
+a table and links onward. The workhorse page of any docs site, and the page
+bw-prose exists to serve (icvoss/django-brickwork#409).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs              breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_items       this section's nav tree (see docs_nav below)
+    docs_nav_active      which item in docs_nav_items is current
+    reminder_schedule_code   the multi-line Python snippet in "Escalation order"
+    reminder_test_code       the multi-line test snippet in "Testing a schedule"
+The heading text, prose, callouts and table below are typed into the template,
+which is where you change them.
+
+WHY THIS PAGE IS SHAPED THIS WAY, since it is the part worth copying:
+
+A reader arrives here from a search result or a nav click already committed to
+one question, usually with an editor open in another window. The page's whole
+job is to answer that question without making the reader hunt: a short lede
+that states what the page covers, headings a scanner can jump between, code
+they can copy without retyping, one clearly marked warning before the thing
+that would surprise them, and a way to keep reading afterwards. Nothing here
+competes for attention the way a marketing page's hero or CTA would; the
+prose floor (bw-prose) is deliberately the quietest thing brickwork ships,
+because the content is the interface on this page, not the chrome around it.
+
+BREADCRUMBS on the docs shell: docs.html ships no breadcrumbs block (unlike
+app.html), so this page authors the <nav class="bw-breadcrumbs"> landmark
+itself, inside docs_header, and includes only the <ol> from
+_breadcrumbs.html. bw-breadcrumbs is defined in shell.css and is
+family-neutral (not marketing-owned), so it is legal here. An article nested
+under a documentation section is exactly the case breadcrumbs are for: this
+page's crumbs say Documentation > Reminders > Configuring reminder escalation.
+
+MULTI-LINE CODE COMES FROM THE VIEW, not from an inline {% templatetag openblock %}
+include {% templatetag closeblock %} argument. Django's tag tokenizer splits
+{% include %} arguments on whitespace before it parses quoting, so a literal
+newline inside a quoted with= value breaks the tag (see _code.html's own
+header and examples/sections/content/code.html, whose snippets are one line
+for exactly this reason). This article's two real, multi-line snippets are
+passed as ordinary context variables (reminder_schedule_code,
+reminder_test_code) built in the view, e.g.:
+
+    reminder_schedule_code = (
+        "def next_reminder(invoice):\n"
+        "    if invoice.days_overdue >= 14:\n"
+        "        return Stage.FINAL_NOTICE\n"
+        "    if invoice.days_overdue >= 3:\n"
+        "        return Stage.OVERDUE\n"
+        "    return Stage.DUE\n"
+    )
+
+Plain text, run through Django's ordinary autoescaping: no |safe anywhere in
+this file, because Northwind is not passing through a syntax highlighter here.
+A consumer who does highlight server-side (Pygments, nowrap=True) passes the
+highlighter's own output instead, already marked safe; see _code.html's
+header for the exact recipe. This file does not imply brickwork highlights
+code: it deliberately does not, by design (ADR-081's reasoning, restated in
+_code.html).
+
+THE CALLOUT vs {% bw_alert %}: the warning below about the escalation cutover
+is editorial, part of the document and true every time the page is read, not
+a status message about something that just happened, so it is hand-authored
+bw-callout markup, never {% bw_alert %}. See callout.html's own header for
+the reasoning in full.
+
+THE HEADING ANCHOR (icvoss/django-brickwork#457): every h2 and the one h3 in
+the prose below carries an id and an adjacent bw-prose__anchor permalink,
+because ADR-090 decision 5 treats a CSS primitive as incomplete until a
+shipped template emits it, and this article is that template. The consumer
+supplies the id (this file types them in directly, matching what a Markdown
+renderer or a CMS heading block already emits); brickwork styles the
+affordance once the markup is there. The accessible name names the section
+("Link to the Escalation order section"), never a bare repeated "Link", so a
+screen-reader user tabbing between two of them hears which section each one
+targets (WCAG 2.4.4).
+
+WHY THE TABLE NEEDS bw-prose__table-wrap AND NOT JUST overflow-x: overflow-x
+alone does not stop a wide table dragging the whole document sideways;
+bw-prose__table-wrap also carries contain: paint, and the wrapper needs
+tabindex="0" role="region" aria-label so a keyboard user can reach the
+horizontal scroll (axe rule scrollable-region-focusable). Copied from
+prose-block.html's own table exactly.
+
+WHY THE CALLOUT'S BODY IS "bw-prose bw-callout__body", not bare bw-prose: a
+bare bw-prose nested inside the callout would inherit the 65ch measure a
+second time inside an already-narrow box. bw-callout__body sets
+max-inline-size: none, so pairing the two classes on one element is the
+shipped fix, not two separate wrappers.
+
+A KNOWN GAP you will see when you render this page
+(icvoss/django-brickwork#461): adjacent paragraphs inside bw-prose currently
+sit flush, with no vertical gap between them. The markup here is correct and
+flat, exactly as bw-prose requires; the cause is in the floor itself, where
+.bw-prose :where(p) { margin: 0 } is authored after the .bw-prose > * + *
+flow rule and, both being zero-specificity, wins the tie and cancels the
+rhythm for every paragraph. Headings are unaffected, which is why it reads
+as "the paragraphs are tight" rather than as an obviously broken page. It is
+not something to work around in your copy of this file, and adding your own
+paragraph margins here would have to be undone when the floor is fixed.
+
+States: no loading state, by design: this is a single server-rendered
+  document with no client-fetched region, so there is nothing to show while
+  waiting. No empty state either: an article with no body is not a state
+  this template models, it is simply an unwritten page; the "what your view
+  must supply" list above has no optional region that could legitimately
+  render nothing. What DOES have real states: the code panel's copy control
+  (idle/copied/failed, owned by bwCodeCopy, announced via the visually
+  hidden aria-live status line, never colour alone, see _code.html's own
+  header); the rail's <details> open/closed disclosure below the layout
+  breakpoint (native, no default [open] set here, matching docs.html's own
+  convention); the heading anchors' rest/hover/focus-visible opacity states
+  (owned entirely by components.css, nothing this template renders
+  differently between them). No error state: nothing on this page performs
+  a request that can fail; the copy control's own "Copy failed" text is
+  _code.html's concern, not this page's.
+Accessibility: inherits the docs shell's skip link and lang/dir/theme
+  attributes from base.html, and its main landmark structure (article before
+  rail in source order, ADR-091 decision 3). This page's own contribution: a
+  <nav class="bw-breadcrumbs" aria-label="Breadcrumb"> landmark authored in
+  docs_header (the docs shell ships none), a semantic bw-prose body (real
+  h2/h3/p/ul/blockquote/table, never div soup), a wide table wrapped in a
+  focusable, labelled scroll region, a code panel with its own labelled
+  scroll region and text (never colour-only) language label, an editorial
+  callout deliberately carrying no role="alert"/aria-live (see WHY THE
+  CALLOUT above), and per-heading permalinks whose accessible name states
+  the section by name. Prev/next links in docs_footer are plain <a> text
+  naming the destination ("Next: ...") rather than a bare arrow icon, so
+  their purpose survives being read out of context (WCAG 2.4.4).
+Responsive: no breakpoint of its own inside the article; bw-prose holds a
+  fixed 65ch measure at every viewport width, and the wrapped table and code
+  panel each scroll horizontally within their own region rather than
+  reflowing at a breakpoint. The page's two-column-to-single-column layout,
+  the rail's collapse into a <details> disclosure below --bw-breakpoint-lg,
+  and the heading anchors' hover-vs-always-visible split at (hover: hover)
+  are all owned by the docs shell and components.css respectively; this
+  template supplies none of that behaviour itself.
+{% endcomment %}
+{% load i18n brickwork_nav %}
+
+{% block page_title %}Configuring reminder escalation - Northwind docs{% endblock %}
+
+{% block docs_header %}
+  {% comment %}
+  Breadcrumbs: docs.html ships no breadcrumbs block, so this page authors the
+  <nav class="bw-breadcrumbs" aria-label="Breadcrumb"> landmark itself and
+  includes only _breadcrumbs.html's <ol>. crumbs is built in the view; the
+  last entry renders unlinked with aria-current="page".
+  {% endcomment %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  <h1>Configuring reminder escalation</h1>
+  <p>Last updated 12 August 2026.</p>
+{% endblock %}
+
+{% block content %}
+  {% comment %}
+  The article body: one bw-prose wrapper, authored FLAT. bw-prose's flow
+  rule is a direct-child combinator (.bw-prose > * + *), so wrapping any of
+  this in an extra <div> would collapse the vertical rhythm between it and
+  its neighbours. Every element below is bare, unclassed markup: bw-prose
+  styles h2/p/ul/table etc. at zero specificity, so adding a class here would
+  only be needed to override the floor, which nothing in this article does.
+  {% endcomment %}
+  <div class="bw-prose">
+    <p class="bw-prose__lede">
+      Northwind sends three reminders before an invoice reaches collections.
+      This page explains the escalation order, how to change the schedule,
+      and how to test a change before it reaches real customers.
+    </p>
+
+    <p>
+      Escalation runs once a day, for every invoice with an open balance and
+      no dispute flag. Each stage is evaluated independently against the
+      invoice's due date, so an invoice can skip a stage entirely if a
+      payment or a dispute is recorded before that stage's day arrives.
+    </p>
+
+    <h2 id="escalation-order">
+      Escalation order
+      <a class="bw-prose__anchor" href="#escalation-order" aria-label="{% translate 'Link to the Escalation order section' %}">#</a>
+    </h2>
+
+    <p>
+      The stage function is the single place this decision is made. Northwind
+      calls it once per invoice, per day, from a scheduled task:
+    </p>
+
+    {% comment %}
+    Real multi-line code, so it comes from the view as a context variable
+    rather than an inline {% templatetag openblock %} include {% templatetag closeblock %}
+    with= argument (see the WHY note above and _code.html's own header).
+    filename is supplied and language is a text label, never colour alone.
+    {% endcomment %}
+    {% include "brickwork/components/_code.html" with filename="billing/reminders.py" language="Python" code=reminder_schedule_code %}
+
+    <p>
+      Stage order matters more than stage timing: a customer who pays between
+      the due date and the first reminder never sees a reminder at all, and
+      one who disputes at any point is pulled out of escalation on the next
+      daily run, not retroactively.
+    </p>
+
+    <div class="bw-callout bw-callout--warning">
+      <p class="bw-callout__title">{% translate "Before you enable this" %}</p>
+      <div class="bw-prose bw-callout__body">
+        <p>
+          Turning on automatic escalation sends to every account with an open
+          invoice, including ones already overdue under the old manual
+          process. Run a dry run first, with <code>DRY_RUN=1</code>, to see
+          exactly who would be contacted before the first real send.
+        </p>
+      </div>
+    </div>
+
+    <h3 id="changing-the-thresholds">
+      Changing the thresholds
+      <a class="bw-prose__anchor" href="#changing-the-thresholds" aria-label="{% translate 'Link to the Changing the thresholds section' %}">#</a>
+    </h3>
+
+    <p>
+      The day counts in <code>next_reminder</code> are the only numbers most
+      teams ever need to change. Northwind's own support team moved the
+      overdue threshold from seven days to three after finding that most
+      disputes were raised in the first week regardless of when the reminder
+      arrived, so a later reminder was only delaying the useful signal.
+    </p>
+
+    <ul>
+      <li>Lowering a threshold sends reminders sooner but raises the number a support team has to handle.</li>
+      <li>Raising the final notice threshold delays collections handoff, which is rarely what a finance team wants.</li>
+      <li>Thresholds are read once per run, not cached, so a change takes effect on the next scheduled task.</li>
+    </ul>
+
+    <blockquote>
+      We assumed a longer overdue window would feel gentler. It mostly just
+      meant the first three days of a genuine dispute went unanswered.
+    </blockquote>
+
+    <h2 id="testing-a-schedule">
+      Testing a schedule change
+      <a class="bw-prose__anchor" href="#testing-a-schedule" aria-label="{% translate 'Link to the Testing a schedule change section' %}">#</a>
+    </h2>
+
+    <p>
+      Every threshold change should ship with a test pinning the boundary
+      day, not just the middle of a stage. The boundary is where an
+      off-by-one silently moves a customer into the wrong stage a day early
+      or a day late:
+    </p>
+
+    {% comment %}
+    A second multi-line snippet, filename repeats the shape of the pattern
+    above but is a distinct file, so no id= collision risk here; supply id=
+    explicitly if a filename can repeat elsewhere on a page (see _code.html's
+    header on this exact trap). copyable=True shows the copy control, hidden
+    until bwCodeCopy's init() reveals it, so the no-JS floor still lets a
+    reader select and copy the text by hand.
+    {% endcomment %}
+    {% include "brickwork/components/_code.html" with filename="billing/reminders_test.py" language="Python" copyable=True code=reminder_test_code %}
+
+    <h2 id="recovery-by-stage">
+      Recovery by stage
+      <a class="bw-prose__anchor" href="#recovery-by-stage" aria-label="{% translate 'Link to the Recovery by stage section' %}">#</a>
+    </h2>
+
+    <p>
+      The table below is why the overdue threshold moved. It reads left to
+      right as the escalation runs: the earlier a stage catches a payment,
+      the less likely it is to need a person.
+    </p>
+
+    {% comment %}
+    A wide table needs bw-prose__table-wrap, which carries contain: paint
+    alongside overflow-x (overflow-x alone does not stop a wide table
+    dragging the whole document sideways), plus tabindex="0" role="region"
+    aria-label so a keyboard user can reach the horizontal scroll (axe rule
+    scrollable-region-focusable). Shape copied from prose-block.html.
+    {% endcomment %}
+    <div class="bw-prose__table-wrap" tabindex="0" role="region" aria-label="{% translate 'Recovery rate by escalation stage' %}">
+      <table>
+        <caption>{% translate "Median recovery across 600 Northwind accounts, 2025 to 2026." %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Stage" %}</th>
+            <th scope="col">{% translate "Paid within 7 days" %}</th>
+            <th scope="col">{% translate "Needed a call" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{% translate "Due today" %}</td>
+            <td>58%</td>
+            <td>3%</td>
+          </tr>
+          <tr>
+            <td>{% translate "Overdue (3 days)" %}</td>
+            <td>22%</td>
+            <td>17%</td>
+          </tr>
+          <tr>
+            <td>{% translate "Final notice (14 days)" %}</td>
+            <td>7%</td>
+            <td>68%</td>
+          </tr>
+          <tr>
+            <td>{% translate "Collections handoff" %}</td>
+            <td>2%</td>
+            <td>91%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Moving the overdue threshold from seven days to three shifted roughly a
+      fifth of accounts out of the "needed a call" column entirely, which is
+      the whole basis for the change described above.
+    </p>
+
+    <hr>
+
+    <p>
+      Further reading: <a href="/docs/reminders/predictions/">how late-payment prediction works</a>
+      and <a href="/docs/reminders/disputes/">how a dispute flag pauses escalation</a>.
+    </p>
+  </div>
+{% endblock %}
+
+{% block docs_footer %}
+  {% comment %}
+  Prev/next: table stakes for a sequential documentation article. Direction
+  is stated in the link text itself ("Previous:"/"Next:"), never carried by
+  an icon alone, so the purpose of each link survives being read out of
+  context (WCAG 2.4.4).
+
+  The two links are a LIST, wrapped in bw-prose, rather than two bare <a>
+  siblings. That is a composition, not a component: brickwork ships no
+  prev/next pager treatment (icvoss/django-brickwork#460), and two adjacent
+  bare anchors run together as ONE line with nothing separating them, so a
+  reader meets "Previous: ... Next: ..." as a single run-on sentence. The
+  list gives each link its own row and marker, which is what actually fixes
+  the reading.
+
+  What it does NOT change, and what a copying consumer should know: these
+  links stay muted and undecorated. shell.css's
+  .bw-docs-layout__footer :where(a):not(.bw-btn) rule sets color: fg-muted
+  and text-decoration: none for every anchor in this footer, deliberately,
+  because a docs footer's links are secondary chrome rather than body
+  content, and that rule still wins here. Nesting bw-prose does not restore
+  the ordinary prose link tier. If you want these to read as primary links,
+  that is your own one-line override on your own class, not something to
+  fix by fighting the shell.
+
+  Found by rendering the page in a browser, not by any gate: the bare-anchor
+  version was semantically correct (real anchors, labelled nav), passed the
+  family boundary, unstyled-class and axe checks, and still read as inert
+  grey text.
+  {% endcomment %}
+  <nav aria-label="{% translate 'More in Reminders' %}">
+    <div class="bw-prose">
+      <ul>
+        <li><a href="/docs/reminders/schedules/">{% translate "Previous: Setting up a reminder schedule" %}</a></li>
+        <li><a href="/docs/reminders/predictions/">{% translate "Next: How late-payment prediction works" %}</a></li>
+      </ul>
+    </div>
+  </nav>
+{% endblock %}
+
+{% block docs_nav %}
+  {% comment %}
+  The rail: this section's own nav tree, composed the same way the app
+  shell's sidebar is (ADR-025). docs_nav_items is built in the view, already
+  visibility-filtered and active-resolved; docs_nav_active names the current
+  item.
+  {% endcomment %}
+  {% bw_nav items=docs_nav_items active=docs_nav_active %}
+{% endblock %}

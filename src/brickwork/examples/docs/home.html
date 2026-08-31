@@ -1,0 +1,248 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+A documentation home: the page a reader lands on at /docs/, whose job is
+orientation, not exposition. It answers "what is here and where do I start",
+never "here is a topic".
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    nav_items / nav_active   the rail's NavItem tree, as bw_nav expects it
+    docs_search_action       the URL bw_search submits to (GET)
+    has_published_docs       False shows the empty state instead of the
+                              start-here cards; True (the normal case) shows
+                              them. See the EMPTY STATE paragraph below.
+The headings and copy below are typed into the template, which is where you
+change them.
+
+A docs home is read by two different people, and a signpost page has to
+serve both in one screen. A first-time reader has no idea what exists and
+needs a small, confident set of doors in: three, not thirty, each naming a
+concrete next step rather than a topic label. A returning reader already
+knows roughly what they want and is scanning for the fastest way back to it,
+which is why search leads the page rather than sitting in a corner, and why
+a short, named list of frequently-opened pages follows it. Everything past
+that (the version callout) is context a reader consults, not a door a reader
+walks through, so it sits after the bands that actually move a reader
+somewhere.
+
+This is why the page is NOT a directory listing of every doc in the tree.
+A flat list of forty links is a sitemap wearing a homepage's URL; it makes
+the reader do the ranking the page should have done for them. The three
+start-here cards ARE the ranking: each is a deliberate editorial choice
+about which door most first-time readers should walk through, typed by a
+human, not generated from the nav tree.
+
+Search leads rather than trails for the same reason product documentation
+sites converge on this layout: a returning reader with a specific question
+already knows the words for it, and asking them to find the right card
+before they can even search is the slower path. The nav rail (bw_nav, in
+docs_nav) is the THIRD way in, for a reader who wants to browse the whole
+tree rather than jump to one page; it is not repeated in the body, since the
+rail is already always on screen at the layout breakpoint and the body
+would just be duplicating it.
+
+The start-here cards are HAND-WRITTEN bw-card markup, not
+{% templatetag openblock %} include "brickwork/components/_card.html" {% templatetag closeblock %}:
+{% templatetag openblock %} include {% templatetag closeblock %} is a void tag, it cannot wrap a
+body of markup, and _card.html's body region is a block, unreachable from an
+include for exactly that reason (only title reaches it as a context
+variable, ADR-090 decision 3). A card whose body is a paragraph, which every
+start-here card here needs, is authored as plain bw-card markup instead,
+matching the class list _card.html's own href branch renders (bw-card
+bw-card--interactive, plus bw-card--bordered when bordered).
+
+No breadcrumbs: this page IS the root of the section a breadcrumb trail
+would describe, so a trail here would read "Documentation" with nowhere to
+go, which is not a trail, it is a single inert word. The docs shell has no
+breadcrumbs block of its own for exactly this reason (see the shell's own
+Accessibility note); a page one level down the tree is a better place to
+introduce them.
+
+EMPTY STATE, decided rather than skipped: a documentation site that has
+shipped its shell before its content is a real state, most likely the very
+first time this page is ever deployed. has_published_docs=False swaps the
+start-here band for _empty_state.html rather than three cards linking
+nowhere real. Search and the popular-pages band still render even then:
+search legitimately returns nothing yet, which is that endpoint's own state
+to handle, not this page's, and an empty rail is the rail's own concern too.
+No separate "search returned nothing" state is built here: this page never
+renders search RESULTS, only the box that submits to them, so a no-results
+state belongs to the results page this one links to.
+
+LOADING: not applicable. This page has no client-side data fetch of its own;
+every band renders from context supplied at request time, so there is
+nothing here to be in flight. A future version with a live "recently
+updated" band pulled in by htmx would need one; this one does not.
+
+ERROR: not applicable to the page itself, for the same reason: nothing here
+calls out to a service that can fail independently of the page render
+itself. bw_search's own action is a plain GET a browser follows like any
+link, so an unreachable search endpoint is that endpoint's error page to
+render, not a state this page has to anticipate.
+
+States: has_published_docs is the one real branch on this page (see EMPTY
+  STATE above): True renders the start-here cards, False renders
+  _empty_state.html in the same band position. bw_search carries its own
+  scoped/unscoped state, unused here (no scope= passed, since a docs home
+  searches the whole site, not a pre-scoped subset). Every other band is
+  static: no loading state and no per-band error state (see LOADING/ERROR
+  above for why neither applies to this page).
+Accessibility: inherits the docs shell's skip link and lang/dir/theme
+  attributes from base.html (see shell/docs.html's own header). Each band is
+  a labelled <section aria-labelledby="..."> pointing at its own visible
+  <h2 class="bw-band-heading">, so a screen reader user gets the same
+  section structure a sighted reader sees from the headings, never a hidden
+  heading standing in for a visible one (this page has no band whose title
+  is already carried by a composed component, unlike analysis-dashboard.html's
+  chart band, so every heading here stays visible). bw_search renders a
+  role="search" landmark with a visually hidden input label, not a
+  placeholder alone (see _search.html's own header). Each start-here card is
+  a real <a> element, native focusable and activatable, not a div with a
+  click handler standing in for one; its whole surface, heading and
+  paragraph included, is the one link, so a reader can activate it from
+  anywhere in the card, not only a small "read more" fragment. No reading on
+  this page rides on colour: the callout's kind is carried by its title
+  text, not its accent tint alone (WCAG 1.4.1, see components.css's own
+  callout header).
+Responsive: no breakpoint switch of its own; inherits shell/docs.html's
+  single-column-to-two-column layout switch at --bw-breakpoint-lg (see the
+  shell's own Responsive note) and its rail-to-disclosure collapse below it.
+  bw-band-grid--3 (the start-here cards) is content-driven rather than
+  breakpoint-driven: it reflows from three columns to one once a card no
+  longer fits an 18rem track, which on a typical device happens well below
+  the shell's own lg breakpoint, so the two layout systems compose rather
+  than fight. bw_search has no width-dependent CSS of its own; its input
+  takes min-inline-size: 0 so it contracts inside a narrow rail-collapsed
+  layout rather than forcing the page wide (see _search.html's own
+  Responsive note).
+{% endcomment %}
+{% load brickwork_components brickwork_interactions brickwork_nav %}
+
+{% block page_title %}Documentation - Northwind{% endblock %}
+
+{% block docs_header %}
+  {% include "brickwork/components/_page_header.html" with title="Northwind documentation" description="Everything you need to integrate Northwind: guides for getting connected, the full API reference, and answers for when something goes wrong." %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% bw_nav nav_items nav_active %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  BAND 1, the returning reader's door. Search leads the page rather than
+  sitting in a header corner, because a reader who already knows what they
+  are looking for should never have to scan the start-here cards first to
+  confirm none of them is it. docs_search_action is the consumer's own
+  search view; brickwork renders the form and the query field only (see
+  _search.html's own header), so what "search" means here is entirely this
+  project's to define.
+  {% endcomment %}
+  <section aria-labelledby="search-heading">
+    <h2 id="search-heading" class="bw-band-heading">Search the docs</h2>
+    {% bw_search docs_search_action placeholder="Search guides, API reference, changelog..." %}
+  </section>
+
+  {% if has_published_docs %}
+  {% comment %}
+  BAND 2, the first-time reader's door, and the band this page exists to get
+  right. Three cards, not a list of every section, because the ranking IS
+  the content: each card is a deliberate editorial choice about which door
+  most first-time readers should walk through, in the order they should
+  walk through them. Hand-written bw-card markup, not an include (see the
+  leading comment above for why); the class list matches _card.html's own
+  href branch exactly: bw-card bw-card--interactive bw-card--bordered.
+  bw-band-grid--3 is the app-family arrangement primitive (ADR-090
+  decision 1): never bw-feature-grid--3, which is marketing-family and
+  fails tests/test_family_boundary.py on this shell.
+  {% endcomment %}
+  <section aria-labelledby="start-here-heading">
+    <h2 id="start-here-heading" class="bw-band-heading">Start here</h2>
+    <div class="bw-band-grid--3">
+      <a class="bw-card bw-card--interactive bw-card--bordered" href="/docs/getting-started/">
+        <h3 class="bw-card__title">Getting started</h3>
+        <div class="bw-card__body">
+          <p>Connect a sandbox account, send your first request, and see a
+          real response in under ten minutes. Start here if this is your
+          first time with Northwind.</p>
+        </div>
+      </a>
+      <a class="bw-card bw-card--interactive bw-card--bordered" href="/docs/guides/">
+        <h3 class="bw-card__title">Guides</h3>
+        <div class="bw-card__body">
+          <p>Task-by-task walkthroughs for the things most integrations
+          need: authentication, webhooks, pagination, and handling rate
+          limits.</p>
+        </div>
+      </a>
+      <a class="bw-card bw-card--interactive bw-card--bordered" href="/docs/api-reference/">
+        <h3 class="bw-card__title">API reference</h3>
+        <div class="bw-card__body">
+          <p>Every endpoint, field and status code, generated from the same
+          schema Northwind runs in production, so it never drifts from what
+          the API actually does.</p>
+        </div>
+      </a>
+    </div>
+  </section>
+  {% else %}
+  {% comment %}
+  EMPTY STATE: no published section yet, the day-one state of a docs site
+  whose shell has shipped ahead of its content. size="sm" is deliberately
+  NOT used here: this band still fills the page's primary orientation slot
+  (the reader's actual next step, not a nested aside), so it earns the
+  full-scale heading and primary-button treatment size="sm" exists to
+  demote away from.
+  {% endcomment %}
+  <section aria-labelledby="start-here-heading">
+    <h2 id="start-here-heading" class="bw-band-heading">Start here</h2>
+    {% include "brickwork/components/_empty_state.html" with heading="Nothing published yet" body="The first guides are being written. Check back soon, or contact support if you were sent here looking for something specific." icon="document" action_href="/support/" action_label="Contact support" %}
+  </section>
+  {% endif %}
+
+  {% comment %}
+  BAND 3, the returning reader's shortcut. A short, named list rather than
+  "recently updated" or any other mechanism this page cannot generate on its
+  own: authored inside .bw-prose, flat, since a lede paragraph plus a plain
+  link list is genuinely prose-shaped content, and .bw-prose's own direct-
+  child rhythm rule (.bw-prose > * + *) requires flat authoring, never an
+  extra wrapping <div>, or the spacing between the paragraph and the list
+  collapses.
+  {% endcomment %}
+  <section aria-labelledby="popular-heading">
+    <h2 id="popular-heading" class="bw-band-heading">Popular right now</h2>
+    <div class="bw-prose">
+      <p class="bw-prose__lede">Pages other readers open most often this
+      month, if you are not sure which of the above to pick.</p>
+      <ul>
+        <li><a href="/docs/guides/authentication/">Authenticating requests with an API key</a></li>
+        <li><a href="/docs/guides/webhooks/">Setting up and verifying webhooks</a></li>
+        <li><a href="/docs/api-reference/errors/">Reading error responses and status codes</a></li>
+        <li><a href="/docs/guides/rate-limits/">Understanding rate limits and retries</a></li>
+      </ul>
+    </div>
+  </section>
+
+  {% comment %}
+  BAND 4, context rather than a door: what version this documents and how to
+  get help, which a reader consults rather than walks through, which is why
+  it sits last. Hand-authored bw-callout markup (no _callout.html ships;
+  the classes are the whole contract, per components.css's own header) since
+  the content is two short lines, not a structural region with named slots.
+  {% endcomment %}
+  <div class="bw-callout bw-callout--note">
+    <p class="bw-callout__title">You are reading the docs for API v3</p>
+    <div class="bw-prose bw-callout__body">
+      <p>Still on v2? See the <a href="/docs/v2/">v2
+      documentation</a> and the <a href="/docs/migrating-v2-to-v3/">migration
+      guide</a>. Can't find what you need? <a href="/support/">Contact
+      support</a>, we usually reply within a working day.</p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

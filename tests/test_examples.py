@@ -31,6 +31,7 @@ from django.utils.html import escape as django_escape
 from django.utils.safestring import mark_safe
 
 from brickwork import examples
+from brickwork.models import NavItem
 from tests._class_contract import unstyled_classes
 
 # The COMPILED stylesheet, not the frontend source: the source is the build's
@@ -46,6 +47,24 @@ _COMPILED_CSS = (
 # point of ADR-056), so this is only the list-shaped data a Django template
 # cannot build for itself.
 _NAV_CONTEXT: dict[str, object] = {"nav_items": (), "nav_active": None}
+
+# The docs archetypes' rail, populated rather than empty. Every other example
+# renders an empty nav (_NAV_CONTEXT above), which is harmless where nav is
+# shell chrome the example does not own. It is not harmless here: the rail IS
+# the docs shell's defining feature, and an empty one renders a zero-height
+# column, so the archetype fixtures would axe-scan and screenshot a rail that
+# is structurally present and visually absent. href= rather than url_name=
+# deliberately: it is the CMS/flat-path seam (NAV-019), so this tree needs no
+# URLconf entry and stays valid however the test project's routes change.
+_DOCS_NAV_ITEMS = (
+    NavItem(key="docs-start", label="Getting started", href="/docs/getting-started/"),
+    NavItem(key="docs-guides", label="Guides", href="/docs/guides/"),
+    NavItem(key="docs-reference", label="API reference", href="/docs/api-reference/"),
+)
+_DOCS_NAV_CONTEXT: dict[str, object] = {
+    "nav_items": _DOCS_NAV_ITEMS,
+    "nav_active": _DOCS_NAV_ITEMS[0],
+}
 
 
 class _ExampleForm(forms.Form):
@@ -236,6 +255,35 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     "auth/signin.html": {"form": _ExampleForm()},
     "auth/signup.html": {"form": _ExampleForm()},
     "auth/reset.html": {"form": _ExampleForm()},
+    "docs/home.html": {
+        **_DOCS_NAV_CONTEXT,
+        "docs_search_action": "/docs/search/",
+        # The normal case, and the state the a11y fixture renders. The False
+        # branch (a docs site deployed before its content) is covered by
+        # test_the_docs_home_empty_state_replaces_the_start_here_cards below.
+        "has_published_docs": True,
+    },
+    "docs/article.html": {
+        "crumbs": [
+            {"label": "Documentation", "url": "/docs/"},
+            {"label": "Billing", "url": "/docs/billing/"},
+            {"label": "Reminder schedules"},
+        ],
+        "docs_nav_items": _DOCS_NAV_ITEMS,
+        "docs_nav_active": _DOCS_NAV_ITEMS[1],
+        # Multi-line source cannot be an {% include %} argument (Django's tag
+        # tokenizer splits on whitespace before it parses quoting), so a real
+        # code panel takes its source from the view. The article's own header
+        # says so; these two stand in for that.
+        "reminder_schedule_code": (
+            "REMINDER_SCHEDULE = [\n    (-7, 'friendly'),\n    (0, 'due_today'),\n    (3, 'overdue'),\n]"
+        ),
+        "reminder_test_code": (
+            "def test_schedule_skips_weekends():\n"
+            "    sent = run_schedule(invoice, today=friday)\n"
+            "    assert sent.next_run.weekday() == 0"
+        ),
+    },
     "marketing/landing.html": {
         "logos": [{"src": "/static/logo-acme.svg", "alt": "Acme Corp"}],
         "features": [
@@ -950,3 +998,35 @@ def test_every_fixture_literal_survives_into_the_section_render(name: str) -> No
         f"{name} rendered without these fixture values reaching the HTML "
         f"(an include-kwarg mismatch silently drops the value, #232): {missing}"
     )
+
+
+def test_the_docs_home_empty_state_replaces_the_start_here_cards() -> None:
+    """docs/home.html's one real branch, rendered both ways.
+
+    The archetype contract (docs/INTERFACE-SYSTEM.md) requires an empty state,
+    and a docs site whose shell ships before its content is the day-one case.
+    The fixture context renders the True branch, so nothing else in this suite
+    ever exercises the False one: without this test the empty branch could
+    reference an unregistered icon or a renamed component kwarg and stay green
+    for ever.
+
+    Asserts the DISCRIMINATOR, not mere presence: the start-here cards and the
+    empty state must swap, so a template that rendered both (or neither) fails
+    rather than passing on a substring that appears in each.
+    """
+    template = _example_engine().get_template("docs/home.html")
+    base = dict(_EXAMPLE_CONTEXTS["docs/home.html"])
+
+    populated = template.render(Context({**base, "has_published_docs": True}))
+    empty = template.render(Context({**base, "has_published_docs": False}))
+
+    assert "bw-card--interactive" in populated, "the populated branch lost its start-here cards"
+    assert "bw-empty-state" not in populated, "the populated branch also rendered the empty state"
+
+    assert "bw-empty-state" in empty, "the empty branch rendered no empty state"
+    assert "bw-card--interactive" not in empty, "the empty branch also rendered the start-here cards"
+
+    # The empty branch still orients: search and the rail are not part of the
+    # swap, since a site with no published pages still has a search box that
+    # legitimately returns nothing.
+    assert 'role="search"' in empty, "the empty branch dropped search"

@@ -141,7 +141,7 @@ def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 6
     assert len(items_by_kind("component")) == 49
     assert len(items_by_kind("section")) == 27
-    assert len(items_by_kind("archetype")) == 21
+    assert len(items_by_kind("archetype")) == 23
 
 
 def test_item_returns_a_known_shell() -> None:
@@ -210,6 +210,7 @@ def test_archetypes_are_scoped_to_their_shipped_family() -> None:
         "Transactional journeys",
         "Marketing and public web",
         "Data-heavy operations",
+        "Documentation",
     }
 
 
