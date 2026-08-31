@@ -33,29 +33,80 @@ Named blocks (semver-public, BR-BW-TPL-001), all empty-graceful:
                  not a new one). Wrapped in a native <details>/<summary>
                  disclosure so the rail collapses on narrow viewports with
                  zero JavaScript.
+  docs_site_header  SITE-WIDE chrome, OUTSIDE <main> entirely (see "Site
+                 chrome vs page-local blocks" below). Never confuse this
+                 with docs_header above.
+  docs_site_footer  SITE-WIDE chrome, OUTSIDE <main> entirely (see "Site
+                 chrome vs page-local blocks" below). Never confuse this
+                 with docs_footer above.
+
+Site chrome vs page-local blocks: READ THIS BEFORE CHOOSING A BLOCK
+(icvoss/django-brickwork#448 item 1). This shell has two, deliberately
+distinct, pairs of header/footer seams, and picking the wrong one is the
+single most likely mistake a consumer makes here:
+  docs_header / docs_footer (and their _region wrappers) are PAGE-LOCAL:
+    scoped inside the <article>, meant for a version switcher, a feedback
+    control, prev/next links, anything that varies per docs page
+    (ADR-091 decision 2). They sit INSIDE <main id="bw-main">.
+  docs_site_header / docs_site_footer (and their _region wrappers) are
+    SITE-WIDE: the same header and footer every other page on the site
+    carries (brand mark, primary site nav, legal links). They sit OUTSIDE
+    <main> entirely, above and below it respectively, exactly where
+    marketing.html's marketing_header/marketing_footer sit relative to ITS
+    <main>. Filling docs_header when you meant site chrome puts your site
+    nav inside the article, after the skip link's target and ahead of the
+    rail in the accessibility tree, which is not where a repeating site
+    landmark belongs.
+Before this pair existed, the only override point outside <main> was
+{% block shell %} itself, which forced a consumer to reproduce another
+shell's internal markup (marketing.html's .bw-marketing/.bw-marketing-header/
+.bw-marketing-footer classes) just to hang site chrome around a docs page.
+Overriding {% block shell %} for that purpose is no longer necessary: use
+docs_site_header_region / docs_site_footer_region instead.
 
 Region blocks (ADR-091 decision 2, following #434's shape exactly): a
 `*_region` block wraps the ELEMENT around an inner content block of the same
 stem, as a second, outer override seam. Filling only the inner block
-(docs_nav, docs_header, docs_footer) is unaffected: the wrapper markup is
-unchanged; overriding the `_region` block instead replaces the wrapper
-element itself; overriding a `_region` block EMPTY removes the region and its
-chrome entirely, which the inner-block-only seam can never do.
+(docs_nav, docs_header, docs_footer, docs_site_header, docs_site_footer) is
+unaffected: the wrapper markup is unchanged; overriding the `_region` block
+instead replaces the wrapper element itself; overriding a `_region` block
+EMPTY removes the region and its chrome entirely, which the inner-block-only
+seam can never do.
   docs_header_region  wraps the page header <div>, inside the article.
                        Carries no landmark.
   docs_footer_region  wraps the whole <footer> element, inside the article.
   docs_nav_region     wraps the <details> disclosure rail containing
                        <nav aria-label="Documentation">.
+  docs_site_header_region  wraps the whole <header> element, OUTSIDE <main>,
+                       above the two-column layout. The wrapper always
+                       renders (the same idiom as docs_header_region's <div>),
+                       but with docs_site_header unfilled it is empty and
+                       CSS-hides via :empty (shell.css), so nothing is visible
+                       for a consumer who does not fill it: additive, not a
+                       breaking change against 3.15.0, which had no such seam.
+  docs_site_footer_region  wraps the whole <footer> element, OUTSIDE <main>,
+                       below the two-column layout. Same :empty-hidden
+                       default as docs_site_header_region above.
 Overriding docs_nav_region or docs_footer_region EMPTY removes a LANDMARK,
 not just chrome: the <nav aria-label="Documentation"> and the <footer>
-respectively. Neither is a WCAG 2.2 AA conformance failure on its own (the
-a11y gate runs axe with WCAG tags only, so it will not fail you for it), and a
-docs surface with genuinely no section rail or no page footer is a real case,
-which is why this is permitted rather than gated. But a consumer removing one
-owns what replaces it: navigation still reachable some other way, and any
-footer information still presented somewhere a screen-reader user can find.
-Remove the region because the region does not exist on your site, never
-merely to restyle it, which is what overriding the region non-empty is for.
+respectively. Overriding docs_site_header_region or docs_site_footer_region
+non-empty ADDS a landmark: the <header> and <footer> elements render only
+once their region is filled or overridden non-empty, so a consumer supplying
+site chrome is responsible for that landmark's own accessible structure
+(the marketing shell's <header>/<footer> follow the same shape; this shell's
+docs_site_header/docs_site_footer are deliberately unopinionated about what
+goes inside, unlike marketing_header's brand/nav/actions split, since site
+chrome around a docs page is arbitrary consumer markup, not a package-owned
+shape). Neither is a WCAG 2.2 AA conformance failure on its own (the a11y
+gate runs axe with WCAG tags only, so it will not fail you for it), and a
+docs surface with genuinely no section rail, no page footer, or no site
+chrome at all is a real case, which is why every one of these is permitted
+rather than gated. But a consumer removing or adding one owns what the
+change means for navigation and disclosure: navigation still reachable some
+other way, and any footer information still presented somewhere a
+screen-reader user can find. Remove docs_nav_region/docs_footer_region
+because the region does not exist on your site, never merely to restyle it,
+which is what overriding the region non-empty is for.
 
 Declined regions (ADR-091 decision 2, reasons stated rather than deferred
 silently): a table of contents / in-page navigation is not shipped, since a
@@ -85,6 +136,36 @@ shell's own measure/centring/gutter rule applies once to the whole layout
 rather than each column claiming it independently (carried from the
 consumer's main.css:930-933, ADR-091 decision 4).
 
+Sticky-footer column (icvoss/django-brickwork#448 item 1): <main class=
+"bw-docs"> is now wrapped in <div class="bw-docs-shell">, a flex column at
+min-block-size: 100vh, matching .bw-marketing's own role for the marketing
+shell (never that class itself: tests/test_family_boundary.py forbids a
+marketing-family class on a non-marketing shell, so this is a docs-family
+class of its own, .bw-docs-shell, in shell.css). This follows the app and
+marketing shells' own precedent (.bw-app, .bw-marketing), both of which wrap
+their whole shell in one unconditional outer element; the docs shell was the
+outlier in having none. <main> takes flex: 1 1 auto so it grows to fill the
+remaining height, and docs_site_footer_region's <footer> takes
+margin-block-start: auto, the same mechanism as .bw-marketing-footer, so a
+short docs page still pins its site footer to the viewport bottom rather
+than floating it mid-page. .bw-docs itself keeps the content
+measure/centring/gutter unchanged (the layout root paragraph above); only
+the column role moved outward to the new wrapper.
+
+Additive, not breaking, for an existing 3.15.0 consumer (constraint 3 of
+icvoss/django-brickwork#448 item 1): with docs_site_header and
+docs_site_footer both unfilled, the new <header>/<footer> elements render
+empty and are CSS-hidden via :empty (the same idiom docs_header_region/
+docs_footer_region already use, shell.css's ".bw-docs-layout__header:empty,
+.bw-docs-layout__footer:empty" rule), so nothing new is visible and no
+existing layout shifts. The one structural change for every consumer,
+filling the new regions or not, is the added .bw-docs-shell wrapper <div>
+around <main> itself: an existing consumer's own CSS or JS that assumed
+<main class="bw-docs"> to be a document flow root (unusual, since it is a
+brickwork-owned element on a brickwork-owned shell) would need this in mind,
+but no existing block, region, `#bw-main` id, or class this shell ever
+documented as public contract moves, renames, or disappears.
+
 No-JS floor (BR-BW-HTMX-001): the rail's mobile disclosure is a native
 <details>/<summary>, matching _disclosure.html's existing position; nothing
 here requires Alpine or htmx. A consumer wanting a mobile nav toggle beyond
@@ -108,10 +189,15 @@ Accessibility: inherits the skip link and lang/dir/theme attributes from
   "Documentation"> landmark is present unless a consumer empties
   docs_nav_region, which removes that landmark: see the Region blocks section
   above. The docs_footer_region's <footer> landmark is likewise removable.
-  Neither this shell's landmarks, nor any other shell's, are unconditional:
-  a `_region` block can always remove one, and a consumer doing so owns what
-  replaces it (this is the icvoss/django-brickwork#433 defect on app.html;
-  writing this shell correctly from the start does not fix #433 there).
+  The new docs_site_header_region/docs_site_footer_region <header>/<footer>
+  landmarks are the reverse case: ABSENT (empty, CSS-hidden) unless a
+  consumer fills them, since site chrome is entirely consumer-authored
+  markup this package does not default (see Site chrome vs page-local
+  blocks above). Neither this shell's landmarks, nor any other shell's, are
+  unconditional: a `_region` block can always remove or add one, and a
+  consumer doing either owns the result (this is the
+  icvoss/django-brickwork#433 defect on app.html; writing this shell
+  correctly from the start does not fix #433 there).
 Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
   breakpoint, chosen over the shell's --bw-breakpoint-md sidebar-collapse
   token since a 16rem rail plus a readable measure does not fit at 48rem).
@@ -122,37 +208,54 @@ Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
   disclose, the rail is always shown) and its nav body is forced visible
   regardless of the [open] state, with the rail sticky at the inline start
   and restored to the visual inline-start via `order: -1` (see Source order
-  above).
+  above). The site header/footer chrome (when filled) carries no breakpoint
+  behaviour of its own here: a consumer's own header/nav markup inside
+  docs_site_header supplies whatever responsive behaviour it needs, the same
+  division of responsibility as marketing_header's own contents.
 {% endcomment %}
 {% block shell_variant %}docs{% endblock %}
 
 {% block shell %}
-<main id="bw-main" class="bw-docs" tabindex="-1">
-  <div class="bw-docs-layout">
-    <article class="bw-docs-layout__main">
-      {% block docs_header_region %}
-      <div class="bw-docs-layout__header">
-        {% block docs_header %}{% endblock %}
-      </div>
+<div class="bw-docs-shell">
+  {% block docs_site_header_region %}
+  <header class="bw-docs-site-header">
+    {% block docs_site_header %}{% endblock %}
+  </header>
+  {% endblock %}
+
+  <main id="bw-main" class="bw-docs" tabindex="-1">
+    <div class="bw-docs-layout">
+      <article class="bw-docs-layout__main">
+        {% block docs_header_region %}
+        <div class="bw-docs-layout__header">
+          {% block docs_header %}{% endblock %}
+        </div>
+        {% endblock %}
+
+        {% block content %}{% endblock %}
+
+        {% block docs_footer_region %}
+        <footer class="bw-docs-layout__footer">
+          {% block docs_footer %}{% endblock %}
+        </footer>
+        {% endblock %}
+      </article>
+
+      {% block docs_nav_region %}
+      <details class="bw-docs-layout__nav">
+        <summary class="bw-docs-layout__nav-summary">{% translate "Documentation" %}</summary>
+        <nav class="bw-docs-layout__nav-body" aria-label="{% translate 'Documentation' %}">
+          {% block docs_nav %}{% endblock %}
+        </nav>
+      </details>
       {% endblock %}
+    </div>
+  </main>
 
-      {% block content %}{% endblock %}
-
-      {% block docs_footer_region %}
-      <footer class="bw-docs-layout__footer">
-        {% block docs_footer %}{% endblock %}
-      </footer>
-      {% endblock %}
-    </article>
-
-    {% block docs_nav_region %}
-    <details class="bw-docs-layout__nav">
-      <summary class="bw-docs-layout__nav-summary">{% translate "Documentation" %}</summary>
-      <nav class="bw-docs-layout__nav-body" aria-label="{% translate 'Documentation' %}">
-        {% block docs_nav %}{% endblock %}
-      </nav>
-    </details>
-    {% endblock %}
-  </div>
-</main>
+  {% block docs_site_footer_region %}
+  <footer class="bw-docs-site-footer">
+    {% block docs_site_footer %}{% endblock %}
+  </footer>
+  {% endblock %}
+</div>
 {% endblock %}

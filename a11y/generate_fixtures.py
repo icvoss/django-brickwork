@@ -3609,6 +3609,74 @@ _DOCS_SOURCE = (
 )
 
 
+_DOCS_SITE_CHROME_HEADER = (
+    '<div class="fx-docs-site-header-inner">'
+    '<a href="/">Widgetco docs</a>'
+    '<nav aria-label="Site">'
+    '<a href="/">Product</a>'
+    '<a href="/docs/">Docs</a>'
+    '<a href="/pricing/">Pricing</a>'
+    "</nav>"
+    "</div>"
+)
+
+_DOCS_SITE_CHROME_FOOTER = (
+    '<div class="fx-docs-site-footer-inner"><p>&copy; 2026 Widgetco</p><a href="/legal/">Legal</a></div>'
+)
+
+
+def render_docs_with_site_chrome(theme: str) -> str:
+    """The docs shell WITH docs_site_header/docs_site_footer filled
+    (icvoss/django-brickwork#448 item 1): the site-wide chrome seam outside
+    <main>, as distinct from docs_header/docs_footer's page-local content
+    already covered by render_docs above. Shares the same populated article/
+    rail body as render_docs so the only variable under test is the new site
+    chrome, not the pre-existing content shape."""
+    from django.urls import resolve
+
+    from brickwork.models import NavContext, NavItem
+    from brickwork.services.navigation import resolve_active_item, visible_items
+
+    tree = (
+        NavItem(
+            key="fx-docs-chrome-getting-started",
+            label="Getting started",
+            section_header=True,
+            children=(
+                NavItem(key="fx-docs-chrome-dashboard", label="Dashboard", url_name="testapp:dashboard"),
+                NavItem(key="fx-docs-chrome-widgets", label="Widgets", url_name="testapp:widget-list"),
+            ),
+        ),
+    )
+    request = RequestFactory().get("/widgets/")
+    request.resolver_match = resolve("/widgets/")
+    nav_context = NavContext(request=request)
+    items = visible_items(tree, nav_context)
+    active = resolve_active_item(items, request.resolver_match)
+    source = (
+        '{% extends "brickwork/shell/docs.html" %}'
+        "{% load brickwork_components brickwork_nav %}"
+        "{% block page_title %}Configuring widget filters{% endblock %}"
+        "{% block docs_site_header %}" + _DOCS_SITE_CHROME_HEADER + "{% endblock %}"
+        "{% block docs_header %}<h1>Configuring widget filters</h1>{% endblock %}"
+        '{% block content %}<div class="bw-prose"><p>Every list page ships a'
+        " filter bar backed by a plain Django form.</p></div>{% endblock %}"
+        '{% block docs_footer %}<p><a href="/widgets/">&larr; Back to widgets</a></p>{% endblock %}'
+        "{% block docs_nav %}{% bw_nav items=docs_nav_items active=docs_nav_active %}{% endblock %}"
+        "{% block docs_site_footer %}" + _DOCS_SITE_CHROME_FOOTER + "{% endblock %}"
+    )
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "docs_nav_items": items,
+        "docs_nav_active": active,
+    }
+    html = engines["django"].from_string(source).render(ctx, request=request)
+    return _inline_css(html)
+
+
 def render_docs(theme: str) -> str:
     from django.urls import resolve
 
@@ -3839,6 +3907,10 @@ def main() -> None:
         # (real article content in .bw-prose, a real {% bw_nav %} rail),
         # never rendered by any other fixture before this shell existed
         _emit(OUT / f"docs-{theme}.html", render_docs(theme), written)
+        # the docs shell WITH site-wide chrome filled (#448 item 1):
+        # docs_site_header/docs_site_footer, the seam outside <main> no
+        # other docs fixture exercises
+        _emit(OUT / f"docs-with-site-chrome-{theme}.html", render_docs_with_site_chrome(theme), written)
         # every example section (3.1.0, plan Phase 6a gate 3), stacked in a
         # real marketing shell so heading order and landmarks are meaningful
         _emit(OUT / f"sections-{theme}.html", render_sections(theme), written)

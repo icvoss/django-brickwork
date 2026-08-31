@@ -7,6 +7,15 @@ gracefully. These tests mirror test_marketing.py's region coverage exactly
 (the `*_region` wrapper-block idiom from #263/#434), plus the one constraint
 unique to this shell and normative under ADR-091 decision 3: content
 (the article) must precede the nav rail in document order.
+
+icvoss/django-brickwork#448 item 1 adds docs_site_header_region/
+docs_site_footer_region, the site-wide chrome seam OUTSIDE <main> that
+brickworkui.com had to fake by overriding {% block shell %} wholesale and
+reproducing the marketing shell's own markup. The tests below cover that
+pair the same way the pre-existing docs_header_region/docs_footer_region/
+docs_nav_region are covered, plus the naming distinction the docstring calls
+out as the most likely source of consumer confusion: site-chrome regions sit
+outside <main>, page-local regions stay inside it.
 """
 
 from __future__ import annotations
@@ -154,13 +163,19 @@ def test_overriding_docs_header_region_empty_removes_the_header_and_its_chrome()
 
 def test_overriding_docs_footer_region_empty_removes_the_footer_and_its_chrome() -> None:
     # The capability filling the inner block alone can never offer: the
-    # <footer> element itself is gone, not merely empty.
+    # page-local <footer> element itself is gone, not merely empty. The
+    # unrelated site-level <footer class="bw-docs-site-footer"> (#448 item 1,
+    # docs_site_footer_region) is a distinct, always-emitted wrapper outside
+    # <main>, so its presence is asserted here rather than excluded: this
+    # test's contract is the ARTICLE footer only, never a page-wide absence
+    # of the <footer> tag.
     html = _extend(
         _DOCS_SHELL,
         "{% block content %}CONTENT-SENTINEL{% endblock %}{% block docs_footer_region %}{% endblock %}",
     )
     assert "bw-docs-layout__footer" not in html
-    assert "<footer" not in html
+    assert '<footer class="bw-docs-layout__footer">' not in html
+    assert '<footer class="bw-docs-site-footer">' in html
     assert "CONTENT-SENTINEL" in html
     _assert_complete_document(html)
 
@@ -186,6 +201,134 @@ def test_overriding_docs_nav_region_empty_removes_the_nav_and_its_chrome() -> No
 def test_the_nav_rail_carries_an_aria_label_by_default() -> None:
     html = _extend(_DOCS_SHELL, "{% block docs_nav %}NAV-SENTINEL{% endblock %}")
     assert '<nav class="bw-docs-layout__nav-body" aria-label="Documentation">' in html
+
+
+# --- shell/docs.html: site-chrome *_region blocks (icvoss/django-brickwork#448) --
+
+
+def test_unfilled_site_chrome_regions_render_no_visible_header_or_footer() -> None:
+    # Constraint 3 of #448 item 1: additive, not breaking. With
+    # docs_site_header/docs_site_footer both unfilled, the wrapper <header>/
+    # <footer> elements still render (the same "always emit the wrapper,
+    # CSS-hide when :empty" idiom docs_header_region/docs_footer_region
+    # already use) but carry no content, so an existing 3.15.0 consumer's
+    # rendered page shows nothing new: the same #bw-main, layout, and article/
+    # rail structure as before, just wrapped in one additional, contentless
+    # outer <div>.
+    html = _extend(
+        _DOCS_SHELL,
+        "{% block docs_header %}HEADER-SENTINEL{% endblock %}"
+        "{% block content %}CONTENT-SENTINEL{% endblock %}"
+        "{% block docs_footer %}FOOTER-SENTINEL{% endblock %}"
+        "{% block docs_nav %}NAV-SENTINEL{% endblock %}",
+    )
+    assert '<header class="bw-docs-site-header">' in html
+    assert '<footer class="bw-docs-site-footer">' in html
+    assert "bw-docs-shell" in html
+    # the pre-existing article/rail contract is completely unaffected
+    assert "HEADER-SENTINEL" in html
+    assert "CONTENT-SENTINEL" in html
+    assert "FOOTER-SENTINEL" in html
+    assert "NAV-SENTINEL" in html
+    _assert_complete_document(html)
+    assert html.count('id="bw-main"') == 1
+
+
+def test_docs_site_header_region_sits_outside_main() -> None:
+    html = _extend(
+        _DOCS_SHELL,
+        "{% block docs_site_header %}SITE-HEADER-SENTINEL{% endblock %}"
+        "{% block content %}CONTENT-SENTINEL{% endblock %}",
+    )
+    assert html.index("SITE-HEADER-SENTINEL") < html.index('id="bw-main"')
+
+
+def test_docs_site_footer_region_sits_outside_main() -> None:
+    html = _extend(
+        _DOCS_SHELL,
+        "{% block content %}CONTENT-SENTINEL{% endblock %}"
+        "{% block docs_site_footer %}SITE-FOOTER-SENTINEL{% endblock %}",
+    )
+    main_close = html.rindex("</main>")
+    assert main_close < html.index("SITE-FOOTER-SENTINEL")
+
+
+def test_filling_only_the_site_chrome_inner_blocks_leaves_the_wrappers_unaffected() -> None:
+    html = _extend(
+        _DOCS_SHELL,
+        "{% block docs_site_header %}SITE-HEADER-SENTINEL{% endblock %}"
+        "{% block content %}CONTENT-SENTINEL{% endblock %}"
+        "{% block docs_site_footer %}SITE-FOOTER-SENTINEL{% endblock %}",
+    )
+    assert '<header class="bw-docs-site-header">' in html
+    assert '<footer class="bw-docs-site-footer">' in html
+    header_wrapper = html.index('class="bw-docs-site-header"')
+    header_sentinel = html.index("SITE-HEADER-SENTINEL")
+    footer_wrapper = html.index('class="bw-docs-site-footer"')
+    footer_sentinel = html.index("SITE-FOOTER-SENTINEL")
+    assert header_wrapper < header_sentinel < footer_wrapper < footer_sentinel
+
+
+def test_overriding_docs_site_header_region_replaces_the_header_wrapper() -> None:
+    html = _extend(
+        _DOCS_SHELL,
+        '{% block docs_site_header_region %}<div id="site-header-replacement">SITE-HEADER-SENTINEL</div>{% endblock %}',
+    )
+    assert '<div id="site-header-replacement">' in html
+    assert "bw-docs-site-header" not in html
+    assert "SITE-HEADER-SENTINEL" in html
+
+
+def test_overriding_docs_site_footer_region_replaces_the_footer_wrapper() -> None:
+    html = _extend(
+        _DOCS_SHELL,
+        '{% block docs_site_footer_region %}<div id="site-footer-replacement">SITE-FOOTER-SENTINEL</div>{% endblock %}',
+    )
+    assert '<div id="site-footer-replacement">' in html
+    assert "bw-docs-site-footer" not in html
+    assert "SITE-FOOTER-SENTINEL" in html
+
+
+def test_overriding_docs_site_header_region_empty_removes_the_header_and_its_chrome() -> None:
+    html = _extend(
+        _DOCS_SHELL,
+        "{% block docs_site_header_region %}{% endblock %}{% block content %}CONTENT-SENTINEL{% endblock %}",
+    )
+    assert "bw-docs-site-header" not in html
+    assert "CONTENT-SENTINEL" in html
+    _assert_complete_document(html)
+
+
+def test_overriding_docs_site_footer_region_empty_removes_the_footer_and_its_chrome() -> None:
+    html = _extend(
+        _DOCS_SHELL,
+        "{% block content %}CONTENT-SENTINEL{% endblock %}{% block docs_site_footer_region %}{% endblock %}",
+    )
+    assert "bw-docs-site-footer" not in html
+    assert "CONTENT-SENTINEL" in html
+    _assert_complete_document(html)
+
+
+def test_site_chrome_regions_are_distinct_from_the_page_local_regions() -> None:
+    # The naming distinction the docstring calls "the single most likely
+    # thing to confuse a consumer" (#448 item 1): filling the page-local
+    # docs_header must never touch the site-chrome wrapper, and vice versa.
+    html = _extend(
+        _DOCS_SHELL,
+        "{% block docs_header %}PAGE-LOCAL-HEADER{% endblock %}"
+        "{% block docs_site_header %}SITE-HEADER{% endblock %}"
+        "{% block content %}CONTENT-SENTINEL{% endblock %}"
+        "{% block docs_footer %}PAGE-LOCAL-FOOTER{% endblock %}"
+        "{% block docs_site_footer %}SITE-FOOTER{% endblock %}",
+    )
+    main_start = html.index('id="bw-main"')
+    main_close = html.rindex("</main>")
+    site_header = html.index("SITE-HEADER")
+    page_header = html.index("PAGE-LOCAL-HEADER")
+    page_footer = html.index("PAGE-LOCAL-FOOTER")
+    site_footer = html.index("SITE-FOOTER")
+    # site chrome is outside <main>; page-local chrome is inside it
+    assert site_header < main_start < page_header < page_footer < main_close < site_footer
 
 
 def test_the_docs_shell_declines_toc_version_and_feedback_regions() -> None:

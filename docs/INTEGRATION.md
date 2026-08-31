@@ -770,6 +770,82 @@ switcher, or a feedback control into `docs_nav_region`, `docs_header_region`
 or `docs_footer_region` respectively, as your own site-owned markup, exactly
 as you already build `{% bw_nav %}` composition into the nav rail today.
 
+### Site-wide chrome around the docs shell (icvoss/django-brickwork#448)
+
+`docs_header_region` / `docs_footer_region` are **page-local**: scoped inside
+`<article>`, meant for a version switcher or a feedback control that varies
+per docs page (ADR-091 decision 2). Before this seam existed there was no way
+to add your site's own header and footer, the same chrome every other page on
+the site carries, so the only override point outside `<main>` was
+`{% block shell %}` itself. That forced a consumer to reproduce the marketing
+shell's own internal markup just to hang site chrome around a docs page:
+
+```django
+{# Do not do this any more: reproducing another shell's markup #}
+{% block shell %}
+<div class="bw-marketing">
+  <header class="bw-marketing-header">
+    <div class="bw-marketing-header__inner">
+      {% include "_site_header.html" %}
+    </div>
+  </header>
+
+  {{ block.super }}
+
+  <footer class="bw-marketing-footer">
+    <div class="bw-marketing-footer__inner">
+      {% include "_site_footer.html" %}
+    </div>
+  </footer>
+</div>
+{% endblock %}
+```
+
+`docs_site_header_region` / `docs_site_footer_region` (and their inner
+`docs_site_header` / `docs_site_footer` blocks) are the seam this was
+missing: **site-wide** chrome, sited OUTSIDE `<main>` entirely, above and
+below the two-column layout respectively. Overriding `{% block shell %}` for
+this purpose is no longer necessary:
+
+```django
+{% extends "brickwork/shell/docs.html" %}
+
+{% block docs_site_header %}
+  {% include "_site_header.html" %}
+{% endblock %}
+
+{% block docs_header %}
+  <h1>{{ page_title }}</h1>
+{% endblock %}
+
+{% block content %}
+  <div class="bw-prose">{{ body|safe }}</div>
+{% endblock %}
+
+{% block docs_nav %}
+  {% bw_nav items=docs_nav_items active=docs_nav_active %}
+{% endblock %}
+
+{% block docs_site_footer %}
+  {% include "_site_footer.html" %}
+{% endblock %}
+```
+
+`docs_site_header` and `docs_site_footer` render inside a `<div
+class="bw-docs-shell">` flex column the shell now wraps everything in, which
+supplies the sticky-footer layout (`min-block-size: 100vh`, the footer
+region pinned to the viewport bottom with `margin-block-start: auto`) so a
+short docs page never floats its site footer mid-viewport. Left unfilled,
+both regions render empty and are CSS-hidden, so an existing 3.15.0
+consumer's output is unaffected.
+
+**Do not confuse the two pairs.** `docs_header` / `docs_footer` are
+page-local and live inside `<main id="bw-main">`; `docs_site_header` /
+`docs_site_footer` are site-wide and live outside it entirely. Filling
+`docs_header` with your site's nav puts it inside the article, after the
+skip-link target and ahead of the rail in the accessibility tree, which is
+not where a repeating site landmark belongs. See `docs.html`'s own header
+comment, "Site chrome vs page-local blocks", for the full contract.
 ## 11. Putting CMS-rendered content on the prose floor (icvoss/django-brickwork#448)
 
 `.bw-prose` gives long-form content (blog posts, documentation, rich-text

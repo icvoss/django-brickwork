@@ -592,13 +592,79 @@
 
 /* --- Docs shell: [article | rail] two-column layout (ADR-091, #439) ------- */
 
+/* Site-chrome column (icvoss/django-brickwork#448 item 1): .bw-docs-shell
+ * wraps the whole shell (docs_site_header_region, <main class="bw-docs">,
+ * docs_site_footer_region) in a flex column at min-block-size: 100vh, the
+ * docs-family counterpart of .bw-marketing's own role for the marketing
+ * shell. A DIFFERENT class name deliberately: tests/test_family_boundary.py
+ * forbids a marketing-family class (one marketing.css itself defines a rule
+ * for) from appearing in a non-marketing-family shell, so this rule and
+ * .bw-marketing's are independent, coincidentally identical declarations
+ * rather than a shared class. flex: 1 1 auto on <main class="bw-docs"> below
+ * makes it the column's one growing member, and docs_site_footer_region's
+ * <footer class="bw-docs-site-footer"> takes margin-block-start: auto (the
+ * same mechanism as .bw-marketing-footer), so a short docs page still pins
+ * its site footer to the viewport bottom instead of floating it mid-page.
+ * With docs_site_header/docs_site_footer both unfilled the two <header>/
+ * <footer> elements collapse via the :empty rule below, so this wrapper
+ * changes nothing visible for an existing 3.15.0 consumer. */
+.bw-docs-shell {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100vh;
+}
+
+.bw-docs-site-header:empty,
+.bw-docs-site-footer:empty {
+  display: none;
+}
+
+.bw-docs-site-footer {
+  margin-block-start: auto;
+}
+
+/* A bare <a> in docs_site_header/docs_site_footer takes themed ink, never
+ * the UA default blue, the same contrast defect .bw-docs-layout__footer's
+ * own rule fixes below and for the same reason: a consumer's site chrome is
+ * arbitrary markup, and a plain anchor is the obvious thing to write in a
+ * site nav or footer link list. Written at zero specificity via :where() so
+ * a consumer's own class wins without !important. :not(.bw-btn) excludes a
+ * bw_button composed into either slot, matching every other bare-link rule
+ * in this file. The 1.5rem floor is the WCAG 2.5.8 AA target size
+ * (icvoss/django-brickwork#208) and the coarse-pointer tier below is
+ * 2.5.5/platform-HIG (icvoss/django-brickwork#242). */
+.bw-docs-site-header :where(a):not(.bw-btn),
+.bw-docs-site-footer :where(a):not(.bw-btn) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  color: var(--bw-color-fg-muted);
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-docs-site-header :where(a:hover):not(.bw-btn),
+.bw-docs-site-footer :where(a:hover):not(.bw-btn) {
+  color: var(--bw-color-fg);
+}
+
+@media (pointer: coarse) {
+  .bw-docs-site-header :where(a):not(.bw-btn),
+  .bw-docs-site-footer :where(a):not(.bw-btn) {
+    min-block-size: var(--bw-size-touch-target-min);
+  }
+}
+
 /* .bw-docs is the shell's own <main>; the layout root .bw-docs-layout is a
  * SINGLE DIRECT CHILD of it, so the shell can apply the content measure,
  * inline centring, and page gutter to the whole layout once rather than each
  * column claiming it independently (carried from the consumer's own
- * main.css:930-933, ADR-091 decision 4). */
+ * main.css:930-933, ADR-091 decision 4). flex: 1 1 auto makes it the
+ * .bw-docs-shell column's one growing member (icvoss/django-brickwork#448
+ * item 1), the same role .bw-marketing__content plays inside .bw-marketing. */
 .bw-docs {
   display: block;
+  flex: 1 1 auto;
   max-inline-size: var(--bw-component-content-max-width-marketing);
   margin-inline: auto;
   padding-inline: var(--bw-density-page-gutter-inline);
