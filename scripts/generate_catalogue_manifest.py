@@ -100,6 +100,7 @@ TEMPLATE_MANIFEST_PATH = DIST / "template-manifest.json"
 _FAMILY_BY_EXAMPLE_DIR = {
     "app": "Product applications",
     "auth": "Transactional journeys",
+    "docs": "Documentation",
     "marketing": "Marketing and public web",
     "ops": "Data-heavy operations",
 }

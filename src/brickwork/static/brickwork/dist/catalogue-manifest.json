@@ -6,12 +6,17 @@
     "shells": 6,
     "components": 49,
     "sections": 27,
-    "archetypes": 21
+    "archetypes": 23
   },
   "families": [
     {
       "name": "Data-heavy operations",
       "archetypeCount": 5,
+      "sectionCount": 0
+    },
+    {
+      "name": "Documentation",
+      "archetypeCount": 2,
       "sectionCount": 0
     },
     {
@@ -220,6 +225,36 @@
       ]
     },
     {
+      "name": "examples/docs/article.html",
+      "kind": "archetype",
+      "family": "Documentation",
+      "templatePath": "examples/docs/article.html",
+      "docSource": "examples/docs/article.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_code.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
+      "name": "examples/docs/home.html",
+      "kind": "archetype",
+      "family": "Documentation",
+      "templatePath": "examples/docs/home.html",
+      "docSource": "examples/docs/home.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_search.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/marketing/about.html",
       "kind": "archetype",
       "family": "Marketing and public web",
@@ -377,7 +412,8 @@
       "consumption": "tag",
       "usedByArchetypes": [
         "app/confirm.html",
-        "app/detail.html"
+        "app/detail.html",
+        "docs/article.html"
       ],
       "usedBySections": [
         "sections/content/callout.html"
@@ -401,7 +437,8 @@
       "docSource": "brickwork/components/_breadcrumbs.html",
       "consumption": "include",
       "usedByArchetypes": [
-        "app/detail.html"
+        "app/detail.html",
+        "docs/article.html"
       ],
       "usedBySections": []
     },
@@ -487,7 +524,9 @@
       "templatePath": "brickwork/components/_code.html",
       "docSource": "brickwork/components/_code.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "docs/article.html"
+      ],
       "usedBySections": [
         "sections/content/code.html"
       ]
@@ -577,7 +616,8 @@
       "docSource": "brickwork/components/_empty_state.html",
       "consumption": "include",
       "usedByArchetypes": [
-        "app/console.html"
+        "app/console.html",
+        "docs/home.html"
       ],
       "usedBySections": []
     },
@@ -690,6 +730,7 @@
         "app/list.html",
         "app/settings.html",
         "app/wizard.html",
+        "docs/home.html",
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
@@ -781,7 +822,9 @@
       "templatePath": "brickwork/components/_search.html",
       "docSource": "brickwork/components/_search.html",
       "consumption": "tag",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "docs/home.html"
+      ],
       "usedBySections": []
     },
     {
@@ -1327,7 +1370,10 @@
       "templatePath": "brickwork/shell/docs.html",
       "docSource": "brickwork/shell/docs.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "docs/article.html",
+        "docs/home.html"
+      ],
       "usedBySections": []
     },
     {
