@@ -195,15 +195,34 @@ surfaces need the same arrangement vocabulary.
 **Outcome:** Brickwork supports long-form reading and technical reference work
 as well as product applications.
 
-- Ship the documentation and editorial surfaces with contextual navigation,
-  mobile navigation, table of contents, search-result, version and feedback
-  regions, as overrideable regions on a shell rather than as new shells. Every
-  shell derives from one `base.html`, so a family diverges by exposing its own
-  regions, not by forking the document. The app shell's
+- **Ship the documentation surface. Done in 3.15.0, and ADR-091 settled it
+  differently from how this bullet originally read.** The bullet said to ship
+  "table of contents, search-result, version and feedback regions, as
+  overrideable regions on a shell rather than as new shells". ADR-091 ruled
+  against both halves, and the shipped shell follows the ADR: the
+  documentation surface IS a new shell (`brickwork/shell/docs.html`), because
+  a docs page must emit article-then-rail in source order while the marketing
+  shell emits a single `content` block, and reconciling those inside one
+  template is a fork behind a conditional; and the table-of-contents, version
+  and feedback regions were each DECLINED with reasons, since the package
+  cannot populate a TOC (a content-pipeline concern), cannot know a
+  consumer's version scheme (application routing), and would ship an empty
+  box for feedback (a form posting to a consumer endpoint). A consumer builds
+  each into `docs_nav_region` or `docs_header_region`/`docs_footer_region`.
+  Every shell still derives from one `base.html`; a family diverges by
+  exposing its own regions, and the app shell's
   `subnav_region`/`breadcrumbs_region`/`page_header_region`/`footer_region`
-  idiom is the pattern; icvoss/django-brickwork#434 extended it to the
-  marketing shell, and icvoss/django-brickwork#257 decides the documentation
-  surface's own region set.
+  idiom remains the pattern that icvoss/django-brickwork#434 extended to the
+  marketing shell and icvoss/django-brickwork#439 extended to this one.
+  Six regions ship: `docs_nav_region`, the page-local `docs_header_region`
+  and `docs_footer_region`, and the site-chrome `docs_site_header_region` and
+  `docs_site_footer_region` added by ADR-091's 2026-08-30 amendment
+  (icvoss/django-brickwork#448) after the first consumer adoption found the
+  shell had no seam for the header and footer surrounding it. This text was
+  left stale for one release after the ADR contradicted it, which is how a
+  reader following the roadmap rather than the ADR would have built the wrong
+  thing; precedence is Code > ADRs > this plan, and the ADR is authoritative
+  wherever the two still disagree.
 - Extend content primitives for code examples, API references, citations,
   figures, notices, tabs and cross-links while retaining the existing
   `bw-prose` floor.

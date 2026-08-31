@@ -1269,58 +1269,6 @@
   }
 }
 
-/* Content / callout -------------------------------------------------------- */
-
-.bw-callout {
-  display: flex;
-  flex-direction: column;
-  gap: var(--bw-space-2);
-  padding: var(--bw-space-5);
-  border-inline-start: var(--bw-size-border-nav-marker) solid var(--bw-color-accent);
-  border-radius: var(--bw-radius-md);
-  background: var(--bw-color-accent-subtle);
-  max-inline-size: var(--bw-size-max-width-prose);
-}
-
-.bw-callout + .bw-callout {
-  margin-block-start: var(--bw-space-5);
-}
-
-.bw-callout__title {
-  margin: 0;
-  font-size: var(--bw-text-label-size);
-  font-weight: var(--bw-font-weight-semibold);
-  /* The kind is carried by this TEXT, not by the tint alone: colour-only
-   * signalling fails WCAG 1.4.1. */
-  color: var(--bw-color-fg);
-}
-
-/* The body opts out of .bw-prose's own measure: the callout already sets one,
- * and nesting two would narrow the text twice. */
-.bw-callout__body {
-  max-inline-size: none;
-}
-
-/* --note is the DEFAULT kind and the example emits it explicitly, so it needs a
- * real rule rather than relying on the base (the icvoss/django-brickwork#120
- * defect class: a documented option value whose CSS does not exist). It
- * restates the base treatment, which also gives the other kinds something
- * symmetrical to sit against. */
-.bw-callout--note {
-  border-inline-start-color: var(--bw-color-accent);
-  background: var(--bw-color-accent-subtle);
-}
-
-.bw-callout--warning {
-  border-inline-start-color: var(--bw-color-warning);
-  background: var(--bw-color-warning-subtle);
-}
-
-.bw-callout--success {
-  border-inline-start-color: var(--bw-color-success);
-  background: var(--bw-color-success-subtle);
-}
-
 /* Content / prose section -------------------------------------------------- */
 
 .bw-content-section > .bw-prose {
