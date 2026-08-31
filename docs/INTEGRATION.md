@@ -527,8 +527,8 @@ to render:
 
 <!-- chrome-icon-names:start -->
 `arrow-down`, `arrow-up`, `check`, `chevron-back`, `chevron-down`,
-`chevron-forward`, `close`, `external-link`, `folder`, `info`, `minus`,
-`search`, `sidebar`, `sort`, `upload`
+`chevron-forward`, `close`, `copy`, `external-link`, `folder`, `info`,
+`minus`, `search`, `sidebar`, `sort`, `upload`
 <!-- chrome-icon-names:end -->
 
 Plus whatever names your own `NavItem.icon` values reference. A drift-guard

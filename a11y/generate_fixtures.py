@@ -3543,6 +3543,119 @@ def render_search(theme: str) -> str:
     )
 
 
+# --- the code display content primitive (icvoss/django-brickwork#259) -------
+#
+# code-display-<theme>.html is a standalone (non-shell) page, mirroring
+# render_search's self-contained shape: _code.html has no dedicated demo
+# page of its own beyond the sections-*.html stack (which renders it via the
+# new sections/content/code.html example, one line per snippet only, per
+# that file's own header comment on Django's tag-tokenizer constraint). This
+# fixture instead renders the REAL template directly with genuinely
+# multi-line, real source text (a Python string carries no such tokenizer
+# limit), so the axe gate examines the shape the component actually exists
+# for: a plain panel (no header), a filename+language panel, and a
+# copyable panel, each with several real lines of code. The JS leg
+# (code-display-js-<theme>.html) boots Alpine for real so bwCodeCopy's own
+# init() reveals the copy control, proving the no-JS floor (the button
+# never renders visible without it) and the enhanced control (it does, once
+# JS runs) are both genuinely different observed states, not merely
+# asserted ones.
+
+_CODE_DISPLAY_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code display (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Code display</h1>
+
+  <section aria-labelledby="code-plain-heading">
+    <h2 id="code-plain-heading">Plain panel, no header</h2>
+    __CODE_PLAIN__
+  </section>
+
+  <section aria-labelledby="code-labelled-heading">
+    <h2 id="code-labelled-heading">Filename and language</h2>
+    __CODE_LABELLED__
+  </section>
+
+  <section aria-labelledby="code-copyable-heading">
+    <h2 id="code-copyable-heading">Copyable</h2>
+    __CODE_COPYABLE__
+  </section>
+</main>
+__JS_BOOT__
+</body>
+</html>
+"""
+
+_CODE_DISPLAY_PLAIN_SNIPPET = """due_date - 7d   first reminder, friendly
+due_date        due today
+due_date + 3d   overdue, cc the account owner
+due_date + 14d  final notice before escalation"""
+
+_CODE_DISPLAY_PYTHON_SNIPPET = """def next_reminder(invoice):
+    \"\"\"Return the next reminder stage for an overdue invoice.\"\"\"
+    days_overdue = (today() - invoice.due_date).days
+    if days_overdue >= 14:
+        return Stage.FINAL_NOTICE
+    if days_overdue >= 3:
+        return Stage.OVERDUE
+    return Stage.DUE_TODAY"""
+
+_CODE_DISPLAY_TS_SNIPPET = """import { nextReminder, Stage } from "./reminders";
+
+test("escalates after 14 days", () => {
+  const invoice = { dueDate: daysAgo(15) };
+  expect(nextReminder(invoice)).toBe(Stage.FinalNotice);
+});"""
+
+
+def _render_code_display_fixture(*, filename: str, language: str, code: str, copyable: bool = False) -> str:
+    return render_to_string(
+        "brickwork/components/_code.html",
+        {
+            "filename": filename,
+            "language": language,
+            "label": "Reminder schedule" if not filename else "",
+            "code": code,
+            "copyable": copyable,
+        },
+    )
+
+
+def render_code_display(theme: str, *, inject_js: bool = False) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    page = (
+        _CODE_DISPLAY_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace(
+            "__CODE_PLAIN__",
+            _render_code_display_fixture(filename="", language="", code=_CODE_DISPLAY_PLAIN_SNIPPET),
+        )
+        .replace(
+            "__CODE_LABELLED__",
+            _render_code_display_fixture(
+                filename="billing/reminders.py", language="Python", code=_CODE_DISPLAY_PYTHON_SNIPPET
+            ),
+        )
+        .replace(
+            "__CODE_COPYABLE__",
+            _render_code_display_fixture(
+                filename="billing/reminders.test.ts",
+                language="TypeScript",
+                code=_CODE_DISPLAY_TS_SNIPPET,
+                copyable=True,
+            ),
+        )
+    )
+    return page.replace("__JS_BOOT__", _JS_BOOT if inject_js else "")
+
+
 # --- the docs shell (ADR-091, icvoss/django-brickwork#439) ---------------
 #
 # shell/docs.html is a new shell this branch adds: the [article | rail]
@@ -3933,6 +4046,12 @@ def main() -> None:
         # bwTagInput carrier takeover (icvoss/django-brickwork#237): the JS
         # leg for both the single-line and multiline floors
         _emit(OUT / f"tag-input-js-{theme}.html", render_tag_input_js(theme), written)
+        # the code display content primitive (#259): a plain panel, a
+        # filename+language panel and a copyable panel, each with real
+        # multi-line source, plus the JS leg proving bwCodeCopy's own
+        # init() reveals the copy control that the no-JS floor ships hidden
+        _emit(OUT / f"code-display-{theme}.html", render_code_display(theme), written)
+        _emit(OUT / f"code-display-js-{theme}.html", render_code_display(theme, inject_js=True), written)
     FRAGMENTS.mkdir(exist_ok=True)
     _emit(FRAGMENTS / "modal-confirm.html", render_modal_fragment(), written, name="fragments/modal-confirm")
     _emit(

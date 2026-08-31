@@ -1,0 +1,164 @@
+{% load i18n brickwork_icons %}
+{% comment %}
+Code display (icvoss/django-brickwork#259, Wave 2 content primitives): a
+labelled, scrollable code panel pulled out of the flow of a docs or blog
+page. Structural, so it is consumed via {% include %} (matching _card.html
+and _data_table.html's own convention): no variant vocabulary to validate,
+so there is nothing a tag would check that an include cannot already carry.
+
+Required context:
+  code: the source text to display, rendered inside a <pre><code>. This
+      component does NOT escape it and does NOT mark it safe itself: the
+      caller decides. Plain source text is rendered through Django's normal
+      autoescaping (safe by construction, no |safe needed); a caller who has
+      already run the text through a syntax highlighter (see the
+      "Syntax highlighting" section below) passes the highlighter's own
+      output already marked safe (mark_safe / |safe), exactly the same
+      consumer-owns-the-markup division _stat.html's sparkline seam and
+      _chart_card.html's mount/data_table seams already use. Getting this
+      backwards either double-escapes highlighted markup into visible tag
+      soup, or (worse) skips escaping on untrusted plain text: the caller
+      that controls what "code" holds is the only party that can make this
+      call correctly.
+Optional:
+  language (str): a short label ("Python", "TypeScript", ...) shown as TEXT
+      next to the filename, never colour alone (WCAG 1.4.1: colour-only
+      language signalling, the exact failure mode a syntax theme alone would
+      produce, is not an accessible substitute for this label). Purely
+      descriptive: this component applies no per-language styling and reads
+      no language-to-colour mapping, so an unrecognised or freeform value is
+      never wrong, only unstyled beyond the plain label treatment every
+      value gets.
+  filename (str): a path or filename line ("billing/services.py"). Also
+      becomes the scroll region's accessible name via aria-labelledby when
+      supplied (see Accessibility below); a caller with no filename must
+      supply ``label`` instead so the region is never nameless.
+  id (str, optional): a stable, id-safe token (letters, digits, hyphen,
+      underscore) distinguishing this panel's filename element from every
+      other on the page, following _tooltip.html's and _modal.html's
+      caller-supplies-the-id doctrine. Only consulted when ``filename`` is
+      given, because that is the only case emitting an id at all. Without
+      it the id falls back to the slugified filename, which is unique only
+      while no two panels on the page share a filename: a page showing
+      "settings.py" twice (a before and an after, one per environment)
+      would otherwise emit the id twice, and a duplicate id makes
+      aria-labelledby resolve to whichever came first for BOTH regions.
+      Supply it whenever a filename can repeat. As in _tooltip.html, an
+      id-unsafe value is an authoring error rather than something this
+      structural template guards at render time.
+  label (str): the accessible name for the scroll region when no filename is
+      given (aria-label). Required whenever filename is omitted: a
+      scrollable region with neither is a WCAG failure by omission, and this
+      template does not invent placeholder text to paper over a missing
+      name (STA-003's no-default-copy rule, matching _empty_state.html).
+  copyable (bool, default False): renders the copy-to-clipboard control.
+      Ships with the ``hidden`` attribute (the bwDismissible/_alert.html
+      dismissible=True precedent: a JS-only control never renders as dead
+      chrome on the no-JS floor) and is revealed by bwCodeCopy's own init(),
+      matching frontend/src/js/dismissible.js's reveal-at-init pattern
+      exactly. A JS-disabled reader can still select and copy the text by
+      hand from the real, unobscured <pre>; the control is a convenience
+      layered on a floor that already works.
+
+The header bar (filename and/or language, plus the copy control) is
+OPTIONAL AS A WHOLE and renders only when it has something to hold:
+supplying none of filename/language/copyable emits no .bw-code__header at
+all, matching _card.html's own unfilled-region convention (no empty chrome
+left behind).
+
+--- Syntax highlighting: a stated boundary, not a shipped highlighter ------
+
+#259 asks for syntax highlighting OR an explicit statement of the boundary.
+This ships the boundary. brickwork bundles no tokenizer for any language,
+for the same reason ADR-081 forbids bundling a charting engine: a
+highlighter is a large dependency the package would have to own, version
+and theme across every language a consumer might use, and the package must
+not ship one tokenizer per language its consumers happen to write in.
+
+The seam: a consumer highlights the source BEFORE it reaches this template,
+either server-side (Pygments) or client-side, and passes the ALREADY
+HIGHLIGHTED markup in as ``code``, marked safe. This template's CSS styles
+the STRUCTURE only (panel, header, scroll region, monospace type) and
+deliberately does not fight consumer-injected markup inside .bw-code__code:
+no rule here sets `color` or `background` on a descendant `<span>`, so a
+highlighter's own token classes and their colours paint through untouched
+in both themes.
+
+The Pygments recipe this template is built to receive, concretely: a
+caller runs ``pygments.highlight(source, lexer, HtmlFormatter(nowrap=True))``
+(``nowrap=True`` so Pygments emits only the token spans, not its own
+wrapping <div>/<pre>, since this template supplies the <pre>/<code>
+elements itself) and passes the result as ``code`` via ``mark_safe`` (the
+caller's own trust boundary: only ever safe for output the caller generated
+itself, never for unsanitised user input run through Pygments and marked
+safe on the assumption that highlighting also sanitises, which it does
+not). The token colours are the caller's own stylesheet, generated once via
+``HtmlFormatter(style=...).get_style_defs(".highlight")`` and scoped under a
+class the caller adds to .bw-code__code (e.g. "highlight"); brickwork ships
+no such stylesheet and no --bw-* tokens for token colours, because a syntax
+theme is a caller-chosen aesthetic, not a brand axis this package's token
+model covers.
+
+States: none: a static panel, no open/closed state of its own. The copy
+  control has its own idle/copied/failed sequence, driven by bwCodeCopy and
+  announced through the status line below, never through the control's own
+  visual state alone.
+Accessibility: the scroll region (.bw-code__body) is real overflow content,
+  so it carries tabindex="0" and role="region" with an accessible name
+  (aria-labelledby the filename when supplied, else aria-label from
+  ``label``), matching the .bw-prose__table-wrap precedent
+  (components.css:4245, examples/sections/content/prose-block.html): a
+  scrollable region a keyboard user cannot tab to and a screen reader
+  cannot name is a WCAG failure regardless of how the overflow itself is
+  achieved. The language label is TEXT (WCAG 1.4.1), never a colour swatch.
+  The copy control ships hidden and is revealed at bwCodeCopy's init(), so
+  the no-JS floor never shows a control with no working behaviour behind
+  it; copy feedback is announced via a visually-hidden aria-live="polite"
+  status element (data-bw-code-copy-status), never colour or icon change
+  alone, with the announced text itself server-supplied and translated
+  (data-bw-code-copy-success-template / data-bw-code-copy-error-template),
+  matching _bulk_actions_bar.html's data-bw-selection-count-template
+  convention: the JS substitutes nothing into these two, since neither
+  carries a placeholder, but never hardcodes the English copy itself.
+Responsive: no breakpoint switch; the panel's own horizontal scroll
+  (.bw-code__body, unconditional overflow-x, contain: paint against the
+  same ancestor-overflow trap .bw-prose__table-wrap and
+  .bw-data-table-wrap both carry) is what keeps a long unbroken line from
+  widening the page at any viewport, matching .bw-prose :where(pre)'s own
+  mobile-first floor.
+{% endcomment %}
+{% firstof filename '' as filename %}
+{% firstof language '' as language %}
+<div class="bw-code"{% if copyable %} x-data="bwCodeCopy()"{% endif %}>
+  {% if filename or language or copyable %}
+    <div class="bw-code__header">
+      <div class="bw-code__meta">
+        {% if filename %}<p class="bw-code__filename" id="bw-code-{% firstof id filename|slugify %}-filename">{{ filename }}</p>{% endif %}
+        {% if language %}<p class="bw-code__language">{{ language }}</p>{% endif %}
+      </div>
+      {% if copyable %}
+        {% translate "Copy code" as bw_code_copy_label %}
+        {% blocktranslate asvar bw_code_copy_success %}Copied{% endblocktranslate %}
+        {% blocktranslate asvar bw_code_copy_error %}Copy failed{% endblocktranslate %}
+        <button class="bw-code__copy bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
+                type="button"
+                aria-label="{{ bw_code_copy_label }}"
+                hidden
+                data-bw-code-copy>
+          {% bw_icon "copy" size="sm" decorative=True %}
+        </button>
+        <p class="bw-visually-hidden"
+           aria-live="polite"
+           data-bw-code-copy-status
+           data-bw-code-copy-success-template="{{ bw_code_copy_success }}"
+           data-bw-code-copy-error-template="{{ bw_code_copy_error }}"></p>
+      {% endif %}
+    </div>
+  {% endif %}
+  <div class="bw-code__body"
+       role="region"
+       tabindex="0"
+       {% if filename %}aria-labelledby="bw-code-{% firstof id filename|slugify %}-filename"{% else %}aria-label="{{ label }}"{% endif %}>
+    <pre class="bw-code__pre"><code class="bw-code__code"{% if copyable %} data-bw-code-copy-source{% endif %}>{{ code }}</code></pre>
+  </div>
+</div>

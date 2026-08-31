@@ -241,7 +241,10 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     count to 62/124. The site-chrome work (icvoss/django-brickwork#448 item
     1) then added a docs-with-site-chrome fixture pair, exercising
     docs_site_header_region/docs_site_footer_region, moving the real count
-    to 63/126.)
+    to 63/126. The code-display work (#259) then added a code-display
+    fixture pair (a no-JS floor plus the JS leg proving bwCodeCopy's own
+    init() reveals the copy control the floor ships hidden), moving the
+    real count to 65/130.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -250,7 +253,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     archetype_count = manifest["counts"]["archetypes"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 126 + (archetype_count * 2)
+    assert _leading_int(value) == 130 + (archetype_count * 2)
     assert f"{archetype_count} catalogue archetypes x light and dark" in note
 
 
