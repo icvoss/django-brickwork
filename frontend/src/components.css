@@ -4371,6 +4371,126 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   background: var(--bw-color-success-subtle);
 }
 
+/* Content / code display ---------------------------------------------------- */
+
+/* A content primitive, exactly like the callout above and for the same
+ * reason: it composes with the .bw-prose floor (a labelled code panel
+ * pulled out of the flow of a docs or blog page), never surface chrome, so
+ * ADR-090's amended rule (a class's family follows its kind, not the file
+ * its rules happen to sit in) puts it here rather than in marketing.css.
+ * Family-neutral: legal on the docs shell as well as marketing.
+ * icvoss/django-brickwork#259. */
+
+.bw-code {
+  display: flex;
+  flex-direction: column;
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  background: var(--bw-color-surface-sunken);
+  /* Same trap .bw-prose :where(pre) already solved (components.css:4212): a
+   * block child sizes to its widest descendant by default, so an unbroken
+   * code line pushed this panel itself wider than its container and the
+   * whole document scrolled sideways on a phone. Capping the inline size at
+   * the container is what makes __body's own overflow-x actually take
+   * effect instead of being masked by an oversized parent. */
+  max-inline-size: 100%;
+}
+
+/* The header bar is optional (filename and/or language label, plus the copy
+ * control) and must survive being absent entirely: _code.html only emits
+ * this wrapper when it has something to put in it, so an unfilled header
+ * never leaves empty chrome sitting above the code body. */
+.bw-code__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bw-space-3);
+  padding: var(--bw-space-2) var(--bw-space-4);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+/* Groups filename and language so the copy control sits at the header's
+ * far end regardless of whether one or both labels are present; the
+ * overflow/shrink behaviour belongs to __filename below, not this wrapper. */
+.bw-code__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bw-space-2);
+  min-inline-size: 0;
+}
+
+.bw-code__filename {
+  margin: 0;
+  /* A flex item's default min-inline-size is auto (its content's own
+   * width), which overrides overflow/text-overflow entirely; this is what
+   * makes the ellipsis below actually trigger inside .bw-code__meta's
+   * fixed-width row instead of pushing the header wider. */
+  min-inline-size: 0;
+  overflow: hidden;
+  color: var(--bw-color-fg);
+  font-family: var(--bw-text-code-family);
+  font-size: var(--bw-text-caption-size);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bw-code__language {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  /* The language is conveyed as this TEXT, never colour alone (WCAG 1.4.1),
+   * the same principle the callout's kind label states above: no rule here
+   * carries a colour axis a consumer could plausibly mistake for the signal
+   * itself. */
+  white-space: nowrap;
+}
+
+/* Reuses .bw-btn's own ghost/icon-only/sm chrome (the _modal.html/
+ * _slide_over.html/_toast.html close-button precedent, components.css:2996
+ * region): a copy control is a button, not a bespoke widget, so it composes
+ * the existing control tokens rather than re-deriving them. This class only
+ * adds the layout the header bar needs, never new colour or sizing rules. */
+.bw-code__copy {
+  flex-shrink: 0;
+}
+
+/* The scroll region: a real overflow container independent of .bw-prose, so
+ * the panel renders correctly standalone. contain: paint is load-bearing
+ * here, not an optimisation (the same lesson .bw-prose__table-wrap and
+ * .bw-data-table-wrap already learned on icvoss/django-brickwork#136/#370):
+ * overflow-x: auto alone does not stop a wide ancestor's own overflow
+ * painting past this box's edge, so an ancestor a consumer wraps this panel
+ * in can still drag the document sideways without it. */
+.bw-code__body {
+  overflow-x: auto;
+  contain: paint;
+}
+
+.bw-code__pre {
+  margin: 0;
+  padding: var(--bw-space-4);
+  font-family: var(--bw-text-code-family);
+  font-size: var(--bw-text-code-size);
+  line-height: var(--bw-text-code-line-height);
+}
+
+/* Laid out as the pre's own scrollable content rather than as an inline box
+ * that can paint past __body's scroll boundary: the exact double-measure
+ * trap .bw-prose :where(pre) :where(code) already documents at
+ * components.css:4231. A consumer nesting this panel inside .bw-prose gets
+ * the SAME rule from either selector (this one and the prose one both
+ * resolve to the identical declarations), so nesting never doubles up or
+ * conflicts; standalone use is never dependent on .bw-prose being present
+ * at all, which is the whole point of shipping __pre/__code here rather
+ * than relying on the prose floor's own bare-element selectors. */
+.bw-code__code {
+  display: block;
+  overflow-wrap: normal;
+  color: var(--bw-color-fg);
+  background: none;
+}
+
 /* --- Dark-theme resets for the light-only top-light (0.7.0 craft) ----------- */
 
 /* The card family's inset top-light is a LIGHT-theme treatment (white sheen on

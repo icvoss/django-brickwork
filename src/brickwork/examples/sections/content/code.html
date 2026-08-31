@@ -1,0 +1,68 @@
+{% comment %}
+CONTENT / code display: a labelled, scrollable code panel pulled out of the
+flow of a docs or blog page (icvoss/django-brickwork#259).
+
+HOW IT WORKS. {% include "brickwork/components/_code.html" with ... %}: an
+include-shaped structural component, like _card.html and _data_table.html,
+not a tag. The header bar (filename, language, copy control) is optional and
+renders only when at least one of them is supplied; a panel with none of the
+three still needs an accessible name for its scroll region, via ``label``.
+
+WHY EVERY SNIPPET HERE IS ONE LINE. Django's own tag tokenizer splits a
+{% include %} call's arguments on whitespace before it parses quoting, so a
+literal line break inside a quoted ``with`` value breaks the tag rather than
+becoming part of the string (confirmed against this exact engine: the tag
+silently fails to parse and echoes as raw text). Real multi-line code is
+exactly what _code.html's ``<pre>`` is FOR, and a consumer filling this
+component from a view, a CMS field or a file read has no such constraint;
+this example's own snippets are one line each purely because they are typed
+as template-tag string literals, which is a limitation of this file's
+copy-paste mechanism, not of the component. Copy _code.html's own template
+comment for the real, unconstrained shape (a Python string, a file's
+contents, or Pygments' own output, passed as an ordinary context variable).
+
+SYNTAX HIGHLIGHTING IS A STATED BOUNDARY, NOT SHIPPED HERE. brickwork
+bundles no tokenizer for any language (the same reasoning ADR-081 gives for
+never bundling a charting engine): the ``code`` values below are plain
+text, run through Django's ordinary autoescaping, no ``|safe`` anywhere in
+this file. A consumer wanting colour tokens highlights server-side
+(Pygments, ``nowrap=True``) or client-side first, then passes the
+already-highlighted markup in as ``code`` themselves, marked safe; see
+_code.html's own header comment for the exact recipe.
+
+Three panels: a plain one with only the accessible label (no header at
+all), one with a filename and language label, and one that also carries the
+copy control.
+
+States: none: three static panels, no open/closed state of their own; the
+  third panel's copy control has its own idle/copied/failed sequence, owned
+  by bwCodeCopy, not this markup.
+Accessibility: each .bw-code__body is tabindex="0" and role="region" with an
+  accessible name (aria-label on the first panel, aria-labelledby the
+  filename on the other two), so a keyboard user can reach the horizontal
+  scroll on every panel without a mouse, matching the
+  .bw-prose__table-wrap precedent. The language label on the second and
+  third panels is TEXT, never colour alone (WCAG 1.4.1). The copy control on
+  the third panel ships hidden and is revealed at bwCodeCopy's init(), so
+  the no-JS floor never shows a control with no working behaviour behind
+  it. Covered by axe.spec.mjs against sections-*.html, which renders this
+  exact file, both themes.
+Responsive: no breakpoint switch; each panel's own horizontal scroll region
+  keeps a long unbroken line from widening the page at any viewport.
+{% endcomment %}
+<div class="bw-callout bw-callout--note">
+  <p class="bw-callout__title">Send to a role, not a person</p>
+  <div class="bw-prose bw-callout__body">
+    <p>
+      Route reminder mail to <code>accounts@</code> rather than a named
+      individual who may have moved on, then automate the schedule below so
+      the first nudge never depends on anyone remembering.
+    </p>
+  </div>
+</div>
+
+{% include "brickwork/components/_code.html" with label="Reminder schedule, plain text" code="due_date+3d overdue, cc the account owner; due_date+14d final notice before escalation" %}
+
+{% include "brickwork/components/_code.html" with filename="billing/reminders.py" language="Python" code="def next_reminder(invoice): return Stage.FINAL_NOTICE if invoice.days_overdue >= 14 else Stage.OVERDUE" %}
+
+{% include "brickwork/components/_code.html" with filename="billing/reminders.test.ts" language="TypeScript" copyable=True code="expect(nextReminder(daysAgo(15))).toBe(Stage.FinalNotice);" %}

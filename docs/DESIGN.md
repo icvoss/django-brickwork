@@ -787,6 +787,114 @@ whatever `marketing.css` defines a rule for, so moving a content primitive
 into `components.css` is what makes it usable on the docs shell, not a
 docstring or an allowlist entry.
 
+### 6.11 Content accessibility rules **[NEW]**
+
+**Authority:** Wave 2 roadmap deliverable (`docs/ROADMAP.md`). Six rules for
+long-form and docs-shell content: heading order, landmark structure, code
+labelling, table responsiveness, reading measure, and reading progress.
+
+**Heading order.** A component that renders content hardcodes the heading
+level its slot occupies; it does not let a page override that level, and a
+consuming page must not introduce a competing heading at the same level. The
+shipped components fix a level each: `_page_header.html` renders the page's
+own `<h1>` and states in its own accessibility note that "a consuming page
+must not render a second one"
+(`src/brickwork/templates/brickwork/components/_page_header.html:48-49`);
+`_card.html`'s title block renders `<h2 class="bw-card__title">`, both when
+filled by hand and via the `title` context variable
+(`src/brickwork/templates/brickwork/components/_card.html:34,65,132`).
+`.bw-prose` then styles the full `h1`-`h6` run for content that supplies its
+own outline (`frontend/src/components.css:4095`). Visual size is not heading
+level: `.bw-band-heading` is sized at the `heading-lg` role, deliberately one
+step under the page title, and deliberately not `heading-md`, which
+`DESIGN.md`'s component map (section 7.4) reserves for the card-title role
+(`frontend/src/components.css:964-968`, ADR-090 context section 2). A
+component that wants a band caption the size of a card title still does not
+render an `<h2>` competing with `_card.html`'s own; size and level are
+independent choices and only the second one affects the outline.
+
+**Landmark structure.** The docs shell ships two, deliberately distinct,
+header/footer block pairs, and filling the wrong one is the single most
+likely mistake a consumer makes here
+(`src/brickwork/templates/brickwork/shell/docs.html:43-59`). `docs_header`
+and `docs_footer` are page-local, scoped inside the `<article>`, inside
+`<main id="bw-main">`. `docs_site_header` and `docs_site_footer` are
+site-wide chrome (brand mark, primary site nav, legal links) and sit outside
+`<main>` entirely. Filling `docs_header` when the content is site nav puts
+that nav inside the article, after the skip link's target and ahead of the
+rail, in the accessibility tree, which is not where a repeating site
+landmark belongs. A landmark choice in this shell is a decision, not a
+default: read the shell's own header comment before choosing a block.
+
+The axe gate does not cover this. `a11y/axe.spec.mjs:36` sets
+`WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]` and
+`:60` runs `.withTags(WCAG_TAGS)`. Every axe landmark rule is tagged
+`best-practice` and carries no WCAG tag, so none of them is ever evaluated
+under this configuration. A green a11y gate is evidence about the WCAG rules
+it runs, not about landmark structure: it is silent on landmark placement,
+not clean on it. A change that touches which block a template fills needs
+deliberate review, because the gate that is green either side of the change
+cannot tell the two states apart.
+
+**Code labelling.** A scrollable code region is reachable by keyboard and
+carries an accessible name; a scroll container a keyboard user cannot focus
+is a WCAG 2.1.1 failure. The language of a code sample is conveyed as text,
+never colour alone (WCAG 1.4.1), the same principle the callout applies to
+its own kind label (`src/brickwork/examples/sections/content/callout.html:11-12`,
+`frontend/src/components.css:4427-4430`). The package ships no syntax
+highlighting (icvoss/django-brickwork#259): where a consumer supplies
+highlighted markup, the contrast of that consumer's own token colours is the
+consumer's responsibility, not the package's. The rule is the boundary, not
+a specific markup shape: a code display component states which side of that
+line it sits on and does not silently absorb a contrast obligation it cannot
+verify.
+
+**Table responsiveness.** A table that overflows scrolls inside its own
+container rather than widening the document. `.bw-prose__table-wrap` sets
+`overflow-x: auto` plus `contain: paint`, and its own comment records why
+both are load-bearing: `overflow-x: auto` alone does not stop a wide table
+dragging the whole document sideways if an ancestor the consumer wraps it in
+still overflows, so `contain: paint` guarantees the wrap is the clipping
+boundary regardless of what an ancestor does
+(`frontend/src/components.css:4242-4254`). That scroll container carries the
+same focusability and accessible-name treatment as any other scrollable
+region (rule above): the shipped examples give `.bw-prose__table-wrap`
+`tabindex="0" role="region" aria-label="..."`
+(`src/brickwork/examples/sections/content/prose-block.html:91`). The
+`_data_table.html` component ships the same precedent independently: its
+wrap scrolls unconditionally under the default `responsive="scroll"`
+(`src/brickwork/templates/brickwork/components/_data_table.html:123-124`).
+
+**Reading measure.** `.bw-prose`'s first declaration caps content at a 65ch
+measure (`--bw-size-max-width-prose: 65ch`,
+`src/brickwork/static/brickwork/dist/tokens.css:46`,
+`frontend/src/components.css:4080-4081`). A measure belongs to running text;
+applying `.bw-prose` to something that is not running text imports a measure
+it did not ask for. `.bw-band-heading` carries no `inline-size` rule of its
+own for exactly this reason: wrapping a band in `.bw-prose` purely to get a
+heading rendered narrowed it to 655px against its siblings' 976px, because
+borrowing the class borrows its whole measure contract, not just its type
+styles (`frontend/src/components.css:955-962`, ADR-090 context section 2).
+Reach for `.bw-band-heading` or the page title's own heading role instead of
+`.bw-prose` when the goal is a heading's type, not a paragraph's measure.
+
+**Reading progress.** `_progress.html` ships a determinate progressbar:
+`role="progressbar"`, an enforced accessible name from the required `label`,
+`aria-valuemin`/`aria-valuemax` always present, `aria-valuenow` present on
+the determinate leg and omitted on the indeterminate leg, and a fill driven
+by the `--bw-progress-value` custom property
+(`src/brickwork/templates/brickwork/components/_progress.html:44-61`). A
+continuously-updating `aria-valuenow` on a scroll-linked progress indicator
+is announced repeatedly by some screen readers and becomes noise rather than
+information. A decorative scroll indicator is `aria-hidden`; a genuine
+progress control keeps its accessible name and its value. This choice is
+deliberate and recorded at the point a scroll indicator is built, never left
+to default. Its motion is CSS-owned (BR-BW-TOK-009) and the reduced-motion
+floor applies (section 8.4): under `prefers-reduced-motion`, `_progress.html`
+already replaces its own animated sweep with a static partial fill so
+reduced motion never leaves a blank track with no indication of progress
+(`src/brickwork/templates/brickwork/components/_progress.html:20-24`).
+
 ## 7. Typography
 
 ### 7.1 Families (the brand's dial)

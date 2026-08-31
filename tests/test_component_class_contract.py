@@ -416,6 +416,32 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         _include("brickwork/components/_data_table.html", table_id="a", columns=_TABLE_COLUMNS, rows=[])
         + _include("brickwork/components/_data_table.html", table_id="b", columns=_TABLE_COLUMNS, rows=[], loading=True)
     ),
+    "_code (filename, language, copyable)": lambda: _include(
+        "brickwork/components/_code.html",
+        filename="billing/reminders.py",
+        language="Python",
+        copyable=True,
+        code=(
+            "def next_reminder(invoice):\n"
+            '    """Return the next reminder stage for an overdue invoice."""\n'
+            "    days_overdue = (today() - invoice.due_date).days\n"
+            "    if days_overdue >= 14:\n"
+            "        return Stage.FINAL_NOTICE\n"
+            "    if days_overdue >= 3:\n"
+            "        return Stage.OVERDUE\n"
+            "    return Stage.DUE_TODAY"
+        ),
+    ),
+    "_code (plain, no header)": lambda: _include(
+        "brickwork/components/_code.html",
+        label="Reminder schedule, plain text",
+        code=(
+            "due_date - 7d   first reminder, friendly\n"
+            "due_date        due today\n"
+            "due_date + 3d   overdue, cc the account owner\n"
+            "due_date + 14d  final notice before escalation"
+        ),
+    ),
     "_stepper (vertical, all statuses)": lambda: _include(
         "brickwork/components/_stepper.html", steps=_STEPPER_STEPS, orientation="vertical"
     ),
@@ -933,6 +959,7 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_pricing_tier",
         "_stat_band",
         "_testimonial",
+        "_code",
     }
     templates_dirs = [root / "templates" / "brickwork", root / "marketing" / "templates" / "brickwork_marketing"]
     shipped = set()
