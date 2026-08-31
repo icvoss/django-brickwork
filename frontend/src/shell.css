@@ -738,6 +738,30 @@
     display: none;
   }
 
+  /* Reveal the rail at this breakpoint (icvoss/django-brickwork#451).
+   *
+   * A closed <details> collapses everything that is not its <summary>,
+   * and it does so on the ::details-content pseudo-element that wraps
+   * that content, NOT on the content's own boxes. So a display rule on
+   * .bw-docs-layout__nav-body below cannot reveal anything while the
+   * details is closed: the child is inside a collapsed wrapper, and its
+   * own display value never gets the chance to matter. The shell sets no
+   * [open] and the summary above is display:none here, so before this
+   * rule a desktop docs page rendered a 16rem grid track containing a
+   * zero-height rail, with every link present in the DOM and no control
+   * anywhere on the page to open it. Shipped in 3.15.0 and found on a
+   * rendered page rather than by any suite: the markup is correct, so
+   * the template tests pass, and links that are still in the
+   * accessibility tree are not a WCAG violation, so axe passes too.
+   *
+   * block-size is set alongside content-visibility because the closed
+   * state zeroes the pseudo's block-size as well; revealing the content
+   * without it leaves the same 0px rail. */
+  .bw-docs-layout__nav::details-content {
+    content-visibility: visible;
+    block-size: auto;
+  }
+
   .bw-docs-layout__nav-body {
     display: block;
     padding-block-start: 0;

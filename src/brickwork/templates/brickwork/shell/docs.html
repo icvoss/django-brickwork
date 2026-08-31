@@ -180,7 +180,14 @@ active-resolved, the same responsibility model as the app shell's nav
 States: none of its own; the rail's open/closed state is the native <details>
   element's own [open] attribute, with no default set here (a consumer's page
   sets it if it wants the rail open by default on load, matching the
-  disclosure component's own convention).
+  disclosure component's own convention). That attribute governs the NARROW
+  viewport only: at and above the layout breakpoint the rail is revealed
+  whatever its [open] state (see Responsive below), so a consumer never has
+  to set it to get a desktop rail. Before
+  icvoss/django-brickwork#451 it did have to, without that being written
+  down anywhere: the desktop rail was 0px tall unless a page set [open]
+  itself, which read as a nicety in this docstring rather than the
+  requirement it actually was.
 Accessibility: inherits the skip link and lang/dir/theme attributes from
   base.html. Its own contribution is <main id="bw-main" tabindex="-1">
   wrapping the two-column layout, with the article emitted first so the skip
@@ -205,8 +212,12 @@ Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
   rail second as a collapsed <details> disclosure. At and above the
   breakpoint the layout becomes a persistent two-column grid
   (16rem minmax(0, 1fr)), the disclosure's summary is hidden (nothing to
-  disclose, the rail is always shown) and its nav body is forced visible
-  regardless of the [open] state, with the rail sticky at the inline start
+  disclose, the rail is always shown) and its content is revealed
+  regardless of the [open] state by a ::details-content rule in shell.css
+  (icvoss/django-brickwork#451: a closed <details> collapses its content on
+  that pseudo-element, so a display rule on the nav body inside it cannot
+  reveal anything and the rail rendered 0px tall with its summary hidden
+  and no way to open it), with the rail sticky at the inline start
   and restored to the visual inline-start via `order: -1` (see Source order
   above). The site header/footer chrome (when filled) carries no breakpoint
   behaviour of its own here: a consumer's own header/nav markup inside
