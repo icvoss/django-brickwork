@@ -19,6 +19,17 @@ regenerating the manifest is the only step needed to enrol it in both the
 pytest harness and this fixture set; nothing here is edited by hand per
 archetype.
 
+**examples/base.html is covered here, and its kind is why**
+(icvoss/django-brickwork#464). It was reclassified from kind "archetype" to
+kind "skeleton" (a raw document skeleton a consumer copies, not a complete
+page), and it had been axe-scanned all along as one of the 23 things
+items_by_kind("archetype") returned. Discovery therefore walks _SCANNED_KINDS,
+both kinds that are whole documents, rather than "archetype" alone: the
+reclassification corrects a published count without quietly withdrawing a
+surface from the axe, no-JS and keyboard gates. It needs no composition
+context (requiresContext: false), so it renders through exactly the same path
+as every archetype.
+
 Fixtures land under a11y/fixtures/archetypes/, NOT directly in a11y/fixtures/:
 a11y/axe.spec.mjs's own directory scan is non-recursive (readdirSync,
 top-level .html only), so this subdirectory is invisible to that scan and
@@ -68,14 +79,33 @@ def _slug(example_name: str) -> str:
     return example_name.removesuffix(".html").replace("/", "-")
 
 
+# The example kinds this generator renders. Both are complete, standalone
+# DOCUMENTS a browser can load, which is the property that matters here, not
+# the catalogue distinction between them: an archetype is a composed page, a
+# skeleton is the raw document a consumer copies as their own base.html.
+# Sections are deliberately absent, being single bands rather than documents;
+# they are covered by generate_fixtures.py's own composed renders.
+#
+# Driven by kind rather than by a name list on purpose (icvoss/django-brickwork#464):
+# base.html was scanned here while it was miscounted as an archetype, and
+# reclassifying it would have silently dropped it out of the axe, no-JS and
+# keyboard gates. A tuple of kinds keeps the discovery mechanical, so a future
+# kind is enrolled by adding it here rather than by remembering a filename.
+_SCANNED_KINDS: tuple[str, ...] = ("archetype", "skeleton")
+
+
 def discover_archetypes() -> dict[str, str]:
-    """Every manifest archetype, keyed by its _EXAMPLE_CONTEXTS name.
+    """Every manifest archetype and skeleton, keyed by its _EXAMPLE_CONTEXTS name.
 
     Mirrors tests/test_archetype_harness.py's own _manifest_archetype_names():
     the manifest names carry an "examples/" prefix, _EXAMPLE_CONTEXTS does
     not.
     """
-    return {entry["name"].removeprefix("examples/"): entry["name"] for entry in items_by_kind("archetype")}
+    return {
+        entry["name"].removeprefix("examples/"): entry["name"]
+        for kind in _SCANNED_KINDS
+        for entry in items_by_kind(kind)
+    }
 
 
 def render_archetype(example_name: str, theme: str) -> str:

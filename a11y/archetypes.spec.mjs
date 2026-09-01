@@ -102,13 +102,25 @@ const archetypes = discoverArchetypes();
 // filter bug, an early return) without dropping to exactly zero, which the
 // discovery tests above cannot distinguish from "sixteen rendered
 // correctly".
+// Archetypes AND skeletons: generate_archetype_fixtures.py renders every
+// WHOLE-DOCUMENT catalogue kind (its own _SCANNED_KINDS), not archetypes
+// alone. base.html is the skeleton, and this harness asserts its skip-link
+// floor by name below, so sizing this guard on counts.archetypes alone would
+// fail the moment base.html was reclassified out of that kind
+// (icvoss/django-brickwork#464) while the document was still being scanned.
+const SCANNED_COUNT_KEYS = ["archetypes", "skeletons"];
+
 function expectedArchetypeCount() {
   const manifest = JSON.parse(readFileSync(CATALOGUE_MANIFEST_PATH, "utf-8"));
-  const count = manifest.counts?.archetypes;
-  if (typeof count !== "number") {
-    throw new Error(`${CATALOGUE_MANIFEST_PATH} has no counts.archetypes; cannot size the fixture-count guard.`);
+  let total = 0;
+  for (const key of SCANNED_COUNT_KEYS) {
+    const count = manifest.counts?.[key];
+    if (typeof count !== "number") {
+      throw new Error(`${CATALOGUE_MANIFEST_PATH} has no counts.${key}; cannot size the fixture-count guard.`);
+    }
+    total += count;
   }
-  return count;
+  return total;
 }
 
 test.describe("archetype harness: discovery", () => {

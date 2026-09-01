@@ -31,11 +31,18 @@ failure signal for the same root cause), so the named assertion exists purely
 to give CI an actionable, specific failure rather than a raw traceback.
 
 **The reverse direction is checked too**: a ``_EXAMPLE_CONTEXTS`` entry with
-no matching manifest archetype would mean the manifest itself has drifted
-from the examples tree, already caught by
+no matching manifest archetype, section or skeleton would mean the manifest
+itself has drifted from the examples tree, already caught by
 ``tests/test_catalogue_manifest.py``'s byte-for-byte regeneration test; this
 harness re-asserts the same invariant from the archetype-name-set angle,
-which is the shape this file's own consumers care about.
+which is the shape this file's own consumers care about. ``skeleton`` is
+included in that check (icvoss/django-brickwork#464:
+``examples/base.html`` is not an archetype, but ``_EXAMPLE_CONTEXTS`` still
+carries and renders it) without being auto-discovered as a render-gate
+subject the way archetypes are: it has no width sweep, no per-theme render
+loop here, and no fixture in ``a11y/generate_archetype_fixtures.py`` (see
+that file's own module docstring for the resulting a11y-gate coverage gap
+this reclassification opens).
 
 Width source (ADR-079 section 6, ratified as the authoritative supported-width
 matrix W0.3 consumes): the four ``--bw-breakpoint-*`` tokens are read directly
@@ -127,17 +134,24 @@ def test_every_archetype_has_a_render_context_entry() -> None:
     )
 
 
-def test_every_render_context_entry_is_a_known_archetype_or_section() -> None:
+def test_every_render_context_entry_is_a_known_archetype_section_or_skeleton() -> None:
     """The reverse direction: an _EXAMPLE_CONTEXTS entry with no matching
     manifest item would mean the manifest has drifted from the examples tree.
     tests/test_catalogue_manifest.py's byte-for-byte regeneration test already
     guards this from the manifest side; this re-asserts it from the name-set
     this harness itself depends on.
+
+    Includes ``skeleton`` alongside ``archetype``/``section``
+    (icvoss/django-brickwork#464): ``_EXAMPLE_CONTEXTS`` legitimately still
+    carries a ``base.html`` entry (test_examples.py renders and drift-checks
+    it independently of catalogue ``kind``), and that is not manifest drift,
+    so a bare archetype/section union would wrongly flag it as unknown.
     """
     from tests.test_examples import _SECTION_CONTEXTS
 
     known_examples = {entry["name"].removeprefix("examples/") for entry in items_by_kind("archetype")}
     known_examples |= {entry["name"].removeprefix("examples/") for entry in items_by_kind("section")}
+    known_examples |= {entry["name"].removeprefix("examples/") for entry in items_by_kind("skeleton")}
     stray = sorted(set(_EXAMPLE_CONTEXTS) | set(_SECTION_CONTEXTS))
     unknown = [name for name in stray if name not in known_examples]
     assert not unknown, (

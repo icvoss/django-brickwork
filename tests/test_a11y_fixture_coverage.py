@@ -306,18 +306,38 @@ def test_every_section_has_an_a11y_fixture(traced_template_names: set[str]) -> N
 # ---------------------------------------------------------------------------
 
 
+# The manifest's counts object pluralises each kind; map it rather than
+# guessing, so a kind whose count key is irregular fails loudly here.
+_COUNT_KEY_BY_KIND = {"archetype": "archetypes", "skeleton": "skeletons"}
+
+
 def test_archetype_fixtures_are_auto_discovered_from_the_manifest() -> None:
     archetype_generator = _load_module(_ARCHETYPE_GENERATOR_PATH, "a11y_generate_archetype_fixtures")
     discovered = archetype_generator.discover_archetypes()
-    manifest_names = {entry["name"] for entry in items_by_kind("archetype")}
+    # Both whole-document kinds, read from the generator's own tuple rather
+    # than restated here: a kind added there must be scanned, and a test that
+    # hard-coded the kinds would keep passing while the new kind went
+    # unscanned, which is the exact failure icvoss/django-brickwork#464 hit.
+    scanned_kinds = archetype_generator._SCANNED_KINDS
+    manifest_names = {entry["name"] for kind in scanned_kinds for entry in items_by_kind(kind)}
 
     assert set(discovered.values()) == manifest_names, (
         "a11y/generate_archetype_fixtures.py's discover_archetypes() has drifted from "
-        'items_by_kind("archetype"); it should read that manifest directly with no '
-        "hand-maintained archetype list of its own (this is what makes archetype "
-        "coverage immune to the silent-gap failure mode this file otherwise gates)."
+        "the manifest kinds it declares in _SCANNED_KINDS; it should read the manifest "
+        "directly with no hand-maintained example list of its own (this is what makes "
+        "the coverage immune to the silent-gap failure mode this file otherwise gates)."
     )
-    assert len(discovered) == manifest()["counts"]["archetypes"]
+    counts = manifest()["counts"]
+    assert len(discovered) == sum(counts[_COUNT_KEY_BY_KIND[kind]] for kind in scanned_kinds)
+
+    # The gate above compares sets, so it would still pass if a kind were
+    # dropped from BOTH the generator and this test at once. This pins the one
+    # membership that a reclassification is most likely to lose silently.
+    assert "examples/base.html" in manifest_names, (
+        "examples/base.html has fallen out of the a11y-scanned set. It is kind "
+        '"skeleton" (icvoss/django-brickwork#464); if its kind changed again, add the '
+        "new kind to _SCANNED_KINDS rather than letting the document go unscanned."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -406,7 +426,13 @@ def test_documented_hand_maintained_fixture_count_matches_the_real_generator_out
         "once per theme (light and dark), so the total should always be even"
     )
     per_theme = hand_maintained_total // 2
-    archetype_total = manifest()["counts"]["archetypes"] * 2
+    # Archetypes AND skeletons: generate_archetype_fixtures.py writes one pair
+    # per whole-document example, over every kind in its own _SCANNED_KINDS
+    # (icvoss/django-brickwork#464). Derived from that tuple so this figure
+    # cannot drift from what the generator actually writes.
+    archetype_generator = _load_module(_ARCHETYPE_GENERATOR_PATH, "a11y_generate_archetype_fixtures")
+    counts = manifest()["counts"]
+    archetype_total = sum(counts[_COUNT_KEY_BY_KIND[kind]] for kind in archetype_generator._SCANNED_KINDS) * 2
     documented_total = hand_maintained_total + archetype_total
 
     positioning_text = _POSITIONING.read_text(encoding="utf-8")

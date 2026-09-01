@@ -250,11 +250,15 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     to check here.
     """
     manifest = catalogue_manifest()
-    archetype_count = manifest["counts"]["archetypes"]
+    # The archetype fixture generator scans every WHOLE-DOCUMENT kind, which is
+    # archetypes plus the one skeleton (icvoss/django-brickwork#464), not
+    # archetypes alone. Counting archetypes only would understate the row by
+    # the skeleton pair and quietly bless a document going unscanned.
+    document_count = manifest["counts"]["archetypes"] + manifest["counts"]["skeletons"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 130 + (archetype_count * 2)
-    assert f"{archetype_count} catalogue archetypes x light and dark" in note
+    assert _leading_int(value) == 130 + (document_count * 2)
+    assert f"{document_count} catalogue documents x light and dark" in note
 
 
 # ---------------------------------------------------------------------------

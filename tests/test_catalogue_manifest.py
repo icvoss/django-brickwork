@@ -8,8 +8,8 @@ examples trees by ``scripts/generate_catalogue_manifest.py``) and exposes it
 as typed Python for this repo's own in-package consumers. These tests cover:
 
 1. **Manifest shape**: the typed reader's accessors match the raw JSON, and
-   the documented counts hold (6 shells, 50 components, 28 sections, 23
-   archetypes: verified against the tree post-code-display merge,
+   the documented counts hold (6 shells, 50 components, 28 sections, 22
+   archetypes, 1 skeleton: verified against the tree post-#464 fix,
    docs/CATALOGUE.md ss5).
 2. **Manifest-vs-reality drift**: regenerating the manifest from the current
    template and examples trees produces byte-identical output (canonical
@@ -113,7 +113,9 @@ def test_counts_reflects_the_current_items_breakdown_by_kind() -> None:
     # checks manifest-internal consistency (the summary agrees with the
     # detail it summarises) rather than pinning either side as a literal.
     manifest_data = manifest()
-    derived_counts = {f"{kind}s": len(items_by_kind(kind)) for kind in ("shell", "component", "section", "archetype")}
+    derived_counts = {
+        f"{kind}s": len(items_by_kind(kind)) for kind in ("shell", "component", "section", "archetype", "skeleton")
+    }
     assert manifest_data["counts"] == derived_counts
 
 
@@ -141,7 +143,8 @@ def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 6
     assert len(items_by_kind("component")) == 50
     assert len(items_by_kind("section")) == 28
-    assert len(items_by_kind("archetype")) == 23
+    assert len(items_by_kind("archetype")) == 22
+    assert len(items_by_kind("skeleton")) == 1
 
 
 def test_item_returns_a_known_shell() -> None:
@@ -181,6 +184,20 @@ def test_a_marketing_component_is_used_by_both_archetypes_and_sections() -> None
     assert entry["usedBySections"], "expected at least one section using the hero component"
 
 
+def test_the_skeletons_only_component_is_recorded_in_its_own_usage_bucket() -> None:
+    # examples/base.html (the only skeleton) composes _toast_region.html.
+    # Before the skeleton kind existed, this landed in usedByArchetypes (when
+    # base.html was misclassified as an archetype); a bare "archetype or else
+    # section" split would instead have mislabelled it usedBySections, which
+    # is equally wrong (icvoss/django-brickwork#464). Neither usage bucket
+    # meant for a page or a band should claim a skeleton's usage.
+    entry = item("component/toast_region")
+    assert entry is not None
+    assert entry["usedBySkeleton"] == ["base.html"]
+    assert entry["usedByArchetypes"] == []
+    assert entry["usedBySections"] == []
+
+
 def test_sections_requiring_context_match_the_documented_shape() -> None:
     # docs/CATALOGUE.md ss7: exactly the sections whose content is a list of
     # dicts a template cannot build inline.
@@ -204,6 +221,15 @@ def test_most_sections_render_from_empty_context() -> None:
 
 
 def test_archetypes_are_scoped_to_their_shipped_family() -> None:
+    # The `if entry["family"]` guard is now VACUOUS (icvoss/django-brickwork#464):
+    # examples/base.html was the only archetype ever carrying family: None,
+    # and it is no longer kind "archetype" (it is "skeleton"), so every
+    # archetype today has a real family and the guard filters nothing. Left
+    # in place because a future archetype could theoretically ship with no
+    # family assigned (a directory _FAMILY_BY_EXAMPLE_DIR does not cover),
+    # which this guard would then correctly exclude from the comparison
+    # again; removing it would make that future case a silent KeyError-free
+    # false pass instead of a loud one.
     families_seen = {entry["family"] for entry in items_by_kind("archetype") if entry["family"]}
     assert families_seen == {
         "Product applications",
@@ -214,11 +240,21 @@ def test_archetypes_are_scoped_to_their_shipped_family() -> None:
     }
 
 
-def test_base_archetype_carries_no_family() -> None:
-    # examples/base.html is a raw document skeleton, tied to no one family.
+def test_the_skeleton_carries_no_family() -> None:
+    # examples/base.html is a raw document skeleton, tied to no one family
+    # (icvoss/django-brickwork#464: it is kind "skeleton", not "archetype").
     entry = item("examples/base.html")
     assert entry is not None
+    assert entry["kind"] == "skeleton"
     assert entry["family"] is None
+
+
+def test_skeleton_is_not_counted_as_an_archetype() -> None:
+    # The defect this kind exists to fix: examples/base.html previously
+    # inflated every published archetype figure by one (icvoss/django-brickwork#464).
+    archetype_names = {entry["name"] for entry in items_by_kind("archetype")}
+    assert "examples/base.html" not in archetype_names
+    assert {entry["name"] for entry in items_by_kind("skeleton")} == {"examples/base.html"}
 
 
 def test_sections_carry_no_family() -> None:
@@ -416,6 +452,12 @@ def test_families_only_lists_families_with_shipped_coverage() -> None:
     # meant to guard (Data-heavy operations already forced one such edit),
     # which invites the edit instead of catching the thing it names.
     family_names = {entry["name"] for entry in families()}
+    # The `if entry["family"] is not None` filter is now VACUOUS for the same
+    # reason as test_archetypes_are_scoped_to_their_shipped_family above
+    # (icvoss/django-brickwork#464): examples/base.html was the only
+    # archetype ever carrying family: None, and it is kind "skeleton" now,
+    # not "archetype". Kept for the same reason: a future family-less
+    # archetype should be excluded here again, not silently counted.
     archetype_families_seen = {entry["family"] for entry in items_by_kind("archetype") if entry["family"] is not None}
     required_families = _required_archetype_family_names()
 

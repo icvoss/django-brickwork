@@ -1,9 +1,11 @@
 # brickwork
 
-**Beautiful defaults, proved by the examples.** brickwork ships 51 examples
-(23 pages, 28 sections) built from nothing but its own shipped tokens and
-components. 47 of them add no CSS at all. The one that does is the date
-range picker, whose scoped `.bw-drp` block uses only existing `--bw-*`
+**Beautiful defaults, proved by the examples.** brickwork ships 50 examples
+(22 archetype pages, 28 sections; a 51st file, `base.html`, is a raw document
+skeleton a consumer copies rather than a page in its own right) built from
+nothing but its own shipped tokens and components. 50 of the 51 files add no
+CSS at all. The one that does is the date range picker, whose scoped
+`.bw-drp` block uses only existing `--bw-*`
 tokens, because brickwork ships no date picker component for it to compose
 (see [Example pages](#example-pages)). Every one is readable in the repo, so
 "the defaults are beautiful" is a claim you check by opening a file rather
@@ -29,8 +31,9 @@ by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
 axe-core WCAG 2.2 AA scan across 176 documents (130 hand-maintained fixtures
-plus 46 catalogue archetypes, each x light and dark themes), plus a no-JS
-floor suite, keyboard suites, mobile-overflow checks at
+plus 46 catalogue documents, being 22 archetypes and 1 skeleton, each x light
+and dark themes), plus a no-JS floor suite, keyboard suites,
+mobile-overflow checks at
 320/360/375/414px, and pixel-level composited contrast measurement. That last
 check exists because the axe gate itself once ran green over a real 4.25:1
 contrast defect (axe's contrast check does not rasterise the page, so text
