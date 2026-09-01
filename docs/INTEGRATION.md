@@ -866,6 +866,16 @@ spot once you know the cause: **the blocks are spaced correctly from each
 other, but paragraphs inside a block sit flush against each other with no
 gap**, as if the flow rhythm were simply missing.
 
+> **Note (fixed in the release carrying icvoss/django-brickwork#461).** Before
+> that fix, direct children of `.bw-prose` were flush too, so the "blocks are
+> spaced correctly" half of the symptom above did not hold and the nesting
+> explanation could not be distinguished from the package defect underneath it.
+> Every per-element reset inside `.bw-prose` used the `margin` shorthand, which
+> zeroed the flow rule's own `margin-block-start`. If you are on an earlier
+> release and see flush paragraphs at **any** depth, including depth 1, that is
+> the package defect and adding the wrapper rule below will not close it.
+> Upgrade first, then apply this section if content genuinely nests.
+
 Measured against icv-cms 1.0.0rc9, whose block markup nests two levels below
 `.bw-prose`:
 
