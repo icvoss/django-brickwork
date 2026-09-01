@@ -4087,13 +4087,27 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 
 /* Rhythm: space between flow siblings rather than margins on each element, so
  * the first and last child never introduce stray outer space the section band
- * then has to cancel. */
+ * then has to cancel. Every per-element reset below therefore leaves
+ * margin-block-start alone and resets only margin-block-end and
+ * margin-inline: it used to reset with the `margin` shorthand, which zeroes
+ * margin-block-start too, and every reset ties this rule on specificity
+ * ((0,1,0), :where() contributes none) while being authored later, so the
+ * resets always won and the whole rhythm collapsed to 0 for any pair the
+ * heading-specific rules below did not separately override
+ * (icvoss/django-brickwork#461). */
 .bw-prose > * + * {
   margin-block-start: var(--bw-space-5);
 }
+/* The first child still contributes no leading space of its own: the
+ * comment above is the reason a reset can no longer supply this by zeroing
+ * margin-block-start wholesale. */
+.bw-prose > :first-child {
+  margin-block-start: 0;
+}
 
 .bw-prose :where(h1, h2, h3, h4, h5, h6) {
-  margin: 0;
+  margin-block-end: 0;
+  margin-inline: 0;
   color: var(--bw-color-fg);
   font-family: var(--bw-text-heading-lg-family);
   text-wrap: balance;
@@ -4136,7 +4150,8 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 .bw-prose :where(p) {
-  margin: 0;
+  margin-block-end: 0;
+  margin-inline: 0;
   text-wrap: pretty;
 }
 
@@ -4164,7 +4179,8 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 .bw-prose :where(ul, ol) {
-  margin: 0;
+  margin-block-end: 0;
+  margin-inline: 0;
   padding-inline-start: var(--bw-space-6);
 }
 .bw-prose :where(li)::marker {
@@ -4179,7 +4195,8 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 .bw-prose :where(blockquote) {
-  margin: 0;
+  margin-block-end: 0;
+  margin-inline: 0;
   padding-inline-start: var(--bw-space-5);
   border-inline-start: var(--bw-size-border-nav-marker) solid var(--bw-color-border-strong);
   color: var(--bw-color-fg-muted);
@@ -4218,7 +4235,8 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
  * the markup was correct and the gate only fires at a width where the sample
  * is actually wider than the column. */
 .bw-prose :where(pre):not(.bw-code__pre) {
-  margin: 0;
+  margin-block-end: 0;
+  margin-inline: 0;
   /* A grid/flex or block child sizes to its content by default, so a long code
    * line made the <pre> itself wider than the page instead of scrolling inside
    * it, and the whole document scrolled sideways on a phone. Capping the inline
@@ -4305,7 +4323,8 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 .bw-prose :where(figure) {
-  margin: 0;
+  margin-block-end: 0;
+  margin-inline: 0;
 }
 .bw-prose :where(figcaption) {
   margin-block-start: var(--bw-space-2);
