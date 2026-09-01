@@ -21,46 +21,58 @@ does (Django's own template engine, compiled node tree, never a regex over
 source text) and covers every shipped shell, component, section example and
 archetype example.
 
-Kinds (D4's catalogue nouns, mapped onto the four kinds this manifest
+Kinds (D4's catalogue nouns, mapped onto the five kinds this manifest
 records):
 
-- ``shell``: the 5 files under ``templates/brickwork/shell/`` and
+- ``shell``: the 6 files under ``templates/brickwork/shell/`` and
   ``brickwork_marketing/shell/`` (``base`` included: every other shell
-  extends it, and CHANGELOG 3.0.0 counts it as one of the five named shells).
-- ``component``: 40 underscore-prefixed files under (recursively)
+  extends it, and CHANGELOG 3.0.0 counts it as one of the named shells).
+- ``component``: 50 underscore-prefixed files under (recursively)
   ``templates/brickwork/components/`` and ``brickwork_marketing/
   components/`` (forms/_*.html and nav/_*.html are their own tag surface,
   not counted here). ROADMAP.md's original W0.2 baseline was 39; W0.4
   (icvoss/django-brickwork#228) shipped the 40th, ``_theme_switch.html``.
-  All 40 are directly under their root today; a future nested one is still
+  All are directly under their root today; a future nested one is still
   found (the scan is recursive) and still counted.
-- ``section``: the 26 files under ``examples/sections/<type>/<variant>.html``
+- ``section``: the 28 files under ``examples/sections/<type>/<variant>.html``
   (D4: a section EXAMPLE, one band, the copy-paste unit).
-- ``archetype``: the 16 files under ``examples/`` that are a complete page
-  (``base.html`` plus ``app/*``, ``auth/*``, ``marketing/*``): D4 promotes
-  "archetype" as the one defined noun for a complete copyable page example.
+- ``archetype``: the 22 files under ``examples/`` (``app/*``, ``auth/*``,
+  ``docs/*``, ``marketing/*``, ``ops/*``) that are each a complete page: D4
+  promotes "archetype" as the one defined noun for a complete copyable page
+  example.
+- ``skeleton``: ``examples/base.html`` only (icvoss/django-brickwork#464).
+  Unlike every archetype, it is not a complete page belonging to a family: it
+  is a raw document skeleton a consumer copies to become their OWN
+  ``templates/base.html`` (its own header says so verbatim). Classifying it
+  as an archetype double-counted it against every published archetype figure
+  for three releases, caught only because it was also the sole archetype
+  carrying ``family: null``, itself the tell that it did not belong in that
+  set. ``skeleton`` is its own kind precisely so a raw skeleton and a
+  complete page are never conflated again.
 
-26 sections + 16 archetypes = the 42 examples ROADMAP.md and the plan's exit
-criteria count.
+These counts move release to release; read the shipped manifest's own
+``counts`` object rather than trusting this docstring, which is prose, not
+the artefact.
 
 ``family`` (catalogue taxonomy only, per O1) is derived from the shipped
 example directory an archetype/section lives under (``app`` -> "Product
 applications", ``auth`` -> "Transactional journeys", ``marketing`` ->
 "Marketing and public web", matching the INTERFACE-SYSTEM.md family table).
 Shells and components are cross-family building blocks: their ``family`` is
-``null``, and their ``usedByArchetypes``/``usedBySections`` fields (see
-below) say which shipped examples, and so which families, actually use them
-today. ``examples/base.html`` is also cross-family (a raw document skeleton,
-not tied to one family), so it is the one archetype with ``family: null``
-too.
+``null``, and their ``usedByArchetypes``/``usedBySections``/``usedBySkeleton``
+fields (see below) say which shipped examples, and so which families,
+actually use them today. ``examples/base.html`` is cross-family too, but for a different
+reason: it is not a page at all, so it carries no family by construction, not
+because it happens to serve several. Every archetype now carries a real
+family; ``skeleton`` is the only kind whose ``family`` is always ``null``.
 
-``usedByArchetypes`` (on shells, components and sections) and
-``composesItems`` (on sections and archetypes, the inverse) are derived by
-walking each example's compiled node tree for ``{% include %}``/
-``{% extends %}`` targets AND ``{% bw_* %}`` tag calls (the tag-consumed
-components, e.g. ``_button.html``, are never ``{% include %}``d directly, so
-their usage only shows up as a tag call in the compiled node list). This is
-mechanical provenance, not a hand-maintained cross-reference.
+``usedByArchetypes``/``usedBySections``/``usedBySkeleton`` (on shells and
+components) and ``composesItems`` (on sections, archetypes and the skeleton,
+the inverse) are derived by walking each example's compiled node tree for
+``{% include %}``/``{% extends %}`` targets AND ``{% bw_* %}`` tag calls (the
+tag-consumed components, e.g. ``_button.html``, are never ``{% include %}``d
+directly, so their usage only shows up as a tag call in the compiled node
+list). This is mechanical provenance, not a hand-maintained cross-reference.
 
 ``requiresContext`` (sections and archetypes only) is derived from the same
 compiled tree: an example "requires context" when at least one
@@ -213,19 +225,28 @@ def _raise_on_duplicate_names(items: list[dict]) -> None:
 
 
 def _iter_examples():
-    """Every shipped example, split into archetypes (whole pages) and sections."""
+    """Every shipped example, split into skeleton, archetypes (whole pages)
+    and sections."""
     from brickwork import examples as examples_module
 
     root = examples_module.EXAMPLES_ROOT
     for rel_name in examples_module.list_examples():
         path = root / rel_name
         parts = Path(rel_name).parts
-        if parts[0] == "sections":
+        if rel_name == "base.html":
+            # examples/base.html: a raw document skeleton a consumer copies
+            # into their own templates/base.html, not a complete page
+            # belonging to any family (icvoss/django-brickwork#464). Checked
+            # before the sections/archetype split so it can never fall
+            # through to either.
+            kind = "skeleton"
+            family = None
+        elif parts[0] == "sections":
             # sections/<type>/<variant>.html
             kind = "section"
             family = None
         else:
-            # base.html, app/*.html, auth/*.html, marketing/*.html
+            # app/*.html, auth/*.html, docs/*.html, marketing/*.html, ops/*.html
             kind = "archetype"
             top = parts[0] if len(parts) > 1 else None
             family = _FAMILY_BY_EXAMPLE_DIR.get(top)
@@ -510,15 +531,27 @@ def build_manifest() -> dict:
             "requiresContext": _requires_context(parsed.nodelist, text),
         }
 
-    # usedByArchetypes / usedBySections: invert example_refs onto each
-    # shell/component template_ref, split by example kind so a component
-    # used only by sections (e.g. a marketing section component) does not
-    # falsely claim archetype usage.
+    # usedByArchetypes / usedBySections / usedBySkeleton: invert example_refs
+    # onto each shell/component template_ref, split by example kind so a
+    # component used only by sections (e.g. a marketing section component)
+    # does not falsely claim archetype usage, and so a skeleton user (today
+    # only examples/base.html) does not get mislabelled into either bucket
+    # (icvoss/django-brickwork#464: before the skeleton kind existed,
+    # base.html's own usage silently landed in usedByArchetypes; a two-way
+    # "archetype or else section" split would have silently relabelled it
+    # usedBySections instead, which is equally wrong, since base.html is
+    # neither).
+    usage_bucket_by_kind = {
+        "archetype": "usedByArchetypes",
+        "section": "usedBySections",
+        "skeleton": "usedBySkeleton",
+    }
+    empty_usage: dict[str, list[str]] = {"usedByArchetypes": [], "usedBySections": [], "usedBySkeleton": []}
     used_by: dict[str, dict[str, list[str]]] = {}
     for rel_name, info in example_refs.items():
-        bucket_key = "usedByArchetypes" if info["kind"] == "archetype" else "usedBySections"
+        bucket_key = usage_bucket_by_kind[info["kind"]]
         for ref in info["refs"]:
-            used_by.setdefault(ref, {"usedByArchetypes": [], "usedBySections": []})
+            used_by.setdefault(ref, {"usedByArchetypes": [], "usedBySections": [], "usedBySkeleton": []})
             used_by[ref][bucket_key].append(rel_name)
 
     # composesItems: the forward direction for each example (what it pulls in).
@@ -534,7 +567,7 @@ def build_manifest() -> dict:
         # cross-references resolve against the right path.
         template_ref = f"{namespace}/shell/{rel_path}"
         text = path.read_text(encoding="utf-8")
-        usage = used_by.get(template_ref, {"usedByArchetypes": [], "usedBySections": []})
+        usage = used_by.get(template_ref, empty_usage)
         items.append(
             {
                 "name": f"shell/{name}",
@@ -545,13 +578,14 @@ def build_manifest() -> dict:
                 "consumption": _consumption(template_ref, text),
                 "usedByArchetypes": sorted(usage["usedByArchetypes"]),
                 "usedBySections": sorted(usage["usedBySections"]),
+                "usedBySkeleton": sorted(usage["usedBySkeleton"]),
             }
         )
 
     for namespace, name, rel_path, path in _iter_components():
         template_ref = f"{namespace}/components/{rel_path}"
         text = path.read_text(encoding="utf-8")
-        usage = used_by.get(template_ref, {"usedByArchetypes": [], "usedBySections": []})
+        usage = used_by.get(template_ref, empty_usage)
         items.append(
             {
                 "name": f"component/{name}",
@@ -562,6 +596,7 @@ def build_manifest() -> dict:
                 "consumption": _consumption(template_ref, text),
                 "usedByArchetypes": sorted(usage["usedByArchetypes"]),
                 "usedBySections": sorted(usage["usedBySections"]),
+                "usedBySkeleton": sorted(usage["usedBySkeleton"]),
             }
         )
 
@@ -587,6 +622,7 @@ def build_manifest() -> dict:
         "components": sum(1 for i in items if i["kind"] == "component"),
         "sections": sum(1 for i in items if i["kind"] == "section"),
         "archetypes": sum(1 for i in items if i["kind"] == "archetype"),
+        "skeletons": sum(1 for i in items if i["kind"] == "skeleton"),
     }
 
     # families: package truth only (CATALOGUE.md section 8). Every family
@@ -653,7 +689,8 @@ def main() -> int:
     counts = manifest["counts"]
     print(
         f"catalogue manifest written: {counts['shells']} shells, {counts['components']} components, "
-        f"{counts['sections']} sections, {counts['archetypes']} archetypes -> {MANIFEST_PATH}"
+        f"{counts['sections']} sections, {counts['archetypes']} archetypes, "
+        f"{counts['skeletons']} skeleton -> {MANIFEST_PATH}"
     )
     return 0
 

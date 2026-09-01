@@ -50,7 +50,7 @@ from typing import Literal, TypedDict
 
 _MANIFEST_RESOURCE = "static/brickwork/dist/catalogue-manifest.json"
 
-CatalogueKind = Literal["shell", "component", "section", "archetype"]
+CatalogueKind = Literal["shell", "component", "section", "archetype", "skeleton"]
 
 
 class FamilyEntry(TypedDict):
@@ -67,14 +67,18 @@ class FamilyEntry(TypedDict):
 
 
 class CatalogueItem(TypedDict, total=False):
-    """One shipped shell, component, section or archetype.
+    """One shipped shell, component, section, archetype or skeleton.
 
     ``family`` is ``None`` for a shell or component (cross-family building
-    blocks) and for ``examples/base.html`` (a raw document skeleton tied to
-    no family); populated for every other section/archetype. Shells and
-    components additionally carry ``consumption`` (``"tag"``/``"extend"``/
-    ``"include"``) and ``usedByArchetypes``/``usedBySections`` (which shipped
-    examples compose this item). Sections and archetypes additionally carry
+    blocks) and for the ``skeleton`` kind (``examples/base.html``, a raw
+    document skeleton a consumer copies into their own project rather than a
+    complete page belonging to any family); populated for every archetype and
+    ``None`` for every section. Shells and components additionally carry
+    ``consumption`` (``"tag"``/``"extend"``/``"include"``) and
+    ``usedByArchetypes``/``usedBySections``/``usedBySkeleton`` (which shipped
+    examples compose this item, split by the consuming example's own kind so
+    a skeleton user is never mislabelled as an archetype or section user).
+    Sections, archetypes and the skeleton additionally carry
     ``requiresContext`` (whether the example needs render-context data to
     show its real content, docs/CATALOGUE.md ss7) and ``composesItems`` (the
     shells/components the example itself pulls in).
@@ -88,6 +92,7 @@ class CatalogueItem(TypedDict, total=False):
     consumption: str
     usedByArchetypes: list[str]
     usedBySections: list[str]
+    usedBySkeleton: list[str]
     requiresContext: bool
     composesItems: list[str]
 
