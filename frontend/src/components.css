@@ -4611,6 +4611,118 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   background: none;
 }
 
+/* Content / pager (icvoss/django-brickwork#460) ----------------------------- */
+
+/* A content primitive, exactly like the callout and code panel above and for
+ * the same reason: its subject is the CONTENT's own sequence (this document's
+ * predecessor and successor), not a surface, so ADR-090's amended rule puts
+ * it here rather than in marketing.css. Family-neutral: legal on the docs
+ * shell, the marketing shell, and anywhere else a sequential article lives.
+ *
+ * .bw-pager is a flex row that wraps: two slots side by side at wide
+ * viewports, stacked at narrow ones, with no breakpoint of its own (the
+ * wrap happens whenever the row runs out of inline space, matching
+ * .bw-bulk-actions-bar's own wrap+space-between idiom at
+ * components.css:1321-1323). justify-content: space-between only positions
+ * the pair; the single-link degradation below is a separate, deliberate
+ * rule, because space-between alone would leave a lone slot pinned to the
+ * start regardless of which one it is.
+ *
+ * The first and last page of every sequence renders exactly one slot
+ * (previous is absent on page 1, next is absent on the last page), so this
+ * is the common case, not an edge case: a lone "Next" must still sit at the
+ * inline end, where a reader expects the forward control, and a lone
+ * "Previous" must still sit at the inline start. margin-inline-start: auto
+ * on __next does this with no modifier class or JS: it pushes __next to the
+ * end whether or not __previous is present, and a solitary __previous needs
+ * no rule at all, since a flex row's default main-axis placement is already
+ * flex-start. */
+.bw-pager {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--bw-space-3) var(--bw-space-6);
+  margin-block-start: var(--bw-density-stack-gap);
+}
+
+/* The link itself: visibly a link at the docs footer's secondary tier,
+ * which is the whole defect this fixes (icvoss/django-brickwork#460). The
+ * footer's own rule (shell.css's
+ * .bw-docs-layout__footer :where(a):not(.bw-btn)) sets fg-muted and
+ * text-decoration: none at ZERO specificity via :where(), deliberately,
+ * because a docs footer's links are secondary chrome. This class selector
+ * is (0,1,0) and beats that cleanly with no !important, which is the
+ * intended mechanism (icvoss/django-brickwork#460's own evidence section).
+ *
+ * The fix is deliberately NOT "restore the full prose link tier"
+ * (.bw-prose :where(a), accent colour): that would stop this reading as
+ * footer chrome at all. Instead it keeps fg-muted (the secondary tier) and
+ * adds the underline .bw-prose :where(a) already uses for the same WCAG
+ * 1.4.1 reason, colour alone is never the signal that text is a link, just
+ * applied to the muted colour instead of the accent one. Muted-and-underlined
+ * reads as "a link, but a quiet one", which is exactly the footer's tier. */
+.bw-pager__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  min-block-size: 1.5rem;
+  color: var(--bw-color-fg-muted);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  transition: var(--bw-transition-colors);
+}
+.bw-pager__link:hover {
+  color: var(--bw-color-fg);
+}
+
+/* Matches the docs footer's own coarse-pointer bump exactly (shell.css's
+ * .bw-docs-layout__footer :where(a):not(.bw-btn), icvoss/django-brickwork#242):
+ * a fine-pointer desktop render stays at the 1.5rem floor above, so the
+ * pager's layout does not shift, and only a coarse-pointer device gets the
+ * WCAG 2.5.5 44px hit area. */
+@media (pointer: coarse) {
+  .bw-pager__link {
+    min-block-size: var(--bw-size-touch-target-min);
+  }
+}
+
+/* margin-inline-start: auto is the single-link mechanism the block comment
+ * above describes: it pushes __next to the inline end whether or not
+ * __previous is present, so a lone "Next" (the last page of a sequence)
+ * still sits where a reader expects the forward control, with no modifier
+ * class or JS needed. row-reverse trails the chevron behind the text so it
+ * still sits nearest the inline end it points toward, and text-align: end
+ * right-aligns the two-line text block against that same edge. */
+.bw-pager__next {
+  margin-inline-start: auto;
+  flex-direction: row-reverse;
+  text-align: end;
+}
+
+.bw-pager__link > span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
+}
+
+/* The direction label ("Previous" / "Next"): a small caption sitting above
+ * the destination title. This is presentational reinforcement only, never
+ * the sole carrier of direction: the anchor's own visible text already
+ * states "Previous: <title>" / "Next: <title>" (see _pager.html), so
+ * direction survives being read out of context even with CSS disabled
+ * (WCAG 2.4.4). Muted a step further than the link colour itself, matching
+ * .bw-pagination__status's own caption tier. */
+.bw-pager__direction {
+  color: var(--bw-color-fg-subtle);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
+}
+
+.bw-pager__title {
+  font-size: var(--bw-text-body-md-size);
+}
+
 /* --- Dark-theme resets for the light-only top-light (0.7.0 craft) ----------- */
 
 /* The card family's inset top-light is a LIGHT-theme treatment (white sheen on

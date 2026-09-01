@@ -1,0 +1,35 @@
+{% comment %}
+CONTENT / pager: the previous/next treatment for a sequential document
+(icvoss/django-brickwork#460). Both shapes are shown here.
+
+Three pagers stack here, one per state, distinguished by which slots are
+filled rather than by a heading of their own (no bare <h3> is introduced
+into an example that a page stacks alongside its own outline, matching
+content/code.html's own three-panel convention).
+
+First panel, two-link (the common mid-sequence page): previous and next lay
+out at opposite ends of the row at wide viewports, and stack when the row
+runs out of inline space.
+
+Second and third panels, single-link (the first and last page of every
+sequence, so this is the common case rather than an edge case, not a rare
+one): omitting the other href renders only the remaining slot. A solitary
+"Next" still sits at the inline end (margin-inline-start: auto on
+.bw-pager__next), never drifting to the left where a reader would not
+expect the forward control; a solitary "Previous" needs no rule of its own,
+a flex row's default placement already puts it at the inline start.
+
+States: two-link and single-link (previous-only or next-only), see above.
+Accessibility: direction is stated in each link's own visible text
+  ("Previous: ..."/"Next: ..."), never carried by the chevron icon alone
+  (WCAG 2.4.4); see _pager.html's own header comment for the full contract.
+  Covered by axe.spec.mjs against sections-*.html, which renders this exact
+  file, both themes.
+Responsive: no breakpoint switch; .bw-pager wraps to a stacked column
+  whenever its own inline space runs out.
+{% endcomment %}
+{% include "brickwork/components/_pager.html" with aria_label="More in this guide" previous_href="/docs/guide/setup/" previous_label="Installing the package" next_href="/docs/guide/config/" next_label="Configuring your first project" %}
+
+{% include "brickwork/components/_pager.html" with aria_label="More in this guide, first page" next_href="/docs/guide/config/" next_label="Configuring your first project" %}
+
+{% include "brickwork/components/_pager.html" with aria_label="More in this guide, last page" previous_href="/docs/guide/setup/" previous_label="Installing the package" %}
