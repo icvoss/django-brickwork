@@ -1,7 +1,7 @@
 # brickwork
 
-**Beautiful defaults, proved by the examples.** brickwork ships 50 examples
-(23 pages, 27 sections) built from nothing but its own shipped tokens and
+**Beautiful defaults, proved by the examples.** brickwork ships 51 examples
+(23 pages, 28 sections) built from nothing but its own shipped tokens and
 components. 47 of them add no CSS at all. The one that does is the date
 range picker, whose scoped `.bw-drp` block uses only existing `--bw-*`
 tokens, because brickwork ships no date picker component for it to compose

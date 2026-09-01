@@ -35,6 +35,17 @@ function fixture(theme) {
 // landmarks in source order: two-link, next-only (first page), previous-only
 // (last page). Selecting by position rather than aria-label keeps this
 // suite decoupled from the example's own copy.
+//
+// pagerRight/pagerLeft are the PADDING edge, not the border-box edge
+// getBoundingClientRect() alone would give: .bw-pager is a direct child of
+// .bw-marketing__content in this fixture, so it inherits that ancestor's
+// standard section gutter (.bw-marketing__content > *'s padding-inline,
+// icvoss/django-brickwork#460 CI finding), the same gutter every other
+// top-level section here (callouts, code blocks) also carries. A lone link
+// sitting flush against ITS OWN section's inline edge is therefore flush
+// against the padding edge, not the element's own border-box edge; measuring
+// against the border-box edge produced a false ~24px "gap" that was never a
+// pager layout defect.
 async function pagerMetrics(page) {
   return page.evaluate(() => {
     const pagers = Array.from(document.querySelectorAll("nav.bw-pager"));
@@ -43,12 +54,13 @@ async function pagerMetrics(page) {
     const describe = (pager) => {
       const links = Array.from(pager.querySelectorAll(".bw-pager__link"));
       const pagerRect = pager.getBoundingClientRect();
+      const pagerStyle = getComputedStyle(pager);
       return {
         linkCount: links.length,
         rects: links.map((a) => a.getBoundingClientRect()),
         underlines: links.map((a) => getComputedStyle(a).textDecorationLine),
-        pagerRight: pagerRect.right,
-        pagerLeft: pagerRect.left,
+        pagerRight: pagerRect.right - parseFloat(pagerStyle.paddingInlineEnd || "0"),
+        pagerLeft: pagerRect.left + parseFloat(pagerStyle.paddingInlineStart || "0"),
       };
     };
 

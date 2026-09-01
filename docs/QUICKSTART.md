@@ -65,7 +65,7 @@ if you want that.
   (multi-host projects, asset-pipeline coexistence, a second component
   framework in the content block).
 - **Copyable pages to start from:** the `src/brickwork/examples/` tree ships
-  50 examples (23 pages, 27 sections) built entirely from shipped tokens and
+  51 examples (23 pages, 28 sections) built entirely from shipped tokens and
   components. See [Example pages](../README.md#example-pages) in the README for
   how to use one.
 - **Token reference:** [docs/DESIGN.md](DESIGN.md) is the authoritative
