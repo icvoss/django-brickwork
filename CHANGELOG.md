@@ -8,6 +8,257 @@ versioning contract).
 
 ## Unreleased
 
+## [3.16.0] - 2026-09-01
+
+**Wave 2's documentation surface goes from a shell with no consumers to a
+working documentation family.** `brickwork/shell/docs.html` shipped in 3.15.0
+with nothing built on it; this release gives it its first two archetypes
+(`examples/docs/home.html`, `examples/docs/article.html`), a site-wide chrome
+seam so a docs page can carry the same header and footer as the rest of a
+site, a code-display content primitive, heading anchors for linking into
+long-form content, and a prev/next pager for sequential documents. Two defect
+fixes reach every consumer of the content floor, not just documentation
+pages.
+
+**Read this before upgrading if you render CMS, Markdown or rich-text content
+through `bw-prose`: your vertical spacing will change.** `.bw-prose`'s
+per-element resets were cancelling the flow rule's spacing on every adjacent
+pair not separately covered by the heading-specific rules, not just
+paragraphs: lists, blockquotes and code blocks were equally affected, eight
+of thirteen adjacency types rendered a 0px gap where the flow rhythm should
+have applied. This is now fixed, so long-form content on `bw-prose` gains
+back its intended spacing between elements on upgrade, with no markup change
+required.
+
+### Added
+
+- **The Documentation family opens with two copy-paste archetypes**
+  (icvoss/django-brickwork#408, icvoss/django-brickwork#409).
+  `examples/docs/home.html` is a documentation home: a search box leading the
+  page, three hand-ranked start-here cards, a short list of frequently opened
+  pages, and a real empty state for a docs site whose shell has shipped ahead
+  of its content. `examples/docs/article.html` is a documentation article: a
+  lede, linkable headings, two code panels taking their multi-line source
+  from the view, an editorial warning callout, a scrollable data table and
+  prev/next links. Both extend `brickwork/shell/docs.html`, so they are the
+  first shipped templates to use the docs shell, and the first bound by
+  `tests/test_family_boundary.py`'s docs entry: neither emits a
+  marketing-family class, and the arrangement uses `.bw-band-grid--3` rather
+  than `.bw-feature-grid--3`, per ADR-090 decision 1.
+
+  Both are pure composition, with no bespoke CSS, and both are enrolled in
+  the archetype harness, so each is now rendered and axe-scanned in light and
+  dark at every supported width. The Documentation family previously shipped
+  nothing at all, so a team wanting a docs site had to compose the surface
+  from the marketing shell and invent the rest; the required-archetype table
+  in `docs/INTERFACE-SYSTEM.md` names seven for this family, and these are
+  the first two of them.
+
+- **The docs shell gains a seam for site-wide header and footer chrome**
+  (icvoss/django-brickwork#448). `brickwork/shell/docs.html` had no override
+  point outside `<main>`, so a consumer wanting the same header and footer
+  the rest of their site carries had to override `{% block shell %}`
+  wholesale and reproduce the marketing shell's own internal markup.
+  `docs_site_header` and `docs_site_footer` (with `docs_site_header_region` /
+  `docs_site_footer_region` wrappers) fill that gap: site-wide chrome, sited
+  outside `<main>` entirely, distinct from the pre-existing page-local
+  `docs_header` / `docs_footer` (ADR-091 decision 2 is unchanged; a docs page
+  header or footer is still for a version switcher or feedback control,
+  never site chrome). The whole shell is now wrapped in `.bw-docs-shell`, a
+  flex column supplying the sticky-footer layout `.bw-docs` alone could not,
+  so a short docs page no longer floats a filled site footer mid-viewport.
+  Both new regions are empty by default: an existing consumer's output is
+  unaffected until they fill one.
+
+- **`_code.html`, a labelled, scrollable code-display content primitive**
+  (icvoss/django-brickwork#259). An `{% include %}`-consumed panel (matching
+  `_card.html`/`_data_table.html`'s own convention) with an optional header
+  (filename, language label, copy control) and a scroll region that is
+  keyboard-focusable and accessibly named (`role="region"`, `tabindex="0"`,
+  `aria-labelledby`/`aria-label`), matching the existing
+  `.bw-prose__table-wrap` precedent. The copy control (`copyable=True`)
+  ships `hidden` and is revealed by the new `bwCodeCopy` Alpine component at
+  init, so the no-JS floor never shows a dead button; copying uses
+  `navigator.clipboard.writeText` with a real `document.execCommand("copy")`
+  fallback, and every outcome (success or failure) is announced through a
+  translated, visually-hidden `aria-live="polite"` status line, never colour
+  or icon alone. Syntax highlighting is a stated boundary, not a shipped
+  feature: brickwork bundles no tokenizer for any language (the same
+  reasoning ADR-081 gives for never bundling a charting engine); a consumer
+  highlights server-side (Pygments, `nowrap=True`) or client-side and passes
+  the result in as `code`, already marked safe, and this component's CSS
+  does not style or fight injected token markup. CSS lives in
+  `frontend/src/components.css` (a content primitive, never `marketing.css`,
+  per ADR-090's amended family-by-kind rule), so it is legal on the docs
+  shell as well as marketing. Where a filename is shown, an optional `id`
+  distinguishes one panel from another so two panels sharing a filename
+  cannot emit a duplicate element id and break `aria-labelledby` for both
+  (the caller-supplies-the-id doctrine `_tooltip.html` and `_modal.html`
+  already follow); it falls back to the slugified filename. Ships with a
+  copy-paste example (`examples/sections/content/code.html`).
+
+- **Headings on the prose floor can carry a permalink affordance**
+  (icvoss/django-brickwork#457). A documentation or blog reader could not
+  link to a section of a long document, and a docs site could not offer one
+  without inventing the whole treatment. `.bw-prose__anchor` styles a
+  permalink next to any heading that already carries an id, following the
+  naming convention `.bw-prose__lede` and `.bw-prose__table-wrap` already
+  set. The division is the same one ADR-091 draws for the table of contents:
+  the package styles the affordance, the consumer supplies the heading id,
+  the matching `href` and an accessible name naming the section. Generating
+  heading ids stays a content-pipeline concern this package does not own, so
+  nothing here parses content. Every Markdown renderer and CMS heading block
+  already emits the id, so the consumer half costs nothing.
+
+  The resting state is `opacity: 0` rather than `display: none` or
+  `visibility: hidden`, both of which would remove the link from the
+  accessibility tree and the tab order together; the anchor stays focusable
+  and is revealed on the heading's hover AND on its own `:focus-visible`, so
+  a keyboard user never lands a focus ring on something invisible. The
+  hidden-until-hovered rule is scoped to `@media (hover: hover)`, so on a
+  touch device, which has no hover state to offer, the anchor is permanently
+  visible rather than permanently unreachable. Rules live in
+  `frontend/src/components.css` as a content primitive, never
+  `marketing.css`, per ADR-090's amended family-by-kind rule, so the
+  treatment is legal on the docs shell as well as on marketing pages.
+
+- **A prev/next pager treatment for sequential documents**
+  (icvoss/django-brickwork#460): `.bw-pager`, `.bw-pager__link`,
+  `.bw-pager__next`, `.bw-pager__direction`, `.bw-pager__title`, plus an
+  include-shaped `_pager.html` component
+  (`brickwork/components/_pager.html`). Two labelled slots, previous and
+  next, laid out at opposite ends of the row at wide viewports and stacked
+  at narrow ones with no breakpoint of its own; either slot can be omitted
+  (`.bw-pager__next`'s `margin-inline-start: auto` keeps a solitary "Next" at
+  the inline end rather than drifting to the start, the common case at the
+  first and last page of every sequence). The link reads as a link at the
+  docs footer's own secondary tier: muted colour plus a real underline on
+  the destination title, beating the footer's zero-specificity
+  `text-decoration: none` rule cleanly with no `!important`, and deliberately
+  short of restoring the full prose link tier. The underline sits on the
+  title rather than on the anchor because the anchor stacks the direction
+  caption above the title in a column, and a decoration on the anchor paints
+  one run per line box, which gave "Next:" its own short underline and made
+  it read as a second, truncated link. Direction is carried in the link's
+  own visible text ("Previous: ...", "Next: ...", a literal colon so it
+  survives into plain text and the accessible name), never by the decorative
+  chevron-back/chevron-forward icon alone (WCAG 2.4.4), and the icon mirrors
+  under RTL automatically via the same logical icon pair `_pagination.html`
+  uses. A content primitive under ADR-090's amended family rule
+  (`frontend/src/components.css`, not `marketing.css`): legal on the docs
+  shell, the marketing shell, and anywhere else a sequential article lives.
+  `examples/docs/article.html`'s `docs_footer` now includes the real
+  component in place of the `<ul>`-in-`bw-prose` workaround it shipped with,
+  and `examples/sections/content/pager.html` demonstrates both the two-link
+  and single-link shapes. A new `a11y/pager.spec.mjs` measures the rendered
+  layout (real separation between the two links, the underline, and the
+  single-link degradation landing at the correct inline edge), because the
+  workaround this replaces was semantically correct and passed every
+  existing gate while still reading as one run-on line of inert grey text.
+
+- **Wiring CMS-rendered content onto `.bw-prose` is documented**
+  (icvoss/django-brickwork#448). The flow-rhythm rule is a child combinator,
+  so a block-based CMS that wraps each block's content in its own element
+  renders that content outside the rule's reach: blocks space correctly from
+  each other, but paragraphs inside a block sit flush with no vertical gap.
+  `docs/INTEGRATION.md` section 11 names the cause, explains why the rule is
+  a child combinator on purpose, and gives the one-rule, zero-`!important`
+  consumer remedy (worked against icv-cms 1.0.0rc9); `docs/ADOPTION.md`
+  cross-references it from the content-migration boundary. No CSS changed.
+
+### Fixed
+
+- **`.bw-callout` is now usable on documentation and application surfaces,
+  not only marketing ones** (icvoss/django-brickwork#452). The class was a
+  content primitive misclassified as marketing-family purely because its
+  rules sat in `frontend/src/marketing.css`; the family-boundary test in
+  `tests/test_family_boundary.py` therefore forbade it on `docs.html`,
+  `app.html`, `auth.html` and `centred.html`. Its CSS now lives in
+  `frontend/src/components.css`, alongside `.bw-prose`, matching ADR-090's
+  amended rule that a class's family follows its kind, not the file its
+  rules happen to sit in. No call site changes: the class names, markup and
+  compiled selectors are unchanged, so existing consumers need no edits.
+
+- **`.bw-prose` restores vertical rhythm between adjacent flow siblings**
+  (icvoss/django-brickwork#461). The flow rule
+  `.bw-prose > * + * { margin-block-start: var(--bw-space-5) }` and every
+  per-element reset that follows it (headings, `p`, `ul`/`ol`, `blockquote`,
+  `pre`, `figure`) are all written at the same `(0,1,0)` specificity, because
+  the resets use `:where()` deliberately, to stay overridable without
+  `!important`. Every reset used the `margin` shorthand, which also zeroed
+  `margin-block-start`, and being authored after the flow rule, every reset
+  won the tie. **The result: any adjacent pair not separately covered by the
+  heading-specific rules rendered with a 0px gap, not just paragraphs (the
+  original report understated this): lists, blockquotes and code blocks were
+  equally affected**, and a heading lost its trailing space while keeping
+  its leading one, since only the leading-space rule is authored after the
+  reset. The resets now leave `margin-block-start` alone, resetting only
+  `margin-block-end` and `margin-inline`, and a new
+  `.bw-prose > :first-child { margin-block-start: 0 }` rule takes over
+  supplying "no stray leading space" for the first child, which the old
+  shorthand used to provide as a side effect. `:where(pre):not(.bw-code__pre)`
+  (icvoss/django-brickwork#462) is unaffected: it no longer sets `margin` at
+  all, so its higher `(0,2,0)` specificity from `:not()` no longer matters
+  here either. `hr`'s own explicit `margin-block: var(--bw-space-10)` was
+  never affected and is unchanged.
+
+  **Anyone rendering CMS, Markdown or rich-text content through `bw-prose`
+  will see their vertical spacing change on upgrade.** No markup change is
+  needed: the fix is entirely in the shipped CSS, and a page carrying
+  affected adjacency types (most long-form content does) gains back its
+  intended spacing on upgrade. A new `a11y/prose_rhythm.spec.mjs` measures
+  rendered gaps between real adjacent siblings in both themes: a
+  presence-only or axe-only assertion cannot see this defect, because the
+  DOM and accessibility tree are identical either way and only the rendered
+  gap changes.
+
+- **A code panel nested inside `.bw-prose` no longer creates a second,
+  keyboard-unreachable scroll region** (icvoss/django-brickwork#462).
+  `_code.html`'s scroller is `.bw-code__body`, which carries `overflow-x`
+  together with the `tabindex="0"`, `role="region"` and accessible name that
+  make it reachable; `.bw-code__pre` deliberately sets no overflow of its
+  own. But `.bw-prose :where(pre)` is a bare-element rule, so a panel placed
+  inside a prose wrapper, which is the documented way to put a code sample
+  in long-form content, also gave its `<pre>` that rule's own `overflow-x`.
+  The result was two scrollable regions where the package intends one, and
+  the inner one had no `tabindex`, so a keyboard user could not scroll to
+  the end of a wide line. `.bw-prose :where(pre)` now excludes
+  `.bw-code__pre`.
+
+  Only reachable with a sample wide enough to overflow, which is why it
+  survived the component's own release: the section example's snippets are
+  all one line, since Django's tag tokenizer cannot carry a multi-line
+  literal through an `{% include %}` argument. The first shipped template to
+  nest a panel with real view-supplied multi-line source was the Wave 2
+  documentation article, and it failed the axe gate at 375px in both
+  themes. A comment on `.bw-code__code` asserting that nesting "never
+  doubles up or conflicts" is corrected in the same change: that held for
+  the code element and never for the pre, which the prose rule also gives a
+  border, background and padding the panel does not want.
+
+- **The docs shell's navigation rail is visible again on desktop**
+  (icvoss/django-brickwork#451). Through 3.15.0, a page extending
+  `brickwork/shell/docs.html` rendered a zero-height rail at and above the
+  layout breakpoint (64rem): the 16rem grid track was reserved, every
+  navigation link was present in the DOM, and none of it had any height,
+  with the disclosure's summary hidden so there was no control anywhere on
+  the page to open it. A consumer only escaped this by setting `[open]` on
+  the rail itself, which the shell's own docstring described as an optional
+  preference rather than the requirement it actually was. The cause: the
+  rule meant to reveal the rail targeted `.bw-docs-layout__nav-body`, a
+  child of the `<details>`, but a closed `<details>` collapses its content
+  on the `::details-content` pseudo-element wrapping it, so no display rule
+  on anything inside that wrapper can take effect. The desktop scale-up now
+  targets that pseudo-element instead. Narrow viewports are unchanged: the
+  rail is still a disclosure, closed by default, with a visible 44px summary
+  that toggles with no JavaScript. Consumers already setting `[open]` need
+  no change. A new rendered-geometry suite (`a11y/docs_shell.spec.mjs`)
+  asserts the rail has height, sits at the inline start and does not scroll
+  the page, at three desktop widths in both themes: the existing gates all
+  passed while this was broken, because the markup was correct and links in
+  the accessibility tree are not a WCAG violation, so only measuring a
+  rendered page catches it.
+
 ## [3.15.0] - 2026-08-30
 
 **Wave 2 of the interface-system delivery opens here: the documentation
