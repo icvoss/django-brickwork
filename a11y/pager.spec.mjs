@@ -58,7 +58,16 @@ async function pagerMetrics(page) {
       return {
         linkCount: links.length,
         rects: links.map((a) => a.getBoundingClientRect()),
-        underlines: links.map((a) => getComputedStyle(a).textDecorationLine),
+        // The underline sits on .bw-pager__title, not on the anchor: an
+        // underline on the anchor paints one run per line box, so the
+        // stacked caption gained its own short underline and read as a
+        // second, truncated link. Measure where the rule actually lives.
+        underlines: links.map(
+          (a) => getComputedStyle(a.querySelector(".bw-pager__title")).textDecorationLine,
+        ),
+        captionUnderlines: links.map(
+          (a) => getComputedStyle(a.querySelector(".bw-pager__direction")).textDecorationLine,
+        ),
         pagerRight: pagerRect.right - parseFloat(pagerStyle.paddingInlineEnd || "0"),
         pagerLeft: pagerRect.left + parseFloat(pagerStyle.paddingInlineStart || "0"),
       };
@@ -91,7 +100,7 @@ for (const theme of THEMES) {
       const m = await pagerMetrics(page);
       expect(m.count).toBeGreaterThanOrEqual(3);
 
-      const { rects, underlines, linkCount } = m.twoLink;
+      const { rects, underlines, captionUnderlines, linkCount } = m.twoLink;
       expect(linkCount, "the two-link pager should render exactly two links").toBe(2);
 
       // The defect: two adjacent inline-flex anchors with nothing between
@@ -110,6 +119,18 @@ for (const theme of THEMES) {
       // tier rather than the accent one.
       for (const decoration of underlines) {
         expect(decoration, `pager link is not underlined (${theme}): ${decoration}`).toContain("underline");
+      }
+
+      // The caption must NOT carry its own underline run. Underlining the
+      // anchor produced one run per line box in the stacked layout, so
+      // "Next:" rendered with a short underline of its own and read as a
+      // second, truncated link. A presence-only check on the link cannot
+      // see this, which is why the caption is pinned separately.
+      for (const decoration of captionUnderlines) {
+        expect(
+          decoration,
+          `pager direction caption should not be underlined (${theme}): ${decoration}`,
+        ).not.toContain("underline");
       }
     });
 

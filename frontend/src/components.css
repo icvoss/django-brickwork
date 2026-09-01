@@ -4667,8 +4667,7 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   gap: var(--bw-space-2);
   min-block-size: 1.5rem;
   color: var(--bw-color-fg-muted);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+  text-decoration: none;
   transition: var(--bw-transition-colors);
 }
 .bw-pager__link:hover {
@@ -4723,8 +4722,16 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   line-height: var(--bw-text-caption-line-height);
 }
 
+/* The underline sits on the TITLE, not on the anchor. The anchor stacks a
+ * caption above a title in a column, so an underline on the anchor paints
+ * one run per line box: the small "Next:" caption gained its own short
+ * underline and read as a second, truncated link. Underlining the title
+ * alone still satisfies WCAG 1.4.1 (colour is never the sole signal that
+ * this is a link) while letting the caption read as the label it is. */
 .bw-pager__title {
   font-size: var(--bw-text-body-md-size);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 /* --- Dark-theme resets for the light-only top-light (0.7.0 craft) ----------- */
