@@ -502,6 +502,13 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
     ),
     "_pagination (mid-list)": lambda: _render_pagination(),
+    "_pager (two-link)": lambda: _include(
+        "brickwork/components/_pager.html",
+        previous_href="/docs/getting-started/",
+        previous_label="Getting started",
+        next_href="/docs/theming/",
+        next_label="Theming",
+    ),
     "_bulk_actions_bar (extended, select_all)": lambda: _extend(
         "brickwork/components/_bulk_actions_bar.html",
         '{% block bulk_actions_buttons %}{% bw_button label="Archive" type="submit" name="bulk_action" '
@@ -937,6 +944,7 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_progress",
         "_breadcrumbs",
         "_pagination",
+        "_pager",
         "_bulk_actions_bar",
         "_empty_state",
         "_page_header",

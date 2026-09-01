@@ -8,7 +8,7 @@ examples trees by ``scripts/generate_catalogue_manifest.py``) and exposes it
 as typed Python for this repo's own in-package consumers. These tests cover:
 
 1. **Manifest shape**: the typed reader's accessors match the raw JSON, and
-   the documented counts hold (6 shells, 49 components, 27 sections, 21
+   the documented counts hold (6 shells, 50 components, 28 sections, 23
    archetypes: verified against the tree post-code-display merge,
    docs/CATALOGUE.md ss5).
 2. **Manifest-vs-reality drift**: regenerating the manifest from the current
@@ -139,8 +139,8 @@ def test_items_covers_every_shell_component_section_and_archetype() -> None:
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 6
-    assert len(items_by_kind("component")) == 49
-    assert len(items_by_kind("section")) == 27
+    assert len(items_by_kind("component")) == 50
+    assert len(items_by_kind("section")) == 28
     assert len(items_by_kind("archetype")) == 23
 
 
@@ -200,7 +200,7 @@ def test_sections_requiring_context_match_the_documented_shape() -> None:
 def test_most_sections_render_from_empty_context() -> None:
     section_items = items_by_kind("section")
     empty_context = [entry for entry in section_items if not entry["requiresContext"]]
-    assert len(empty_context) == 21  # 27 sections total, 6 need context
+    assert len(empty_context) == 22  # 28 sections total, 6 need context
 
 
 def test_archetypes_are_scoped_to_their_shipped_family() -> None:

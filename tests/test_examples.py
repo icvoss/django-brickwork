@@ -433,6 +433,7 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/content/callout.html": {},
     "sections/content/code.html": {},
     "sections/content/media-and-text.html": {},
+    "sections/content/pager.html": {},
     "sections/content/prose-block.html": {},
     "sections/cta/centred-band.html": {},
     "sections/cta/full-bleed.html": {},

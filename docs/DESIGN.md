@@ -779,7 +779,10 @@ its **kind**, not of the file its rules happen to sit in. Two kinds:
   is the first example (icvoss/django-brickwork#452): it lives in
   `frontend/src/components.css`, adjacent to `.bw-prose`, rather than in
   `frontend/src/marketing.css`, because it is content a docs or blog page
-  pulls out of its own flow, not marketing surface chrome.
+  pulls out of its own flow, not marketing surface chrome. `.bw-pager`
+  (icvoss/django-brickwork#460) is the cross-link example this section
+  already names: a document's own predecessor/successor is content, not a
+  surface, so it lives beside `.bw-callout` in `components.css` too.
 
 The file a rule sits in follows this classification; it never decides it.
 `tests/test_family_boundary.py` derives the marketing-family set from

@@ -1,0 +1,69 @@
+{% load i18n brickwork_icons %}
+{% comment %}
+Pager (icvoss/django-brickwork#460): the previous/next treatment for a
+sequential document (a documentation article, an editorial post, a series
+entry). Structural, consumed via a plain {% include %}: this component
+renders the two links a caller already knows, it does not compute or look
+up the neighbours itself (a content-ordering question the issue names as a
+non-goal, matching ADR-091's boundary for the table of contents).
+
+Required context: none. A pager with neither previous_href nor next_href
+      renders an empty <nav> (an aria-label with no links inside it), so a
+      caller should guard the {% include %} itself when a page has no
+      sequence at all, the same way {% include %} always has to when a
+      component's contract allows a fully-empty render.
+Optional:
+  previous_href, previous_label: the predecessor. Omit previous_href to
+        render only the next slot (a sequence's first page).
+  next_href, next_label: the successor. Omit next_href to render only the
+        previous slot (a sequence's last page).
+  aria_label: the nav's accessible name (default "More in this series").
+        A caller with a named collection (a doc section, a series title)
+        should pass the same string _pagination.html and similar navs use
+        for their own aria-label, so the landmark reads correctly.
+
+States: two-link (both slots present) and single-link (exactly one slot
+  present, the first or last page of a sequence). A pager with neither slot
+  renders an empty landmark; this is a valid but unlikely caller state, not
+  a distinct visual treatment.
+Accessibility: a single <nav> landmark. Direction is carried in the link's
+  own VISIBLE text ("Previous: <title>" / "Next: <title>"), built from the
+  direction caption plus a literal colon and the title span together, never
+  by the chevron icon alone (WCAG 2.4.4): the icon is decorative and uses
+  the same logical chevron-back/chevron-forward pair _pagination.html does,
+  so it mirrors under RTL automatically. The colon is a literal character in
+  the markup, not CSS generated content, so it survives into the accessible
+  name and plain textContent the same way the workaround this replaces did;
+  it sits outside the {% translate %} tag deliberately, so "Previous"/"Next"
+  stay the only translatable unit and a translation is never asked to embed
+  punctuation of its own choosing. rel="prev"/rel="next" on the respective
+  anchor, matching _pagination.html's own convention. Covered by
+  axe.spec.mjs against sections-*.html (sections/content/pager.html renders
+  both the two-link and single-link shapes) and by pager.spec.mjs, which
+  measures the rendered layout rather than only checking markup presence.
+Responsive: no breakpoint switch; .bw-pager wraps to a stacked column
+  whenever its own inline space runs out (no width-dependent selector), and
+  .bw-pager__next's margin-inline-start: auto keeps a solitary "Next" link
+  at the inline end rather than drifting to the start.
+{% endcomment %}
+{% translate "More in this series" as bw_pager_default_aria_label %}
+<nav class="bw-pager" aria-label="{% firstof aria_label bw_pager_default_aria_label %}">
+  {% if previous_href %}
+    <a class="bw-pager__link" href="{{ previous_href }}" rel="prev">
+      {% bw_icon "chevron-back" size="sm" decorative=True %}
+      <span>
+        <span class="bw-pager__direction">{% translate "Previous" %}:</span>
+        <span class="bw-pager__title">{{ previous_label }}</span>
+      </span>
+    </a>
+  {% endif %}
+  {% if next_href %}
+    <a class="bw-pager__link bw-pager__next" href="{{ next_href }}" rel="next">
+      <span>
+        <span class="bw-pager__direction">{% translate "Next" %}:</span>
+        <span class="bw-pager__title">{{ next_label }}</span>
+      </span>
+      {% bw_icon "chevron-forward" size="sm" decorative=True %}
+    </a>
+  {% endif %}
+</nav>

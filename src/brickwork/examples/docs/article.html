@@ -340,37 +340,21 @@ Responsive: no breakpoint of its own inside the article; bw-prose holds a
   an icon alone, so the purpose of each link survives being read out of
   context (WCAG 2.4.4).
 
-  The two links are a LIST, wrapped in bw-prose, rather than two bare <a>
-  siblings. That is a composition, not a component: brickwork ships no
-  prev/next pager treatment (icvoss/django-brickwork#460), and two adjacent
-  bare anchors run together as ONE line with nothing separating them, so a
-  reader meets "Previous: ... Next: ..." as a single run-on sentence. The
-  list gives each link its own row and marker, which is what actually fixes
-  the reading.
-
-  What it does NOT change, and what a copying consumer should know: these
-  links stay muted and undecorated. shell.css's
-  .bw-docs-layout__footer :where(a):not(.bw-btn) rule sets color: fg-muted
-  and text-decoration: none for every anchor in this footer, deliberately,
-  because a docs footer's links are secondary chrome rather than body
-  content, and that rule still wins here. Nesting bw-prose does not restore
-  the ordinary prose link tier. If you want these to read as primary links,
-  that is your own one-line override on your own class, not something to
-  fix by fighting the shell.
-
-  Found by rendering the page in a browser, not by any gate: the bare-anchor
-  version was semantically correct (real anchors, labelled nav), passed the
-  family boundary, unstyled-class and axe checks, and still read as inert
-  grey text.
+  brickwork ships a real pager treatment for this
+  (_pager.html, icvoss/django-brickwork#460), so this footer includes it
+  rather than composing its own workaround. previous_label/next_label are
+  passed as the destination TITLE alone ("Setting up a reminder schedule");
+  _pager.html renders the "Previous"/"Next" direction word itself, so the
+  full visible link text is still "Previous: Setting up a reminder
+  schedule", the same string WCAG 2.4.4 needs. Generating the neighbours
+  (which article comes before or after this one) is this view's own content
+  ordering, exactly as ADR-091 draws the boundary for the table of contents;
+  this template supplies the two destinations it already knows, nothing more.
   {% endcomment %}
-  <nav aria-label="{% translate 'More in Reminders' %}">
-    <div class="bw-prose">
-      <ul>
-        <li><a href="/docs/reminders/schedules/">{% translate "Previous: Setting up a reminder schedule" %}</a></li>
-        <li><a href="/docs/reminders/predictions/">{% translate "Next: How late-payment prediction works" %}</a></li>
-      </ul>
-    </div>
-  </nav>
+  {% translate "More in Reminders" as bw_pager_aria_label %}
+  {% translate "Setting up a reminder schedule" as bw_pager_previous_label %}
+  {% translate "How late-payment prediction works" as bw_pager_next_label %}
+  {% include "brickwork/components/_pager.html" with aria_label=bw_pager_aria_label previous_href="/docs/reminders/schedules/" previous_label=bw_pager_previous_label next_href="/docs/reminders/predictions/" next_label=bw_pager_next_label %}
 {% endblock %}
 
 {% block docs_nav %}
