@@ -60,6 +60,33 @@ inlines the `HX-Request` header check itself and only uses the richer
 `request.htmx` surface when you already run django-htmx. Add the extra only
 if you want that.
 
+## The fastest path: emit a starter project
+
+Once brickwork is installed, the fastest way to a running, designed site is
+`manage.py startsite`, not the manual wiring below:
+
+```
+django-admin startproject mysite .   # or use an existing project
+python manage.py startsite myproject
+cd myproject
+python manage.py runserver
+```
+
+That emits a small, complete project: settings wired for `brickwork` and
+`brickwork.marketing`, a brand token file with the seven load-bearing tokens
+plus a contrast-verified `--bw-color-fg-on-accent`, a validated nav config,
+and three real pages (a marketing landing page, an app dashboard, a docs
+home) each with the view that supplies its context. Open `http://127.0.0.1:8000/`
+and the page looks designed, not structurally correct and empty.
+
+**The emitted project is yours outright from the moment it is written.**
+There is no update command and nothing here reaches back into it later
+(ADR-095): it is the same one-time copy the example pages already are
+(ADR-056), automated. Edit anything in it, starting with
+`static/pages/brand.css`. The rest of this page, and INTEGRATION.md, cover
+the same seams by hand for a project that already has its own settings and
+routing to wire brickwork into, rather than starting from nothing.
+
 ## A first taste of re-skinning
 
 Seven load-bearing colour tokens make a brand: base-theme derives the hover
@@ -103,6 +130,9 @@ for the worked failure.
 
 ## Where to go next
 
+- **Starting from nothing:** run `manage.py startsite`, above. It is the
+  fastest path to a running, designed project and is where a new consumer
+  should start.
 - **Building a new screen, or a project with no existing UI kit to
   displace:** go straight to [docs/INTEGRATION.md](INTEGRATION.md). It
   is the seam-by-seam cookbook: settings and static, the nav config, the

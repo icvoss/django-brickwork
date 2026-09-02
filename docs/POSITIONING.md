@@ -85,6 +85,21 @@ consumer cannot extend one by accident. The examples state this rule in their
 own headers: "It is not on the template loader path, so you cannot extend it
 (ADR-056)" (`src/brickwork/examples/app/date-range-picker.html:5-6`).
 
+**The starter hands the proof to the consumer, not just the gallery
+(ADR-095).** Proving "our defaults are beautiful" in a gallery a buyer can
+click through is not the same as a new consumer reaching a running, designed
+site of their own: a substrate that proves the claim only where the vendor
+controls the render is proving it to the wrong audience. `manage.py
+startsite` closes that gap: it emits a minimal, running project, wired
+settings, a contrast-verified brand file, and three real pages with the views
+that feed them, built from the same examples the gallery already proves. The
+command is governed, versioned surface; what it emits is the consumer's
+outright from the moment it is written, exactly like a hand-copied example
+(ADR-056), with no update path back into it. This does not change the
+example, archetype, section, shell, or a11y-gate counts elsewhere in this
+document: the starter is an emitter over the existing catalogue, not a new
+catalogue item.
+
 This resolves what otherwise reads as two competing definitions of
 brickwork's value: ADR-054 says the defaults are beautiful; ADR-056 makes the
 proof (the examples) safe to give away without turning it into a maintained
