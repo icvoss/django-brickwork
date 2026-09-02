@@ -117,6 +117,10 @@ imposed on consumers. Consumers provide their own Alpine 3 +
 registers behaviour onto the host Alpine instance and never calls
 `Alpine.start()`.
 
+Starting a project from nothing? Skip ahead to `manage.py startsite` in the
+Quickstart section below: it emits a running, designed project rather than
+walking you through wiring one by hand.
+
 ### Supported versions
 
 | Dependency | Supported |
@@ -138,7 +142,22 @@ ever exercise htmx 2. A brownfield app on htmx 1.9 should upgrade htmx to 2.x as
 prerequisite before adopting brickwork's interaction primitives; see
 [docs/ADOPTION.md](docs/ADOPTION.md).
 
-## Quickstart: a first console page
+## Quickstart: the fastest path is a command, not this section
+
+```
+python manage.py startsite myproject
+```
+
+emits a minimal, running project: settings wired for brickwork (and the
+optional marketing kit), a contrast-verified brand file, a validated nav
+config, and three real pages, each with the view that feeds it. `cd
+myproject && python manage.py runserver` and the page looks designed, not
+structurally correct and empty. The emitted project is yours outright from
+the moment it is written, with no update path back into it (ADR-095); see
+[docs/QUICKSTART.md](docs/QUICKSTART.md#the-fastest-path-emit-a-starter-project).
+
+The rest of this section wires the same seams by hand, for a project that
+already has its own settings and routing brickwork needs to fit into.
 
 Five minutes from install to a themed, accessible console page. Wire the app
 and the shell context processor:

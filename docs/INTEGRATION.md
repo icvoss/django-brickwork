@@ -13,6 +13,16 @@ Every code snippet here is a real seam a consuming app must wire; each maps to a
 finding from a pilot integration, so this is the walkthrough that would have
 saved those pilots their discovery time.
 
+**Starting a project from nothing?** `manage.py startsite` (see
+[QUICKSTART.md](QUICKSTART.md#the-fastest-path-emit-a-starter-project)) wires
+every seam below into a small running project automatically: settings, the nav
+config, the brand file, three real pages. It is not a substitute for this
+guide, it is a substitute for typing what this guide describes by hand. Come
+here once you are past what it emits: adding a fourth page, wiring the HTMX
+422 loop, or understanding WHY a seam is shaped the way it is. Its output
+carries no semver guarantee (ADR-095); this guide, and the shells and
+components it wires, do.
+
 ## 1. Settings and static
 
 ### INSTALLED_APPS and templates
