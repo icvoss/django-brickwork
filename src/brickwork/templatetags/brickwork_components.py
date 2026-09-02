@@ -158,6 +158,127 @@ def escape_attribute_value(value: object) -> SafeString:
     return mark_safe(escape(str(value)).strip())
 
 
+def _numeric_attribute_value(value: object) -> str:
+    """Coerce ``value`` to a clamped 0-100 string for a CSS custom property
+    (ADR-097 section 3): ``escape()`` is a no-op on a numeric payload with no
+    quote, ``<`` or ``&`` in it, so a value interpolated into a ``style``
+    attribute (``--bw-progress-value: {{ value }}``) needs a TYPE, not an
+    escape. Measured: ``"50; --bw-color-accent: red; background-image:
+    url(//evil.test/x)"`` survives ``escape()`` unchanged and ``float()``
+    rejects it, which is the whole point of this mode.
+
+    ``float()``, not ``Decimal``, matching the ADR-097 worked example
+    exactly: this seam is for a CSS custom property display value, not a
+    financial or precision-sensitive quantity (contrast ``_gauge_numeric``/
+    `_validate_ranked_list_row`, which use ``Decimal`` for a different,
+    amount-summing reason). A non-numeric value is a template-author error,
+    not consumer data with a graceful fallback, so it raises rather than
+    silently rendering 0.
+
+    Trailing ``.0`` is stripped for a whole-number result (``50`` rather
+    than ``50.0``) so a call site passing a plain int renders identically to
+    the raw interpolation it replaces; a genuinely fractional clamp result
+    keeps its decimal (``50.5``).
+    """
+    try:
+        numeric_value = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError) as exc:
+        raise TemplateSyntaxError(f"bw_attr numeric=True requires a numeric value, got {value!r}") from exc
+    if not math.isfinite(numeric_value):
+        raise TemplateSyntaxError(f"bw_attr numeric=True requires a finite number, got {value!r}")
+    clamped = min(max(numeric_value, 0.0), 100.0)
+    if clamped.is_integer():
+        return str(int(clamped))
+    return str(clamped)
+
+
+@register.simple_tag
+def bw_attr(name: str, value: object, *, allow: str = "", numeric: bool = False) -> SafeString:
+    """Emit one complete, safe HTML attribute (``name="value"``) or nothing
+    at all (ADR-097): the single seam for every consumer value an
+    include-only template places into attribute position, callable from
+    inside the template body the way ``bw_data_attrs`` already is from
+    ``_data_table.html``.
+
+    Replaces four partial mechanisms with one (ADR-097 section 1):
+    ``escape_attribute_value`` (tag path only, 9 sites), the constrain
+    pattern (closed-vocabulary templates only, 2 sites), ``bw_data_attrs``
+    (``data-*`` mappings only, 1 site), and the ~28 include-only sites that
+    had nothing. ``escape_attribute_value`` and ``bw_data_attrs`` are
+    UNCHANGED by this addition (see their own docstrings); this is the one
+    mechanism the other three fold into, not a fifth one alongside them.
+
+    Three modes, selected by the VALUE's own nature, never by the
+    component (ADR-097 section 3):
+
+    - **Default**: ``escape()`` the value (the ADR-083 rule: unconditional,
+      never ``conditional_escape``, because a ``SafeData`` marker records
+      THAT a value was vetted safe, never for WHICH position, and an
+      attribute is never a text position).
+    - **``allow="a b c"``**: a closed, space-separated vocabulary. A value
+      not in the list emits NOTHING, i.e. the attribute is omitted
+      entirely. This never raises and never falls back to a guessed
+      default: an omitted attribute is a value a reader (and any CSS/ARIA
+      relying on it) can see is absent, where a silent fallback value looks
+      identical to one the caller actually chose.
+    - **``numeric=True``**: coerced via ``float()`` and clamped to 0-100 for
+      a CSS custom property (``_numeric_attribute_value`` above). A
+      non-numeric value raises ``TemplateSyntaxError``, because unlike the
+      other two modes this one has no "just omit it" reading: a CSS custom
+      property with no value is a template-author bug, not consumer input
+      to degrade gracefully around.
+
+    An absent value (``None``) or an empty string, in EVERY mode, emits
+    nothing: there is no attribute worth emitting for "no value", and this
+    matches ``bw_data_attrs``'s existing "a str means not supplied" contract
+    for the same reason (an unset context variable resolves to ``""``, not
+    ``None``, under Django's ``string_if_invalid`` machinery in the default
+    case, and both must be treated as absence).
+
+    ``str(value)`` first, matching ``escape_attribute_value`` exactly, so a
+    non-str argument (an int, a model instance, any ordinary ``__str__``-
+    able object) does not raise and a lazy-translated value resolves before
+    escaping. ``numeric=True`` coerces via ``float()`` directly instead,
+    since ``str()``-then-``float()`` would reject a value ``float()`` alone
+    accepts (a ``Decimal`` or a numpy scalar with no clean ``str()`` form).
+
+    Does NOT use ``format_html``: the identical trap ``bw_data_attrs``
+    already documents. ``format_html`` honours ``__html__`` by documented
+    contract, so a ``mark_safe``'d payload passed through it renders
+    VERBATIM. Measured against a first spike of this seam:
+    ``format_html('{}="{}"', name, value)`` with an unescaped ``value``
+    rendered ``<div aria-label="a" onclick="alert(1)">``. This tag escapes
+    the name (defence in depth: it is always a template-author literal at
+    every call site the ADR names, never consumer data, but escaping it
+    costs nothing and closes the case where a future call site passes a
+    variable) and the value with ``escape()``, builds the attribute string
+    itself with plain string interpolation, and ``mark_safe``s the result,
+    so nothing downstream can re-interpret an already-escaped value as
+    trusted markup.
+
+    The attribute NAME is not validated against a closed vocabulary the way
+    ``bw_data_attrs`` restricts its mapping keys to ``data-*``: this tag's
+    ``name`` is always a quoted literal at the call site
+    (``{% bw_attr "aria-label" label %}``), the template author's own
+    choice of which attribute to protect, not consumer-supplied data the
+    way a ``data`` mapping's keys are. A closed grammar here would defeat
+    the seam's purpose of being usable for any attribute a template wants
+    to guard.
+    """
+    if value is None or value == "":
+        return mark_safe("")
+    rendered_value: str
+    if allow:
+        if str(value) not in set(allow.split()):
+            return mark_safe("")
+        rendered_value = escape(str(value))
+    elif numeric:
+        rendered_value = _numeric_attribute_value(value)
+    else:
+        rendered_value = escape(str(value))
+    return mark_safe(f'{escape(name)}="{rendered_value}"')
+
+
 @register.simple_tag
 def bw_data_attrs(attrs: object, subject: str = "data table row") -> SafeString:
     """Render consumer-owned data attributes safely.
