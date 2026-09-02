@@ -17,8 +17,9 @@ from brickwork.services import navigation
 
 
 class _FakeMatch:
-    def __init__(self, view_name: str) -> None:
+    def __init__(self, view_name: str, kwargs: dict | None = None) -> None:
         self.view_name = view_name
+        self.kwargs = kwargs or {}
 
 
 def _ctx(*, perms=(), features=()):
@@ -219,6 +220,124 @@ def test_navitem_positional_construction_keeps_the_0_2_4_field_order() -> None:
     assert item.url_name == "tenants:members"
     assert item.url_kwargs == {"pk": 1}
     assert item.active_url_names == ()
+
+
+# --- #273: url_kwargs disambiguates items sharing one url_name --------------
+
+
+def test_resolve_active_disambiguates_by_url_kwargs() -> None:
+    # A docs nav over one parameterised route (docs:page) with six pages, all
+    # sharing url_name and differing only by slug: only the item whose
+    # url_kwargs match the request's kwargs is active, never a fixed "last
+    # sorted" item regardless of the current page (icvoss/django-brickwork#273).
+    intro = NavItem(key="intro", label="Intro", url_name="docs:page", url_kwargs={"slug": "intro"})
+    install = NavItem(key="install", label="Install", url_name="docs:page", url_kwargs={"slug": "install"})
+    nav = (intro, install)
+
+    # The request is for the FIRST-declared item. This is the discriminating
+    # case and the only one with teeth: the pre-fix code kept the LAST match in
+    # depth-first order, so it returned "install" for every request over this
+    # route. A test asserting the last-declared item is active passes against
+    # BOTH the fixed and the broken implementation and proves nothing.
+    active = navigation.resolve_active_item(nav, _FakeMatch("docs:page", kwargs={"slug": "intro"}))
+
+    assert active is not None
+    assert active.key == "intro"
+
+
+def test_resolve_active_url_kwargs_mismatch_is_not_active() -> None:
+    # The sibling case, again ordered so the assertion has teeth: the
+    # non-matching item is declared LAST, which is exactly the item the pre-fix
+    # "keep the last match" behaviour returned. Asserting it is NOT active can
+    # therefore only pass once url_kwargs are actually compared.
+    intro = NavItem(key="intro", label="Intro", url_name="docs:page", url_kwargs={"slug": "intro"})
+    install = NavItem(key="install", label="Install", url_name="docs:page", url_kwargs={"slug": "install"})
+    nav = (intro, install)
+
+    active = navigation.resolve_active_item(nav, _FakeMatch("docs:page", kwargs={"slug": "intro"}))
+
+    assert active is not install
+    assert active.key != "install"
+
+
+def test_resolve_active_no_url_kwargs_still_matches_whole_route() -> None:
+    # An item with no url_kwargs (the default {}) is a whole-route match and is
+    # unaffected by the request carrying kwargs it does not declare: {} is a
+    # subset of any dict. No regression for a plain, unparameterised nav item.
+    nav = (NavItem(key="w", label="Widgets", url_name="testapp:widget-list"),)
+
+    active = navigation.resolve_active_item(nav, _FakeMatch("testapp:widget-list", kwargs={"pk": 7}))
+
+    assert active is not None
+    assert active.key == "w"
+
+
+def test_resolve_active_url_kwargs_is_a_subset_match_not_equality() -> None:
+    # The item's url_kwargs need only be a SUBSET of the request's kwargs: the
+    # request may carry extra kwargs the item does not care about. Equality
+    # would break as soon as the route gained an unrelated extra kwarg.
+    item = NavItem(key="doc", label="Doc", url_name="docs:page", url_kwargs={"slug": "install"})
+
+    active = navigation.resolve_active_item(
+        (item,), _FakeMatch("docs:page", kwargs={"slug": "install", "version": "3"})
+    )
+
+    assert active is not None
+    assert active.key == "doc"
+
+
+def test_active_url_names_still_works_when_no_item_declares_url_kwargs() -> None:
+    # Regression for the existing active_url_names contract: a section item
+    # widened via active_url_names, with no url_kwargs on either name, still
+    # lights up on its secondary route regardless of the request's kwargs.
+    nav = (
+        NavItem(
+            key="team",
+            label="Team",
+            url_name="tenants:members",
+            active_url_names=("tenants:member-invite",),
+        ),
+    )
+
+    active = navigation.resolve_active_item(nav, _FakeMatch("tenants:member-invite", kwargs={"tenant_id": "42"}))
+
+    assert active is not None
+    assert active.key == "team"
+
+
+def test_resolve_active_ties_keep_the_last_depth_first_match() -> None:
+    # Documented tie-break: two SIBLINGS whose url_name and url_kwargs both
+    # match the same request resolve to whichever is declared later in the nav
+    # tree (last match wins in depth-first walk order). This is a genuine
+    # misconfiguration (two items claiming the same route+kwargs); the
+    # behaviour is documented, not validated against at config time.
+    first = NavItem(key="first", label="First", url_name="docs:page", url_kwargs={"slug": "dup"})
+    second = NavItem(key="second", label="Second", url_name="docs:page", url_kwargs={"slug": "dup"})
+    nav = (first, second)
+
+    active = navigation.resolve_active_item(nav, _FakeMatch("docs:page", kwargs={"slug": "dup"}))
+
+    assert active is not None
+    assert active.key == "second"
+
+
+def test_resolve_active_deepest_match_wins_over_kwargs_matching_ancestor() -> None:
+    # "Deepest match wins" still holds when url_kwargs is involved: a child
+    # whose url_name/url_kwargs match the request wins over its parent even
+    # though the parent's own url_kwargs also match (both walked, child last).
+    child = NavItem(key="child", label="Child", url_name="docs:page", url_kwargs={"slug": "install"})
+    parent = NavItem(
+        key="parent",
+        label="Parent",
+        url_name="docs:page",
+        url_kwargs={"slug": "install"},
+        children=(child,),
+    )
+
+    active = navigation.resolve_active_item((parent,), _FakeMatch("docs:page", kwargs={"slug": "install"}))
+
+    assert active is not None
+    assert active.key == "child"
 
 
 # --- BR-BW-NAV-004/005: visibility via host callables, empty groups drop -----

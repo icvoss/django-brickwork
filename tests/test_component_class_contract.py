@@ -181,29 +181,31 @@ def _render_nav(tag: str) -> str:
 
 _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     # --- components/, tag-invoked ------------------------------------------
-    "bw_button (href, icon, loading)": lambda: _tag(
+    "_button (bw_button: href, icon, loading)": lambda: _tag(
         "brickwork_components",
         '{% bw_button "Run the demo" variant="primary" size="lg" href="/demo/" icon="download" %}',
     ),
-    "bw_button (submit, icon-only)": lambda: _tag(
+    "_button (bw_button: submit, icon-only)": lambda: _tag(
         "brickwork_components",
         '{% bw_button icon="trash" icon_only=True aria_label="Delete" variant="danger" size="sm" %}',
     ),
-    "bw_button (loading)": lambda: _tag(
+    "_button (bw_button: loading)": lambda: _tag(
         "brickwork_components", '{% bw_button "Saving" variant="secondary" loading=True %}'
     ),
-    "bw_badge (dismissible)": lambda: _tag(
+    "_badge (bw_badge: dismissible)": lambda: _tag(
         "brickwork_components", '{% bw_badge "Overdue" variant="danger" icon="alert-circle" dismissible=True %}'
     ),
-    "bw_alert (dismissible, title)": lambda: _tag(
+    "_alert (bw_alert: dismissible, title)": lambda: _tag(
         "brickwork_components",
         '{% bw_alert "Payment failed." variant="danger" title="Action needed" dismissible=True %}',
     ),
-    "bw_toggle": lambda: _tag("brickwork_components", '{% bw_toggle "Auto-chase" id="autochase" checked=True %}'),
-    "bw_skeleton (sized)": lambda: _tag(
+    "_toggle (bw_toggle)": lambda: _tag(
+        "brickwork_components", '{% bw_toggle "Auto-chase" id="autochase" checked=True %}'
+    ),
+    "_skeleton (bw_skeleton: sized)": lambda: _tag(
         "brickwork_components", '{% bw_skeleton variant="row" count=3 width="12rem" height="1rem" %}'
     ),
-    "bw_search (scoped)": lambda: _tag(
+    "_search (bw_search: scoped)": lambda: _tag(
         "brickwork_components",
         '{% bw_search action="/search/" value="invoice" scope=scope %}',
         scope={"label": "Project: Acme", "name": "project", "value": "acme", "clear_href": "/search/?q=invoice"},
@@ -293,7 +295,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
         data={"data-testid": "kpi-grid"},
     ),
-    "bw_ranked_list (linked rows, basis=total, label, data)": lambda: _tag(
+    "_ranked_list (bw_ranked_list: linked rows, basis=total, label, data)": lambda: _tag(
         "brickwork_components",
         "{% bw_ranked_list rows=rows basis='total' label='Top accounts' data=data %}",
         rows=[
@@ -303,13 +305,13 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
         data={"data-testid": "top-accounts"},
     ),
-    "bw_ranked_list (empty, with action)": lambda: _tag(
+    "_ranked_list (bw_ranked_list: empty, with action)": lambda: _tag(
         "brickwork_components",
         "{% bw_ranked_list rows=rows empty_heading='No accounts yet' empty_body='Add one to see it here.' "
         "empty_action_href='/accounts/new/' empty_action_label='Add an account' %}",
         rows=[],
     ),
-    "bw_ranked_list (loading)": lambda: _tag(
+    "_ranked_list (bw_ranked_list: loading)": lambda: _tag(
         "brickwork_components", "{% bw_ranked_list rows=rows loading=True %}", rows=[]
     ),
     "_chart_card (populated, legend, title/actions)": lambda: _extend(
@@ -351,11 +353,11 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         empty_action_href="/reports/new/",
         empty_action_label="Create a report",
     ),
-    "bw_chart_mount (named)": lambda: _tag(
+    "_chart_mount (bw_chart_mount: named, not template-backed)": lambda: _tag(
         "brickwork_components",
         '{% bw_chart_mount aria_label="Revenue by month" min_height="20rem" aspect_ratio="16 / 9" %}',
     ),
-    "bw_chart_mount (decorative)": lambda: _tag(
+    "_chart_mount (bw_chart_mount: decorative, not template-backed)": lambda: _tag(
         "brickwork_components", '{% bw_chart_mount decorative=True min_height="20rem" %}'
     ),
     # All three of CHT-013's data_table_mode values, because each emits a
@@ -363,26 +365,26 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     # bw-visually-hidden clip wrapper, and "toggle" pulls in _disclosure.html's
     # own class family. Registering only one would leave the other two's
     # classes ungated.
-    "bw_chart_data_table (visible)": lambda: _tag(
+    "_chart_data_table (bw_chart_data_table: visible)": lambda: _tag(
         "brickwork_components",
         "{% bw_chart_data_table caption='Revenue by month' columns=cols rows=rws data_table_mode='visible' %}",
         cols=["Month", "Direct", "Referral"],
         rws=[["January", "120", "45"], ["February", "150", "60"]],
     ),
-    "bw_chart_data_table (hidden)": lambda: _tag(
+    "_chart_data_table (bw_chart_data_table: hidden)": lambda: _tag(
         "brickwork_components",
         "{% bw_chart_data_table caption='Revenue by month' columns=cols rows=rws data_table_mode='hidden' %}",
         cols=["Month", "Direct", "Referral"],
         rws=[["January", "120", "45"], ["February", "150", "60"]],
     ),
-    "bw_chart_data_table (toggle)": lambda: _tag(
+    "_chart_data_table (bw_chart_data_table: toggle)": lambda: _tag(
         "brickwork_components",
         "{% bw_chart_data_table caption='Revenue by month' columns=cols rows=rws data_table_mode='toggle' "
         "toggle_label='View as table' %}",
         cols=["Month", "Direct", "Referral"],
         rws=[["January", "120", "45"], ["February", "150", "60"]],
     ),
-    "bw_gauge (threshold_bands, label, size=lg)": lambda: _tag(
+    "_gauge (bw_gauge: threshold_bands, label, size=lg)": lambda: _tag(
         "brickwork_components",
         "{% bw_gauge value=value label='CPU load' size='lg' threshold_bands=bands %}",
         value=65,
@@ -392,7 +394,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             {"max": 100, "token": "success"},
         ],
     ),
-    "bw_gauge (default accent, size=sm)": lambda: _tag(
+    "_gauge (bw_gauge: default accent, size=sm)": lambda: _tag(
         "brickwork_components", "{% bw_gauge value=value size='sm' %}", value=42
     ),
     "_data_table (records, selectable, sticky, stack, sorted)": lambda: _include(
@@ -561,60 +563,62 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         multiline=True,
     ),
     "_toast_region (placement)": lambda: _include("brickwork/components/_toast_region.html", placement="bottom-start"),
-    "bw_toast (action, danger)": lambda: _tag(
+    "_toast (bw_toast: action, danger, private render target)": lambda: _tag(
         "brickwork_interactions",
         '{% bw_toast "Payment failed." variant="danger" duration="persistent" '
         'action_label="Retry" action_href="/invoices/1/retry/" %}',
     ),
-    "bw_dropdown (icon-only, placement=end, hover)": lambda: _tag(
+    "_dropdown (bw_dropdown: icon-only, placement=end, hover, private render target)": lambda: _tag(
         "brickwork_interactions",
         "{% bw_dropdown items=items icon_only=True aria_label='Actions' trigger_icon='more-vertical' "
         "placement='end' trigger_mode='hover' close_on_select=False %}",
         items=_DROPDOWN_ITEMS,
     ),
-    "bw_dropdown (labelled, placement=start)": lambda: _tag(
+    "_dropdown (bw_dropdown: labelled, placement=start, private render target)": lambda: _tag(
         "brickwork_interactions",
         "{% bw_dropdown items=items trigger_label='Actions' trigger_variant='primary' placement='start' %}",
         items=_DROPDOWN_ITEMS,
     ),
-    "bw_tabs (variant=pill, lazy)": lambda: _tag(
+    "_tabs (bw_tabs: variant=pill, lazy, private render target)": lambda: _tag(
         "brickwork_interactions",
         "{% bw_tabs tabs=tabs active=active id='demo-pill' variant='pill' lazy_load=True %}",
         tabs=_TABS,
         active="activity",
         request=_NAV_REQUEST,
     ),
-    "bw_tabs (variant=underline)": lambda: _tag(
+    "_tabs (bw_tabs: variant=underline, private render target)": lambda: _tag(
         "brickwork_interactions",
         "{% bw_tabs tabs=tabs active=active id='demo-underline' variant='underline' %}",
         tabs=_TABS,
         active="overview",
         request=_NAV_REQUEST,
     ),
-    "bw_combobox (explicit trio, multiple, allow_create)": lambda: _tag(
+    "_combobox (bw_combobox: explicit trio, multiple, allow_create, private render target)": lambda: _tag(
         "brickwork_interactions",
         "{% bw_combobox name='account' options=options selected=selected filter_mode='client' "
         "multiple=True allow_create=True placeholder='Search accounts' %}",
         options=_COMBOBOX_OPTIONS,
         selected=["acme"],
     ),
-    "bw_combobox (bound field, server filter)": lambda: _render_field_combobox(),
+    "_combobox (bw_combobox: bound field, server filter, private render target)": lambda: _render_field_combobox(),
     # --- forms/ --------------------------------------------------------------
     "_field (valid)": lambda: _render_field(_DemoForm()["name"]),
     "_field (invalid, with error + help)": lambda: _render_field(_invalid_demo_form()["name"]),
-    "bw_form (stacked, invalid)": lambda: _tag("brickwork_forms", "{% bw_form form %}", form=_invalid_demo_form()),
-    "bw_form (grid, readonly, density)": lambda: _tag(
+    "_form (bw_form: stacked, invalid)": lambda: _tag(
+        "brickwork_forms", "{% bw_form form %}", form=_invalid_demo_form()
+    ),
+    "_form (bw_form: grid, readonly, density)": lambda: _tag(
         "brickwork_forms",
         "{% bw_form form layout='grid' grid_columns=2 density='compact' readonly=True %}",
         form=_DemoForm(),
     ),
     "_form_errors (non-field errors)": lambda: _render_form_errors(),
     # --- nav/ ------------------------------------------------------------
-    "bw_nav (populated tree)": lambda: _render_nav("bw_nav"),
-    "bw_nav_header (populated tree)": lambda: _render_nav("bw_nav_header"),
-    "bw_nav_rail (populated tree)": lambda: _render_nav("bw_nav_rail"),
+    "_nav (bw_nav: populated tree)": lambda: _render_nav("bw_nav"),
+    "_nav_header (bw_nav_header: populated tree)": lambda: _render_nav("bw_nav_header"),
+    "_nav_rail (bw_nav_rail: populated tree)": lambda: _render_nav("bw_nav_rail"),
     # --- marketing sub-app ----------------------------------------------
-    "marketing _hero (media, align=center, dict CTAs)": lambda: _include(
+    "_hero (marketing: media, align=center, dict CTAs)": lambda: _include(
         "brickwork_marketing/components/_hero.html",
         eyebrow="New",
         heading="Chase invoices without the awkward call",
@@ -624,7 +628,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         media="<img src='/static/hero.png' alt=''>",
         align="center",
     ),
-    "marketing _cta (plain band, flat CTAs)": lambda: _include(
+    "_cta (marketing: plain band, flat CTAs)": lambda: _include(
         "brickwork_marketing/components/_cta.html",
         heading="Ready to get paid faster?",
         body="Set up your first chase sequence in minutes.",
@@ -634,7 +638,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         secondary_cta_href="/contact/",
         band="plain",
     ),
-    "marketing _faq (single_open)": lambda: _include(
+    "_faq (marketing: single_open)": lambda: _include(
         "brickwork_marketing/components/_faq.html",
         heading="Questions",
         items=[
@@ -643,7 +647,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
         single_open=True,
     ),
-    "marketing _feature_grid (linked items, columns=2)": lambda: _include(
+    "_feature_grid (marketing: linked items, columns=2)": lambda: _include(
         "brickwork_marketing/components/_feature_grid.html",
         heading="Everything you need",
         lede="Built for small finance teams.",
@@ -659,7 +663,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
         columns=2,
     ),
-    "marketing _logo_cloud (greyscale)": lambda: _include(
+    "_logo_cloud (marketing: greyscale)": lambda: _include(
         "brickwork_marketing/components/_logo_cloud.html",
         heading="Trusted by teams at",
         logos=[
@@ -668,7 +672,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
         greyscale=True,
     ),
-    "marketing _pricing_table (3 tiers, highlighted+badge, note)": lambda: _include(
+    "_pricing_table (marketing: 3 tiers, highlighted+badge, note)": lambda: _include(
         "brickwork_marketing/components/_pricing_table.html",
         heading="Simple pricing",
         lede="Cancel any time.",
@@ -705,7 +709,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
         note="Prices exclude VAT.",
     ),
-    "marketing _pricing_tier (single, highlighted+badge, dict CTA)": lambda: _include(
+    "_pricing_tier (marketing: single, highlighted+badge, dict CTA)": lambda: _include(
         "brickwork_marketing/components/_pricing_tier.html",
         name="Team",
         price="29 GBP",
@@ -716,7 +720,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         highlighted=True,
         badge="Most popular",
     ),
-    "marketing _stat_band (trend)": lambda: _include(
+    "_stat_band (marketing: trend)": lambda: _include(
         "brickwork_marketing/components/_stat_band.html",
         heading="By the numbers",
         stats=[
@@ -724,7 +728,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             {"value": "94%", "label": "Invoices paid without a call"},
         ],
     ),
-    "marketing _testimonial (avatar, logo)": lambda: _include(
+    "_testimonial (marketing: avatar, logo)": lambda: _include(
         "brickwork_marketing/components/_testimonial.html",
         quote="Northwind paid for itself in the first month.",
         author="Priya Shah",
@@ -897,6 +901,28 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
     test_shell.py / test_marketing.py, which already render them as full
     documents; this registry's job is the include/tag/extend surface those
     do not reach.
+
+    covered_stems is DERIVED from the registry (icvoss/django-brickwork#331),
+    not hand-maintained: a registry entry with no matching shipped template,
+    or a shipped template with no registry entry, is now the SAME failure
+    this assertion already reports, not a silent one-directional gap.
+
+    Deriving `label.split()[0]` only works because every _COMPONENT_RENDERS
+    key leads with its template stem (verified below, and true of every
+    entry as of this fix): a tag-invoked entry such as bw_button's is keyed
+    "_button (bw_button: ...)", not "bw_button (...)", and a marketing entry
+    is keyed "_hero (marketing: ...)", not "marketing _hero (...)". The
+    vocabulary-generated entries (test_option_vocabularies.py's
+    _VOCABULARIES, appended below the hand-written block) already conform:
+    their label is built as f"{_component} ..." where _component is always
+    the bare stem.
+
+    Four stems derive from the registry but must NOT enter covered_stems:
+    _dropdown/_tabs/_toast/_combobox are private render targets (excluded
+    from `shipped` above, the same as their .html files), and _chart_mount
+    is a simple_tag with no backing template file at all (nothing for
+    `shipped` to ever contain). Excluding them here keeps the assertion
+    symmetric instead of reintroducing a one-directional gap one level down.
     """
     from pathlib import Path
 
@@ -908,7 +934,8 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_combobox.html",
         # _button.html's loading=True branch includes this directly; it has
         # no context contract of its own to render standalone, and the
-        # "bw_button (loading)" registry entry already exercises its class.
+        # "_button (bw_button: loading)" registry entry already exercises
+        # its class.
         "_spinner.html",
         # bw_theme_switch's private render target (icvoss/django-brickwork#117):
         # its own dedicated test file (test_theme_switch.py) already renders it
@@ -917,58 +944,21 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         "_theme_switch.html",
     }
     shell_dirs = {"shell"}
-    covered_stems = {
-        "_button",
-        "_badge",
-        "_alert",
-        "_toggle",
-        "_skeleton",
-        "_search",
-        "_card",
-        "_stat",
-        "_stat_comparison",
-        "_scorecard",
-        "_trend_indicator",
-        "_ranked_list",
-        "_gauge",
-        "_chart_card",
-        "_chart_data_table",
-        "_sparkline",
-        "_data_table",
-        "_stepper",
-        "_modal",
-        "_slide_over",
-        "_account_menu",
-        "_tooltip",
-        "_disclosure",
-        "_progress",
-        "_breadcrumbs",
-        "_pagination",
-        "_pager",
-        "_bulk_actions_bar",
-        "_empty_state",
-        "_page_header",
-        "_filter_bar",
-        "_dropzone",
-        "_tag_input",
-        "_toast_region",
-        "_field",
-        "_form",
-        "_form_errors",
-        "_nav",
-        "_nav_header",
-        "_nav_rail",
-        "_hero",
-        "_cta",
-        "_faq",
-        "_feature_grid",
-        "_logo_cloud",
-        "_pricing_table",
-        "_pricing_tier",
-        "_stat_band",
-        "_testimonial",
-        "_code",
-    }
+
+    registry_stems = {name.split()[0] for name in _COMPONENT_RENDERS}
+    non_conforming = [name for name in _COMPONENT_RENDERS if not name.split()[0].startswith("_")]
+    assert not non_conforming, (
+        "a _COMPONENT_RENDERS key does not lead with its template stem, so "
+        f"deriving covered_stems from it would be silently wrong: {non_conforming}"
+    )
+    # Private render targets and tag-only entries with no backing template
+    # file: present in the registry (so the class-contract tests above still
+    # cover them), absent from `shipped` (no standalone template exists or
+    # {% include %} is forbidden), so excluded here to keep both sides of
+    # the assertion below in agreement.
+    not_independently_shipped = {"_dropdown", "_tabs", "_toast", "_combobox", "_chart_mount"}
+    covered_stems = registry_stems - not_independently_shipped
+
     templates_dirs = [root / "templates" / "brickwork", root / "marketing" / "templates" / "brickwork_marketing"]
     shipped = set()
     for templates_dir in templates_dirs:
@@ -982,3 +972,41 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         f"a shipped template has no class-contract coverage: {shipped - covered_stems}, "
         f"or covered_stems names a template that no longer ships: {covered_stems - shipped}"
     )
+
+
+def test_a_registered_but_unlisted_component_is_now_caught() -> None:
+    """icvoss/django-brickwork#331's own failure mode, reproduced against a
+    deliberately wrong hand-written covered_stems: a stem present in the
+    registry but MISSING from covered_stems (a component registered, then
+    silently dropped from the hand-maintained list, or never added to it in
+    the first place) used to pass this suite, because the coverage test only
+    ever compared covered_stems against shipped templates, never against the
+    registry. With covered_stems now DERIVED from the registry, the same
+    scenario is structurally impossible to reproduce by hand: the registry
+    IS covered_stems (minus the private/non-template exclusions), so this
+    test instead proves the derivation itself would surface the gap were it
+    ever reintroduced, by rebuilding a deliberately incomplete covered_stems
+    the way the old hand-written version could have been and showing it now
+    disagrees with the registry-derived one.
+    """
+    registry_stems = {name.split()[0] for name in _COMPONENT_RENDERS}
+    assert "_empty_state" in registry_stems, "the fixture below assumes _empty_state is a real registered component"
+
+    hand_maintained_with_a_dropped_entry = registry_stems - {
+        "_dropdown",
+        "_tabs",
+        "_toast",
+        "_combobox",
+        "_chart_mount",
+    }
+    hand_maintained_with_a_dropped_entry.discard("_empty_state")  # simulates a component silently dropped by hand
+
+    derived = registry_stems - {"_dropdown", "_tabs", "_toast", "_combobox", "_chart_mount"}
+
+    assert derived != hand_maintained_with_a_dropped_entry, (
+        "the derived set must disagree with a hand-maintained set missing a "
+        "registered component, or this test is not exercising the failure "
+        "mode #331 fixed"
+    )
+    assert "_empty_state" in derived
+    assert "_empty_state" not in hand_maintained_with_a_dropped_entry

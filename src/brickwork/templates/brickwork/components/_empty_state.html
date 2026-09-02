@@ -9,6 +9,11 @@ package-supplied default copy, STA-003).
 Required context: heading (except at size="sm", see below), body (required at
 every scale, STA-003). Optional: variant ("no_data" default or "no_results"),
 icon (registry name), action_href, action_label.
+  variant ("no_data" | "no_results", default "no_data"): matched against an
+        author-written literal for the bw-empty-state--{variant} modifier
+        class, never interpolated (#391). An unrecognised value silently
+        falls back to the "no_data" literal rather than reaching attribute
+        position, the same constrain pattern size already uses below.
   size ("sm" | "md", default "md"): emitted as bw-empty-state--size-sm only
         when "sm" is supplied (ADR-060, STA-019, #218); "lg" is not an earned
         value. "sm" is the in-panel scale, for an empty state nested inside a
@@ -95,7 +100,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-empty-state* selector. The size axis (sm/md) is a fixed, explicitly
   chosen scale, never a viewport-driven one.
 {% endcomment %}
-<div class="bw-empty-state bw-empty-state--{% firstof variant 'no_data' %}{% if size == "sm" %} bw-empty-state--size-sm{% endif %}">
+<div class="bw-empty-state bw-empty-state--{% if variant == "no_results" %}no_results{% else %}no_data{% endif %}{% if size == "sm" %} bw-empty-state--size-sm{% endif %}">
   {% block icon %}
   {% if icon %}
     {% bw_icon icon size="xl" decorative=True css_class="bw-empty-state__icon" %}

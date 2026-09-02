@@ -7,7 +7,8 @@ The Navigation contract (contract #3 of 5). Every rule here is tested against
 - visible_items: permission/feature/policy filtering via host-injected callables
   only (BR-BW-NAV-004); visibility is display, never authorisation (BR-BW-NAV-005).
 - resolve_active_item: active state via resolver_match, never path.startswith
-  (BR-BW-NAV-001); a parent is active when a descendant matches (NAV-008).
+  (BR-BW-NAV-001); a parent is active when a descendant matches (NAV-008); items
+  sharing a url_name are disambiguated by a url_kwargs subset match (#273).
 - safe_reverse: a bad url_name never 500s (BR-BW-NAV-003); it logs and the
   renderer omits or disables the item per BRICKWORK_NAV_FALLBACK (NAV-015).
 """
@@ -122,19 +123,59 @@ def visible_items(nav_items: Iterable[NavItem], context: NavContext) -> tuple[Na
     return tuple(result)
 
 
+def _kwargs_match(item_kwargs: dict, request_kwargs: dict) -> bool:
+    """Whether ``item_kwargs`` is satisfied by the current route's kwargs.
+
+    Subset match, not equality (icvoss/django-brickwork#273): every key the
+    ``NavItem`` declares in ``url_kwargs`` must be present in
+    ``resolver_match.kwargs`` with an equal value, but the request is allowed to
+    carry EXTRA kwargs the item does not care about. ``url_kwargs`` is "fixed at
+    nav-definition time" (see the field's docstring on ``NavItem``), i.e. the
+    values that pin this item to ONE of several routes sharing a ``url_name``,
+    not a full description of every kwarg the route can carry; a route gaining
+    an unrelated extra kwarg later must not silently break every nav item that
+    predates it. An item with no ``url_kwargs`` (the default ``{}``) is a
+    whole-route match: ``{}`` is a subset of any dict, so this is unconditionally
+    True and existing configs are unaffected.
+    """
+    return all(request_kwargs.get(key) == value for key, value in item_kwargs.items())
+
+
 def resolve_active_item(
     nav_items: Iterable[NavItem],
     resolver_match: ResolverMatch | None,
 ) -> NavItem | None:
-    """Return the deepest NavItem matching the current route, or None.
+    """Return the deepest, most specific NavItem matching the current route, or None.
 
     Matches ``resolver_match.view_name`` against each item's ``url_name`` and its
     ``active_url_names`` (BR-BW-NAV-001, #20), NEVER ``request.path.startswith``.
     A section stays active across its list and detail/sub views by listing the
-    secondary route names in ``active_url_names``. Returns the deepest (leaf)
-    match, so a specific child wins over an ancestor; the renderer marks both the
-    leaf and its ancestors active for styling (NAV-008), which it derives by
-    checking whether the active item is within a given item's subtree.
+    secondary route names in ``active_url_names``.
+
+    When a candidate's ``url_name`` matches, its ``url_kwargs`` is additionally
+    checked against ``resolver_match.kwargs`` as a SUBSET match (#273): every key
+    in ``url_kwargs`` must equal the request's value for that key, but the
+    request may carry extra kwargs the item does not declare. This is what lets
+    a nav distinguish several items served by one parameterised route (e.g. a
+    docs sidebar where every page shares ``docs:page`` and differs only by
+    ``slug``): without it, every item sharing the route name matched
+    simultaneously and only one accidentally "won". An item with empty
+    ``url_kwargs`` (the default) always passes this check, so a whole-route item
+    (list view, or a section widened via ``active_url_names``) keeps matching
+    exactly as before; this is deliberate, not a regression to guard against.
+
+    Ties are broken by keeping the LAST match found while walking the tree
+    depth-first (parents before children, each item before its ``children``, see
+    ``_walk``). In practice this means: (1) a genuine ancestor/descendant pair
+    both matching resolves to the descendant, since it is walked after its
+    parent, giving the "deepest match wins" behaviour the renderer relies on for
+    NAV-008; (2) two SIBLINGS whose ``url_name`` and ``url_kwargs`` both match
+    the same request (a misconfiguration: two items claiming the same route)
+    resolves to whichever is declared later in the nav tree. Sibling ties are
+    not expected in a correctly configured nav (distinct ``url_kwargs`` values
+    should make them mutually exclusive) and are not validated against at
+    config time; this is documented behaviour, not a guarantee that a tie is
+    meaningful.
 
     ``resolver_match`` is None for an unresolved request (e.g. a 404), in which
     case nothing is active.
@@ -142,10 +183,14 @@ def resolve_active_item(
     if resolver_match is None:
         return None
     view_name = resolver_match.view_name
+    request_kwargs = resolver_match.kwargs or {}
     match: NavItem | None = None
     for item in _walk(nav_items):
+        if item.url_name is None:
+            continue
         names = item.active_url_names
-        if item.url_name is not None and (item.url_name == view_name or view_name in names):
+        name_matches = item.url_name == view_name or view_name in names
+        if name_matches and _kwargs_match(item.url_kwargs, request_kwargs):
             match = item  # keep the last (deepest) match in depth-first order
     return match
 
