@@ -1,4 +1,4 @@
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 Code display (icvoss/django-brickwork#259, Wave 2 content primitives): a
 labelled, scrollable code panel pulled out of the flow of a docs or blog
@@ -158,7 +158,7 @@ Responsive: no breakpoint switch; the panel's own horizontal scroll
   <div class="bw-code__body"
        role="region"
        tabindex="0"
-       {% if filename %}aria-labelledby="bw-code-{% firstof id filename|slugify %}-filename"{% else %}aria-label="{{ label }}"{% endif %}>
+       {% if filename %}aria-labelledby="bw-code-{% firstof id filename|slugify %}-filename"{% else %}{% bw_attr "aria-label" label %}{% endif %}>
     <pre class="bw-code__pre"><code class="bw-code__code"{% if copyable %} data-bw-code-copy-source{% endif %}>{{ code }}</code></pre>
   </div>
 </div>

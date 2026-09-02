@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load brickwork_components i18n %}
 {% comment %}
 Progress (STA-007): a determinate or indeterminate progress bar. Structural,
 consumed via {% include %} (no render-time enforcement needed, unlike the
@@ -57,13 +57,13 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
 {% endcomment %}
 <div class="bw-progress{% if value is None %} bw-progress--indeterminate{% endif %}"
      role="progressbar"
-     aria-label="{{ label }}"
+     {% bw_attr "aria-label" label %}
      aria-valuemin="0"
      aria-valuemax="100"
-     {% if value is not None %}aria-valuenow="{{ value }}"{% endif %}>
+     {% if value is not None %}{% bw_attr "aria-valuenow" value numeric=True %}{% endif %}>
   <div class="bw-progress__track">
     {% if value is not None %}
-      <div class="bw-progress__fill" style="--bw-progress-value: {{ value }}"></div>
+      <div class="bw-progress__fill" {% bw_attr "style" value numeric=True prefix="--bw-progress-value: " %}></div>
     {% else %}
       <div class="bw-progress__fill bw-progress__fill--indeterminate"></div>
     {% endif %}

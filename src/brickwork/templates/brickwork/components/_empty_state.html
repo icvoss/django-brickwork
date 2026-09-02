@@ -1,4 +1,4 @@
-{% load brickwork_icons i18n %}
+{% load brickwork_icons brickwork_components i18n %}
 {% comment %}
 Empty state (STA-001/002). variant distinguishes "no data yet" (nothing ever
 created) from "no results" (a filter matched nothing), so the two are never
@@ -116,9 +116,9 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   {% block action %}
   {% if action_href and action_label %}
     {% if size == "sm" %}
-    <a class="bw-empty-state__action-link" href="{{ action_href }}">{{ action_label }}</a>
+    <a class="bw-empty-state__action-link" {% bw_attr "href" action_href %}>{{ action_label }}</a>
     {% else %}
-    <a class="bw-btn bw-btn--primary bw-btn--md" href="{{ action_href }}">{{ action_label }}</a>
+    <a class="bw-btn bw-btn--primary bw-btn--md" {% bw_attr "href" action_href %}>{{ action_label }}</a>
     {% endif %}
   {% endif %}
   {% endblock %}

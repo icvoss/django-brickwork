@@ -193,7 +193,15 @@ def _numeric_attribute_value(value: object) -> str:
 
 
 @register.simple_tag
-def bw_attr(name: str, value: object, *, allow: str = "", numeric: bool = False) -> SafeString:
+def bw_attr(
+    name: str,
+    value: object,
+    *,
+    allow: str = "",
+    numeric: bool = False,
+    prefix: str = "",
+    suffix: str = "",
+) -> SafeString:
     """Emit one complete, safe HTML attribute (``name="value"``) or nothing
     at all (ADR-097): the single seam for every consumer value an
     include-only template places into attribute position, callable from
@@ -276,7 +284,16 @@ def bw_attr(name: str, value: object, *, allow: str = "", numeric: bool = False)
         rendered_value = _numeric_attribute_value(value)
     else:
         rendered_value = escape(str(value))
-    return mark_safe(f'{escape(name)}="{rendered_value}"')
+    # prefix/suffix are TEMPLATE-AUTHOR literals, never consumer data: they let
+    # the seam own an attribute whose value is a fixed wrapper around one
+    # consumer value, such as a CSS custom property
+    # (style="--bw-progress-value: 42"). They are escaped like everything else
+    # here, so a call site cannot smuggle markup through them either. This
+    # keeps the ADR-097 rule intact rather than weakening it: the seam still
+    # emits the WHOLE attribute, so there is still no quote for an author to
+    # write and forget. A value that needs a wrapper built from CONSUMER data
+    # is out of scope by construction, because prefix/suffix take no variable.
+    return mark_safe(f'{escape(name)}="{escape(prefix)}{rendered_value}{escape(suffix)}"')
 
 
 @register.simple_tag

@@ -1,4 +1,4 @@
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 Pager (icvoss/django-brickwork#460): the previous/next treatment for a
 sequential document (a documentation article, an editorial post, a series
@@ -49,7 +49,7 @@ Responsive: no breakpoint switch; .bw-pager wraps to a stacked column
 {% translate "More in this series" as bw_pager_default_aria_label %}
 <nav class="bw-pager" aria-label="{% firstof aria_label bw_pager_default_aria_label %}">
   {% if previous_href %}
-    <a class="bw-pager__link" href="{{ previous_href }}" rel="prev">
+    <a class="bw-pager__link" {% bw_attr "href" previous_href %} rel="prev">
       {% bw_icon "chevron-back" size="sm" decorative=True %}
       <span>
         <span class="bw-pager__direction">{% translate "Previous" %}:</span>
@@ -58,7 +58,7 @@ Responsive: no breakpoint switch; .bw-pager wraps to a stacked column
     </a>
   {% endif %}
   {% if next_href %}
-    <a class="bw-pager__link bw-pager__next" href="{{ next_href }}" rel="next">
+    <a class="bw-pager__link bw-pager__next" {% bw_attr "href" next_href %} rel="next">
       <span>
         <span class="bw-pager__direction">{% translate "Next" %}:</span>
         <span class="bw-pager__title">{{ next_label }}</span>

@@ -291,14 +291,14 @@ marker into ids and attributes; firstof resolves with failures ignored.
               {% endcomment %}
               <td class="bw-data-table__td bw-data-table__td--select">
                 <label class="bw-visually-hidden" for="{{ table_id }}-row-{{ row.id }}-select">{% blocktranslate with row_id=row.id %}Select row {{ row_id }}{% endblocktranslate %}</label>
-                <input type="checkbox" class="bw-checkbox" name="selected" value="{{ row.id }}"
+                <input type="checkbox" class="bw-checkbox" name="selected" {% bw_attr "value" row.id %}
                        id="{{ table_id }}-row-{{ row.id }}-select"
                        data-bw-row-select>
               </td>
             {% endif %}
             {% for cell in row.cells %}
               {% with col=columns|list_item:forloop.counter0 %}
-              <td class="bw-data-table__td"{% if responsive == "stack" %} data-label="{{ col.label }}"{% endif %}>{% if row.url and forloop.first %}<a class="bw-data-table__row-link" href="{{ row.url }}">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
+              <td class="bw-data-table__td"{% if responsive == "stack" %} {% bw_attr "data-label" col.label %}{% endif %}>{% if row.url and forloop.first %}<a class="bw-data-table__row-link" {% bw_attr "href" row.url %}>{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>
               {% endwith %}
             {% endfor %}
           </tr>

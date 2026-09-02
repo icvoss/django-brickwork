@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load brickwork_components i18n %}
 {% comment %}
 Bulk-actions bar (brickwork#54): the region above a selectable
 _data_table.html that a consumer's action buttons live in. STRUCTURE ONLY,
@@ -79,12 +79,12 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
 {% endcomment %}
 {% blocktranslate asvar count_template %}{count} selected{% endblocktranslate %}
 <div class="bw-bulk-actions-bar">
-  <div class="bw-bulk-actions-bar__count" data-bw-selection-count data-bw-selection-count-template="{{ count_template }}" aria-live="polite"></div>
+  <div class="bw-bulk-actions-bar__count" data-bw-selection-count {% bw_attr "data-bw-selection-count-template" count_template %} aria-live="polite"></div>
   <div class="bw-bulk-actions-bar__actions">
     {% block bulk_actions_buttons %}{% endblock %}
     {% if select_all_href %}
       {% translate "Select all" as default_select_all_label %}
-      <a class="bw-bulk-actions-bar__select-all" href="{{ select_all_href }}">{% firstof select_all_label default_select_all_label %}</a>
+      <a class="bw-bulk-actions-bar__select-all" {% bw_attr "href" select_all_href %}>{% firstof select_all_label default_select_all_label %}</a>
     {% endif %}
   </div>
 </div>

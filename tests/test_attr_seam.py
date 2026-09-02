@@ -257,3 +257,30 @@ def test_bw_attr_itself_is_not_exploitable_by_the_same_payload_format_html_fails
     out = _render('<div {% bw_attr "aria-label" v %}></div>', v=ATTACK)
     assert "alert(1)" in out, "non-vacuity: the payload must still reach the render, escaped"
     assert _on_star_attrs(out) == []
+
+
+# --- prefix/suffix: the seam owns an attribute whose value wraps one consumer
+# --- value in author-written literals (icvoss/django-brickwork#390, ADR-097).
+
+
+def test_prefix_wraps_the_value_inside_the_attribute_the_seam_still_owns() -> None:
+    # The _progress CSS site: style="--bw-progress-value: 42". The seam still
+    # emits the WHOLE attribute, so there is no quote for an author to forget.
+    out = _render('{% bw_attr "style" value numeric=True prefix="--bw-progress-value: " %}', value=42)
+    assert out == 'style="--bw-progress-value: 42"'
+
+
+def test_prefix_does_not_let_a_payload_through_the_numeric_gate() -> None:
+    # prefix is an author literal; it must not become a bypass for the value's
+    # own coercion. The CSS payload is still rejected.
+    with pytest.raises(TemplateSyntaxError):
+        _render(
+            '{% bw_attr "style" value numeric=True prefix="--bw-progress-value: " %}',
+            value=mark_safe("50; --bw-color-accent: red"),
+        )
+
+
+def test_prefix_and_suffix_are_themselves_escaped() -> None:
+    # A call site cannot smuggle markup through the literals either.
+    out = _render('{% bw_attr "data-x" value prefix="a\\" onclick=\\"x(" suffix=")" %}', value="1")
+    assert _on_star_attrs(f"<div {out}></div>") == []

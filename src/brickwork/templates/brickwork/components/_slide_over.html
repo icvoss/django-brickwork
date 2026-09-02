@@ -1,4 +1,4 @@
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 Slide-over / side panel (04-interfaces section 4b, 0.14.0, brickwork#55).
 Consumed by EXTENDING, exactly like _modal.html: a consumer's slide-over
@@ -180,7 +180,7 @@ Responsive: no breakpoint switch. Panel width is the fixed size scale
         {# deliberately does NOT carry data-bw-slide-over-close: bwSlideOver's #}
         {# own listener would close without preventing the navigation.     #}
         <a class="bw-slide-over__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
-           href="{{ close_href }}"
+           {% bw_attr "href" close_href %}
            aria-label="{{ bw_slide_over_close_label }}"
            x-on:click.prevent="close('close-button')">
           {% bw_icon "close" size="sm" decorative=True %}

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load brickwork_components i18n %}
 {% comment %}
 Breadcrumbs (#25): the accessible <ol> that fills the shell's
 {% block breadcrumbs %} inside its labelled <nav class="bw-breadcrumbs">. A
@@ -38,7 +38,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   {% for crumb in crumbs %}
     <li class="bw-breadcrumbs__item">
       {% if crumb.url and not forloop.last %}
-        <a class="bw-breadcrumbs__link" href="{{ crumb.url }}">{{ crumb.label }}</a>
+        <a class="bw-breadcrumbs__link" {% bw_attr "href" crumb.url %}>{{ crumb.label }}</a>
       {% elif forloop.last %}
         <span class="bw-breadcrumbs__current" aria-current="page">{{ crumb.label }}</span>
       {% else %}
