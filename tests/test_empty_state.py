@@ -217,3 +217,93 @@ def test_size_md_action_still_renders_the_primary_button() -> None:
     out = _render(action_href="/invoices/new/", action_label="Create invoice")
     assert '<a class="bw-btn bw-btn--primary bw-btn--md" href="/invoices/new/">Create invoice</a>' in out
     assert "bw-empty-state__action-link" not in out
+
+
+# --- icvoss/django-brickwork#391: variant must be constrained the same way
+# --- size already is on the same line, not interpolated into attribute
+# --- position -----------------------------------------------------------------
+
+
+def _on_star_attrs(html: str) -> list[tuple[str, str]]:
+    """Parse ``html`` and return every ``on*`` attribute actually present on
+    any element, using ``html.parser`` rather than a regex/substring search
+    (matching test_components.py's own ``_on_star_attrs`` for #349).
+
+    A regex for ``onclick=`` also matches the correctly-escaped text INSIDE
+    an attribute value, which is a false positive on clean output. Parsing
+    and checking parsed attribute NAMES is the only technique that tells a
+    live handler apart from its escaped, harmless text form.
+    """
+    from html.parser import HTMLParser
+
+    class _Finder(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.found: list[tuple[str, str]] = []
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            self.found.extend((tag, name) for name, _value in attrs if name.startswith("on"))
+
+    parser = _Finder()
+    parser.feed(html)
+    return parser.found
+
+
+def test_variant_mark_safed_payload_cannot_break_out_of_the_class_attribute() -> None:
+    # The exact repro from icvoss/django-brickwork#391: a mark_safe'd variant
+    # closing the class attribute's quote and landing a live handler.
+    from django.utils.safestring import mark_safe
+
+    attack = mark_safe('a" onclick="alert(1)')
+    out = _render(variant=attack)
+
+    # Non-vacuity guard (ADR-084 section 7, #391's own recorded trap): a
+    # probe that never reached the render passes "no handler found" for
+    # free, proving nothing. The payload's marker text must actually be
+    # checked for presence, and the control test below proves the same
+    # payload DOES reach an unconstrained interpolation, so "not reached"
+    # here is evidence the fix's match/literal branch is doing the work,
+    # not evidence the probe itself is inert.
+    reached = "alert(1)" in out
+    assert not reached, (
+        "the payload's own text landed in the rendered output, which means "
+        "variant reached attribute position unconstrained; _empty_state.html "
+        "must match variant against its closed vocabulary the same way it "
+        "already matches size"
+    )
+    assert _on_star_attrs(out) == []
+
+
+def test_variant_control_known_bad_inline_payload_is_detected_by_the_parser() -> None:
+    # Teeth check: prove _on_star_attrs actually fires on a genuinely
+    # unconstrained interpolation, using the same payload rendered directly
+    # into attribute position via an ordinary include-only template, with no
+    # constrain logic in the way. If this control did not detect a live
+    # handler, the assertions above would be trivially true for the wrong
+    # reason (a parser that never finds anything, not a template that is
+    # actually safe).
+    from django.template import Context, Template
+    from django.utils.safestring import mark_safe
+
+    attack = mark_safe('a" onclick="alert(1)')
+    control_html = Template('<div class="bw-control bw-control--{{ v }}"></div>').render(Context({"v": attack}))
+    assert "alert(1)" in control_html, "the control payload did not even reach the control template's output"
+    assert _on_star_attrs(control_html) == [("div", "onclick")]
+
+
+def test_variant_unrecognised_value_falls_back_to_the_no_data_literal() -> None:
+    # The constrain pattern's other half: an unrecognised value is not just
+    # blocked from attribute position, it resolves to the documented
+    # default literal, matching size's existing fallback behaviour on the
+    # same line.
+    out = _render(variant="not-a-real-variant")
+    assert "bw-empty-state--no_data" in out
+    assert "bw-empty-state--not-a-real-variant" not in out
+
+
+def test_variant_no_results_still_emits_its_own_literal_unchanged() -> None:
+    # Regression guard alongside the fix: the documented second value must
+    # keep resolving to its own literal, not collapse into the fallback.
+    out = _render(variant="no_results")
+    assert "bw-empty-state--no_results" in out
+    assert "bw-empty-state--no_data" not in out
