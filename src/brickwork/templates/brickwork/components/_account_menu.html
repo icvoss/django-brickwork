@@ -1,4 +1,4 @@
-{% load brickwork_icons i18n %}
+{% load brickwork_icons brickwork_components i18n %}
 {% comment %}
 Account menu (#25): the profile/account dropdown that fills the shell's
 {% block topbar_account_menu %}. Built on native <details>/<summary> so it opens
@@ -61,7 +61,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   <nav class="bw-account-menu__panel" aria-label="{{ bw_account_menu_label }}">
     {% for item in items %}
       {% if item.method == "post" %}
-        <form method="post" action="{{ item.url }}" class="bw-account-menu__item-form">
+        <form method="post" {% bw_attr "action" item.url %} class="bw-account-menu__item-form">
           {% csrf_token %}
           <button type="submit" class="bw-account-menu__item{% if item.danger %} bw-account-menu__item--danger{% endif %}">
             {% if item.icon %}{% bw_icon item.icon size="sm" decorative=True css_class="bw-account-menu__item-icon" %}{% endif %}
@@ -70,7 +70,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
         </form>
       {% else %}
         <a class="bw-account-menu__item{% if item.danger %} bw-account-menu__item--danger{% endif %}"
-           href="{{ item.url }}">
+           {% bw_attr "href" item.url %}>
           {% if item.icon %}{% bw_icon item.icon size="sm" decorative=True css_class="bw-account-menu__item-icon" %}{% endif %}
           {{ item.label }}
         </a>

@@ -1,3 +1,4 @@
+{% load brickwork_components %}
 {% comment %}
 Card (CMP-014 to CMP-017): the elevated composition surface. Structural, so it
 is consumed via {% include %} (like _page_header.html and _data_table.html).
@@ -126,7 +127,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-card*
   selector. Sizing is the fixed size="sm"|"md"|"lg" token scale, composed
   with the density axis's own padding token, never a viewport-driven rule.
 {% endcomment %}
-{% if href %}<a class="bw-card bw-card--interactive{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}" href="{{ href }}">{% else %}<div class="bw-card{% if interactive %} bw-card--interactive{% endif %}{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}">{% endif %}
+{% if href %}<a class="bw-card bw-card--interactive{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}" {% bw_attr "href" href %}>{% else %}<div class="bw-card{% if interactive %} bw-card--interactive{% endif %}{% if bordered %} bw-card--bordered{% endif %}{% if size %} bw-card--size-{{ size }}{% endif %}">{% endif %}
 {% block header %}{% endblock %}
 {% block card_header %}{% endblock %}
 {% block title %}{% if title %}<h2 class="bw-card__title">{{ title }}</h2>{% endif %}{% endblock %}

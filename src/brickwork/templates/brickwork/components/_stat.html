@@ -96,7 +96,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-stat*
   the surrounding grid (a dashboard's bw-stat-grid or this component's own
   bw-stat-band) owns whatever column-count responsiveness a page shows.
 {% endcomment %}
-{% if href %}<a class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}" href="{{ href }}"{% bw_data_attrs data "stat" %}>{% else %}<div class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}"{% bw_data_attrs data "stat" %}>{% endif %}
+{% if href %}<a class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}" {% bw_attr "href" href %}{% bw_data_attrs data "stat" %}>{% else %}<div class="bw-stat{% if size %} bw-stat--{{ size }}{% endif %}"{% bw_data_attrs data "stat" %}>{% endif %}
   {% if loading %}
     <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
     <div class="bw-skeleton bw-skeleton--title" aria-hidden="true"></div>

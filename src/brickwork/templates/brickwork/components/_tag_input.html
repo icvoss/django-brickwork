@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load brickwork_components i18n %}
 {% comment %}
 Tag / chips input (BR-BW-INPUT-002, 0.13.0, brickwork#57). Purely structural,
 {% include %}-consumed with context (matching _card.html/_disclosure.html: no
@@ -99,8 +99,8 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
       {% if multiline %}
       <textarea class="bw-input bw-tag-input__floor"
                 id="{{ id }}"
-                name="{{ name }}"
-                {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+                {% bw_attr "name" name %}
+                {% bw_attr "placeholder" placeholder %}
                 {% if errors %}aria-invalid="true"{% endif %}
                 aria-describedby="{{ help_id }} {{ error_id }}"
                 data-bw-tag-input-floor>{{ value }}</textarea>
@@ -108,9 +108,9 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
       <input class="bw-input bw-tag-input__floor"
              type="text"
              id="{{ id }}"
-             name="{{ name }}"
-             value="{{ value }}"
-             {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+             {% bw_attr "name" name %}
+             {% bw_attr "value" value %}
+             {% bw_attr "placeholder" placeholder %}
              {% if errors %}aria-invalid="true"{% endif %}
              aria-describedby="{{ help_id }} {{ error_id }}"
              data-bw-tag-input-floor>

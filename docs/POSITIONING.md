@@ -212,7 +212,7 @@ sight, and are refreshed by hand at the next audit.
 | Shells | 6 | base, app, auth, centred, docs, marketing. **Gated** against `catalogue-manifest.json` |
 | Sections | 28 | **Gated** against `catalogue-manifest.json` |
 | Archetypes | 22 | **Gated** against `catalogue-manifest.json`. `examples/base.html` moved out of this count into its own `skeleton` kind (icvoss/django-brickwork#464): it is a raw document skeleton a consumer copies, not a complete page, and was the only archetype ever carrying `family: null` |
-| Template tag registrations | 24 total | 17 `inclusion_tag`, 6 `simple_tag`, 1 `filter`. Write "17 component tags" or state the 24 total; never a bare "17 template tags". **Gated** by importing the templatetags libraries and counting `register.tags`/`register.filters` |
+| Template tag registrations | 25 total | 17 `inclusion_tag`, 7 `simple_tag`, 1 `filter`. Write "17 component tags" or state the 25 total; never a bare "17 template tags". **Gated** by importing the templatetags libraries and counting `register.tags`/`register.filters` |
 | Tokens | 358 unique `--bw-*` | 286 overridable; 10 load-bearing, 8 unconditional. **Overridable count gated** against `token-manifest.json`; the 358 total (all custom properties in compiled `tokens.css`) is **dated** at 3.12.0 |
 | Alpine components | 16 | bwDropdown, bwTabs, bwModal, bwToastRegion, bwToast, bwCombobox, bwDismissible, bwTooltip, bwTagInput, bwDropzone, bwSidebarCollapse, bwSlideOver, bwTableSelection, bwSortable, bwThemeSwitch, bwCodeCopy. **Gated** by parsing the `Alpine.data(...)` calls in `frontend/src/js/index.js`'s single registration point |
 | Examples | 50 | 22 archetype pages, 28 sections. **Gated** against `catalogue-manifest.json` |

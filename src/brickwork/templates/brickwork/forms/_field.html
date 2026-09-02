@@ -1,4 +1,4 @@
-{% load i18n brickwork_forms %}
+{% load i18n brickwork_forms brickwork_components %}
 {% comment %}
 Accessible field renderer (BR-BW-HTMX-003 / BR-BW-A11Y-002). Wires:
 - a real <label for> tied to the widget id,
@@ -22,7 +22,7 @@ rendering every field readonly.
 {% firstof readonly '' as readonly_resolved %}
 {% with errors=field.errors help_id=field.auto_id|add:"_help" error_id=field.auto_id|add:"_errors" %}
 <div class="bw-field{% if errors %} bw-field--invalid{% endif %}">
-  <label class="bw-field__label" for="{{ field.id_for_label }}">
+  <label class="bw-field__label" {% bw_attr "for" field.id_for_label %}>
     {{ field.label }}{% if field.field.required %} <span class="bw-field__required" aria-hidden="true">*</span>{% endif %}
   </label>
 

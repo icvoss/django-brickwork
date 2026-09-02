@@ -1,4 +1,4 @@
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 File dropzone / upload chrome (BR-BW-INPUT-003, 0.13.0, brickwork#57). Purely
 structural, {% include %}-consumed with context (matching _disclosure.html:
@@ -51,9 +51,9 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
       <input class="bw-dropzone__input"
              type="file"
              id="{{ id }}"
-             name="{{ name }}"
+             {% bw_attr "name" name %}
              {% if multiple %}multiple{% endif %}
-             {% if accept %}accept="{{ accept }}"{% endif %}
+             {% bw_attr "accept" accept %}
              {% if errors %}aria-invalid="true"{% endif %}
              {% if help_text %}aria-describedby="{{ help_id }} {{ error_id }}"{% else %}aria-describedby="{{ error_id }}"{% endif %}
              data-bw-dropzone-input>

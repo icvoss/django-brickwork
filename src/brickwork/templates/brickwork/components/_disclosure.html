@@ -1,4 +1,4 @@
-{% load brickwork_icons %}
+{% load brickwork_icons brickwork_components %}
 {% comment %}
 Disclosure (04-interfaces section 4b, 0.8.0): a native <details>/<summary>
 expand/collapse. Consumed via {% include %} (purely structural, matching
@@ -62,7 +62,7 @@ Accessibility: native WAI-ARIA APG Disclosure pattern by construction (Tab
 Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-disclosure* selector.
 {% endcomment %}
-<details class="bw-disclosure bw-disclosure--{% firstof variant 'divided' %}"{% if name %} name="{{ name }}"{% endif %}{% if open %} open{% endif %}>
+<details class="bw-disclosure bw-disclosure--{% firstof variant 'divided' %}"{% if name %} {% bw_attr "name" name %}{% endif %}{% if open %} open{% endif %}>
   <summary class="bw-disclosure__trigger">
     <span class="bw-disclosure__label">{{ label }}</span>
     {% block trigger_meta %}{% if trigger_meta %}<span class="bw-disclosure__meta">{{ trigger_meta }}</span>{% endif %}{% endblock %}

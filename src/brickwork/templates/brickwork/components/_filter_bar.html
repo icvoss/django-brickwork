@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load brickwork_components i18n %}
 {% comment %}
 Filter bar (TBL-003, #15): STRUCTURE ONLY, like _data_table.html. An inline bar
 of consumer-supplied form fields (search box, status select, etc.) that filters a
@@ -38,7 +38,7 @@ Responsive: no breakpoint switch. Both the bar and its fields row are
 <form class="bw-filter-bar"
       {% if filter_bar_id %}id="{{ filter_bar_id }}"{% endif %}
       method="get" action="{% firstof action '' %}"
-      {% if hx_get %}hx-get="{{ hx_get }}"{% if hx_target %} hx-target="{{ hx_target }}"{% endif %} hx-trigger="submit"{% endif %}>
+      {% if hx_get %}{% bw_attr "hx-get" hx_get %}{% if hx_target %} {% bw_attr "hx-target" hx_target %}{% endif %} hx-trigger="submit"{% endif %}>
   <div class="bw-filter-bar__fields">
     {% for field in fields %}
       {% include "brickwork/forms/_field.html" with field=field %}
@@ -49,7 +49,7 @@ Responsive: no breakpoint switch. Both the bar and its fields row are
     <button type="submit" class="bw-btn bw-btn--primary bw-btn--md">{% firstof submit_label default_submit_label %}</button>
     {% if clear_href %}
       {% translate "Clear" as default_clear_label %}
-      <a class="bw-btn bw-btn--ghost bw-btn--md" href="{{ clear_href }}">{% firstof clear_label default_clear_label %}</a>
+      <a class="bw-btn bw-btn--ghost bw-btn--md" {% bw_attr "href" clear_href %}>{% firstof clear_label default_clear_label %}</a>
     {% endif %}
   </div>
 </form>

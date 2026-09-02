@@ -1,3 +1,4 @@
+{% load brickwork_components %}
 {% comment %}
 Tooltip (0.12.0, #56; supersedes STA-015's title-only baseline). Consumed by
 EXTENDING, like patterns/ and _modal.html: a consumer's tooltip partial opens
@@ -90,7 +91,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
 <span class="bw-tooltip bw-tooltip--{% firstof placement 'top' %}"
       id="{{ id }}-root"
       x-data="bwTooltip({ id: '{{ id|escapejs }}' })">
-  <span data-bw-tooltip-trigger aria-describedby="{{ id }}" title="{{ text }}">
+  <span data-bw-tooltip-trigger aria-describedby="{{ id }}" {% bw_attr "title" text %}>
     {% block trigger %}{% endblock %}
     {% block tooltip_trigger %}{% endblock %}
   </span>
