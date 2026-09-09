@@ -261,6 +261,20 @@ jobs:
       # (icvoss/brickworkui.com#114): the job SHAPE transferred correctly and
       # this one runner-class-dependent flag inside it did not. A working
       # precedent is evidence about its own environment.
+      - name: Disable the unrelated preinstalled Google Chrome apt source
+        # Playwright installs its own pinned Chromium binary, never the runner's
+        # Google Chrome package. `--with-deps` refreshes every configured apt
+        # source before installing Chromium's system libraries; on 2026-09-09,
+        # the hosted runner's preinstalled google-chrome.list served a Packages
+        # file whose hash did not match its signed Release metadata and stopped
+        # the gate before any browser dependency or test ran. Remove only that
+        # unrelated source. Ubuntu and Microsoft sources remain enabled, and apt
+        # continues to verify the metadata and packages it actually installs.
+        run: |
+          chrome_source=/etc/apt/sources.list.d/google-chrome.list
+          if [ -f "$chrome_source" ]; then
+            sudo rm "$chrome_source"
+          fi
       - name: Install Playwright chromium
         run: npx playwright install --with-deps chromium
       - name: Render a11y fixtures (real pages, light + dark)
