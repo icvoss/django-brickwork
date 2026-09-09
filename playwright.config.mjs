@@ -10,6 +10,7 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./a11y",
   testMatch: "**/*.spec.mjs",
+  testIgnore: "**/startsite.spec.mjs",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   reporter: [

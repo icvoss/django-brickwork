@@ -8,6 +8,171 @@ versioning contract).
 
 ## Unreleased
 
+## [3.17.0] - 2026-09-09
+
+**This release makes the first-use path concrete and strengthens the package's
+attribute boundary.** `manage.py startsite` now emits a small, designed project
+that a Django team can own from its first edit. The new `{% bw_attr %}` seam
+escapes whole attribute values in include-only templates, while the catalogue
+and navigation corrections make the package's published metadata and active
+state match its actual behaviour. Consumers that parse
+`catalogue-manifest.json` directly should handle the new `skeleton` kind and
+the separate `counts.skeletons` field.
+
+### Added
+
+- **`manage.py startsite` emits a minimal, running, designed brickwork
+  project** (ADR-095, icvoss/django-brickwork#470). A new consumer following
+  `docs/QUICKSTART.md` previously reached a structurally correct, visually
+  empty page, then a 2,714-line documented route onward: the shells expose
+  `{% block %}`s, not context variables, so a bare `{% extends %}` filling no
+  blocks correctly renders nothing, and the shipped CSS hides every unfilled
+  region deliberately. The new command emits settings wired for `brickwork`
+  and `brickwork.marketing`, a brand token file carrying the seven
+  load-bearing tokens plus a `--bw-color-fg-on-accent` value verified at
+  4.5:1 in both themes, a nav config validated at import, and three real
+  pages (a marketing landing page, an app dashboard, a docs home) each with
+  the view that supplies its exact context, built from brickwork's own
+  shipped `app/dashboard.html`, `docs/home.html` and `marketing/landing.html`
+  examples. The emitted project is the consumer's outright from the moment
+  it is written: there is no update command and no re-run-to-upgrade path
+  (ADR-095 section 3, following ADR-056's existing example-ownership rule).
+  The command itself is governed, versioned surface; its output carries no
+  semver guarantee.
+
+- **`{% bw_attr %}`, one shared attribute-rendering seam for the whole
+  package** (ADR-097). The package previously stopped a consumer value
+  breaking out of an HTML attribute four different, partial ways:
+  `escape_attribute_value` on the tag path only, the constrain pattern on
+  two closed-vocabulary templates, `bw_data_attrs` on `data-*` mappings
+  only, and nothing at all on the roughly 28 remaining include-only
+  template sites. `bw_attr` is the one mechanism the others fold into: it
+  emits a complete `name="value"` attribute or nothing, callable from
+  inside an include-only template's own body the way `bw_data_attrs`
+  already is. Three modes selected by the value's own nature: the default
+  escapes unconditionally (the ADR-083 rule); `allow="a b c"` matches
+  against a closed, space-separated vocabulary and omits the attribute
+  entirely on an unrecognised value, never raising and never falling back
+  to a guessed default; `numeric=True` coerces via `float()` and clamps to
+  0-100 for a numeric attribute or for one consumer value wrapped by
+  template-author literal `prefix` and `suffix` text, such as a CSS custom
+  property declaration. Built without `format_html`, which
+  honours a `SafeString`'s `__html__` marker by documented contract and so
+  passes a `mark_safe`'d attack payload through verbatim: a first spike of
+  this seam using `format_html('{}="{}"', name, value)` was exploitable,
+  caught by the seam's own tests. `escape_attribute_value` and
+  `bw_data_attrs` remain available for their existing tag and `data-*`
+  contracts.
+
+- **The project emitted by `manage.py startsite` is now accessibility-scanned
+  in CI** (ADR-095, icvoss/django-brickwork#478). The gate emits a temporary
+  project, requests its landing, dashboard and docs-home URLs through that
+  project's own settings and URLconf in light and dark themes, then inlines
+  the shipped and emitted brand stylesheets into six Playwright fixtures. It
+  has separate fixture-count and reporter-stat guards, so a broken generator
+  or a Playwright run that registered zero starter tests cannot pass by
+  borrowing the package-wide a11y suite's result.
+
+### Changed
+
+- **Every include-only template's whole-value attribute site now escapes
+  through `{% bw_attr %}`** (ADR-097, icvoss/django-brickwork#363 partial).
+  The applicable whole-value interpolations across `_account_menu.html`, `_breadcrumbs.html`,
+  `_bulk_actions_bar.html`, `_card.html`, `_code.html`, `_data_table.html`,
+  `_disclosure.html`, `_dropzone.html`, `_empty_state.html`,
+  `_filter_bar.html`, `_modal.html`, `_pager.html`, `_progress.html`,
+  `_slide_over.html`, `_stat.html`, `_tag_input.html`, `_tooltip.html` and
+  `forms/_field.html` moved off a bare `{{ value }}` interpolation and onto
+  the seam, closing the escaping gap for every site where the interpolation
+  is a complete attribute value: an href, a name, a placeholder, an id
+  association, an aria-label, a title, an hx-get/hx-target pair, and
+  `_progress.html`'s `aria-valuenow` (now `numeric=True`). Of #363's own
+  four `row.id` attribute sites in `_data_table.html`, only one closes
+  here: `value="{{ row.id }}"` on the selection checkbox. The other three
+  (`<tr id="{{ table_id }}-row-{{ row.id }}">`, its matching
+  `<label for=...-{{ row.id }}-select>`, and the checkbox's own
+  `id=...-{{ row.id }}-select`) build a composed string around `row.id`,
+  not a bare interpolation, and `bw_attr` emits one complete attribute from
+  one value: it cannot compose a prefix and suffix around it. `row.url`
+  (the row-link `href`) closes; `col.sort_key`, embedded inside the sort
+  header's own conditionally-built href, stays open for the same composed-
+  string reason. A site where the interpolation is only PART of a `class`
+  value (`_card.html`/`_stat.html`'s `bw-card--{{ size }}`/
+  `bw-stat--{{ size }}`, `_chart_card.html`'s
+  `bw-chart-card--legend-{{ legend_position }}`, `_stepper.html`'s
+  `bw-stepper__step--{{ step.status }}`) is unchanged for the same reason.
+  A value composed from multiple consumer inputs, including the remaining
+  class and id values, is outside this one-value seam and remains tracked by
+  icvoss/django-brickwork#390 and icvoss/django-brickwork#363.
+
+- **QUICKSTART carries the seven-token brand inline** (icvoss/django-brickwork#472).
+  The fourteen-line light-plus-dark snippet that re-skins a whole site already
+  existed at `docs/BRANDING.md:53-75`, thirty-three lines into a 711-line
+  document reached through an onward link that advertised topics rather than the
+  payload. It now sits in QUICKSTART itself, immediately after install, with the
+  cascade-order rule and the `--bw-color-fg-on-accent` contrast caveat that stops
+  a copy-paste walking into the documented trap.
+
+### Fixed
+
+- **`resolve_active_item` now disambiguates by `url_kwargs`, not just
+  `url_name`** (icvoss/django-brickwork#273). A nav built over one
+  parameterised route (a docs sidebar where every page shares `docs:page` and
+  differs only by `slug`) previously matched EVERY item sharing the route
+  name, and kept the last match in depth-first order, so a fixed wrong item
+  carried `aria-current="page"` on every page. Matching now also checks each
+  candidate's `url_kwargs` as a subset of `resolver_match.kwargs`; an item
+  declaring no `url_kwargs` keeps matching the whole route as before, so an
+  unparameterised nav is unaffected. The full matching and tie-break contract
+  (subset match, deepest-match-wins, last-match-wins on a genuine tie) is now
+  stated in `resolve_active_item`'s docstring.
+
+- **The component class-contract registry coverage check is now structural,
+  not hand-maintained** (icvoss/django-brickwork#331). `test_the_registry_covers_every_shipped_component_form_nav_and_marketing_template`
+  compared a hand-written `covered_stems` set against shipped templates, but
+  never against the render registry itself, so a component could be
+  registered and absent from `covered_stems` (or vice versa) and only one
+  direction would fail. `covered_stems` is now derived from the registry's
+  own keys, with a guard that every key leads with its template stem before
+  the derivation runs.
+
+- **`_empty_state.html`'s `variant` is now constrained, matching `size` on the
+  same line** (icvoss/django-brickwork#391). `variant` was interpolated
+  straight through `{% firstof variant 'no_data' %}` with nothing matching it
+  against its documented vocabulary, so a `mark_safe`'d value could break out
+  of the `class` attribute and land a live handler on the outer `div`. This
+  file is cited as the reference implementation of the constrain pattern, so
+  the defect was in the exemplar itself. `variant` now matches against an
+  author-written literal (`"no_data"` or `"no_results"`) the same way `size`
+  already does; an unrecognised value falls back to the `"no_data"` literal
+  rather than reaching attribute position. Output for both documented values
+  is unchanged.
+
+- **`examples/base.html` is no longer counted as an archetype** (icvoss/django-brickwork#464). The catalogue manifest classified it `kind: "archetype"` with `family: null`, the only archetype ever carrying no family, which was itself the tell it did not belong there: it is a raw document skeleton a consumer copies to become their own `templates/base.html` (its own header says so), not a complete page. Every published archetype figure (`counts.archetypes`, `docs/POSITIONING.md`'s Archetypes/Examples/A11y gate rows, `README.md`'s example and accessibility figures) was one too high as a result. It now carries its own catalogue kind, `"skeleton"`, with `family: null` and a new `counts.skeletons` field (currently `1`). `counts.archetypes` drops from 23 to 22; the total item count is unchanged. If you read `catalogue-manifest.json` directly (rather than through `items_by_kind()`), check any code that assumed every `kind: "archetype"` item belongs to a family, or that summed `counts.archetypes` expecting `examples/base.html` to be included in it. The accessibility gate still scans it: `a11y/generate_archetype_fixtures.py` discovers over every whole-document catalogue kind rather than over `archetype` alone, so the a11y total stays at 176 documents and correcting a published count does not quietly withdraw a page from the axe, no-JS and keyboard gates.
+
+- **QUICKSTART names the opt-in marketing app** (icvoss/django-brickwork#471).
+  Its install section listed only `brickwork`, so a reader who reached for the
+  marketing shell hit `TemplateDoesNotExist` on a guessed
+  `brickwork/shell/marketing.html` with nothing pointing at the cause. The
+  section now shows `brickwork.marketing` alongside `brickwork`, names the real
+  path `brickwork_marketing/shell/marketing.html`, and says why the split
+  exists: a project that never adds the app gets byte-identical output, and the
+  separate template namespace keeps the two versioning independently.
+
+- **QUICKSTART's accessibility figure matches the gate it describes.** It
+  claimed 112 documents across 56 fixtures; the gate has since grown to 176
+  documents, 130 hand-maintained fixture pages plus 46 catalogue archetype
+  pages, each rendered in both themes. `README.md` and `docs/POSITIONING.md`
+  already carried the current figure, so QUICKSTART was the last surface
+  understating it.
+
+- **README's composition claim states the measured figure.** It said 47 of the
+  examples add no CSS, which contradicted `docs/POSITIONING.md`'s "50 of the 51"
+  and was internally incoherent: it named a single exception while leaving three
+  files unaccounted for. Measured against the shipped tree, exactly one example
+  carries a `<style>` block (`examples/app/date-range-picker.html`), so 50 of the
+  51 files add none. POSITIONING was right and README was wrong; both now agree.
+
 ## [3.16.0] - 2026-09-01
 
 **Wave 2's documentation surface goes from a shell with no consumers to a

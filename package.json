@@ -9,7 +9,9 @@
     "build": "npm run build:tokens && npm run build:assets",
     "a11y:fixtures": "DJANGO_SETTINGS_MODULE=tests.settings_seams PYTHONPATH=src:.:tests python a11y/generate_fixtures.py",
     "a11y:fixtures:archetypes": "DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python a11y/generate_archetype_fixtures.py",
+    "a11y:fixtures:startsite": "DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python a11y/generate_startsite_fixtures.py",
     "a11y": "playwright test",
+    "a11y:startsite": "playwright test --config startsite.playwright.config.mjs",
     "a11y:lint": "eslint ."
   },
   "devDependencies": {
