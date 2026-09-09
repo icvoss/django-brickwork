@@ -40,6 +40,7 @@ a11y/fixtures/
 test-results/
 playwright-report/
 a11y-results.json
+a11y-startsite-results.json
 
 # Agent worktrees and local session state (umbrella convention: every repo
 # gitignores .claude/, so worktree files never pollute the parent checkout).

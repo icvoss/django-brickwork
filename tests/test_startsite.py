@@ -254,3 +254,40 @@ print(json.dumps({
     # Load order is load-bearing (docs/BRANDING.md): brand.css must load
     # AFTER brickwork.css, or its token overrides lose the cascade.
     assert payload_json["brickwork_index"] < payload_json["brand_index"]
+
+
+def test_a11y_fixture_generator_renders_every_emitted_page_in_both_themes(tmp_path: Path) -> None:
+    """ADR-095's gate renders the emitted project, rather than an Engine copy.
+
+    This is deliberately a generator-level assertion, separate from the
+    Playwright scan that consumes these fixtures: it proves the generator
+    reaches all three emitted URLs through their own settings, URLconf and
+    views, produces both themes, and inlines the two stylesheets that make a
+    file:// accessibility scan representative. A generator that skips a page,
+    loses dark mode, or omits the emitted brand stylesheet fails here before
+    the browser suite could give an empty or visually incomplete scan a pass.
+    """
+    from a11y.generate_startsite_fixtures import generate_fixtures
+
+    written = generate_fixtures(tmp_path)
+
+    assert {path.name for path in written} == {
+        "landing-light.html",
+        "landing-dark.html",
+        "dashboard-light.html",
+        "dashboard-dark.html",
+        "docs-home-light.html",
+        "docs-home-dark.html",
+    }
+    expected_content = {
+        "landing": "Northwind",
+        "dashboard": "Revenue",
+        "docs-home": "Getting started",
+    }
+    for path in written:
+        page, theme = path.stem.rsplit("-", 1)
+        html = path.read_text(encoding="utf-8")
+        assert f'data-theme="{theme}"' in html
+        assert expected_content[page] in html
+        assert 'href="/static/brickwork/dist/brickwork.css"' not in html
+        assert 'href="/static/pages/brand.css"' not in html

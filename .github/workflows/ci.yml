@@ -285,6 +285,26 @@ jobs:
           count=$(find a11y/fixtures/archetypes -maxdepth 1 -name '*.html' 2>/dev/null | wc -l)
           echo "archetype fixtures: $count"
           test "$count" -gt 0 || { echo "a11y/fixtures/archetypes/ has no .html fixtures; the generator produced nothing."; exit 1; }
+      - name: Render emitted startsite fixtures (ADR-095)
+        run: npm run a11y:fixtures:startsite
+      - name: Assert emitted startsite fixtures cover three pages in both themes (ADR-095)
+        run: |
+          count=$(find a11y/fixtures/startsite -maxdepth 1 -name '*.html' 2>/dev/null | wc -l)
+          echo "startsite fixtures: $count"
+          test "$count" -eq 6 || { echo "expected six startsite fixtures: landing, dashboard and docs home in light and dark themes."; exit 1; }
+      - name: Run emitted startsite axe WCAG 2.2 AA gate (ADR-095)
+        run: npm run a11y:startsite
+      - name: Assert emitted startsite gate actually ran tests (ADR-095)
+        run: |
+          test -f a11y-startsite-results.json || { echo "a11y-startsite-results.json was not written; the startsite reporter did not run."; exit 1; }
+          python3 -c "
+          import json, sys
+          with open('a11y-startsite-results.json') as f:
+              stats = json.load(f)['stats']
+          ran = stats['expected'] + stats['unexpected'] + stats['flaky']
+          print(f'startsite tests ran: {ran} (expected={stats[\"expected\"]}, unexpected={stats[\"unexpected\"]}, flaky={stats[\"flaky\"]}, skipped={stats[\"skipped\"]})')
+          sys.exit(0 if ran > 0 else 1)
+          " || { echo "the emitted startsite gate registered and ran zero tests."; exit 1; }
       - name: Run axe-core WCAG 2.2 AA + no-JS + keyboard suite
         run: npm run a11y
       - name: Assert the suite actually ran tests (icvoss/django-brickwork#382)
