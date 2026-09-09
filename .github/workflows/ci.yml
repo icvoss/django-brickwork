@@ -265,16 +265,46 @@ jobs:
         # Playwright installs its own pinned Chromium binary, never the runner's
         # Google Chrome package. `--with-deps` refreshes every configured apt
         # source before installing Chromium's system libraries; on 2026-09-09,
-        # the hosted runner's preinstalled google-chrome.list served a Packages
-        # file whose hash did not match its signed Release metadata and stopped
-        # the gate before any browser dependency or test ran. Remove only that
-        # unrelated source. Ubuntu and Microsoft sources remain enabled, and apt
-        # continues to verify the metadata and packages it actually installs.
+        # the hosted runner's preinstalled Chrome source served a Packages file
+        # whose hash did not match its signed Release metadata and stopped the
+        # gate before any browser dependency or test ran. Remove only a source
+        # file whose URLs are exclusively Google Chrome URLs. Ubuntu and
+        # Microsoft sources remain enabled, and apt continues to verify the
+        # metadata and packages it actually installs.
         run: |
-          chrome_source=/etc/apt/sources.list.d/google-chrome.list
-          if [ -f "$chrome_source" ]; then
-            sudo rm "$chrome_source"
-          fi
+          shopt -s nullglob
+          for chrome_source in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            [ -f "$chrome_source" ] || continue
+
+            mapfile -t source_urls < <(
+              awk '
+                /^[[:space:]]*(#|$)/ { next }
+                {
+                  for (i = 1; i <= NF; i++) {
+                    if ($i ~ /^https?:\/\//) print $i
+                  }
+                }
+              ' "$chrome_source"
+            )
+
+            google_urls=0
+            for source_url in "${source_urls[@]}"; do
+              case "$source_url" in
+                http://dl.google.com/linux/chrome/deb|http://dl.google.com/linux/chrome/deb/*|https://dl.google.com/linux/chrome/deb|https://dl.google.com/linux/chrome/deb/*|http://dl.google.com/linux/chrome-stable/deb|http://dl.google.com/linux/chrome-stable/deb/*|https://dl.google.com/linux/chrome-stable/deb|https://dl.google.com/linux/chrome-stable/deb/*)
+                  google_urls=$((google_urls + 1))
+                  ;;
+              esac
+            done
+
+            [ "$google_urls" -eq 0 ] && continue
+            if [ "$google_urls" -ne "${#source_urls[@]}" ]; then
+              echo "Refusing to disable mixed apt source: $(basename "$chrome_source")" >&2
+              exit 1
+            fi
+
+            echo "Disabling Google Chrome apt source: $(basename "$chrome_source")"
+            sudo rm -- "$chrome_source"
+          done
       - name: Install Playwright chromium
         run: npx playwright install --with-deps chromium
       - name: Render a11y fixtures (real pages, light + dark)
