@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -289,5 +290,6 @@ def test_a11y_fixture_generator_renders_every_emitted_page_in_both_themes(tmp_pa
         html = path.read_text(encoding="utf-8")
         assert f'data-theme="{theme}"' in html
         assert expected_content[page] in html
-        assert 'href="/static/brickwork/dist/brickwork.css"' not in html
-        assert 'href="/static/pages/brand.css"' not in html
+        assert not re.search(
+            r'<link rel="stylesheet" href="/?static/(?:brickwork/dist/brickwork|pages/brand)\.css">', html
+        )

@@ -59,8 +59,8 @@ settings.BRICKWORK_DEFAULT_THEME = sys.argv[1]
 response = Client().get(sys.argv[2])
 print(json.dumps({"status": response.status_code, "body": response.content.decode()}))
 """
-_BRICKWORK_CSS_LINK = re.compile(r'<link rel="stylesheet" href="/static/brickwork/dist/brickwork\.css">')
-_BRAND_CSS_LINK = re.compile(r'<link rel="stylesheet" href="/static/pages/brand\.css">')
+_BRICKWORK_CSS_LINK = re.compile(r'<link rel="stylesheet" href="/?static/brickwork/dist/brickwork\.css">')
+_BRAND_CSS_LINK = re.compile(r'<link rel="stylesheet" href="/?static/pages/brand\.css">')
 
 
 def _render_page(target: Path, theme: str, path: str) -> str:
