@@ -50,5 +50,10 @@ a11y-startsite-results.json
 # Committed visual fixtures live under a11y/ and tests/, never at the root.
 /*.png
 
+# Private VISUAL-BAR scorecard stills (Phase 1). Keep the README; ignore PNGs
+# and per-run manifests under dated folders.
+docs/audits/_stills/*/
+!docs/audits/_stills/README.md
+
 # Playwright MCP session logs and page snapshots from local browser driving.
 .playwright-mcp/
