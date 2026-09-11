@@ -77,6 +77,8 @@ evidence than a gate that has never missed.
   `--bw-*` name, default value, and derivation rule.
 - [docs/INTERFACE-SYSTEM.md](docs/INTERFACE-SYSTEM.md): the intended coverage,
   ownership boundary and required archetypes for the complete interface system.
+- [docs/VISUAL-BAR.md](docs/VISUAL-BAR.md): the meet-or-beat visual bar against
+  leading Tailwind UI kits (internal; clean-room look/idea only).
 - [docs/ROADMAP.md](docs/ROADMAP.md): the active plan from the current package
   to complete interface-system coverage.
 - [docs/BRANDING.md](docs/BRANDING.md): how a consuming app brands brickwork

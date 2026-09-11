@@ -20,7 +20,8 @@ beautiful.** This is a design requirement, not a claim that every component
 has received visual acceptance. Accessibility checks and independent rendered
 reviews establish different evidence; neither token membership nor composition
 alone proves beauty. The current owner direction and evidence boundary are in
-[POSITIONING.md](POSITIONING.md#3-the-lead-claim).
+[POSITIONING.md](POSITIONING.md#3-the-lead-claim). The meet-or-beat kit panel
+and scorecard live in [VISUAL-BAR.md](VISUAL-BAR.md).
 
 Phase (a) kept the shipped flat naming (`--bw-color-*`, `--bw-size-*`,
 `--bw-density-*`, `--bw-font-*`) through 0.10.0; the tier re-grammar
