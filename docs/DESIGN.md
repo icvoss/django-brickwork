@@ -10,7 +10,9 @@ values, derivation rules). Where this file and ADR-054 differ, ADR-054 wins,
 except for the fallback-emission correction recorded in section 3, which
 supersedes the ADR's stated mechanism for the reason given there.
 **Companion:** [BRANDING.md](BRANDING.md) explains how a brand overrides these
-tokens; this file defines what they are.
+tokens; [brand-pack.md](brand-pack.md) is the portable per-brand documentation
+unit (measured prose bound to an override delta); this file defines what the
+tokens are.
 
 The founding statement this vocabulary serves: **brickwork is the building
 blocks a user needs to build beautiful interfaces; our defaults should be

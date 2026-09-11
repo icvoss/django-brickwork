@@ -709,3 +709,16 @@ override file merged into brickwork's token source. Either way you target
 brickwork's own token names, never Radix/Open Props scale numbers
 (BR-BW-TOK-006). [DESIGN.md](DESIGN.md) is the authoritative list of those
 names; do not enumerate from memory.
+
+## Brand packs: measured identity bound to the override delta
+
+When a brand needs portable documentation (identity prose an agent or designer
+can load as one artefact), use the consumer **brand-pack contract** in
+[brand-pack.md](brand-pack.md). A pack is a directory with measured
+`DESIGN.md`, an override fragment loaded after package `tokens.css`, and a
+preview path. Every numeric claim must cite a `--bw-*` override or be marked
+deferred to base-theme: a reviewer rejects parallel spacing, elevation, or
+type scales. The package ships one fictional skeleton
+([examples/brand-pack/northline/](examples/brand-pack/northline/)); kiln and
+demo identities stay out of django-brickwork. The preferred live specimen is
+tracked as [icvoss/django-brickwork#268](https://github.com/icvoss/django-brickwork/issues/268).

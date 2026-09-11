@@ -8,6 +8,18 @@ versioning contract).
 
 ## Unreleased
 
+### Added
+
+- **Consumer brand-pack contract** (icvoss/django-brickwork#502).
+  `docs/brand-pack.md` defines the portable per-brand unit: measured
+  `DESIGN.md`, an override fragment loaded after package tokens, and a
+  preview path. Every numeric claim must cite a `--bw-*` override or be
+  marked deferred to base-theme; reviewers reject parallel spacing,
+  elevation, or type scales. Ships a fictional northline skeleton under
+  `docs/examples/brand-pack/northline/` (not kiln). Preferred live specimen:
+  icvoss/django-brickwork#268. Cross-linked from BRANDING.md, DESIGN.md,
+  QUICKSTART.md, and the README docs index.
+
 ## [3.18.0] - 2026-09-11
 
 Existing filter-bar consumers receive the spacing correction when loading the

@@ -82,6 +82,9 @@ evidence than a gate that has never missed.
 - [docs/BRANDING.md](docs/BRANDING.md): how a consuming app brands brickwork
   (the load-bearing token minimum, dark mode, the four axes, the fg-on-accent
   contrast trap, and dynamic per-tenant / per-user theming recipes).
+- [docs/brand-pack.md](docs/brand-pack.md): the consumer brand-pack contract
+  (measured `DESIGN.md` plus override fragment plus preview; numeric claims
+  must cite `--bw-*` or defer to base-theme).
 - [docs/QUICKSTART.md](docs/QUICKSTART.md): start here. Orients you, then
   routes you to the right guide below.
 - [docs/INTEGRATION.md](docs/INTEGRATION.md): the greenfield integration
