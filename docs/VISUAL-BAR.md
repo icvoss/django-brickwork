@@ -133,7 +133,8 @@ Store completed scorecards under `docs/audits/` with a dated filename, e.g.
 `docs/audits/2026-09-11-visual-bar-scorecard.md`. Link the latest pass from
 this section when one exists.
 
-**Latest completed pass:** none yet.
+**Latest completed pass:** none yet. Scaffold:
+[audits/2026-09-11-visual-bar-scorecard.md](audits/2026-09-11-visual-bar-scorecard.md).
 
 ---
 

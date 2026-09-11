@@ -7,10 +7,11 @@ filenames, no django-vite), and the theme/density/direction attributes on <html>
 No-JS floor (BR-BW-HTMX-001): nothing here requires Alpine or htmx. The
 {% block head_js %} / {% block body_js %} blocks are where a JS-enabled consumer
 loads the host-owned Alpine + htmx singletons; a consumer that loads neither
-still gets a fully working document. The one <script> this shell can emit is
-the DEBUG-only registration detector at the end of <body> (brickwork#87,
-gated on bw_debug so production pages ship nothing); it is diagnostic only,
-never load-bearing, so the floor is unchanged.
+still gets a fully working document. The only <script> this shell can emit is
+the DEBUG-only diagnostic pair at the end of <body> (registration detector
+brickwork#87, stylesheet-duplicate detector brickwork#271, both gated on
+bw_debug so production pages ship nothing); they are diagnostic only, never
+load-bearing, so the floor is unchanged.
 
 The theme attributes come from a consuming project's context (typically via
 brickwork.services.tokens.resolve_theme_attributes in a context processor); they
@@ -31,7 +32,7 @@ demand evidence, resolved here).
 
 States: no interactive states of its own; it is the document skeleton every
   other shell extends. The one state-bearing thing it renders is the
-  DEBUG-only registration-detector script, gated on bw_debug (on/off), which
+  DEBUG-only diagnostic script block, gated on bw_debug (on/off), which
   is diagnostic console output, never a visual state.
 Accessibility: ships the skip link (first focusable element, targets
   #bw-main) and the lang/dir/data-theme/data-density attributes on <html>
@@ -97,18 +98,25 @@ when empty (display: contents), matching the modal root.
 {% endcomment %}
 <div id="bw-slide-over-root"></div>
 {% comment %}
-Registration detector (brickwork#87): interactive bw markup with Alpine
-running but registerBrickworkComponents(Alpine) never called renders as dead
-markup with zero signal (the brickworkui.com trap). This DEBUG-only inline
-script turns that silence into a console warning. Gated on bw_debug (set by
-brickwork.context_processors.theme from settings.DEBUG), so production pages
-ship no script at all and the no-JS floor is untouched (the script is
-diagnostic, never load-bearing). Detection: registerBrickworkComponents
-stamps data-bw-js-registered on <html>; if bw x-data markup exists, Alpine
-signals presence (the alpine:init event, or a window.Alpine global), and the
-stamp is absent, warn. A consumer whose dev CSP forbids un-nonced inline
-scripts overrides {% block bw_js_registration_check %} to add its nonce or to
-empty the block (documented in INTEGRATION.md).
+DEBUG-only diagnostic scripts (brickwork#87, brickwork#271), gated on
+bw_debug (set by brickwork.context_processors.theme from settings.DEBUG),
+so production pages ship no script at all and the no-JS floor is untouched
+(diagnostic only, never load-bearing):
+
+1. Registration detector (#87): interactive bw markup with Alpine running
+   but registerBrickworkComponents(Alpine) never called renders as dead
+   markup with zero signal. Detection: registerBrickworkComponents stamps
+   data-bw-js-registered on <html>; if bw x-data markup exists, Alpine
+   signals presence, and the stamp is absent, warn.
+2. Stylesheet duplicate detector (#271): a second link to
+   brickwork/dist/brickwork.css after a brand override sheet silently
+   reverts every token to package defaults via the cascade. Counts
+   matching <link rel="stylesheet"> hrefs on load and warns when more
+   than one.
+
+A consumer whose dev CSP forbids un-nonced inline scripts overrides
+{% block bw_js_registration_check %} to add a nonce or to empty the block
+(documented in INTEGRATION.md); emptying it disables both detectors.
 {% endcomment %}
 {% if bw_debug %}{% block bw_js_registration_check %}
 <script data-bw-registration-check>
@@ -137,6 +145,32 @@ empty the block (documented in INTEGRATION.md).
   });
   window.addEventListener("load", function () {
     window.setTimeout(checkRegistration, 0);
+  });
+})();
+</script>
+<script data-bw-css-duplicate-check>
+(function () {
+  "use strict";
+  var SHEET = /brickwork\/dist\/brickwork\.css(\?|#|$)/;
+  function countSheets() {
+    var n = 0;
+    var links = document.querySelectorAll('link[rel="stylesheet"][href]');
+    for (var i = 0; i < links.length; i++) {
+      if (SHEET.test(links[i].getAttribute("href") || "")) n++;
+    }
+    return n;
+  }
+  window.addEventListener("load", function () {
+    var n = countSheets();
+    if (n < 2) return;
+    console.warn(
+      "brickwork: brickwork.css is linked " + n + " times on this page. A second " +
+      "copy after your brand override sheet wins the cascade and silently reverts " +
+      "every --bw-* token to package defaults (docs/BRANDING.md, brickwork#271). " +
+      "Keep exactly one <link> to brickwork/dist/brickwork.css; check embedded " +
+      "shell fragments that inject their own head. " +
+      "(This check only renders when DEBUG is on.)"
+    );
   });
 })();
 </script>

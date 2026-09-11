@@ -10,6 +10,15 @@ versioning contract).
 
 ### Added
 
+- **DEBUG guard for a duplicated brickwork.css link** (icvoss/django-brickwork#271).
+  A second stylesheet link after a brand override silently reverts every
+  `--bw-*` token to package defaults. BRANDING.md now names the symptom,
+  mechanism and one-line `document.styleSheets` check, and records the
+  verdict: documentation plus a DEBUG-only console warning (no idempotent
+  include tag). The shell's existing `bw_js_registration_check` block emits
+  the warning beside the Alpine registration detector; production still
+  ships no script. INTEGRATION.md and shell tests updated.
+
 - **Visual bar against leading Tailwind UI kits** (`docs/VISUAL-BAR.md`).
   Stamps an internal meet-or-beat panel (shadcn/ui, daisyUI, Flowbite,
   Preline UI, Tailgrids, Tailkit, Headless UI, Tailwind Plus), fixed

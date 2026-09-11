@@ -193,14 +193,11 @@ into the attribute. firstof ignores the resolution failure and is immune.
   <div id="bw-slide-over-root"></div>
 
   {% comment %}
-  DIAGNOSTIC ONLY, and only when DEBUG is on: warns in the console if this
-  page contains brickwork interactive markup and Alpine is running but
-  registerBrickworkComponents(Alpine) was never called, which otherwise
-  renders as dead markup with no signal at all.
-
-  Production ships no script (bw_debug is False), so this never affects the
-  no-JS floor. Delete it if you prefer; you lose only the warning. If your dev
-  CSP forbids un-nonced inline scripts, add your nonce to the <script> tag.
+  DIAGNOSTIC ONLY, and only when DEBUG is on: two console warnings that
+  otherwise fail silently (brickwork#87 registration; brickwork#271 duplicate
+  brickwork.css after a brand sheet). Production ships no script (bw_debug is
+  False), so this never affects the no-JS floor. Delete both if you prefer.
+  If your dev CSP forbids un-nonced inline scripts, add your nonce.
 
   This block is intentionally the LAST thing in <body>: it needs the rest of
   the document to have parsed before it can look for brickwork markup.
@@ -230,6 +227,29 @@ into the attribute. firstof ignores the resolution failure and is immune.
     });
     window.addEventListener("load", function () {
       window.setTimeout(checkRegistration, 0);
+    });
+  })();
+  </script>
+  <script data-bw-css-duplicate-check>
+  (function () {
+    "use strict";
+    var SHEET = /brickwork\/dist\/brickwork\.css(\?|#|$)/;
+    function countSheets() {
+      var n = 0;
+      var links = document.querySelectorAll('link[rel="stylesheet"][href]');
+      for (var i = 0; i < links.length; i++) {
+        if (SHEET.test(links[i].getAttribute("href") || "")) n++;
+      }
+      return n;
+    }
+    window.addEventListener("load", function () {
+      var n = countSheets();
+      if (n < 2) return;
+      console.warn(
+        "brickwork: brickwork.css is linked " + n + " times. A second copy after " +
+        "your brand sheet silently reverts --bw-* tokens to package defaults " +
+        "(docs/BRANDING.md, brickwork#271)."
+      );
     });
   })();
   </script>
