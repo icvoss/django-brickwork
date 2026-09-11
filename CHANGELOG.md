@@ -10,6 +10,13 @@ versioning contract).
 
 ### Added
 
+- **DEBUG required-context warnings for include-only components**
+  (icvoss/django-brickwork#482). New `{% bw_require %}` tag: when `bw_debug`
+  is on and a named value is missing or empty, emit a `console.warn` naming
+  the template and keys. Never raises; production emits nothing. Wired into
+  `_page_header.html` (`title`) and `_empty_state.html` (`body`, plus
+  `heading` except at `size="sm"`). INTEGRATION.md documents the pattern.
+
 - **Package-owned marketing mobile-nav toggle** (icvoss/django-brickwork#263).
   `_mobile_nav_toggle.html` plus marketing.css collapse rules: include the
   toggle as a sibling of the nav via `marketing_nav_region` (the seam that

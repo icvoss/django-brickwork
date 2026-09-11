@@ -7,7 +7,9 @@ The icon is decorative; the heading + body carry the meaning (both required, no
 package-supplied default copy, STA-003).
 
 Required context: heading (except at size="sm", see below), body (required at
-every scale, STA-003). Optional: variant ("no_data" default or "no_results"),
+every scale, STA-003). DEBUG: `{% bw_require body=body %}` always, and
+`{% bw_require heading=heading %}` when size is not "sm"
+(icvoss/django-brickwork#482); production emits nothing. Optional: variant ("no_data" default or "no_results"),
 icon (registry name), action_href, action_label.
   variant ("no_data" | "no_results", default "no_data"): matched against an
         author-written literal for the bw-empty-state--{variant} modifier
@@ -99,7 +101,7 @@ Accessibility: the icon is decorative (bw_icon decorative=True); heading
 Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-empty-state* selector. The size axis (sm/md) is a fixed, explicitly
   chosen scale, never a viewport-driven one.
-{% endcomment %}
+{% endcomment %}{% bw_require body=body %}{% if size != "sm" %}{% bw_require heading=heading %}{% endif %}
 <div class="bw-empty-state bw-empty-state--{% if variant == "no_results" %}no_results{% else %}no_data{% endif %}{% if size == "sm" %} bw-empty-state--size-sm{% endif %}">
   {% block icon %}
   {% if icon %}

@@ -1,9 +1,11 @@
-{% comment %}
+{% load brickwork_components %}{% comment %}
 Page header: a title, optional description, and an actions slot. Used inside the
 shell's {% block page_header %}. loading=True swaps the title/description for a
 skeleton (STA-004), never a spinner.
 
 Required context: title. Optional: description, loading.
+DEBUG: `{% bw_require title=title %}` warns in the browser console when title
+is missing or empty (icvoss/django-brickwork#482); production emits nothing.
 
 Structural, so consumed via {% include %} (like _card.html), including by a
 caller that extends this template the way _card.html's own docstring shows.
@@ -53,7 +55,7 @@ Accessibility: renders the page's own <h1>, so a consuming page must not
   date-range-picker, detail, form, list, settings, wizard).
 Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-page-header* selector.
-{% endcomment %}
+{% endcomment %}{% bw_require title=title %}
 <header class="bw-page-header">
   {% block breadcrumb %}{% endblock %}
   {% if loading %}
