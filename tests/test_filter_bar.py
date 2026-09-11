@@ -13,7 +13,6 @@ from pathlib import Path
 from django import forms
 from django.template.loader import render_to_string
 
-
 _COMPILED_CSS = (
     Path(__file__).resolve().parent.parent / "src" / "brickwork" / "static" / "brickwork" / "dist" / "brickwork.css"
 ).read_text(encoding="utf-8")
