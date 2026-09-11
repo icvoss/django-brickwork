@@ -161,6 +161,9 @@ for the worked failure.
 - **Re-skinning the whole site:** [docs/BRANDING.md](BRANDING.md) takes the
   seven tokens above further: dark mode, the four theme axes, and dynamic
   per-tenant or per-user theming.
+- **Visual quality bar (maintainers):** [docs/VISUAL-BAR.md](VISUAL-BAR.md)
+  stamps the Tailwind UI kit panel and scorecard brickwork must meet; it is
+  not a consumer wiring guide.
 
 ## Accessibility
 

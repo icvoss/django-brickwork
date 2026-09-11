@@ -10,6 +10,13 @@ versioning contract).
 
 ### Added
 
+- **Visual bar against leading Tailwind UI kits** (`docs/VISUAL-BAR.md`).
+  Stamps an internal meet-or-beat panel (shadcn/ui, daisyUI, Flowbite,
+  Preline UI, Tailgrids, Tailkit, Headless UI, Tailwind Plus), fixed
+  surfaces, scorecard axes and done criteria. Look and idea only; clean-room
+  on `--bw-*`; competitor names stay out of public marketing copy. Linked
+  from POSITIONING.md and the README docs index.
+
 - **Consumer brand-pack contract** (icvoss/django-brickwork#502).
   `docs/brand-pack.md` defines the portable per-brand unit: measured
   `DESIGN.md`, an override fragment loaded after package tokens, and a

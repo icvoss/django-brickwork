@@ -52,6 +52,11 @@ navigation, relevant states and responsive composition. Source composition,
 accessibility checks and accurate inventory are separate evidence. None alone
 certifies visual quality or makes arbitrary consumer pages beautiful.
 
+The competitive visual bar is stamped in [VISUAL-BAR.md](VISUAL-BAR.md): a frozen
+panel of leading Tailwind UI kits (look and idea only; clean-room on `--bw-*`),
+fixed surfaces, scorecard axes, and done criteria. Public copy still must not
+name those kits as brickwork's identity (section 9).
+
 The published 3.17.0 comparison used the same populated invoice list/form and
 landing inputs with package-only CSS at desktop and phone widths in both
 themes. It established specific filter alignment (#499) and footer grouping
@@ -251,6 +256,11 @@ only" or "nothing else exists".
 | Flowbite, DaisyUI | Not Django-aware |
 | django-crispy-forms | Forms only, no shell, no theming system |
 | shadcn-django | Copy-paste, no shell, no upgrade path |
+
+Those kits (and the wider panel in [VISUAL-BAR.md](VISUAL-BAR.md)) remain the
+**visual** meet-or-beat bar for craft and density. Category difference does
+not lower the visual bar; it only means they are not substitutes for a
+Django substrate.
 
 A Django core contributor states on the Django Forum (thread 40718) that
 there is no agreed answer for Django UI component reuse. Cite this as
