@@ -28,7 +28,7 @@ Tailwind Plus reference-only ruling).
 |---|---|
 | Screenshots, notes, scorecards comparing rendered jobs | Pasting markup, class strings, or structure from a kit |
 | "Kit X wins on spacing rhythm; fix brickwork tokens/CSS" | Redistributing kit assets, Figma files, or derivatives in the wheel |
-| Local Tailwind Plus trees under the umbrella `docs/_examples/` as private Idea refs | Shipping Tailwind Plus code or anything competitive with Tailwind Labs under that licence |
+| Local Tailwind Plus trees and Forge stills under the umbrella `docs/_examples/` as private Idea refs | Shipping Tailwind Plus code or anything competitive with Tailwind Labs under that licence; redistributing Forge stills outside this gitignored tree |
 
 MIT and similar kits (daisyUI, Flowbite free core, Preline free library,
 Headless UI, and the others below) are Idea-reference only for the same
@@ -41,8 +41,9 @@ copies; new purchases being closed does not relax the licence line.
 ## 2. Frozen kit panel (independent shortlist, 2026-09-11)
 
 Do not expand this panel mid-cycle. Optional secondary Idea refs
-(FlyonUI, HyperUI, Meraki UI, Mamba UI, Tailwind Starter Kit) stay off the
-scorecard unless a miss has no panel analogue.
+(FlyonUI, HyperUI, Meraki UI, Mamba UI, Tailwind Starter Kit, and the
+local Forge stills below) stay off the scorecard unless a miss has no
+panel analogue.
 
 | Kit | Role as bar | What we borrow as ideas | What we do not take |
 |---|---|---|---|
@@ -61,6 +62,36 @@ scorecard unless a miss has no panel analogue.
 2. **Product UI and theme density:** shadcn/ui, daisyUI  
 3. **Coverage gaps the first four expose:** Flowbite, Tailgrids, Tailkit  
 4. **Behaviour / a11y only:** Headless UI, where the miss is interaction, not paint  
+
+### Secondary Idea-ref: Forge UI kit stills (local)
+
+**Adopted 2026-09-11.** Not a frozen-panel member. Local stills only under
+the umbrella gitignored path `docs/_examples/forge-ui-kit-site/` (same
+privacy class as Tailwind Plus trees). Index README in that folder.
+Clean-room: look and idea only; never markup, class strings, or structure.
+Competitor / kit names stay out of public marketing copy.
+
+Use these stills to sharpen what "finished" means on brickwork surfaces.
+Rendered scorecards still cite Priority 1 and 2 panel kits as leaders; Forge
+may appear in a single row as an Idea-ref when it clarifies a miss better
+than a panel analogue.
+
+| Still | Primary surface | Review weight |
+|---|---|---|
+| `07-dashboard.png` | S4 app dashboard | Highest |
+| `08-forms.png` | S3 app form | Highest |
+| `09-settings.png` | S2 detail / settings (nav craft aids S1) | Highest |
+| `01-home.png` | S5 marketing landing | High |
+| `04-blocks.png` | S6 marketing pricing | High |
+| `05-templates.png` | S4 via nested dashboard preview | Medium to high |
+| `06-themes.png` | Theme density (daisyUI lane) | Medium |
+| `02-primitives.png` | S7 docs density only | Low |
+| `03-components.png` | Kit catalogue chrome | Ignore for scorecard |
+
+**Clean-room borrow ideas (not markup):** metric card and sparkline rhythm;
+activity list plus table split; form error, help and character-counter
+grammar; danger zone as a distinct surface; settings nested nav; light
+borders over heavy shadows; accents reserved for status.
 
 ---
 
@@ -167,3 +198,5 @@ updates. This bar is what makes that standard visually defensible.
   default proof set.  
 - **Secondary kits:** may appear in a single scorecard row as Idea refs; they
   do not join the frozen panel without an amendment.
+- **2026-09-11:** stamped Forge UI kit local stills as a secondary Idea-ref
+  (`docs/_examples/forge-ui-kit-site/` under the umbrella); panel unchanged.
