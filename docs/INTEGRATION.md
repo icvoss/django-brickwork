@@ -458,6 +458,42 @@ with no error at all. Three aids now exist:
 The correct wiring remains unchanged: `Alpine.plugin(focus)`, then
 `registerBrickworkComponents(Alpine)`, then `Alpine.start()`.
 
+### A second brickwork.css link silently undoes your brand (brickwork#271)
+
+Brand overrides win only because they load **after** the single package
+stylesheet. A second `<link>` to `brickwork/dist/brickwork.css` (often from an
+embedded shell fragment that re-emits `<head>`) wins the cascade again and
+reverts every `--bw-*` token to package defaults with no Django error. Name
+the failure in [BRANDING.md](BRANDING.md) (symptom, mechanism, one-line
+`document.styleSheets` check). With `DEBUG = True`, the same
+`bw_js_registration_check` block also emits a stylesheet-duplicate console
+warning (`data-bw-css-duplicate-check`). Emptying that block for CSP opts out
+of both detectors.
+
+### Marketing mobile nav without reproducing the header (brickwork#263)
+
+The marketing shell's `marketing_nav_region` lets you insert a sibling of the
+`<nav>` without filling the outer `marketing_header` and copying brand/nav/
+actions markup. Include the package toggle and keep your nav content:
+
+```django
+{% block marketing_nav_region %}
+  {% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}
+  <nav class="bw-marketing-header__nav" aria-label="{% translate 'Primary' %}">
+    {% block marketing_nav %}
+      <a href="{% url 'features' %}">Features</a>
+      <a href="{% url 'pricing' %}">Pricing</a>
+    {% endblock %}
+  </nav>
+{% endblock %}
+```
+
+`marketing.css` owns the collapse (hidden below `--bw-breakpoint-lg` / 64rem
+until `[open]`, inline bar at that breakpoint and up). No Alpine. Wave
+ownership: the region seam shipped with Wave 2 shell work; the package-owned
+collapse behaviour closes the rest of #263 under Wave 3 public-navigation
+craft.
+
 ## 6. The htmx version floor (brickwork#48)
 
 brickwork's interaction contracts (the 422 form swap, toast delivery via

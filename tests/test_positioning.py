@@ -245,6 +245,9 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     fixture pair (a no-JS floor plus the JS leg proving bwCodeCopy's own
     init() reveals the copy control the floor ships hidden), moving the
     real count to 65/130.)
+    The mobile-nav toggle work (icvoss/django-brickwork#263) then added a
+    mobile-nav-toggle fixture pair covering the marketing_nav_region include
+    pattern, moving the real count to 66/132.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -257,7 +260,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     document_count = manifest["counts"]["archetypes"] + manifest["counts"]["skeletons"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 130 + (document_count * 2)
+    assert _leading_int(value) == 132 + (document_count * 2)
     assert f"{document_count} catalogue documents x light and dark" in note
 
 

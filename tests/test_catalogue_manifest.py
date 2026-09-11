@@ -8,7 +8,7 @@ examples trees by ``scripts/generate_catalogue_manifest.py``) and exposes it
 as typed Python for this repo's own in-package consumers. These tests cover:
 
 1. **Manifest shape**: the typed reader's accessors match the raw JSON, and
-   the documented counts hold (6 shells, 50 components, 28 sections, 22
+   the documented counts hold (6 shells, 51 components, 28 sections, 22
    archetypes, 1 skeleton: verified against the tree post-#464 fix,
    docs/CATALOGUE.md ss5).
 2. **Manifest-vs-reality drift**: regenerating the manifest from the current
@@ -141,7 +141,7 @@ def test_items_covers_every_shell_component_section_and_archetype() -> None:
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 6
-    assert len(items_by_kind("component")) == 50
+    assert len(items_by_kind("component")) == 51
     assert len(items_by_kind("section")) == 28
     assert len(items_by_kind("archetype")) == 22
     assert len(items_by_kind("skeleton")) == 1

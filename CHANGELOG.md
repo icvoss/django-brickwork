@@ -10,6 +10,23 @@ versioning contract).
 
 ### Added
 
+- **Package-owned marketing mobile-nav toggle** (icvoss/django-brickwork#263).
+  `_mobile_nav_toggle.html` plus marketing.css collapse rules: include the
+  toggle as a sibling of the nav via `marketing_nav_region` (the seam that
+  shipped earlier) to hide nav/actions below `--bw-breakpoint-lg` until
+  opened, with no Alpine. Marketing a11y fixtures now compose the pattern;
+  INTEGRATION.md documents it. Closes the behaviour half of #263 under Wave
+  3 public-nav craft.
+
+- **DEBUG guard for a duplicated brickwork.css link** (icvoss/django-brickwork#271).
+  A second stylesheet link after a brand override silently reverts every
+  `--bw-*` token to package defaults. BRANDING.md now names the symptom,
+  mechanism and one-line `document.styleSheets` check, and records the
+  verdict: documentation plus a DEBUG-only console warning (no idempotent
+  include tag). The shell's existing `bw_js_registration_check` block emits
+  the warning beside the Alpine registration detector; production still
+  ships no script. INTEGRATION.md and shell tests updated.
+
 - **Visual bar against leading Tailwind UI kits** (`docs/VISUAL-BAR.md`).
   Stamps an internal meet-or-beat panel (shadcn/ui, daisyUI, Flowbite,
   Preline UI, Tailgrids, Tailkit, Headless UI, Tailwind Plus), fixed
