@@ -61,9 +61,7 @@ def test_registration_detector_renders_with_bw_debug(template: str) -> None:
 
 def test_css_duplicate_detector_absent_without_bw_debug() -> None:
     assert "data-bw-css-duplicate-check" not in _render("brickwork/shell/app.html")
-    assert "data-bw-css-duplicate-check" not in _render(
-        "brickwork/shell/app.html", bw_debug=False
-    )
+    assert "data-bw-css-duplicate-check" not in _render("brickwork/shell/app.html", bw_debug=False)
 
 
 def test_registration_detector_block_can_be_overridden_away() -> None:
