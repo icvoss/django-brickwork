@@ -10,6 +10,14 @@ versioning contract).
 
 ### Added
 
+- **Package-owned marketing mobile-nav toggle** (icvoss/django-brickwork#263).
+  `_mobile_nav_toggle.html` plus marketing.css collapse rules: include the
+  toggle as a sibling of the nav via `marketing_nav_region` (the seam that
+  shipped earlier) to hide nav/actions below 64rem until opened, with no
+  Alpine. Marketing a11y fixtures now compose the pattern; INTEGRATION.md
+  documents it. Closes the behaviour half of #263 under Wave 3 public-nav
+  craft.
+
 - **DEBUG guard for a duplicated brickwork.css link** (icvoss/django-brickwork#271).
   A second stylesheet link after a brand override silently reverts every
   `--bw-*` token to package defaults. BRANDING.md now names the symptom,

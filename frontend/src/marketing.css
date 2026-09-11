@@ -56,6 +56,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--bw-space-2) var(--bw-space-6);
+  position: relative;
 }
 
 /* Brand slot default sizing (#83, ADR-054 beautiful-by-default): brand_logo
@@ -151,6 +152,159 @@
 
 .bw-marketing-header__actions:empty {
   display: none;
+}
+
+/* --- Mobile nav toggle (#263) ----------------------------------------------
+ * Package-owned collapse for the marketing header. Place
+ * .bw-mobile-nav-toggle (see _mobile_nav_toggle.html) as a sibling of
+ * .bw-marketing-header__nav / .bw-marketing-header__actions via
+ * marketing_nav_region. Rules sit AFTER the base __nav/__actions display
+ * declarations so sibling combinators win the cascade. Mobile-first; the
+ * 64rem query restores the inline desktop bar and hides the toggle. No JS.
+ */
+
+.bw-mobile-nav-toggle {
+  order: 1;
+  margin-inline-start: auto;
+}
+
+.bw-mobile-nav-toggle > summary {
+  list-style: none;
+}
+
+.bw-mobile-nav-toggle > summary::-webkit-details-marker {
+  display: none;
+}
+
+.bw-mobile-nav-toggle__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--bw-size-touch-target-min);
+  block-size: var(--bw-size-touch-target-min);
+  border-radius: var(--bw-radius-md);
+  color: var(--bw-color-fg);
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-mobile-nav-toggle__trigger:hover {
+  background: var(--bw-color-surface-marketing-tint);
+}
+
+.bw-mobile-nav-toggle__trigger:focus-visible {
+  outline: 2px solid var(--bw-color-accent);
+  outline-offset: 2px;
+}
+
+.bw-mobile-nav-toggle__icon--close {
+  display: none;
+}
+
+.bw-mobile-nav-toggle[open] .bw-mobile-nav-toggle__icon--open {
+  display: none;
+}
+
+.bw-mobile-nav-toggle[open] .bw-mobile-nav-toggle__icon--close {
+  display: block;
+}
+
+.bw-mobile-nav-toggle ~ .bw-marketing-header__nav,
+.bw-mobile-nav-toggle ~ .bw-marketing-header__actions {
+  display: none;
+  order: 2;
+  inline-size: 100%;
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav,
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--bw-space-1);
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav {
+  padding-block-start: var(--bw-space-4);
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  margin-block-start: var(--bw-space-3);
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions {
+  padding-block-end: var(--bw-space-2);
+  flex-direction: column;
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav a {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--bw-size-touch-target-min);
+  padding-inline: var(--bw-space-3);
+  border-radius: var(--bw-radius-md);
+  color: var(--bw-color-fg);
+  font-size: var(--bw-font-size-sm);
+  font-weight: var(--bw-font-weight-medium);
+  text-decoration: none;
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav a:hover {
+  background: var(--bw-color-surface-raised);
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav a:focus-visible,
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions a:focus-visible,
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions button:focus-visible {
+  outline: 2px solid var(--bw-color-accent);
+  outline-offset: 2px;
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions > a,
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions .bw-btn,
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions .bw-marketing-header__logout-form {
+  inline-size: 100%;
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions .bw-btn {
+  justify-content: center;
+  min-block-size: var(--bw-size-touch-target-min);
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions > a:not(.bw-btn) {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--bw-size-touch-target-min);
+  padding-inline: var(--bw-space-3);
+  border-radius: var(--bw-radius-md);
+  color: var(--bw-color-fg);
+  font-size: var(--bw-font-size-sm);
+  font-weight: var(--bw-font-weight-medium);
+  text-decoration: none;
+}
+
+.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions > a:not(.bw-btn):hover {
+  background: var(--bw-color-surface-raised);
+}
+
+@media (min-width: 64rem) {
+  .bw-marketing-header__brand {
+    flex-wrap: nowrap;
+  }
+
+  .bw-mobile-nav-toggle {
+    display: none;
+  }
+
+  .bw-mobile-nav-toggle ~ .bw-marketing-header__nav,
+  .bw-mobile-nav-toggle ~ .bw-marketing-header__actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    order: initial;
+    inline-size: auto;
+    padding: 0;
+    border-block-start: none;
+    margin-block-start: 0;
+  }
 }
 
 /* A plain link (e.g. "Sign in") alongside a bw_button in this slot

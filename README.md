@@ -31,7 +31,7 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 176 documents (130 hand-maintained fixtures
+axe-core WCAG 2.2 AA scan across 178 documents (132 hand-maintained fixtures
 plus 46 catalogue documents, being 22 archetypes and 1 skeleton, each x light
 and dark themes), plus a no-JS floor suite, keyboard suites,
 mobile-overflow checks at
