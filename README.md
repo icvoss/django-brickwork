@@ -1,9 +1,9 @@
 # brickwork
 
 **Building blocks for beautiful apps and websites.** Brickwork supplies
-reusable tokens, components and shells, with 50 examples (22 archetype pages,
-28 sections; a 51st file, `base.html`, is a copied document skeleton).
-50 of the 51 files add no CSS. The date range picker uses existing `--bw-*`
+reusable tokens, components and shells, with 55 examples (27 archetype pages,
+28 sections; a 56th file, `base.html`, is a copied document skeleton).
+55 of the 56 files add no CSS. The date range picker uses existing `--bw-*`
 tokens in its own scoped CSS because the package has no maintained date picker
 component (see [Example pages](#example-pages)).
 
@@ -31,9 +31,10 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 178 documents (132 hand-maintained fixtures
-plus 46 catalogue documents, being 22 archetypes and 1 skeleton, each x light
-and dark themes), plus a no-JS floor suite, keyboard suites,
+axe-core WCAG 2.2 AA scan across 188 documents (132 hand-maintained fixtures
+plus 56 catalogue-document pages, being 28 catalogue documents, 27 archetypes
+and 1 skeleton, each x light and dark themes), plus a no-JS floor suite,
+keyboard suites,
 mobile-overflow checks at
 320/360/375/414px, and pixel-level composited contrast measurement. That last
 check exists because the axe gate itself once ran green over a real 4.25:1

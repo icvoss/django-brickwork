@@ -1,0 +1,251 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+A plan comparison matrix: which plan includes what, row by row, with a
+recommended column called out in words.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    faq_items  [{question, answer}]
+The comparison rows below are written straight into this template on purpose:
+a capability grid is copy you edit as words, not a queryset you loop.
+
+This page answers the reader who has already narrowed it to two plans and
+wants to know precisely what the cheaper one gives up. Lead with a short hero,
+put the matrix in the middle, and close with FAQ plus CTA the same way
+marketing/pricing.html does. Do not invent a component for the matrix: a real
+comparison is tabular data, and tabular data belongs in a <table>.
+
+States: the auth-aware header actions branch on request.user.is_authenticated;
+  the FAQ's single_open=True makes its answers a single native exclusive-open
+  group; the comparison table itself is static.
+Accessibility: inherits shell/marketing.html's skip link and header/footer
+  landmarks; the current-page nav link carries aria-current="page"; the
+  composed hero renders the page's own <h1>. The matrix is a real <table>
+  with a visible <caption>, <th scope="col"> per plan and <th scope="row">
+  per capability; every included/not-included cell carries visually-hidden
+  text alongside the tick/dash icon, never colour or shape alone (WCAG
+  1.4.1). The recommended column is named in words by a badge in its header,
+  never by colour alone. The scroll container is tabindex="0" and
+  role="region" with aria-labelledby. Covered by the archetype harness's
+  full gate sweep (render, axe WCAG 2.2 AA, no horizontal overflow,
+  light/dark distinctness, skip-link first-tab-stop with JS disabled) at
+  every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
+  fluid header wrap and content-column cap. The table never reflows (a table
+  cannot become one column without ceasing to be a table); its scroll
+  container carries unconditional overflow-x plus contain: paint at every
+  viewport width.
+{% endcomment %}
+{% load brickwork_components brickwork_icons %}
+
+{% block page_title %}Compare plans - Northwind{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block marketing_nav %}
+  <a href="/features/">Features</a>
+  <a href="/pricing/">Pricing</a>
+  <a href="/compare/" aria-current="page">Compare</a>
+  <a href="/customers/">Customers</a>
+  <a href="/docs/">Docs</a>
+{% endblock %}
+
+{% block marketing_actions %}
+  {% if request.user.is_authenticated %}
+    <a href="/app/">Go to app</a>
+  {% else %}
+    <a href="/accounts/login/">Sign in</a>
+    {% bw_button "Start free trial" variant="primary" href="/accounts/signup/" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+  {% include "brickwork_marketing/components/_hero.html" with heading="Compare every plan" lede="Side by side, capability by capability. The trial gives you Scale for thirty days whichever plan you end up on." align="center" %}
+
+  {% comment %}
+  Hand-authored comparison matrix. Same shape as
+  sections/pricing/comparison-table.html: real <table> markup, visually
+  hidden Included/Not included text beside decorative icons, and a
+  focusable scroll region so a wide table never sideways-scrolls the page.
+
+  Exactly one column is recommended. Mark it with a badge whose LABEL carries
+  the meaning ("Recommended"); do not rely on a tinted column alone.
+  {% endcomment %}
+  <section class="bw-pricing-comparison">
+    <h2 class="bw-pricing-comparison__heading" id="bw-plan-comparison-heading">
+      What each plan includes
+    </h2>
+    <p class="bw-pricing-comparison__lede">
+      Everything below is per account, not per invoice. Prices exclude VAT.
+      Annual billing saves two months.
+    </p>
+
+    <div
+      class="bw-pricing-comparison__scroll"
+      role="region"
+      aria-labelledby="bw-plan-comparison-heading"
+      tabindex="0"
+    >
+      <table class="bw-pricing-comparison__table">
+        <caption class="bw-pricing-comparison__caption">
+          Northwind plan comparison. Scroll sideways to see every plan. Team is the recommended plan.
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="bw-pricing-comparison__row-header">Capability</th>
+            <th scope="col">Solo, £9 a month</th>
+            <th scope="col">
+              Team, £29 a month
+              {% bw_badge "Recommended" variant="info" %}
+            </th>
+            <th scope="col">Scale, £89 a month</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">Invoices a month</th>
+            <td>Unlimited</td>
+            <td>Unlimited</td>
+            <td>Unlimited</td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">People with a login</th>
+            <td>1</td>
+            <td>Up to 10</td>
+            <td>Unlimited</td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">Automatic reminders</th>
+            <td>
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              <span class="bw-visually-hidden">Included</span>
+            </td>
+            <td>
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              <span class="bw-visually-hidden">Included</span>
+            </td>
+            <td>
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              <span class="bw-visually-hidden">Included</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">Late-payment prediction</th>
+            <td>
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              <span class="bw-visually-hidden">Not included</span>
+            </td>
+            <td>
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              <span class="bw-visually-hidden">Included</span>
+            </td>
+            <td>
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              <span class="bw-visually-hidden">Included</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">Shared chasing inbox</th>
+            <td>
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              <span class="bw-visually-hidden">Not included</span>
+            </td>
+            <td>
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              <span class="bw-visually-hidden">Included</span>
+            </td>
+            <td>
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              <span class="bw-visually-hidden">Included</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">Currencies</th>
+            <td>Sterling only</td>
+            <td>Sterling and euro</td>
+            <td>Any, with daily rates</td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">Legal entities</th>
+            <td>1</td>
+            <td>1</td>
+            <td>Unlimited</td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">SAML sign-in</th>
+            <td>
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              <span class="bw-visually-hidden">Not included</span>
+            </td>
+            <td>
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              <span class="bw-visually-hidden">Not included</span>
+            </td>
+            <td>
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              <span class="bw-visually-hidden">Included</span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">Audit trail export</th>
+            <td>
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              <span class="bw-visually-hidden">Not included</span>
+            </td>
+            <td>90 days</td>
+            <td>7 years</td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header">Support</th>
+            <td>Email, next working day</td>
+            <td>Email, same working day</td>
+            <td>Email and phone, one hour</td>
+          </tr>
+          <tr>
+            <th scope="row" class="bw-pricing-comparison__row-header"></th>
+            <td>{% bw_button "Start free trial" variant="secondary" href="/accounts/signup/?plan=solo" %}</td>
+            <td>{% bw_button "Start free trial" variant="primary" href="/accounts/signup/?plan=team" %}</td>
+            <td>{% bw_button "Talk to sales" variant="secondary" href="/contact/" %}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="bw-pricing-comparison__note">
+      Changing plan takes effect on the next invoice, and we credit the unused
+      part of the current one.
+    </p>
+  </section>
+
+  {% comment %}
+  The FAQ. single_open=True makes the answers mutually exclusive using the
+  native <details name> group, so only one is open at a time with no JS.
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_faq.html" with heading="Questions people ask before choosing" items=faq_items single_open=True %}
+
+  {% include "brickwork_marketing/components/_cta.html" with heading="Still deciding? Try Team free for thirty days" body="You can switch plans any time before the trial ends. If it has not paid for itself by then, do not keep it." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/?plan=team" %}
+
+{% endblock %}
+
+{% block marketing_footer %}
+  <div>
+    <h2>Product</h2>
+    <a href="/features/">Features</a>
+    <a href="/pricing/">Pricing</a>
+    <a href="/compare/">Compare</a>
+    <a href="/changelog/">Changelog</a>
+  </div>
+  <div>
+    <h2>Company</h2>
+    <a href="/about/">About</a>
+    <a href="/careers/">Careers</a>
+    <a href="/contact/">Contact</a>
+  </div>
+{% endblock %}
+
+{% block footer_legal %}
+  <p>Copyright 2026 Northwind Software Ltd. <a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></p>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "brickwork/shell/centred.html" %}
+{% comment %}
+One mid-step of account onboarding (the team step of company → team → billing).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056). In practice you copy it once per step,
+or copy it once and vary the step content by template.
+
+What your view must supply:
+    form   this step's own form
+    steps  [{label, status}] where status is "complete" | "current" | "upcoming"
+
+This one extends the CENTRED shell, not the app shell: onboarding is a
+deliberate interruption before the product is ready, so it drops the sidebar
+and topbar rather than letting the user wander into an empty app.
+
+HOW THE FLOW WORKS, matching app/wizard.html: brickwork ships the progress
+indicator and nothing else. There is no client-side wizard state machine, no
+step cookie. Each step is an ordinary Django page at its own URL:
+
+    /onboarding/company/   ->  /onboarding/team/  ->  /onboarding/billing/
+
+Each step POSTs to itself. On valid, your view saves and redirects to the next
+step's URL. On invalid, it re-renders this same step with the bound form and
+the errors show inline. "Back" is a plain link to the previous URL, not a state
+rewind: the previous step's data was already saved when it succeeded, so going
+back and forward again is safe and needs no client memory.
+
+"Skip for now" is also a plain link (or a secondary submit of your own) to the
+next step's URL. Skipping must still leave a resumable record: your view marks
+the team step as skipped and stores enough state that a later visit to
+/onboarding/ can send the user back here, or on to billing if they finished
+it. Resume is server-owned — on GET of /onboarding/, redirect to the first
+incomplete step. brickwork does not track it.
+
+Your view computes each step's status by comparing its position against the
+current step. brickwork does not track it.
+
+States: see _stepper.html's own header for the progress indicator's states
+  (complete/current/upcoming per step, mode="progress" here); the form's
+  own valid/invalid states.
+Accessibility: inherits shell/centred.html's skip link, lang/dir/theme
+  attributes and <main id="bw-main" tabindex="-1">; the stepper is a native
+  <ol> so a screen reader announces position without extra markup, and the
+  current step carries aria-current="step". Covered by the archetype
+  harness's full gate sweep (render, axe WCAG 2.2 AA, no horizontal
+  overflow, light/dark distinctness, skip-link first-tab-stop with JS
+  disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/centred.html's
+  fluid, no-breakpoint centred panel. The stepper itself stacks vertically
+  below --bw-breakpoint-md regardless of the orientation="horizontal"
+  default (see _stepper.html's own header); this example does not pass
+  orientation, so it takes that default.
+{% endcomment %}
+{% load brickwork_components brickwork_forms %}
+
+{% block page_title %}Add your team - Northwind{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  <h1 class="bw-page-header__title">Add your team</h1>
+  <p class="bw-page-header__description">Step 2 of 3. Invite the people who will chase invoices with you. You can skip this and come back later.</p>
+
+  {% comment %}
+  The progress indicator. It is an ordered list, so a screen reader announces
+  position natively, and each step's status is carried by a glyph plus hidden
+  text as well as colour. Pass orientation="vertical" for a narrow column.
+  Build steps in the view, for example:
+
+      steps  [
+        {"label": "Company", "status": "complete"},
+        {"label": "Team", "status": "current"},
+        {"label": "Billing", "status": "upcoming"},
+      ]
+  {% endcomment %}
+  {% include "brickwork/components/_stepper.html" with steps=steps %}
+
+  {% comment %}
+  This step's own content. As with the form example, you own the <form>: the
+  submit lives inside it, beside the fields. Skip is a link to the next step,
+  not a client-side branch — resume is documented in the file header.
+  {% endcomment %}
+  <div class="bw-wizard__step">
+    <form method="post" action="{{ request.path }}">
+      {% csrf_token %}
+      {% bw_form form %}
+      <div class="bw-form__actions">
+        {% bw_button "Skip for now" variant="ghost" href="/onboarding/billing/" %}
+        {% bw_button "Continue" type="submit" variant="primary" %}
+      </div>
+    </form>
+  </div>
+
+  {% comment %}
+  Back is an ordinary anchor to the previous step's URL. Omit it on step one.
+  {% endcomment %}
+  <nav class="bw-wizard__nav" aria-label="Onboarding navigation">
+    <a class="bw-btn bw-btn--ghost" href="/onboarding/company/">Back</a>
+  </nav>
+
+</div>
+{% endblock %}

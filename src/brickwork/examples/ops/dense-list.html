@@ -1,0 +1,130 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A dense purchase-order / shipment index: many rows, sticky headers, bulk
+actions over a selection.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    po_columns / po_rows   the table's columns and pre-rendered rows
+    po_page                a page of items (a Django Page from Paginator)
+    filter_form            your own filter form (the bar renders its fields)
+    nav_items / nav_active as in app/list.html
+The counts, headings and copy below are typed into the template, which is where
+you change them.
+
+A dense list is a list whose rows are WORK IN MOTION, not a soft archive:
+purchase orders waiting to ship, shipments waiting to clear customs, lines
+somebody still owes an answer on. Density is the point: sticky headers keep
+column labels in view while the reader scrolls a long page, and selectable
+rows feed one shared bulk form so "Mark shipped" and "Hold" act on the same
+checkboxes the table renders.
+
+On status: build each status cell as a rendered {% templatetag openblock %}
+bw_badge {% templatetag closeblock %} in your view, so the state reaches the
+reader as a word ("Awaiting stock", "In transit", "Cleared") and not as a
+colour. The badge variants (neutral, info, success, warning, danger) tint
+that word; they never replace it.
+
+The bulk actions bar and the table share ONE form, so the checkboxes the table
+renders are the inputs the bar's buttons submit. Read them server-side with
+request.POST.getlist("selected"). The live "n selected" count is an Alpine
+enhancement; with JavaScript off the bar still submits the checked rows.
+
+States: the table's loading/empty/row-link/selected states and its
+  sortable-column ascending/descending/unsorted states (see
+  _data_table.html's own header); pagination rendered/absent (a single
+  page renders no controls); the bulk bar's own empty/populated selection
+  count, which is populated by Alpine and empty without it.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; every status reading is a badge whose label carries
+  the meaning in words, never colour alone, and each row's checkbox carries
+  a visually-hidden label naming its row. Covered by the archetype
+  harness's full gate sweep (render, axe WCAG 2.2 AA, no horizontal
+  overflow, light/dark distinctness, skip-link first-tab-stop with JS
+  disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The optional
+  stat row (bw-stat-grid) reflows continuously with an auto-fit grid; the
+  composed table carries unconditional horizontal scroll
+  (responsive="scroll", the default) at every width.
+{% endcomment %}
+{% load brickwork_components brickwork_interactions brickwork_nav %}
+
+{% block page_title %}Purchase orders - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Purchase orders" description="Open POs and outbound shipments. Oldest promised date first, so nothing misses a sailing unseen." %}
+{% endblock %}
+
+{% block page_actions %}
+  {% bw_button "Export CSV" variant="secondary" icon="download" href="/purchase-orders/export/" %}
+  {% bw_button "New purchase order" variant="primary" icon="plus" href="/purchase-orders/new/" %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  Optional vital signs for a dense ops index. Delete this grid if your page
+  does not need them; the list below still stands on its own. Each trend
+  pairs a direction glyph with visually hidden text, so the reading never
+  rides on colour.
+  {% endcomment %}
+  <div class="bw-stat-grid">
+    {% include "brickwork/components/_stat.html" with label="Open POs" value="142" icon="file" trend="up" trend_label="11 more than last week" %}
+    {% include "brickwork/components/_stat.html" with label="Due this week" value="27" icon="calendar" trend="up" trend_label="past the 20-line target" %}
+    {% include "brickwork/components/_stat.html" with label="In transit" value="38" icon="upload" trend="flat" trend_label="unchanged since Monday" %}
+    {% include "brickwork/components/_stat.html" with label="On hold" value="6" icon="alert-triangle" trend="down" trend_label="3 fewer than yesterday" %}
+  </div>
+
+  {% comment %}
+  The filter bar is a plain <form method="get">, so it filters with no JS.
+  hx_get and hx_target enhance it to swap only the table body.
+  {% endcomment %}
+  {% include "brickwork/components/_filter_bar.html" with fields=filter_form submit_label="Filter" clear_href="/purchase-orders/" hx_get="/purchase-orders/" hx_target="#po-table" %}
+
+  {% comment %}
+  One form wraps the bulk bar AND the table, because the bar's buttons submit
+  the table's own checkboxes. Splitting them into two forms is the mistake this
+  arrangement exists to prevent: the buttons would submit nothing.
+
+  The bulk actions bar is EXTENDS-consumed, not include-consumed: an include
+  cannot fill its bulk_actions_buttons block, so the buttons would vanish
+  silently. Write one small template in your own project and include THAT here:
+
+      {% templatetag openblock %} extends "brickwork/components/_bulk_actions_bar.html" {% templatetag closeblock %}
+      {% templatetag openblock %} block bulk_actions_buttons {% templatetag closeblock %}
+        {% templatetag openblock %} bw_button "Mark shipped" variant="primary" type="submit" name="bulk_action" value="ship" {% templatetag closeblock %}
+        {% templatetag openblock %} bw_button "Hold" variant="secondary" type="submit" name="bulk_action" value="hold" {% templatetag closeblock %}
+      {% templatetag openblock %} endblock {% templatetag closeblock %}
+
+  then include it where the marked line below is, inside this form. It is left
+  as a comment rather than a live include because this example renders from
+  your project's templates, and that template is yours, not brickwork's. Delete
+  the form wrapper entirely if your list has no bulk actions.
+  {% endcomment %}
+  <form method="post" action="/purchase-orders/bulk/" x-data="bwTableSelection()">
+    {% comment %} Your CSRF token goes here. {% endcomment %}
+    {% comment %} Your bulk actions bar template goes here. {% endcomment %}
+
+    {% comment %}
+    selectable=True renders the per-row checkboxes the bar submits.
+    sticky_header keeps the column labels in view while a long dense list
+    scrolls, which is the difference between scanning a list and losing your
+    place in one. Cells are pre-rendered strings from your view, so a status
+    cell can be a rendered badge and a supplier cell can be a name plus a
+    short code.
+    {% endcomment %}
+    {% include "brickwork/components/_data_table.html" with table_id="po-table" columns=po_columns rows=po_rows selectable=True sticky_header=True current_sort="promised_date" empty_heading="No open purchase orders" empty_body="Nothing is waiting to ship right now. New POs land here as purchasing raises them." %}
+  </form>
+
+  {% include "brickwork/components/_pagination.html" with page_obj=po_page %}
+
+</div>
+{% endblock %}
