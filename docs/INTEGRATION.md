@@ -470,6 +470,26 @@ the failure in [BRANDING.md](BRANDING.md) (symptom, mechanism, one-line
 warning (`data-bw-css-duplicate-check`). Emptying that block for CSP opts out
 of both detectors.
 
+### Missing include context is silent unless you opt into DEBUG loudness (brickwork#482)
+
+An include-only component cannot raise when a required context variable is
+omitted or misspelt: Django renders the region empty and the page still
+looks structurally valid. Tags that wrap a Python function already raise
+`TemplateSyntaxError`; the include-only majority cannot. The package answer
+is `{% bw_require name=name %}` at the top of those templates (opt-in per
+component, starting with `_page_header.html` and `_empty_state.html`).
+
+With `DEBUG = True` (and therefore `bw_debug`), a missing or empty required
+value emits a `console.warn` script naming the template and the keys. With
+`DEBUG = False` the tag emits nothing. It never overlays the page and never
+500s production. Pair this with Django's `string_if_invalid` in a smoke leg
+if you want CI to catch the same class of miss (`tests/test_string_if_invalid.py`).
+
+```django
+{% load brickwork_components %}
+{% bw_require title=title %}
+```
+
 ### Marketing mobile nav without reproducing the header (brickwork#263)
 
 The marketing shell's `marketing_nav_region` lets you insert a sibling of the
