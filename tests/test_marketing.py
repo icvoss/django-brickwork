@@ -172,6 +172,32 @@ def test_overriding_marketing_nav_region_replaces_the_nav_wrapper() -> None:
     assert "<a href='/pricing/'>Pricing</a>" in html
 
 
+def test_mobile_nav_toggle_include_renders_as_sibling_of_nav() -> None:
+    # Package-owned collapse for #263: include the toggle inside
+    # marketing_nav_region ahead of the existing <nav>, without reproducing
+    # marketing_header.
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% load i18n %}"
+        "{% block marketing_nav_region %}"
+        '{% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}'
+        '<nav class="bw-marketing-header__nav" aria-label="Primary">'
+        "{% block marketing_nav %}"
+        "<a href='/pricing/'>Pricing</a>"
+        "{% endblock %}"
+        "</nav>"
+        "{% endblock %}",
+    )
+    assert 'class="bw-mobile-nav-toggle"' in html
+    assert "bw-mobile-nav-toggle__trigger" in html
+    assert 'aria-label="Menu"' in html
+    assert "bw-marketing-header__nav" in html
+    toggle_at = html.index('class="bw-mobile-nav-toggle"')
+    nav_at = html.index('class="bw-marketing-header__nav"')
+    assert toggle_at < nav_at
+    assert "bw-mobile-nav-toggle" in (_DIST / "brickwork.css").read_text(encoding="utf-8")
+
+
 def test_overriding_marketing_actions_region_replaces_the_actions_wrapper() -> None:
     html = _extend(
         _MARKETING_SHELL,

@@ -47,24 +47,33 @@ def test_registration_detector_absent_without_bw_debug() -> None:
 @pytest.mark.parametrize("template", SHELLS)
 def test_registration_detector_renders_with_bw_debug(template: str) -> None:
     # With bw_debug on (the theme context processor maps settings.DEBUG onto
-    # it), every shell carries the inline detector that turns the silent
-    # dead-components trap into a console warning.
+    # it), every shell carries the inline detectors that turn silent wiring
+    # traps into console warnings (registration #87, CSS duplicate #271).
     html = _render(template, bw_debug=True)
     assert "data-bw-registration-check" in html
     assert "registerBrickworkComponents(Alpine)" in html
+    assert "data-bw-css-duplicate-check" in html
+    assert "brickwork/dist/brickwork.css" in html
     assert "console.warn" in html
     # it keys on the marker registerBrickworkComponents stamps on <html>
     assert "data-bw-js-registered" in html
 
 
+def test_css_duplicate_detector_absent_without_bw_debug() -> None:
+    assert "data-bw-css-duplicate-check" not in _render("brickwork/shell/app.html")
+    assert "data-bw-css-duplicate-check" not in _render("brickwork/shell/app.html", bw_debug=False)
+
+
 def test_registration_detector_block_can_be_overridden_away() -> None:
     # The documented CSP escape hatch: a consumer overrides the block (to add
-    # a nonce or to empty it) without forking the shell.
+    # a nonce or to empty it) without forking the shell. Emptying it removes
+    # both DEBUG detectors (#87 and #271).
     from django.template import Context, Template
 
     child = Template("{% extends 'brickwork/shell/app.html' %}{% block bw_js_registration_check %}{% endblock %}")
     html = child.render(Context({"bw_debug": True}))
     assert "data-bw-registration-check" not in html
+    assert "data-bw-css-duplicate-check" not in html
 
 
 @pytest.mark.parametrize("template", SHELLS)

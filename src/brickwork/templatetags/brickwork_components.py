@@ -6,6 +6,7 @@ accessible-name enforcement), so they are tags rather than bare {% include %}.
 
 from __future__ import annotations
 
+import json
 import math
 import re
 import unicodedata
@@ -294,6 +295,64 @@ def bw_attr(
     # write and forget. A value that needs a wrapper built from CONSUMER data
     # is out of scope by construction, because prefix/suffix take no variable.
     return mark_safe(f'{escape(name)}="{escape(prefix)}{rendered_value}{escape(suffix)}"')
+
+
+def _required_context_is_missing(value: object) -> bool:
+    """True when a required include context value is absent or empty.
+
+    Django resolves an unset template variable to ``""`` (or the consumer's
+    ``string_if_invalid`` marker string) rather than ``None``, so both must
+    count as missing. Whitespace-only strings are missing. An empty sequence
+    is missing (a required list that arrived empty). ``False`` and ``0`` are
+    NOT missing: they are deliberate values a caller may pass.
+    """
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return not value.strip()
+    if isinstance(value, (list, tuple, set, Mapping)):
+        return len(value) == 0
+    return False
+
+
+@register.simple_tag(takes_context=True)
+def bw_require(context: template.Context, **required: object) -> SafeString:
+    """DEBUG-only required-context check for include-only templates (#482).
+
+    Place at the top of an include-only component after ``{% load
+    brickwork_components %}``::
+
+        {% bw_require title=title %}
+
+    When ``bw_debug`` is true (``settings.DEBUG`` via the theme context
+    processor) and any named value is missing or empty, emit a small inline
+    ``console.warn`` script naming the template and the keys. Never raises,
+    never overlays the page, and emits nothing when ``DEBUG`` is off, so a
+    missing optional region cannot 500 a consumer page.
+
+    Tag-backed components keep raising ``TemplateSyntaxError`` themselves;
+    this tag is only for the include-only majority that cannot declare a
+    Python signature. It does not parse ``Required context:`` comment prose.
+    """
+    if not context.get("bw_debug"):
+        return mark_safe("")
+    if not required:
+        return mark_safe("")
+
+    missing = [name for name, value in required.items() if _required_context_is_missing(value)]
+    if not missing:
+        return mark_safe("")
+
+    template_obj = getattr(context, "template", None)
+    template_name = getattr(template_obj, "name", None) or "unknown template"
+    keys = ", ".join(missing)
+    message = (
+        f"brickwork: required context missing or empty on {template_name}: {keys}. "
+        "Pass the named variables into the {% include %}, or fix the misspelling. "
+        "Include-only components cannot raise on their own (django-brickwork#482). "
+        "(This check only renders when DEBUG is on.)"
+    )
+    return mark_safe(f"<script data-bw-require-warn>console.warn({json.dumps(message)});</script>")
 
 
 @register.simple_tag

@@ -12,8 +12,9 @@ name, default value, and derivation rule); this guide covers the how.
 ## The mechanism: override tokens, don't touch classes
 
 Put your brand's values on `:root` (or a scoped ancestor) in your own stylesheet,
-loaded AFTER brickwork's `tokens.css`. Override only the semantic and component
-tiers (`--bw-color-*`, `--bw-font-*`), never the primitives.
+loaded AFTER brickwork's `tokens.css` / compiled `brickwork.css`. Override only
+the semantic and component tiers (`--bw-color-*`, `--bw-font-*`), never the
+primitives.
 
 ```css
 /* your brand.css, loaded after brickwork's tokens.css */
@@ -29,6 +30,34 @@ Because the derived tokens are live `color-mix()` expressions over the
 load-bearing set, overriding `--bw-color-accent` alone recolours the whole
 accent family (hover, subtle tint, focus ring, nav active state) in the
 browser, with no rebuild.
+
+### The double-include trap: a second brickwork.css undoes your brand (brickwork#271)
+
+Load order is the whole override mechanism. If `brickwork.css` appears **twice**
+in the document, with your brand sheet between the copies, the second package
+sheet wins the cascade and every `--bw-*` value silently reverts to package
+defaults. There is no error: the page looks structurally fine and merely
+"unbranded".
+
+**Symptom:** brand colours (especially `--bw-color-accent`) match the package
+base theme instead of your override sheet, even though your brand CSS is
+present in DevTools.
+
+**Mechanism:** CSS cascade by source order. A duplicated
+`{% static 'brickwork/dist/brickwork.css' %}` after the brand link, including
+one injected when an embedded shell fragment re-renders a full document
+`<head>`, resets tokens.
+
+**One-line check:** in the browser console,
+`[...document.styleSheets].filter(s => (s.href || '').includes('brickwork/dist/brickwork.css')).length`
+must be exactly `1`. With `DEBUG` on, the shell also emits a console warning
+when more than one matching `<link rel="stylesheet">` is present (same
+`bw_js_registration_check` block as the Alpine registration detector).
+
+**Verdict (brickwork#271):** documentation plus a DEBUG-only runtime warning.
+An idempotent include tag was declined for now: the shell already emits the
+canonical link once; the failure is almost always a second consumer or
+embedded-document link, which a template tag on the first include cannot see.
 
 ## The load-bearing minimum: seven tokens make a brand
 

@@ -3043,6 +3043,54 @@ def render_about(theme: str) -> str:
     return _inline_css(html)
 
 
+# --- marketing mobile-nav toggle (#263) ---------------------------------------
+#
+# landing/pricing/about intentionally omit the toggle so the coarse-pointer
+# and no-JS marketing-header assertions keep measuring a permanently visible
+# nav/actions row. This fixture is the coverage vehicle for
+# component/mobile_nav_toggle: it composes the documented marketing_nav_region
+# include pattern so the a11y gate sees the trigger and the sibling collapse
+# CSS at every theme.
+
+_MOBILE_NAV_TOGGLE_SOURCE = (
+    '{% extends "brickwork_marketing/shell/marketing.html" %}'
+    "{% load brickwork_components i18n %}"
+    "{% block marketing_nav_region %}"
+    '{% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}'
+    '<nav class="bw-marketing-header__nav" aria-label="{% translate \'Primary\' %}">'
+    "{% block marketing_nav %}"
+    '<a href="#features">Features</a>'
+    '<a href="#pricing">Pricing</a>'
+    '<a href="#about">About</a>'
+    "{% endblock %}"
+    "</nav>"
+    "{% endblock %}"
+    "{% block marketing_actions %}"
+    '<a href="#signin">Sign in</a>'
+    '{% bw_button "Get started" href="#start" variant="primary" size="sm" %}'
+    "{% endblock %}"
+    "{% block content %}"
+    "<h1>Mobile nav toggle</h1>"
+    "<p>Coverage fixture for the package-owned marketing mobile-nav toggle.</p>"
+    "{% endblock %}"
+    "{% block footer_legal %}&copy; 2026 Acme Ltd. All rights reserved.{% endblock %}"
+)
+
+
+def render_mobile_nav_toggle(theme: str) -> str:
+    request = RequestFactory().get("/marketing/mobile-nav/")
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Mobile nav toggle",
+        "bw_page_title": "Mobile nav toggle, Acme",
+    }
+    html = engines["django"].from_string(_MOBILE_NAV_TOGGLE_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
+
+
 # --- the hero media_placement axis (ADR-057 section 1a, icvoss/django-brickwork#118) ---
 #
 # None of landing/pricing/about above ever passes media_placement, so they all
@@ -4003,6 +4051,10 @@ def main() -> None:
         _emit(OUT / f"landing-{theme}.html", render_landing(theme), written)
         _emit(OUT / f"pricing-{theme}.html", render_pricing(theme), written)
         _emit(OUT / f"about-{theme}.html", render_about(theme), written)
+        # package-owned marketing mobile-nav toggle (#263): marketing_nav_region
+        # include pattern; landing/pricing/about omit it so coarse-pointer nav
+        # assertions keep a permanently visible header row
+        _emit(OUT / f"mobile-nav-toggle-{theme}.html", render_mobile_nav_toggle(theme), written)
         # the hero media_placement axis (ADR-057 section 1a, #118): "behind"
         # (no/light/dark media) and "beside", none of which landing/pricing/
         # about above ever render, so axe never examined the new CSS
