@@ -130,6 +130,19 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     },
     "app/date-range-picker.html": {**_NAV_CONTEXT, **_DRP_CONTEXT},
     "app/form.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
+    # The five examples added alongside the 3.18.0 line (#503 follow-up).
+    # Each composes shipped components with literal `with` arguments, so the
+    # context is only what the page itself reads: an empty nav for the app
+    # shell, and nothing else. request.path and request.user are deliberately
+    # absent, matching every other example here, because Django resolves a
+    # missing variable to the empty string and the examples are copy-paste
+    # source a consumer wires to its own request.
+    "app/error-maintenance.html": {**_NAV_CONTEXT},
+    # onboarding renders {% bw_form form %}, the same as app/wizard.html.
+    "app/onboarding.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
+    "app/status-tracker.html": {**_NAV_CONTEXT},
+    "ops/dense-list.html": {**_NAV_CONTEXT},
+    "marketing/comparison.html": {},
     "app/wizard.html": {
         **_NAV_CONTEXT,
         "form": _ExampleForm(),
@@ -714,6 +727,7 @@ _EXAMPLE_CTA_HREFS: dict[str, list[str]] = {
     "marketing/landing.html": ["/accounts/signup/", "/demo/", "/contact/"],
     "marketing/pricing.html": ["/accounts/signup/"],
     "marketing/about.html": ["/accounts/signup/", "/docs/"],
+    "marketing/comparison.html": ["/accounts/signup/?plan=team"],
 }
 
 

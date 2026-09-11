@@ -6,13 +6,13 @@
     "shells": 6,
     "components": 50,
     "sections": 28,
-    "archetypes": 22,
+    "archetypes": 27,
     "skeletons": 1
   },
   "families": [
     {
       "name": "Data-heavy operations",
-      "archetypeCount": 5,
+      "archetypeCount": 6,
       "sectionCount": 0
     },
     {
@@ -22,12 +22,12 @@
     },
     {
       "name": "Marketing and public web",
-      "archetypeCount": 3,
+      "archetypeCount": 4,
       "sectionCount": 0
     },
     {
       "name": "Product applications",
-      "archetypeCount": 9,
+      "archetypeCount": 12,
       "sectionCount": 0
     },
     {
@@ -112,6 +112,19 @@
       ]
     },
     {
+      "name": "examples/app/error-maintenance.html",
+      "kind": "archetype",
+      "family": "Product applications",
+      "templatePath": "examples/app/error-maintenance.html",
+      "docSource": "examples/app/error-maintenance.html",
+      "requiresContext": false,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/shell/centred.html"
+      ]
+    },
+    {
       "name": "examples/app/form.html",
       "kind": "archetype",
       "family": "Product applications",
@@ -144,6 +157,20 @@
       ]
     },
     {
+      "name": "examples/app/onboarding.html",
+      "kind": "archetype",
+      "family": "Product applications",
+      "templatePath": "examples/app/onboarding.html",
+      "docSource": "examples/app/onboarding.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_button.html",
+        "brickwork/components/_stepper.html",
+        "brickwork/forms/_form.html",
+        "brickwork/shell/centred.html"
+      ]
+    },
+    {
       "name": "examples/app/settings.html",
       "kind": "archetype",
       "family": "Product applications",
@@ -155,6 +182,23 @@
         "brickwork/components/_page_header.html",
         "brickwork/components/_tabs.html",
         "brickwork/forms/_form.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
+    {
+      "name": "examples/app/status-tracker.html",
+      "kind": "archetype",
+      "family": "Product applications",
+      "templatePath": "examples/app/status-tracker.html",
+      "docSource": "examples/app/status-tracker.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_badge.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_stepper.html",
         "brickwork/nav/_nav.html",
         "brickwork/shell/app.html"
       ]
@@ -262,6 +306,22 @@
       ]
     },
     {
+      "name": "examples/marketing/comparison.html",
+      "kind": "archetype",
+      "family": "Marketing and public web",
+      "templatePath": "examples/marketing/comparison.html",
+      "docSource": "examples/marketing/comparison.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_badge.html",
+        "brickwork/components/_button.html",
+        "brickwork_marketing/components/_cta.html",
+        "brickwork_marketing/components/_faq.html",
+        "brickwork_marketing/components/_hero.html",
+        "brickwork_marketing/shell/marketing.html"
+      ]
+    },
+    {
       "name": "examples/marketing/landing.html",
       "kind": "archetype",
       "family": "Marketing and public web",
@@ -349,6 +409,24 @@
       ]
     },
     {
+      "name": "examples/ops/dense-list.html",
+      "kind": "archetype",
+      "family": "Data-heavy operations",
+      "templatePath": "examples/ops/dense-list.html",
+      "docSource": "examples/ops/dense-list.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_filter_bar.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_pagination.html",
+        "brickwork/components/_stat.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
+    {
       "name": "examples/ops/queue.html",
       "kind": "archetype",
       "family": "Data-heavy operations",
@@ -405,6 +483,7 @@
       "usedByArchetypes": [
         "app/confirm.html",
         "app/detail.html",
+        "app/error-maintenance.html",
         "docs/article.html"
       ],
       "usedBySections": [
@@ -419,7 +498,10 @@
       "templatePath": "brickwork/components/_badge.html",
       "docSource": "brickwork/components/_badge.html",
       "consumption": "tag",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "app/status-tracker.html",
+        "marketing/comparison.html"
+      ],
       "usedBySections": [],
       "usedBySkeleton": []
     },
@@ -460,19 +542,24 @@
         "app/dashboard.html",
         "app/date-range-picker.html",
         "app/detail.html",
+        "app/error-maintenance.html",
         "app/form.html",
         "app/list.html",
+        "app/onboarding.html",
         "app/settings.html",
+        "app/status-tracker.html",
         "app/wizard.html",
         "auth/reset.html",
         "auth/signin.html",
         "auth/signup.html",
         "marketing/about.html",
+        "marketing/comparison.html",
         "marketing/landing.html",
         "marketing/pricing.html",
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
+        "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
       ],
@@ -552,6 +639,7 @@
       "consumption": "include",
       "usedByArchetypes": [
         "marketing/about.html",
+        "marketing/comparison.html",
         "marketing/landing.html",
         "marketing/pricing.html"
       ],
@@ -571,7 +659,9 @@
         "app/dashboard.html",
         "app/detail.html",
         "app/list.html",
+        "app/status-tracker.html",
         "ops/audit-trail.html",
+        "ops/dense-list.html",
         "ops/queue.html"
       ],
       "usedBySections": [],
@@ -637,6 +727,7 @@
       "docSource": "brickwork_marketing/components/_faq.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "marketing/comparison.html",
         "marketing/pricing.html"
       ],
       "usedBySections": [],
@@ -667,6 +758,7 @@
       "usedByArchetypes": [
         "app/list.html",
         "ops/audit-trail.html",
+        "ops/dense-list.html",
         "ops/queue.html"
       ],
       "usedBySections": [],
@@ -694,6 +786,7 @@
       "consumption": "include",
       "usedByArchetypes": [
         "marketing/about.html",
+        "marketing/comparison.html",
         "marketing/landing.html",
         "marketing/pricing.html"
       ],
@@ -744,11 +837,13 @@
         "app/form.html",
         "app/list.html",
         "app/settings.html",
+        "app/status-tracker.html",
         "app/wizard.html",
         "docs/home.html",
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
+        "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
       ],
@@ -780,6 +875,7 @@
       "usedByArchetypes": [
         "app/list.html",
         "ops/audit-trail.html",
+        "ops/dense-list.html",
         "ops/queue.html"
       ],
       "usedBySections": [],
@@ -919,6 +1015,7 @@
       "usedByArchetypes": [
         "app/dashboard.html",
         "ops/audit-trail.html",
+        "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
       ],
@@ -960,6 +1057,8 @@
       "docSource": "brickwork/components/_stepper.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "app/onboarding.html",
+        "app/status-tracker.html",
         "app/wizard.html"
       ],
       "usedBySections": [],
@@ -1384,10 +1483,12 @@
         "app/form.html",
         "app/list.html",
         "app/settings.html",
+        "app/status-tracker.html",
         "app/wizard.html",
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
+        "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
       ],
@@ -1428,7 +1529,9 @@
       "docSource": "brickwork/shell/centred.html",
       "consumption": "include",
       "usedByArchetypes": [
-        "app/confirm.html"
+        "app/confirm.html",
+        "app/error-maintenance.html",
+        "app/onboarding.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1456,6 +1559,7 @@
       "consumption": "include",
       "usedByArchetypes": [
         "marketing/about.html",
+        "marketing/comparison.html",
         "marketing/landing.html",
         "marketing/pricing.html"
       ],

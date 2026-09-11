@@ -114,11 +114,15 @@ sanitise it.)
 | `app/settings.html` | Tabbed settings area |
 | `app/console.html` | Blank slate for a section with no data yet |
 | `app/confirm.html` | Destructive-action confirmation |
+| `app/error-maintenance.html` | Planned maintenance / site unavailable |
+| `app/onboarding.html` | Mid-step onboarding (company → team → billing) with skip and resume |
+| `app/status-tracker.html` | Site-visit status tracker with stepper, detail, and timeline |
 | `ops/queue.html` | Work queue: triage tabs, bulk actions over a selection |
 | `ops/audit-trail.html` | Chronological record: who did what, and whether it worked |
 | `ops/report.html` | Long-form printable performance report: summary, stats, tables, methodology |
 | `ops/comparison.html` | This-versus-that data comparison: two measured periods on quantitative metrics |
 | `ops/analysis-dashboard.html` | Weighted headline grid, trend chart, breakdowns, progress gauge |
+| `ops/dense-list.html` | Dense purchase-order / shipment index with bulk selection |
 | `docs/home.html` | Documentation home: search, start-here cards, popular pages |
 | `docs/article.html` | Documentation article: prose, code panels, callout, linkable headings |
 | `auth/signin.html` | Sign in |
@@ -126,6 +130,7 @@ sanitise it.)
 | `auth/reset.html` | Request a password reset |
 | `marketing/landing.html` | Product landing page |
 | `marketing/pricing.html` | Pricing with tiers and FAQ |
+| `marketing/comparison.html` | Plan comparison matrix with recommended column and FAQ |
 | `marketing/about.html` | About page |
 
 ## The content is fake, and that is the point

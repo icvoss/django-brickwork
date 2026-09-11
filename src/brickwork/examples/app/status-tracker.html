@@ -1,0 +1,137 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A site-visit status tracker: where NW-2481 is in its visit flow, what the
+current step needs, and what has already happened.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    steps              [{label, status}] where status is "complete" | "current" | "upcoming"
+    visit_facts        [{label, value}] for the current-step detail definition table
+    nav_items / nav_active  as in app/list.html
+The headings, badge label and timeline copy below are typed into the template,
+which is where you change them.
+
+HOW THE FLOW WORKS, matching app/wizard.html: brickwork ships the progress
+indicator and nothing else. There is no client-side visit state machine. Each
+visit lives at its own URL; your view computes each step's status by comparing
+its position against the visit's current stage. brickwork does not track it.
+
+On Failed: a visit that cannot continue is not an upcoming step tinted red.
+Surface it with {% templatetag openblock %} include
+"brickwork/components/_alert.html" {% templatetag closeblock %}
+variant="danger" whose title and message name the failure in words (for
+example "Visit NW-2481 failed" / "The site contact was not available and the
+window has closed."). Keep the stepper showing the last reached step as
+current or complete; do not invent a fourth stepper status. The commented
+alert below is the shape to drop in when your view sets that condition.
+
+States: see _stepper.html's own header for the progress indicator's states
+  (complete/current/upcoming per step, mode="progress" here); the status
+  badge's own variant; a Failed visit adds the danger alert documented
+  above.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; the stepper is a native <ol> so a screen reader
+  announces position without extra markup, and the current step carries
+  aria-current="step"; the status badge label carries the meaning in words,
+  never colour alone; the timeline is a native <ol> of events. Covered by
+  the archetype harness's full gate sweep (render, axe WCAG 2.2 AA, no
+  horizontal overflow, light/dark distinctness, skip-link first-tab-stop
+  with JS disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The stepper
+  itself stacks vertically below --bw-breakpoint-md regardless of the
+  orientation="horizontal" default (see _stepper.html's own header); this
+  example does not pass orientation, so it takes that default.
+{% endcomment %}
+{% load brickwork_components brickwork_nav %}
+
+{% block page_title %}Site visit NW-2481 - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Site visit NW-2481" description="Acme Corp warehouse, Trafford Park. Scheduled for Thursday 11 September 2026." %}
+{% endblock %}
+
+{% block page_actions %}
+  {% bw_button "Reschedule" variant="secondary" href="/visits/NW-2481/reschedule/" %}
+  {% bw_button "Open visit notes" variant="primary" href="/visits/NW-2481/notes/" %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %}
+  Status reaches the reader as a word on a badge, never as a colour alone.
+  Swap the label and variant in your view (or hard-code per copied page):
+  "Scheduled" (neutral), "On site" (info), "Completed" (success),
+  "Failed" (danger). When the visit has Failed, also render the danger alert
+  documented in the file header — do not rely on the badge tint alone.
+  {% endcomment %}
+  {% bw_badge "On site" variant="info" %}
+
+  {% comment %}
+  Failed visits: uncomment (or render from a view flag) when the visit cannot
+  continue. The message must name what failed; the badge above should then
+  read "Failed" with variant="danger".
+
+  {% templatetag openblock %} include "brickwork/components/_alert.html" with variant="danger" title="Visit NW-2481 failed" message="The site contact was not available and the inspection window has closed. Reschedule or cancel from the actions above." {% templatetag closeblock %}
+  {% endcomment %}
+
+  {% comment %}
+  The progress indicator. Same include as app/wizard.html: an ordered list,
+  each step's status carried by a glyph plus hidden text as well as colour.
+  Build steps in the view, for example:
+
+      steps  [
+        {"label": "Scheduled", "status": "complete"},
+        {"label": "Travelling", "status": "complete"},
+        {"label": "On site", "status": "current"},
+        {"label": "Report filed", "status": "upcoming"},
+      ]
+  {% endcomment %}
+  {% include "brickwork/components/_stepper.html" with steps=steps %}
+
+  {% comment %}
+  Current-step detail. The definition variant is the <dl>-shaped facts table
+  for ONE record: each row is {label, value}. Hand the facts for the step
+  the visit is on now, not the whole visit history — the timeline below
+  covers history.
+  {% endcomment %}
+  <h2 class="bw-page-header__title">On site now</h2>
+  <p>Priya Raman checked in at 09:42. Expected duration about 90 minutes; the warehouse manager is Jamie Cole.</p>
+  {% include "brickwork/components/_data_table.html" with table_id="visit-facts" variant="definition" rows=visit_facts %}
+
+  {% comment %}
+  Simple chronological timeline. No timeline component ships: a native
+  ordered list of events is enough, and it announces position without
+  extra markup. Newest or oldest first is your call; this example is
+  oldest first so it reads as a story.
+  {% endcomment %}
+  <h2 class="bw-page-header__title">Timeline</h2>
+  <ol>
+    <li>
+      <strong>08:15 BST</strong> —
+      Visit confirmed with Acme Corp. Window 09:30 to 11:30.
+    </li>
+    <li>
+      <strong>09:05 BST</strong> —
+      Priya Raman marked travelling from the Manchester office.
+    </li>
+    <li>
+      <strong>09:42 BST</strong> —
+      Checked in on site. Current step.
+    </li>
+  </ol>
+
+  <div class="bw-form__actions">
+    {% bw_button "Mark report filed" variant="primary" href="/visits/NW-2481/complete/" %}
+    {% bw_button "Cancel visit" variant="ghost" href="/visits/NW-2481/cancel/" %}
+  </div>
+
+</div>
+{% endblock %}

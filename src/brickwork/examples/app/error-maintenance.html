@@ -1,0 +1,52 @@
+{% extends "brickwork/shell/centred.html" %}
+{% comment %}
+A planned-maintenance / site-unavailable screen.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+This one extends the CENTRED shell, not the app shell: maintenance is a
+deliberate interruption of the whole product, so it drops the sidebar and
+topbar rather than letting the user navigate into pages that cannot answer.
+
+Name exactly what is down, until when, and where to look for live updates.
+"We'll be back soon" is not a status page, it is a shrug. The example below
+states the ETA in words a reader can act on, and offers a status page plus a
+support contact that still works while the app itself does not.
+
+No JS is involved: both actions are ordinary links. Keep a real URL behind
+any "check status" control so the page still works without JavaScript.
+
+States: none: a static page, no open/closed or hover-driven state beyond
+  the composed _alert.html and bw_button controls' own states.
+Accessibility: inherits shell/centred.html's skip link, lang/dir/theme
+  attributes and <main id="bw-main" tabindex="-1">; the warning alert
+  names the outage and the ETA in words (role="alert"), never colour
+  alone. Covered by the archetype harness's full gate sweep (render, axe
+  WCAG 2.2 AA, no horizontal overflow, light/dark distinctness, skip-link
+  first-tab-stop with JS disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/centred.html's
+  fluid, no-breakpoint centred panel.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}Planned maintenance - Northwind{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% include "brickwork/components/_alert.html" with variant="warning" title="Northwind is down for planned maintenance" message="The ledger migration finishes at about 15:00 BST on Friday 12 September 2026. Invoices, reminders and the customer portal are unavailable until then." %}
+
+  {% comment %}
+  Status is a link to a page that stays up while this app is down (often a
+  third-party status host). Support is a mailto or a helpdesk URL that does
+  not depend on the Northwind app process. Neither is a POST: there is
+  nothing to submit on a maintenance screen.
+  {% endcomment %}
+  <div class="bw-form__actions">
+    {% bw_button "View status page" variant="primary" href="https://status.northwind.example/" %}
+    {% bw_button "Contact support" variant="ghost" href="mailto:support@northwind.example" %}
+  </div>
+
+</div>
+{% endblock %}
