@@ -1,6 +1,6 @@
 # brickwork positioning
 
-**Status:** canonical positioning source. Updated by owner direction 2026-08-25.
+**Status:** canonical positioning source. Updated by owner direction 2026-09-11.
 **Scope:** every brickwork-facing copy surface (README.md, brickworkui.com,
 PyPI description, any future landing page or pitch) derives its claims from
 this document and must not diverge from it. Where a surface currently
@@ -39,23 +39,30 @@ builder, a CMS, or a general Tailwind utility layer (see Boundaries, section
 
 ## 3. The lead claim
 
-**Beautiful defaults, proved by the examples.**
+**Brickwork. Building blocks for beautiful apps and websites.**
 
-The founding statement (`docs/DESIGN.md:15-18`, owner-ratified): "brickwork
-is the building blocks a user needs to build beautiful interfaces; our
-defaults should be beautiful." Every component clears two hard gates: is it
-accessible, and is it beautiful by default.
+The owner restated this direction on 2026-09-11 after reviewing the production
+showcase (icvoss/django-brickwork#498, icvoss/brickworkui.com#64). Beautiful
+components and finished examples remain requirements. The previous assertion
+that every component had already cleared a beautiful-defaults gate was not
+established by the cited evidence.
 
-"Our defaults are beautiful" is an adjective, and a buyer discounts an
-adjective. It becomes a claim a buyer can verify rather than take on trust
-because the package ships 50 examples (22 archetype pages, 28 sections) built
-from nothing but the shipped substrate, with source readable in the repo. A
-buyer checks the claim in one click instead of trusting the copy.
+An independent rendered design review judges hierarchy, content, spacing, typography,
+navigation, relevant states and responsive composition. Source composition,
+accessibility checks and accurate inventory are separate evidence. None alone
+certifies visual quality or makes arbitrary consumer pages beautiful.
 
-**The composition proof.** 49 of the 50 examples are pure composition: zero
+The published 3.17.0 comparison used the same populated invoice list/form and
+landing inputs with package-only CSS at desktop and phone widths in both
+themes. It established specific filter alignment (#499) and footer grouping
+(#500) defects. Site-branded embedded renders have a different framing and
+are assessed separately. These bounded findings are not an assessment of all
+package defaults. The paired finished-application/public-site review remains
+work under icvoss/brickworkui.com#60 and #64.
+
+**The composition evidence.** 49 of the 50 examples are pure composition: zero
 bespoke CSS, built entirely from shipped tokens and components. One
-exception, stated openly because it strengthens rather than weakens the
-claim: `src/brickwork/examples/app/date-range-picker.html` adds a `<style>`
+exception: `src/brickwork/examples/app/date-range-picker.html` adds a `<style>`
 block. Every value in it is an existing `--bw-*` token (no new colour
 invented), it is scoped under `.bw-drp` so it cannot leak into a host page,
 it carries a comment stating this CSS must never be added to the shipped
@@ -85,25 +92,17 @@ consumer cannot extend one by accident. The examples state this rule in their
 own headers: "It is not on the template loader path, so you cannot extend it
 (ADR-056)" (`src/brickwork/examples/app/date-range-picker.html:5-6`).
 
-**The starter hands the proof to the consumer, not just the gallery
-(ADR-095).** Proving "our defaults are beautiful" in a gallery a buyer can
-click through is not the same as a new consumer reaching a running, designed
-site of their own: a substrate that proves the claim only where the vendor
-controls the render is proving it to the wrong audience. `manage.py
-startsite` closes that gap: it emits a minimal, running project, wired
-settings, a contrast-verified brand file, and three real pages with the views
-that feed them, built from the same examples the gallery already proves. The
-command is governed, versioned surface; what it emits is the consumer's
-outright from the moment it is written, exactly like a hand-copied example
-(ADR-056), with no update path back into it. This does not change the
-example, archetype, section, shell, or a11y-gate counts elsewhere in this
-document: the starter is an emitter over the existing catalogue, not a new
-catalogue item.
+**The starter supplies a running starting composition (ADR-095).**
+`manage.py startsite` emits wired settings, a contrast-verified brand file,
+and populated marketing, dashboard and documentation pages with their views.
+That establishes a working starting point for a consumer. It does not certify
+its visual quality or the consumer's final result. Review the actual emitted
+pages at the target viewports and with the intended content.
 
-This resolves what otherwise reads as two competing definitions of
-brickwork's value: ADR-054 says the defaults are beautiful; ADR-056 makes the
-proof (the examples) safe to give away without turning it into a maintained
-contract. One claim, two mechanisms.
+The command is a governed, versioned surface. Its output belongs to the
+consumer from the moment it is written, with no update path back into it
+(ADR-056, ADR-095). It adds no catalogue item. The visual-quality requirement
+and the copy-ownership boundary are separate obligations.
 
 **Never introduce a competitor's name as the shape of what brickwork is.**
 The owner explicitly raised and rejected "Tailwind for Django" as a lead this
@@ -220,7 +219,7 @@ sight, and are refreshed by hand at the next audit.
 | Tests | 1023 test functions | across 58 files containing at least one `def test_` (90 Python files exist under `tests/` in total; most are fixtures, conftest or helpers with no test functions of their own). **Dated** at 3.10.0 (counted via `git grep -hE '^def test_' -- tests \| wc -l` for the function count, `git grep -lE '^def test_' -- tests \| wc -l` for the file count); not gated, this count moves with every PR |
 | A11y gate | 176 axe-scanned documents | 130 hand-maintained (65 fixtures x light and dark) plus 46 catalogue-document (23 catalogue documents x light and dark), blocking CI. Catalogue-document fixture count **gated** against `catalogue-manifest.json`'s archetype plus skeleton counts; the 130 hand-maintained fixtures are **gated** against the real `a11y/generate_fixtures.py` run's own written output by `tests/test_a11y_fixture_coverage.py` (icvoss/django-brickwork#226), so this figure can never drift from what the axe gate actually loads. Hand-maintained fixture COVERAGE (does every shell/component/section have at least one fixture) is separately **gated** by the same file against `catalogue-manifest.json`. The 53 to 55 fixture-file step (icvoss/django-brickwork#272, plus icvoss/django-brickwork#275's `bw_ranked_list` fixture landing independently on `main`) added `theme-switch-compact-<theme>.html`, the layout="compact" no-JS floor, and the ranked-list fixture: the pre-existing no-JS coverage only ever rendered layout="inline". The 55 to 56 step (icvoss/django-brickwork#185) added `data-table-empty-cta-<theme>.html`, the `_data_table.html` empty-state action CTA. The 56 to 57 step (the chart card work) added `chart-card-<theme>.html`, covering the real `{% bw_chart_mount %}` tag's accessible-name pairing plus the card's loading, error and empty states. The 57 to 58 step (the sparkline work) added `sparkline-<theme>.html`, covering both tones, the highlight marker and the no-JS floor. The 58 to 59 step (the trend indicator work, VIZ-017) added `trend-indicator-<theme>.html`, covering the up/down/flat states of the standalone `_trend_indicator.html` partial extracted from `_stat.html`'s own trend block. The 60 to 61 step (the scorecard/stat-comparison work, VIZ-011/012/019/020) added `scorecard-<theme>.html`, covering the shared dashboard grid's span= modifiers arranging real `_stat.html` cards, plus `_stat_comparison.html`'s sm/md/lg sizes each paired with a different trend direction. The 61 to 62 step (ADR-091, icvoss/django-brickwork#439) added `docs-<theme>.html`, the new docs shell's own fixture: a populated two-column [article | rail] page with real long-form `.bw-prose` content and a real `{% bw_nav %}` rail, the shell that had no fixture at all until this step. The 62 to 63 step (icvoss/django-brickwork#448 item 1) added `docs-with-site-chrome-<theme>.html`, exercising `docs_site_header_region`/`docs_site_footer_region`, the site-wide chrome seam outside `<main>` no other docs fixture had rendered. The 63 to 65 step (the code-display work, icvoss/django-brickwork#259) added a `code-display-<theme>.html`/`code-display-js-<theme>.html` pair: a plain panel, a filename+language panel and a copyable panel with real multi-line source, plus the JS leg proving bwCodeCopy's own init() reveals the copy control the no-JS floor ships hidden. The archetype half then moved from 32 to 36 (16 to 18 catalogue archetypes) when the Data-heavy operations family shipped `queue.html` and `audit-trail.html`, then from 36 to 40 (18 to 20 catalogue archetypes) when the same family shipped `report.html` and `comparison.html`, then from 40 to 42 (20 to 21 catalogue archetypes) when it shipped `analysis-dashboard.html`, then from 42 to 46 (21 to 23 catalogue archetypes) when the Documentation family opened with `docs/home.html` and `docs/article.html` (icvoss/django-brickwork#408, icvoss/django-brickwork#409). The count then held at 46 when `examples/base.html` was reclassified from `archetype` to its own `skeleton` kind (icvoss/django-brickwork#464): it is a raw document skeleton a consumer copies, not a complete page, so the published archetype figure drops from 23 to 22, but the document is still scanned. `a11y/generate_archetype_fixtures.py` discovers over every whole-document kind in its own `_SCANNED_KINDS` rather than over `archetype` alone, precisely so correcting a count cannot silently withdraw a surface from the axe, no-JS and keyboard gates |
 | Logical properties | 273 in source CSS | 500 in compiled dist. **Dated** at 3.10.0. Reproducible: `grep -oE '\b[a-z-]*(inline\|block)[a-z-]*\s*:' frontend/src/components.css \| grep -v 'display\s*:\|inline-block' \| wc -l` gives 269 (declarations whose property name contains `inline` or `block`, excluding `display: inline-block`), plus `grep -oE '(^\|[^-a-z])inset\s*:' frontend/src/components.css \| wc -l` gives 4 (bare `inset:` shorthand declarations); 269 + 4 = 273. The prior 274 figure's methodology was never recorded (commit 8ee225d only logs the audit correction from 142 to 274, no rule); it is not reproducible from the recorded rule above, so the 1-count delta cannot be attributed honestly beyond "not the same method" |
-| Version | 3.17.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py`. **Gated** |
+| Version | 3.18.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py`. **Gated** |
 | Hard runtime dependency | Django only | |
 | Theme axes | 4 verified working | brand, theme, density, direction |
 | Contract manifests | 2 | token, template; generated from source, CI drift-gated. Token manifest carries `minContrast: 4.5` on `fg-on-accent` |
@@ -328,7 +327,7 @@ match it:
 | `README.md` | Was stale on package version and the a11y fixture/document count | RESOLVED 2026-08-26: version updated to 3.10.0 and the a11y line restated in the current two-gate, 138-document framing (106 hand-maintained plus 32 archetype), consistent with section 5's A11y gate row |
 | `pyproject.toml:8` | Was "Accessible by construction" (a design claim), read against `README.md:11-12`'s "a *tested* guarantee... not a claim" (a verification claim positioned explicitly against design claims) | RESOLVED: `pyproject.toml:8` now reads "WCAG 2.2 AA tested in CI", which is a verification claim and aligns with README.md's framing; no reconciliation remains outstanding |
 | `PILOT-ADOPTION-BRIEF.md` | Was pinned to 0.3.0 and the private index, and dropped "professional" from the definition | RESOLVED 2026-08-24: rewritten as a routing quickstart and renamed `docs/QUICKSTART.md` |
-| Four documents each currently state brickwork's singular value differently: `README.md:10-13` ("its value is the professional baseline"), `docs/BRANDING.md:3-4` ("brickwork's whole point is that you rebrand it by overriding tokens"), `docs/DESIGN.md:15-18` (the beautiful-defaults founding statement), `pyproject.toml:8` (the category definition) | Four different leads for one product | This document settles it: beautiful defaults, proved by the examples (section 3), is the lead. Token-first rebranding (4.3) and the professional/tested-accessibility framing (4.2) become supporting claims, not competing leads |
+| Four documents each currently state brickwork's singular value differently: `README.md:10-13` ("its value is the professional baseline"), `docs/BRANDING.md:3-4` ("brickwork's whole point is that you rebrand it by overriding tokens"), `docs/DESIGN.md:15-18` (the beautiful-defaults founding statement), `pyproject.toml:8` (the category definition) | Four different leads for one product | The 2026-09-11 owner direction in section 3 supersedes the earlier beautiful-defaults lead. Token-first rebranding (4.3) and the professional/tested-accessibility framing (4.2) become supporting claims, not competing leads |
 
 ---
 

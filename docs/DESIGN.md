@@ -14,8 +14,11 @@ tokens; this file defines what they are.
 
 The founding statement this vocabulary serves: **brickwork is the building
 blocks a user needs to build beautiful interfaces; our defaults should be
-beautiful.** Every component has two hard gates: is it accessible, and is it
-beautiful by default.
+beautiful.** This is a design requirement, not a claim that every component
+has received visual acceptance. Accessibility checks and independent rendered
+reviews establish different evidence; neither token membership nor composition
+alone proves beauty. The current owner direction and evidence boundary are in
+[POSITIONING.md](POSITIONING.md#3-the-lead-claim).
 
 Phase (a) kept the shipped flat naming (`--bw-color-*`, `--bw-size-*`,
 `--bw-density-*`, `--bw-font-*`) through 0.10.0; the tier re-grammar
@@ -28,7 +31,7 @@ renamed token keeps its old name as a courtesy alias (see section 11).
 ## 1. The three-layer model (summary)
 
 - **Substrate**: the token names and their meanings. Semver-public.
-- **base-theme**: the beautiful default values for every token, light and
+- **base-theme**: the default values for every token, light and
   authored dark. The root every brand inherits from. This file documents
   base-theme's values.
 - **brand themes**: a delta of ~7-14 load-bearing tokens; everything else

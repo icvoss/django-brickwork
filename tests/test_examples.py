@@ -725,6 +725,25 @@ def test_example_marketing_cta_hrefs_reach_the_rendered_button(name: str, hrefs:
         assert f'href="{href}"' in html, f"{name} lost its CTA href={href!r} (flat kwarg must be *_href, not *_url)"
 
 
+def test_landing_footer_uses_labelled_responsive_link_groups() -> None:
+    """The copied landing composition keeps its own footer hierarchy.
+
+    The marketing shell owns the landmark and empty slots only. This example
+    composes its link groups from existing marketing layout classes, so the
+    two groups stack at narrow widths and form two columns at the feature
+    grid's existing small-screen breakpoint.
+    """
+    template = _example_engine().get_template("marketing/landing.html")
+    html = template.render(Context(_EXAMPLE_CONTEXTS["marketing/landing.html"]))
+
+    assert 'class="bw-feature-grid bw-feature-grid--2"' in html
+    assert '<nav class="bw-feature-card" aria-labelledby="footer-product-heading">' in html
+    assert '<nav class="bw-feature-card" aria-labelledby="footer-company-heading">' in html
+    assert 'id="footer-product-heading">Product</h2>' in html
+    assert 'id="footer-company-heading">Company</h2>' in html
+    assert html.index("footer-product-heading") < html.index("footer-company-heading")
+
+
 # --- The base example carries every load-bearing line -----------------------
 
 # examples/base.html is a STANDALONE document a consumer copies, so it cannot

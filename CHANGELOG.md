@@ -8,6 +8,32 @@ versioning contract).
 
 ## Unreleased
 
+## [3.18.0] - 2026-09-11
+
+Existing filter-bar consumers receive the spacing correction when loading the
+new package CSS. Ordinary fields outside filter bars keep their existing
+spacing; help and error messages remain in the field flow. The new footer
+composition is a copyable landing-example change: pages already copied into a
+consumer project keep their own markup. No template arguments or slots change.
+This release does not certify beautiful defaults.
+
+### Changed
+
+- **Positioning now describes building blocks for beautiful apps and websites.**
+  README and adoption guidance distinguish composition and accessibility
+  evidence from rendered visual acceptance; starter output remains a populated
+  starting point owned by the consumer.
+
+### Fixed
+
+- **Plain labelled filter controls now align with their actions.** The
+  filter bar aligns its submit and clear controls to the visible field-control
+  edge while preserving its narrow wrapped layout and field error wiring.
+
+- **The landing example now composes its footer as responsive, labelled link
+  groups.** The marketing shell documentation now correctly describes the
+  footer and fine-print blocks as empty consumer-owned slots.
+
 ## [3.17.0] - 2026-09-09
 
 **This release makes the first-use path concrete and strengthens the package's
