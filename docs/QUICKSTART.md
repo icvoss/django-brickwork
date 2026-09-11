@@ -154,6 +154,10 @@ for the worked failure.
   how to use one.
 - **Token reference:** [docs/DESIGN.md](DESIGN.md) is the authoritative
   list of every `--bw-*` token, its default, and its derivation rule.
+- **A portable brand documentation pack:** [docs/brand-pack.md](brand-pack.md)
+  binds measured identity prose to a `--bw-*` override delta and a preview
+  path; copy the fictional
+  [northline skeleton](examples/brand-pack/northline/) to start.
 - **Re-skinning the whole site:** [docs/BRANDING.md](BRANDING.md) takes the
   seven tokens above further: dark mode, the four theme axes, and dynamic
   per-tenant or per-user theming.
