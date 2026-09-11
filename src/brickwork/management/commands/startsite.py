@@ -1,4 +1,4 @@
-"""``manage.py startsite``: emit a minimal, running, designed brickwork project.
+"""``manage.py startsite``: emit a minimal, running brickwork project.
 
 ADR-095 (icvoss/django-brickwork#470). A new consumer following
 docs/QUICKSTART.md reaches a structurally correct, visually empty page: the

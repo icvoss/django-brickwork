@@ -9,7 +9,7 @@ themselves.
 
 ## What brickwork is
 
-**Beautiful defaults, proved by the examples.** brickwork is a brand-agnostic
+**Building blocks for beautiful apps and websites.** brickwork is a brand-agnostic
 interface foundation for server-rendered Django. It owns reusable design across
 public sites, product applications, data-heavy operations, documentation,
 editorial publishing and transactional journeys, on Tailwind 4 (CSS-first),
@@ -62,7 +62,7 @@ if you want that.
 
 ## The fastest path: emit a starter project
 
-Once brickwork is installed, the fastest way to a running, designed site is
+Once brickwork is installed, the fastest way to a running starter site is
 `manage.py startsite`, not the manual wiring below:
 
 ```
@@ -77,7 +77,9 @@ That emits a small, complete project: settings wired for `brickwork` and
 plus a contrast-verified `--bw-color-fg-on-accent`, a validated nav config,
 and three real pages (a marketing landing page, an app dashboard, a docs
 home) each with the view that supplies its context. Open `http://127.0.0.1:8000/`
-and the page looks designed, not structurally correct and empty.
+to inspect the populated pages, then adapt their content and composition to
+your product. The emitted pages are starting examples, not visual acceptance
+of the site you build.
 
 **The emitted project is yours outright from the moment it is written.**
 There is no update command and nothing here reaches back into it later
@@ -131,7 +133,7 @@ for the worked failure.
 ## Where to go next
 
 - **Starting from nothing:** run `manage.py startsite`, above. It is the
-  fastest path to a running, designed project and is where a new consumer
+  fastest path to a running starter project and is where a new consumer
   should start.
 - **Building a new screen, or a project with no existing UI kit to
   displace:** go straight to [docs/INTEGRATION.md](INTEGRATION.md). It
@@ -146,8 +148,9 @@ for the worked failure.
   (multi-host projects, asset-pipeline coexistence, a second component
   framework in the content block).
 - **Copyable pages to start from:** the `src/brickwork/examples/` tree ships
-  51 examples (23 pages, 28 sections) built entirely from shipped tokens and
-  components. See [Example pages](../README.md#example-pages) in the README for
+  50 examples (22 pages, 28 sections), plus a separate document skeleton.
+  They compose shipped tokens and components; the date range picker also
+  supplies its own scoped token-based CSS. See [Example pages](../README.md#example-pages) in the README for
   how to use one.
 - **Token reference:** [docs/DESIGN.md](DESIGN.md) is the authoritative
   list of every `--bw-*` token, its default, and its derivation rule.

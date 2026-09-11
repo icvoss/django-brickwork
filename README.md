@@ -1,15 +1,16 @@
 # brickwork
 
-**Beautiful defaults, proved by the examples.** brickwork ships 50 examples
-(22 archetype pages, 28 sections; a 51st file, `base.html`, is a raw document
-skeleton a consumer copies rather than a page in its own right) built from
-nothing but its own shipped tokens and components. 50 of the 51 files add no
-CSS at all. The one that does is the date range picker, whose scoped
-`.bw-drp` block uses only existing `--bw-*`
-tokens, because brickwork ships no date picker component for it to compose
-(see [Example pages](#example-pages)). Every one is readable in the repo, so
-"the defaults are beautiful" is a claim you check by opening a file rather
-than one you take on trust.
+**Building blocks for beautiful apps and websites.** Brickwork supplies
+reusable tokens, components and shells, with 50 examples (22 archetype pages,
+28 sections; a 51st file, `base.html`, is a copied document skeleton).
+50 of the 51 files add no CSS. The date range picker uses existing `--bw-*`
+tokens in its own scoped CSS because the package has no maintained date picker
+component (see [Example pages](#example-pages)).
+
+Read and render the examples to assess what they offer. Their composition and
+accessibility checks establish specific implementation properties; visual
+quality also depends on content, hierarchy, spacing, typography and responsive
+composition. Consumers own those choices in their finished pages.
 
 A brand-agnostic interface foundation for server-rendered Django, on the
 ecosystem stack: Tailwind 4 (CSS-first), Alpine 3, HTMX 2, Django 6.0.
@@ -41,12 +42,12 @@ over a background image reports "incomplete" rather than a violation); the
 gate catching its own blind spot and adding a check for it is stronger
 evidence than a gate that has never missed.
 
-> Status: **stable**. This checkout is version 3.17.0 (`pip install
+> Status: **stable**. This checkout is version 3.18.0 (`pip install
 > django-brickwork` for the published package);
 > [CHANGELOG.md](CHANGELOG.md) records the current release. The five
 > semver-governed public-API contracts (token, template, navigation,
 > interaction, JavaScript) are live. The surface covers the
-> application shell and nav, the beautiful-by-default token system
+> application shell and nav, the token system
 > (elevation, state overlays, type
 > roles, motion, borders, with fine colours derived live from a small
 > load-bearing brand set via `color-mix()`), the interaction set (modal,
@@ -118,7 +119,7 @@ registers behaviour onto the host Alpine instance and never calls
 `Alpine.start()`.
 
 Starting a project from nothing? Skip ahead to `manage.py startsite` in the
-Quickstart section below: it emits a running, designed project rather than
+Quickstart section below: it emits a running starter project rather than
 walking you through wiring one by hand.
 
 ### Supported versions
@@ -151,8 +152,9 @@ python manage.py startsite myproject
 emits a minimal, running project: settings wired for brickwork (and the
 optional marketing kit), a contrast-verified brand file, a validated nav
 config, and three real pages, each with the view that feeds it. `cd
-myproject && python manage.py runserver` and the page looks designed, not
-structurally correct and empty. The emitted project is yours outright from
+myproject && python manage.py runserver` opens the populated starting pages.
+Adapt their content and brand, then review the composition in its real states
+and viewports. The emitted project is yours outright from
 the moment it is written, with no update path back into it (ADR-095); see
 [docs/QUICKSTART.md](docs/QUICKSTART.md#the-fastest-path-emit-a-starter-project).
 

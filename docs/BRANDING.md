@@ -3,7 +3,7 @@
 brickwork's whole point is that you rebrand it by overriding `--bw-*` tokens, not
 by reaching into its component classes. This guide covers how to bridge a real
 brand onto the token layer: colour, typography, and the four axes (theme,
-density, direction). Since 0.3.0, base-theme (the beautiful default values every
+density, direction). Since 0.3.0, base-theme (the default values every
 brand inherits from) derives its fine colour tokens live from a small
 load-bearing set, so a brand is a handful of authored values, not a full
 palette. [DESIGN.md](DESIGN.md) is the authoritative token reference (every

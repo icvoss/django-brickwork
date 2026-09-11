@@ -245,6 +245,30 @@ test.describe("no-JS floor", () => {
   }
 });
 
+// Filter-bar geometry (#499): source-level CSS presence cannot establish that
+// a browser aligns the visible controls. The populated list fixture supplies
+// ordinary unbound Django fields, and both themes share the same layout
+// contract. This deliberately compares the widgets and action button rather
+// than their wrappers: an empty error live region remains in the DOM after a
+// field and must not become the visual alignment target.
+for (const theme of THEMES) {
+  test(`filter actions align with visible controls at desktop width (${theme})`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(pathToFileURL(join(FIXTURES, `list-${theme}.html`)).href);
+
+    const control = page.locator(".bw-filter-bar__fields .bw-field .bw-input").first();
+    const action = page.locator('.bw-filter-bar__actions button[type="submit"]');
+    const [controlBox, actionBox] = await Promise.all([control.boundingBox(), action.boundingBox()]);
+
+    expect(controlBox, "the populated filter bar must render a visible field control").not.toBeNull();
+    expect(actionBox, "the populated filter bar must render its Filter action").not.toBeNull();
+    expect(
+      Math.abs(controlBox.y + controlBox.height - (actionBox.y + actionBox.height)),
+      "the Filter control must share the visible field-control bottom edge, not the empty error-region tail",
+    ).toBeLessThanOrEqual(0.5);
+  });
+}
+
 // Keyboard: the skip link is the first focusable element and targets main.
 for (const theme of THEMES) {
   test(`skip link is the first tab stop (${theme})`, async ({ page }) => {

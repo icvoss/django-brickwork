@@ -98,7 +98,7 @@ SETTINGS_PY = '''"""Settings for the project `manage.py startsite` emitted (ADR-
 This file is yours from the moment it was written. It is not governed by
 django-brickwork's versioning: edit it freely, the way you would any other
 Django settings module. It wires exactly what a brickwork-based project needs
-to run and look designed; everything past that (a real database, allowed
+to run with populated example pages; everything past that (a real database, allowed
 hosts, a secret key from the environment, deployment settings) is this
 project's own to add.
 """

@@ -206,11 +206,10 @@
   padding-block: var(--bw-space-8) var(--bw-space-4);
 }
 
-/* The multi-column link-group footer default shape (04-interfaces.md 4d): a
- * consumer's marketing_footer block content is arbitrary markup, but a plain
- * <a> link at this level is the documented default shape ("a multi-column
- * footer with link groups"), so it is styled the same way the header nav
- * links are, never left to the UA default blue (BR-BW-MKT-002).
+/* A consumer's marketing_footer block content is arbitrary markup. The shell
+ * supplies no default link groups or column arrangement, but any plain <a>
+ * a consumer authors in the slot is styled like a header-nav link rather than
+ * left to the UA default blue (BR-BW-MKT-002).
  * Two-tier target size (icvoss/django-brickwork#208, then #242) REVERSES
  * #208's own exemption: #208 explicitly declined to size these links,
  * reasoning that "brickwork does not own the group's layout, so a sizing

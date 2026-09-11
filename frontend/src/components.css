@@ -1532,6 +1532,22 @@ button.bw-account-menu__item {
   gap: var(--bw-space-2);
 }
 
+/* A field keeps a trailing stack margin for an ordinary vertical form. The
+ * filter bar already supplies its own flex gap between wrapped items, so that
+ * margin makes a plain action align to the field's empty-error tail rather
+ * than its visible control. Remove only the contextual trailing margin; the
+ * action's one field-gap end margin preserves its control-edge alignment with
+ * the zero-height error container that stays in the DOM for live-region and
+ * aria-describedby wiring. Help text and non-empty errors retain their own
+ * field flow and can extend the row as needed. */
+.bw-filter-bar__fields .bw-field {
+  margin-block-end: 0;
+}
+
+.bw-filter-bar__actions {
+  margin-block-end: var(--bw-space-1);
+}
+
 /* --- Search (#155) --------------------------------------------------------- */
 
 /* The form itself is the no-JS floor: its submit button and scope clear link

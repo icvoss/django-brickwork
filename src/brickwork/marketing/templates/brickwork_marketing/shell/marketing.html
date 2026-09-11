@@ -32,9 +32,11 @@ Named blocks (semver-public, BR-BW-TPL-001), all empty-graceful:
   marketing_actions    header-end CTA cluster (e.g. "Sign in" + "Get started");
                        see the auth-aware pattern below (#85).
   content              the page body; the one region a page fills.
-  marketing_footer     default: a multi-column footer with link groups and a
-                       fine-print row (footer_legal).
-  footer_legal
+  marketing_footer     empty consumer-owned footer-content slot. The shell
+                       supplies its footer landmark and inner container, but
+                       never link groups, columns, or site-map copy.
+  footer_legal          empty consumer-owned fine-print slot beneath the
+                       footer-content slot; its wrapper collapses when empty.
 
 Region blocks (3.15.0, icvoss/django-brickwork#263, the app shell's
 subnav_region/breadcrumbs_region/page_header_region/footer_region idiom at
