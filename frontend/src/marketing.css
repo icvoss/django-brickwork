@@ -160,7 +160,8 @@
  * .bw-marketing-header__nav / .bw-marketing-header__actions via
  * marketing_nav_region. Rules sit AFTER the base __nav/__actions display
  * declarations so sibling combinators win the cascade. Mobile-first; the
- * 64rem query restores the inline desktop bar and hides the toggle. No JS.
+ * --breakpoint-lg query (64rem) restores the inline desktop bar and hides
+ * the toggle. No JS.
  */
 
 .bw-mobile-nav-toggle {
@@ -195,6 +196,10 @@
 .bw-mobile-nav-toggle__trigger:focus-visible {
   outline: 2px solid var(--bw-color-accent);
   outline-offset: 2px;
+}
+
+.bw-mobile-nav-toggle__icon {
+  display: block;
 }
 
 .bw-mobile-nav-toggle__icon--close {
@@ -285,7 +290,7 @@
   background: var(--bw-color-surface-raised);
 }
 
-@media (min-width: 64rem) {
+@media (width >= --theme(--breakpoint-lg)) {
   .bw-marketing-header__brand {
     flex-wrap: nowrap;
   }

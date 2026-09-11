@@ -488,10 +488,11 @@ actions markup. Include the package toggle and keep your nav content:
 {% endblock %}
 ```
 
-`marketing.css` owns the collapse (hidden below 64rem until `[open]`, inline
-bar at 64rem and up). No Alpine. Wave ownership: the region seam shipped with
-Wave 2 shell work; the package-owned collapse behaviour closes the rest of
-#263 under Wave 3 public-navigation craft.
+`marketing.css` owns the collapse (hidden below `--bw-breakpoint-lg` / 64rem
+until `[open]`, inline bar at that breakpoint and up). No Alpine. Wave
+ownership: the region seam shipped with Wave 2 shell work; the package-owned
+collapse behaviour closes the rest of #263 under Wave 3 public-navigation
+craft.
 
 ## 6. The htmx version floor (brickwork#48)
 

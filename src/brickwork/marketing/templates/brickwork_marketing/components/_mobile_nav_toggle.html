@@ -30,8 +30,9 @@ States: closed (default) and open (native details[open]). CSS swaps the
 Accessibility: summary carries aria-label="Menu"; icons are decorative
   (decorative=True). Closed, the following nav/actions are display:none
   (removed from the a11y tree) until the disclosure opens. No Alpine.
-Responsive: marketing.css shows the toggle below 64rem and hides it at
-  64rem and up, restoring the inline nav/actions bar.
+Responsive: marketing.css shows the toggle below --bw-breakpoint-lg (64rem)
+  and hides it at that breakpoint and up, restoring the inline nav/actions
+  bar.
 {% endcomment %}
 {% translate "Menu" as menu_label %}
 <details class="bw-mobile-nav-toggle">

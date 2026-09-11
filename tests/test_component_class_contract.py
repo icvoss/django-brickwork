@@ -736,6 +736,9 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         avatar="/static/avatar-priya.jpg",
         logo="<img src='/static/logo-halden.svg' alt='Halden Group'>",
     ),
+    "_mobile_nav_toggle (marketing: native details trigger)": lambda: _include(
+        "brickwork_marketing/components/_mobile_nav_toggle.html",
+    ),
 }
 
 

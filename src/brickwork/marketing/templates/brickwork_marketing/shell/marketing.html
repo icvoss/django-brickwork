@@ -143,7 +143,8 @@ Accessibility: inherits the skip link and lang/dir/theme attributes from
   marketing-family archetype (landing, pricing, about), both themes, the
   full W0.1 width matrix.
 Responsive: with `_mobile_nav_toggle.html` included, marketing.css collapses
-  nav and actions below 64rem and restores the inline bar at 64rem and up.
+  nav and actions below --bw-breakpoint-lg (64rem) and restores the inline
+  bar at that breakpoint and up.
   Without the toggle, the header brand/nav/actions row remains
   display: flex; flex-wrap: wrap at every width (icvoss/django-brickwork#125).
   The content column and footer are both capped at
