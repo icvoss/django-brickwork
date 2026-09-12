@@ -8,10 +8,14 @@ path, so you cannot extend it (ADR-056).
 
 What your view must supply:
     headline_tiles     the weighted scorecard grid (see the shape note below)
-    revenue_mount      a {% templatetag openblock %} bw_chart_mount {% templatetag closeblock %} result, marked safe
     channel_rows       ranked rows: label / amount / value dicts
     region_rows        ranked rows: label / amount / value dicts
     nav_items / nav_active  as in app/list.html
+Optional when you wire a charting library:
+    revenue_mount      a {% templatetag openblock %} bw_chart_mount {% templatetag closeblock %} result, marked safe
+The default copy below uses the chart card's empty state so the page still
+reads as designed before an engine is connected. Swap empty= for mount=
+when you have one.
 Every heading, caption and judgement below is typed into the template, which is
 where you change them.
 
@@ -128,9 +132,9 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
   rather than sitting under a wall of counts, because a trend line answers "is
   this getting better" faster than any number does.
 
-  The mount is where your charting library draws. brickwork ships the chrome,
-  the states and the accessible name; it does not ship a charting library and
-  does not care which one you use. Build the mount in your view:
+  The default below uses empty=True so the card's designed empty state shows
+  before an engine is wired (icvoss/django-brickwork#509). When you have a
+  library, drop empty= and pass mount=revenue_mount instead:
 
       revenue_mount = render_to_string(...)   or capture the tag:
       {% templatetag openblock %} bw_chart_mount aria_label="Net revenue by month, Q3 2026" as revenue_mount {% templatetag closeblock %}
@@ -157,7 +161,7 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
   {% endcomment %}
   <section aria-labelledby="trend-heading">
     <h2 id="trend-heading" class="bw-visually-hidden">Net revenue by month</h2>
-    {% include "brickwork/components/_chart_card.html" with mount=revenue_mount title="Net revenue by month" %}
+    {% include "brickwork/components/_chart_card.html" with empty=True empty_heading="No chart yet" empty_body="Connect a charting library to plot net revenue by month, then pass its mount markup as mount=." empty_action_href="/docs/" empty_action_label="Read the chart contract" title="Net revenue by month" %}
   </section>
 
   {% comment %}

@@ -19,6 +19,8 @@ What your view must supply: nothing at all for the copy. Two sections take
 lists, which a Django template cannot build inline, so they come from context:
     features  [{icon, heading, body, url?}]
     logos     the logo cloud's items
+Optional for a media-led hero (scorecard S5):
+    hero_media  pre-rendered safe HTML (img or svg) for media_placement="beside"
 Everything else below is typed straight into the template.
 
 States: the auth-aware header actions branch on request.user.is_authenticated
@@ -48,15 +50,20 @@ Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
 {% block brand_wordmark %}Northwind{% endblock %}
 
 {% comment %}
-A marketing nav is a small fixed set of links, so it is plain anchors rather
-than the app's NavItem resolver. If you want active states and permission
-gating here, bw_nav_header renders the same NavItem tree in this row.
+Package-owned mobile disclosure (icvoss/django-brickwork#263 / #509): include
+the toggle as a sibling of the nav via marketing_nav_region. Do not fill the
+outer marketing_header and reproduce brand/nav/actions verbatim.
 {% endcomment %}
-{% block marketing_nav %}
-  <a href="/features/">Features</a>
-  <a href="/pricing/">Pricing</a>
-  <a href="/customers/">Customers</a>
-  <a href="/docs/">Docs</a>
+{% block marketing_nav_region %}
+  {% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}
+  <nav class="bw-marketing-header__nav" aria-label="Primary">
+    {% block marketing_nav %}
+      <a href="/features/">Features</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/customers/">Customers</a>
+      <a href="/docs/">Docs</a>
+    {% endblock %}
+  </nav>
 {% endblock %}
 
 {% comment %}
@@ -78,8 +85,10 @@ your branch, not a package feature. Note Django's logout is POST-only.
   The hero. CTAs take flat label/url pairs, so a plain template can drive them
   with no view involvement. (They also accept {label, url} dicts if the data
   already exists in your context; the dict wins when both are given.)
+  hero_media is optional pre-rendered safe HTML (img or svg) for the media
+  column; media_placement="beside" is the screenshot/diagram shape.
   {% endcomment %}
-  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Invoicing" heading="Invoicing that chases itself" lede="Northwind raises your invoices, sends the reminders, and tells you who is about to pay late. You do the work. It does the asking." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_href="/demo/" %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Invoicing" heading="Invoicing that chases itself" lede="Northwind raises your invoices, sends the reminders, and tells you who is about to pay late. You do the work. It does the asking." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_href="/demo/" media=hero_media media_placement="beside" %}
 
   {% comment %}
   Logo cloud. List-shaped, so logos comes from context.

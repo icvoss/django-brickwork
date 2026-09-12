@@ -37,11 +37,20 @@ Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
 
 {% block brand_wordmark %}Northwind{% endblock %}
 
-{% block marketing_nav %}
-  <a href="/features/">Features</a>
-  <a href="/pricing/" aria-current="page">Pricing</a>
-  <a href="/customers/">Customers</a>
-  <a href="/docs/">Docs</a>
+{% comment %}
+Package-owned mobile disclosure (icvoss/django-brickwork#263 / #509): include
+the toggle as a sibling of the nav via marketing_nav_region.
+{% endcomment %}
+{% block marketing_nav_region %}
+  {% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}
+  <nav class="bw-marketing-header__nav" aria-label="Primary">
+    {% block marketing_nav %}
+      <a href="/features/">Features</a>
+      <a href="/pricing/" aria-current="page">Pricing</a>
+      <a href="/customers/">Customers</a>
+      <a href="/docs/">Docs</a>
+    {% endblock %}
+  </nav>
 {% endblock %}
 
 {% block marketing_actions %}

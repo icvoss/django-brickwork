@@ -87,15 +87,21 @@ substrate fails until corrected and re-rendered.
 
 ## Fixture hygiene (score before substrate)
 
-Do not score these as package visual fails until corrected and re-rendered.
-Tracked as icvoss/django-brickwork#509.
+Tracked as icvoss/django-brickwork#509. **Corrected 2026-09-12** in the
+package examples and `_EXAMPLE_CONTEXTS`; private stills regenerated under
+`docs/audits/_stills/2026-09-12/`.
 
-1. S5/S6 omit `_mobile_nav_toggle.html` despite the closed #263 seam.
-2. App/ops examples use `nav_items: ()`, so sidebar chrome cannot be judged.
-3. S1 `filter_form: ()` paints an empty filter card.
-4. S5 hero has no `media` (kit-style landing comparisons need it; see also #270).
-5. S3 uses the two-field `_ExampleForm` Name/Email stand-in for an invoice page.
-6. S8 chart mount is an empty `data-bw-chart` div with no loading/empty chrome in the still.
+| Gap | Status after #509 |
+|---|---|
+| S5/S6 omit `_mobile_nav_toggle.html` | Fixed in landing/pricing examples |
+| App/ops empty `nav_items` | Fixed: shared `_APP_NAV_ITEMS` |
+| S1 empty `filter_form` | Fixed: Search + Status |
+| S5 hero has no `media` | Fixed: beside SVG via `hero_media` |
+| S3 Name/Email stand-in | Fixed: account / amount / due date / memo |
+| S8 blank chart mount | Fixed: chart card empty state |
+
+Re-score after this land is optional for fixture axes; substrate craft
+(#510 to #512) remains open.
 
 ## Kit comparison notes (clean-room)
 
