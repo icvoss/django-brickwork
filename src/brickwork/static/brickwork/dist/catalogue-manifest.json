@@ -102,7 +102,6 @@
       "docSource": "examples/app/detail.html",
       "requiresContext": true,
       "composesItems": [
-        "brickwork/components/_alert.html",
         "brickwork/components/_breadcrumbs.html",
         "brickwork/components/_button.html",
         "brickwork/components/_data_table.html",
@@ -484,7 +483,6 @@
       "consumption": "tag",
       "usedByArchetypes": [
         "app/confirm.html",
-        "app/detail.html",
         "app/error-maintenance.html",
         "docs/article.html"
       ],

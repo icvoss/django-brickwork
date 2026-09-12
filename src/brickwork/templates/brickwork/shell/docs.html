@@ -237,6 +237,16 @@ Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
   <main id="bw-main" class="bw-docs" tabindex="-1">
     <div class="bw-docs-layout">
       <article class="bw-docs-layout__main">
+        {% comment %}
+        Phone jump link (icvoss/django-brickwork#523): ADR-091 keeps
+        article-then-rail in source order, so the disclosure lands below a
+        long article. This package-owned link (shown only below the layout
+        breakpoint) makes the section menu discoverable above the fold
+        without reordering the DOM.
+        {% endcomment %}
+        <p class="bw-docs-nav-jump">
+          <a href="#bw-docs-nav">{% translate "Documentation menu" %}</a>
+        </p>
         {% block docs_header_region %}
         <div class="bw-docs-layout__header">
           {% block docs_header %}{% endblock %}
@@ -253,7 +263,7 @@ Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
       </article>
 
       {% block docs_nav_region %}
-      <details class="bw-docs-layout__nav">
+      <details class="bw-docs-layout__nav" id="bw-docs-nav">
         <summary class="bw-docs-layout__nav-summary">{% translate "Documentation" %}</summary>
         <nav class="bw-docs-layout__nav-body" aria-label="{% translate 'Documentation' %}">
           {% block docs_nav %}{% endblock %}

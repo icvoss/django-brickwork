@@ -269,3 +269,14 @@ def test_layout_context_renders_through_an_extending_page() -> None:  # SHL-001
     html = child.render(Context({"layout": "topbar"}))
     assert 'data-layout="topbar"' in html
     assert "<p id='probe'>x</p>" in html
+
+
+def test_app_shell_mobile_nav_trigger_defaults_to_a_visible_menu_icon() -> None:
+    # icvoss/django-brickwork#520: an empty mobile_nav_trigger left a 44x44
+    # invisible hit target on every app phone topbar.
+    html = _render("brickwork/shell/app.html")
+    trigger_start = html.index('class="bw-drawer__trigger"')
+    trigger_end = html.index("</summary>", trigger_start)
+    trigger = html[trigger_start:trigger_end]
+    assert 'class="bw-icon' in trigger
+    assert "bw-drawer__trigger" in html

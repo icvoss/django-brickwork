@@ -111,7 +111,7 @@ does not prove package defaults.
 | S5 | Marketing landing | `examples/marketing/landing.html` + marketing shell |
 | S6 | Marketing pricing | `examples/marketing/pricing.html` |
 | S7 | Docs article | `examples/docs/article.html` + docs shell |
-| S8 | Dense ops | `examples/ops/` report or dense list when shipped; else analysis-dashboard + data table |
+| S8 | Dense ops | `examples/ops/dense-list.html` + app shell |
 
 Fixtures must be credible for the job (populated filters, realistic fields,
 working assets). Thin or broken fixtures are site defects first; do not score

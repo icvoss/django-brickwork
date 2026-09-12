@@ -374,3 +374,37 @@ def test_table_rows_partial_with_url_row_links_the_first_cell() -> None:
     rows = [{"id": 1, "cells": ["Widget", "Active"], "url": "/gadgets/1/"}]
     out = _render_rows_partial(table_id="gadgets", columns=_COLUMNS, rows=rows)
     assert 'class="bw-data-table__row-link" href="/gadgets/1/"' in out
+
+
+def test_column_align_end_emits_end_modifier_on_header_and_cells() -> None:
+    # icvoss/django-brickwork#522: money/count columns opt into align="end".
+    columns = [
+        {"label": "Number", "sortable": False},
+        {"label": "Amount", "sortable": False, "align": "end"},
+    ]
+    rows = [{"id": 1, "cells": ["INV-1", "£10.00"]}]
+    out = _render(table_id="invoices", columns=columns, rows=rows)
+    assert "bw-data-table__th--end" in out
+    assert "bw-data-table__td--end" in out
+    assert out.count("bw-data-table__td--end") == 1
+
+
+def test_column_align_center_emits_center_modifier() -> None:
+    columns = [{"label": "Status", "sortable": False, "align": "center"}]
+    rows = [{"id": 1, "cells": ["Paid"]}]
+    out = _render(table_id="status", columns=columns, rows=rows)
+    assert "bw-data-table__th--center" in out
+    assert "bw-data-table__td--center" in out
+
+
+def test_column_align_omitted_or_unknown_emits_no_align_modifier() -> None:
+    columns = [
+        {"label": "Name", "sortable": False},
+        {"label": "Weird", "sortable": False, "align": "justify"},
+    ]
+    rows = [{"id": 1, "cells": ["Widget", "x"]}]
+    out = _render(table_id="gadgets", columns=columns, rows=rows)
+    assert "bw-data-table__th--end" not in out
+    assert "bw-data-table__th--center" not in out
+    assert "bw-data-table__td--end" not in out
+    assert "bw-data-table__td--center" not in out

@@ -13,7 +13,8 @@ gitignored with the rest of ``a11y/fixtures/``.
 
 This generator is deliberately separate from ``generate_archetype_fixtures.py``:
 the scorecard freezes eight jobs named in ``docs/VISUAL-BAR.md``, including
-S8 ops analysis even when the broader archetype sweep is stale or incomplete.
+S8 dense ops (``ops/dense-list.html``) even when the broader archetype sweep
+is stale or incomplete.
 Adding a ninth scorecard surface requires a VISUAL-BAR amendment, not a silent
 extra row here.
 
@@ -92,7 +93,7 @@ SURFACES: dict[str, dict[str, str]] = {
     },
     "s8": {
         "label": "Dense ops",
-        "example": "ops/analysis-dashboard.html",
+        "example": "ops/dense-list.html",
     },
 }
 
