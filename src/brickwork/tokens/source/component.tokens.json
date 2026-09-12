@@ -146,8 +146,8 @@
   },
   "section-gap-marketing": {
     "$type": "dimension",
-    "$value": "4rem",
-    "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens): the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA and so on), larger than the app's --bw-density-section-gap (2rem comfortable) since marketing pages read as fewer, more generous blocks rather than a dense workspace. Named distinctly from the density-scoped section-gap (not itself density-varying: marketing pages are not scoped by the density axis)."
+    "$value": "6rem",
+    "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens), raised from 4rem in the Phase 3 visual-bar craft wave (icvoss/django-brickwork#510): the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA and so on), larger than the app's --bw-density-section-gap (2rem comfortable) since marketing pages read as fewer, more generous blocks rather than a dense workspace. Named distinctly from the density-scoped section-gap (not itself density-varying: marketing pages are not scoped by the density axis)."
   },
   "logo": {
     "height": {
@@ -238,19 +238,15 @@
     }
   },
   "font": {
-    "$description": "Typography tokens (semver-public, brand-overridable). Theme-agnostic. A consuming app rebrands its typeface the same token-first way it rebrands colour, by overriding --bw-font-family-* rather than reaching into brickwork's own classes. The default stack is a neutral system-font stack so an unbranded install still looks intentional.",
+    "$description": "Typography tokens (semver-public, brand-overridable). Theme-agnostic. A consuming app rebrands its typeface the same token-first way it rebrands colour, by overriding --bw-font-family-* rather than reaching into brickwork's own classes. Body defaults to a neutral system sans; display defaults to a distinct system serif pairing (icvoss/django-brickwork#511) so marketing and page headings read as designed without a webfont, and brands still override either token.",
     "family": {
       "$type": "fontFamily",
       "sans": {
         "$value": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'"
       },
       "display": {
-        "$value": "{font.family.sans}",
-        "$extensions": {
-          "bw": {
-            "derived": "var(--bw-font-family-sans)"
-          }
-        }
+        "$value": "ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', Times, serif",
+        "$description": "Base-theme display pairing (icvoss/django-brickwork#511). Deliberately not an alias of sans: heading-display / heading-2xl / heading-xl consume this family so hierarchy is not size-only. Brands override --bw-font-family-display with their own face (see northline brand-pack example)."
       },
       "mono": {
         "$value": "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace"

@@ -161,8 +161,56 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     },
     "app/dashboard.html": {
         **_NAV_CONTEXT,
+        "nav_active": _APP_NAV_ITEMS[2],
         "activity_columns": _TABLE_COLUMNS,
         "activity_rows": _TABLE_ROWS,
+        # Weighted scorecard (icvoss/django-brickwork#512): revenue is the
+        # argument; supporting tiles take one column each.
+        "headline_tiles": [
+            {
+                "content": mark_safe(  # noqa: S308 (example-authored trusted markup)
+                    render_to_string(
+                        "brickwork/components/_stat_comparison.html",
+                        {
+                            "label": "Revenue",
+                            "current": "£48,290",
+                            "previous": "£43,120",
+                            "period_label": "prior 30 days",
+                            "trend": "up",
+                            "trend_label": "12% up on last month",
+                            "size": "lg",
+                        },
+                    )
+                ),
+                "span": 2,
+            },
+            {
+                "content": mark_safe(  # noqa: S308 (example-authored trusted markup)
+                    render_to_string(
+                        "brickwork/components/_stat.html",
+                        {
+                            "label": "Invoices raised",
+                            "value": "317",
+                            "trend": "up",
+                            "trend_label": "24 more than last month",
+                        },
+                    )
+                )
+            },
+            {
+                "content": mark_safe(  # noqa: S308 (example-authored trusted markup)
+                    render_to_string(
+                        "brickwork/components/_stat.html",
+                        {
+                            "label": "Overdue",
+                            "value": "£3,140",
+                            "trend": "down",
+                            "trend_label": "8% down on last month",
+                        },
+                    )
+                )
+            },
+        ],
     },
     "app/date-range-picker.html": {**_NAV_CONTEXT, **_DRP_CONTEXT},
     "app/form.html": {**_NAV_CONTEXT, "form": _InvoiceForm()},

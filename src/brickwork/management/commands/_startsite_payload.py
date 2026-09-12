@@ -271,7 +271,9 @@ replace these however this project needs.
 """
 
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.urls import resolve
+from django.utils.safestring import mark_safe
 
 from brickwork.services.navigation import resolve_active_item
 
@@ -326,6 +328,53 @@ def dashboard(request):
         {"id": "row-2", "cells": ["Client onboarding", "In progress", "Yesterday"]},
         {"id": "row-3", "cells": ["Budget review", "Complete", "3 days ago"]},
     ]
+    # Weighted scorecard: revenue is the argument; supporting tiles take one
+    # column each (visual bar S4 / icvoss/django-brickwork#512).
+    headline_tiles = [
+        {
+            "content": mark_safe(
+                render_to_string(
+                    "brickwork/components/_stat_comparison.html",
+                    {
+                        "label": "Revenue",
+                        "current": "£48,290",
+                        "previous": "£43,120",
+                        "period_label": "prior 30 days",
+                        "trend": "up",
+                        "trend_label": "12% up on last month",
+                        "size": "lg",
+                    },
+                )
+            ),
+            "span": 2,
+        },
+        {
+            "content": mark_safe(
+                render_to_string(
+                    "brickwork/components/_stat.html",
+                    {
+                        "label": "Invoices raised",
+                        "value": "317",
+                        "trend": "up",
+                        "trend_label": "24 more than last month",
+                    },
+                )
+            ),
+        },
+        {
+            "content": mark_safe(
+                render_to_string(
+                    "brickwork/components/_stat.html",
+                    {
+                        "label": "Overdue",
+                        "value": "£3,140",
+                        "trend": "down",
+                        "trend_label": "8% down on last month",
+                    },
+                )
+            ),
+        },
+    ]
     active = resolve_active_item(NAV, resolve(request.path))
     return render(
         request,
@@ -333,6 +382,7 @@ def dashboard(request):
         {
             "activity_columns": activity_columns,
             "activity_rows": activity_rows,
+            "headline_tiles": headline_tiles,
             "nav_items": NAV,
             "nav_active": active,
         },

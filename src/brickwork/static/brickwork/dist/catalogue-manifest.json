@@ -75,7 +75,7 @@
         "brickwork/components/_button.html",
         "brickwork/components/_data_table.html",
         "brickwork/components/_page_header.html",
-        "brickwork/components/_stat.html",
+        "brickwork/components/_scorecard.html",
         "brickwork/nav/_nav.html",
         "brickwork/shell/app.html"
       ]
@@ -959,6 +959,7 @@
       "docSource": "brickwork/components/_scorecard.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "app/dashboard.html",
         "ops/analysis-dashboard.html"
       ],
       "usedBySections": [],
@@ -1029,7 +1030,6 @@
       "docSource": "brickwork/components/_stat.html",
       "consumption": "include",
       "usedByArchetypes": [
-        "app/dashboard.html",
         "ops/audit-trail.html",
         "ops/dense-list.html",
         "ops/queue.html",
