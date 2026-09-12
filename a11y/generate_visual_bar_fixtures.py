@@ -88,8 +88,7 @@ def render_surface(example_name: str, theme: str) -> str:
     """Render one scorecard surface through the examples Engine."""
     if example_name not in _EXAMPLE_CONTEXTS:
         raise KeyError(
-            f"{example_name!r} has no tests.test_examples._EXAMPLE_CONTEXTS "
-            "entry; the scorecard cannot render it."
+            f"{example_name!r} has no tests.test_examples._EXAMPLE_CONTEXTS entry; the scorecard cannot render it."
         )
     context = dict(_EXAMPLE_CONTEXTS[example_name])
     context["bw_theme"] = theme
@@ -98,9 +97,7 @@ def render_surface(example_name: str, theme: str) -> str:
 
 
 def main() -> None:
-    missing = sorted(
-        entry["example"] for entry in SURFACES.values() if entry["example"] not in _EXAMPLE_CONTEXTS
-    )
+    missing = sorted(entry["example"] for entry in SURFACES.values() if entry["example"] not in _EXAMPLE_CONTEXTS)
     if missing:
         raise SystemExit(
             "VISUAL-BAR surfaces lack _EXAMPLE_CONTEXTS entries: "
