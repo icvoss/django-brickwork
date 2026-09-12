@@ -41,29 +41,29 @@ builder, a CMS, or a general Tailwind utility layer (see Boundaries, section
 
 **Brickwork. Building blocks for beautiful apps and websites.**
 
-The owner restated this direction on 2026-09-11 after reviewing the production
-showcase (icvoss/django-brickwork#498, icvoss/brickworkui.com#64). Beautiful
-components and finished examples remain requirements. The previous assertion
-that every component had already cleared a beautiful-defaults gate was not
-established by the cited evidence.
+Package defaults aim at finished interfaces that can stand next to leading
+Tailwind UI kits on the jobs in [VISUAL-BAR.md](VISUAL-BAR.md). That aim is
+evidenced by the independent rendered pass
+[audits/2026-09-12-visual-bar-signoff-pass.md](audits/2026-09-12-visual-bar-signoff-pass.md)
+(tip `e79f828`), not by composition examples, axe gates or inventory counts
+alone. Residual tracked misses (including footer grouping, #500) stay honest
+in that audit; they are not soft-passed.
 
-An independent rendered design review judges hierarchy, content, spacing, typography,
-navigation, relevant states and responsive composition. Source composition,
-accessibility checks and accurate inventory are separate evidence. None alone
-certifies visual quality or makes arbitrary consumer pages beautiful.
+An independent rendered design review judges hierarchy, content, spacing,
+typography, navigation, relevant states and responsive composition. Source
+composition, accessibility checks and accurate inventory are separate
+evidence. None of those alone certifies visual quality or makes arbitrary
+consumer pages beautiful.
 
 The competitive visual bar is stamped in [VISUAL-BAR.md](VISUAL-BAR.md): a frozen
 panel of leading Tailwind UI kits (look and idea only; clean-room on `--bw-*`),
-fixed surfaces, scorecard axes, and done criteria. Public copy still must not
-name those kits as brickwork's identity (section 9).
+fixed surfaces, scorecard axes, and done criteria. Public copy must not name
+those kits as brickwork's identity (section 9) and must never claim a house
+aesthetic (section 10).
 
-The published 3.17.0 comparison used the same populated invoice list/form and
-landing inputs with package-only CSS at desktop and phone widths in both
-themes. It established specific filter alignment (#499) and footer grouping
-(#500) defects. Site-branded embedded renders have a different framing and
-are assessed separately. These bounded findings are not an assessment of all
-package defaults. The paired finished-application/public-site review remains
-work under icvoss/brickworkui.com#60 and #64.
+Site-branded embedded renders have a different framing and are assessed
+separately. The paired finished-application/public-site review remains work
+under icvoss/brickworkui.com#60 and #64.
 
 **The composition evidence.** 54 of the 55 examples are pure composition: zero
 bespoke CSS, built entirely from shipped tokens and components. One

@@ -164,8 +164,11 @@ Store completed scorecards under `docs/audits/` with a dated filename, e.g.
 `docs/audits/2026-09-11-visual-bar-scorecard.md`. Link the latest pass from
 this section when one exists.
 
-**Latest completed pass:** none yet (section 6 not met; Phase 5 independent
-sign-off). Intermediate rendered notes:
+**Latest completed pass:**
+[audits/2026-09-12-visual-bar-signoff-pass.md](audits/2026-09-12-visual-bar-signoff-pass.md)
+(Phase 5 independent re-sign after remediation; tip `e79f828`). Prior notes:
+[audits/2026-09-12-visual-bar-signoff.md](audits/2026-09-12-visual-bar-signoff.md)
+(FAIL),
 [audits/2026-09-11-visual-bar-scorecard.md](audits/2026-09-11-visual-bar-scorecard.md)
 (Phase 1 package-only),
 [audits/2026-09-12-visual-bar-scorecard-phase3.md](audits/2026-09-12-visual-bar-scorecard-phase3.md)
@@ -202,10 +205,9 @@ This bar is met for a release train when:
 4. Public copy still does not claim a house aesthetic or name competitors as
    brickwork's identity (`POSITIONING.md` sections 3, 9, 10).
 
-**Prep note (Phase 4):** the package-default gallery and northline brand-leg
-harness exist (section 5). Filling **Latest completed pass** and declaring
-section 6 met remains Phase 5 independent sign-off; do not treat Phase 4
-stills alone as programme completion.
+**Section 6 status:** met for tip `e79f828` by the dated pass audit linked
+above. Re-run the independent rendered review when a MINOR changes default
+chrome on S1 to S8; Phase 4 stills alone are not a substitute for that review.
 
 Workspace rule (separate from this file): our Django projects that ship
 hand-built template UI standardise on brickwork so pins receive substrate
