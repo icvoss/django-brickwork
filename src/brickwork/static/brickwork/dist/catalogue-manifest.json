@@ -334,6 +334,7 @@
         "brickwork_marketing/components/_feature_grid.html",
         "brickwork_marketing/components/_hero.html",
         "brickwork_marketing/components/_logo_cloud.html",
+        "brickwork_marketing/components/_mobile_nav_toggle.html",
         "brickwork_marketing/components/_stat_band.html",
         "brickwork_marketing/components/_testimonial.html",
         "brickwork_marketing/shell/marketing.html"
@@ -351,6 +352,7 @@
         "brickwork_marketing/components/_cta.html",
         "brickwork_marketing/components/_faq.html",
         "brickwork_marketing/components/_hero.html",
+        "brickwork_marketing/components/_mobile_nav_toggle.html",
         "brickwork_marketing/components/_pricing_tier.html",
         "brickwork_marketing/shell/marketing.html"
       ]
@@ -818,7 +820,10 @@
       "templatePath": "brickwork_marketing/components/_mobile_nav_toggle.html",
       "docSource": "brickwork_marketing/components/_mobile_nav_toggle.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "marketing/landing.html",
+        "marketing/pricing.html"
+      ],
       "usedBySections": [],
       "usedBySkeleton": []
     },
