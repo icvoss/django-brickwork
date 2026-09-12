@@ -104,9 +104,7 @@ def _brand_from_env() -> str:
         return ""
     if raw not in KNOWN_BRANDS:
         known = ", ".join(sorted(KNOWN_BRANDS)) or "(none)"
-        raise SystemExit(
-            f"VISUAL_BAR_BRAND={raw!r} is not a known scorecard brand pack. Known: {known}."
-        )
+        raise SystemExit(f"VISUAL_BAR_BRAND={raw!r} is not a known scorecard brand pack. Known: {known}.")
     path = KNOWN_BRANDS[raw]
     if not path.is_file():
         raise SystemExit(f"Brand pack tokens missing for {raw!r}: expected {path}")
@@ -134,7 +132,7 @@ def _inline_css(html: str, brand: str) -> str:
     if match is None:
         raise SystemExit("Could not find inlined <style> after brickwork.css substitution.")
     insert_at = match.end()
-    return html[:insert_at] + f"\n<style data-bw-brand-pack=\"{brand}\">{brand_css}</style>" + html[insert_at:]
+    return html[:insert_at] + f'\n<style data-bw-brand-pack="{brand}">{brand_css}</style>' + html[insert_at:]
 
 
 def render_surface(example_name: str, theme: str, brand: str) -> str:
