@@ -347,8 +347,7 @@ def list_scenarios(family: str) -> list[str]:
         scenarios = _FAMILIES[family]
     except KeyError:
         raise SpecimenNotFoundError(
-            f"{family!r} is not a shipped brickwork specimen family. "
-            f"Try brickwork.specimens.list_families()."
+            f"{family!r} is not a shipped brickwork specimen family. Try brickwork.specimens.list_families()."
         ) from None
     return sorted(scenarios)
 
@@ -372,8 +371,7 @@ def _entry(family: str, name: str) -> _ScenarioEntry:
         family_map = _FAMILIES[family]
     except KeyError:
         raise SpecimenNotFoundError(
-            f"{family!r} is not a shipped brickwork specimen family. "
-            f"Try brickwork.specimens.list_families()."
+            f"{family!r} is not a shipped brickwork specimen family. Try brickwork.specimens.list_families()."
         ) from None
     try:
         return family_map[name]

@@ -80,6 +80,4 @@ def test_specimens_are_not_on_the_template_loader_path() -> None:
         engine.get_template("brickwork/specimens/listing.html")
     # Context dicts remain renderable via ordinary component includes.
     ctx = Context(specimens.get_context(specimens.FAMILY_LISTING, "empty_state.no_data"))
-    assert "No invoices yet" in get_template(
-        "brickwork/components/_empty_state.html"
-    ).render(ctx.flatten())
+    assert "No invoices yet" in get_template("brickwork/components/_empty_state.html").render(ctx.flatten())
