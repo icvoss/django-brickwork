@@ -17,10 +17,16 @@ htmlcov/
 *.sqlite3
 
 # Virtualenvs
+# Suffixed forms (.venv312, venv-3.12, .venv-test) are matched too: a
+# version-suffixed venv is the usual shape when testing several Python or
+# Django versions side by side, and an unmatched one is thousands of files
+# one `git add -A` away from a pushed branch. See icvoss/icv-oss-umbrella#675
+# and icvoss/icv-cms#118.
 .venv/
+.venv*/
 venv/
+venv*/
 env/
-
 # Node / frontend
 node_modules/
 npm-debug.log*
