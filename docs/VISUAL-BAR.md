@@ -164,9 +164,14 @@ Store completed scorecards under `docs/audits/` with a dated filename, e.g.
 `docs/audits/2026-09-11-visual-bar-scorecard.md`. Link the latest pass from
 this section when one exists.
 
-**Latest completed pass:** none yet (section 6 not met). Phase 1 provisional
-(structure-only, render-blocked):
+**Latest completed pass:** none yet (section 6 not met). Phase 1 rendered
+(package-only CSS; brand pack deferred):
 [audits/2026-09-11-visual-bar-scorecard.md](audits/2026-09-11-visual-bar-scorecard.md).
+
+**Render harness (Phase 1.1):** package-only fixtures and private stills via
+`npm run visual-bar:fixtures` then `npm run visual-bar:capture`. Stills land
+under [audits/_stills/](audits/_stills/) (gitignored PNGs; README only
+committed). Not a CI gate.
 
 ---
 
