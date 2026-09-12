@@ -652,7 +652,7 @@ max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
 | `--bw-component-icon-stroke-width` | `2` | shipped, previously undocumented; the stroke width for the icon set; was `--bw-icon-stroke-width` through 0.10.0, kept as a courtesy alias |
 | `--bw-component-content-max-width` | `72rem` | 0.4.0: was `none`; a default measure cap so bands stop degrading into full-bleed wires on wide monitors (invisible at 1280px); a consumer overrides it, including back to `none`. Token itself was `--bw-content-max-width` through 0.10.0, kept as a courtesy alias |
 | `--bw-component-content-max-width-marketing` **[NEW 1.2.0]** | `80rem` | ADR-055 marketing tokens: a wider content cap than the app shell's content-max-width (72rem), since a marketing canvas wants a wider column than a console. Used by `shell/marketing.html`'s content wrapper. Was `--bw-content-max-width-marketing` at the raw name before the `bw-component-*` rename applied at build time; the raw name is not kept as an alias (introduced post-0.10.0, so no prior consumer depends on it) |
-| `--bw-component-section-gap-marketing` **[NEW 1.2.0]** | `4rem` | ADR-055 marketing tokens: the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA), larger than the app's `--bw-density-section-gap` (2rem comfortable) since marketing pages read as fewer, more generous blocks. Density-agnostic (not itself part of the density axis) |
+| `--bw-component-section-gap-marketing` **[NEW 1.2.0]** | `6rem` | ADR-055 marketing tokens: the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA), larger than the app's `--bw-density-section-gap` (2rem comfortable) since marketing pages read as fewer, more generous blocks. Raised from 4rem in the Phase 3 visual-bar craft wave (icvoss/django-brickwork#510). Density-agnostic (not itself part of the density axis) |
 | `--bw-component-logo-height` **[NEW, unreleased]** | `2rem` | brickwork#83 (ADR-054 beautiful-by-default): the default cap the marketing shell applies to an `img`/`svg` dropped into `brand_logo` or `brand_wordmark` (block-size capped, width follows the intrinsic ratio), so an unconstrained mark/lockup renders at a sensible header size out of the box instead of a full-height banner. 2rem is the 32px end of the conventional 28-32px header-logo range. Applied through the brickwork-owned `.bw-marketing-header__brand-mark` / `__brand-wordmark` wrappers at zero specificity (`:where`), so a one-class consumer rule overrides it; or override the token itself to resize. Raw `--bw-logo-height` ships as a build alias of the canonical name |
 | `--bw-component-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar; was `--bw-topbar-position` through 0.10.0, kept as a courtesy alias |
 
@@ -912,13 +912,17 @@ reduced motion never leaves a blank track with no indication of progress
 --bw-font-family-sans:    system-ui, -apple-system, "Segoe UI", Roboto,
                           "Helvetica Neue", Arial, "Noto Sans", sans-serif,
                           "Apple Color Emoji", "Segoe UI Emoji";
---bw-font-family-display: var(--bw-font-family-sans);
+--bw-font-family-display: ui-serif, "Iowan Old Style", "Palatino Linotype",
+                          Palatino, Georgia, "Times New Roman", Times, serif;
 --bw-font-family-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo,
                           Consolas, "Liberation Mono", "Courier New", monospace;
 ```
 
-(Additive completions of the shipped stacks: Noto Sans + emoji fallbacks,
-Courier New.)
+Display is a deliberate system serif pairing (icvoss/django-brickwork#511),
+not an alias of sans: `heading-display`, `heading-2xl` and `heading-xl`
+consume it so hierarchy is not size-only out of the box. Brands override
+`--bw-font-family-display` (and/or sans) with their own faces; see the
+northline brand-pack example.
 
 ### 7.2 Size scale (`--bw-font-size-*`; every shipped value preserved)
 

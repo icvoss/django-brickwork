@@ -19,6 +19,10 @@ is beauty certified.
 This file supersedes the same-day structure-only provisional (render-blocked)
 judgement. Provisional hypotheses that stills overturned are noted below.
 
+**Superseded for Phase 3 craft axes** by
+[2026-09-12-visual-bar-scorecard-phase3.md](2026-09-12-visual-bar-scorecard-phase3.md)
+(#510 / #511 / #512 re-score). Keep this file as the Phase 1 rendered baseline.
+
 ## Kit panel for this pass
 
 Priority 1: Tailwind Plus, Preline UI.

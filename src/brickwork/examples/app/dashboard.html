@@ -1,29 +1,34 @@
 {% extends "brickwork/shell/app.html" %}
 {% comment %}
-A dashboard: a row of KPI tiles, a content region, and recent activity.
+A dashboard: a weighted headline scorecard and recent activity.
 
 COPY THIS FILE into your project and edit it. It is not on the template loader
 path, so you cannot extend it (ADR-056).
 
 What your view must supply:
+    headline_tiles                weighted scorecard items (see below)
     activity_rows / activity_columns  the recent-activity table data
     nav_items / nav_active            as in list.html
-The stat tiles below carry real values typed into the template so you can see
-the page; replace them with your own context variables.
 
-States: the stat row's own trend states (up/down/flat, see _stat.html's
-  own header); the activity table's loading/empty/row-link states (see
-  _data_table.html's own header).
+WHY THE SCORECARD IS WEIGHTED (icvoss/django-brickwork#512): a dashboard is an
+argument, not a row of equal tiles. Equal tiles say every number matters the
+same, which is never true. The scorecard's span= carries the ranking: the
+metric this page exists to report gets span=2, supporting metrics take one
+column. The ops analysis-dashboard example teaches the same shape in denser
+form; this page is the simpler app Overview.
+
+_scorecard.html takes items as a list of {content, span} dicts whose content
+is already-rendered safe markup, so the grid comes from the view (ADR-090).
+
+States: the scorecard tiles' own trend states (see _stat.html /
+  _stat_comparison.html); the activity table's loading/empty/row-link states.
 Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
   page-header region; every trend reading pairs a decorative glyph with
   visually-hidden direction text, never colour alone. Covered by the
-  archetype harness's full gate sweep (render, axe WCAG 2.2 AA, no
-  horizontal overflow, light/dark distinctness, skip-link first-tab-stop
-  with JS disabled) at every W0.1 breakpoint, both themes.
-Responsive: no breakpoint switch of its own; inherits shell/app.html's
-  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The stat row
-  (bw-stat-grid) reflows continuously with an auto-fit grid, no named
-  breakpoint of its own.
+  archetype harness's full gate sweep at every W0.1 breakpoint, both themes.
+Responsive: inherits shell/app.html's sidebar-to-drawer collapse at
+  --bw-breakpoint-md (48rem). The scorecard grid reflows via its own
+  column tokens.
 {% endcomment %}
 {% load brickwork_components brickwork_nav %}
 
@@ -44,29 +49,10 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
 {% block content %}
 <div class="bw-section-stack">
 
-  {% comment %}
-  The stat row. bw-stat-grid is a responsive grid that reflows on narrow
-  viewports, so you add tiles rather than manage columns.
-
-  On trends: whenever you pass trend, the tile ALWAYS renders a direction glyph
-  plus visually hidden text ("increased" / "decreased" / "unchanged"), so the
-  direction never rides on colour alone. trend_label refines that text and
-  shows beside the glyph. Format the value yourself; the tile uses tabular
-  numerals so a column of them never jitters as digits change.
-  {% endcomment %}
-  <div class="bw-stat-grid">
-    {% include "brickwork/components/_stat.html" with label="Revenue" value="£48,290" trend="up" trend_label="12% up on last month" icon="arrow-up" %}
-    {% include "brickwork/components/_stat.html" with label="Invoices raised" value="317" trend="up" trend_label="24 more than last month" %}
-    {% include "brickwork/components/_stat.html" with label="Overdue" value="£3,140" trend="down" trend_label="8% down on last month" %}
-    {% include "brickwork/components/_stat.html" with label="Average days to pay" value="21.4" trend="flat" trend_label="unchanged" %}
-  </div>
-
-  {% comment %}
-  Your content region: charts, cards, whatever this dashboard is for.
-  Supply a charting library or a second component framework when needed. Keep
-  it inside Brickwork's layout, token, state and interaction conventions; the
-  shell's asset loading will not fight it.
-  {% endcomment %}
+  <section aria-labelledby="overview-headline-heading">
+    <h2 id="overview-headline-heading" class="bw-band-heading">Headline figures</h2>
+    {% include "brickwork/components/_scorecard.html" with items=headline_tiles %}
+  </section>
 
   {% comment %}
   Recent activity. Rows with a url become clickable rows, keyboard-reachable
