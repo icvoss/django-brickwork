@@ -1804,10 +1804,9 @@ button.bw-account-menu__item {
    (AC-BW-072). An unfilled region emits no markup at the template, so a bare
    card is just this elevated surface (AC-BW-070). */
 .bw-card {
-  --bw-card-radius: var(--bw-radius-lg);
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-card-radius);
+  border-radius: var(--bw-radius-lg);
   /* A grid item's default min-inline-size is auto (its content's intrinsic
    * width), not 0: without this, a card holding a wide child (a data table
    * scroll wrap) refuses to shrink below that content width and blows out
@@ -1831,15 +1830,17 @@ button.bw-account-menu__item {
   box-shadow: var(--bw-elevation-0);
 }
 /* Appearance suite (docs/APPEARANCE.md, #535): CSS-only surface / elevation /
-   radius. "default" / elevation "1" / radius "lg"|"default" emit no modifier. */
+   radius. "default" / elevation "1" / radius "lg"|"default" emit no modifier.
+   Bleed header/media/footer corners use border-*-radius: inherit so they
+   follow these modifiers without a local --bw-* custom property. */
 .bw-card--radius-sm {
-  --bw-card-radius: var(--bw-radius-sm);
+  border-radius: var(--bw-radius-sm);
 }
 .bw-card--radius-xl {
-  --bw-card-radius: var(--bw-radius-xl);
+  border-radius: var(--bw-radius-xl);
 }
 .bw-card--radius-none {
-  --bw-card-radius: var(--bw-radius-none);
+  border-radius: var(--bw-radius-none);
 }
 .bw-card--surface-raised {
   background: var(--bw-color-surface-raised);
@@ -1947,8 +1948,8 @@ a.bw-card {
   margin-block-end: var(--bw-space-3);
   padding: var(--bw-density-card-padding);
   background: var(--bw-color-surface-sunken);
-  border-start-start-radius: var(--bw-card-radius);
-  border-start-end-radius: var(--bw-card-radius);
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
 }
 .bw-card__header--inverse,
 .bw-card--header-inverse .bw-card__header {
@@ -1957,8 +1958,8 @@ a.bw-card {
   padding: var(--bw-density-card-padding);
   background: var(--bw-color-surface-inverse);
   color: var(--bw-color-fg-on-inverse);
-  border-start-start-radius: var(--bw-card-radius);
-  border-start-end-radius: var(--bw-card-radius);
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
 }
 .bw-card__header--accent,
 .bw-card--header-accent .bw-card__header {
@@ -1967,8 +1968,8 @@ a.bw-card {
   padding: var(--bw-density-card-padding);
   background: var(--bw-color-accent-subtle);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-accent);
-  border-start-start-radius: var(--bw-card-radius);
-  border-start-end-radius: var(--bw-card-radius);
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
 }
 /* Card titles speak in the heading-md role (DESIGN.md 7.4 component map). */
 .bw-card__title {
@@ -2019,8 +2020,8 @@ a.bw-card {
 .bw-card--media-bleed .bw-card__media {
   margin: calc(-1 * var(--bw-density-card-padding));
   margin-block-end: 0;
-  border-start-start-radius: var(--bw-card-radius);
-  border-start-end-radius: var(--bw-card-radius);
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
 }
 .bw-card__media--inset,
 .bw-card--media-inset .bw-card__media {
@@ -2059,8 +2060,8 @@ a.bw-card {
   padding: var(--bw-space-3) var(--bw-density-card-padding);
   background: var(--bw-color-surface-sunken);
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-end-start-radius: var(--bw-card-radius);
-  border-end-end-radius: var(--bw-card-radius);
+  border-end-start-radius: inherit;
+  border-end-end-radius: inherit;
 }
 .bw-card__footer--actions,
 .bw-card--footer-actions .bw-card__footer {

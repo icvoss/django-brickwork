@@ -61,9 +61,7 @@ def test_validate_options_rejects_unknown_axis() -> None:
 
 def test_bw_options_tag_raises_on_unknown_surface() -> None:
     with pytest.raises(TemplateSyntaxError, match="surface"):
-        Template("{% load brickwork_components %}{% bw_options surface=surface %}").render(
-            Context({"surface": "neon"})
-        )
+        Template("{% load brickwork_components %}{% bw_options surface=surface %}").render(Context({"surface": "neon"}))
 
 
 def test_bw_options_tag_is_quiet_when_valid() -> None:

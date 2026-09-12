@@ -1364,12 +1364,7 @@ _CARD_MEDIA_SRC = (
 
 
 def _card_section(heading_id: str, heading: str, html: str) -> str:
-    return (
-        f'<section aria-labelledby="{heading_id}">'
-        f'<h2 id="{heading_id}">{heading}</h2>'
-        f"{html}"
-        f"</section>"
-    )
+    return f'<section aria-labelledby="{heading_id}"><h2 id="{heading_id}">{heading}</h2>{html}</section>'
 
 
 def render_card(theme: str) -> str:
@@ -1518,9 +1513,7 @@ def render_card(theme: str) -> str:
                 "{% bw_button 'Cancel' variant='ghost' size='sm' %}"
                 "{% bw_button 'Publish' size='sm' %}"
                 "</div>{% endblock %}"
-            ).render(
-                Context({"title": "Publish changes", "header_recipe": "bordered", "footer_recipe": "actions"})
-            ),
+            ).render(Context({"title": "Publish changes", "header_recipe": "bordered", "footer_recipe": "actions"})),
         )
     )
     sections.append(
