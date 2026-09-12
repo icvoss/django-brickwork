@@ -46,16 +46,26 @@ _COMPILED_CSS = (
 # supply. The examples deliberately carry their copy inline (that is the whole
 # point of ADR-056), so this is only the list-shaped data a Django template
 # cannot build for itself.
-_NAV_CONTEXT: dict[str, object] = {"nav_items": (), "nav_active": None}
+#
+# App/ops nav is populated (icvoss/django-brickwork#509): an empty sidebar is
+# structurally present and visually absent, which blocks VISUAL-BAR scoring of
+# navigation chrome and makes archetype stills look unfinished. href= rather
+# than url_name= deliberately: the CMS/flat-path seam (NAV-019), so this tree
+# needs no URLconf entry and stays valid however the test project's routes
+# change.
+_APP_NAV_ITEMS = (
+    NavItem(key="app-invoices", label="Invoices", href="/invoices/", icon="file"),
+    NavItem(key="app-accounts", label="Accounts", href="/accounts/", icon="users"),
+    NavItem(key="app-overview", label="Overview", href="/", icon="home"),
+    NavItem(key="app-settings", label="Settings", href="/settings/", icon="settings"),
+)
+_NAV_CONTEXT: dict[str, object] = {
+    "nav_items": _APP_NAV_ITEMS,
+    "nav_active": _APP_NAV_ITEMS[0],
+}
 
-# The docs archetypes' rail, populated rather than empty. Every other example
-# renders an empty nav (_NAV_CONTEXT above), which is harmless where nav is
-# shell chrome the example does not own. It is not harmless here: the rail IS
-# the docs shell's defining feature, and an empty one renders a zero-height
-# column, so the archetype fixtures would axe-scan and screenshot a rail that
-# is structurally present and visually absent. href= rather than url_name=
-# deliberately: it is the CMS/flat-path seam (NAV-019), so this tree needs no
-# URLconf entry and stays valid however the test project's routes change.
+# The docs archetypes' rail, populated rather than empty for the same reason
+# as _APP_NAV_ITEMS above: the rail IS the docs shell's defining feature.
 _DOCS_NAV_ITEMS = (
     NavItem(key="docs-start", label="Getting started", href="/docs/getting-started/"),
     NavItem(key="docs-guides", label="Guides", href="/docs/guides/"),
@@ -68,16 +78,42 @@ _DOCS_NAV_CONTEXT: dict[str, object] = {
 
 
 class _ExampleForm(forms.Form):
-    """Stands in for the consumer's own form.
+    """Stands in for the consumer's own form on auth/settings-shaped pages.
 
-    The examples deliberately name no field (brickwork ships no auth or model
-    form, so a hard-coded field name would break whichever backend does not
-    use it). Any form renders through {% bw_form %}, so a plain two-field form
-    is a faithful stand-in for all of them.
+    Brickwork ships no auth or model form, so a hard-coded domain field name
+    would break whichever backend does not use it. Any form renders through
+    {% bw_form %}, so a plain two-field form is a faithful stand-in there.
+    The invoice create example uses _InvoiceForm instead (scorecard S3).
     """
 
     name = forms.CharField(label="Name")
     email = forms.EmailField(label="Email address")
+
+
+class _InvoiceFilterForm(forms.Form):
+    """List-page filter fields for the invoice scorecard example (S1)."""
+
+    q = forms.CharField(required=False, label="Search")
+    status = forms.ChoiceField(
+        required=False,
+        label="Status",
+        choices=[
+            ("", "All statuses"),
+            ("draft", "Draft"),
+            ("sent", "Sent"),
+            ("paid", "Paid"),
+            ("overdue", "Overdue"),
+        ],
+    )
+
+
+class _InvoiceForm(forms.Form):
+    """Invoice create/edit stand-in for examples/app/form.html (scorecard S3)."""
+
+    account = forms.CharField(label="Account")
+    amount = forms.DecimalField(label="Amount", max_digits=10, decimal_places=2)
+    due_date = forms.DateField(label="Due date", required=False)
+    memo = forms.CharField(label="Memo", required=False, widget=forms.Textarea(attrs={"rows": 3}))
 
 
 _TABLE_COLUMNS = [
@@ -104,7 +140,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     "base.html": {},
     "app/list.html": {
         **_NAV_CONTEXT,
-        "filter_form": (),
+        "filter_form": _InvoiceFilterForm(),
         "invoice_columns": _TABLE_COLUMNS,
         "invoice_rows": _TABLE_ROWS,
         "current_sort": "number",
@@ -129,14 +165,14 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "activity_rows": _TABLE_ROWS,
     },
     "app/date-range-picker.html": {**_NAV_CONTEXT, **_DRP_CONTEXT},
-    "app/form.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
+    "app/form.html": {**_NAV_CONTEXT, "form": _InvoiceForm()},
     # The five examples added alongside the 3.18.0 line (#503 follow-up).
     # Each composes shipped components with literal `with` arguments, so the
-    # context is only what the page itself reads: an empty nav for the app
-    # shell, and nothing else. request.path and request.user are deliberately
-    # absent, matching every other example here, because Django resolves a
-    # missing variable to the empty string and the examples are copy-paste
-    # source a consumer wires to its own request.
+    # context is only what the page itself reads (plus shared _NAV_CONTEXT).
+    # request.path and request.user are deliberately absent, matching every
+    # other example here, because Django resolves a missing variable to the
+    # empty string and the examples are copy-paste source a consumer wires to
+    # its own request.
     "app/error-maintenance.html": {**_NAV_CONTEXT},
     # onboarding renders {% bw_form form %}, the same as app/wizard.html.
     "app/onboarding.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
@@ -204,6 +240,11 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         # already-rendered safe markup: a Django template can build neither the
         # list nor the rendered content, so this one grid comes from the view.
         # Mirrors a11y/generate_fixtures.py's own render_scorecard() shape.
+        #
+        # Chart: the example defaults to the designed empty state
+        # (icvoss/django-brickwork#509). A blank data-bw-chart mount is not a
+        # visual proof; consumers swap empty= for mount= when an engine is
+        # wired (see the example's own header).
         "headline_tiles": [
             {
                 "content": mark_safe(  # noqa: S308 (example-authored trusted markup)
@@ -246,9 +287,6 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
                 )
             },
         ],
-        "revenue_mount": mark_safe(  # noqa: S308 (example-authored trusted markup)
-            '<div class="bw-chart-mount" data-bw-chart role="img" aria-label="Net revenue by month, Q3 2026"></div>'
-        ),
         "channel_rows": [
             {"label": "Direct sales", "amount": 612000, "value": "GBP 612k"},
             {"label": "Partner referrals", "amount": 398000, "value": "GBP 398k"},
@@ -304,6 +342,18 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             {"icon": "check", "heading": "Reconciliation", "body": "Payments match themselves off."},
         ],
         "stats": [{"value": "21 days", "label": "Average time to pay"}],
+        # Decorative product-panel stand-in for scorecard S5 (beside placement).
+        # Inline SVG so the example does not depend on a missing static asset.
+        "hero_media": mark_safe(  # noqa: S308 (example-authored trusted markup)
+            '<svg viewBox="0 0 480 320" aria-hidden="true" focusable="false">'
+            '<rect width="480" height="320" rx="12" fill="var(--bw-color-surface-subtle, #f3f4f6)"/>'
+            '<rect x="32" y="40" width="180" height="24" rx="4" fill="var(--bw-color-accent, #2563eb)" opacity="0.85"/>'
+            '<rect x="32" y="88" width="416" height="12" rx="3" fill="currentColor" opacity="0.12"/>'
+            '<rect x="32" y="112" width="360" height="12" rx="3" fill="currentColor" opacity="0.12"/>'
+            '<rect x="32" y="160" width="200" height="120" rx="8" fill="currentColor" opacity="0.08"/>'
+            '<rect x="248" y="160" width="200" height="120" rx="8" fill="currentColor" opacity="0.08"/>'
+            "</svg>"
+        ),
     },
     "marketing/pricing.html": {
         "solo_features": ["Unlimited invoices", "Automatic reminders"],
