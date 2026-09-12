@@ -962,22 +962,32 @@ def test_example_marketing_cta_hrefs_reach_the_rendered_button(name: str, hrefs:
         assert f'href="{href}"' in html, f"{name} lost its CTA href={href!r} (flat kwarg must be *_href, not *_url)"
 
 
-def test_landing_footer_uses_labelled_responsive_link_groups() -> None:
-    """The copied landing composition keeps its own footer hierarchy.
+@pytest.mark.parametrize(
+    "name",
+    [
+        "marketing/landing.html",
+        "marketing/pricing.html",
+        "marketing/about.html",
+        "marketing/comparison.html",
+    ],
+)
+def test_marketing_footers_use_shared_link_group_vocabulary(name: str) -> None:
+    """Marketing archetypes share footer grouping without feature-card chrome.
 
-    The marketing shell owns the landmark and empty slots only. This example
-    composes its link groups from existing marketing layout classes, so the
-    two groups stack at narrow widths and form two columns at the feature
-    grid's existing small-screen breakpoint.
+    The marketing shell owns the landmark and empty slots only. Authored
+    examples use .bw-marketing-footer__groups so groups stack at narrow
+    widths and form two columns from the sm breakpoint (#500).
     """
-    template = _example_engine().get_template("marketing/landing.html")
-    html = template.render(Context(_EXAMPLE_CONTEXTS["marketing/landing.html"]))
+    template = _example_engine().get_template(name)
+    html = template.render(Context(_EXAMPLE_CONTEXTS[name]))
 
-    assert 'class="bw-feature-grid bw-feature-grid--2"' in html
-    assert '<nav class="bw-feature-card" aria-labelledby="footer-product-heading">' in html
-    assert '<nav class="bw-feature-card" aria-labelledby="footer-company-heading">' in html
+    assert 'class="bw-marketing-footer__groups"' in html
+    assert '<nav class="bw-marketing-footer__group" aria-labelledby="footer-product-heading">' in html
+    assert '<nav class="bw-marketing-footer__group" aria-labelledby="footer-company-heading">' in html
     assert 'id="footer-product-heading">Product</h2>' in html
     assert 'id="footer-company-heading">Company</h2>' in html
+    assert "bw-feature-grid" not in html.split("bw-marketing-footer")[-1]
+    assert "bw-feature-card" not in html.split("bw-marketing-footer")[-1]
     assert html.index("footer-product-heading") < html.index("footer-company-heading")
 
 

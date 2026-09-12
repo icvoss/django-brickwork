@@ -48,7 +48,7 @@ over a background image reports "incomplete" rather than a violation); the
 gate catching its own blind spot and adding a check for it is stronger
 evidence than a gate that has never missed.
 
-> Status: **stable**. This checkout is version 3.19.0 (`pip install
+> Status: **stable**. This checkout is version 3.19.1 (`pip install
 > django-brickwork` for the published package);
 > [CHANGELOG.md](CHANGELOG.md) records the current release. The five
 > semver-governed public-API contracts (token, template, navigation,
@@ -104,6 +104,10 @@ evidence than a gate that has never missed.
 - [src/brickwork/examples/README.md](src/brickwork/examples/README.md): the
   copy-paste example pages, what each one is, and how to use one (see
   [Example pages](#example-pages) below).
+- `brickwork.specimens` (import from the installed package): first-family
+  demonstration contexts for listing UI (`data_table`, `filter_bar`,
+  `empty_state`); see the umbrella CONTRACTS entry
+  `django-brickwork.specimens.v1`.
 - [frontend/README.md](frontend/README.md): the in-repo build that compiles
   the shipped static assets.
 
@@ -252,11 +256,16 @@ Branding it is a handful of `--bw-*` token overrides
 ## Example pages
 
 A whole page is the most project-specific thing you own, so brickwork does not
-ship one as a template you extend. Instead it ships sixteen complete, working
-pages built from its tokens, components and shells, as copy-paste examples in
-`src/brickwork/examples/` (`base.html`; `app/list`, `detail`, `dashboard`,
-`date-range-picker`, `form`, `wizard`, `settings`, `console`, `confirm`;
-`auth/signin`, `signup`, `reset`; `marketing/landing`, `pricing`, `about`).
+ship one as a template you extend. Instead it ships **56** HTML files under
+`src/brickwork/examples/`: **27** archetype pages, **28** sections, and
+`base.html` (a copied document skeleton). That matches the lead inventory
+above; it is not a closed sixteen-page list.
+
+Useful starting pages (not exhaustive): `app/list`, `detail`, `dashboard`,
+`form`, `wizard`; `auth/signin`; `marketing/landing`, `pricing`;
+`docs/article`; `ops/dense-list`. The full catalogue, section variants, and
+per-file view contracts live in
+[src/brickwork/examples/README.md](src/brickwork/examples/README.md).
 
 Looking for a date picker: Brickwork does not currently ship a maintained
 `bw_date_picker` component, but it does ship a complete copyable date-range
@@ -275,9 +284,7 @@ on your next pin bump; a page you copy is yours outright.
 To use one: open it (in the repo, or via `brickwork.examples.read_example()`),
 copy it into your own `templates/` tree, and edit it. Each example is
 annotated with what your view must supply and stays real, specific content
-throughout, never `Lorem ipsum`. See
-[src/brickwork/examples/README.md](src/brickwork/examples/README.md) for the
-full list and how they are tested.
+throughout, never `Lorem ipsum`.
 
 Extending a shell directly (`brickwork/shell/app.html`,
 `brickwork_marketing/shell/marketing.html`, and friends) remains fully

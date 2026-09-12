@@ -8,6 +8,45 @@ versioning contract).
 
 ## Unreleased
 
+## [3.19.1] - 2026-09-12
+
+**Substrate-ready honesty and first listing specimens.** Public README Example
+pages inventory matches the shipped tree (27 archetype pages + 28 sections +
+`base.html`). Marketing archetypes share a footer link-group vocabulary
+without elevated feature-card chrome (#500, #531). Package-owned demonstration
+inputs land for the first component family (`listing`: data table, filter bar,
+empty state) via `brickwork.specimens` (#497), installable from the wheel by
+package name.
+
+**Behaviour changes for existing consumers.** Marketing landing/pricing/about/
+comparison examples change their authored footer markup class names; consumers
+who copied those examples keep their own copies. Shipped CSS adds
+`.bw-marketing-footer__groups` / `__group` / `__group-heading`. No change to
+the empty `marketing_footer` shell slot contract.
+
+### Added
+
+- **`brickwork.specimens`** (icvoss/django-brickwork#497): first family
+  `listing` with nine scenarios (`data_table.*`, `filter_bar.*`,
+  `empty_state.*`), `list_families` / `list_scenarios` / `get_scenario` /
+  `get_context`, and `SpecimenFilterForm`. Contexts are freshly built on each
+  call.
+
+### Fixed
+
+- **README Example pages no longer claims a closed sixteen-page list**
+  (#531); it matches the lead inventory and points at
+  `src/brickwork/examples/README.md` for the catalogue.
+- **Marketing footer grouping** (#500): shared
+  `.bw-marketing-footer__*` vocabulary across landing, pricing, about and
+  comparison; shell docs already described the empty consumer-owned slot.
+
+### Changed
+
+- **POSITIONING** notes that #500 is closed after the 3.19.0 visual-bar PASS
+  tip; beauty claim wording remains the evidenced building-blocks lead citing
+  `docs/audits/2026-09-12-visual-bar-signoff-pass.md` (#498).
+
 ## [3.19.0] - 2026-09-12
 
 **This release ships the visual-compete wave through independent sign-off.**
