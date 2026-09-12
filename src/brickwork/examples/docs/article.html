@@ -144,6 +144,15 @@ Responsive: no breakpoint of its own inside the article; bw-prose holds a
 
 {% block page_title %}Configuring reminder escalation - Northwind docs{% endblock %}
 
+{% block docs_site_header %}
+  {% comment %}
+  Site chrome (icvoss/django-brickwork#523): without this fill the shell's
+  .bw-docs-site-header collapses to 0px tall at every viewport, so the scorecard
+  docs surface shipped with no product identity above the article.
+  {% endcomment %}
+  <a class="bw-docs-site-header__brand" href="/docs/">{% translate "Northwind docs" %}</a>
+{% endblock %}
+
 {% block docs_header %}
   {% comment %}
   Breadcrumbs: docs.html ships no breadcrumbs block, so this page authors the

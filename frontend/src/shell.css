@@ -619,6 +619,16 @@
   display: none;
 }
 
+.bw-docs-site-header {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-4);
+  padding-inline: var(--bw-density-page-gutter-inline);
+  padding-block: var(--bw-space-3);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  background: var(--bw-color-surface);
+}
+
 .bw-docs-site-footer {
   margin-block-start: auto;
 }
@@ -681,6 +691,38 @@
   gap: var(--bw-density-section-gap);
 }
 
+/* Mobile-only jump to the section rail (icvoss/django-brickwork#523). Sticky
+ * so it stays above the fold while the reader starts the article; hidden at
+ * the two-column breakpoint where the rail is already visible. */
+.bw-docs-nav-jump {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  margin: 0;
+  margin-block-end: var(--bw-space-3);
+  padding-block: var(--bw-space-2);
+  background: var(--bw-color-surface);
+}
+.bw-docs-nav-jump a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--bw-size-touch-target-min);
+  padding-inline: var(--bw-space-3);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-md);
+  color: var(--bw-color-fg);
+  font-family: var(--bw-font-family-display);
+  font-weight: var(--bw-font-weight-semibold);
+  text-decoration: none;
+}
+.bw-docs-nav-jump a:hover {
+  background: var(--bw-color-surface-raised);
+}
+.bw-docs-nav-jump a:focus-visible {
+  outline: 2px solid var(--bw-color-accent);
+  outline-offset: 2px;
+}
+
 .bw-docs-layout__nav-summary {
   display: flex;
   align-items: center;
@@ -726,6 +768,10 @@
     grid-template-columns: 16rem minmax(0, 1fr);
     gap: var(--bw-space-10);
     align-items: start;
+  }
+
+  .bw-docs-nav-jump {
+    display: none;
   }
 
   .bw-docs-layout__nav {

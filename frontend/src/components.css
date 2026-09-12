@@ -349,6 +349,16 @@
   box-shadow: inset 0 1px 2px 0 oklch(0 0 0 / 0.04);
   transition: var(--bw-transition-colors), var(--bw-transition-shadow);
 }
+/* Textareas share .bw-input chrome but must honour rows= (and grow with
+ * content). Fixed block-size on .bw-input collapsed every textarea to a
+ * single-line control height (icvoss/django-brickwork#521). */
+textarea.bw-input {
+  block-size: auto;
+  min-block-size: calc(var(--bw-density-control-height) * 3);
+  padding-block: var(--bw-density-control-padding-inline);
+  resize: vertical;
+  field-sizing: content;
+}
 /* Hover pre-light: one perceptible step from the control border toward ink.
  * Mixing toward fg (82% border-control, 18% fg) is theme-correct in both
  * directions automatically, because fg flips with the theme: measured 4.47:1
@@ -1218,6 +1228,18 @@ input.bw-toggle:disabled {
   white-space: nowrap;
   text-align: center;
   vertical-align: middle;
+}
+/* Column alignment vocabulary (icvoss/django-brickwork#522): closed set
+ * start (default, no modifier) | center | end, applied to both header and
+ * body cells from the column dict's align key. */
+.bw-data-table__th--center,
+.bw-data-table__td--center {
+  text-align: center;
+}
+.bw-data-table__th--end,
+.bw-data-table__td--end {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
 }
 
 /* loading=True skeleton (icvoss/django-brickwork#137): without padding of its
@@ -2637,6 +2659,20 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 }
 .bw-scorecard__item--span-4 {
   grid-column: span 4;
+}
+/* Below the app sidebar/drawer breakpoint, force a single column and
+ * collapse spans so a span-2 tile cannot open an implicit second track
+ * (icvoss/django-brickwork#525). At phone width that left supporting tiles
+ * side by side in ~130px each. */
+@media (width < --theme(--breakpoint-md)) {
+  .bw-scorecard {
+    grid-template-columns: 1fr;
+  }
+  .bw-scorecard__item--span-2,
+  .bw-scorecard__item--span-3,
+  .bw-scorecard__item--span-4 {
+    grid-column: auto;
+  }
 }
 
 /* --- Disclosure (0.8.0 interaction set, CBH-016/017, CMP-026/027) ------------ */

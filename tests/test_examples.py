@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from urllib.parse import quote
 
 import pytest
 from django import forms
@@ -110,20 +111,63 @@ class _InvoiceFilterForm(forms.Form):
 class _InvoiceForm(forms.Form):
     """Invoice create/edit stand-in for examples/app/form.html (scorecard S3)."""
 
-    account = forms.CharField(label="Account")
+    account = forms.CharField(label="Account", help_text="The account this invoice is raised against.")
     amount = forms.DecimalField(label="Amount", max_digits=10, decimal_places=2)
     due_date = forms.DateField(label="Due date", required=False)
-    memo = forms.CharField(label="Memo", required=False, widget=forms.Textarea(attrs={"rows": 3}))
+    memo = forms.CharField(
+        label="Memo",
+        required=False,
+        help_text="Shown on the invoice PDF under the line items.",
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
+
+
+def _bound_invoice_form() -> _InvoiceForm:
+    """Bound invalid form so S3 exercises help text and an inline error (#521)."""
+    form = _InvoiceForm(
+        data={
+            "account": "",
+            "amount": "not-a-number",
+            "due_date": "",
+            "memo": "Rush order for the Glasgow depot.",
+        }
+    )
+    form.is_valid()
+    return form
 
 
 _TABLE_COLUMNS = [
     {"label": "Number", "sortable": True, "sort_key": "number"},
     {"label": "Account", "sortable": False},
-    {"label": "Amount", "sortable": True, "sort_key": "amount"},
+    {"label": "Amount", "sortable": True, "sort_key": "amount", "align": "end"},
 ]
 _TABLE_ROWS = [
     {"id": 1, "cells": ["INV-2417", "Acme Corp", "£1,240.00"]},
     {"id": 2, "cells": ["INV-2418", "Halden Group", "£880.00"]},
+    {"id": 3, "cells": ["INV-2419", "Dunmore Retail", "£3,150.00"]},
+    {"id": 4, "cells": ["INV-2420", "Prestwick Logistics", "£640.00"]},
+    {"id": 5, "cells": ["INV-2421", "Carrick & Sons", "£2,090.00"]},
+    {"id": 6, "cells": ["INV-2422", "North Quay Ltd", "£1,475.00"]},
+]
+
+
+def _logo_data_uri(label: str, fill: str) -> str:
+    """Inline SVG data URI so the logo cloud never depends on a missing static file."""
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="120" height="32" viewBox="0 0 120 32">'
+        f'<rect width="120" height="32" rx="4" fill="{fill}"/>'
+        f'<text x="60" y="21" text-anchor="middle" fill="#ffffff" '
+        f'font-family="system-ui,sans-serif" font-size="12">{label}</text>'
+        f"</svg>"
+    )
+    return "data:image/svg+xml," + quote(svg)
+
+
+_MARKETING_LOGOS = [
+    {"src": _logo_data_uri("Acme", "#4b5563"), "alt": "Acme Corp"},
+    {"src": _logo_data_uri("Globex", "#374151"), "alt": "Globex"},
+    {"src": _logo_data_uri("Initech", "#1f2937"), "alt": "Initech"},
+    {"src": _logo_data_uri("Umbrella", "#111827"), "alt": "Umbrella"},
 ]
 
 # app/date-range-picker.html's own header comment documents this exact
@@ -213,7 +257,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
     },
     "app/date-range-picker.html": {**_NAV_CONTEXT, **_DRP_CONTEXT},
-    "app/form.html": {**_NAV_CONTEXT, "form": _InvoiceForm()},
+    "app/form.html": {**_NAV_CONTEXT, "form": _bound_invoice_form()},
     # The five examples added alongside the 3.18.0 line (#503 follow-up).
     # Each composes shipped components with literal `with` arguments, so the
     # context is only what the page itself reads (plus shared _NAV_CONTEXT).
@@ -225,7 +269,52 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     # onboarding renders {% bw_form form %}, the same as app/wizard.html.
     "app/onboarding.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
     "app/status-tracker.html": {**_NAV_CONTEXT},
-    "ops/dense-list.html": {**_NAV_CONTEXT},
+    "ops/dense-list.html": {
+        **_NAV_CONTEXT,
+        "filter_form": _InvoiceFilterForm(),
+        "po_columns": [
+            {"label": "PO", "sortable": True, "sort_key": "number"},
+            {"label": "Supplier", "sortable": False},
+            {"label": "Promised", "sortable": True, "sort_key": "promised_date"},
+            {"label": "Value", "sortable": True, "sort_key": "amount", "align": "end"},
+            {"label": "Status", "sortable": False},
+        ],
+        "po_rows": [
+            {
+                "id": 1,
+                "cells": ["PO-1842", "Acme Corp", "18 Sep 2026", "£4,200.00", "Awaiting stock"],
+            },
+            {
+                "id": 2,
+                "cells": ["PO-1843", "Halden Group", "19 Sep 2026", "£1,180.00", "In transit"],
+            },
+            {
+                "id": 3,
+                "cells": ["PO-1844", "Dunmore Retail", "20 Sep 2026", "£8,650.00", "Awaiting stock"],
+            },
+            {
+                "id": 4,
+                "cells": ["PO-1845", "Prestwick Logistics", "21 Sep 2026", "£920.00", "Cleared"],
+            },
+            {
+                "id": 5,
+                "cells": ["PO-1846", "Carrick & Sons", "22 Sep 2026", "£3,410.00", "On hold"],
+            },
+            {
+                "id": 6,
+                "cells": ["PO-1847", "North Quay Ltd", "23 Sep 2026", "£2,075.00", "In transit"],
+            },
+            {
+                "id": 7,
+                "cells": ["PO-1848", "Umbrella Foods", "24 Sep 2026", "£6,880.00", "Awaiting stock"],
+            },
+            {
+                "id": 8,
+                "cells": ["PO-1849", "Globex Parts", "25 Sep 2026", "£1,540.00", "In transit"],
+            },
+        ],
+        "po_page": None,
+    },
     "marketing/comparison.html": {},
     "app/wizard.html": {
         **_NAV_CONTEXT,
@@ -384,18 +473,29 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ),
     },
     "marketing/landing.html": {
-        "logos": [{"src": "/static/logo-acme.svg", "alt": "Acme Corp"}],
+        "logos": _MARKETING_LOGOS,
         "features": [
             {"icon": "bell", "heading": "Automatic reminders", "body": "Chases send themselves."},
             {"icon": "check", "heading": "Reconciliation", "body": "Payments match themselves off."},
+            {
+                "icon": "calendar",
+                "heading": "Late-payment prediction",
+                "body": "Know which accounts slip before they do.",
+            },
         ],
-        "stats": [{"value": "21 days", "label": "Average time to pay"}],
+        "stats": [
+            {"value": "21 days", "label": "Average time to pay"},
+            {"value": "98%", "label": "Invoices collected in 60 days"},
+            {"value": "4.9/5", "label": "Finance team review score"},
+        ],
         # Decorative product-panel stand-in for scorecard S5 (beside placement).
         # Inline SVG so the example does not depend on a missing static asset.
+        # Use a real surface token (icvoss/django-brickwork#524): surface-subtle
+        # does not exist, so the light fallback previously stuck in dark mode.
         "hero_media": mark_safe(  # noqa: S308 (example-authored trusted markup)
             '<svg viewBox="0 0 480 320" aria-hidden="true" focusable="false">'
-            '<rect width="480" height="320" rx="12" fill="var(--bw-color-surface-subtle, #f3f4f6)"/>'
-            '<rect x="32" y="40" width="180" height="24" rx="4" fill="var(--bw-color-accent, #2563eb)" opacity="0.85"/>'
+            '<rect width="480" height="320" rx="12" fill="var(--bw-color-surface-raised)"/>'
+            '<rect x="32" y="40" width="180" height="24" rx="4" fill="var(--bw-color-accent)" opacity="0.85"/>'
             '<rect x="32" y="88" width="416" height="12" rx="3" fill="currentColor" opacity="0.12"/>'
             '<rect x="32" y="112" width="360" height="12" rx="3" fill="currentColor" opacity="0.12"/>'
             '<rect x="32" y="160" width="200" height="120" rx="8" fill="currentColor" opacity="0.08"/>'
@@ -404,10 +504,35 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ),
     },
     "marketing/pricing.html": {
-        "solo_features": ["Unlimited invoices", "Automatic reminders"],
-        "team_features": ["Everything in Solo", "Up to 10 users"],
-        "scale_features": ["Everything in Team", "Multi-currency"],
-        "faq_items": [{"question": "Can I cancel?", "answer": "Any time, from the billing page."}],
+        "solo_features": [
+            "Unlimited invoices",
+            "Automatic reminders",
+            "PDF export",
+            "Email support",
+        ],
+        "team_features": [
+            "Everything in Solo",
+            "Up to 10 users",
+            "Shared templates",
+            "Priority support",
+        ],
+        "scale_features": [
+            "Everything in Team",
+            "Multi-currency",
+            "Custom roles",
+            "Dedicated success manager",
+        ],
+        "faq_items": [
+            {"question": "Can I cancel?", "answer": "Any time, from the billing page."},
+            {
+                "question": "Do you offer annual billing?",
+                "answer": "Yes. Annual plans take two months off the monthly rate.",
+            },
+            {
+                "question": "Can I change plan mid-cycle?",
+                "answer": "Yes. Upgrades are prorated; downgrades take effect next cycle.",
+            },
+        ],
     },
     "marketing/about.html": {
         "stats": [{"value": "11", "label": "People"}, {"value": "4", "label": "Countries"}],

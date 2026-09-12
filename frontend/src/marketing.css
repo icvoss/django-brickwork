@@ -203,7 +203,11 @@
   display: block;
 }
 
-.bw-mobile-nav-toggle__icon--close {
+/* Two-class / compound selectors beat the single-class .bw-icon
+ * {display:inline-block} base (icvoss/django-brickwork#519): without the
+ * extra specificity, the later icon rule restored the close glyph in the
+ * closed state so the trigger painted hamburger and cross together. */
+.bw-mobile-nav-toggle:not([open]) .bw-mobile-nav-toggle__icon--close {
   display: none;
 }
 

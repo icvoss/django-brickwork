@@ -119,7 +119,13 @@ falls back to "sidebar" as documented.
       {# Mobile nav trigger: native <details> drawer, works with no JS (SHL-015/016). #}
       <details class="bw-drawer">
         <summary class="bw-drawer__trigger" aria-label="{% translate 'Open navigation menu' %}">
-          {% block mobile_nav_trigger %}{% endblock %}
+          {% comment %}
+          Default visible affordance (icvoss/django-brickwork#520): an empty
+          block left a working 44x44 hit target with nothing painted. Match
+          the marketing toggle's package-owned icon default; consumers still
+          override this block when they need a different glyph.
+          {% endcomment %}
+          {% block mobile_nav_trigger %}{% bw_icon "menu" size="md" decorative=True %}{% endblock %}
         </summary>
         <nav class="bw-drawer__panel" aria-label="{% translate 'Navigation' %}">
           <div class="bw-sidebar__switcher">{% block mobile_nav_switcher %}{% endblock %}</div>

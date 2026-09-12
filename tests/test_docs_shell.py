@@ -90,11 +90,12 @@ def test_content_precedes_the_nav_rail_in_source_order() -> None:
 def test_content_precedes_the_nav_region_wrapper_itself_in_source_order() -> None:
     # Even when the rail wrapper is inspected rather than its inner block, the
     # <details> element itself must still follow the article in the DOM.
+    # Match the details class exactly: the jump-link id target must not count.
     html = _extend(
         _DOCS_SHELL,
         "{% block content %}CONTENT-SENTINEL{% endblock %}",
     )
-    assert html.index("CONTENT-SENTINEL") < html.index("bw-docs-layout__nav")
+    assert html.index("CONTENT-SENTINEL") < html.index('class="bw-docs-layout__nav"')
 
 
 # --- shell/docs.html: *_region wrapper blocks (ADR-091 decision 2) ----------
@@ -110,7 +111,7 @@ def test_filling_only_the_inner_blocks_is_unaffected_by_the_region_wrappers() ->
     )
     assert '<div class="bw-docs-layout__header">' in html
     assert '<footer class="bw-docs-layout__footer">' in html
-    assert '<details class="bw-docs-layout__nav">' in html
+    assert 'class="bw-docs-layout__nav"' in html
     header_start = html.index('class="bw-docs-layout__header"')
     header_sentinel = html.index("HEADER-SENTINEL")
     content_sentinel = html.index("CONTENT-SENTINEL")
@@ -346,3 +347,15 @@ def test_the_docs_shell_declines_toc_version_and_feedback_regions() -> None:
     assert "TOC-SENTINEL" not in html
     assert "VERSION-SENTINEL" not in html
     assert "FEEDBACK-SENTINEL" not in html
+
+
+def test_docs_shell_ships_a_mobile_nav_jump_link_and_nav_anchor() -> None:
+    # icvoss/django-brickwork#523: article-then-rail source order is kept
+    # (ADR-091), so a package-owned jump link above the article points at the
+    # section disclosure without reordering the DOM.
+    html = _extend(_DOCS_SHELL, "{% block content %}CONTENT-SENTINEL{% endblock %}")
+    assert 'class="bw-docs-nav-jump"' in html
+    assert 'href="#bw-docs-nav"' in html
+    assert 'id="bw-docs-nav"' in html
+    assert html.index("bw-docs-nav-jump") < html.index("CONTENT-SENTINEL")
+    assert html.index("CONTENT-SENTINEL") < html.index('id="bw-docs-nav"')

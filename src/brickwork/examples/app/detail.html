@@ -70,13 +70,20 @@ the view or a context processor; hard-coded here so the example reads.
   {% include "brickwork/components/_data_table.html" with table_id="invoice-lines" columns=line_columns rows=line_rows empty_heading="No line items" empty_body="This invoice has no line items yet." %}
 
   {% comment %}
-  The danger zone. Nothing is shipped here by default: brickwork will not
-  fabricate a warning about an action it knows nothing about. Give the region
-  its own visual weight with an alert, and point the button at your own
-  confirmation page (see app/confirm.html).
+  The danger zone (icvoss/django-brickwork#526): a bordered card with a
+  compact destructive control, not a lone full-width danger button stacked
+  under a warning alert that repeats the same sentence. Point the button at
+  your own confirmation page (see app/confirm.html).
   {% endcomment %}
-  {% include "brickwork/components/_alert.html" with variant="warning" title="Void this invoice" message="Voiding cannot be undone. The invoice stays on record but is no longer payable." %}
-  {% bw_button "Void invoice" variant="danger" href="/invoices/INV-2417/void/" %}
+  <section class="bw-card" aria-labelledby="danger-zone-heading">
+    <div class="bw-card__body">
+      <h2 id="danger-zone-heading" class="bw-card__title">Void this invoice</h2>
+      <p>Voiding cannot be undone. The invoice stays on record but is no longer payable.</p>
+      <div>
+        {% bw_button "Void invoice" variant="danger" href="/invoices/INV-2417/void/" %}
+      </div>
+    </div>
+  </section>
 
 </div>
 {% endblock %}
