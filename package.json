@@ -12,6 +12,8 @@
     "a11y:fixtures:startsite": "DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python a11y/generate_startsite_fixtures.py",
     "visual-bar:fixtures": "DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python a11y/generate_visual_bar_fixtures.py",
     "visual-bar:capture": "node a11y/visual_bar_capture.mjs",
+    "visual-bar:fixtures:northline": "VISUAL_BAR_BRAND=northline DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python a11y/generate_visual_bar_fixtures.py",
+    "visual-bar:capture:northline": "VISUAL_BAR_BRAND=northline node a11y/visual_bar_capture.mjs",
     "a11y": "playwright test",
     "a11y:startsite": "playwright test --config startsite.playwright.config.mjs",
     "a11y:lint": "eslint ."
