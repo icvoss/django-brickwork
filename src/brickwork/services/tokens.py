@@ -98,6 +98,13 @@ def resolve_theme_attributes(
     reading mutable state such as ``request.session`` and disagree with the
     attributes this function actually returns). Purely additive: existing
     callers that omit it see no change in behaviour or return shape.
+
+    A resolver key whose value is not a ``str`` raises
+    ``ImproperlyConfigured`` naming the axis and the invalid value
+    (icvoss/django-brickwork#488 / ADR-101). Missing keys are fine (partial
+    overrides); invalid values are not silently dropped, so a caller
+    inspecting ``asserted_keys`` can distinguish "resolver did not address
+    this axis" from "resolver addressed it with a non-str value".
     """
     attrs: ThemeAttributes = {
         "theme": get_setting("BRICKWORK_DEFAULT_THEME"),
@@ -108,16 +115,23 @@ def resolve_theme_attributes(
     if theme_resolver is not None:
         override = theme_resolver(request) or {}
         # `theme_resolver`'s declared return type is ThemeAttributes, whose values
-        # are all `str`; a `None` value is therefore only possible from a caller
-        # that ignores its own type hint (a plain dict passed where the annotation
-        # promises a TypedDict, which the interpreter does not enforce). Filtering
-        # it out is runtime defensiveness against that, not something the type
-        # system can see through an `items()` comprehension, so it is spelled as an
-        # explicit isinstance check rather than `if v is not None`: mypy narrows
-        # `dict[str, object]` to `dict[str, str]` from the isinstance, which
-        # `update()` can then check against ThemeAttributes without a cast or
-        # ignore.
-        cleaned = {k: v for k, v in override.items() if isinstance(v, str)}
+        # are all `str`; a non-str value is only possible from a caller that
+        # ignores its own type hint (a plain dict where TypedDict is promised).
+        # Raise loudly rather than silently filtering (ADR-101 / brickwork#488):
+        # a silent drop made ``{"theme": None}`` indistinguishable from a
+        # resolver that never addressed ``theme``, including in asserted_keys.
+        # The isinstance check also narrows for mypy so ``update()`` accepts
+        # the cleaned dict without a cast.
+        cleaned: dict[str, str] = {}
+        for key, value in override.items():
+            if not isinstance(value, str):
+                raise ImproperlyConfigured(
+                    f"brickwork theme_resolver returned a non-str value for "
+                    f"axis {key!r}: {value!r} (type {type(value).__name__}). "
+                    f"Every ThemeAttributes value must be a str; omit the key "
+                    f"to leave the default in place (brickwork#488)."
+                )
+            cleaned[key] = value
         attrs.update(cleaned)  # type: ignore[typeddict-item]  # keys are dynamic (from a caller-supplied dict); values are always str, verified above
         if asserted_keys is not None:
             asserted_keys.update(cleaned)

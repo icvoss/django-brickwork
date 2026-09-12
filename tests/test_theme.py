@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import pytest
+from django.core.exceptions import ImproperlyConfigured
+
 from brickwork.services.forms import is_htmx_validation_request
 from brickwork.services.tokens import resolve_theme_attributes
 
@@ -83,6 +86,57 @@ def test_omitting_asserted_keys_does_not_change_existing_behaviour() -> None:
     # identical attrs and no error, exactly as before this parameter existed.
     attrs = resolve_theme_attributes(_Req(), theme_resolver=lambda _r: {"theme": "dark"})
     assert attrs["theme"] == "dark"
+
+
+# --- non-str resolver values (icvoss/django-brickwork#488 / ADR-101) --------
+
+
+def test_resolver_non_str_value_raises_loudly() -> None:
+    # A resolver returning {"theme": None} must not silently drop the key from
+    # both the merge and asserted_keys (the pre-#488 trap).
+    locked: set[str] = set()
+    with pytest.raises(ImproperlyConfigured, match=r"non-str value for axis 'theme'.*None"):
+        resolve_theme_attributes(
+            _Req(),
+            theme_resolver=lambda _r: {"theme": None},  # type: ignore[dict-item,return-value]
+            asserted_keys=locked,
+        )
+    assert locked == set()
+
+
+def test_resolver_valid_strings_still_merge_and_assert() -> None:
+    locked: set[str] = set()
+    attrs = resolve_theme_attributes(
+        _Req(),
+        theme_resolver=lambda _r: {"theme": "dark", "density": "compact"},
+        asserted_keys=locked,
+    )
+    assert attrs["theme"] == "dark"
+    assert attrs["density"] == "compact"
+    assert locked == {"theme", "density"}
+
+
+def test_missing_key_vs_invalid_value_are_distinguishable() -> None:
+    # Missing: no raise, key absent from asserted_keys, default retained.
+    locked_missing: set[str] = set()
+    attrs = resolve_theme_attributes(
+        _Req(),
+        theme_resolver=lambda _r: {"density": "spacious"},
+        asserted_keys=locked_missing,
+    )
+    assert attrs["theme"] == "light"
+    assert "theme" not in locked_missing
+    assert locked_missing == {"density"}
+
+    # Invalid: raises naming the axis; asserted_keys unchanged (raise before update).
+    locked_invalid: set[str] = set()
+    with pytest.raises(ImproperlyConfigured, match=r"axis 'theme'"):
+        resolve_theme_attributes(
+            _Req(),
+            theme_resolver=lambda _r: {"theme": 1},  # type: ignore[dict-item,return-value]
+            asserted_keys=locked_invalid,
+        )
+    assert locked_invalid == set()
 
 
 # --- 422 helper: header vs duck-typed request.htmx -------------------------

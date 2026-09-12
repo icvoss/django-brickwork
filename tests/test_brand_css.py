@@ -127,6 +127,24 @@ def test_focus_relevant_override_requires_oklch_when_accent_is_set(name: str, va
         render_brand_css(values)
 
 
+@pytest.mark.parametrize(
+    "accent",
+    [
+        "#5c2a63",
+        "rgb(92, 42, 99)",
+        "hsl(294, 40%, 28%)",
+    ],
+)
+def test_non_oklch_accent_raises_when_validate_is_true(accent: str) -> None:
+    # icvoss/django-brickwork#489 / ADR-101: with validate=True (default), a
+    # hex/rgb/hsl accent must raise rather than silently keep the shipped
+    # default focus-ring colour. Covered for accent itself by the
+    # focus-relevant parametrize above; this names the disclosed failure
+    # explicitly so a regression cannot hide behind a surface-parameter case.
+    with pytest.raises(BrandValidationError, match="focus ring can be verified"):
+        render_brand_css({"color-accent": accent, "color-fg-on-accent": _WHITE})
+
+
 def test_direct_focus_ring_override_is_rejected() -> None:
     with pytest.raises(BrandValidationError, match="do not override it directly"):
         render_brand_css({"color-focus-ring": _AUBERGINE_ACCENT})
