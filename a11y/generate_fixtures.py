@@ -1320,6 +1320,291 @@ def _render_theme_switch_locked_fixture(theme: str) -> str:
     )
 
 
+# card-<theme>.html (appearance suite, icvoss/django-brickwork#535): bare
+# include defaults, inverse header recipe, elevated surface, and an
+# extend-and-include filler with root modifiers, so axe covers recipe chrome
+# and CSS-only axes on package-default light/dark.
+
+_CARD_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card (__THEME__)</title>
+__CSS__
+<style>
+  .bw-card-gallery { display: grid; gap: 1.5rem; }
+  @media (min-width: 48rem) {
+    .bw-card-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .bw-card-gallery > section { margin: 0; }
+  .bw-card-gallery h2 { font-size: 0.875rem; margin-block: 0 0.5rem; }
+</style>
+</head>
+<body class="bw-body">
+<main>
+  <h1>Card</h1>
+  <div class="bw-card-gallery">
+  __CARD_SECTIONS__
+  </div>
+</main>
+</body>
+</html>
+"""
+
+# 1x1 PNG (light grey) as a stable offline media fixture asset.
+_CARD_MEDIA_SRC = (
+    "data:image/svg+xml,"
+    "%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E"
+    "%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E"
+    "%3Cstop stop-color='%2364748b'/%3E%3Cstop offset='1' stop-color='%2394a3b8'/%3E"
+    "%3C/linearGradient%3E%3C/defs%3E"
+    "%3Crect width='640' height='360' fill='url(%23g)'/%3E%3C/svg%3E"
+)
+
+
+def _card_section(heading_id: str, heading: str, html: str) -> str:
+    return (
+        f'<section aria-labelledby="{heading_id}">'
+        f'<h2 id="{heading_id}">{heading}</h2>'
+        f"{html}"
+        f"</section>"
+    )
+
+
+def render_card(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    from django.template import Context, Template
+
+    sections: list[str] = []
+    sections.append(
+        _card_section(
+            "card-default",
+            "Default",
+            render_to_string(
+                "brickwork/components/_card.html",
+                {"title": "Members", "body": "Twelve active seats across the workspace."},
+            ),
+        )
+    )
+    for surface in ("raised", "tint", "inverse", "muted"):
+        sections.append(
+            _card_section(
+                f"card-surface-{surface}",
+                f"Surface {surface}",
+                render_to_string(
+                    "brickwork/components/_card.html",
+                    {
+                        "title": surface.title(),
+                        "body": f"surface={surface}",
+                        "surface": surface,
+                    },
+                ),
+            )
+        )
+    for elevation in ("0", "2", "3"):
+        sections.append(
+            _card_section(
+                f"card-elevation-{elevation}",
+                f"Elevation {elevation}",
+                render_to_string(
+                    "brickwork/components/_card.html",
+                    {
+                        "title": f"Elevation {elevation}",
+                        "body": f"elevation={elevation}",
+                        "elevation": elevation,
+                    },
+                ),
+            )
+        )
+    for size in ("sm", "md", "lg"):
+        sections.append(
+            _card_section(
+                f"card-size-{size}",
+                f"Size {size}",
+                render_to_string(
+                    "brickwork/components/_card.html",
+                    {"title": f"Size {size}", "body": f"size={size}", "size": size},
+                ),
+            )
+        )
+    for radius in ("sm", "xl", "none"):
+        sections.append(
+            _card_section(
+                f"card-radius-{radius}",
+                f"Radius {radius}",
+                render_to_string(
+                    "brickwork/components/_card.html",
+                    {
+                        "title": f"Radius {radius}",
+                        "body": f"radius={radius}",
+                        "radius": radius,
+                    },
+                ),
+            )
+        )
+    for recipe in ("plain", "bordered", "muted", "inverse", "accent"):
+        sections.append(
+            _card_section(
+                f"card-header-{recipe}",
+                f"Header {recipe}",
+                render_to_string(
+                    "brickwork/components/_card.html",
+                    {
+                        "title": f"Header {recipe}",
+                        "body": f"header_recipe={recipe}",
+                        "header_recipe": recipe,
+                    },
+                ),
+            )
+        )
+    sections.append(
+        _card_section(
+            "card-header-action",
+            "Header action",
+            render_to_string(
+                "brickwork/components/_card.html",
+                {
+                    "title": "Workspace",
+                    "body": "Title with an include-path header action.",
+                    "header_recipe": "bordered",
+                    "action_label": "Edit",
+                    "action_href": "/edit/",
+                },
+            ),
+        )
+    )
+    sections.append(
+        _card_section(
+            "card-footer-muted",
+            "Footer muted",
+            render_to_string(
+                "brickwork/components/_card.html",
+                {
+                    "title": "Members",
+                    "body": "Invite colleagues and manage roles.",
+                    "header_recipe": "inverse",
+                    "footer_recipe": "muted",
+                    "caption": "Updated today",
+                    "elevation": "2",
+                },
+            ),
+        )
+    )
+    sections.append(
+        _card_section(
+            "card-footer-plain",
+            "Footer plain",
+            render_to_string(
+                "brickwork/components/_card.html",
+                {
+                    "title": "Notes",
+                    "body": "Plain footer chrome with a caption.",
+                    "footer_recipe": "plain",
+                    "caption": "Last saved 2 minutes ago",
+                },
+            ),
+        )
+    )
+    sections.append(
+        _card_section(
+            "card-footer-actions",
+            "Footer actions (extends)",
+            Template(
+                "{% extends 'brickwork/components/_card.html' %}"
+                "{% load brickwork_components %}"
+                "{% block body %}<p class='bw-card__body'>Confirm before publishing.</p>{% endblock %}"
+                "{% block footer %}<div class='bw-card__footer bw-card__footer--actions'>"
+                "{% bw_button 'Cancel' variant='ghost' size='sm' %}"
+                "{% bw_button 'Publish' size='sm' %}"
+                "</div>{% endblock %}"
+            ).render(
+                Context({"title": "Publish changes", "header_recipe": "bordered", "footer_recipe": "actions"})
+            ),
+        )
+    )
+    sections.append(
+        _card_section(
+            "card-media-bleed",
+            "Media bleed",
+            render_to_string(
+                "brickwork/components/_card.html",
+                {
+                    "title": "Coastal studio",
+                    "body": "Bleed media covers the top radius.",
+                    "media_recipe": "bleed",
+                    "media_src": _CARD_MEDIA_SRC,
+                    "media_alt": "",
+                },
+            ),
+        )
+    )
+    sections.append(
+        _card_section(
+            "card-media-inset",
+            "Media inset",
+            render_to_string(
+                "brickwork/components/_card.html",
+                {
+                    "title": "Inset media",
+                    "body": "Inset media sits inside the card padding.",
+                    "media_recipe": "inset",
+                    "media_src": _CARD_MEDIA_SRC,
+                    "media_alt": "",
+                },
+            ),
+        )
+    )
+    sections.append(
+        _card_section(
+            "card-media-icon",
+            "Media icon",
+            render_to_string(
+                "brickwork/components/_card.html",
+                {
+                    "title": "Team",
+                    "body": "Icon media for emblem cards.",
+                    "media_recipe": "icon",
+                    "media_icon": "users",
+                },
+            ),
+        )
+    )
+    sections.append(
+        _card_section(
+            "card-linked",
+            "Linked interactive",
+            render_to_string(
+                "brickwork/components/_card.html",
+                {
+                    "title": "Invoice #1042",
+                    "body": "Whole-card link; header actions suppressed.",
+                    "href": "/invoices/1042/",
+                    "action_label": "Should not render",
+                    "action_href": "/nope/",
+                },
+            ),
+        )
+    )
+    sections.append(
+        _card_section(
+            "card-extends-muted",
+            "Extends filler with muted header",
+            Template(
+                "{% extends 'brickwork/components/_card.html' %}"
+                "{% block header %}<div class='bw-card__header'>"
+                "<h2 class='bw-card__title'>Custom header</h2></div>{% endblock %}"
+                "{% block body %}<p class='bw-card__body'>Body copy for the extends path.</p>{% endblock %}"
+            ).render(Context({"header_recipe": "muted", "elevation": "2"})),
+        )
+    )
+    return (
+        _CARD_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__CARD_SECTIONS__", "\n".join(sections))
+    )
+
+
 # chart-card-<theme>.html is a standalone (non-shell) page, mirroring
 # render_ranked_list's self-contained shape above: the component has no
 # dedicated demo page of its own yet, so the fixture EXTENDS the real
@@ -3977,6 +4262,9 @@ def main() -> None:
         # _trend_indicator (VIZ-017): the standalone partial extracted from
         # _stat.html, in a table cell and a scorecard, all three states
         _emit(OUT / f"trend-indicator-{theme}.html", render_trend_indicator(theme), written)
+        # _card appearance suite (#535): default, inverse header recipe,
+        # elevated surface, extends filler with root modifiers
+        _emit(OUT / f"card-{theme}.html", render_card(theme), written)
         # _chart_card (chart card work): populated (real bw_chart_mount tag,
         # title/actions/legend fills), legend_position="side", loading,
         # error and empty states, all on one page

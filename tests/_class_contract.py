@@ -62,10 +62,8 @@ UNSTYLED_BY_DESIGN: set[str] = {
     # _button.html's label span: the button's own background/padding/type
     # rules carry everything; the label is a plain inline text wrapper.
     "bw-btn__label",
-    # _card.html's body region (icvoss/django-brickwork#130's own precedent,
-    # documented in _card.html's docstring): the card's padding and the
-    # header/footer margins already open every edge's gap.
-    "bw-card__body",
+    # _card.html's body region now carries type/colour (appearance suite #535);
+    # previously an intentionally unstyled hook (icvoss/django-brickwork#130).
     "bw-dropdown__item-label",  # text leaf inside a styled flex row.
     "bw-dropzone__label",  # text leaf inside the styled dropzone surface.
     "bw-empty-state--no_data",  # variant carries no visual distinction (STA-002).

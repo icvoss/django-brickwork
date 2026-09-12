@@ -1804,9 +1804,10 @@ button.bw-account-menu__item {
    (AC-BW-072). An unfilled region emits no markup at the template, so a bare
    card is just this elevated surface (AC-BW-070). */
 .bw-card {
+  --bw-card-radius: var(--bw-radius-lg);
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  border-radius: var(--bw-radius-lg);
+  border-radius: var(--bw-card-radius);
   /* A grid item's default min-inline-size is auto (its content's intrinsic
    * width), not 0: without this, a card holding a wide child (a data table
    * scroll wrap) refuses to shrink below that content width and blows out
@@ -1828,6 +1829,71 @@ button.bw-account-menu__item {
 /* Flat-design variant (CMP-015): the hairline carries the boundary alone. */
 .bw-card--bordered {
   box-shadow: var(--bw-elevation-0);
+}
+/* Appearance suite (docs/APPEARANCE.md, #535): CSS-only surface / elevation /
+   radius. "default" / elevation "1" / radius "lg"|"default" emit no modifier. */
+.bw-card--radius-sm {
+  --bw-card-radius: var(--bw-radius-sm);
+}
+.bw-card--radius-xl {
+  --bw-card-radius: var(--bw-radius-xl);
+}
+.bw-card--radius-none {
+  --bw-card-radius: var(--bw-radius-none);
+}
+.bw-card--surface-raised {
+  background: var(--bw-color-surface-raised);
+}
+.bw-card--surface-tint {
+  background: var(--bw-color-surface-marketing-tint);
+}
+.bw-card--surface-inverse {
+  background: var(--bw-color-surface-inverse);
+  color: var(--bw-color-fg-on-inverse);
+  border-color: transparent;
+  /* Inverse fill sits under the top edge: drop the paper sheen so it does not
+     stripe across dark ink. Elevation modifiers below restore the ramp. */
+  box-shadow: var(--bw-elevation-1);
+}
+.bw-card--surface-muted {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-card--elevation-0 {
+  box-shadow: var(--bw-elevation-0);
+}
+.bw-card--elevation-2 {
+  box-shadow: var(--bw-elevation-2), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+}
+.bw-card--elevation-3 {
+  box-shadow: var(--bw-elevation-3), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+}
+/* Bleed header / media cover the top radius: same sheen drop as surface-inverse. */
+.bw-card--header-inverse,
+.bw-card--header-muted,
+.bw-card--header-accent,
+.bw-card--media-bleed {
+  box-shadow: var(--bw-elevation-1);
+}
+.bw-card--surface-inverse.bw-card--elevation-0,
+.bw-card--header-inverse.bw-card--elevation-0,
+.bw-card--header-muted.bw-card--elevation-0,
+.bw-card--header-accent.bw-card--elevation-0,
+.bw-card--media-bleed.bw-card--elevation-0 {
+  box-shadow: var(--bw-elevation-0);
+}
+.bw-card--surface-inverse.bw-card--elevation-2,
+.bw-card--header-inverse.bw-card--elevation-2,
+.bw-card--header-muted.bw-card--elevation-2,
+.bw-card--header-accent.bw-card--elevation-2,
+.bw-card--media-bleed.bw-card--elevation-2 {
+  box-shadow: var(--bw-elevation-2);
+}
+.bw-card--surface-inverse.bw-card--elevation-3,
+.bw-card--header-inverse.bw-card--elevation-3,
+.bw-card--header-muted.bw-card--elevation-3,
+.bw-card--header-accent.bw-card--elevation-3,
+.bw-card--media-bleed.bw-card--elevation-3 {
+  box-shadow: var(--bw-elevation-3);
 }
 /* padding arg (04-interfaces): md restates the density default so an explicit
    padding="md" and the bare card always agree. */
@@ -1868,6 +1934,42 @@ a.bw-card {
   gap: var(--bw-space-3);
   margin-block-end: var(--bw-space-3);
 }
+/* Region recipes (#535): package-emitted and consumer-owned headers share
+   these treatments via .bw-card__header--* and .bw-card--header-* . */
+.bw-card__header--bordered,
+.bw-card--header-bordered .bw-card__header {
+  padding-block-end: var(--bw-space-3);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+.bw-card__header--muted,
+.bw-card--header-muted .bw-card__header {
+  margin: calc(-1 * var(--bw-density-card-padding));
+  margin-block-end: var(--bw-space-3);
+  padding: var(--bw-density-card-padding);
+  background: var(--bw-color-surface-sunken);
+  border-start-start-radius: var(--bw-card-radius);
+  border-start-end-radius: var(--bw-card-radius);
+}
+.bw-card__header--inverse,
+.bw-card--header-inverse .bw-card__header {
+  margin: calc(-1 * var(--bw-density-card-padding));
+  margin-block-end: var(--bw-space-3);
+  padding: var(--bw-density-card-padding);
+  background: var(--bw-color-surface-inverse);
+  color: var(--bw-color-fg-on-inverse);
+  border-start-start-radius: var(--bw-card-radius);
+  border-start-end-radius: var(--bw-card-radius);
+}
+.bw-card__header--accent,
+.bw-card--header-accent .bw-card__header {
+  margin: calc(-1 * var(--bw-density-card-padding));
+  margin-block-end: var(--bw-space-3);
+  padding: var(--bw-density-card-padding);
+  background: var(--bw-color-accent-subtle);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-accent);
+  border-start-start-radius: var(--bw-card-radius);
+  border-start-end-radius: var(--bw-card-radius);
+}
 /* Card titles speak in the heading-md role (DESIGN.md 7.4 component map). */
 .bw-card__title {
   margin: 0;
@@ -1876,10 +1978,68 @@ a.bw-card {
   font-weight: var(--bw-text-heading-md-weight);
   line-height: var(--bw-text-heading-md-line-height);
 }
+.bw-card__header--inverse .bw-card__title,
+.bw-card--header-inverse .bw-card__title {
+  color: var(--bw-color-fg-on-inverse);
+}
+/* Plain include-path body string (APPEARANCE.md): escaped text, not rich HTML. */
+.bw-card__body {
+  margin: 0;
+  color: var(--bw-color-fg);
+  font-size: var(--bw-text-body-md-size);
+  font-weight: var(--bw-text-body-md-weight);
+  line-height: var(--bw-text-body-md-line-height);
+}
+.bw-card__title + .bw-card__body,
+.bw-card__header + .bw-card__body,
+.bw-card__media + .bw-card__body,
+.bw-card__media + .bw-card__header,
+.bw-card__media + .bw-card__title {
+  margin-block-start: var(--bw-space-3);
+}
 .bw-card__actions {
   display: flex;
   align-items: center;
   gap: var(--bw-space-2);
+  flex-shrink: 0;
+}
+/* Media recipes (#535): bleed covers the top edge; inset sits inside padding;
+   icon is a quiet emblem band. */
+.bw-card__media {
+  overflow: hidden;
+}
+.bw-card__media img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  object-fit: cover;
+  aspect-ratio: 16 / 9;
+}
+.bw-card__media--bleed,
+.bw-card--media-bleed .bw-card__media {
+  margin: calc(-1 * var(--bw-density-card-padding));
+  margin-block-end: 0;
+  border-start-start-radius: var(--bw-card-radius);
+  border-start-end-radius: var(--bw-card-radius);
+}
+.bw-card__media--inset,
+.bw-card--media-inset .bw-card__media {
+  border-radius: var(--bw-radius-md);
+}
+.bw-card__media--inset img,
+.bw-card--media-inset .bw-card__media img {
+  border-radius: var(--bw-radius-md);
+}
+.bw-card__media--icon,
+.bw-card--media-icon .bw-card__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: var(--bw-radius-md);
+  background: var(--bw-color-accent-subtle);
+  color: var(--bw-color-accent);
 }
 /* The footer is a quiet caption band under a hairline, matching the sidebar
    footer's divider treatment. */
@@ -1891,6 +2051,28 @@ a.bw-card {
   font-size: var(--bw-text-caption-size);
   font-weight: var(--bw-text-caption-weight);
   line-height: var(--bw-text-caption-line-height);
+}
+.bw-card__footer--muted,
+.bw-card--footer-muted .bw-card__footer {
+  margin-inline: calc(-1 * var(--bw-density-card-padding));
+  margin-block-end: calc(-1 * var(--bw-density-card-padding));
+  padding: var(--bw-space-3) var(--bw-density-card-padding);
+  background: var(--bw-color-surface-sunken);
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-end-start-radius: var(--bw-card-radius);
+  border-end-end-radius: var(--bw-card-radius);
+}
+.bw-card__footer--actions,
+.bw-card--footer-actions .bw-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--bw-space-2);
+  color: var(--bw-color-fg);
+  font-size: var(--bw-text-body-md-size);
+  font-weight: var(--bw-text-body-md-weight);
+  line-height: var(--bw-text-body-md-line-height);
 }
 
 /* --- Stat tile (VIZ-001/002, 0.5.0) ----------------------------------------- */
@@ -4798,8 +4980,15 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 [data-theme="dark"] .bw-data-table-wrap {
   box-shadow: var(--bw-elevation-1);
 }
-[data-theme="dark"] .bw-card--bordered {
+[data-theme="dark"] .bw-card--bordered,
+[data-theme="dark"] .bw-card--elevation-0 {
   box-shadow: var(--bw-elevation-0);
+}
+[data-theme="dark"] .bw-card--elevation-2 {
+  box-shadow: var(--bw-elevation-2);
+}
+[data-theme="dark"] .bw-card--elevation-3 {
+  box-shadow: var(--bw-elevation-3);
 }
 [data-theme="dark"] .bw-card--interactive:hover,
 [data-theme="dark"] .bw-card--interactive:focus-within {

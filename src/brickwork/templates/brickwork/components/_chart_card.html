@@ -3,9 +3,11 @@
 {% comment %}
 Chart card (CHT-001/002/008/009/010): the card chrome around a consumer's own
 charting engine. EXTENDS _card.html rather than reinventing elevation, radius,
-density padding or href handling: an extending template that fills only body
-renders exactly the base card's chrome, and an unfilled region emits nothing
-(verified against _card.html's own contract). Consumed via {% include %},
+density padding, href handling, or appearance axes (surface / elevation /
+header_recipe / footer_recipe from docs/APPEARANCE.md): an extending template
+that fills only body renders exactly the base card's chrome, and an unfilled
+region emits nothing (verified against _card.html's own contract). Pass those
+kwargs through the include so root modifiers apply. Consumed via {% include %},
 matching _card.html and _ranked_list.html's own structural convention, never a
 tag: geometry here is a fixed box, not a Python computation, so there is
 nothing a tag would validate that an include cannot already carry.
