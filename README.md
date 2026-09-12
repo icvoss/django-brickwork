@@ -1,16 +1,21 @@
 # brickwork
 
 **Building blocks for beautiful apps and websites.** Brickwork supplies
-reusable tokens, components and shells, with 55 examples (27 archetype pages,
-28 sections; a 56th file, `base.html`, is a copied document skeleton).
-55 of the 56 files add no CSS. The date range picker uses existing `--bw-*`
-tokens in its own scoped CSS because the package has no maintained date picker
-component (see [Example pages](#example-pages)).
+reusable tokens, components and shells whose package defaults aim at finished
+interfaces on the jobs in [docs/VISUAL-BAR.md](docs/VISUAL-BAR.md), evidenced
+by the independent rendered pass
+[docs/audits/2026-09-12-visual-bar-signoff-pass.md](docs/audits/2026-09-12-visual-bar-signoff-pass.md).
+That pass is not a house aesthetic, does not name competitors as brickwork's
+identity, and does not claim examples alone proved beauty. Brickwork ships 55
+examples (27 archetype pages, 28 sections; a 56th file, `base.html`, is a
+copied document skeleton). 55 of the 56 files add no CSS. The date range
+picker uses existing `--bw-*` tokens in its own scoped CSS because the package
+has no maintained date picker component (see [Example pages](#example-pages)).
 
-Read and render the examples to assess what they offer. Their composition and
-accessibility checks establish specific implementation properties; visual
-quality also depends on content, hierarchy, spacing, typography and responsive
-composition. Consumers own those choices in their finished pages.
+Read and render the examples to assess composition. Accessibility checks
+establish specific implementation properties. Visual quality also depends on
+content, hierarchy, spacing, typography and responsive composition; consumers
+own those choices in their finished pages.
 
 A brand-agnostic interface foundation for server-rendered Django, on the
 ecosystem stack: Tailwind 4 (CSS-first), Alpine 3, HTMX 2, Django 6.0.
