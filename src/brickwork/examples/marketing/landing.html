@@ -40,8 +40,8 @@ Accessibility: inherits shell/marketing.html's skip link and header/footer
 Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
   fluid header wrap and content-column cap. Each composed section carries
   whatever responsive behaviour its own header documents (feature grid: 1/2/3
-  columns at sm/lg; the footer groups use that existing 1/2-column marketing
-  arrangement; the rest: fluid, no named breakpoint).
+  columns at sm/lg; footer groups: 1 then 2 columns via
+  .bw-marketing-footer__groups; the rest: fluid, no named breakpoint).
 {% endcomment %}
 {% load brickwork_components %}
 
@@ -126,19 +126,19 @@ your branch, not a package feature. Note Django's logout is POST-only.
 {% block marketing_footer %}
   {% comment %}
   Your own footer link groups. The shell supplies only the footer landmark and
-  its container. Use the existing marketing grid and vertical feature-card
-  composition here: it is one column on narrow screens and two once each group
-  has room. The links and their grouping remain your site-map decision.
+  its container. Use .bw-marketing-footer__groups / __group / __group-heading
+  so groups stack on narrow screens and form two columns from the sm
+  breakpoint, without feature-card elevation. The links remain your site map.
   {% endcomment %}
-  <div class="bw-feature-grid bw-feature-grid--2">
-  <nav class="bw-feature-card" aria-labelledby="footer-product-heading">
-    <h2 class="bw-feature-card__heading" id="footer-product-heading">Product</h2>
+  <div class="bw-marketing-footer__groups">
+  <nav class="bw-marketing-footer__group" aria-labelledby="footer-product-heading">
+    <h2 class="bw-marketing-footer__group-heading" id="footer-product-heading">Product</h2>
     <a href="/features/">Features</a>
     <a href="/pricing/">Pricing</a>
     <a href="/changelog/">Changelog</a>
   </nav>
-  <nav class="bw-feature-card" aria-labelledby="footer-company-heading">
-    <h2 class="bw-feature-card__heading" id="footer-company-heading">Company</h2>
+  <nav class="bw-marketing-footer__group" aria-labelledby="footer-company-heading">
+    <h2 class="bw-marketing-footer__group-heading" id="footer-company-heading">Company</h2>
     <a href="/about/">About</a>
     <a href="/careers/">Careers</a>
     <a href="/contact/">Contact</a>

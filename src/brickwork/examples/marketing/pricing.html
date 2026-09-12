@@ -102,17 +102,19 @@ the toggle as a sibling of the nav via marketing_nav_region.
 {% endblock %}
 
 {% block marketing_footer %}
-  <div>
-    <h2>Product</h2>
+  <div class="bw-marketing-footer__groups">
+  <nav class="bw-marketing-footer__group" aria-labelledby="footer-product-heading">
+    <h2 class="bw-marketing-footer__group-heading" id="footer-product-heading">Product</h2>
     <a href="/features/">Features</a>
     <a href="/pricing/">Pricing</a>
     <a href="/changelog/">Changelog</a>
-  </div>
-  <div>
-    <h2>Company</h2>
+  </nav>
+  <nav class="bw-marketing-footer__group" aria-labelledby="footer-company-heading">
+    <h2 class="bw-marketing-footer__group-heading" id="footer-company-heading">Company</h2>
     <a href="/about/">About</a>
     <a href="/careers/">Careers</a>
     <a href="/contact/">Contact</a>
+  </nav>
   </div>
 {% endblock %}
 

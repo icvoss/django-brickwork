@@ -370,6 +370,38 @@
   padding-block: var(--bw-space-8) var(--bw-space-4);
 }
 
+/* Footer link groups (#500): responsive columns without elevated card chrome.
+ * Distinct from .bw-feature-grid > .bw-feature-card (those cards are for
+ * feature bands). The shell still ships an empty marketing_footer slot;
+ * these classes are the authored-example vocabulary consumers may copy. */
+.bw-marketing-footer__groups {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--bw-space-6);
+}
+
+@media (width >= --theme(--breakpoint-sm)) {
+  .bw-marketing-footer__groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.bw-marketing-footer__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  align-items: flex-start;
+}
+
+.bw-marketing-footer__group-heading {
+  margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+  color: var(--bw-color-fg);
+}
+
 /* A consumer's marketing_footer block content is arbitrary markup. The shell
  * supplies no default link groups or column arrangement, but any plain <a>
  * a consumer authors in the slot is styled like a header-nav link rather than
