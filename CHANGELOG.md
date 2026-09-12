@@ -8,30 +8,6 @@ versioning contract).
 
 ## Unreleased
 
-### Added
-
-- **Appearance grammar** (icvoss/django-brickwork#534): `docs/APPEARANCE.md`,
-  `brickwork.appearance` closed vocabularies, and `{% bw_options %}` so
-  include-consumed components raise `TemplateSyntaxError` on an unknown
-  surface / elevation / size / header_recipe / footer_recipe / band / width
-  value.
-- **Card appearance pilot** (icvoss/django-brickwork#535): `_card.html` is the
-  finished appearance contract: closed `surface`, `elevation`, `size`,
-  `radius`, `header_recipe`, `footer_recipe`, and `media_recipe`; include-path
-  `title` / `body` / `caption` / `action_label` / `action_href` / `media_src` /
-  `media_alt` / `media_icon`; `{% block media %}` for rich media. Bleed header
-  / media recipes and `surface=inverse` drop the light-theme paper sheen so it
-  does not stripe across dark fills. `.bw-card__body` now carries type and
-  colour (no longer an unstyled positioning hook). Defaults keep hairline,
-  radius-lg, elevation-1 and the light-theme sheen with no kwargs.
-  `chart_card` inherits the same root modifiers via `_card.html`. No further
-  card appearance axes are planned.
-
-### Changed
-
-- **Card `size=` is validated** through `{% bw_options %}`. An unknown size
-  that previously emitted a dead modifier class now raises at render time.
-
 ## [3.19.1] - 2026-09-12
 
 **Substrate-ready honesty and first listing specimens.** Public README Example

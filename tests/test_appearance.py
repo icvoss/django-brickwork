@@ -74,10 +74,10 @@ def test_bw_options_tag_is_quiet_when_valid() -> None:
 
 
 def test_shared_vocabularies_match_appearance_doc_table() -> None:
-    assert SURFACES == frozenset({"default", "raised", "tint", "inverse", "muted"})
-    assert ELEVATIONS == frozenset({"0", "1", "2", "3"})
-    assert SIZES == frozenset({"sm", "md", "lg"})
-    assert RADII == frozenset({"default", "sm", "lg", "xl", "none"})
-    assert HEADER_RECIPES == frozenset({"none", "plain", "bordered", "muted", "inverse", "accent"})
-    assert FOOTER_RECIPES == frozenset({"none", "plain", "muted", "actions"})
-    assert MEDIA_RECIPES == frozenset({"none", "bleed", "inset", "icon"})
+    assert frozenset({"default", "raised", "tint", "inverse", "muted"}) == SURFACES
+    assert frozenset({"0", "1", "2", "3"}) == ELEVATIONS
+    assert frozenset({"sm", "md", "lg"}) == SIZES
+    assert frozenset({"default", "sm", "lg", "xl", "none"}) == RADII
+    assert frozenset({"none", "plain", "bordered", "muted", "inverse", "accent"}) == HEADER_RECIPES
+    assert frozenset({"none", "plain", "muted", "actions"}) == FOOTER_RECIPES
+    assert frozenset({"none", "bleed", "inset", "icon"}) == MEDIA_RECIPES
