@@ -498,6 +498,7 @@
     {
       "name": "media",
       "declaredIn": [
+        "brickwork/components/_card.html",
         "brickwork_marketing/components/_hero.html"
       ],
       "consumption": [

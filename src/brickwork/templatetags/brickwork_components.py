@@ -24,6 +24,8 @@ from django.utils.html import conditional_escape, escape, format_html
 from django.utils.safestring import SafeData, SafeString, mark_safe
 from django.utils.translation import gettext
 
+from brickwork.appearance import validate_options
+
 register = template.Library()
 
 
@@ -353,6 +355,37 @@ def bw_require(context: template.Context, **required: object) -> SafeString:
         "(This check only renders when DEBUG is on.)"
     )
     return mark_safe(f"<script data-bw-require-warn>console.warn({json.dumps(message)});</script>")
+
+
+@register.simple_tag(takes_context=True)
+def bw_options(context: template.Context, **options: object) -> SafeString:
+    """Validate closed appearance options on include-only templates (#534).
+
+    Place after ``{% load brickwork_components %}``::
+
+        {% bw_options surface=surface elevation=elevation header_recipe=header_recipe %}
+
+    Raises ``TemplateSyntaxError`` when a supplied value is outside the shared
+    vocabulary in ``brickwork.appearance``. Omitted values are skipped.
+    Emits no markup. The optional ``component=`` kwarg names the caller in
+    error messages (defaults to the current template name).
+    """
+    component = options.pop("component", None)
+    if _is_omitted_appearance(component):
+        template_obj = getattr(context, "template", None)
+        component_name = getattr(template_obj, "name", None) or "component"
+    else:
+        component_name = str(component)
+    validate_options(component=component_name, **options)
+    return mark_safe("")
+
+
+def _is_omitted_appearance(value: object) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return not value.strip()
+    return False
 
 
 @register.simple_tag

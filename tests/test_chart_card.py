@@ -600,3 +600,16 @@ def test_a_non_str_value_renders_its_string_form_rather_than_raising(field: str)
     out_lazy = bw_chart_mount(**{field: gettext_lazy("Revenue")})
     attrs_lazy = _parsed_div_attrs(out_lazy)
     assert attrs_lazy[field.replace("_", "-")] == "Revenue"
+
+
+def test_chart_card_inherits_card_appearance_axes() -> None:
+    """Appearance kwargs pass through to the base card root (#535)."""
+    out = _extend(
+        '{% block title %}<h2 class="bw-card__title">Revenue</h2>{% endblock %}',
+        surface="raised",
+        elevation="2",
+        header_recipe="muted",
+    )
+    assert "bw-card--surface-raised" in out
+    assert "bw-card--elevation-2" in out
+    assert "bw-card--header-muted" in out

@@ -796,7 +796,6 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
         **({"align": value} if value in {"start", "center", "end"} else {"media_placement": value}),
     ),
     "_alert": lambda value: _tag("brickwork_components", f'{{% bw_alert "Message" variant="{value}" %}}'),
-    "_card": lambda value: _include("brickwork/components/_card.html", size=value),
     "_account_menu": lambda value: _include(
         "brickwork/components/_account_menu.html", items=_ACCOUNT_MENU_ITEMS, placement=value
     ),
@@ -846,6 +845,30 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
 }
 
 for _component, _option, _value, _css_class in _VOCABULARIES:
+    if _component == "_card":
+        # Pass the option name: surface/elevation/size/radius/header_recipe/
+        # footer_recipe/media_recipe share value spellings, so size=value alone
+        # mis-binds (and raises). title + caption + media extras so region
+        # recipes emit the element modifiers the vocabulary rows name.
+        _extra: dict[str, object] = {
+            "title": "Members",
+            "caption": "Updated today",
+            "body": "Body copy.",
+        }
+        if _option == "media_recipe":
+            if _value == "icon":
+                _extra["media_icon"] = "users"
+            else:
+                _extra["media_src"] = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E"
+                _extra["media_alt"] = ""
+        _COMPONENT_RENDERS[f"{_component} {_option}={_value!r} (vocabulary)"] = (
+            lambda option=_option, value=_value, extra=_extra: _include(
+                "brickwork/components/_card.html",
+                **extra,
+                **{option: value},
+            )
+        )
+        continue
     _builder = _VOCABULARY_CONTEXTS.get(_component)
     if _builder is None:
         continue  # covered directly above with a fixed value already

@@ -17,7 +17,9 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import pytest
 from django.template import Context, Template
+from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 
 _ROOT = Path(__file__).resolve().parent.parent
@@ -263,3 +265,144 @@ def test_card_title_deprecated_block_does_not_gain_a_context_passthrough() -> No
     # discarded, exactly as it was before this fix.
     out = _render(card_title="Should not appear")
     assert "Should not appear" not in out
+
+
+# --- Appearance suite (icvoss/django-brickwork#535) -------------------------
+
+
+def test_surface_and_elevation_emit_root_modifiers() -> None:
+    out = _render(surface="inverse", elevation="2")
+    assert "bw-card--surface-inverse" in out
+    assert "bw-card--elevation-2" in out
+
+
+def test_default_surface_and_elevation_one_emit_no_modifier() -> None:
+    out = _render(surface="default", elevation="1")
+    assert "bw-card--surface-" not in out
+    assert "bw-card--elevation-" not in out
+    assert "bw-card" in out
+
+
+def test_body_string_emits_paragraph() -> None:
+    out = _render(title="Members", body="Twelve active seats.")
+    assert '<p class="bw-card__body">Twelve active seats.</p>' in out
+    assert "bw-card__title" in out
+
+
+def test_header_recipe_with_title_emits_package_chrome() -> None:
+    out = _render(title="Members", header_recipe="inverse")
+    assert 'class="bw-card__header bw-card__header--inverse"' in out
+    assert '<h2 class="bw-card__title">Members</h2>' in out
+    assert "bw-card--header-inverse" in out
+    # Title is inside the header recipe, not duplicated as a bare title.
+    assert out.count("bw-card__title") == 1
+
+
+def test_header_recipe_plain_emits_chrome_without_treatment_class() -> None:
+    out = _render(title="Members", header_recipe="plain")
+    assert 'class="bw-card__header"' in out
+    assert "bw-card__header--" not in out
+    assert "bw-card--header-" not in out
+    assert "Members" in out
+
+
+def test_footer_recipe_with_caption_emits_package_chrome() -> None:
+    out = _render(footer_recipe="actions", caption="Save changes")
+    assert 'class="bw-card__footer bw-card__footer--actions"' in out
+    assert "Save changes" in out
+    assert "bw-card--footer-actions" in out
+
+
+def test_footer_recipe_without_caption_emits_no_empty_footer() -> None:
+    out = _render(footer_recipe="muted")
+    assert "bw-card__footer" not in out
+    assert "bw-card--footer-muted" in out
+
+
+def test_radius_emits_root_modifier() -> None:
+    out = _render(radius="xl")
+    assert "bw-card--radius-xl" in out
+    assert "bw-card--radius-lg" not in _render(radius="lg")
+    assert "bw-card--radius-" not in _render(radius="default")
+
+
+def test_media_bleed_emits_image_chrome() -> None:
+    out = _render(
+        title="Studio",
+        media_recipe="bleed",
+        media_src="https://example.test/hero.jpg",
+        media_alt="",
+    )
+    assert "bw-card--media-bleed" in out
+    assert 'class="bw-card__media bw-card__media--bleed"' in out
+    assert 'src="https://example.test/hero.jpg"' in out
+
+
+def test_media_icon_emits_icon_chrome() -> None:
+    out = _render(title="Team", media_recipe="icon", media_icon="users")
+    assert "bw-card--media-icon" in out
+    assert "bw-card__media--icon" in out
+    assert "bw-icon" in out
+
+
+def test_header_action_emits_ghost_button() -> None:
+    out = _render(
+        title="Workspace",
+        header_recipe="bordered",
+        action_label="Edit",
+        action_href="/edit/",
+    )
+    assert "bw-card__actions" in out
+    assert "Edit" in out
+    assert 'href="/edit/"' in out
+
+
+def test_header_action_suppressed_on_linked_card() -> None:
+    out = _render(
+        title="Invoice",
+        href="/invoices/1/",
+        action_label="Edit",
+        action_href="/edit/",
+    )
+    assert "bw-card__actions" not in out
+    assert "Edit" not in out
+    assert 'href="/invoices/1/"' in out
+
+
+def test_unknown_surface_raises() -> None:
+    with pytest.raises(TemplateSyntaxError, match="surface"):
+        _render(surface="neon")
+
+
+def test_unknown_header_recipe_raises() -> None:
+    with pytest.raises(TemplateSyntaxError, match="header_recipe"):
+        _render(header_recipe="dark")
+
+
+def test_block_header_wins_over_recipe_default() -> None:
+    out = _extend(
+        '{% block header %}<div class="bw-card__header">Custom</div>{% endblock %}',
+        title="Should lose",
+        header_recipe="inverse",
+    )
+    assert "Custom" in out
+    assert "Should lose" not in out
+    assert "bw-card--header-inverse" in out
+
+
+def test_extends_filler_receives_surface_elevation_from_include_context() -> None:
+    out = _extend("{% block body %}<p>Body</p>{% endblock %}", surface="raised", elevation="3")
+    assert "bw-card--surface-raised" in out
+    assert "bw-card--elevation-3" in out
+    assert "<p>Body</p>" in out
+
+
+def test_beautiful_default_bare_card_still_has_hairline_radius_and_elevation_sheen() -> None:
+    rules = _css_rules(_frontend_css())
+    base = [body for sel, body in rules if sel.strip() == ".bw-card"]
+    assert base, "missing .bw-card rule"
+    body = base[0]
+    assert "var(--bw-elevation-1)" in body
+    assert "var(--bw-radius-lg)" in body
+    assert "var(--bw-color-border)" in body
+    assert "inset 0 1px 0 0" in body
