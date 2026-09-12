@@ -8,31 +8,32 @@ versioning contract).
 
 ## Unreleased
 
+## [3.19.0] - 2026-09-12
+
+**This release ships the visual-compete wave through independent sign-off.**
+Phases 3 to 5 raise package-default craft (marketing section cadence, display
+serif pairing, weighted dashboard), Phase 2 makes theme and brand attribute
+failures loud, Phase 4 adds the proof harness (including a northline brand
+leg), and Phase 5 remediates the substrate misses that blocked the bar
+(mobile chrome, textarea height, column align, docs jump link, fixtures, S8
+dense-list). Independent re-sign is PASS against VISUAL-BAR section 6
+(`docs/audits/2026-09-12-visual-bar-signoff-pass.md`); beauty claim language
+is restored only as an evidenced aim citing that audit, with no house
+aesthetic and no competitor names in public copy.
+
+**Behaviour changes for existing consumers.** Marketing
+`--bw-component-section-gap-marketing` moves from 4rem to 6rem. Package
+`--bw-font-family-display` no longer aliases sans. Feature-grid cards gain
+hairline, elevation and padding. The app shell's default mobile drawer
+trigger paints a menu icon when the block is left empty. `textarea.bw-input`
+uses auto block-size instead of a fixed single-line control height.
+`_data_table` columns accept optional `align`. `resolve_theme_attributes`
+raises `ImproperlyConfigured` on a non-str resolver value instead of
+silently dropping the key. `render_brand_css` with `validate=True` already
+raised on a non-oklch accent for focus-ring derivation; that path is now
+named in regression coverage and the CHANGELOG.
+
 ### Added
-
-- **DEBUG required-context warnings for include-only components**
-  (icvoss/django-brickwork#482). New `{% bw_require %}` tag: when `bw_debug`
-  is on and a named value is missing or empty, emit a `console.warn` naming
-  the template and keys. Never raises; production emits nothing. Wired into
-  `_page_header.html` (`title`) and `_empty_state.html` (`body`, plus
-  `heading` except at `size="sm"`). INTEGRATION.md documents the pattern.
-
-- **Package-owned marketing mobile-nav toggle** (icvoss/django-brickwork#263).
-  `_mobile_nav_toggle.html` plus marketing.css collapse rules: include the
-  toggle as a sibling of the nav via `marketing_nav_region` (the seam that
-  shipped earlier) to hide nav/actions below `--bw-breakpoint-lg` until
-  opened, with no Alpine. Marketing a11y fixtures now compose the pattern;
-  INTEGRATION.md documents it. Closes the behaviour half of #263 under Wave
-  3 public-nav craft.
-
-- **DEBUG guard for a duplicated brickwork.css link** (icvoss/django-brickwork#271).
-  A second stylesheet link after a brand override silently reverts every
-  `--bw-*` token to package defaults. BRANDING.md now names the symptom,
-  mechanism and one-line `document.styleSheets` check, and records the
-  verdict: documentation plus a DEBUG-only console warning (no idempotent
-  include tag). The shell's existing `bw_js_registration_check` block emits
-  the warning beside the Alpine registration detector; production still
-  ships no script. INTEGRATION.md and shell tests updated.
 
 - **Visual bar against leading Tailwind UI kits** (`docs/VISUAL-BAR.md`).
   Stamps an internal meet-or-beat panel (shadcn/ui, daisyUI, Flowbite,
@@ -50,6 +51,129 @@ versioning contract).
   `docs/examples/brand-pack/northline/` (not kiln). Preferred live specimen:
   icvoss/django-brickwork#268. Cross-linked from BRANDING.md, DESIGN.md,
   QUICKSTART.md, and the README docs index.
+
+- **Package-owned marketing mobile-nav toggle** (icvoss/django-brickwork#263).
+  `_mobile_nav_toggle.html` plus marketing.css collapse rules: include the
+  toggle as a sibling of the nav via `marketing_nav_region` (the seam that
+  shipped earlier) to hide nav/actions below `--bw-breakpoint-lg` until
+  opened, with no Alpine. Marketing a11y fixtures now compose the pattern;
+  INTEGRATION.md documents it. Closes the behaviour half of #263 under Wave
+  3 public-nav craft.
+
+- **DEBUG required-context warnings for include-only components**
+  (icvoss/django-brickwork#482). New `{% bw_require %}` tag: when `bw_debug`
+  is on and a named value is missing or empty, emit a `console.warn` naming
+  the template and keys. Never raises; production emits nothing. Wired into
+  `_page_header.html` (`title`) and `_empty_state.html` (`body`, plus
+  `heading` except at `size="sm"`). INTEGRATION.md documents the pattern.
+
+- **DEBUG guard for a duplicated brickwork.css link** (icvoss/django-brickwork#271).
+  A second stylesheet link after a brand override silently reverts every
+  `--bw-*` token to package defaults. BRANDING.md now names the symptom,
+  mechanism and one-line `document.styleSheets` check, and records the
+  verdict: documentation plus a DEBUG-only console warning (no idempotent
+  include tag). The shell's existing `bw_js_registration_check` block emits
+  the warning beside the Alpine registration detector; production still
+  ships no script. INTEGRATION.md and shell tests updated.
+
+- **`_data_table` column alignment vocabulary** (icvoss/django-brickwork#522).
+  Column dicts accept optional `align` of `start` (default), `center`, or
+  `end`, emitting matching `--center` / `--end` modifiers on header and body
+  cells. Invoice amount columns in the scorecard examples use `align: "end"`.
+
+- **Visual-bar harness supports a northline brand-pack leg** (Phase 4).
+  `VISUAL_BAR_BRAND=northline` (or `npm run visual-bar:fixtures:northline` /
+  `visual-bar:capture:northline`) appends the fictional northline
+  `tokens.css` after package CSS, sets `data-bw-brand`, and writes fixtures
+  and stills under distinct paths. Package-only
+  `visual-bar:fixtures` / `visual-bar:capture` remains the default proof
+  gallery. Docs: VISUAL-BAR section 5, `docs/audits/_stills/README.md`.
+
+### Changed
+
+- **Beauty claim restored as an evidenced aim after independent PASS**
+  (icvoss/django-brickwork#529). POSITIONING and README cite
+  `docs/audits/2026-09-12-visual-bar-signoff-pass.md`; they do not claim a
+  house aesthetic, name competitors as brickwork's identity, or treat
+  examples alone as proof.
+
+- **Scorecard examples are credible for VISUAL-BAR stills**
+  (icvoss/django-brickwork#509). App/ops examples ship a populated nav tree;
+  the invoice list filter bar has Search/Status fields; the invoice form uses
+  account/amount/due date/memo; marketing landing and pricing include the
+  package mobile-nav toggle; landing hero accepts beside media; the ops
+  analysis dashboard defaults the chart card to its designed empty state
+  instead of a blank mount.
+
+- **Marketing section cadence and feature surfaces** (icvoss/django-brickwork#510).
+  `--bw-component-section-gap-marketing` is 6rem (was 4rem); heroes gain more
+  block air; feature-grid cards pick up hairline, elevation and padding;
+  marketing stat bands use the marketing tint as a soft distinct act. Clean-room
+  on `--bw-*` only.
+
+- **Package-default display typography is a system serif pairing**
+  (icvoss/django-brickwork#511). `--bw-font-family-display` no longer aliases
+  sans; heading-display / heading-2xl / heading-xl read as a deliberate face
+  out of the box. Brands still override the token. Documented in DESIGN.md.
+
+- **App dashboard example uses a weighted scorecard** (icvoss/django-brickwork#512).
+  Overview no longer equalises four KPI tiles: revenue is the headline span,
+  supporting stats take one column, matching the ops analysis argument shape
+  on a simpler surface. `manage.py startsite` emits the same weighted context.
+
+- **Visual-bar S8 is the shipped dense list; scorecard tiles stack on phone**
+  (icvoss/django-brickwork#525). `VISUAL-BAR.md` section 3 and the fixture
+  harness now point S8 at `examples/ops/dense-list.html`. Below the app
+  breakpoint, `_scorecard` forces a single column and collapses spans so a
+  weighted tile cannot open an implicit second track.
+
+### Fixed
+
+- **`resolve_theme_attributes` raises on a non-str `theme_resolver` value**
+  (icvoss/django-brickwork#488). A resolver key whose value is not a `str`
+  (for example `{"theme": None}`) now raises `ImproperlyConfigured` naming
+  the axis and the invalid value, instead of silently dropping the key from
+  both the merge and `asserted_keys`. Omit the key to leave the default in
+  place; missing and invalid remain distinguishable.
+
+- **Non-oklch accent no longer silently skips focus-ring derivation**
+  (icvoss/django-brickwork#489). With `validate=True` (the default),
+  `render_brand_css` already raised `BrandValidationError` when
+  `--bw-color-accent` (or a focus-relevant surface) was hex/rgb/hsl rather
+  than concrete `oklch()`; regression coverage now names that path
+  explicitly. `validate=False` still skips derivation by design.
+
+- **Marketing mobile nav toggle shows only one icon per state**
+  (icvoss/django-brickwork#519). Closed-state rules now use a compound
+  `:not([open])` selector so `.bw-icon`'s later `display: inline-block` cannot
+  restore the close glyph beside the menu icon.
+
+- **App shell phone drawer trigger paints a menu icon by default**
+  (icvoss/django-brickwork#520). `{% block mobile_nav_trigger %}` ships
+  `{% bw_icon "menu" %}` so a consumer who leaves the block empty still gets a
+  visible affordance, matching the marketing toggle's package-owned default.
+
+- **Textareas with `.bw-input` honour `rows=` instead of a fixed control height**
+  (icvoss/django-brickwork#521). `textarea.bw-input` uses `block-size: auto` and
+  a multi-line `min-block-size`, so a memo field no longer renders as a
+  single-line input. The scorecard form fixture also carries help text and a
+  bound error so the Forms axis is exercised.
+
+- **Docs shell section nav is reachable above the fold on phone**
+  (icvoss/django-brickwork#523). A sticky "Documentation menu" jump link (shown
+  below the layout breakpoint only) points at `#bw-docs-nav` without breaking
+  ADR-091 article-then-rail source order. The docs article example also fills
+  `docs_site_header` so the site chrome is no longer zero height.
+
+- **Scorecard fixtures are credible for density and assets**
+  (icvoss/django-brickwork#524). Logo cloud entries use inline SVG data URIs;
+  the landing hero panel uses `--bw-color-surface-raised`; feature, stat, FAQ
+  and table fixtures are populated to the shapes their components advertise.
+
+- **Detail example danger zone is a compact card, not a full-width red bar**
+  (icvoss/django-brickwork#526). The void action sits inside a bordered card
+  with explanation and a non-stretched danger button, instead of stacking a
+  warning alert and a grid-stretched button that repeated the same sentence.
 
 ## [3.18.0] - 2026-09-11
 
