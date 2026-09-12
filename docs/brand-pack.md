@@ -148,6 +148,13 @@ The skeleton includes:
 - `tokens.css` with a small light and dark override delta
 - `preview/README.md` pointing at the interim preview expectation and #268
 
+**Visual-bar Brandability leg:** the private scorecard harness can render
+S1 to S8 under this skeleton via `npm run visual-bar:fixtures:northline` and
+`npm run visual-bar:capture:northline` (see [VISUAL-BAR.md](VISUAL-BAR.md)
+section 5 and [audits/_stills/README.md](audits/_stills/README.md)). That
+proves the composition holds after the seven-token override; it is not a
+beauty certification and does not ship product identity from this package.
+
 ---
 
 ## Relationship to the theming mechanism

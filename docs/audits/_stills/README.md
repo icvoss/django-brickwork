@@ -4,23 +4,46 @@ Local PNG captures for the [VISUAL-BAR](../VISUAL-BAR.md) scorecard pass.
 This directory is **gitignored** except for this README. Do not commit
 screenshots, kit assets, or Forge stills here.
 
-## Generate and capture
+## Two-leg recipe
 
-From the package root (package-only CSS, no showcase brand):
+### Leg 1: package-only (package-default proof gallery)
+
+S1 to S8 with compiled `brickwork.css` only. No showcase, kiln, or brand
+pack. This **is** the package-default proof gallery named in VISUAL-BAR
+section 5.
 
 ```bash
 npm run visual-bar:fixtures
 npm run visual-bar:capture
 ```
 
-Optional date override for the output folder name:
+Output: `_stills/<date>/sN-<theme>-<1440|375>.png` plus `manifest.json`.
+
+### Leg 2: brand pack (northline skeleton)
+
+Same surfaces after appending
+`docs/examples/brand-pack/northline/tokens.css` and setting
+`data-bw-brand="northline"` on the html root. Fictional skeleton only; not
+kiln or a product identity.
+
+```bash
+npm run visual-bar:fixtures:northline
+npm run visual-bar:capture:northline
+```
+
+Output: `_stills/<date>-northline/` (or an explicit
+`VISUAL_BAR_STILLS_DATE=...` folder name) plus `manifest.json` with
+`"brand": "northline"`.
+
+Optional date override for either leg:
 
 ```bash
 VISUAL_BAR_STILLS_DATE=2026-09-11 npm run visual-bar:capture
+VISUAL_BAR_STILLS_DATE=2026-09-12-northline npm run visual-bar:capture:northline
 ```
 
-Output layout: `_stills/<date>/sN-<theme>-<1440|375>.png` plus a
-`manifest.json` for that run.
+Fixtures for leg 2 land under `a11y/fixtures/visual-bar-northline/` (also
+gitignored). Both legs honour `VISUAL_BAR_BRAND` (empty = package-only).
 
 ## Surfaces
 
@@ -35,3 +58,5 @@ examples Engine (ADR-056).
   "finished"; they do not lead a scorecard row.
 - Fixture defects first; do not file substrate fails for thin examples.
 - Never paste kit markup, class strings, or structure into the package.
+- Brandability is judged on leg 2 (composition holds under the seven-token
+  override); do not score kiln preference as a package win or loss.

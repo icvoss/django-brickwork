@@ -164,14 +164,27 @@ Store completed scorecards under `docs/audits/` with a dated filename, e.g.
 `docs/audits/2026-09-11-visual-bar-scorecard.md`. Link the latest pass from
 this section when one exists.
 
-**Latest completed pass:** none yet (section 6 not met). Phase 1 rendered
-(package-only CSS; brand pack deferred):
-[audits/2026-09-11-visual-bar-scorecard.md](audits/2026-09-11-visual-bar-scorecard.md).
+**Latest completed pass:** none yet (section 6 not met; Phase 5 independent
+sign-off). Intermediate rendered notes:
+[audits/2026-09-11-visual-bar-scorecard.md](audits/2026-09-11-visual-bar-scorecard.md)
+(Phase 1 package-only),
+[audits/2026-09-12-visual-bar-scorecard-phase3.md](audits/2026-09-12-visual-bar-scorecard-phase3.md)
+(Phase 3 craft),
+[audits/2026-09-12-visual-bar-brand-northline.md](audits/2026-09-12-visual-bar-brand-northline.md)
+(Phase 4.3 Brandability under northline).
 
-**Render harness (Phase 1.1):** package-only fixtures and private stills via
-`npm run visual-bar:fixtures` then `npm run visual-bar:capture`. Stills land
+**Package-default proof gallery (Phase 4.2):** `npm run visual-bar:fixtures`
+then `npm run visual-bar:capture` **is** the package-default proof gallery for
+S1 to S8. It uses package-only CSS (compiled `brickwork.css` inlined). It does
+**not** apply showcase, kiln, or any product identity. Private stills land
 under [audits/_stills/](audits/_stills/) (gitignored PNGs; README only
 committed). Not a CI gate.
+
+**Brand pack second leg (Phase 4.3):** `npm run visual-bar:fixtures:northline`
+then `npm run visual-bar:capture:northline` reuses the same S1 to S8 map with
+the fictional northline skeleton (`docs/examples/brand-pack/northline/`).
+Stills land under `_stills/<date>-northline/`. See
+[audits/_stills/README.md](audits/_stills/README.md) for the two-leg recipe.
 
 ---
 
@@ -188,6 +201,11 @@ This bar is met for a release train when:
    substrate reasons.  
 4. Public copy still does not claim a house aesthetic or name competitors as
    brickwork's identity (`POSITIONING.md` sections 3, 9, 10).
+
+**Prep note (Phase 4):** the package-default gallery and northline brand-leg
+harness exist (section 5). Filling **Latest completed pass** and declaring
+section 6 met remains Phase 5 independent sign-off; do not treat Phase 4
+stills alone as programme completion.
 
 Workspace rule (separate from this file): our Django projects that ship
 hand-built template UI standardise on brickwork so pins receive substrate
