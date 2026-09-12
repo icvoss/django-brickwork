@@ -49,9 +49,7 @@ def test_bw_form_textarea_keeps_bw_input_and_rows() -> None:
 def test_docs_article_example_fills_site_header() -> None:
     from tests.test_examples import _EXAMPLE_CONTEXTS, _example_engine
 
-    html = _example_engine().get_template("docs/article.html").render(
-        Context(_EXAMPLE_CONTEXTS["docs/article.html"])
-    )
+    html = _example_engine().get_template("docs/article.html").render(Context(_EXAMPLE_CONTEXTS["docs/article.html"]))
     assert "bw-docs-site-header" in html
     assert "Northwind docs" in html
 
