@@ -1257,13 +1257,18 @@ def test_testimonial_root_carries_no_blanket_margin_reset() -> None:
     # `.bw-marketing__content > * + *` section-gap rule and, sitting later in
     # source order, won the tie, permanently zeroing the gap above any composed
     # testimonial. The class-specificity rule must not touch block margins.
+    #
+    # The Vite/Lightning pass may split one authored rule into several (a
+    # color-mix border falls behind @supports, with the rest of the
+    # declarations in a sibling .bw-testimonial block), so assert across every
+    # bare .bw-testimonial declaration block rather than the first match alone.
     css = (_DIST / "brickwork.css").read_text()
-    rule = re.search(r"\.bw-testimonial\{([^}]*)\}", css)
-    assert rule is not None, "expected a .bw-testimonial rule in dist/brickwork.css"
-    body = rule.group(1).replace(" ", "")
-    assert "margin:0" not in body, "blanket margin reset regressed (#86)"
-    assert "margin-block" not in body
-    assert "margin-inline:auto" in body
+    bodies = re.findall(r"(?<![-\w])\.bw-testimonial\{([^}]*)\}", css)
+    assert bodies, "expected a .bw-testimonial rule in dist/brickwork.css"
+    combined = "".join(bodies).replace(" ", "")
+    assert "margin:0" not in combined, "blanket margin reset regressed (#86)"
+    assert "margin-block" not in combined
+    assert "margin-inline:auto" in combined
 
 
 def test_testimonial_ua_figure_margins_neutralised_at_zero_specificity() -> None:
@@ -1447,3 +1452,47 @@ def test_hero_align_end_has_a_css_rule() -> None:
     # class before now (#120's mirror case for the hero).
     css = (_DIST / "brickwork.css").read_text()
     assert ".bw-hero--end{" in css.replace(" ", "")
+
+
+# --- Phase A.2: zero-kwargs marketing craft on white canvas (#541) ------------
+
+_FRONTEND = Path(__file__).resolve().parent.parent / "frontend" / "src"
+
+
+def _marketing_css_rules() -> list[tuple[str, str]]:
+    """(selector, declarations) from authored marketing.css; comments stripped."""
+    css = re.sub(r"/\*.*?\*/", "", (_FRONTEND / "marketing.css").read_text(encoding="utf-8"), flags=re.S)
+    return [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
+
+
+def _rule_body(rules: list[tuple[str, str]], selector: str) -> str:
+    matches = [body for sel, body in rules if sel.strip() == selector]
+    assert matches, f"missing {selector} rule in frontend/src/marketing.css"
+    return matches[0]
+
+
+def test_beautiful_default_marketing_surfaces_have_fg_mix_edge_and_ambient() -> None:
+    # Mirror test_card.test_beautiful_default_bare_card_*: feature-grid cards,
+    # testimonials and pricing tiers share the card's fg-mix hairline and soft
+    # ambient under elevation-1 so zero-kwargs marketing reads on white.
+    rules = _marketing_css_rules()
+    for selector in (
+        ".bw-feature-grid > .bw-feature-card",
+        ".bw-testimonial",
+        ".bw-pricing-tier",
+    ):
+        body = _rule_body(rules, selector)
+        assert "color-mix(in oklab, var(--bw-color-fg)" in body
+        assert "var(--bw-elevation-1)" in body
+        assert "0 4px 14px -4px" in body
+
+    highlighted = _rule_body(rules, ".bw-pricing-tier--highlighted")
+    assert "var(--bw-elevation-3)" in highlighted
+    assert "0 12px 28px -8px" in highlighted
+
+    # Built bundle must carry the same ambient (package product, not only source).
+    dist = (_DIST / "brickwork.css").read_text(encoding="utf-8")
+    assert "0 4px 14px -4px" in dist
+    assert ".bw-feature-grid>.bw-feature-card{" in dist.replace(" ", "")
+    assert ".bw-testimonial{" in dist.replace(" ", "")
+    assert ".bw-pricing-tier{" in dist.replace(" ", "")
