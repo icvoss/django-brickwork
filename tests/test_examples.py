@@ -297,6 +297,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     },
     "app/date-range-picker.html": {**_NAV_CONTEXT, **_DRP_CONTEXT},
     "app/form.html": {**_NAV_CONTEXT, "form": _bound_invoice_form()},
+    "app/toast.html": {**_NAV_CONTEXT, "messages": ()},
     # The five examples added alongside the 3.18.0 line (#503 follow-up).
     # Each composes shipped components with literal `with` arguments, so the
     # context is only what the page itself reads (plus shared _NAV_CONTEXT).
@@ -761,6 +762,16 @@ _SECTION_STATS = [
 ]
 
 _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
+    # Modal journey fragment (Beat Phase D): extends the shipped modal chrome,
+    # so it is a fragment like a section, not a full document.
+    "app/confirm-modal.html": {
+        "title": "Reset demo data",
+        "modal_id": "confirm-reset",
+        "close_href": "/interactions/",
+        "backdrop_dismiss": False,
+        # md is the CSS default (no --md rule); sm/lg/full carry size rules.
+        "size": "sm",
+    },
     "sections/content/callout.html": {},
     "sections/content/code.html": {},
     "sections/content/media-and-text.html": {},

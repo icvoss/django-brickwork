@@ -1,0 +1,51 @@
+{% extends "brickwork/components/_modal.html" %}
+{% comment %}
+Beat Phase D journey: Modal (icvoss/django-brickwork#544).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it from an installed package (ADR-056).
+
+This is the consumer partial for `#bw-modal-root`. One partial, two render
+paths (see `_modal.html`'s own header):
+
+  1. HTMX open: a real anchor with
+       href="<confirm-url>"
+       hx-get="<confirm-url>"
+       hx-target="#bw-modal-root"
+       hx-swap="innerHTML"
+     The view returns THIS template alone; bwModal opens it and holds the
+     focus trap. No site Alpine beyond the documented
+     `Alpine.plugin(focus)` → `registerBrickworkComponents(Alpine)` →
+     `Alpine.start()` boot in examples/base.html / INTEGRATION.md section 5.
+
+  2. No-JS floor: the same href is a full-page route whose content block
+     `{% include %}`s this partial (see examples/app/confirm.html for a
+     centred destructive confirm without the overlay; wire the include the
+     same way for the floor page).
+
+Close (server): on successful POST return 204 with
+  HX-Trigger: {"bw:modal:close": {"id": "<modal_id>"}}
+Escape, backdrop (when allowed), and the always-rendered close control are
+owned by bwModal; do not author x-trap yourself.
+
+What your view must supply:
+    title, modal_id, close_href
+    backdrop_dismiss  False for destructive confirms that must not dismiss
+                      on scrim click (Escape still closes; route it through
+                      the same confirm branch).
+{% endcomment %}
+
+{% block body %}
+  <p>This permanently removes every demo widget. Type <strong>RESET</strong> to confirm.</p>
+  <form id="confirm-reset-form" method="post" action="{{ request.path }}">
+    {% csrf_token %}
+    <label class="bw-field__label" for="confirm-reset-input">Confirmation</label>
+    <input class="bw-input" id="confirm-reset-input" name="confirm" type="text" required data-bw-autofocus>
+  </form>
+{% endblock %}
+
+{% block footer %}
+  <footer class="bw-modal__footer">
+    <button class="bw-btn bw-btn--danger bw-btn--md" type="submit" form="confirm-reset-form">Reset data</button>
+  </footer>
+{% endblock %}
