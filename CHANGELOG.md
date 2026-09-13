@@ -8,13 +8,6 @@ versioning contract).
 
 ## Unreleased
 
-## [3.23.0] - 2026-09-13
-
-**P0 primitives for beat Phase B.** Divider, avatar (+ group), chip, button
-group, callout, list item, and marketing footer groups ship as callable
-includes with closed options, so lists, toolbars and footers stop needing
-site-owned chrome.
-
 ### Added
 
 - **Beat Phase C variant depth** (icvoss/django-brickwork#543): each winner
@@ -23,6 +16,15 @@ site-owned chrome.
   and `_pricing_comparison` includes (section examples now call them). App
   surfaces gain closed `surface` / `density` / modal `header_recipe` and
   `footer_recipe` options. Documented in `docs/APPEARANCE.md`.
+
+## [3.23.0] - 2026-09-13
+
+**P0 primitives for beat Phase B.** Divider, avatar (+ group), chip, button
+group, callout, list item, and marketing footer groups ship as callable
+includes with closed options, so lists, toolbars and footers stop needing
+site-owned chrome.
+
+### Added
 
 - **Beat Phase B P0 primitives** (icvoss/django-brickwork#542): callable
   includes for `divider`, `avatar` (+ `bw_avatar_group`), `chip`,
