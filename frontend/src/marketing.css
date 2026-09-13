@@ -28,6 +28,10 @@
 .bw-marketing-header {
   background: var(--bw-color-surface);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  /* Light elev-1 + soft ambient so sticky marketing chrome reads on white. */
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
   position: sticky;
   inset-block-start: 0;
   z-index: var(--bw-z-sticky);
@@ -2105,7 +2109,8 @@
 [data-theme="dark"] .bw-cta--tint,
 [data-theme="dark"] .bw-stat-band-section,
 [data-theme="dark"] .bw-stat-band .bw-stat,
-[data-theme="dark"] .bw-hero__media img {
+[data-theme="dark"] .bw-hero__media img,
+[data-theme="dark"] .bw-marketing-header {
   box-shadow: var(--bw-elevation-1);
 }
 [data-theme="dark"] .bw-feature-grid > .bw-feature-card--link:hover,

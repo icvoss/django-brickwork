@@ -65,7 +65,10 @@
   display: flex;
   flex-direction: column;
   background: var(--bw-color-surface);
-  border-inline-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  /* Stronger edge mix so the rail separates from a white workspace without
+   * touching nav link / active overlays (border only, no fill change). */
+  border-inline-end: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 14%, var(--bw-color-surface));
   /* space-2 at the top puts the first nav row on the topbar's centreline. */
   padding-block: var(--bw-space-2) var(--bw-density-stack-gap);
   padding-inline: var(--bw-space-3);
@@ -224,6 +227,10 @@
   min-block-size: var(--bw-density-topbar-height);
   background: var(--bw-color-surface);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  /* Light elev-1 + soft ambient so sticky chrome reads on a white canvas. */
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
   position: var(--bw-component-topbar-position);
   inset-block-start: 0;
   z-index: var(--bw-z-sticky);
@@ -888,9 +895,13 @@
 .bw-centred__panel {
   inline-size: min(var(--bw-size-max-width-modal-sm), 100%);
   background: var(--bw-color-surface-raised);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
   border-radius: var(--bw-radius-lg);
-  box-shadow: var(--bw-elevation-2); /* panels sit alone on a sunken page */
+  /* Alone on a sunken page: elev-2 plus soft ambient under the token. */
+  box-shadow:
+    var(--bw-elevation-2),
+    0 8px 20px -6px oklch(0 0 0 / 0.12);
   padding: var(--bw-space-8);
   outline: none;
 }
@@ -1003,4 +1014,16 @@
   .bw-drawer {
     display: block;
   }
+}
+
+/* --- Dark-theme resets for light-only shell ambient (beautiful defaults) --- */
+
+/* Soft ambient under elevation-* is a LIGHT-theme treatment so chrome reads
+ * on white canvas; dark elevation tokens already carry their own depth. */
+[data-theme="dark"] .bw-topbar {
+  box-shadow: var(--bw-elevation-1);
+}
+[data-theme="dark"] .bw-auth__panel,
+[data-theme="dark"] .bw-centred__panel {
+  box-shadow: var(--bw-elevation-2);
 }

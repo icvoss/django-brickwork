@@ -307,3 +307,28 @@ def test_variant_no_results_still_emits_its_own_literal_unchanged() -> None:
     out = _render(variant="no_results")
     assert "bw-empty-state--no_results" in out
     assert "bw-empty-state--no_data" not in out
+
+
+def test_beautiful_default_empty_state_has_surface_edge_and_ambient() -> None:
+    # Mirror test_card.test_beautiful_default_bare_card_*: default empty state
+    # is framed; --size-sm stays unframed for nested use.
+    import re
+    from pathlib import Path
+
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "components.css").read_text(
+        encoding="utf-8"
+    )
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    rules = [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
+    base = [body for sel, body in rules if sel.strip() == ".bw-empty-state"]
+    assert base, "missing .bw-empty-state rule"
+    body = base[0]
+    assert "var(--bw-color-surface)" in body
+    assert "color-mix(in oklab, var(--bw-color-fg)" in body
+    assert "var(--bw-radius-lg)" in body
+    assert "0 4px 14px -4px" in body
+
+    sm = [body for sel, body in rules if sel.strip() == ".bw-empty-state--size-sm"]
+    assert sm, "missing .bw-empty-state--size-sm rule"
+    assert "box-shadow: none" in sm[0]
+    assert "border: 0" in sm[0]

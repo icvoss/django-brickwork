@@ -93,12 +93,8 @@ UNSTYLED_BY_DESIGN: set[str] = {
     "bw-form-fields",  # bare root; only .bw-form-fields--stacked/--grid carry any rule.
     "bw-nav__item",  # bare <li> wrapper; the child .bw-nav__link carries the whole row.
     "bw-nav-rail__item",  # ditto; the child .bw-nav-rail__link carries the whole row.
-    "bw-page-header",  # bare grouping root; __title/__description carry all typography.
-    "bw-page-header__titles",  # bare title+description wrapper; its children carry everything
-    # (investigated for icvoss/django-brickwork#137: genuinely unstyled, and the
-    # class-contract test DOES already catch it via _page_header (description),
-    # bundled in the same failure as bw-page-header itself; there is no fixture
-    # or context/coverage gap here, contrary to the triage's premise).
+    # (investigated for icvoss/django-brickwork#137: page-header root and
+    # __titles now carry layout craft under #541; they are no longer bare.)
     "bw-stepper__marker-number",  # plain digit glyph; .bw-stepper__marker carries the circle.
     "bw-stepper__step--upcoming",  # variant carries no visual distinction, matching
     # bw-empty-state's --no_data/--no_results doctrine above: only --complete/
