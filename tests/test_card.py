@@ -359,12 +359,7 @@ def test_header_action_emits_ghost_button() -> None:
 
 def test_inverse_header_ghost_action_uses_on_inverse_ink() -> None:
     rules = _css_rules(_frontend_css())
-    matched = [
-        body
-        for sel, body in rules
-        if ".bw-card__header--inverse .bw-btn--ghost" in sel
-        and "hover" not in sel
-    ]
+    matched = [body for sel, body in rules if ".bw-card__header--inverse .bw-btn--ghost" in sel and "hover" not in sel]
     assert matched, "missing inverse header ghost restyle"
     assert "var(--bw-color-fg-on-inverse)" in matched[0]
 
