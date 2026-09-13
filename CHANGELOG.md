@@ -8,6 +8,12 @@ versioning contract).
 
 ## Unreleased
 
+## [3.24.0] - 2026-09-13
+
+**Variant depth for beat Phase C.** Marketing and app winner families each
+expose at least three callable package compositions (closed options or
+first-class includes), so finished layouts are not trapped in example files.
+
 ### Added
 
 - **Beat Phase C variant depth** (icvoss/django-brickwork#543): each winner
