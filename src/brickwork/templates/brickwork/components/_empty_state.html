@@ -101,8 +101,14 @@ Accessibility: the icon is decorative (bw_icon decorative=True); heading
 Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-empty-state* selector. The size axis (sm/md) is a fixed, explicitly
   chosen scale, never a viewport-driven one.
-{% endcomment %}{% bw_require body=body %}{% if size != "sm" %}{% bw_require heading=heading %}{% endif %}
-<div class="bw-empty-state bw-empty-state--{% if variant == "no_results" %}no_results{% else %}no_data{% endif %}{% if size == "sm" %} bw-empty-state--size-sm{% endif %}">
+
+Appearance (Beat Phase C, icvoss/django-brickwork#543):
+  surface ("framed" default | "plain"): framed is the Phase A white-canvas
+      card treatment (edge + ambient). plain strips the frame for embedding
+      in an already-framed region without nesting chrome. size="sm" always
+      unframes (nested panel scale), regardless of surface.
+{% endcomment %}{% firstof surface '' as surface %}{% bw_options component="brickwork/components/_empty_state.html" surface=surface %}{% bw_require body=body %}{% if size != "sm" %}{% bw_require heading=heading %}{% endif %}
+<div class="bw-empty-state bw-empty-state--{% if variant == "no_results" %}no_results{% else %}no_data{% endif %}{% if size == "sm" %} bw-empty-state--size-sm{% endif %}{% if surface == "plain" and size != "sm" %} bw-empty-state--surface-plain{% endif %}">
   {% block icon %}
   {% if icon %}
     {% bw_icon icon size="xl" decorative=True css_class="bw-empty-state__icon" %}

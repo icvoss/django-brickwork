@@ -145,8 +145,17 @@ Responsive: no breakpoint switch. Panel width is the fixed size scale
   (sm/md/lg resolve to --bw-size-max-width-modal-*, full is 100vw/100vh),
   not a viewport-driven rule; the panel is fluid down to the viewport width
   at every size below its cap.
-{% endcomment %}{% firstof modal_id "bw-modal" as bw_modal_instance_id %}
-<div class="bw-modal bw-modal--{% firstof size 'md' %}"
+
+Appearance (Beat Phase C, icvoss/django-brickwork#543):
+  header_recipe ("plain" default | "muted" | "bordered"): region recipe on
+      the sticky header. plain is the authored hairline divider (omit emits
+      no extra modifier). muted / bordered match the card header recipe
+      grammar.
+  footer_recipe ("plain" default | "muted" | "actions"): root modifier so a
+      consumer-authored .bw-modal__footer shares the recipe look. The
+      footer block still owns its own <footer> wrapper.
+{% endcomment %}{% firstof header_recipe '' as header_recipe %}{% firstof footer_recipe '' as footer_recipe %}{% firstof size '' as size %}{% bw_options component="brickwork/components/_modal.html" header_recipe=header_recipe footer_recipe=footer_recipe size=size %}{% firstof modal_id "bw-modal" as bw_modal_instance_id %}
+<div class="bw-modal bw-modal--{% firstof size 'md' %}{% if header_recipe and header_recipe != "plain" %} bw-modal--header-{{ header_recipe }}{% endif %}{% if footer_recipe and footer_recipe != "plain" %} bw-modal--footer-{{ footer_recipe }}{% endif %}"
      id="{{ bw_modal_instance_id }}"
      x-data="bwModal({ backdropDismiss: {% if backdrop_dismiss == False %}false{% else %}true{% endif %} })">
   <div class="bw-modal__scrim" data-bw-modal-scrim aria-hidden="true"></div>
@@ -155,7 +164,7 @@ Responsive: no breakpoint switch. Panel width is the fixed size scale
        aria-modal="true"
        aria-labelledby="{{ bw_modal_instance_id }}-title"
        x-trap.inert.noscroll="isOpen">
-    <header class="bw-modal__header">
+    <header class="bw-modal__header{% if header_recipe and header_recipe != "plain" %} bw-modal__header--{{ header_recipe }}{% endif %}">
       <h2 class="bw-modal__title" id="{{ bw_modal_instance_id }}-title">{% block title %}{% block modal_title %}{{ title }}{% endblock %}{% endblock %}</h2>
       {% translate "Close" as bw_modal_close_label %}
       {% if close_href %}

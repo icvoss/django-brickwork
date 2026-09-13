@@ -953,6 +953,16 @@ input.bw-toggle:disabled {
   justify-content: space-between;
   gap: var(--bw-space-3) var(--bw-space-4);
 }
+/* surface="tint" (Beat Phase C): opt-in chrome band for breadcrumbs + title
+ * + actions. Default stays plain on the page canvas (#541). */
+.bw-page-header--surface-tint {
+  padding: var(--bw-space-4) var(--bw-space-5);
+  margin-block-end: var(--bw-space-4);
+  background: var(--bw-color-surface-sunken);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 10%, var(--bw-color-surface-sunken));
+  border-radius: var(--bw-radius-lg);
+}
 .bw-page-header__titles {
   flex: 1 1 12rem;
   min-inline-size: 0;
@@ -1069,6 +1079,14 @@ input.bw-toggle:disabled {
   border-radius: 0;
   box-shadow: none;
 }
+/* surface="plain" (Beat Phase C): page-scale empty state without the framed
+ * card chrome, for embedding beside other chrome that already frames. */
+.bw-empty-state--surface-plain {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
 /* The heading demotes to a <p> at this scale (optional, STA-019), so it takes
  * an emphasised-body treatment rather than the heading-lg role: same
  * body-md size/line-height as .bw-empty-state__body, semibold weight to
@@ -1123,6 +1141,13 @@ input.bw-toggle:disabled {
    * contain: paint guarantees this element is the clipping boundary for its
    * own descendants regardless of what an ancestor does. */
   contain: paint;
+}
+/* density="compact" (Beat Phase C): ops/console tables with tighter rows. */
+.bw-data-table-wrap--density-compact .bw-data-table__th,
+.bw-data-table-wrap--density-compact .bw-data-table__td {
+  padding-block: var(--bw-space-2);
+  padding-inline: var(--bw-space-3);
+  font-size: var(--bw-text-body-sm-size);
 }
 .bw-data-table {
   inline-size: 100%;
@@ -3460,6 +3485,25 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   padding: var(--bw-density-card-padding);
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
 }
+/* header_recipe / footer_recipe (Beat Phase C): match card region recipes. */
+.bw-modal__header--muted,
+.bw-modal--header-muted .bw-modal__header {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-modal__header--bordered,
+.bw-modal--header-bordered .bw-modal__header {
+  border-block-end-width: var(--bw-size-border-thick);
+  border-block-end-color: var(--bw-color-border-strong);
+}
+.bw-modal--footer-muted .bw-modal__footer,
+.bw-modal__footer--muted {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-modal--footer-actions .bw-modal__footer,
+.bw-modal__footer--actions {
+  justify-content: flex-end;
+  gap: var(--bw-space-3);
+}
 
 /* --- Slide-over / side panel (0.14.0, brickwork#55) -------------------------- */
 
@@ -5399,6 +5443,17 @@ a.bw-chip {
 
 .bw-list-item:last-child {
   border-block-end: 0;
+}
+/* density="compact" (Beat Phase C): denser ops / filter-result lists. */
+.bw-list-item--density-compact {
+  padding-block: var(--bw-space-2);
+  gap: var(--bw-space-3);
+}
+@media (width >= --theme(--breakpoint-sm)) {
+  .bw-list-item--density-compact {
+    grid-template-columns: 8rem 1fr;
+    gap: var(--bw-space-4);
+  }
 }
 
 @media (width >= --theme(--breakpoint-sm)) {

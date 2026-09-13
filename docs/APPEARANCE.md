@@ -46,6 +46,7 @@ unsupported, never ignored.
 | `tone` | `muted` \| `strong` | Divider hairline weight (Beat Phase B) |
 | `spacing` | `sm` \| `md` \| `lg` | Divider vertical rhythm (Beat Phase B) |
 | `shape` | `circle` \| `square` | Avatar corner treatment (Beat Phase B) |
+| `density` | `comfortable` \| `compact` | Table / list row density (Beat Phase C) |
 | `variant` | per-component | Status / behavioural treatment; validated when `component=` names a registered set (chip, callout, button_group) |
 | `align` / `placement` / `media_placement` | existing | Layout axes unchanged (ADR-060) |
 
@@ -106,5 +107,25 @@ kwargs for the everyday case.
 Card is the finished first adopter (icvoss/django-brickwork#535). Beat Phase B
 (icvoss/django-brickwork#542) extends the grammar with `tone`, `spacing` and
 `shape`, and registers per-component `variant` (and chip `size`) sets via
-`COMPONENT_OPTIONS` in `brickwork.appearance`. Axes that do not apply stay
-explicitly N/A rather than inventing a local spelling.
+`COMPONENT_OPTIONS` in `brickwork.appearance`. Beat Phase C
+(icvoss/django-brickwork#543) adds `density` and per-component surface /
+header / footer recipe subsets on empty_state, page_header, data_table,
+list_item and modal. Axes that do not apply stay explicitly N/A rather than
+inventing a local spelling.
+
+## Beat Phase C: variant depth (callable compositions)
+
+Each winner family ships at least three package compositions. Examples may
+demonstrate them; inventing layout that is not reachable by a package option
+or first-class include does **not** count.
+
+| Family | Compositions (callable) |
+|---|---|
+| Hero | `_hero.html` `media_placement="below"` (default), `"behind"`, `"beside"` |
+| Features | `_feature_grid.html` (icon grid); `_feature_rows.html` (alternating); `_feature_list.html` (checklist) |
+| CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` |
+| Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_pricing_comparison.html` |
+| Empty state | `variant="no_data"` framed (default); `variant="no_results"`; `surface="plain"` (unframed page scale). Nested: `size="sm"` |
+| Page header | plain default; `surface="tint"`; breadcrumbs + actions via the public `breadcrumb` / `actions` blocks |
+| Table / list | `_data_table.html` `variant="records"`; `variant="definition"`; `density="compact"`. List: `_list_item.html` (+ `density="compact"`) |
+| Modal | size ladder `sm` / `md` / `lg` / `full`; `header_recipe` plain / muted / bordered; `footer_recipe` plain / muted / actions |

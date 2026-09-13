@@ -1,4 +1,3 @@
-{% load brickwork_components %}
 {% comment %}
 CTA / split: copy on one side, the action on the other.
 
@@ -7,33 +6,11 @@ an ending, so dropping one halfway down a long page tells the reader they have
 reached the bottom when they have not. This one sits in the flow without
 closing it.
 
-WHY IT OWNS ITS MARKUP. _cta.html centres its content; this is a two-column
-arrangement of the same parts.
+This one is the shipped _cta_split.html include (Beat Phase C).
 
-The action column comes SECOND in the markup, which is also the order it is
-read and tabbed in. Keep it that way: the button should be reached after the
-sentence explaining what it does.
-
-States: none: a static band, no open/closed or hover-driven state (the
-  bw_button inside carries its own button states).
-Accessibility: the heading is a real <h2>; reading and tab order matches
-  the visual order (copy, then action), never reordered by CSS. Covered by
-  axe.spec.mjs against sections-*.html, which renders this exact file,
-  both themes.
-Responsive: single named breakpoint. Below --bw-breakpoint-md (48rem) copy
-  and action stack in a column (align-items: flex-start); from md upward
-  it becomes a row (flex-direction: row, space-between), copy and action
-  side by side.
+States: see _cta_split.html.
+Accessibility: see _cta_split.html; covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: see _cta_split.html.
 {% endcomment %}
-<section class="bw-cta-split">
-  <div class="bw-cta-split__copy">
-    <h2 class="bw-cta-split__heading">Try it on last month's invoices</h2>
-    <p class="bw-cta-split__body">
-      Import a CSV and Northwind shows you what it would have chased, and when.
-      No account needed.
-    </p>
-  </div>
-  <div class="bw-cta-split__actions">
-    {% bw_button "Run the demo" variant="primary" size="lg" href="/demo/" %}
-  </div>
-</section>
+{% include "brickwork_marketing/components/_cta_split.html" with heading="Try it on last month's invoices" body="Import a CSV and Northwind shows you what it would have chased, and when. No account needed." primary_cta_label="Run the demo" primary_cta_href="/demo/" %}

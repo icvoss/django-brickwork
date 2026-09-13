@@ -1,0 +1,40 @@
+{% load brickwork_components %}
+{% comment %}
+CTA inverse full-bleed (Beat Phase C, icvoss/django-brickwork#543): an inverse
+band that escapes the marketing shell measure and runs edge to edge.
+Structural sibling of _cta.html (centred, shell-capped) and _cta_split.html
+(mid-page row): once-per-page closing treatment.
+
+Required context: heading. An absent heading renders nothing.
+
+Optional:
+  body (str).
+  primary_cta ({label, url}) or primary_cta_label / primary_cta_href (#98).
+  secondary_cta_label / secondary_cta_href: rendered as an underlined plain
+      link on the inverse surface (secondary button border is tuned for the
+      page surface and reads as a smudge here). Dict-shaped secondary_cta
+      is also accepted and rendered the same way.
+
+States: none.
+Accessibility: heading is an <h2>; secondary link is underlined (not
+  colour-only). Covered via sections-*.html after the example collapses to
+  this include.
+Responsive: full-bleed escape at every width; actions wrap.
+{% endcomment %}{% if heading %}
+<section class="bw-cta-bleed">
+  <div class="bw-cta-bleed__inner">
+    <h2 class="bw-cta-bleed__heading">{{ heading }}</h2>
+    {% if body %}<p class="bw-cta-bleed__body">{{ body }}</p>{% endif %}
+    {% if primary_cta or secondary_cta or primary_cta_label or secondary_cta_label %}
+      <div class="bw-cta-bleed__actions">
+        {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% elif primary_cta_label %}{% bw_button primary_cta_label variant="primary" size="lg" href=primary_cta_href %}{% endif %}
+        {% if secondary_cta %}
+          <a class="bw-cta-bleed__link" href="{{ secondary_cta.url }}">{{ secondary_cta.label }}</a>
+        {% elif secondary_cta_label %}
+          <a class="bw-cta-bleed__link" href="{{ secondary_cta_href }}">{{ secondary_cta_label }}</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}

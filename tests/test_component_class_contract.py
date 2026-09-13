@@ -722,6 +722,39 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
         columns=2,
     ),
+    "_feature_rows (marketing: alternating rows with media)": lambda: _include(
+        "brickwork_marketing/components/_feature_rows.html",
+        heading="Built for the boring half",
+        items=[
+            {
+                "heading": "Reminders that go out without you",
+                "body": "Set the schedule once.",
+                "media": "<svg aria-hidden='true'></svg>",
+            },
+            {"heading": "Know who is about to run late", "body": "Predictions, not guesses."},
+        ],
+    ),
+    "_feature_list (marketing: checklist)": lambda: _include(
+        "brickwork_marketing/components/_feature_list.html",
+        heading="What is included",
+        items=["Unlimited invoices", "Automatic reminders"],
+    ),
+    "_cta_split (marketing: mid-page split)": lambda: _include(
+        "brickwork_marketing/components/_cta_split.html",
+        heading="Try it on last month's invoices",
+        body="Import a CSV.",
+        primary_cta_label="Run the demo",
+        primary_cta_href="/demo/",
+    ),
+    "_cta_bleed (marketing: inverse full-bleed)": lambda: _include(
+        "brickwork_marketing/components/_cta_bleed.html",
+        heading="Get paid faster",
+        body="Thirty days free.",
+        primary_cta_label="Start free trial",
+        primary_cta_href="/signup/",
+        secondary_cta_label="See pricing",
+        secondary_cta_href="/pricing/",
+    ),
     "_logo_cloud (marketing: greyscale)": lambda: _include(
         "brickwork_marketing/components/_logo_cloud.html",
         heading="Trusted by teams at",
@@ -765,6 +798,17 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
                 "cta_label": "Talk to sales",
                 "cta_url": "/contact/",
             },
+        ],
+        note="Prices exclude VAT.",
+    ),
+    "_pricing_comparison (marketing: plans and yes/no cells)": lambda: _include(
+        "brickwork_marketing/components/_pricing_comparison.html",
+        heading="Compare the plans",
+        lede="Per account.",
+        plans=["Solo", "Team"],
+        rows=[
+            {"label": "Users", "cells": ["1", "10"]},
+            {"label": "Reminders", "cells": [{"included": True}, {"included": False}]},
         ],
         note="Prices exclude VAT.",
     ),

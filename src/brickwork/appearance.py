@@ -30,6 +30,7 @@ WIDTHS: Final[frozenset[str]] = frozenset({"contained", "bleed"})
 TONES: Final[frozenset[str]] = frozenset({"muted", "strong"})
 SPACINGS: Final[frozenset[str]] = frozenset({"sm", "md", "lg"})
 SHAPES: Final[frozenset[str]] = frozenset({"circle", "square"})
+DENSITIES: Final[frozenset[str]] = frozenset({"comfortable", "compact"})
 
 # Axis name -> closed vocabulary. Used by {% bw_options %} keyword args.
 OPTION_VOCABULARIES: Final[dict[str, frozenset[str]]] = {
@@ -45,6 +46,7 @@ OPTION_VOCABULARIES: Final[dict[str, frozenset[str]]] = {
     "tone": TONES,
     "spacing": SPACINGS,
     "shape": SHAPES,
+    "density": DENSITIES,
 }
 
 # Per-component closed sets for axes whose values are not shared (variant,
@@ -69,6 +71,23 @@ COMPONENT_OPTIONS: Final[dict[str, dict[str, frozenset[str]]]] = {
     "brickwork/components/_avatar.html": {
         "size": SIZES,
         "shape": SHAPES,
+    },
+    "brickwork/components/_empty_state.html": {
+        "surface": frozenset({"framed", "plain"}),
+    },
+    "brickwork/components/_page_header.html": {
+        "surface": frozenset({"default", "tint"}),
+    },
+    "brickwork/components/_data_table.html": {
+        "density": DENSITIES,
+    },
+    "brickwork/components/_list_item.html": {
+        "density": DENSITIES,
+    },
+    "brickwork/components/_modal.html": {
+        "size": frozenset({"sm", "md", "lg", "full"}),
+        "header_recipe": frozenset({"plain", "muted", "bordered"}),
+        "footer_recipe": frozenset({"plain", "muted", "actions"}),
     },
 }
 

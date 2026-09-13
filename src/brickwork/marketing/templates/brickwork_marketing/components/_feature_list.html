@@ -1,0 +1,35 @@
+{% load brickwork_icons %}
+{% comment %}
+Feature list (Beat Phase C, icvoss/django-brickwork#543): a scannable
+checklist of short inclusions. Structural sibling of _feature_grid.html,
+not a layout option on it: a real <ul>, not a card grid.
+
+Required context: none.
+Optional:
+  heading (str): section intro heading.
+  items (list of str, or list of dicts with label/text): each a ticked line.
+      List-shaped, so supply from context.
+  An empty items list renders the heading alone (or nothing if that too is
+  empty), never a fabricated placeholder.
+
+States: none.
+Accessibility: a real <ul>; tick icons are decorative (bw_icon
+  decorative=True). Covered via sections-*.html after the example collapses
+  to this include.
+Responsive: one column below --bw-breakpoint-sm; two columns from sm up.
+{% endcomment %}
+{% if heading or items %}
+<section class="bw-feature-list-section">
+  {% if heading %}<h2 class="bw-feature-list-section__heading">{{ heading }}</h2>{% endif %}
+  {% if items %}
+    <ul class="bw-feature-list">
+      {% for item in items %}
+        <li class="bw-feature-list__item">
+          {% bw_icon "check" decorative=True css_class="bw-feature-list__marker" %}
+          <span>{% firstof item.label item.text item %}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</section>
+{% endif %}
