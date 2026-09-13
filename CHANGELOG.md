@@ -8,6 +8,13 @@ versioning contract).
 
 ## Unreleased
 
+## [3.23.0] - 2026-09-13
+
+**P0 primitives for beat Phase B.** Divider, avatar (+ group), chip, button
+group, callout, list item, and marketing footer groups ship as callable
+includes with closed options, so lists, toolbars and footers stop needing
+site-owned chrome.
+
 ### Added
 
 - **Beat Phase B P0 primitives** (icvoss/django-brickwork#542): callable
