@@ -1,6 +1,12 @@
 {% comment %}
 CTA / centred band: the tinted band that closes a page.
 
+Beat Phase D journey: Marketing CTA (icvoss/django-brickwork#544). Dual CTA
+(primary + secondary) on the tinted band. Recolour by overriding brand tokens
+only (`--bw-color-accent`, `--bw-color-surface-marketing-tint`, and the rest
+of the brand-pack delta); do not fork this markup or marketing.css. See
+docs/examples/brand-pack/ and docs/BRANDING.md.
+
 The shipped _cta.html already is this, so the example is the include.
 
 band="tint" is the default and composes --bw-color-surface-marketing-tint,
