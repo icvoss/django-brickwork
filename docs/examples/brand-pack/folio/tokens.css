@@ -1,0 +1,34 @@
+/*
+ * Folio brand-pack skeleton (fictional).
+ * Load AFTER brickwork's tokens.css / brickwork.css.
+ * Override delta only: no parallel token schema.
+ * Editorial / cool paper; forest ink accent. Not a product identity.
+ */
+
+:root,
+[data-bw-brand="folio"] {
+  --bw-color-surface: oklch(0.978 0.006 120);
+  --bw-color-fg: oklch(0.25 0.025 150);
+  --bw-color-border: oklch(0.89 0.012 140);
+  --bw-color-accent: oklch(0.42 0.09 155);
+  --bw-color-danger: oklch(0.54 0.18 20);
+  --bw-color-success: oklch(0.52 0.11 160);
+  --bw-color-warning: oklch(0.68 0.12 80);
+  --bw-color-fg-on-accent: oklch(0.98 0.005 120);
+
+  --bw-font-family-sans: "Libre Franklin", system-ui, sans-serif;
+  --bw-font-family-display: "Newsreader", Georgia, serif;
+  --bw-font-family-mono: "Source Code Pro", ui-monospace, monospace;
+}
+
+[data-theme="dark"],
+[data-bw-brand="folio"][data-theme="dark"] {
+  --bw-color-surface: oklch(0.22 0.02 150);
+  --bw-color-fg: oklch(0.93 0.012 120);
+  --bw-color-border: oklch(0.35 0.02 150);
+  --bw-color-accent: oklch(0.72 0.08 155);
+  --bw-color-danger: oklch(0.66 0.15 20);
+  --bw-color-success: oklch(0.68 0.10 160);
+  --bw-color-warning: oklch(0.74 0.11 80);
+  --bw-color-fg-on-accent: oklch(0.20 0.02 150);
+}
