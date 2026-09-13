@@ -6,9 +6,9 @@ interfaces on the jobs in [docs/VISUAL-BAR.md](docs/VISUAL-BAR.md), evidenced
 by the independent rendered pass
 [docs/audits/2026-09-12-visual-bar-signoff-pass.md](docs/audits/2026-09-12-visual-bar-signoff-pass.md).
 That pass is not a house aesthetic, does not name competitors as brickwork's
-identity, and does not claim examples alone proved beauty. Brickwork ships 55
-examples (27 archetype pages, 28 sections; a 56th file, `base.html`, is a
-copied document skeleton). 55 of the 56 files add no CSS. The date range
+identity, and does not claim examples alone proved beauty. Brickwork ships 57
+examples (28 archetype pages, 29 sections; a 58th file, `base.html`, is a
+copied document skeleton). 56 of the 58 files add no CSS. The date range
 picker uses existing `--bw-*` tokens in its own scoped CSS because the package
 has no maintained date picker component (see [Example pages](#example-pages)).
 
@@ -36,8 +36,8 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 192 documents (136 hand-maintained fixtures
-plus 56 catalogue-document pages, being 28 catalogue documents, 27 archetypes
+axe-core WCAG 2.2 AA scan across 194 documents (136 hand-maintained fixtures
+plus 58 catalogue-document pages, being 29 catalogue documents, 28 archetypes
 and 1 skeleton, each x light and dark themes), plus a no-JS floor suite,
 keyboard suites,
 mobile-overflow checks at

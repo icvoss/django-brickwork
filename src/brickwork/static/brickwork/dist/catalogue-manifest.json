@@ -5,8 +5,8 @@
   "counts": {
     "shells": 6,
     "components": 64,
-    "sections": 28,
-    "archetypes": 27,
+    "sections": 29,
+    "archetypes": 28,
     "skeletons": 1
   },
   "families": [
@@ -27,7 +27,7 @@
     },
     {
       "name": "Product applications",
-      "archetypeCount": 12,
+      "archetypeCount": 13,
       "sectionCount": 0
     },
     {
@@ -198,6 +198,22 @@
         "brickwork/components/_data_table.html",
         "brickwork/components/_page_header.html",
         "brickwork/components/_stepper.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
+    {
+      "name": "examples/app/toast.html",
+      "kind": "archetype",
+      "family": "Product applications",
+      "templatePath": "examples/app/toast.html",
+      "docSource": "examples/app/toast.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_toast.html",
         "brickwork/nav/_nav.html",
         "brickwork/shell/app.html"
       ]
@@ -488,6 +504,7 @@
       "usedByArchetypes": [
         "app/confirm.html",
         "app/error-maintenance.html",
+        "app/toast.html",
         "docs/article.html"
       ],
       "usedBySections": [
@@ -574,6 +591,7 @@
         "app/onboarding.html",
         "app/settings.html",
         "app/status-tracker.html",
+        "app/toast.html",
         "app/wizard.html",
         "auth/reset.html",
         "auth/signin.html",
@@ -979,7 +997,9 @@
       "docSource": "brickwork/components/_modal.html",
       "consumption": "extend",
       "usedByArchetypes": [],
-      "usedBySections": [],
+      "usedBySections": [
+        "sections/modal/confirm.html"
+      ],
       "usedBySkeleton": []
     },
     {
@@ -998,6 +1018,7 @@
         "app/list.html",
         "app/settings.html",
         "app/status-tracker.html",
+        "app/toast.html",
         "app/wizard.html",
         "docs/home.html",
         "ops/analysis-dashboard.html",
@@ -1298,7 +1319,9 @@
       "templatePath": "brickwork/components/_toast.html",
       "docSource": "brickwork/components/_toast.html",
       "consumption": "tag",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "app/toast.html"
+      ],
       "usedBySections": [],
       "usedBySkeleton": []
     },
@@ -1562,6 +1585,17 @@
       "composesItems": []
     },
     {
+      "name": "examples/sections/modal/confirm.html",
+      "kind": "section",
+      "family": null,
+      "templatePath": "examples/sections/modal/confirm.html",
+      "docSource": "examples/sections/modal/confirm.html",
+      "requiresContext": false,
+      "composesItems": [
+        "brickwork/components/_modal.html"
+      ]
+    },
+    {
       "name": "examples/sections/pricing/comparison-table.html",
       "kind": "section",
       "family": null,
@@ -1663,6 +1697,7 @@
         "app/list.html",
         "app/settings.html",
         "app/status-tracker.html",
+        "app/toast.html",
         "app/wizard.html",
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",

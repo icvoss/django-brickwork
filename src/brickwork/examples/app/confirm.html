@@ -14,8 +14,10 @@ confirmation, it is a speed bump. The example below names the record and states
 what is irreversible.
 
 No JS is involved: the confirm is a POST form and the cancel is a link. If you
-would rather confirm in a modal, brickwork ships one, but keep a real URL like
-this behind it so the action still works without JS.
+would rather confirm in a modal, copy examples/sections/modal/confirm.html (the
+`#bw-modal-root` consumer partial) and keep a real URL like this behind it so
+the action still works without JS. That modal journey documents the open
+one-liner and the HX-Trigger close header.
 
 States: none: a static page, no open/closed or hover-driven state beyond
   the composed _alert.html and bw_button controls' own states.

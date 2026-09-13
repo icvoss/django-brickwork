@@ -990,6 +990,22 @@ is what keeps `.bw-prose` a floor a consumer builds on rather than a style
 they have to fight: reach for the pattern above, not `!important`, whenever
 you need to extend prose rhythm into a wrapper `.bw-prose` cannot see.
 
+## 12. Journey contracts (Beat Phase D, icvoss/django-brickwork#544)
+
+Five copyable journeys ship under `src/brickwork/examples/`. Each is one file
+(or one section include) a consumer can paste without inventing hx- attributes
+or Alpine beyond the documented start in section 5. The examples README owns
+the table; this section is the INTEGRATION index so the seam guide and the
+copy-paste tree stay linked.
+
+| Journey | Copy from | Contract |
+|---|---|---|
+| Form validate | `examples/app/form.html` | Shared `{% partialdef form_region inline %}` + the view branches in section 4; no-JS full page and HTMX 422; axe covers the invalid field state via `form-errors-*.html` |
+| Modal | `examples/sections/modal/confirm.html` | Extends `_modal.html` into `#bw-modal-root`; open with `hx-get` / `hx-target="#bw-modal-root"` / `hx-swap="innerHTML"` on a real anchor; close with `HX-Trigger: {"bw:modal:close": {"id": "..."}}`; focus trap is bwModal's |
+| Toast | `examples/app/toast.html` | `{% partialdef toast_oob %}` returns `hx-swap-oob="afterbegin:#bw-toast-region"`; plain POST uses `django.contrib.messages` + `{% bw_alert %}` |
+| List + filter | `examples/app/list.html` | `_filter_bar` (with `clear_href`) + `_data_table` (`responsive="stack"`, empty clear action) |
+| Marketing CTA | `examples/sections/cta/centred-band.html` | Dual CTA band; recolour via brand-pack tokens only ([brand-pack examples](examples/brand-pack/README.md)) |
+
 ## Contribute back
 
 If a seam here was thin for your integration, or you hit a paper-cut this guide

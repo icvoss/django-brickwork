@@ -1,0 +1,80 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+Beat Phase D journey: Toast (icvoss/django-brickwork#544).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+OOB into the shell's toast_region without site JS glue: the form below is a
+plain POST (messages banner floor) and, with htmx, an hx-post that swaps the
+status line while the response's `{% partialdef toast_oob %}` fragment
+prepends a toast via
+`hx-swap-oob="afterbegin:#bw-toast-region"` (BR-BW-HTMX-007). The shell
+already ships `#bw-toast-region`; you do not invent a second root.
+
+View shape (copy into your project):
+  - GET: render this page.
+  - POST + HX-Request: render `"yourapp/toast.html#toast_oob"` with
+    message / intent / duration in context.
+  - POST without htmx: `messages.success(...)` then redirect here (STA-008).
+
+What your view must supply on GET: nav_items / nav_active as in list.html.
+On the HTMX POST fragment: message, intent, duration.
+
+States: idle status line on GET; after HTMX POST the status line and an
+  OOB toast both update; plain POST shows django.contrib.messages via
+  bw_alert instead. Toast duration/intent follow bw_toast's own states.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; the toast lands in #bw-toast-region (live region owned
+  by the shell); the messages floor uses bw_alert. Covered by the archetype
+  harness's full gate sweep (render, axe WCAG 2.2 AA, no horizontal overflow,
+  light/dark distinctness, skip-link first-tab-stop with JS disabled) at every
+  W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem).
+{% endcomment %}
+{% load brickwork_components brickwork_interactions brickwork_nav %}
+
+{% block page_title %}Toasts - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Toasts" description="Server-delivered feedback. The toast is the enhanced form of a flash message, never the only form." %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% comment %} No-JS floor: flash messages from the plain-POST branch. {% endcomment %}
+  {% for message in messages %}
+    {% bw_alert message variant=message.level_tag %}
+  {% endfor %}
+
+  <section id="toast-demo" aria-labelledby="toast-demo-heading">
+    <h2 id="toast-demo-heading">Send feedback</h2>
+    <form id="toast-demo-form" method="post" action="{{ request.path }}"
+          hx-post="{{ request.path }}"
+          hx-target="#toast-demo-status"
+          hx-swap="outerHTML">
+      {% csrf_token %}
+      {% bw_button "Send notification" type="submit" variant="secondary" %}
+    </form>
+    <p id="toast-demo-status">No toast sent yet.</p>
+  </section>
+
+</div>
+{% endblock %}
+
+{% comment %}
+HTMX POST renders only this partial (`yourapp/toast.html#toast_oob`).
+It is not inline, so it does not appear on the GET page render.
+{% endcomment %}
+{% partialdef toast_oob %}
+<div hx-swap-oob="afterbegin:#bw-toast-region">
+  {% bw_toast message variant=intent duration=duration %}
+</div>
+<p id="toast-demo-status">Sent a {{ intent }} toast.</p>
+{% endpartialdef %}

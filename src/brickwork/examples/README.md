@@ -100,20 +100,42 @@ without `!important`.
 (`|safe` only if you trust the source. brickwork styles markup; it does not
 sanitise it.)
 
+## Journey contracts (Beat Phase D)
+
+Five copyable journeys that prove the stack moat without inventing hx- or
+Alpine contracts beyond the documented Alpine start
+(`Alpine.plugin(focus)` → `registerBrickworkComponents(Alpine)` →
+`Alpine.start()`, see `base.html` and [INTEGRATION.md](../../../docs/INTEGRATION.md)
+section 5). Prefer these over parallel demo systems.
+
+| Journey | Copy | Proof |
+|---|---|---|
+| Form validate | `app/form.html` | Shared `{% partialdef form_region %}` + 422 path; no-JS POST and HTMX swap; axe on invalid via `form-errors-*.html` |
+| Modal | `sections/modal/confirm.html` | Consumer partial for `#bw-modal-root`; open one-liner and `HX-Trigger` close in the file header; focus trap owned by bwModal |
+| Toast | `app/toast.html` | OOB into `#bw-toast-region` via `{% partialdef toast_oob %}`; plain POST uses messages floor |
+| List + filter | `app/list.html` | `filter_bar` + `data_table` + empty clear path; `responsive="stack"` for phone |
+| Marketing CTA | `sections/cta/centred-band.html` | Tinted band + dual CTA; recolour with brand tokens only ([brand-pack](../../../docs/examples/brand-pack/)) |
+
+View branches for the form 422 loop live in
+[INTEGRATION.md](../../../docs/INTEGRATION.md) section 4; the journey index
+is also linked from there.
+
 ## The pages
 
 | File | Shape |
 |---|---|
 | `base.html` | The document skeleton, annotated line by line |
-| `app/list.html` | Index page: filters, table, pagination |
+| `app/list.html` | Index page: filters, table, pagination (list + filter journey) |
 | `app/detail.html` | One record: facts, related sections, danger zone |
 | `app/dashboard.html` | Stat row, content grid, recent activity |
 | `app/date-range-picker.html` | Native date inputs plus a copy-in popover shell (BR-BW-INPUT-004: no component) |
-| `app/form.html` | Single create/edit form |
+| `app/form.html` | Single create/edit form (form validate journey: partialdef + 422) |
+| `app/toast.html` | Toast delivery form + OOB partialdef (toast journey) |
+| `sections/modal/confirm.html` | Modal consumer partial for `#bw-modal-root` (modal journey; fragment) |
 | `app/wizard.html` | One step of a multi-step flow |
 | `app/settings.html` | Tabbed settings area |
 | `app/console.html` | Blank slate for a section with no data yet |
-| `app/confirm.html` | Destructive-action confirmation |
+| `app/confirm.html` | Destructive-action confirmation (no-JS floor companion to the modal journey) |
 | `app/error-maintenance.html` | Planned maintenance / site unavailable |
 | `app/onboarding.html` | Mid-step onboarding (company → team → billing) with skip and resume |
 | `app/status-tracker.html` | Site-visit status tracker with stepper, detail, and timeline |

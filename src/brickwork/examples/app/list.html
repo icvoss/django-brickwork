@@ -5,6 +5,11 @@ An index page: filter bar, table of records, pagination.
 COPY THIS FILE into your project and edit it. It is not on the template loader
 path, so you cannot extend it (ADR-056); copying is the only way to use it.
 
+Beat Phase D journey: List + filter (icvoss/django-brickwork#544). Composes
+`_filter_bar.html` + `_data_table.html` (empty branch is `_empty_state.html`)
+with a Clear path (`clear_href` on the bar; `empty_action_*` on the table when
+filters yield zero rows) and phone stack (`responsive="stack"`).
+
 What your view must supply, and nothing else:
     invoices    a page of records (a Django Page object from Paginator)
     filter_form your own filter form (any form; the bar renders its fields)
@@ -17,7 +22,9 @@ examples/base.html) if you would rather own the document skeleton too.
 
 States: sortable-column ascending/descending/unsorted per column (see
   _data_table.html's own header); pagination rendered/absent (a single
-  page renders no controls); the filter bar's own field states.
+  page renders no controls); the filter bar's own field states; empty
+  table with a Clear filters action when the view passes zero rows after
+  a filter.
 Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
   page-header region; the filter bar, table and pagination all render as
   real form/table/nav landmarks with no client-side-only behaviour
@@ -31,11 +38,11 @@ Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
   axe.spec.mjs's own "no-JS floor" suite, which asserts this page's real
   server-rendered table rows, breadcrumbs and account menu all work with
   JavaScript disabled.
-Responsive: no breakpoint switch of its own; inherits shell/app.html's
-  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The composed
-  table carries unconditional horizontal scroll (responsive="scroll", the
-  default) at every width; the filter bar's fields wrap fluidly with no
-  named breakpoint.
+Responsive: inherits shell/app.html's sidebar-to-drawer collapse at
+  --bw-breakpoint-md (48rem). The table uses responsive="stack" so each
+  row becomes a labelled card stack on narrow viewports (phone), not a
+  sideways scroll. The filter bar's fields wrap fluidly with no named
+  breakpoint.
 {% endcomment %}
 {% load brickwork_components brickwork_nav %}
 
@@ -90,7 +97,15 @@ than inside it. Point href at your own {% templatetag openblock %} url
   Each row's cells are pre-rendered strings you build in the view, so a cell
   can carry whatever markup that record needs.
   {% endcomment %}
-  {% include "brickwork/components/_data_table.html" with table_id="invoices-table" columns=invoice_columns rows=invoice_rows current_sort=current_sort empty_heading="No invoices yet" empty_body="Invoices you raise will appear here. Create your first one to get started." %}
+  {% comment %}
+  responsive="stack" is the phone contract for this journey: each row stacks
+  as labelled cards below the table's stack breakpoint instead of forcing
+  horizontal scroll. empty_action_* is the filtered-empty clear path: when
+  the view returns zero rows after a filter, the table's empty state offers
+  the same clear URL as the filter bar. For a true never-had-data empty,
+  pass empty_action_href/label pointing at create instead (or omit both).
+  {% endcomment %}
+  {% include "brickwork/components/_data_table.html" with table_id="invoices-table" columns=invoice_columns rows=invoice_rows current_sort=current_sort responsive="stack" empty_heading="No invoices match these filters" empty_body="Clear the filters to see every invoice, or raise a new one." empty_action_href="/invoices/" empty_action_label="Clear filters" %}
 
   {% comment %}
   Renders nothing at all when there is only one page, so there is no condition

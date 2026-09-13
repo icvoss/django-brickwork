@@ -5,6 +5,13 @@ A create/edit page: one form on a page.
 COPY THIS FILE into your project and edit it. It is not on the template loader
 path, so you cannot extend it (ADR-056).
 
+Beat Phase D journey: Form validate (icvoss/django-brickwork#544). This file
+IS the shared partial plus the 422 path: `{% partialdef form_region inline %}`
+keeps the full-page render and the HTMX invalid re-render on one block.
+Wire the view branches in docs/INTEGRATION.md section 4 (no-JS 200 full page,
+HTMX 422 + `#form_region`, success HX-Redirect). Do not invent a second form
+template.
+
 What your view must supply:
     form         your own Django form (bound on POST)
     nav_items / nav_active  as in list.html
@@ -16,8 +23,8 @@ knows its own action URL, and a template that wrapped your fields in its own
 and the submit all live together in this file, which you own.
 
 States: valid/invalid per field (bw_form renders the bound form's own
-  errors inline); the 422 HTMX re-render path documented above swaps this
-  same region with inline errors, never a full page reload, when wired.
+  errors inline); the 422 HTMX re-render path swaps this same region with
+  inline errors, never a full page reload, when wired.
 Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
   page-header region; every field renders through the standard
   forms/_field.html chrome (label/aria-describedby/error wiring); the
@@ -26,7 +33,8 @@ Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
   AA, no horizontal overflow, light/dark distinctness, skip-link
   first-tab-stop with JS disabled) at every W0.1 breakpoint, both themes;
   the underlying bw_form grid layout and its error states are additionally
-  covered by axe.spec.mjs against form-*.html/form-errors-*.html.
+  covered by axe.spec.mjs against form-*.html/form-errors-*.html (axe on
+  the invalid state is the journey floor; keep that fixture green).
 Responsive: no breakpoint switch of its own; inherits shell/app.html's
   sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). bw_form's own
   grid layout (when grid_columns is set) collapses to one column below
@@ -58,12 +66,15 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
   non-field error region itself, so never include _form_errors.html a second
   time beside it.
 
-  No JS is needed for any of this. If you add htmx, a validation failure
-  should return 422 with this same page re-rendered; htmx 2 needs the 422
-  status opted in to swap (see INTEGRATION.md), which is the one line people
-  miss.
+  The hx-* attributes are progressive enhancement: without htmx the form is a
+  plain POST and the no-JS floor still works (BR-BW-HTMX-001). With htmx, an
+  invalid response must be 422 targeting this same region (see INTEGRATION.md).
   {% endcomment %}
-  <form method="post" action="{{ request.path }}">
+  {% partialdef form_region inline %}
+  <form id="invoice-form" method="post" action="{{ request.path }}"
+        hx-post="{{ request.path }}"
+        hx-target="this"
+        hx-swap="outerHTML">
     {% csrf_token %}
     {% bw_form form %}
 
@@ -76,6 +87,7 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
       {% bw_button "Cancel" variant="ghost" href="/invoices/" %}
     </div>
   </form>
+  {% endpartialdef %}
 
 </div>
 {% endblock %}
