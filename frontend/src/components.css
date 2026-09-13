@@ -942,6 +942,25 @@ input.bw-toggle:disabled {
 
 /* --- Page header ----------------------------------------------------------- */
 
+/* Layout craft only (icvoss/django-brickwork#541): title cluster and actions
+ * share one wrapping row with a clear gap; no surface tint here (the shell
+ * region already seats the header on the page canvas). Breadcrumbs and tabs
+ * take the full inline track when present so they stay above/below the row. */
+.bw-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--bw-space-3) var(--bw-space-4);
+}
+.bw-page-header__titles {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+.bw-page-header > .bw-breadcrumbs,
+.bw-page-header > .bw-tabs {
+  flex: 1 1 100%;
+}
 .bw-page-header__title {
   margin: 0;
   /* heading-xl role: its family token resolves to the display font, so a
@@ -987,6 +1006,9 @@ input.bw-toggle:disabled {
 
 /* --- Empty state ----------------------------------------------------------- */
 
+/* Default / md: a framed surface so the empty region reads on a white page
+ * (same fg-mix edge + soft ambient as zero-kwargs .bw-card). --size-sm stays
+ * unframed below so a nested empty state inside a card does not double-frame. */
 .bw-empty-state {
   display: flex;
   flex-direction: column;
@@ -995,6 +1017,13 @@ input.bw-toggle:disabled {
   gap: var(--bw-space-3);
   padding-block: var(--bw-space-16);
   padding-inline: var(--bw-space-4);
+  background: var(--bw-color-surface);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
+  border-radius: var(--bw-radius-lg);
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
 }
 .bw-empty-state__icon {
   color: var(--bw-color-icon-muted);
@@ -1031,9 +1060,14 @@ input.bw-toggle:disabled {
 }
 /* --size-sm (ADR-060, STA-019, #218): the in-panel scale, for an empty state
  * nested inside a card or other bounded container rather than filling a
- * page. Tighter block padding than the page-filling default. */
+ * page. Tighter block padding than the page-filling default; framing drops
+ * so the nest does not paint a card inside a card. */
 .bw-empty-state--size-sm {
   padding-block: var(--bw-space-6);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 /* The heading demotes to a <p> at this scale (optional, STA-019), so it takes
  * an emphasised-body treatment rather than the heading-lg role: same
@@ -1069,13 +1103,14 @@ input.bw-toggle:disabled {
 .bw-data-table-wrap {
   overflow-x: auto;
   background: var(--bw-color-surface);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  /* Edge + ambient match zero-kwargs .bw-card so the table reads on white;
+   * sunken header, zebra, hover and selected stay on the inner rows. */
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
-  /* Ring treatment (0.7.0 craft): hairline + elevation + the light-theme
-   * top-light (white at 60%, the card family's shared sheen, documented at
-   * .bw-card); the dark reset at the end of this file returns to the plain
-   * elevation token, which carries its own inset highlight. */
-  box-shadow: var(--bw-elevation-1), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
   /* Wide tables scroll inside the card: thin, border-toned scrollbar so the
    * apparatus stays quieter than the data (decorative chrome). */
   scrollbar-width: thin;
@@ -1335,9 +1370,9 @@ input.bw-toggle:disabled {
 
 /* Sits directly above a selectable table, inside the consumer's <form>
  * (see _bulk_actions_bar.html). Same control-deck treatment as the filter
- * bar (surface + hairline + elevation-1), so the two compose visually when
- * both are present above one table. Always rendered (the no-JS floor); only
- * the live count text changes under JS. */
+ * bar (surface + fg-mix edge + elevation-1 ambient), so the two compose
+ * visually when both are present above one table. Always rendered (the
+ * no-JS floor); only the live count text changes under JS. */
 .bw-bulk-actions-bar {
   display: flex;
   flex-wrap: wrap;
@@ -1346,9 +1381,12 @@ input.bw-toggle:disabled {
   gap: var(--bw-space-3);
   padding: var(--bw-density-card-padding);
   background: var(--bw-color-surface);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
-  box-shadow: var(--bw-elevation-1);
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
   margin-block-end: var(--bw-density-stack-gap);
 }
 .bw-bulk-actions-bar__count {
@@ -1527,8 +1565,8 @@ button.bw-account-menu__item {
 /* An inline bar of filter fields above a list/table. Fields wrap on a narrow
    viewport; the actions stay together at the end. Token-only, RTL via logical
    properties and flex. Styled as the table card's control deck (surface +
-   hairline + elevation-1): sunken-on-sunken would vanish against the page
-   background. */
+   fg-mix edge + elevation-1 ambient): sunken-on-sunken would vanish against
+   the page background. */
 .bw-filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -1536,9 +1574,12 @@ button.bw-account-menu__item {
   gap: var(--bw-space-3);
   padding: var(--bw-density-card-padding);
   background: var(--bw-color-surface);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
-  box-shadow: var(--bw-elevation-1);
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
   margin-block-end: var(--bw-density-stack-gap);
 }
 .bw-filter-bar__fields {
@@ -2106,15 +2147,19 @@ a.bw-card {
 /* --- Stat tile (VIZ-001/002, 0.5.0) ----------------------------------------- */
 
 /* KPI tile: the card chrome whether standalone or in a stat grid, stacking an
-   overline label, a tabular-numeral value, and an optional trend caption. */
+   overline label, a tabular-numeral value, and an optional trend caption.
+   Edge + ambient match zero-kwargs .bw-card so tiles read on white. */
 .bw-stat {
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-1);
   background: var(--bw-color-surface);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
-  box-shadow: var(--bw-elevation-1);
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
   padding: var(--bw-density-card-padding);
 }
 /* Clickable tile (VIZ-024): an anchor stat is definitionally hoverable, so it
@@ -2125,7 +2170,9 @@ a.bw-stat {
   transition: var(--bw-transition-shadow), var(--bw-transition-colors);
 }
 a.bw-stat:hover {
-  box-shadow: var(--bw-elevation-2);
+  box-shadow:
+    var(--bw-elevation-2),
+    0 8px 20px -6px oklch(0 0 0 / 0.12);
   background: var(--bw-color-surface-raised);
 }
 /* Overline voice for the label (uppercase applied here at the component, per
@@ -2281,8 +2328,8 @@ a.bw-stat:hover {
 
 /* --- Stat comparison (VIZ-019/020) ------------------------------------------ */
 
-/* This-vs-last-period tile: same tile chrome as .bw-stat (surface, border,
-   radius, elevation, density padding), stacking a label, the current
+/* This-vs-last-period tile: same tile chrome as .bw-stat (surface, fg-mix
+   edge, ambient elevation, density padding), stacking a label, the current
    value, a visible previous-period caption, and a trend row delegated to
    _trend_indicator.html. Both current and previous arrive pre-formatted
    from the caller (VIZ-020); this rule set never sizes text based on
@@ -2292,9 +2339,12 @@ a.bw-stat:hover {
   flex-direction: column;
   gap: var(--bw-space-1);
   background: var(--bw-color-surface);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
-  box-shadow: var(--bw-elevation-1);
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
   padding: var(--bw-density-card-padding);
 }
 .bw-stat-comparison__label {
@@ -3050,9 +3100,9 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 }
 /* Dropdown-shaped panel per the DESIGN.md reserved rows: surface-raised,
  * elevation-3 at z-dropdown, radius-lg (concentric with the item radius),
- * the menu min-width token, and the light-theme top-light the card family
- * shares (dark reset at the end of this file). Entrance is bw-fade-in-up
- * at normal/out (04-interfaces 4b). */
+ * the menu min-width token, and soft ambient under elevation (dark reset at
+ * the end of this file). Entrance is bw-fade-in-up at normal/out
+ * (04-interfaces 4b). */
 .bw-dropdown__panel {
   position: absolute;
   inset-block-start: calc(100% + var(--bw-space-1));
@@ -3060,9 +3110,12 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   min-inline-size: var(--bw-component-menu-min-width);
   padding: var(--bw-space-1);
   background: var(--bw-color-surface-raised);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
   border-radius: var(--bw-radius-lg);
-  box-shadow: var(--bw-elevation-3), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  box-shadow:
+    var(--bw-elevation-3),
+    0 12px 28px -8px oklch(0 0 0 / 0.14);
   z-index: var(--bw-z-dropdown);
 }
 .bw-dropdown[open] .bw-dropdown__panel {
@@ -3283,7 +3336,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 /* The resting (floor) panel: the alone-on-a-page altitude of the auth and
  * centred panels (elevation-2), raised surface, the modal radius row.
  * Flex column so the header and footer hold still while the body scrolls
- * (CMP-021) in both states. */
+ * (CMP-021) in both states. Fg-mix edge so the floor panel reads on white. */
 .bw-modal__panel {
   display: flex;
   flex-direction: column;
@@ -3291,7 +3344,8 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   max-inline-size: var(--bw-size-max-width-modal-md);
   margin-inline: auto;
   background: var(--bw-color-surface-raised);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
   border-radius: var(--bw-radius-xl);
   box-shadow: var(--bw-elevation-2);
 }
@@ -3321,16 +3375,18 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
     opacity: 0;
   }
 }
-/* The open panel rises to the reserved elevation-4 modal row and gains the
- * card family's light-theme top-light (dark reset at the end of this
- * file). Entrance is the fade-in-up rise plus the 96% -> 100% scale at
+/* The open panel rises to the reserved elevation-4 modal row and gains a
+ * soft ambient under elevation (dark reset at the end of this file).
+ * Entrance is the fade-in-up rise plus the 96% -> 100% scale at
  * normal/out (MOT-005); the rise distance is the space-1 token, the same
  * 4px as bw-fade-in-up. */
 .bw-modal:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
   position: relative;
   z-index: var(--bw-z-modal);
   max-block-size: 100%;
-  box-shadow: var(--bw-elevation-4), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  box-shadow:
+    var(--bw-elevation-4),
+    0 16px 36px -10px oklch(0 0 0 / 0.16);
   animation: bw-modal-in var(--bw-duration-normal) var(--bw-ease-out);
 }
 @keyframes bw-modal-in {
@@ -3438,7 +3494,8 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 /* The resting (floor) panel: full block-size, edge-anchored width from the
  * modal's own size ramp (no separate width token: 28rem-48rem already
  * covers a side panel's usual range). Flex column so the header and
- * footer hold still while the body scrolls, matching the modal. */
+ * footer hold still while the body scrolls, matching the modal. Fg-mix
+ * floor edge so the panel reads on white when rendered as a page. */
 .bw-slide-over__panel {
   display: flex;
   flex-direction: column;
@@ -3446,7 +3503,8 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   max-inline-size: var(--bw-size-max-width-modal-md);
   block-size: 100%;
   background: var(--bw-color-surface-raised);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
   box-shadow: var(--bw-elevation-2);
 }
 /* The open state: a fixed, edge-anchored overlay layer at z-modal, full
@@ -3482,7 +3540,9 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   position: relative;
   z-index: var(--bw-z-modal);
   max-block-size: 100%;
-  box-shadow: var(--bw-elevation-4);
+  box-shadow:
+    var(--bw-elevation-4),
+    0 16px 36px -10px oklch(0 0 0 / 0.16);
   animation-duration: var(--bw-duration-normal);
   animation-timing-function: var(--bw-ease-out);
 }
@@ -3657,8 +3717,8 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   display: contents;
 }
 /* The toast card: raised surface at the reserved elevation-5 toast row with
- * the card family's light-theme top-light (dark reset at the end of this
- * file), radius-xl, and an emphasis-width inline-start edge that the intent
+ * soft ambient under elevation (dark reset at the end of this file),
+ * radius-xl, and an emphasis-width inline-start edge that the intent
  * variants recolour. Resting = pre-enter (or mid-exit): faded and pulled
  * toward the region's block edge; the base transition is the exit leg
  * (fast/in, MOT-007's clear-quickly tier). */
@@ -3669,10 +3729,13 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   padding: var(--bw-space-3);
   pointer-events: auto;
   background: var(--bw-color-surface-raised);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
   border-inline-start: var(--bw-size-border-thick) solid var(--bw-color-border);
   border-radius: var(--bw-radius-xl);
-  box-shadow: var(--bw-elevation-5), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  box-shadow:
+    var(--bw-elevation-5),
+    0 20px 44px -12px oklch(0 0 0 / 0.18);
   opacity: 0;
   transform: translateY(calc(-1 * var(--bw-space-2)));
   transition:
@@ -5005,8 +5068,16 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
  * interactive-hover restatements exist because these attribute-scoped rules
  * outrank the plain class rules they would otherwise shadow. */
 [data-theme="dark"] .bw-card,
-[data-theme="dark"] .bw-data-table-wrap {
+[data-theme="dark"] .bw-data-table-wrap,
+[data-theme="dark"] .bw-filter-bar,
+[data-theme="dark"] .bw-bulk-actions-bar,
+[data-theme="dark"] .bw-stat,
+[data-theme="dark"] .bw-stat-comparison,
+[data-theme="dark"] .bw-empty-state {
   box-shadow: var(--bw-elevation-1);
+}
+[data-theme="dark"] .bw-empty-state--size-sm {
+  box-shadow: none;
 }
 [data-theme="dark"] .bw-card--bordered,
 [data-theme="dark"] .bw-card--elevation-0 {
@@ -5019,7 +5090,8 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   box-shadow: var(--bw-elevation-3);
 }
 [data-theme="dark"] .bw-card--interactive:hover,
-[data-theme="dark"] .bw-card--interactive:focus-within {
+[data-theme="dark"] .bw-card--interactive:focus-within,
+[data-theme="dark"] a.bw-stat:hover {
   box-shadow: var(--bw-elevation-2);
 }
 [data-theme="dark"] .bw-account-menu__panel,

@@ -8,6 +8,29 @@ versioning contract).
 
 ## Unreleased
 
+### Changed
+
+- **App and overlay defaults read on a white canvas without kwargs**
+  (icvoss/django-brickwork#541). Filter bar, bulk-actions bar, stat tiles,
+  data-table wrap and the default empty state pick up the same fg-mix
+  hairline and soft ambient under elevation that zero-kwargs cards use;
+  empty-state `--size-sm` stays unframed for nested use. Page header gains
+  flex layout craft for title and actions. Modal, slide-over, dropdown and
+  toast panels take fg-mix edges; open overlays keep their elevation ladder
+  with soft ambient instead of a white inset. Shell chrome (topbar,
+  marketing header, auth/centred panels) gains light elevation ambient;
+  sidebar edge mix is slightly stronger. Dark theme still uses the plain
+  elevation ramp.
+
+- **Marketing defaults read on a white canvas without kwargs**
+  (icvoss/django-brickwork#541). Feature-grid cards, testimonials, pricing
+  tiers, tinted CTA bands and the stat band keep their fills and pick up the
+  same fg-mix hairline and soft ambient under elevation that zero-kwargs
+  cards use; highlighted pricing keeps the accent border with elevation-3
+  ambient. Hero headings balance, ledes wrap pretty, and hero media images
+  gain a soft elevation frame. CTA and pricing-table section headings take
+  the heading-xl family. Dark theme still uses the plain elevation ramp.
+
 ## [3.21.0] - 2026-09-13
 
 **Default card craft and inverse-header action contrast.** Zero-kwargs cards

@@ -13,9 +13,10 @@ from pathlib import Path
 from django import forms
 from django.template.loader import render_to_string
 
-_COMPILED_CSS = (
-    Path(__file__).resolve().parent.parent / "src" / "brickwork" / "static" / "brickwork" / "dist" / "brickwork.css"
-).read_text(encoding="utf-8")
+_ROOT = Path(__file__).resolve().parent.parent
+_COMPILED_CSS = (_ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist" / "brickwork.css").read_text(
+    encoding="utf-8"
+)
 
 
 class _FilterForm(forms.Form):
@@ -105,3 +106,23 @@ def test_filter_field_error_container_and_widget_wiring_survive_alignment() -> N
     assert 'aria-describedby="id_q_errors"' in out
     assert 'id="id_q_errors" role="alert"' in out
     assert "Search needs a term." in out
+
+
+def test_beautiful_default_filter_bar_has_fg_mix_edge_and_ambient() -> None:
+    # Mirror test_card.test_beautiful_default_bare_card_*: control deck reads
+    # on white with the same fg-mix hairline and soft ambient under elev-1.
+    import re
+
+    css = (_ROOT / "frontend" / "src" / "components.css").read_text(encoding="utf-8")
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    rules = [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
+    bodies = [body for sel, body in rules if sel.strip() == ".bw-filter-bar"]
+    assert bodies, "missing .bw-filter-bar rule"
+    body = bodies[0]
+    assert "color-mix(in oklab, var(--bw-color-fg)" in body
+    assert "var(--bw-elevation-1)" in body
+    assert "0 4px 14px -4px" in body
+    assert "inset 0 1px 0 0" not in body
+    # Built bundle carries the ambient (package product, not only source).
+    assert "0 4px 14px -4px" in _COMPILED_CSS
+    assert ".bw-filter-bar{" in _COMPILED_CSS.replace(" ", "")

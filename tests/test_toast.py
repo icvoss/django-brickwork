@@ -201,3 +201,18 @@ def test_bundle_ships_no_client_side_creation_api() -> None:
     # BR-BW-HTMX-007: toast markup is always server-rendered; no showToast()
     # entry point, ever.
     assert "showToast" not in _DIST_JS.read_text()
+
+
+def test_beautiful_default_toast_has_fg_mix_edge_and_ambient() -> None:
+    # Mirror test_card.test_beautiful_default_bare_card_*: toast keeps elev-5,
+    # swaps the white inset for soft ambient, and uses an fg-mix outer edge.
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "components.css").read_text(encoding="utf-8")
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    rules = [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
+    bodies = [body for sel, body in rules if sel.strip() == ".bw-toast"]
+    assert bodies, "missing .bw-toast rule"
+    body = bodies[0]
+    assert "color-mix(in oklab, var(--bw-color-fg)" in body
+    assert "var(--bw-elevation-5)" in body
+    assert "0 20px 44px -12px" in body
+    assert "inset 0 1px 0 0" not in body

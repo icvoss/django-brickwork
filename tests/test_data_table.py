@@ -408,3 +408,21 @@ def test_column_align_omitted_or_unknown_emits_no_align_modifier() -> None:
     assert "bw-data-table__th--center" not in out
     assert "bw-data-table__td--end" not in out
     assert "bw-data-table__td--center" not in out
+
+
+def test_beautiful_default_data_table_wrap_has_fg_mix_edge_and_ambient() -> None:
+    # Mirror test_card.test_beautiful_default_bare_card_*: table wrap reads on
+    # white with fg-mix edge and soft ambient (no white inset sheen).
+    import re
+    from pathlib import Path
+
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "components.css").read_text(encoding="utf-8")
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    rules = [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
+    bodies = [body for sel, body in rules if sel.strip() == ".bw-data-table-wrap"]
+    assert bodies, "missing .bw-data-table-wrap rule"
+    body = bodies[0]
+    assert "color-mix(in oklab, var(--bw-color-fg)" in body
+    assert "var(--bw-elevation-1)" in body
+    assert "0 4px 14px -4px" in body
+    assert "inset 0 1px 0 0" not in body
