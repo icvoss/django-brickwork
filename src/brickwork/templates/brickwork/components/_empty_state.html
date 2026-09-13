@@ -107,7 +107,7 @@ Appearance (Beat Phase C, icvoss/django-brickwork#543):
       card treatment (edge + ambient). plain strips the frame for embedding
       in an already-framed region without nesting chrome. size="sm" always
       unframes (nested panel scale), regardless of surface.
-{% endcomment %}{% bw_options component="brickwork/components/_empty_state.html" surface=surface %}{% bw_require body=body %}{% if size != "sm" %}{% bw_require heading=heading %}{% endif %}
+{% endcomment %}{% firstof surface '' as surface %}{% bw_options component="brickwork/components/_empty_state.html" surface=surface %}{% bw_require body=body %}{% if size != "sm" %}{% bw_require heading=heading %}{% endif %}
 <div class="bw-empty-state bw-empty-state--{% if variant == "no_results" %}no_results{% else %}no_data{% endif %}{% if size == "sm" %} bw-empty-state--size-sm{% endif %}{% if surface == "plain" and size != "sm" %} bw-empty-state--surface-plain{% endif %}">
   {% block icon %}
   {% if icon %}

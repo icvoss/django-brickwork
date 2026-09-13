@@ -154,7 +154,7 @@ Appearance (Beat Phase C, icvoss/django-brickwork#543):
   footer_recipe ("plain" default | "muted" | "actions"): root modifier so a
       consumer-authored .bw-modal__footer shares the recipe look. The
       footer block still owns its own <footer> wrapper.
-{% endcomment %}{% bw_options component="brickwork/components/_modal.html" header_recipe=header_recipe footer_recipe=footer_recipe size=size %}{% firstof modal_id "bw-modal" as bw_modal_instance_id %}
+{% endcomment %}{% firstof header_recipe '' as header_recipe %}{% firstof footer_recipe '' as footer_recipe %}{% firstof size '' as size %}{% bw_options component="brickwork/components/_modal.html" header_recipe=header_recipe footer_recipe=footer_recipe size=size %}{% firstof modal_id "bw-modal" as bw_modal_instance_id %}
 <div class="bw-modal bw-modal--{% firstof size 'md' %}{% if header_recipe and header_recipe != "plain" %} bw-modal--header-{{ header_recipe }}{% endif %}{% if footer_recipe and footer_recipe != "plain" %} bw-modal--footer-{{ footer_recipe }}{% endif %}"
      id="{{ bw_modal_instance_id }}"
      x-data="bwModal({ backdropDismiss: {% if backdrop_dismiss == False %}false{% else %}true{% endif %} })">

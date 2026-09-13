@@ -61,7 +61,7 @@ Appearance (Beat Phase C, icvoss/django-brickwork#543):
       --bw-color-surface-sunken with a hairline under-edge so breadcrumb +
       title + actions read as one chrome band. default is the plain page
       header (byte-identical when omitted).
-{% endcomment %}{% bw_options component="brickwork/components/_page_header.html" surface=surface %}{% bw_require title=title %}
+{% endcomment %}{% firstof surface '' as surface %}{% bw_options component="brickwork/components/_page_header.html" surface=surface %}{% bw_require title=title %}
 <header class="bw-page-header{% if surface == "tint" %} bw-page-header--surface-tint{% endif %}">
   {% block breadcrumb %}{% endblock %}
   {% if loading %}

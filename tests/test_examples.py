@@ -28,7 +28,6 @@ from django.template.backends.django import get_installed_libraries as get_defau
 from django.template.loader import get_template, render_to_string
 from django.utils import dates as django_dates
 from django.utils.formats import get_format
-from django.utils.safestring import mark_safe
 from django.utils.html import escape as django_escape
 from django.utils.safestring import mark_safe
 
@@ -673,8 +672,7 @@ _SECTION_FEATURE_ROWS = [
     {
         "heading": "Know who is about to run late",
         "body": (
-            "Every account carries a prediction based on how it has actually paid you "
-            "before, not on its stated terms."
+            "Every account carries a prediction based on how it has actually paid you before, not on its stated terms."
         ),
         "media": _SECTION_FEATURE_ROW_MEDIA,
     },

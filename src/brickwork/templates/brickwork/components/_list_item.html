@@ -32,7 +32,7 @@ Responsive: stacks below --bw-breakpoint-sm; media-plus-body row from sm up.
 Appearance (Beat Phase C, icvoss/django-brickwork#543):
   density ("comfortable" default | "compact"): compact tightens padding and
       media column for denser ops lists. Omit for the authored default.
-{% endcomment %}{% bw_options component="brickwork/components/_list_item.html" density=density %}{% bw_require title=title %}
+{% endcomment %}{% firstof density '' as density %}{% bw_options component="brickwork/components/_list_item.html" density=density %}{% bw_require title=title %}
 <article class="bw-list-item{% if density == "compact" %} bw-list-item--density-compact{% endif %}">
   {% block media %}
   {% if media %}
