@@ -8,6 +8,19 @@ versioning contract).
 
 ## Unreleased
 
+## [3.22.0] - 2026-09-13
+
+**Raised package defaults on white canvas for beat Phase A.** Marketing
+sections, app chrome and overlays pick up the same fg-mix edge and soft
+ambient under elevation that cards gained in 3.21.0, so zero-kwargs stills
+read finished without brand packs or site CSS.
+
+**Behaviour changes for existing consumers.** Light-theme resting edges and
+shadows are slightly stronger on the touched surfaces (feature cards,
+testimonials, pricing tiers, tinted CTA and stat bands, filter bars, data
+tables, empty states, stats, modal/slide-over/dropdown/toast panels, and
+light shell chrome). Dark theme elevation is unchanged (plain ramp).
+
 ### Changed
 
 - **App and overlay defaults read on a white canvas without kwargs**
