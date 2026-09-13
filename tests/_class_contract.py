@@ -66,6 +66,8 @@ UNSTYLED_BY_DESIGN: set[str] = {
     # previously an intentionally unstyled hook (icvoss/django-brickwork#130).
     "bw-dropdown__item-label",  # text leaf inside a styled flex row.
     "bw-dropzone__label",  # text leaf inside the styled dropzone surface.
+    "bw-chip__label",  # text leaf inside the styled chip surface (#542).
+    "bw-avatar--initials",  # content-shape marker; .bw-avatar__initials carries the glyph.
     "bw-empty-state--no_data",  # variant carries no visual distinction (STA-002).
     "bw-empty-state--no_results",  # ditto: the icon/copy alone differ, by design.
     "bw-tag-input",  # enhanced-state root; the .bw-input classes carry the look.

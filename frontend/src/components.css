@@ -5083,6 +5083,12 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   inline-size: 100%;
 }
 
+/* muted is the documented default tone (#120/#130): emit the class with a
+ * real rule that restates the base border colour, matching .bw-btn--md. */
+.bw-divider--tone-muted {
+  border-block-start-color: var(--bw-color-border);
+}
+
 .bw-divider--tone-strong {
   border-block-start-color: var(--bw-color-border-strong);
 }
@@ -5112,6 +5118,10 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
 }
 
+.bw-divider--labelled.bw-divider--tone-muted .bw-divider__rule {
+  border-block-start-color: var(--bw-color-border);
+}
+
 .bw-divider--labelled.bw-divider--tone-strong .bw-divider__rule {
   border-block-start-color: var(--bw-color-border-strong);
 }
@@ -5130,14 +5140,15 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 /* --- Avatar (Beat Phase B, #542) ------------------------------------------- */
+/* Box size reuses shipped control-height tokens (DESIGN.md §10 keeps
+   --bw-avatar-size-* reserved until a consumer needs a distinct scale). */
 
 .bw-avatar {
-  --bw-avatar-box: var(--bw-size-control-height-md);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: var(--bw-avatar-box);
-  block-size: var(--bw-avatar-box);
+  inline-size: var(--bw-size-control-height-md);
+  block-size: var(--bw-size-control-height-md);
   overflow: hidden;
   border-radius: var(--bw-radius-full);
   background: var(--bw-color-surface-sunken);
@@ -5148,15 +5159,24 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 .bw-avatar--size-sm {
-  --bw-avatar-box: var(--bw-size-control-height-sm);
+  inline-size: var(--bw-size-control-height-sm);
+  block-size: var(--bw-size-control-height-sm);
 }
 
 .bw-avatar--size-md {
-  --bw-avatar-box: var(--bw-size-control-height-md);
+  inline-size: var(--bw-size-control-height-md);
+  block-size: var(--bw-size-control-height-md);
 }
 
 .bw-avatar--size-lg {
-  --bw-avatar-box: var(--bw-size-control-height-lg);
+  inline-size: var(--bw-size-control-height-lg);
+  block-size: var(--bw-size-control-height-lg);
+}
+
+/* circle is the documented default shape (#120/#130): restates the base
+ * full radius so the class is not a broken promise in markup. */
+.bw-avatar--shape-circle {
+  border-radius: var(--bw-radius-full);
 }
 
 .bw-avatar--shape-square {
@@ -5170,13 +5190,21 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 .bw-avatar__initials {
-  font-size: calc(var(--bw-avatar-box) * 0.375);
+  font-size: calc(var(--bw-size-control-height-md) * 0.375);
   font-weight: var(--bw-font-weight-semibold);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   max-inline-size: 100%;
   overflow: hidden;
+}
+
+.bw-avatar--size-sm .bw-avatar__initials {
+  font-size: calc(var(--bw-size-control-height-sm) * 0.375);
+}
+
+.bw-avatar--size-lg .bw-avatar__initials {
+  font-size: calc(var(--bw-size-control-height-lg) * 0.375);
 }
 
 .bw-avatar--overflow {
@@ -5227,6 +5255,13 @@ a.bw-chip {
 .bw-chip--size-sm {
   padding-block: var(--bw-space-0-5);
   padding-inline: var(--bw-space-2);
+}
+
+/* md is the documented default chip size (#120/#130): restates the base
+ * padding so the emitted class has a named rule. */
+.bw-chip--size-md {
+  padding-block: var(--bw-space-1);
+  padding-inline: var(--bw-space-3);
 }
 
 .bw-chip--neutral {
@@ -5291,6 +5326,15 @@ a.bw-chip {
   flex-wrap: nowrap;
   align-items: stretch;
   vertical-align: middle;
+}
+
+/* Size modifiers are markers on the group root; the item buttons carry the
+ * real sm/md/lg geometry via .bw-btn--*. Restate align-items so each
+ * documented size still has a named rule (#120/#130). */
+.bw-button-group--size-sm,
+.bw-button-group--size-md,
+.bw-button-group--size-lg {
+  align-items: stretch;
 }
 
 .bw-button-group__item {
