@@ -1001,7 +1001,7 @@ copy-paste tree stay linked.
 | Journey | Copy from | Contract |
 |---|---|---|
 | Form validate | `examples/app/form.html` | Shared `{% partialdef form_region inline %}` + the view branches in section 4; no-JS full page and HTMX 422; axe covers the invalid field state via `form-errors-*.html` |
-| Modal | `examples/app/confirm-modal.html` | Extends `_modal.html` into `#bw-modal-root`; open with `hx-get` / `hx-target="#bw-modal-root"` / `hx-swap="innerHTML"` on a real anchor; close with `HX-Trigger: {"bw:modal:close": {"id": "..."}}`; focus trap is bwModal's |
+| Modal | `examples/sections/modal/confirm.html` | Extends `_modal.html` into `#bw-modal-root`; open with `hx-get` / `hx-target="#bw-modal-root"` / `hx-swap="innerHTML"` on a real anchor; close with `HX-Trigger: {"bw:modal:close": {"id": "..."}}`; focus trap is bwModal's |
 | Toast | `examples/app/toast.html` | `{% partialdef toast_oob %}` returns `hx-swap-oob="afterbegin:#bw-toast-region"`; plain POST uses `django.contrib.messages` + `{% bw_alert %}` |
 | List + filter | `examples/app/list.html` | `_filter_bar` (with `clear_href`) + `_data_table` (`responsive="stack"`, empty clear action) |
 | Marketing CTA | `examples/sections/cta/centred-band.html` | Dual CTA band; recolour via brand-pack tokens only ([brand-pack examples](examples/brand-pack/README.md)) |

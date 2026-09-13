@@ -764,7 +764,7 @@ _SECTION_STATS = [
 _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     # Modal journey fragment (Beat Phase D): extends the shipped modal chrome,
     # so it is a fragment like a section, not a full document.
-    "app/confirm-modal.html": {
+    "sections/modal/confirm.html": {
         "title": "Reset demo data",
         "modal_id": "confirm-reset",
         "close_href": "/interactions/",

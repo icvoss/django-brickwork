@@ -33,6 +33,18 @@ What your view must supply:
     backdrop_dismiss  False for destructive confirms that must not dismiss
                       on scrim click (Escape still closes; route it through
                       the same confirm branch).
+
+States: closed host page (trigger only) vs open (this partial inside
+  #bw-modal-root); Escape / close control / HX-Trigger bw:modal:close return
+  to closed. Destructive confirms set backdrop_dismiss False.
+Accessibility: bwModal owns the dialog role, labelled-by title, focus trap
+  and restore; the always-rendered close control is a real button; form fields
+  use standard label/input pairing with data-bw-autofocus for initial focus.
+  Pair with a full-page floor (examples/app/confirm.html) so the action still
+  works without JS. Covered by the interactions a11y gate for the modal
+  contract; this example is the copyable consumer partial.
+Responsive: no breakpoint switch of its own; the modal panel follows
+  _modal.html's max-width and viewport padding at every width.
 {% endcomment %}
 
 {% block body %}

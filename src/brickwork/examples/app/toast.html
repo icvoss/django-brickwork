@@ -20,6 +20,18 @@ View shape (copy into your project):
 
 What your view must supply on GET: nav_items / nav_active as in list.html.
 On the HTMX POST fragment: message, intent, duration.
+
+States: idle status line on GET; after HTMX POST the status line and an
+  OOB toast both update; plain POST shows django.contrib.messages via
+  bw_alert instead. Toast duration/intent follow bw_toast's own states.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; the toast lands in #bw-toast-region (live region owned
+  by the shell); the messages floor uses bw_alert. Covered by the archetype
+  harness's full gate sweep (render, axe WCAG 2.2 AA, no horizontal overflow,
+  light/dark distinctness, skip-link first-tab-stop with JS disabled) at every
+  W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem).
 {% endcomment %}
 {% load brickwork_components brickwork_interactions brickwork_nav %}
 

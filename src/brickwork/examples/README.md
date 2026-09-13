@@ -111,7 +111,7 @@ section 5). Prefer these over parallel demo systems.
 | Journey | Copy | Proof |
 |---|---|---|
 | Form validate | `app/form.html` | Shared `{% partialdef form_region %}` + 422 path; no-JS POST and HTMX swap; axe on invalid via `form-errors-*.html` |
-| Modal | `app/confirm-modal.html` | Consumer partial for `#bw-modal-root`; open one-liner and `HX-Trigger` close in the file header; focus trap owned by bwModal |
+| Modal | `sections/modal/confirm.html` | Consumer partial for `#bw-modal-root`; open one-liner and `HX-Trigger` close in the file header; focus trap owned by bwModal |
 | Toast | `app/toast.html` | OOB into `#bw-toast-region` via `{% partialdef toast_oob %}`; plain POST uses messages floor |
 | List + filter | `app/list.html` | `filter_bar` + `data_table` + empty clear path; `responsive="stack"` for phone |
 | Marketing CTA | `sections/cta/centred-band.html` | Tinted band + dual CTA; recolour with brand tokens only ([brand-pack](../../../docs/examples/brand-pack/)) |
@@ -131,7 +131,7 @@ is also linked from there.
 | `app/date-range-picker.html` | Native date inputs plus a copy-in popover shell (BR-BW-INPUT-004: no component) |
 | `app/form.html` | Single create/edit form (form validate journey: partialdef + 422) |
 | `app/toast.html` | Toast delivery form + OOB partialdef (toast journey) |
-| `app/confirm-modal.html` | Modal consumer partial for `#bw-modal-root` (modal journey; fragment) |
+| `sections/modal/confirm.html` | Modal consumer partial for `#bw-modal-root` (modal journey; fragment) |
 | `app/wizard.html` | One step of a multi-step flow |
 | `app/settings.html` | Tabbed settings area |
 | `app/console.html` | Blank slate for a section with no data yet |

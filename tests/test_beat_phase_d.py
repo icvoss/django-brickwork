@@ -16,7 +16,7 @@ _INTEGRATION = _ROOT / "docs" / "INTEGRATION.md"
 
 _JOURNEYS = {
     "Form validate": "app/form.html",
-    "Modal": "app/confirm-modal.html",
+    "Modal": "sections/modal/confirm.html",
     "Toast": "app/toast.html",
     "List + filter": "app/list.html",
     "Marketing CTA": "sections/cta/centred-band.html",
@@ -53,13 +53,15 @@ def test_form_journey_renders_invalid_state() -> None:
 
 
 def test_modal_journey_is_consumer_partial_for_modal_root() -> None:
-    source = examples.read_example("app/confirm-modal.html")
+    source = examples.read_example("sections/modal/confirm.html")
     assert '{% extends "brickwork/components/_modal.html" %}' in source
     assert "#bw-modal-root" in source
     assert "bw:modal:close" in source
-    assert "hx-target=\"#bw-modal-root\"" in source
-    html = _example_engine().get_template("app/confirm-modal.html").render(
-        Context(_SECTION_CONTEXTS["app/confirm-modal.html"])
+    assert 'hx-target="#bw-modal-root"' in source
+    html = (
+        _example_engine()
+        .get_template("sections/modal/confirm.html")
+        .render(Context(_SECTION_CONTEXTS["sections/modal/confirm.html"]))
     )
     assert 'id="confirm-reset"' in html
     assert "bw-modal" in html
@@ -102,8 +104,10 @@ def test_marketing_cta_journey_ships_dual_cta_and_brand_note() -> None:
     assert "primary_cta_label=" in source
     assert "secondary_cta_label=" in source
     assert "brand-pack" in source or "brand tokens" in source
-    html = _example_engine().get_template("sections/cta/centred-band.html").render(
-        Context(_SECTION_CONTEXTS["sections/cta/centred-band.html"])
+    html = (
+        _example_engine()
+        .get_template("sections/cta/centred-band.html")
+        .render(Context(_SECTION_CONTEXTS["sections/cta/centred-band.html"]))
     )
     assert "Start free trial" in html
     assert "Talk to us" in html
