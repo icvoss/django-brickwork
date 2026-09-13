@@ -213,9 +213,9 @@ def test_list_item_title_and_meta() -> None:
 
 
 def test_list_item_requires_title_in_debug() -> None:
-    out = Template(
-        '{% include "brickwork/components/_list_item.html" with title="" %}'
-    ).render(Context({"bw_debug": True}))
+    out = Template('{% include "brickwork/components/_list_item.html" with title="" %}').render(
+        Context({"bw_debug": True})
+    )
     assert "data-bw-require-warn" in out
 
 

@@ -10,7 +10,7 @@ import json
 import math
 import re
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from html import unescape
@@ -544,7 +544,14 @@ def bw_avatar_group(
         raise TemplateSyntaxError(f"bw_avatar_group size must be one of {sorted(SIZES)}, got {size!r}")
     if shape not in SHAPES:
         raise TemplateSyntaxError(f"bw_avatar_group shape must be one of {sorted(SHAPES)}, got {shape!r}")
-    people = list(avatars or [])
+    if avatars is None:
+        people: list[object] = []
+    elif isinstance(avatars, (str, bytes)):
+        raise TemplateSyntaxError("bw_avatar_group avatars must be a sequence of avatar dicts, not a string")
+    elif isinstance(avatars, Iterable):
+        people = list(avatars)
+    else:
+        raise TemplateSyntaxError(f"bw_avatar_group avatars must be iterable, got {type(avatars).__name__}")
     max_n = int(max or 0)
     if max_n > 0 and len(people) > max_n:
         visible = people[: max_n - 1]
