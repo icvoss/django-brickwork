@@ -206,9 +206,7 @@ def test_bundle_ships_no_client_side_creation_api() -> None:
 def test_beautiful_default_toast_has_fg_mix_edge_and_ambient() -> None:
     # Mirror test_card.test_beautiful_default_bare_card_*: toast keeps elev-5,
     # swaps the white inset for soft ambient, and uses an fg-mix outer edge.
-    css = (
-        Path(__file__).resolve().parent.parent / "frontend" / "src" / "components.css"
-    ).read_text(encoding="utf-8")
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "components.css").read_text(encoding="utf-8")
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
     rules = [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
     bodies = [body for sel, body in rules if sel.strip() == ".bw-toast"]

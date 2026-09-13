@@ -18,6 +18,7 @@ _COMPILED_CSS = (_ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist" /
     encoding="utf-8"
 )
 
+
 class _FilterForm(forms.Form):
     q = forms.CharField(required=False, label="Search")
     status = forms.ChoiceField(

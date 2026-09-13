@@ -212,9 +212,7 @@ def test_modal_title_successor_replaces_rather_than_appends() -> None:
 def test_beautiful_default_modal_panel_has_fg_mix_edge_and_open_ambient() -> None:
     # Mirror test_card.test_beautiful_default_bare_card_*: floor panel uses an
     # fg-mix edge; open state keeps elev-4 with soft ambient (no white inset).
-    css = (
-        Path(__file__).resolve().parent.parent / "frontend" / "src" / "components.css"
-    ).read_text(encoding="utf-8")
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "components.css").read_text(encoding="utf-8")
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
     rules = [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
     floor = [body for sel, body in rules if sel.strip() == ".bw-modal__panel"]
@@ -222,9 +220,7 @@ def test_beautiful_default_modal_panel_has_fg_mix_edge_and_open_ambient() -> Non
     assert "color-mix(in oklab, var(--bw-color-fg)" in floor[0]
 
     open_panel = [
-        body
-        for sel, body in rules
-        if ".bw-modal__panel" in sel and ("bw-modal--open" in sel or "data-bw-open" in sel)
+        body for sel, body in rules if ".bw-modal__panel" in sel and ("bw-modal--open" in sel or "data-bw-open" in sel)
     ]
     assert open_panel, "missing open .bw-modal__panel rule"
     open_body = open_panel[0]

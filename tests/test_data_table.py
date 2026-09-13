@@ -416,9 +416,7 @@ def test_beautiful_default_data_table_wrap_has_fg_mix_edge_and_ambient() -> None
     import re
     from pathlib import Path
 
-    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "components.css").read_text(
-        encoding="utf-8"
-    )
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "components.css").read_text(encoding="utf-8")
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
     rules = [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
     bodies = [body for sel, body in rules if sel.strip() == ".bw-data-table-wrap"]
