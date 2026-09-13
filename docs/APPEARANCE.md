@@ -72,7 +72,10 @@ vocabularies live in `brickwork.appearance` so spellings do not drift.
    `body` and `caption` strings cover the one-paragraph include path.
 3. **Include-path header action:** `action_label` (+ optional `action_href`)
    emits a ghost sm button in the header. Suppressed when the whole card is an
-   `href` link (no nested interactive content).
+   `href` link (no nested interactive content). On `header_recipe="inverse"`
+   and `surface="inverse"`, that ghost uses `--bw-color-fg-on-inverse` so it
+   keeps WCAG AA contrast against the inverse fill (ghost's default
+   `fg-muted` does not).
 4. **Include-path media:** `media_recipe` with `media_src` / `media_alt` (bleed
    or inset) or `media_icon` (icon). Rich media stays `{% block media %}`.
 5. **`{% block %}` wins** for rich content. Root recipe modifiers still style
@@ -87,6 +90,13 @@ vocabularies live in `brickwork.appearance` so spellings do not drift.
 Defaults must pass [VISUAL-BAR.md](VISUAL-BAR.md) on package-default theme (no
 brand pack) for the surfaces each component appears on. Default craft changes
 are consumer-visible: name them in CHANGELOG in consumer terms.
+
+**Card resting craft.** The zero-kwargs card keeps hairline + radius-lg +
+elevation-1. On light theme it also draws a soft ambient under the elevation
+token and a slightly stronger edge (`color-mix` of fg into surface) so the
+card reads on a white page canvas. Dark theme stays on the plain elevation
+ramp. Recipes and elevation modifiers keep those axes; they do not require
+kwargs for the everyday case.
 
 ## Adoption note
 

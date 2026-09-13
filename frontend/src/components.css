@@ -1805,7 +1805,11 @@ button.bw-account-menu__item {
    card is just this elevated surface (AC-BW-070). */
 .bw-card {
   background: var(--bw-color-surface);
-  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  /* Edge on white canvas: mix a little ink into the border so the card does
+   * not dissolve into a package-default white page. Elevation modifiers and
+   * recipes keep using --bw-color-border where they draw their own rules. */
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
   /* A grid item's default min-inline-size is auto (its content's intrinsic
    * width), not 0: without this, a card holding a wide child (a data table
@@ -1814,15 +1818,13 @@ button.bw-account-menu__item {
    * never gets a constrained width to scroll within and the whole page
    * drags sideways instead (icvoss/django-brickwork#136). */
   min-inline-size: 0;
-  /* Ring treatment (0.7.0 craft): the hairline border stays for layout
-   * stability, and a light-scoped inset top-light joins the elevation. White
-   * at 60% alpha: a catch-light along the top edge (the paper sheen Radix
-   * cards carry), sub-threshold against the white fill itself so it never
-   * reads as a stripe, only as depth over the radius. Light theme only: the
-   * dark elevation tokens already author their own inset highlight, so the
-   * [data-theme="dark"] resets at the end of this file return these surfaces
-   * to the plain elevation token. */
-  box-shadow: var(--bw-elevation-1), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  /* Beautiful-defaults craft: keep elevation-1 as the named resting step,
+   * then add a soft ambient so the card reads on white without a paper
+   * sheen (white-on-white inset catch-light was invisible). Dark theme
+   * resets at the end of this file return modifiers to plain elevation. */
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
   padding: var(--bw-density-card-padding);
 }
 /* Flat-design variant (CMP-015): the hairline carries the boundary alone. */
@@ -1852,8 +1854,7 @@ button.bw-account-menu__item {
   background: var(--bw-color-surface-inverse);
   color: var(--bw-color-fg-on-inverse);
   border-color: transparent;
-  /* Inverse fill sits under the top edge: drop the paper sheen so it does not
-     stripe across dark ink. Elevation modifiers below restore the ramp. */
+  /* Inverse fill sits under the top edge: plain elevation (no light ambient). */
   box-shadow: var(--bw-elevation-1);
 }
 .bw-card--surface-muted {
@@ -1863,17 +1864,24 @@ button.bw-account-menu__item {
   box-shadow: var(--bw-elevation-0);
 }
 .bw-card--elevation-2 {
-  box-shadow: var(--bw-elevation-2), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  box-shadow:
+    var(--bw-elevation-2),
+    0 8px 20px -6px oklch(0 0 0 / 0.12);
 }
 .bw-card--elevation-3 {
-  box-shadow: var(--bw-elevation-3), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  box-shadow:
+    var(--bw-elevation-3),
+    0 12px 28px -8px oklch(0 0 0 / 0.14);
 }
-/* Bleed header / media cover the top radius: same sheen drop as surface-inverse. */
+/* Bleed header / media keep the ambient stack; surface-inverse alone drops it
+   so a dark fill does not carry a light-theme ambient halo. */
 .bw-card--header-inverse,
 .bw-card--header-muted,
 .bw-card--header-accent,
 .bw-card--media-bleed {
-  box-shadow: var(--bw-elevation-1);
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
 }
 .bw-card--surface-inverse.bw-card--elevation-0,
 .bw-card--header-inverse.bw-card--elevation-0,
@@ -1924,8 +1932,9 @@ a.bw-card {
 }
 .bw-card--interactive:hover,
 .bw-card--interactive:focus-within {
-  /* The top-light rides the raise so the sheen never blinks off mid-hover. */
-  box-shadow: var(--bw-elevation-2), inset 0 1px 0 0 oklch(1 0 0 / 0.6);
+  box-shadow:
+    var(--bw-elevation-2),
+    0 8px 20px -6px oklch(0 0 0 / 0.12);
   background: var(--bw-color-surface-raised);
 }
 .bw-card__header {
@@ -1974,14 +1983,31 @@ a.bw-card {
 /* Card titles speak in the heading-md role (DESIGN.md 7.4 component map). */
 .bw-card__title {
   margin: 0;
+  color: var(--bw-color-fg);
   font-family: var(--bw-text-heading-md-family);
   font-size: var(--bw-text-heading-md-size);
   font-weight: var(--bw-text-heading-md-weight);
   line-height: var(--bw-text-heading-md-line-height);
+  letter-spacing: var(--bw-text-heading-md-tracking, normal);
+  text-wrap: balance;
 }
 .bw-card__header--inverse .bw-card__title,
 .bw-card--header-inverse .bw-card__title {
   color: var(--bw-color-fg-on-inverse);
+}
+/* Include-path header actions are ghost sm buttons. Ghost defaults to
+   fg-muted, which fails WCAG AA on inverse (and whole-card inverse) fills.
+   Restyle to the checked on-inverse pair; hover keeps the overlay. */
+.bw-card__header--inverse .bw-btn--ghost,
+.bw-card--header-inverse .bw-card__header .bw-btn--ghost,
+.bw-card--surface-inverse .bw-btn--ghost {
+  color: var(--bw-color-fg-on-inverse);
+}
+.bw-card__header--inverse .bw-btn--ghost:not(.bw-btn--disabled):hover,
+.bw-card--header-inverse .bw-card__header .bw-btn--ghost:not(.bw-btn--disabled):hover,
+.bw-card--surface-inverse .bw-btn--ghost:not(.bw-btn--disabled):hover {
+  color: var(--bw-color-fg-on-inverse);
+  background-color: var(--bw-state-hover-overlay);
 }
 /* Plain include-path body string (APPEARANCE.md): escaped text, not rich HTML. */
 .bw-card__body {
@@ -1990,6 +2016,7 @@ a.bw-card {
   font-size: var(--bw-text-body-md-size);
   font-weight: var(--bw-text-body-md-weight);
   line-height: var(--bw-text-body-md-line-height);
+  text-wrap: pretty;
 }
 .bw-card__title + .bw-card__body,
 .bw-card__header + .bw-card__body,
@@ -4969,10 +4996,10 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   text-underline-offset: 0.15em;
 }
 
-/* --- Dark-theme resets for the light-only top-light (0.7.0 craft) ----------- */
+/* --- Dark-theme resets for light-only card ambient (beautiful defaults) ---- */
 
-/* The card family's inset top-light is a LIGHT-theme treatment (white sheen on
- * paper); the dark elevation tokens author their own inset highlight, so dark
+/* Soft ambient under elevation-* is a LIGHT-theme treatment so cards read on
+ * white canvas; dark elevation tokens already carry their own depth, so dark
  * surfaces return to the plain elevation ramp here. Scoped exactly like
  * tokens.css's own [data-theme="dark"] block. The bordered-card and
  * interactive-hover restatements exist because these attribute-scoped rules

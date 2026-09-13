@@ -357,6 +357,13 @@ def test_header_action_emits_ghost_button() -> None:
     assert 'href="/edit/"' in out
 
 
+def test_inverse_header_ghost_action_uses_on_inverse_ink() -> None:
+    rules = _css_rules(_frontend_css())
+    matched = [body for sel, body in rules if ".bw-card__header--inverse .bw-btn--ghost" in sel and "hover" not in sel]
+    assert matched, "missing inverse header ghost restyle"
+    assert "var(--bw-color-fg-on-inverse)" in matched[0]
+
+
 def test_header_action_suppressed_on_linked_card() -> None:
     out = _render(
         title="Invoice",
@@ -397,12 +404,14 @@ def test_extends_filler_receives_surface_elevation_from_include_context() -> Non
     assert "<p>Body</p>" in out
 
 
-def test_beautiful_default_bare_card_still_has_hairline_radius_and_elevation_sheen() -> None:
+def test_beautiful_default_bare_card_has_hairline_radius_elevation_and_ambient() -> None:
     rules = _css_rules(_frontend_css())
     base = [body for sel, body in rules if sel.strip() == ".bw-card"]
     assert base, "missing .bw-card rule"
     body = base[0]
     assert "var(--bw-elevation-1)" in body
     assert "var(--bw-radius-lg)" in body
-    assert "var(--bw-color-border)" in body
-    assert "inset 0 1px 0 0" in body
+    assert "var(--bw-size-border-hairline)" in body
+    assert "color-mix(in oklab, var(--bw-color-fg)" in body
+    assert "0 4px 14px -4px" in body
+    assert "inset 0 1px 0 0" not in body
