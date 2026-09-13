@@ -5,7 +5,9 @@ Consumer-facing skeletons for the brand-pack contract documented in
 
 | Directory | Purpose |
 |---|---|
-| [northline/](northline/) | Fictional B2B console pack. Copy and rename. Not kiln. |
+| [northline/](northline/) | Fictional B2B console pack (cool paper, teal). Copy and rename. Not kiln. |
+| [harbour/](harbour/) | Fictional hospitality pack (warm paper, amber). Copy and rename. Not kiln. |
+| [folio/](folio/) | Fictional editorial pack (cool paper, forest ink). Copy and rename. Not kiln. |
 
 Filled product packs (kiln, demo brands) belong on the consuming site, not in
 this package.

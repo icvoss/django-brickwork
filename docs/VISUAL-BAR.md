@@ -183,11 +183,15 @@ S1 to S8. It uses package-only CSS (compiled `brickwork.css` inlined). It does
 under [audits/_stills/](audits/_stills/) (gitignored PNGs; README only
 committed). Not a CI gate.
 
-**Brand pack second leg (Phase 4.3):** `npm run visual-bar:fixtures:northline`
-then `npm run visual-bar:capture:northline` reuses the same S1 to S8 map with
-the fictional northline skeleton (`docs/examples/brand-pack/northline/`).
-Stills land under `_stills/<date>-northline/`. See
-[audits/_stills/README.md](audits/_stills/README.md) for the two-leg recipe.
+**Brand pack second leg (Phase 4.3 / Beat F.1):** npm scripts
+`visual-bar:fixtures:<brand>` then `visual-bar:capture:<brand>` reuse the same
+S1 to S8 map with the fictional skeletons under
+`docs/examples/brand-pack/` (`northline`, `harbour`, `folio`). Stills land
+under `_stills/<date>-<brand>/`. Density: set `VISUAL_BAR_DENSITY=compact`
+(default `comfortable`) on both fixtures and capture; fixture dirs and
+default stills folders append `-compact` when non-default. Surface subset:
+`VISUAL_BAR_SURFACES=s1,s3,s5` (comma-separated IDs; default all S1 to S8).
+See [audits/_stills/README.md](audits/_stills/README.md) for the recipe.
 
 ---
 

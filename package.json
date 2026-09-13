@@ -14,6 +14,10 @@
     "visual-bar:capture": "node a11y/visual_bar_capture.mjs",
     "visual-bar:fixtures:northline": "VISUAL_BAR_BRAND=northline DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python a11y/generate_visual_bar_fixtures.py",
     "visual-bar:capture:northline": "VISUAL_BAR_BRAND=northline node a11y/visual_bar_capture.mjs",
+    "visual-bar:fixtures:harbour": "VISUAL_BAR_BRAND=harbour DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python a11y/generate_visual_bar_fixtures.py",
+    "visual-bar:capture:harbour": "VISUAL_BAR_BRAND=harbour node a11y/visual_bar_capture.mjs",
+    "visual-bar:fixtures:folio": "VISUAL_BAR_BRAND=folio DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python a11y/generate_visual_bar_fixtures.py",
+    "visual-bar:capture:folio": "VISUAL_BAR_BRAND=folio node a11y/visual_bar_capture.mjs",
     "a11y": "playwright test",
     "a11y:startsite": "playwright test --config startsite.playwright.config.mjs",
     "a11y:lint": "eslint ."

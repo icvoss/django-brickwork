@@ -1,15 +1,23 @@
 """Render the VISUAL-BAR scorecard surfaces (S1 to S8) for private stills.
 
 Default: package-only CSS (compiled brickwork.css inlined). No showcase or
-kiln brand. Optional brand pack via ``VISUAL_BAR_BRAND`` (currently
-``northline`` only): after inlining brickwork.css, append that pack's
+kiln brand. Optional brand pack via ``VISUAL_BAR_BRAND`` (``northline``,
+``harbour``, or ``folio``): after inlining brickwork.css, append that pack's
 ``tokens.css`` and set ``bw_brand`` so the shell emits ``data-bw-brand``.
 
+Density via ``VISUAL_BAR_DENSITY`` (``comfortable`` default, or ``compact``):
+sets ``bw_density`` in the example context so the shell emits
+``data-density``.
+
+Optional surface subset via ``VISUAL_BAR_SURFACES`` (comma-separated IDs such
+as ``s1,s3,s5``). Default is all S1 to S8.
+
 Uses the same sanctioned examples Engine and ``_EXAMPLE_CONTEXTS`` as the
-archetype fixture generator (ADR-056). Output is a fixed map of the eight
-surfaces under ``a11y/fixtures/visual-bar/`` (package-only) or
-``a11y/fixtures/visual-bar-<brand>/`` when a brand is set. Both stay
-gitignored with the rest of ``a11y/fixtures/``.
+archetype fixture generator (ADR-056). Output is a fixed map under
+``a11y/fixtures/visual-bar/`` (package-only, comfortable),
+``a11y/fixtures/visual-bar-<brand>/`` when a brand is set,
+or ``...-compact`` / ``...-<brand>-compact`` when density is compact.
+Both stay gitignored with the rest of ``a11y/fixtures/``.
 
 This generator is deliberately separate from ``generate_archetype_fixtures.py``:
 the scorecard freezes eight jobs named in ``docs/VISUAL-BAR.md``, including
@@ -29,8 +37,15 @@ Brand pack (northline skeleton)::
       DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests \\
       python a11y/generate_visual_bar_fixtures.py
 
+F.1 torture subset (brand × density × S1/S3/S5)::
+
+    VISUAL_BAR_BRAND=harbour VISUAL_BAR_DENSITY=compact \\
+      VISUAL_BAR_SURFACES=s1,s3,s5 \\
+      DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests \\
+      python a11y/generate_visual_bar_fixtures.py
+
 Then capture stills with ``npm run visual-bar:capture`` (or
-``visual-bar:capture:northline``).
+``visual-bar:capture:<brand>``).
 """
 
 from __future__ import annotations
@@ -55,10 +70,13 @@ _STATIC_LINK = re.compile(r'<link rel="stylesheet" href="[^"]*brickwork\.css">')
 _STYLE_CLOSE = re.compile(r"</style>", re.IGNORECASE)
 
 THEMES = ("light", "dark")
+KNOWN_DENSITIES = frozenset({"comfortable", "compact"})
 
 # Supported brand packs for the second scorecard leg. Empty env = package-only.
 KNOWN_BRANDS: dict[str, Path] = {
     "northline": ROOT / "docs/examples/brand-pack/northline/tokens.css",
+    "harbour": ROOT / "docs/examples/brand-pack/harbour/tokens.css",
+    "folio": ROOT / "docs/examples/brand-pack/folio/tokens.css",
 }
 
 # Frozen map from docs/VISUAL-BAR.md section 3. Keys are scorecard surface IDs.
@@ -112,10 +130,37 @@ def _brand_from_env() -> str:
     return raw
 
 
-def _out_dir(brand: str) -> Path:
+def _density_from_env() -> str:
+    """Return density from VISUAL_BAR_DENSITY (comfortable default)."""
+    raw = (os.environ.get("VISUAL_BAR_DENSITY") or "comfortable").strip() or "comfortable"
+    if raw not in KNOWN_DENSITIES:
+        known = ", ".join(sorted(KNOWN_DENSITIES))
+        raise SystemExit(f"VISUAL_BAR_DENSITY={raw!r} is not supported. Known: {known}.")
+    return raw
+
+
+def _surfaces_from_env() -> dict[str, dict[str, str]]:
+    """Return the surface map, optionally filtered by VISUAL_BAR_SURFACES."""
+    raw = (os.environ.get("VISUAL_BAR_SURFACES") or "").strip()
+    if not raw:
+        return dict(SURFACES)
+    requested = [part.strip().lower() for part in raw.split(",") if part.strip()]
+    if not requested:
+        return dict(SURFACES)
+    unknown = [sid for sid in requested if sid not in SURFACES]
+    if unknown:
+        known = ", ".join(SURFACES)
+        raise SystemExit(f"VISUAL_BAR_SURFACES has unknown IDs {unknown}. Known: {known}.")
+    return {sid: SURFACES[sid] for sid in requested}
+
+
+def _out_dir(brand: str, density: str) -> Path:
+    parts = ["visual-bar"]
     if brand:
-        return FIXTURES_ROOT / f"visual-bar-{brand}"
-    return FIXTURES_ROOT / "visual-bar"
+        parts.append(brand)
+    if density != "comfortable":
+        parts.append(density)
+    return FIXTURES_ROOT / "-".join(parts)
 
 
 def _inline_css(html: str, brand: str) -> str:
@@ -136,7 +181,7 @@ def _inline_css(html: str, brand: str) -> str:
     return html[:insert_at] + f'\n<style data-bw-brand-pack="{brand}">{brand_css}</style>' + html[insert_at:]
 
 
-def render_surface(example_name: str, theme: str, brand: str) -> str:
+def render_surface(example_name: str, theme: str, brand: str, density: str) -> str:
     """Render one scorecard surface through the examples Engine."""
     if example_name not in _EXAMPLE_CONTEXTS:
         raise KeyError(
@@ -144,6 +189,7 @@ def render_surface(example_name: str, theme: str, brand: str) -> str:
         )
     context = dict(_EXAMPLE_CONTEXTS[example_name])
     context["bw_theme"] = theme
+    context["bw_density"] = density
     if brand:
         context["bw_brand"] = brand
     template = _example_engine().get_template(example_name)
@@ -152,10 +198,12 @@ def render_surface(example_name: str, theme: str, brand: str) -> str:
 
 def main() -> None:
     brand = _brand_from_env()
-    out = _out_dir(brand)
+    density = _density_from_env()
+    surfaces = _surfaces_from_env()
+    out = _out_dir(brand, density)
     out.mkdir(parents=True, exist_ok=True)
 
-    missing = sorted(entry["example"] for entry in SURFACES.values() if entry["example"] not in _EXAMPLE_CONTEXTS)
+    missing = sorted(entry["example"] for entry in surfaces.values() if entry["example"] not in _EXAMPLE_CONTEXTS)
     if missing:
         raise SystemExit(
             "VISUAL-BAR surfaces lack _EXAMPLE_CONTEXTS entries: "
@@ -164,10 +212,10 @@ def main() -> None:
 
     written: list[str] = []
     manifest_surfaces: list[dict[str, str]] = []
-    for surface_id, entry in SURFACES.items():
+    for surface_id, entry in surfaces.items():
         example = entry["example"]
         for theme in THEMES:
-            html = render_surface(example, theme, brand)
+            html = render_surface(example, theme, brand, density)
             filename = f"{surface_id}-{theme}.html"
             path = out / filename
             path.write_text(html, encoding="utf-8")
@@ -198,6 +246,7 @@ def main() -> None:
         "package": "django-brickwork",
         "version": version,
         "brand": brand or None,
+        "density": density,
         "css": css_note,
         "surfaces": manifest_surfaces,
         "themes": list(THEMES),
@@ -205,8 +254,13 @@ def main() -> None:
     }
     (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
-    label = f"brand={brand}" if brand else "package-only"
-    print(f"visual-bar fixtures written ({len(written)}, {label}): {', '.join(written)}")
+    label_bits = []
+    if brand:
+        label_bits.append(f"brand={brand}")
+    else:
+        label_bits.append("package-only")
+    label_bits.append(f"density={density}")
+    print(f"visual-bar fixtures written ({len(written)}, {', '.join(label_bits)}): {', '.join(written)}")
     print(f"manifest: {out / 'manifest.json'} (package {version})")
 
 
