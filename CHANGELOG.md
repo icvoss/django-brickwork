@@ -8,6 +8,35 @@ versioning contract).
 
 ## Unreleased
 
+## [3.21.0] - 2026-09-13
+
+**Default card craft and inverse-header action contrast.** Zero-kwargs cards
+read on a white page without relying on the old light-theme paper sheen, and
+include-path ghost actions on inverse headers keep WCAG AA.
+
+**Behaviour changes for existing consumers.** The light-theme resting card
+edge and shadow are slightly stronger (firmer border mix + soft ambient under
+elevation-1). Dark theme elevation is unchanged. Inverse header / surface
+ghost actions that previously used muted ink now use on-inverse ink.
+
+### Changed
+
+- **Default card reads on a white canvas without kwargs.** The zero-kwargs
+  `.bw-card` keeps hairline, radius-lg and elevation-1, replaces the
+  light-theme paper sheen (invisible on white fill) with a soft ambient under
+  the elevation token, and slightly strengthens the edge so the card does not
+  dissolve into a white page. Title type keeps heading-md with optional
+  tracking and balanced wrap; body text uses `pretty` wrap. Dark theme still
+  uses the plain elevation ramp.
+
+### Fixed
+
+- **Inverse header ghost actions meet WCAG AA** (brickworkui.com gallery
+  regression). Include-path `action_label` on `header_recipe="inverse"` or
+  `surface="inverse"` now paints the ghost button with
+  `--bw-color-fg-on-inverse` instead of `fg-muted`, which failed contrast on
+  the inverse fill (~3:1). Package a11y fixtures cover the pairing.
+
 ## [3.20.0] - 2026-09-12
 
 **Finished card appearance contract and shared appearance grammar.** Cards
