@@ -1,0 +1,56 @@
+{% load brickwork_components brickwork_icons i18n %}{% spaceless %}
+{% comment %}
+Filter chip (Beat Phase B, icvoss/django-brickwork#542): a compact selectable
+or dismissible label for filter bars and applied-state stacks. Structural
+include. Shares the badge intent tint grammar (neutral/info/success/warning/
+danger); does NOT replace _tag_input.html's committed-tag chips
+(bw-combobox__chip), which stay the input's own chrome.
+
+Required: label.
+Optional:
+  variant ("neutral" default | "info" | "success" | "warning" | "danger")
+  selected (bool, default False): pressed/selected wash for filter state.
+  dismissible (bool, default False): mounts bwDismissible() and a close
+      control, same contract as _badge.html (hidden until Alpine init). The
+      root is a <span> on this path so the close control is never nested
+      inside a <button>.
+  size ("sm" | "md" default)
+  href: when set, the chip renders as an <a>; selected uses aria-current.
+
+Closed variant/size raise via `{% bw_options %}`.
+
+States: selected/not; dismissed when dismissible (bwDismissible).
+Accessibility: a selected button chip uses aria-pressed; a selected link
+  uses aria-current="true". Dismiss control is icon-only with a translated
+  "Dismiss" aria-label. Colour is never the only signal (label text carries
+  meaning). Covered by axe.spec.mjs against primitives-*.html.
+Responsive: no breakpoint switch.
+{% endcomment %}{% bw_options component="brickwork/components/_chip.html" variant=variant size=size %}{% bw_require label=label %}
+{% with bw_variant=variant|default:"neutral" bw_size=size|default:"md" %}
+{% if href %}
+<a class="bw-chip bw-chip--{{ bw_variant }} bw-chip--size-{{ bw_size }}{% if selected %} bw-chip--selected{% endif %}"
+   {% bw_attr "href" href %}
+   {% if selected %}aria-current="true"{% endif %}>
+  <span class="bw-chip__label">{{ label }}</span>
+</a>
+{% elif dismissible %}
+{% translate "Dismiss" as bw_chip_close_label %}
+<span class="bw-chip bw-chip--{{ bw_variant }} bw-chip--size-{{ bw_size }}{% if selected %} bw-chip--selected{% endif %}"
+      {% if selected %}aria-pressed="true"{% endif %}
+      x-data="bwDismissible()">
+  <span class="bw-chip__label">{{ label }}</span>
+  <button class="bw-chip__close" type="button" hidden aria-label="{{ bw_chip_close_label }}" data-bw-dismiss>{% bw_icon "close" size="sm" decorative=True %}</button>
+</span>
+{% elif selected %}
+<button class="bw-chip bw-chip--{{ bw_variant }} bw-chip--size-{{ bw_size }} bw-chip--selected"
+        type="button"
+        aria-pressed="true">
+  <span class="bw-chip__label">{{ label }}</span>
+</button>
+{% else %}
+<span class="bw-chip bw-chip--{{ bw_variant }} bw-chip--size-{{ bw_size }}">
+  <span class="bw-chip__label">{{ label }}</span>
+</span>
+{% endif %}
+{% endwith %}
+{% endspaceless %}

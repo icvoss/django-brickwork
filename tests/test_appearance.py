@@ -30,7 +30,21 @@ def test_validate_options_accepts_every_closed_value() -> None:
         media_recipe="bleed",
         band="tint",
         width="bleed",
+        tone="strong",
+        spacing="lg",
+        shape="square",
     )
+
+
+def test_validate_options_accepts_component_variant() -> None:
+    validate_options(component="brickwork/components/_chip.html", variant="success", size="sm")
+    validate_options(component="brickwork/components/_callout.html", variant="danger")
+    validate_options(component="brickwork/components/_button_group.html", variant="segmented")
+
+
+def test_validate_options_rejects_chip_size_lg() -> None:
+    with pytest.raises(TemplateSyntaxError, match="size"):
+        validate_options(component="brickwork/components/_chip.html", size="lg")
 
 
 def test_validate_options_skips_omitted_values() -> None:

@@ -1,0 +1,33 @@
+{% load brickwork_components i18n %}
+{% comment %}
+Avatar group (Beat Phase B, icvoss/django-brickwork#542): a stacked row of
+avatars with an optional overflow count. Prefer `{% bw_avatar_group %}` so
+``max`` overflow math is computed in Python; a plain include works when you
+pass ``visible`` and ``overflow`` yourself.
+
+Tag kwargs:
+  avatars: list of dicts matching _avatar.html (src/alt or initials, optional
+      size/shape/aria_label). Group size/shape apply as defaults.
+  max (int, default 0 = show all): when positive and the list is longer,
+      show the first max-1 avatars and a final +N overflow chip.
+  size / shape: defaults forwarded to each child avatar.
+
+Include-only context (advanced): visible (list), overflow (int), size, shape.
+
+States: none beyond the children's image/initials shapes.
+Accessibility: role="group" with a translated accessible name; the overflow
+  chip is plain text "+N", not interactive. Covered by axe.spec.mjs against
+  primitives-*.html.
+Responsive: no breakpoint switch.
+{% endcomment %}
+{% translate "Avatar group" as bw_avatar_group_label %}
+<div class="bw-avatar-group" role="group" aria-label="{{ bw_avatar_group_label }}">
+  {% for person in visible %}
+    {% include "brickwork/components/_avatar.html" with src=person.src alt=person.alt initials=person.initials aria_label=person.aria_label size=person.size|default:size shape=person.shape|default:shape %}
+  {% endfor %}
+  {% if overflow %}
+    <span class="bw-avatar bw-avatar--size-{{ size|default:'md' }} bw-avatar--shape-{{ shape|default:'circle' }} bw-avatar--overflow" aria-hidden="true">
+      <span class="bw-avatar__initials">+{{ overflow }}</span>
+    </span>
+  {% endif %}
+</div>

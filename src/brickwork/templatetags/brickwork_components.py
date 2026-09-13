@@ -523,6 +523,38 @@ def bw_badge(label: str, *, variant: str = "neutral", icon: str = "", dismissibl
     return {"label": label, "variant": variant, "icon": icon, "dismissible": bool(dismissible)}
 
 
+@register.inclusion_tag("brickwork/components/_avatar_group.html")
+def bw_avatar_group(
+    avatars: object,
+    *,
+    max: int = 0,
+    size: str = "md",
+    shape: str = "circle",
+) -> dict:
+    """Stacked avatars with optional overflow count (Beat Phase B, #542).
+
+    ``max`` > 0 and a longer list shows the first ``max - 1`` avatars plus a
+    ``+N`` overflow chip for the remainder. ``size`` / ``shape`` are defaults
+    for children that omit their own.
+    """
+    from brickwork.appearance import SHAPES, SIZES, validate_options
+
+    validate_options(component="brickwork/components/_avatar.html", size=size, shape=shape)
+    if size not in SIZES:
+        raise TemplateSyntaxError(f"bw_avatar_group size must be one of {sorted(SIZES)}, got {size!r}")
+    if shape not in SHAPES:
+        raise TemplateSyntaxError(f"bw_avatar_group shape must be one of {sorted(SHAPES)}, got {shape!r}")
+    people = list(avatars or [])
+    max_n = int(max or 0)
+    if max_n > 0 and len(people) > max_n:
+        visible = people[: max_n - 1]
+        overflow = len(people) - (max_n - 1)
+    else:
+        visible = people
+        overflow = 0
+    return {"visible": visible, "overflow": overflow, "size": size, "shape": shape}
+
+
 @register.inclusion_tag("brickwork/components/_alert.html")
 def bw_alert(message: str = "", *, variant: str = "info", title: str = "", dismissible: bool = False) -> dict:
     """A full-width banner alert (role=alert), the loud-surface for errors and

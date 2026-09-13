@@ -65,6 +65,45 @@ _NAV_CONTEXT: dict[str, object] = {
     "nav_active": _APP_NAV_ITEMS[0],
 }
 
+_MARKETING_FOOTER_GROUPS = [
+    {
+        "heading": "Product",
+        "links": [
+            {"label": "Features", "href": "/features/"},
+            {"label": "Pricing", "href": "/pricing/"},
+            {"label": "Changelog", "href": "/changelog/"},
+        ],
+    },
+    {
+        "heading": "Company",
+        "links": [
+            {"label": "About", "href": "/about/"},
+            {"label": "Careers", "href": "/careers/"},
+            {"label": "Contact", "href": "/contact/"},
+        ],
+    },
+]
+
+_MARKETING_FOOTER_GROUPS_COMPARE = [
+    {
+        "heading": "Product",
+        "links": [
+            {"label": "Features", "href": "/features/"},
+            {"label": "Pricing", "href": "/pricing/"},
+            {"label": "Compare", "href": "/compare/"},
+            {"label": "Changelog", "href": "/changelog/"},
+        ],
+    },
+    {
+        "heading": "Company",
+        "links": [
+            {"label": "About", "href": "/about/"},
+            {"label": "Careers", "href": "/careers/"},
+            {"label": "Contact", "href": "/contact/"},
+        ],
+    },
+]
+
 # The docs archetypes' rail, populated rather than empty for the same reason
 # as _APP_NAV_ITEMS above: the rail IS the docs shell's defining feature.
 _DOCS_NAV_ITEMS = (
@@ -315,7 +354,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "po_page": None,
     },
-    "marketing/comparison.html": {},
+    "marketing/comparison.html": {"footer_groups": _MARKETING_FOOTER_GROUPS_COMPARE},
     "app/wizard.html": {
         **_NAV_CONTEXT,
         "form": _ExampleForm(),
@@ -488,6 +527,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             {"value": "98%", "label": "Invoices collected in 60 days"},
             {"value": "4.9/5", "label": "Finance team review score"},
         ],
+        "footer_groups": _MARKETING_FOOTER_GROUPS,
         # Decorative product-panel stand-in for scorecard S5 (beside placement).
         # Inline SVG so the example does not depend on a missing static asset.
         # Use a real surface token (icvoss/django-brickwork#524): surface-subtle
@@ -533,9 +573,11 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
                 "answer": "Yes. Upgrades are prorated; downgrades take effect next cycle.",
             },
         ],
+        "footer_groups": _MARKETING_FOOTER_GROUPS,
     },
     "marketing/about.html": {
         "stats": [{"value": "11", "label": "People"}, {"value": "4", "label": "Countries"}],
+        "footer_groups": _MARKETING_FOOTER_GROUPS,
     },
 }
 
@@ -975,8 +1017,8 @@ def test_marketing_footers_use_shared_link_group_vocabulary(name: str) -> None:
     """Marketing archetypes share footer grouping without feature-card chrome.
 
     The marketing shell owns the landmark and empty slots only. Authored
-    examples use .bw-marketing-footer__groups so groups stack at narrow
-    widths and form two columns from the sm breakpoint (#500).
+    examples call `_marketing_footer_groups.html` so groups stack at narrow
+    widths and form two columns from the sm breakpoint (#500 / #542).
     """
     template = _example_engine().get_template(name)
     html = template.render(Context(_EXAMPLE_CONTEXTS[name]))

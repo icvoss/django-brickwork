@@ -8,6 +8,17 @@ versioning contract).
 
 ## Unreleased
 
+### Added
+
+- **Beat Phase B P0 primitives** (icvoss/django-brickwork#542): callable
+  includes for `divider`, `avatar` (+ `bw_avatar_group`), `chip`,
+  `button_group`, `callout`, `list_item`, and marketing
+  `_marketing_footer_groups`. Closed options validate via `{% bw_options %}`
+  (shared `tone` / `spacing` / `shape`, plus per-component `variant` sets).
+  Callout stays editorial (no `role="alert"` / `aria-live`). Chip shares the
+  badge intent tint grammar and does not change `_tag_input` chips. Landing,
+  pricing, about and comparison examples compose the footer-groups include.
+
 ## [3.22.0] - 2026-09-13
 
 **Raised package defaults on white canvas for beat Phase A.** Marketing

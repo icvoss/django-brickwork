@@ -1,0 +1,54 @@
+{% load brickwork_components %}
+{% comment %}
+Button group (Beat Phase B, icvoss/django-brickwork#542): a cluster of
+bw-btn chrome sharing attached or segmented geometry. Structural include.
+
+Required:
+  items: list of {label, href?, selected?, type?, name?, value?, disabled?}.
+      An item with href renders as a link-button; otherwise a <button>.
+      selected is meaningful for variant="segmented" (aria-checked).
+
+Optional:
+  size ("sm" | "md" default | "lg"): forwarded to every bw-btn.
+  variant ("attached" default | "segmented"): attached shares borders;
+      segmented reads as a mutually exclusive control (radiogroup).
+  aria_label (str): accessible name for the group (required for a11y when
+      the surrounding heading does not name it; prefer supplying one).
+  button_variant ("secondary" default | "primary" | "ghost" | "danger"):
+      the bw-btn variant applied to every item.
+
+Closed size/variant raise via `{% bw_options %}`.
+
+States: per-item selected (segmented only); disabled per item.
+Accessibility: attached uses role="group"; segmented uses role="radiogroup"
+  with role="radio" and aria-checked on each control. Covered by
+  axe.spec.mjs against primitives-*.html.
+Responsive: no breakpoint switch; the group wraps only if the host allows
+  flex-wrap (default nowrap).
+{% endcomment %}{% bw_options component="brickwork/components/_button_group.html" size=size variant=variant %}{% bw_require items=items %}
+{% with bw_size=size|default:"md" bw_variant=variant|default:"attached" bw_btn_variant=button_variant|default:"secondary" %}
+<div class="bw-button-group bw-button-group--{{ bw_variant }} bw-button-group--size-{{ bw_size }}"
+     role="{% if bw_variant == 'segmented' %}radiogroup{% else %}group{% endif %}"
+     {% if aria_label %}{% bw_attr "aria-label" aria_label %}{% endif %}>
+  {% for item in items %}
+    {% if item.href %}
+      <a class="bw-btn bw-btn--{{ bw_btn_variant }} bw-btn--{{ bw_size }} bw-button-group__item{% if item.selected %} bw-button-group__item--selected{% endif %}"
+         {% bw_attr "href" item.href %}
+         {% if bw_variant == 'segmented' %}role="radio" aria-checked="{% if item.selected %}true{% else %}false{% endif %}"{% endif %}
+         {% if item.selected and bw_variant != 'segmented' %}aria-current="true"{% endif %}>
+        <span class="bw-btn__label">{{ item.label }}</span>
+      </a>
+    {% else %}
+      <button class="bw-btn bw-btn--{{ bw_btn_variant }} bw-btn--{{ bw_size }} bw-button-group__item{% if item.selected %} bw-button-group__item--selected{% endif %}"
+              type="{{ item.type|default:'button' }}"
+              {% if item.name %}{% bw_attr "name" item.name %}{% endif %}
+              {% if item.value %}{% bw_attr "value" item.value %}{% endif %}
+              {% if item.disabled %}disabled{% endif %}
+              {% if bw_variant == 'segmented' %}role="radio" aria-checked="{% if item.selected %}true{% else %}false{% endif %}"{% endif %}
+              {% if item.selected and bw_variant != 'segmented' %}aria-pressed="true"{% endif %}>
+        <span class="bw-btn__label">{{ item.label }}</span>
+      </button>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endwith %}

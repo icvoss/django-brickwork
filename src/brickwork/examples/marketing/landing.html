@@ -15,10 +15,11 @@ Here instead every section carries its own content, scoped to its own include.
 There is no page-level bag, no prefix soup, and reordering, dropping, or
 duplicating a section is editing this file, which is yours.
 
-What your view must supply: nothing at all for the copy. Two sections take
+What your view must supply: nothing at all for the copy. Three sections take
 lists, which a Django template cannot build inline, so they come from context:
     features  [{icon, heading, body, url?}]
     logos     the logo cloud's items
+    footer_groups  [{heading, links:[{label, href}]}] for the footer include
 Optional for a media-led hero (scorecard S5):
     hero_media  pre-rendered safe HTML (img or svg) for media_placement="beside"
 Everything else below is typed straight into the template.
@@ -125,25 +126,11 @@ your branch, not a package feature. Note Django's logout is POST-only.
 
 {% block marketing_footer %}
   {% comment %}
-  Your own footer link groups. The shell supplies only the footer landmark and
-  its container. Use .bw-marketing-footer__groups / __group / __group-heading
-  so groups stack on narrow screens and form two columns from the sm
-  breakpoint, without feature-card elevation. The links remain your site map.
+  Footer link groups via the package include. Pass footer_groups from the
+  view as [{heading, links:[{label, href}]}]; the include emits the shared
+  .bw-marketing-footer__groups vocabulary (#500 / #542).
   {% endcomment %}
-  <div class="bw-marketing-footer__groups">
-  <nav class="bw-marketing-footer__group" aria-labelledby="footer-product-heading">
-    <h2 class="bw-marketing-footer__group-heading" id="footer-product-heading">Product</h2>
-    <a href="/features/">Features</a>
-    <a href="/pricing/">Pricing</a>
-    <a href="/changelog/">Changelog</a>
-  </nav>
-  <nav class="bw-marketing-footer__group" aria-labelledby="footer-company-heading">
-    <h2 class="bw-marketing-footer__group-heading" id="footer-company-heading">Company</h2>
-    <a href="/about/">About</a>
-    <a href="/careers/">Careers</a>
-    <a href="/contact/">Contact</a>
-  </nav>
-  </div>
+  {% include "brickwork_marketing/components/_marketing_footer_groups.html" with groups=footer_groups %}
 {% endblock %}
 
 {% block footer_legal %}

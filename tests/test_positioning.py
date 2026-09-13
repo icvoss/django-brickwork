@@ -250,7 +250,9 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     pattern, moving the real count to 66/132. The appearance suite card pilot
     (icvoss/django-brickwork#535) then added a card fixture pair covering
     surface/elevation and header_recipe/footer_recipe chrome, moving the real
-    count to 67/134.)
+    count to 67/134.) Beat Phase B (#542) then added a primitives fixture pair
+    covering divider, avatar(+group), chip, button_group, callout and
+    list_item, moving the real count to 68/136.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -263,7 +265,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     document_count = manifest["counts"]["archetypes"] + manifest["counts"]["skeletons"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 134 + (document_count * 2)
+    assert _leading_int(value) == 136 + (document_count * 2)
     assert f"{document_count} catalogue documents x light and dark" in note
 
 

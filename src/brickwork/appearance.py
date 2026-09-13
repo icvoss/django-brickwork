@@ -2,8 +2,10 @@
 
 Beautiful-defaults suite (icvoss/django-brickwork#533): one grammar for
 surface / elevation / region recipes and the axes ADR-057 / ADR-060 already
-named. Components adopt only the axes that apply. Unknown values raise
-``TemplateSyntaxError`` via ``validate_options`` / ``{% bw_options %}``.
+named. Beat Phase B (icvoss/django-brickwork#542) adds tone / spacing /
+shape, plus per-component ``variant`` sets. Components adopt only the axes
+that apply. Unknown values raise ``TemplateSyntaxError`` via
+``validate_options`` / ``{% bw_options %}``.
 
 Docs: ``docs/APPEARANCE.md``.
 """
@@ -25,6 +27,9 @@ FOOTER_RECIPES: Final[frozenset[str]] = frozenset({"none", "plain", "muted", "ac
 MEDIA_RECIPES: Final[frozenset[str]] = frozenset({"none", "bleed", "inset", "icon"})
 BANDS: Final[frozenset[str]] = frozenset({"plain", "tint"})
 WIDTHS: Final[frozenset[str]] = frozenset({"contained", "bleed"})
+TONES: Final[frozenset[str]] = frozenset({"muted", "strong"})
+SPACINGS: Final[frozenset[str]] = frozenset({"sm", "md", "lg"})
+SHAPES: Final[frozenset[str]] = frozenset({"circle", "square"})
 
 # Axis name -> closed vocabulary. Used by {% bw_options %} keyword args.
 OPTION_VOCABULARIES: Final[dict[str, frozenset[str]]] = {
@@ -37,6 +42,34 @@ OPTION_VOCABULARIES: Final[dict[str, frozenset[str]]] = {
     "media_recipe": MEDIA_RECIPES,
     "band": BANDS,
     "width": WIDTHS,
+    "tone": TONES,
+    "spacing": SPACINGS,
+    "shape": SHAPES,
+}
+
+# Per-component closed sets for axes whose values are not shared (variant,
+# and size subsets). Keyed by the template path passed as ``component=`` to
+# ``{% bw_options %}``. An axis listed here overrides the shared vocabulary
+# for that component only; ``variant`` has no shared set.
+COMPONENT_OPTIONS: Final[dict[str, dict[str, frozenset[str]]]] = {
+    "brickwork/components/_chip.html": {
+        "variant": frozenset({"neutral", "info", "success", "warning", "danger"}),
+        "size": frozenset({"sm", "md"}),
+    },
+    "brickwork/components/_callout.html": {
+        "variant": frozenset({"note", "info", "success", "warning", "danger", "neutral"}),
+    },
+    "brickwork/components/_button_group.html": {
+        "variant": frozenset({"segmented", "attached"}),
+    },
+    "brickwork/components/_divider.html": {
+        "tone": TONES,
+        "spacing": SPACINGS,
+    },
+    "brickwork/components/_avatar.html": {
+        "size": SIZES,
+        "shape": SHAPES,
+    },
 }
 
 
@@ -58,15 +91,18 @@ def validate_options(*, component: str = "component", **options: object) -> None
 
     Omitted values (missing / empty string) are skipped so existing call sites
     stay byte-identical. An explicit value must be a string in the closed set.
+    Per-component vocabularies in ``COMPONENT_OPTIONS`` win over the shared
+    ``OPTION_VOCABULARIES`` for the same axis name.
     """
+    component_sets = COMPONENT_OPTIONS.get(component, {})
     for name, value in options.items():
         if _is_omitted(value):
             continue
-        vocabulary = OPTION_VOCABULARIES.get(name)
+        vocabulary = component_sets.get(name) or OPTION_VOCABULARIES.get(name)
         if vocabulary is None:
+            known = sorted({*OPTION_VOCABULARIES, *component_sets})
             raise TemplateSyntaxError(
-                f"bw_options on {component}: unknown appearance axis {name!r}. "
-                f"Known axes: {sorted(OPTION_VOCABULARIES)}."
+                f"bw_options on {component}: unknown appearance axis {name!r}. Known axes: {known}."
             )
         if not isinstance(value, str):
             raise TemplateSyntaxError(
