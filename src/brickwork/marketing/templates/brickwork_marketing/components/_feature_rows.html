@@ -1,0 +1,38 @@
+{% comment %}
+Feature rows (Beat Phase C, icvoss/django-brickwork#543): alternating
+media-and-copy rows. Structural sibling of _feature_grid.html (equal cards),
+not a layout option on it: the markup and CSS are a stack of unequal rows.
+
+Required context: none.
+Optional:
+  heading (str): section intro heading.
+  items (list of dicts): {heading, body, media?}. media is pre-rendered safe
+      HTML (img or svg). List-shaped, so supply from context.
+  An empty items list renders the heading alone (or nothing if that too is
+  empty), never a fabricated placeholder row.
+
+Alternation is CSS-only (:nth-child(even) grid placement from md up). Document
+order stays copy-then-media on every row for reading and tab order.
+
+States: none.
+Accessibility: section h2, each row h3; decorative media is the caller's
+  responsibility (aria-hidden on illustrative SVG). Covered via
+  sections-*.html after the example collapses to this include.
+Responsive: stack below --bw-breakpoint-md; two-column zig-zag from md up.
+{% endcomment %}
+{% if heading or items %}
+<section class="bw-feature-rows">
+  {% if heading %}<h2 class="bw-feature-rows__heading">{{ heading }}</h2>{% endif %}
+  {% for item in items %}
+    <div class="bw-feature-row">
+      <div class="bw-feature-row__copy">
+        <h3 class="bw-feature-row__title">{{ item.heading }}</h3>
+        {% if item.body %}<p class="bw-feature-row__body">{{ item.body }}</p>{% endif %}
+      </div>
+      {% if item.media %}
+        <div class="bw-feature-row__media">{{ item.media }}</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</section>
+{% endif %}

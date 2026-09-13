@@ -135,15 +135,20 @@ Responsive: unconditional horizontal scroll on .bw-data-table-wrap at every
   as the scroll default. This breakpoint is deliberately the same one the
   app shell's own sidebar-to-drawer collapse uses, so a table's card mode
   and the shell's mobile nav change together.
+
+Appearance (Beat Phase C, icvoss/django-brickwork#543):
+  density ("comfortable" default | "compact"): compact tightens row padding
+      for ops/console tables. comfortable is the authored default (omit
+      emits no modifier; byte-identical).
 {% endcomment %}
 {% comment %}
 Optional-by-design context resolves via {% firstof %} hoists, never the
 |default filter (brickwork#80): |default is bypassed for a genuinely
 undefined variable under a consumer's string_if_invalid, leaking the invalid
 marker into ids and attributes; firstof resolves with failures ignored.
-{% endcomment %}
+{% endcomment %}{% bw_options component="brickwork/components/_data_table.html" density=density %}
 {% firstof table_id 'bw-data-table' as table_id %}
-<div id="{{ table_id }}" class="bw-data-table-wrap{% if sticky_header %} bw-data-table-wrap--sticky{% endif %}">
+<div id="{{ table_id }}" class="bw-data-table-wrap{% if sticky_header %} bw-data-table-wrap--sticky{% endif %}{% if density == "compact" %} bw-data-table-wrap--density-compact{% endif %}">
   {% if loading %}
     <div class="bw-data-table__skeleton" aria-hidden="true">
       {% for _ in "xxxxx" %}<div class="bw-skeleton bw-skeleton--row"></div>{% endfor %}

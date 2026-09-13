@@ -1283,6 +1283,11 @@
 
 /* Features / simple list --------------------------------------------------- */
 
+.bw-feature-list-section {
+  display: flex;
+  flex-direction: column;
+}
+
 .bw-feature-list-section__heading {
   margin: 0 0 var(--bw-space-6);
   font-size: var(--bw-text-heading-xl-size);
@@ -1604,6 +1609,11 @@
 }
 
 /* --- Pricing / comparison table ------------------------------------------------ */
+
+.bw-pricing-comparison {
+  display: flex;
+  flex-direction: column;
+}
 
 .bw-pricing-comparison__heading {
   margin: 0;

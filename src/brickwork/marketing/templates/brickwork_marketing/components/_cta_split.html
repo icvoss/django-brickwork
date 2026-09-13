@@ -1,0 +1,34 @@
+{% load brickwork_components %}
+{% comment %}
+CTA split (Beat Phase C, icvoss/django-brickwork#543): copy on one side, the
+action on the other. Structural sibling of _cta.html (centred band), not a
+layout option on it: mid-page CTAs need a two-column arrangement that does
+not read as a page ending.
+
+Required context: heading. An absent heading renders nothing
+(BR-BW-PAGE-002 / BR-BW-MKT-005).
+
+Optional:
+  body (str).
+  primary_cta ({label, url}) or primary_cta_label / primary_cta_href (#98).
+  secondary_cta ({label, url}) or secondary_cta_label / secondary_cta_href.
+
+States: none (buttons carry their own).
+Accessibility: heading is an <h2>; reading and tab order is copy then
+  action. Covered via sections-*.html after the example collapses to this
+  include.
+Responsive: stack below --bw-breakpoint-md; row from md up.
+{% endcomment %}{% if heading %}
+<section class="bw-cta-split">
+  <div class="bw-cta-split__copy">
+    <h2 class="bw-cta-split__heading">{{ heading }}</h2>
+    {% if body %}<p class="bw-cta-split__body">{{ body }}</p>{% endif %}
+  </div>
+  {% if primary_cta or secondary_cta or primary_cta_label or secondary_cta_label %}
+    <div class="bw-cta-split__actions">
+      {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% elif primary_cta_label %}{% bw_button primary_cta_label variant="primary" size="lg" href=primary_cta_href %}{% endif %}
+      {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% elif secondary_cta_label %}{% bw_button secondary_cta_label variant="secondary" size="lg" href=secondary_cta_href %}{% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endif %}

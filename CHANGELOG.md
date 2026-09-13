@@ -17,6 +17,13 @@ site-owned chrome.
 
 ### Added
 
+- **Beat Phase C variant depth** (icvoss/django-brickwork#543): each winner
+  family ships at least three callable package compositions. Marketing gains
+  first-class `_feature_rows`, `_feature_list`, `_cta_split`, `_cta_bleed`
+  and `_pricing_comparison` includes (section examples now call them). App
+  surfaces gain closed `surface` / `density` / modal `header_recipe` and
+  `footer_recipe` options. Documented in `docs/APPEARANCE.md`.
+
 - **Beat Phase B P0 primitives** (icvoss/django-brickwork#542): callable
   includes for `divider`, `avatar` (+ `bw_avatar_group`), `chip`,
   `button_group`, `callout`, `list_item`, and marketing

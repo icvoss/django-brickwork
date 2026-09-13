@@ -28,6 +28,7 @@ from django.template.backends.django import get_installed_libraries as get_defau
 from django.template.loader import get_template, render_to_string
 from django.utils import dates as django_dates
 from django.utils.formats import get_format
+from django.utils.safestring import mark_safe
 from django.utils.html import escape as django_escape
 from django.utils.safestring import mark_safe
 
@@ -588,10 +589,9 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
 # from the whole-page examples above (no doctype, no <html>, no #bw-main), and
 # are listed separately rather than folded into _EXAMPLE_CONTEXTS.
 #
-# Only _feature_grid.html needs context, for the same reason the landing page
-# does: a Django template cannot build a list of dicts inline. Every other
-# section carries its copy inline and renders from an empty context, which is
-# the property that makes it genuinely copy-paste.
+# List-shaped sections need context: a Django template cannot build a list of
+# dicts (or a list of strings for the feature checklist) inline. Sections that
+# call scalar-only includes still render from an empty context.
 _SECTION_FEATURES = [
     {
         "icon": "bell",
@@ -650,6 +650,61 @@ _SECTION_ENTRIES = [
         "category": "Accounting",
         "updated": "20 June 2026",
     },
+]
+
+# Feature rows / list / pricing comparison fixtures for sections that call the
+# Phase C includes (list-shaped context; cannot be authored inline).
+
+_SECTION_FEATURE_ROW_MEDIA = mark_safe(
+    '<svg viewBox="0 0 400 260" width="400" height="260" aria-hidden="true" focusable="false">'
+    '<rect x="16" y="16" width="368" height="228" rx="12" '
+    'fill="var(--bw-color-surface-sunken)" stroke="var(--bw-color-border)" />'
+    "</svg>"
+)
+_SECTION_FEATURE_ROWS = [
+    {
+        "heading": "Reminders that go out without you",
+        "body": (
+            "Set the schedule once. Northwind sends the first nudge before the due "
+            "date, the firm one after it, and stops the moment the money lands."
+        ),
+        "media": _SECTION_FEATURE_ROW_MEDIA,
+    },
+    {
+        "heading": "Know who is about to run late",
+        "body": (
+            "Every account carries a prediction based on how it has actually paid you "
+            "before, not on its stated terms."
+        ),
+        "media": _SECTION_FEATURE_ROW_MEDIA,
+    },
+]
+_SECTION_FEATURE_LIST_ITEMS = [
+    "Unlimited invoices and credit notes",
+    "Automatic reminders on your own schedule",
+    "Late-payment prediction on every account",
+    "Bank reconciliation with Open Banking feeds",
+    "VAT returns prepared and filed",
+    "Export to CSV, or the API if you would rather",
+]
+_SECTION_COMPARISON_PLANS = [
+    "Solo, £9 a month",
+    "Team, £29 a month",
+    "Scale, £89 a month",
+]
+_YES = {"included": True}
+_NO = {"included": False}
+_SECTION_COMPARISON_ROWS = [
+    {"label": "Invoices a month", "cells": ["Unlimited", "Unlimited", "Unlimited"]},
+    {"label": "People with a login", "cells": ["1", "Up to 10", "Unlimited"]},
+    {"label": "Automatic reminders", "cells": [_YES, _YES, _YES]},
+    {"label": "Late-payment prediction", "cells": [_NO, _YES, _YES]},
+    {"label": "Shared chasing inbox", "cells": [_NO, _YES, _YES]},
+    {"label": "Currencies", "cells": ["Sterling only", "Sterling and euro", "Any, with daily rates"]},
+    {"label": "Legal entities", "cells": ["1", "1", "Unlimited"]},
+    {"label": "SAML sign-in", "cells": [_NO, _NO, _YES]},
+    {"label": "Audit trail export", "cells": [_NO, "90 days", "7 years"]},
+    {"label": "Support", "cells": ["Email, next working day", "Email, same working day", "Email and phone, one hour"]},
 ]
 
 # The pricing tiers, in the shape sections/pricing/three-tier.html documents.
@@ -716,9 +771,9 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/cta/centred-band.html": {},
     "sections/cta/full-bleed.html": {},
     "sections/cta/split.html": {},
-    "sections/features/alternating-rows.html": {},
+    "sections/features/alternating-rows.html": {"feature_rows": _SECTION_FEATURE_ROWS},
     "sections/features/icon-grid.html": {"features": _SECTION_FEATURES},
-    "sections/features/simple-list.html": {},
+    "sections/features/simple-list.html": {"feature_list_items": _SECTION_FEATURE_LIST_ITEMS},
     "sections/hero/centred.html": {},
     "sections/hero/media-behind.html": {},
     "sections/hero/minimal.html": {},
@@ -728,7 +783,10 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/listing/media-list.html": {"entries": _SECTION_ENTRIES},
     "sections/faq/single-column.html": {},
     "sections/faq/two-column.html": {},
-    "sections/pricing/comparison-table.html": {},
+    "sections/pricing/comparison-table.html": {
+        "comparison_plans": _SECTION_COMPARISON_PLANS,
+        "comparison_rows": _SECTION_COMPARISON_ROWS,
+    },
     "sections/pricing/single-plan.html": {},
     "sections/pricing/three-tier.html": {"tiers": _SECTION_TIERS},
     "sections/stats/card-row.html": {},

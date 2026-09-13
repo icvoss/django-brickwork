@@ -28,8 +28,12 @@ Accessibility: title is a real heading level via heading_level (default 3);
   only the title is the link. Covered by axe.spec.mjs against
   primitives-*.html and sections-*.html (media-list).
 Responsive: stacks below --bw-breakpoint-sm; media-plus-body row from sm up.
-{% endcomment %}{% bw_require title=title %}
-<article class="bw-list-item">
+
+Appearance (Beat Phase C, icvoss/django-brickwork#543):
+  density ("comfortable" default | "compact"): compact tightens padding and
+      media column for denser ops lists. Omit for the authored default.
+{% endcomment %}{% bw_options component="brickwork/components/_list_item.html" density=density %}{% bw_require title=title %}
+<article class="bw-list-item{% if density == "compact" %} bw-list-item--density-compact{% endif %}">
   {% block media %}
   {% if media %}
     {{ media }}
