@@ -530,9 +530,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     "_chip (neutral, selected)": lambda: _include(
         "brickwork/components/_chip.html", label="Paid", selected=True, variant="success"
     ),
-    "_chip (dismissible)": lambda: _include(
-        "brickwork/components/_chip.html", label="Draft", dismissible=True
-    ),
+    "_chip (dismissible)": lambda: _include("brickwork/components/_chip.html", label="Draft", dismissible=True),
     "_button_group (attached)": lambda: _include(
         "brickwork/components/_button_group.html",
         items=[{"label": "Day"}, {"label": "Week", "selected": True}, {"label": "Month"}],
