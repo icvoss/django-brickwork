@@ -8,6 +8,24 @@ versioning contract).
 
 ## Unreleased
 
+## [3.25.0] - 2026-09-13
+
+**Journey contracts for beat Phase D.** Five copyable examples prove form
+422, modal root, OOB toast, list + filter, and marketing CTA without inventing
+hx-/Alpine beyond the documented Alpine start.
+
+### Added
+
+- **Beat Phase D journey contracts** (icvoss/django-brickwork#544). Five
+  copyable journeys now ship under `src/brickwork/examples/` and are indexed
+  from `docs/INTEGRATION.md` and the examples README: form validate
+  (`app/form.html` shared `{% partialdef %}` + 422 path), modal
+  (`sections/modal/confirm.html` for `#bw-modal-root`), toast (`app/toast.html`
+  OOB into `#bw-toast-region`), list + filter (`app/list.html` clear path and
+  phone stack), and marketing CTA (`sections/cta/centred-band.html` dual CTA
+  with brand-token recolour). No new hx-/Alpine contracts beyond the
+  documented Alpine start.
+
 ## [3.24.0] - 2026-09-13
 
 **Variant depth for beat Phase C.** Marketing and app winner families each
