@@ -1469,6 +1469,24 @@ def render_card(theme: str) -> str:
             ),
         )
     )
+    # Inverse header + ghost action: site galleries hit this pairing; axe must
+    # cover it so muted ghost ink on inverse fill cannot regress past AA.
+    sections.append(
+        _card_section(
+            "card-header-inverse-action",
+            "Header inverse action",
+            render_to_string(
+                "brickwork/components/_card.html",
+                {
+                    "title": "Members",
+                    "body": "Inverse header with an include-path ghost action.",
+                    "header_recipe": "inverse",
+                    "action_label": "Add member",
+                    "action_href": "/members/new/",
+                },
+            ),
+        )
+    )
     sections.append(
         _card_section(
             "card-footer-muted",
