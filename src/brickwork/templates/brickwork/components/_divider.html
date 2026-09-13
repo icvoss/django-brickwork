@@ -1,0 +1,33 @@
+{% load brickwork_components %}
+{% comment %}
+Divider (Beat Phase B, icvoss/django-brickwork#542): a content-rhythm hairline,
+optionally carrying a short label. Structural, consumed via {% include %}.
+
+Optional:
+  label (str): centred (default) or start-aligned text on the rule.
+  label_align ("center" default | "start"): only meaningful with label.
+  tone ("muted" default | "strong"): hairline colour (border vs border-strong).
+  spacing ("sm" | "md" default | "lg"): vertical rhythm around the rule.
+
+Closed options raise via `{% bw_options %}`. Omitted options use the authored
+defaults above and stay silent.
+
+States: none (static). Labelled and unlabelled are content shapes, not states.
+Accessibility: a bare rule is role="separator" with aria-orientation="horizontal".
+  A labelled divider is a plain <div>; the label text is the accessible name of
+  the break, so role="separator" would hide the words from the reading order.
+  Covered by axe.spec.mjs against primitives-*.html.
+Responsive: no breakpoint switch; no width-dependent CSS on any .bw-divider*
+  selector.
+{% endcomment %}{% bw_options component="brickwork/components/_divider.html" tone=tone spacing=spacing %}
+{% with bw_tone=tone|default:"muted" bw_spacing=spacing|default:"md" %}
+{% if label %}
+<div class="bw-divider bw-divider--labelled bw-divider--tone-{{ bw_tone }} bw-divider--spacing-{{ bw_spacing }}{% if label_align == 'start' %} bw-divider--align-start{% endif %}">
+  <span class="bw-divider__rule" aria-hidden="true"></span>
+  <span class="bw-divider__label">{{ label }}</span>
+  <span class="bw-divider__rule" aria-hidden="true"></span>
+</div>
+{% else %}
+<hr class="bw-divider bw-divider--tone-{{ bw_tone }} bw-divider--spacing-{{ bw_spacing }}" role="separator" aria-orientation="horizontal">
+{% endif %}
+{% endwith %}

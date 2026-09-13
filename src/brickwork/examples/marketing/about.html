@@ -94,20 +94,7 @@ Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
 {% endblock %}
 
 {% block marketing_footer %}
-  <div class="bw-marketing-footer__groups">
-  <nav class="bw-marketing-footer__group" aria-labelledby="footer-product-heading">
-    <h2 class="bw-marketing-footer__group-heading" id="footer-product-heading">Product</h2>
-    <a href="/features/">Features</a>
-    <a href="/pricing/">Pricing</a>
-    <a href="/changelog/">Changelog</a>
-  </nav>
-  <nav class="bw-marketing-footer__group" aria-labelledby="footer-company-heading">
-    <h2 class="bw-marketing-footer__group-heading" id="footer-company-heading">Company</h2>
-    <a href="/about/">About</a>
-    <a href="/careers/">Careers</a>
-    <a href="/contact/">Contact</a>
-  </nav>
-  </div>
+  {% include "brickwork_marketing/components/_marketing_footer_groups.html" with groups=footer_groups %}
 {% endblock %}
 
 {% block footer_legal %}

@@ -819,6 +819,129 @@ def render_feedback(theme: str, *, inject_js: bool = False, tooltip_open: bool =
     return page.replace("__JS_BOOT__", _JS_BOOT if inject_js else "")
 
 
+# Beat Phase B primitives (#542): divider, avatar(+group), chip, button_group,
+# callout, list_item. marketing_footer_groups is covered by landing-*.html.
+
+_PRIMITIVES_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beat Phase B primitives (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Beat Phase B primitives</h1>
+  <section aria-labelledby="divider-heading">
+    <h2 id="divider-heading">Divider</h2>
+    __DIVIDER__
+    __DIVIDER_LABELLED__
+  </section>
+  <section aria-labelledby="avatar-heading">
+    <h2 id="avatar-heading">Avatar</h2>
+    __AVATAR__
+    __AVATAR_GROUP__
+  </section>
+  <section aria-labelledby="chip-heading">
+    <h2 id="chip-heading">Chip</h2>
+    __CHIP__
+    __CHIP_SELECTED__
+  </section>
+  <section aria-labelledby="button-group-heading">
+    <h2 id="button-group-heading">Button group</h2>
+    __BUTTON_GROUP__
+    __BUTTON_GROUP_SEGMENTED__
+  </section>
+  <section aria-labelledby="callout-heading">
+    <h2 id="callout-heading">Callout</h2>
+    __CALLOUT__
+  </section>
+  <section aria-labelledby="list-item-heading">
+    <h2 id="list-item-heading">List item</h2>
+    __LIST_ITEM__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def render_primitives(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    from django.template import Context, Template
+
+    divider = render_to_string("brickwork/components/_divider.html", {})
+    divider_labelled = render_to_string(
+        "brickwork/components/_divider.html",
+        {"label": "Or continue with", "tone": "strong"},
+    )
+    avatar = render_to_string("brickwork/components/_avatar.html", {"initials": "NC"})
+    avatar_group = Template("{% load brickwork_components %}{% bw_avatar_group avatars max=3 size='md' %}").render(
+        Context(
+            {
+                "avatars": [
+                    {"initials": "A"},
+                    {"initials": "B"},
+                    {"initials": "C"},
+                    {"initials": "D"},
+                ]
+            }
+        )
+    )
+    chip = render_to_string("brickwork/components/_chip.html", {"label": "Open"})
+    chip_selected = render_to_string(
+        "brickwork/components/_chip.html",
+        {"label": "Paid", "selected": True, "variant": "success"},
+    )
+    button_group = render_to_string(
+        "brickwork/components/_button_group.html",
+        {
+            "items": [{"label": "Day"}, {"label": "Week", "selected": True}, {"label": "Month"}],
+            "aria_label": "Date range",
+        },
+    )
+    button_group_seg = render_to_string(
+        "brickwork/components/_button_group.html",
+        {
+            "items": [{"label": "List", "selected": True}, {"label": "Board"}],
+            "variant": "segmented",
+            "aria_label": "View mode",
+        },
+    )
+    callout = render_to_string(
+        "brickwork/components/_callout.html",
+        {
+            "title": "Note",
+            "body": "Reminder schedules use the account timezone.",
+            "variant": "note",
+        },
+    )
+    list_item = render_to_string(
+        "brickwork/components/_list_item.html",
+        {
+            "title": "Chasing without the awkwardness",
+            "href": "/blog/chasing/",
+            "summary": "How to write a reminder that gets paid.",
+            "meta": "14 July 2026",
+        },
+    )
+    return (
+        _PRIMITIVES_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__DIVIDER__", divider)
+        .replace("__DIVIDER_LABELLED__", divider_labelled)
+        .replace("__AVATAR__", avatar)
+        .replace("__AVATAR_GROUP__", avatar_group)
+        .replace("__CHIP__", chip)
+        .replace("__CHIP_SELECTED__", chip_selected)
+        .replace("__BUTTON_GROUP__", button_group)
+        .replace("__BUTTON_GROUP_SEGMENTED__", button_group_seg)
+        .replace("__CALLOUT__", callout)
+        .replace("__LIST_ITEM__", list_item)
+    )
+
+
 # --- the 0.13.0 input chrome fixtures (#57/#58) -------------------------------
 #
 # inputs-<theme>.html is a standalone (non-shell) page, mirroring the
@@ -3161,16 +3284,7 @@ _LANDING_SOURCE = (
     " heading=features_heading lede=features_lede items=features"
     " columns=features_columns %}" + _MKT_STATS + _MKT_TESTIMONIAL + _MKT_CTA + "{% endblock %}"
     "{% block marketing_footer %}"
-    '<div class="bw-marketing-footer__group">'
-    "<h3>Product</h3>"
-    '<a href="#features">Features</a>'
-    '<a href="#pricing">Pricing</a>'
-    "</div>"
-    '<div class="bw-marketing-footer__group">'
-    "<h3>Company</h3>"
-    '<a href="#about">About</a>'
-    '<a href="#contact">Contact</a>'
-    "</div>"
+    '{% include "brickwork_marketing/components/_marketing_footer_groups.html" with groups=footer_groups %}'
     "{% endblock %}"
 )
 
@@ -3287,6 +3401,22 @@ def render_landing(theme: str) -> str:
         "features": _MARKETING_FEATURES,
         "stats_heading": "By the numbers",
         "stats": _MARKETING_STATS,
+        "footer_groups": [
+            {
+                "heading": "Product",
+                "links": [
+                    {"label": "Features", "href": "#features"},
+                    {"label": "Pricing", "href": "#pricing"},
+                ],
+            },
+            {
+                "heading": "Company",
+                "links": [
+                    {"label": "About", "href": "#about"},
+                    {"label": "Contact", "href": "#contact"},
+                ],
+            },
+        ],
         **_MARKETING_TESTIMONIAL,
         **_MARKETING_CTA,
     }
@@ -4259,6 +4389,8 @@ def main() -> None:
             render_feedback(theme, inject_js=True, tooltip_open=True),
             written,
         )
+        # Beat Phase B P0 primitives (#542)
+        _emit(OUT / f"primitives-{theme}.html", render_primitives(theme), written)
         # the 0.13.0 input chrome set (#57/#58): toggle, tag input, dropzone,
         # a styled date field; plus the shell's collapsed-sidebar state
         _emit(OUT / f"inputs-{theme}.html", render_inputs(theme), written)

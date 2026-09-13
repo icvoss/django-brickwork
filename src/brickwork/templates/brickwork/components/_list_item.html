@@ -1,0 +1,56 @@
+{% load brickwork_components %}
+{% comment %}
+List item / media row (Beat Phase B, icvoss/django-brickwork#542): one entry
+in a vertical media list. Promotes the listing/media-list row pattern into
+a reusable include. Family-neutral (.bw-list-item*), so it is legal on app
+and docs surfaces as well as marketing listings.
+
+Required: title.
+Optional:
+  href: when set, the title is the link (not the whole row, deliberately:
+      the row is wide enough that a full-row target would swallow surrounding
+      whitespace).
+  meta (str): caption line under the summary.
+  summary / body (str): supporting copy (summary preferred; body accepted
+      as an alias).
+  media_src / media_alt: thumbnail image. When media_src is set, media_alt
+      is required for content images (these thumbnails are content, not
+      decoration). Prefer width/height reserved via CSS aspect-ratio.
+  media (SafeString): pre-rendered media markup (SVG placeholder, picture)
+      via extends `{% block media %}` or a context variable named media.
+  actions: optional SafeString or extends `{% block actions %}` for trailing
+      controls.
+
+Named blocks: media, body, actions (all empty by default).
+
+States: the title link takes accent + underline on hover/focus-visible.
+Accessibility: title is a real heading level via heading_level (default 3);
+  only the title is the link. Covered by axe.spec.mjs against
+  primitives-*.html and sections-*.html (media-list).
+Responsive: stacks below --bw-breakpoint-sm; media-plus-body row from sm up.
+{% endcomment %}{% bw_require title=title %}
+<article class="bw-list-item">
+  {% block media %}
+  {% if media %}
+    {{ media }}
+  {% elif media_src %}
+    <img class="bw-list-item__media" {% bw_attr "src" media_src %} {% bw_attr "alt" media_alt %} loading="lazy" width="240" height="160">
+  {% endif %}
+  {% endblock %}
+  <div class="bw-list-item__body">
+    {% with level=heading_level|default:"3" %}
+    <h{{ level }} class="bw-list-item__title">
+      {% if href %}
+        <a class="bw-list-item__link" {% bw_attr "href" href %}>{{ title }}</a>
+      {% else %}
+        {{ title }}
+      {% endif %}
+    </h{{ level }}>
+    {% endwith %}
+    {% block body %}
+    {% if summary %}<p class="bw-list-item__summary">{{ summary }}</p>{% elif body %}<p class="bw-list-item__summary">{{ body }}</p>{% endif %}
+    {% endblock %}
+    {% if meta %}<span class="bw-list-item__meta">{{ meta }}</span>{% endif %}
+    {% block actions %}{% if actions %}{{ actions }}{% endif %}{% endblock %}
+  </div>
+</article>

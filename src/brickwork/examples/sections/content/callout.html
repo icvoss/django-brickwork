@@ -11,9 +11,10 @@ happened is wrong, and it would interrupt a screen-reader user mid-sentence.
 The heading carries the kind ("Note", "Warning") as TEXT, not colour alone.
 Colour-only signalling fails WCAG 1.4.1, and this section is styled per kind.
 
-Kinds available: --note (default, accent), --warning, --success. Change the
-modifier class to switch. Each pairs a subtle background with its own checked
-foreground token, in both themes.
+Kinds available via the `_callout.html` include: note (default), info,
+success, warning, danger, neutral. This example still shows note and warning
+inline so the section remains copy-pasteable with zero context; prefer the
+include when composing from a view.
 
 States: none: a static block, no open/closed or hover-driven state.
 Accessibility: deliberately no role="alert"/aria-live (see above: it is

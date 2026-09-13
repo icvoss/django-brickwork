@@ -1,0 +1,31 @@
+{% load brickwork_components %}
+{% comment %}
+Marketing footer link groups (Beat Phase B, icvoss/django-brickwork#542):
+emits the existing .bw-marketing-footer__groups / __group / __group-heading
+vocabulary so marketing pages share one callable include instead of
+copy-pasted nav columns. CSS already lives in marketing.css (#500); this
+file only owns the markup contract.
+
+Required:
+  groups: list of {heading, links:[{label, href}], id?}. When id is omitted
+      the heading is slugified into footer-<slug>-heading so aria-labelledby
+      stays unique and stable.
+
+The shell still ships an empty marketing_footer slot; fill it with this
+include (or your own markup using the same classes).
+
+States: none (static link columns).
+Accessibility: each group is a <nav> labelled by its heading. Covered by
+  marketing archetype fixtures (landing/pricing/about/comparison).
+Responsive: one column, then two from the sm breakpoint (existing CSS).
+{% endcomment %}{% bw_require groups=groups %}
+<div class="bw-marketing-footer__groups">
+  {% for group in groups %}
+    <nav class="bw-marketing-footer__group" aria-labelledby="{% if group.id %}{{ group.id }}{% else %}footer-{{ group.heading|slugify }}-heading{% endif %}">
+      <h2 class="bw-marketing-footer__group-heading" id="{% if group.id %}{{ group.id }}{% else %}footer-{{ group.heading|slugify }}-heading{% endif %}">{{ group.heading }}</h2>
+      {% for link in group.links %}
+        <a {% bw_attr "href" link.href %}>{{ link.label }}</a>
+      {% endfor %}
+    </nav>
+  {% endfor %}
+</div>

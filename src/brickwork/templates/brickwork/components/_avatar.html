@@ -1,0 +1,37 @@
+{% load brickwork_components %}
+{% comment %}
+Avatar (Beat Phase B, icvoss/django-brickwork#542): a circular (default) or
+square portrait, either an image or initials fallback. Structural include.
+
+Optional:
+  size ("sm" | "md" default | "lg"): box scale.
+  shape ("circle" default | "square"): corner treatment.
+  src / alt: image path and its accessible name. When src is set, alt is
+      required for content images (empty alt hides the person from a screen
+      reader scanning by image). Prefer a real name in alt, not "avatar".
+  initials (str): shown when src is omitted. Truncated visually to two
+      characters by CSS; pass the short form yourself.
+  aria_label (str): accessible name for the initials fallback (defaults to
+      the initials string).
+
+Closed size/shape raise via `{% bw_options %}`.
+
+States: image vs initials (content shapes). No interactive state of its own.
+Accessibility: an <img> carries alt; an initials span is role="img" with
+  aria-label so the glyph is named. Covered by axe.spec.mjs against
+  primitives-*.html (and avatar-group when composed).
+Responsive: no breakpoint switch; size is the fixed token scale.
+{% endcomment %}{% bw_options component="brickwork/components/_avatar.html" size=size shape=shape %}
+{% with bw_size=size|default:"md" bw_shape=shape|default:"circle" %}
+{% if src %}
+<span class="bw-avatar bw-avatar--size-{{ bw_size }} bw-avatar--shape-{{ bw_shape }}">
+  <img class="bw-avatar__image" {% bw_attr "src" src %} {% bw_attr "alt" alt %} width="40" height="40">
+</span>
+{% else %}
+<span class="bw-avatar bw-avatar--size-{{ bw_size }} bw-avatar--shape-{{ bw_shape }} bw-avatar--initials"
+      role="img"
+      {% bw_attr "aria-label" aria_label|default:initials %}>
+  <span class="bw-avatar__initials" aria-hidden="true">{{ initials }}</span>
+</span>
+{% endif %}
+{% endwith %}

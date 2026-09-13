@@ -43,7 +43,10 @@ unsupported, never ignored.
 | `media_recipe` | `none` \| `bleed` \| `inset` \| `icon` | Media region recipe (not the `media` **block**) |
 | `band` | `tint` \| `plain` | Marketing band background (ADR-057) |
 | `width` | `contained` \| `bleed` | Marketing measure vs full bleed (ADR-057) |
-| `variant` | per-component | Status / behavioural treatment stays local |
+| `tone` | `muted` \| `strong` | Divider hairline weight (Beat Phase B) |
+| `spacing` | `sm` \| `md` \| `lg` | Divider vertical rhythm (Beat Phase B) |
+| `shape` | `circle` \| `square` | Avatar corner treatment (Beat Phase B) |
+| `variant` | per-component | Status / behavioural treatment; validated when `component=` names a registered set (chip, callout, button_group) |
 | `align` / `placement` / `media_placement` | existing | Layout axes unchanged (ADR-060) |
 
 **Naming.** Region **blocks** stay `media`, `header`, `footer`, `title`,
@@ -100,6 +103,8 @@ kwargs for the everyday case.
 
 ## Adoption note
 
-Card is the finished first adopter (icvoss/django-brickwork#535). Later phases
-extend the same grammar across the catalogue; axes that do not apply stay
+Card is the finished first adopter (icvoss/django-brickwork#535). Beat Phase B
+(icvoss/django-brickwork#542) extends the grammar with `tone`, `spacing` and
+`shape`, and registers per-component `variant` (and chip `size`) sets via
+`COMPONENT_OPTIONS` in `brickwork.appearance`. Axes that do not apply stay
 explicitly N/A rather than inventing a local spelling.

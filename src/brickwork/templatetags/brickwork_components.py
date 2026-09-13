@@ -10,7 +10,7 @@ import json
 import math
 import re
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from html import unescape
@@ -521,6 +521,45 @@ def bw_badge(label: str, *, variant: str = "neutral", icon: str = "", dismissibl
     if variant not in _BADGE_VARIANTS:
         raise TemplateSyntaxError(f"bw_badge variant must be one of {sorted(_BADGE_VARIANTS)}, got {variant!r}")
     return {"label": label, "variant": variant, "icon": icon, "dismissible": bool(dismissible)}
+
+
+@register.inclusion_tag("brickwork/components/_avatar_group.html")
+def bw_avatar_group(
+    avatars: object,
+    *,
+    max: int = 0,
+    size: str = "md",
+    shape: str = "circle",
+) -> dict:
+    """Stacked avatars with optional overflow count (Beat Phase B, #542).
+
+    ``max`` > 0 and a longer list shows the first ``max - 1`` avatars plus a
+    ``+N`` overflow chip for the remainder. ``size`` / ``shape`` are defaults
+    for children that omit their own.
+    """
+    from brickwork.appearance import SHAPES, SIZES, validate_options
+
+    validate_options(component="brickwork/components/_avatar.html", size=size, shape=shape)
+    if size not in SIZES:
+        raise TemplateSyntaxError(f"bw_avatar_group size must be one of {sorted(SIZES)}, got {size!r}")
+    if shape not in SHAPES:
+        raise TemplateSyntaxError(f"bw_avatar_group shape must be one of {sorted(SHAPES)}, got {shape!r}")
+    if avatars is None:
+        people: list[object] = []
+    elif isinstance(avatars, (str, bytes)):
+        raise TemplateSyntaxError("bw_avatar_group avatars must be a sequence of avatar dicts, not a string")
+    elif isinstance(avatars, Iterable):
+        people = list(avatars)
+    else:
+        raise TemplateSyntaxError(f"bw_avatar_group avatars must be iterable, got {type(avatars).__name__}")
+    max_n = int(max or 0)
+    if max_n > 0 and len(people) > max_n:
+        visible = people[: max_n - 1]
+        overflow = len(people) - (max_n - 1)
+    else:
+        visible = people
+        overflow = 0
+    return {"visible": visible, "overflow": overflow, "size": size, "shape": shape}
 
 
 @register.inclusion_tag("brickwork/components/_alert.html")

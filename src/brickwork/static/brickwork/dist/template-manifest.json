@@ -16,6 +16,7 @@
       "name": "actions",
       "declaredIn": [
         "brickwork/components/_card.html",
+        "brickwork/components/_list_item.html",
         "brickwork/components/_page_header.html",
         "brickwork_marketing/components/_hero.html"
       ],
@@ -45,9 +46,11 @@
       "name": "body",
       "declaredIn": [
         "brickwork/components/_alert.html",
+        "brickwork/components/_callout.html",
         "brickwork/components/_card.html",
         "brickwork/components/_chart_card.html",
         "brickwork/components/_empty_state.html",
+        "brickwork/components/_list_item.html",
         "brickwork/components/_modal.html",
         "brickwork/components/_slide_over.html"
       ],
@@ -499,6 +502,7 @@
       "name": "media",
       "declaredIn": [
         "brickwork/components/_card.html",
+        "brickwork/components/_list_item.html",
         "brickwork_marketing/components/_hero.html"
       ],
       "consumption": [

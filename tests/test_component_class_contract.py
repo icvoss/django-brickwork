@@ -503,6 +503,65 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             {"label": "Edit"},
         ],
     ),
+    # --- Beat Phase B P0 primitives (#542) ---------------------------------
+    "_divider (default)": lambda: _include("brickwork/components/_divider.html"),
+    "_divider (labelled, strong, lg)": lambda: _include(
+        "brickwork/components/_divider.html",
+        label="Or continue with",
+        tone="strong",
+        spacing="lg",
+        label_align="start",
+    ),
+    "_avatar (initials)": lambda: _include("brickwork/components/_avatar.html", initials="NC"),
+    "_avatar (image, lg, square)": lambda: _include(
+        "brickwork/components/_avatar.html",
+        src="/static/a.jpg",
+        alt="Ada Lovelace",
+        size="lg",
+        shape="square",
+    ),
+    # Prefer the tag: overflow math lives in Python. Include is still legal
+    # when the caller passes visible/overflow themselves; not a private target.
+    "_avatar_group (bw_avatar_group: overflow)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_avatar_group avatars max=3 size='md' %}",
+        avatars=[{"initials": "A"}, {"initials": "B"}, {"initials": "C"}, {"initials": "D"}],
+    ),
+    "_chip (neutral, selected)": lambda: _include(
+        "brickwork/components/_chip.html", label="Paid", selected=True, variant="success"
+    ),
+    "_chip (dismissible)": lambda: _include("brickwork/components/_chip.html", label="Draft", dismissible=True),
+    "_button_group (attached)": lambda: _include(
+        "brickwork/components/_button_group.html",
+        items=[{"label": "Day"}, {"label": "Week", "selected": True}, {"label": "Month"}],
+        aria_label="Range",
+    ),
+    "_button_group (segmented)": lambda: _include(
+        "brickwork/components/_button_group.html",
+        items=[{"label": "List", "selected": True}, {"label": "Board", "href": "/board/"}],
+        variant="segmented",
+        aria_label="View",
+    ),
+    "_callout (note)": lambda: _include(
+        "brickwork/components/_callout.html",
+        title="Note",
+        body="Evaluated in the account timezone.",
+    ),
+    "_callout (warning)": lambda: _include(
+        "brickwork/components/_callout.html",
+        title="Caution",
+        body="This changes live billing.",
+        variant="warning",
+    ),
+    "_list_item (linked, media, meta)": lambda: _include(
+        "brickwork/components/_list_item.html",
+        title="Chasing without awkwardness",
+        href="/blog/chasing/",
+        summary="How to write a reminder.",
+        meta="14 July 2026",
+        media_src="/static/blog/chasing.jpg",
+        media_alt="Invoice on a desk",
+    ),
     "_pagination (mid-list)": lambda: _render_pagination(),
     "_pager (two-link)": lambda: _include(
         "brickwork/components/_pager.html",
@@ -738,6 +797,19 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     ),
     "_mobile_nav_toggle (marketing: native details trigger)": lambda: _include(
         "brickwork_marketing/components/_mobile_nav_toggle.html",
+    ),
+    "_marketing_footer_groups (marketing: two columns)": lambda: _include(
+        "brickwork_marketing/components/_marketing_footer_groups.html",
+        groups=[
+            {
+                "heading": "Product",
+                "links": [{"label": "Features", "href": "/features/"}],
+            },
+            {
+                "heading": "Company",
+                "links": [{"label": "About", "href": "/about/"}],
+            },
+        ],
     ),
 }
 

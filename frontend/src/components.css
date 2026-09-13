@@ -4808,6 +4808,21 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   background: var(--bw-color-success-subtle);
 }
 
+.bw-callout--info {
+  border-inline-start-color: var(--bw-color-info);
+  background: var(--bw-color-info-subtle);
+}
+
+.bw-callout--danger {
+  border-inline-start-color: var(--bw-color-danger);
+  background: var(--bw-color-danger-subtle);
+}
+
+.bw-callout--neutral {
+  border-inline-start-color: var(--bw-color-border-strong);
+  background: var(--bw-color-surface-sunken);
+}
+
 /* Content / code display ---------------------------------------------------- */
 
 /* A content primitive, exactly like the callout above and for the same
@@ -5057,6 +5072,392 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   font-size: var(--bw-text-body-md-size);
   text-decoration: underline;
   text-underline-offset: 0.15em;
+}
+
+/* --- Divider (Beat Phase B, #542) ------------------------------------------ */
+
+.bw-divider {
+  border: 0;
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  margin: 0;
+  inline-size: 100%;
+}
+
+/* muted is the documented default tone (#120/#130): emit the class with a
+ * real rule that restates the base border colour, matching .bw-btn--md. */
+.bw-divider--tone-muted {
+  border-block-start-color: var(--bw-color-border);
+}
+
+.bw-divider--tone-strong {
+  border-block-start-color: var(--bw-color-border-strong);
+}
+
+.bw-divider--spacing-sm {
+  margin-block: var(--bw-space-3);
+}
+
+.bw-divider--spacing-md {
+  margin-block: var(--bw-space-5);
+}
+
+.bw-divider--spacing-lg {
+  margin-block: var(--bw-space-8);
+}
+
+.bw-divider--labelled {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-3);
+  border: 0;
+}
+
+.bw-divider--labelled .bw-divider__rule {
+  flex: 1 1 auto;
+  block-size: 0;
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-divider--labelled.bw-divider--tone-muted .bw-divider__rule {
+  border-block-start-color: var(--bw-color-border);
+}
+
+.bw-divider--labelled.bw-divider--tone-strong .bw-divider__rule {
+  border-block-start-color: var(--bw-color-border-strong);
+}
+
+.bw-divider__label {
+  flex: 0 0 auto;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  line-height: var(--bw-text-caption-line-height);
+  white-space: nowrap;
+}
+
+.bw-divider--align-start .bw-divider__rule:first-child {
+  flex: 0 0 var(--bw-space-6);
+}
+
+/* --- Avatar (Beat Phase B, #542) ------------------------------------------- */
+/* Box size reuses shipped control-height tokens (DESIGN.md §10 keeps
+   --bw-avatar-size-* reserved until a consumer needs a distinct scale). */
+
+.bw-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--bw-size-control-height-md);
+  block-size: var(--bw-size-control-height-md);
+  overflow: hidden;
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg-muted);
+  border: var(--bw-size-border-hairline) solid color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.bw-avatar--size-sm {
+  inline-size: var(--bw-size-control-height-sm);
+  block-size: var(--bw-size-control-height-sm);
+}
+
+.bw-avatar--size-md {
+  inline-size: var(--bw-size-control-height-md);
+  block-size: var(--bw-size-control-height-md);
+}
+
+.bw-avatar--size-lg {
+  inline-size: var(--bw-size-control-height-lg);
+  block-size: var(--bw-size-control-height-lg);
+}
+
+/* circle is the documented default shape (#120/#130): restates the base
+ * full radius so the class is not a broken promise in markup. */
+.bw-avatar--shape-circle {
+  border-radius: var(--bw-radius-full);
+}
+
+.bw-avatar--shape-square {
+  border-radius: var(--bw-radius-md);
+}
+
+.bw-avatar__image {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.bw-avatar__initials {
+  font-size: calc(var(--bw-size-control-height-md) * 0.375);
+  font-weight: var(--bw-font-weight-semibold);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  max-inline-size: 100%;
+  overflow: hidden;
+}
+
+.bw-avatar--size-sm .bw-avatar__initials {
+  font-size: calc(var(--bw-size-control-height-sm) * 0.375);
+}
+
+.bw-avatar--size-lg .bw-avatar__initials {
+  font-size: calc(var(--bw-size-control-height-lg) * 0.375);
+}
+
+.bw-avatar--overflow {
+  background: var(--bw-color-surface-raised);
+  color: var(--bw-color-fg);
+  border-color: var(--bw-color-border);
+}
+
+.bw-avatar-group {
+  display: inline-flex;
+  align-items: center;
+}
+
+.bw-avatar-group .bw-avatar {
+  box-shadow: 0 0 0 var(--bw-size-border-thick) var(--bw-color-surface);
+}
+
+.bw-avatar-group .bw-avatar + .bw-avatar {
+  margin-inline-start: calc(var(--bw-space-2) * -1);
+}
+
+/* --- Chip / filter chip (Beat Phase B, #542) ------------------------------- */
+
+.bw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-1);
+  padding-block: var(--bw-space-1);
+  padding-inline: var(--bw-space-3);
+  border: var(--bw-size-border-hairline) solid transparent;
+  border-radius: var(--bw-radius-full);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-font-weight-medium);
+  line-height: var(--bw-text-caption-line-height);
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg-muted);
+  text-decoration: none;
+  cursor: default;
+  transition: var(--bw-transition-colors);
+}
+
+button.bw-chip,
+a.bw-chip {
+  cursor: pointer;
+  font: inherit;
+}
+
+.bw-chip--size-sm {
+  padding-block: var(--bw-space-0-5);
+  padding-inline: var(--bw-space-2);
+}
+
+/* md is the documented default chip size (#120/#130): restates the base
+ * padding so the emitted class has a named rule. */
+.bw-chip--size-md {
+  padding-block: var(--bw-space-1);
+  padding-inline: var(--bw-space-3);
+}
+
+.bw-chip--neutral {
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg-muted);
+  border-color: transparent;
+}
+
+.bw-chip--success {
+  background: var(--bw-color-success-subtle);
+  color: var(--bw-color-success-fg);
+  border-color: var(--bw-color-success-border);
+}
+
+.bw-chip--warning {
+  background: var(--bw-color-warning-subtle);
+  color: var(--bw-color-warning-fg);
+  border-color: var(--bw-color-warning-border);
+}
+
+.bw-chip--danger {
+  background: var(--bw-color-danger-subtle);
+  color: var(--bw-color-danger-fg);
+  border-color: var(--bw-color-danger-border);
+}
+
+.bw-chip--info {
+  background: var(--bw-color-info-subtle);
+  color: var(--bw-color-info-fg);
+  border-color: var(--bw-color-info-border);
+}
+
+.bw-chip--selected {
+  box-shadow: inset 0 0 0 var(--bw-size-border-thick) var(--bw-color-accent);
+  color: var(--bw-color-fg);
+}
+
+.bw-chip__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-end: calc(var(--bw-space-1) * -1);
+  padding: var(--bw-space-0-5);
+  background: transparent;
+  border: 0;
+  border-radius: var(--bw-radius-full);
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.bw-chip__close:hover,
+.bw-chip__close:focus-visible {
+  opacity: 1;
+  background: var(--bw-state-hover-overlay);
+}
+
+/* --- Button group (Beat Phase B, #542) ------------------------------------- */
+
+.bw-button-group {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  vertical-align: middle;
+}
+
+/* Size modifiers are markers on the group root; the item buttons carry the
+ * real sm/md/lg geometry via .bw-btn--*. Restate align-items so each
+ * documented size still has a named rule (#120/#130). */
+.bw-button-group--size-sm,
+.bw-button-group--size-md,
+.bw-button-group--size-lg {
+  align-items: stretch;
+}
+
+.bw-button-group__item {
+  position: relative;
+}
+
+.bw-button-group--attached .bw-button-group__item {
+  border-radius: 0;
+}
+
+.bw-button-group--attached .bw-button-group__item:first-child {
+  border-start-start-radius: var(--bw-radius-md);
+  border-end-start-radius: var(--bw-radius-md);
+}
+
+.bw-button-group--attached .bw-button-group__item:last-child {
+  border-start-end-radius: var(--bw-radius-md);
+  border-end-end-radius: var(--bw-radius-md);
+}
+
+.bw-button-group--attached .bw-button-group__item:not(:first-child) {
+  margin-inline-start: calc(var(--bw-size-border-hairline) * -1);
+}
+
+.bw-button-group--attached .bw-button-group__item:hover,
+.bw-button-group--attached .bw-button-group__item:focus-visible,
+.bw-button-group--attached .bw-button-group__item--selected {
+  z-index: 1;
+}
+
+.bw-button-group--segmented {
+  gap: var(--bw-space-0-5);
+  padding: var(--bw-space-0-5);
+  background: var(--bw-color-surface-sunken);
+  border: var(--bw-size-border-hairline) solid color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
+  border-radius: var(--bw-radius-lg);
+  box-shadow: var(--bw-elevation-1), 0 1px 2px color-mix(in oklab, var(--bw-color-fg) 6%, transparent);
+}
+
+.bw-button-group--segmented .bw-button-group__item {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.bw-button-group--segmented .bw-button-group__item--selected,
+.bw-button-group--segmented .bw-button-group__item[aria-checked="true"] {
+  background: var(--bw-color-surface);
+  color: var(--bw-color-fg);
+  box-shadow: var(--bw-elevation-1);
+}
+
+/* --- List item / media row (Beat Phase B, #542) ---------------------------- */
+
+.bw-list-item {
+  display: grid;
+  gap: var(--bw-space-4);
+  align-items: start;
+  padding-block: var(--bw-space-4);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-list-item:last-child {
+  border-block-end: 0;
+}
+
+@media (width >= --theme(--breakpoint-sm)) {
+  .bw-list-item {
+    grid-template-columns: 12rem 1fr;
+    gap: var(--bw-space-6);
+  }
+}
+
+.bw-list-item__media {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--bw-radius-lg);
+  border: var(--bw-size-border-hairline) solid color-mix(in oklab, var(--bw-color-fg) 10%, var(--bw-color-surface));
+}
+
+.bw-list-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  align-items: flex-start;
+}
+
+.bw-list-item__title {
+  margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+
+.bw-list-item__link {
+  display: block;
+  min-block-size: 1.5rem;
+  color: inherit;
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-list-item__link:hover,
+.bw-list-item__link:focus-visible {
+  color: var(--bw-color-accent);
+  text-decoration: underline;
+}
+
+.bw-list-item__summary {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+  text-wrap: pretty;
+}
+
+.bw-list-item__meta {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
 }
 
 /* --- Dark-theme resets for light-only card ambient (beautiful defaults) ---- */
