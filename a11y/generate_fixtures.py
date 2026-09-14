@@ -3563,12 +3563,13 @@ def _overlay_shell_source(
         "{% block content %}"
         f'<section data-bw-nav-context="{hero_context}" '
         'style="background: oklch(0.18 0.02 265); color: oklch(0.98 0.002 265);'
-        ' padding-block: 6rem;">'
+        ' padding-block: 6rem; min-block-size: 100vh;">'
         "<h1>Full-bleed under the nav</h1>"
         "<p>Package-owned overlay chrome clears this copy.</p>"
         "</section>"
         f'<section data-bw-nav-context="{band_context}" '
-        'style="padding-block: 6rem; background: oklch(0.98 0.002 265); color: oklch(0.2 0.02 265);">'
+        'style="padding-block: 6rem; min-block-size: 100vh;'
+        ' background: oklch(0.98 0.002 265); color: oklch(0.2 0.02 265);">'
         "<h2>Light band</h2>"
         "<p>Context flips when this band sits under the header.</p>"
         "</section>"

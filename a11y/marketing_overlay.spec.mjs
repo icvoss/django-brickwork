@@ -26,7 +26,14 @@ for (const theme of ["light", "dark"]) {
     await expect(header).toHaveAttribute("data-bw-scrolled", "false");
     await expect(header).toHaveAttribute("data-bw-nav-context", "dark");
 
-    await page.evaluate(() => window.scrollTo(0, 400));
+    await page.evaluate(() => {
+      const light = document.querySelector(
+        '.bw-marketing__content [data-bw-nav-context="light"]',
+      );
+      if (!light) return;
+      const top = light.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, Math.max(0, top - 40));
+    });
     await expect(header).toHaveAttribute("data-bw-scrolled", "true");
     await expect(header).toHaveAttribute("data-bw-nav-context", "light");
 

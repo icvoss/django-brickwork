@@ -53,7 +53,9 @@
 
 /* Clearance on the marketing root (inherits to content), not on the header:
  * custom properties do not cross to siblings. Value = logo row + header
- * inner block padding so copy clears the fixed chrome. */
+ * inner block padding so copy clears the fixed chrome. Local cascade vars
+ * always carry a fallback so they are not mistaken for tokens.css emits
+ * (test_frontend_css_only_references_emitted_token_names). */
 .bw-marketing:has(> .bw-marketing-header--overlay) {
   --bw-marketing-header-clearance: calc(
     var(--bw-component-logo-height) + (var(--bw-space-3) * 2) + var(--bw-space-2)
@@ -62,7 +64,10 @@
 
 .bw-marketing:has(> .bw-marketing-header--overlay) .bw-marketing__content > .bw-hero:first-child {
   padding-block-start: calc(
-    var(--bw-marketing-header-clearance) + var(--bw-space-10)
+    var(
+        --bw-marketing-header-clearance,
+        calc(var(--bw-component-logo-height) + (var(--bw-space-3) * 2) + var(--bw-space-2))
+      ) + var(--bw-space-10)
   );
 }
 
@@ -74,8 +79,10 @@
    * Selector mirrors #111 so the hero still opts out. */
   margin-block-start: 0;
   padding-block-start: calc(
-    var(--bw-marketing-header-clearance) +
-      var(--bw-component-section-gap-marketing)
+    var(
+        --bw-marketing-header-clearance,
+        calc(var(--bw-component-logo-height) + (var(--bw-space-3) * 2) + var(--bw-space-2))
+      ) + var(--bw-component-section-gap-marketing)
   );
 }
 
@@ -101,8 +108,8 @@
 }
 
 .bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
-  background: var(--bw-overlay-frost);
-  border-block-end-color: var(--bw-overlay-line);
+  background: var(--bw-overlay-frost, color-mix(in oklab, oklch(1 0 0) 82%, transparent));
+  border-block-end-color: var(--bw-overlay-line, oklch(0.205 0.005 265 / 0.14));
   box-shadow: var(--bw-elevation-1);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
   backdrop-filter: blur(12px) saturate(140%);
@@ -119,7 +126,7 @@
 }
 
 .bw-marketing-header--overlay[data-bw-overlay-ready] {
-  color: var(--bw-overlay-ink);
+  color: var(--bw-overlay-ink, oklch(0.205 0.005 265));
   transition:
     background var(--bw-duration-normal) var(--bw-ease-standard),
     border-color var(--bw-duration-normal) var(--bw-ease-standard),
@@ -134,7 +141,10 @@
 .bw-marketing-header--overlay[data-bw-overlay-ready]
   .bw-marketing-header__actions
   > :where(a):not(.bw-btn) {
-  color: var(--bw-overlay-ink-muted);
+  color: var(
+    --bw-overlay-ink-muted,
+    color-mix(in oklab, oklch(0.205 0.005 265) 68%, transparent)
+  );
 }
 
 .bw-marketing-header--overlay[data-bw-overlay-ready]
@@ -144,7 +154,7 @@
   .bw-marketing-header__actions
   > :where(a:hover):not(.bw-btn),
 .bw-marketing-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark:hover {
-  color: var(--bw-overlay-ink);
+  color: var(--bw-overlay-ink, oklch(0.205 0.005 265));
 }
 
 /* Open mobile disclosure under overlay: keep opaque panel readable. */

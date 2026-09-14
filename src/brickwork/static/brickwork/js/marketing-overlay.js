@@ -43,9 +43,13 @@
 
       var ctx = header.getAttribute("data-bw-nav-context") || "light";
       var list = panels();
+      // Last band whose top has crossed under the nav probe wins (Vendably
+      // precedent). Do not require bottom > 0: a tall first band can still
+      // intersect the viewport after scroll while a later band already owns
+      // the under-nav strip.
       for (var i = list.length - 1; i >= 0; i--) {
         var rect = list[i].getBoundingClientRect();
-        if (rect.top <= HEADER_PROBE_PX && rect.bottom > 0) {
+        if (rect.top <= HEADER_PROBE_PX) {
           var marked = list[i].getAttribute("data-bw-nav-context");
           if (marked === "light" || marked === "dark") {
             ctx = marked;
