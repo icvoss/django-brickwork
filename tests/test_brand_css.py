@@ -372,3 +372,41 @@ def test_hostile_value_is_rejected_even_when_validate_is_false() -> None:
 def test_legitimate_colour_value_is_accepted(value: str) -> None:
     css = render_brand_css(light={"color-accent": value}, validate=False)
     assert f"--bw-color-accent: {value};" in css
+
+
+def test_non_colour_overridable_token_accepts_font_stack() -> None:
+    stack = '"Source Sans 3", system-ui, sans-serif'
+    css = render_brand_css({"--bw-font-family-sans": stack}, validate=False)
+    assert f"--bw-font-family-sans: {stack};" in css
+
+
+def test_non_colour_overridable_token_accepts_breakpoint_dimension() -> None:
+    css = render_brand_css({"--bw-breakpoint-lg": "64rem"}, validate=False)
+    assert "--bw-breakpoint-lg: 64rem;" in css
+
+
+def test_shipped_non_colour_defaults_pass_value_check() -> None:
+    from importlib.resources import files
+
+    from brickwork.services.token_manifest import overridable_names
+
+    css = files("brickwork").joinpath("static/brickwork/dist/tokens.css").read_text(encoding="utf-8")
+    root = css.split(":root", maxsplit=1)[1].split("}", maxsplit=1)[0]
+    defaults: dict[str, str] = {}
+    for line in root.splitlines():
+        line = line.strip()
+        if line.startswith("--bw-") and ":" in line:
+            name, value = line.split(":", maxsplit=1)
+            defaults[name.strip()] = value.strip().rstrip(";")
+    failures: list[str] = []
+    for name in overridable_names():
+        if name.startswith("--bw-color-"):
+            continue
+        value = defaults.get(name)
+        if value is None:
+            continue
+        try:
+            render_brand_css({name: value}, validate=False)
+        except BrandValidationError as exc:
+            failures.append(f"{name}={value!r}: {exc}")
+    assert not failures, "shipped non-colour defaults rejected:\n" + "\n".join(failures[:10])
