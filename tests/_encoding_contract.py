@@ -283,6 +283,42 @@ def _class_token_regex(class_name: str) -> str:
     return rf'class\s*=\s*(["\'])(?:(?!\1).)*?{boundary_open}{escaped}{boundary_close}(?:(?!\1).)*?\1'
 
 
+def _find_opening_tags_with_class(html: str, *, class_name: str) -> list[tuple[str, str]]:
+    """Return every opening tag carrying ``class_name`` as one class token.
+
+    Unlike ``_find_elements``, the tag name is not fixed upfront: every
+    matching opening tag is returned as ``(tag_name, opening_tag)`` so callers
+    can assert properties of the element itself (for example that a list root
+    is still an ``<ol>``) rather than stopping at the first match or demanding
+    an exact single-token ``class`` value.
+
+    ``_class_token_regex`` is matched per opening tag rather than embedded in
+    a larger pattern, so its internal ``\\1`` backref stays bound to the quote
+    group rather than an outer tag-name capture."""
+    class_regex = _class_token_regex(class_name)
+    results: list[tuple[str, str]] = []
+    for match in re.finditer(r"<\w+\b[^>]*>", html):
+        opening = match.group(0)
+        if re.search(class_regex, opening) is None:
+            continue
+        tag_match = re.match(r"<(\w+)", opening)
+        assert tag_match is not None
+        results.append((tag_match.group(1), opening))
+    return results
+
+
+def _forbidden_attribute_name_in_markup(html: str, attr_name: str) -> bool:
+    """True when ``attr_name`` appears as a real attribute NAME in any opening tag.
+
+    Attribute values are masked first so a substring inside ``href=``, visible
+    text, or a ``data-*`` value cannot satisfy the search."""
+    for match in re.finditer(r"<\w+\b[^>]*>", html):
+        names_only = _attribute_names_only(match.group(0))
+        if re.search(rf"(?<![\w-]){re.escape(attr_name)}\s*=", names_only) is not None:
+            return True
+    return False
+
+
 def _find_elements(html: str, *, tag: str, class_name: str) -> list[re.Match[str]]:
     """Find every element ``<tag ...>...</tag>`` or self-closing ``<tag .../>``
     carrying ``class_name`` as one token of its ``class`` attribute,
@@ -805,7 +841,10 @@ def assert_no_progressbar_semantics(html: str, *, component_tag: str, component_
         # comment while the real attribute was gone.
         lowered = _mask_comments(component_match.group(0)).lower()
         for element in ("progress", "meter"):
-            assert not re.search(rf"<{element}\b", lowered), (
+            # Require whitespace, ">" or "/" after the tag name: \b treats "-"
+            # as a word boundary, so "<progress\b" false-fails on
+            # "<progress-chart>".
+            assert not re.search(rf"<{element}(?:\s|>|/)", lowered), (
                 f"forbidden <{element}> element found in <{component_tag} class={component_class!r}>"
             )
         # (?<![\w-]) anchors "role" to a real attribute-name boundary, the
@@ -824,7 +863,7 @@ def assert_no_progressbar_semantics(html: str, *, component_tag: str, component_
                 f"inside <{component_tag} class={component_class!r}>"
             )
         for forbidden in ("aria-valuenow", "aria-valuemin", "aria-valuemax", "aria-valuetext"):
-            assert re.search(rf"(?<![\w-]){forbidden}", lowered) is None, (
+            assert not _forbidden_attribute_name_in_markup(lowered, forbidden), (
                 f"forbidden {forbidden!r} attribute found in <{component_tag} class={component_class!r}>"
             )
         assert re.search(r'(?<![\w-])aria-roledescription\s*=\s*[\'"]?\s*progress\s*bar', lowered) is None, (
@@ -1021,18 +1060,17 @@ def assert_ordered_list_element_survives_stripping(html: str, *, list_class: str
     narrowed away from (see the ladder above). Carried as an acceptance
     criterion on icvoss/django-brickwork#290; do not read the helper's
     passing as evidence that rank order survived."""
-    element_match = re.search(
-        rf"""<(\w+)((?:\s[^>]*)?\sclass=(?:"{re.escape(list_class)}"|'{re.escape(list_class)}')[^>]*)>""", html
-    )
-    assert element_match is not None, f"no element carrying class={list_class!r} found in the rendered html"
-    original_tag, attrs = element_match.group(1), element_match.group(2)
-    stripped_attrs = _ATTR_STRIP.sub("", attrs)
-    assert stripped_attrs != attrs, (
-        "the class=/style= strip did not change this element's own opening "
-        "tag: this helper's own precondition failed, so the ordering check "
-        "below would prove nothing"
-    )
-    assert original_tag == "ol", (
-        f"the element carrying class={list_class!r} is a <{original_tag}>, not an <ol>: "
-        "rank order must be encoded by the element itself, and must survive with class=/style= stripped"
-    )
+    opening_tags = _find_opening_tags_with_class(html, class_name=list_class)
+    assert opening_tags, f"no element carrying class={list_class!r} found in the rendered html"
+    for original_tag, opening_tag in opening_tags:
+        attrs = opening_tag[opening_tag.index(original_tag) + len(original_tag) : opening_tag.index(">")]
+        stripped_attrs = _ATTR_STRIP.sub("", attrs)
+        assert stripped_attrs != attrs, (
+            "the class=/style= strip did not change this element's own opening "
+            "tag: this helper's own precondition failed, so the ordering check "
+            "below would prove nothing"
+        )
+        assert original_tag == "ol", (
+            f"the element carrying class={list_class!r} is a <{original_tag}>, not an <ol>: "
+            "rank order must be encoded by the element itself, and must survive with class=/style= stripped"
+        )

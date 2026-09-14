@@ -668,7 +668,7 @@
       "family": null,
       "templatePath": "brickwork/components/_chart_data_table.html",
       "docSource": "brickwork/components/_chart_data_table.html",
-      "consumption": "include",
+      "consumption": "tag",
       "usedByArchetypes": [],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1197,7 +1197,7 @@
       "family": null,
       "templatePath": "brickwork/components/_sparkline.html",
       "docSource": "brickwork/components/_sparkline.html",
-      "consumption": "include",
+      "consumption": "tag",
       "usedByArchetypes": [],
       "usedBySections": [],
       "usedBySkeleton": []

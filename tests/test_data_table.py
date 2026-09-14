@@ -38,6 +38,12 @@ _ROWS = [
 # --- record variant (default) ---------------------------------------------
 
 
+def test_scroll_wrapper_carries_tabindex_for_keyboard_access() -> None:
+    out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
+    assert 'class="bw-data-table-wrap"' in out
+    assert 'tabindex="0"' in out.split("<table", 1)[0]
+
+
 def test_records_render_rows_with_stable_ids() -> None:
     out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
     assert 'id="gadgets-row-1"' in out

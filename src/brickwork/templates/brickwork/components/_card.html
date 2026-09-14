@@ -40,7 +40,10 @@ Appearance options (closed; `{% bw_options %}` raises on unknown values):
 
 Existing flags (unchanged):
   interactive (bool): raise to elevation-2 on hover/focus-within.
-  href: whole card is a clickable anchor; interactive always applies.
+  href: whole card is a clickable anchor; interactive always applies. Trust
+      boundary: brickwork does not validate URL schemes; href values are
+      emitted as given and callers passing user-supplied URLs must validate
+      them first.
   bordered (bool): hairline alone (elevation-0).
 
 States: resting elevation-1; interactive/href raise shadow only (MOT-010).

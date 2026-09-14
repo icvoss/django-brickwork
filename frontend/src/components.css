@@ -4669,9 +4669,10 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   overflow-wrap: normal;
 }
 
-/* Tables scroll rather than overflow. The wrapper is tabindex="0" in the
- * examples so a keyboard user can reach the scroll region (axe scrollable-region
- * -focusable), matching the shipped _data_table.html contract. */
+/* Tables scroll rather than overflow. .bw-data-table-wrap carries tabindex="0"
+ * in _data_table.html so a keyboard user can reach the scroll region (axe
+ * scrollable-region-focusable). Prose examples mirror the same pattern on
+ * .bw-prose__table-wrap. */
 .bw-prose :where(.bw-prose__table-wrap) {
   overflow-x: auto;
   /* contain: paint is load-bearing here, not an optimisation, and this is the

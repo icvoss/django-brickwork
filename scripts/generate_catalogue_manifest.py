@@ -270,12 +270,29 @@ def _tag_names_by_template(template_manifest: dict) -> dict[str, str]:
     call sites rather than importing that script (kept a standalone,
     single-purpose generator, matching this repo's one-script-per-artefact
     convention).
+
+    ``@register.simple_tag`` renderers that call ``render_to_string("...")``
+    (for example ``bw_sparkline``, which must support ``as var`` and therefore
+    cannot be an inclusion_tag) are included too: their template is still
+    tag-consumed even though Django's decorator class differs.
     """
     targets: dict[str, str] = {}
     for py_file in sorted((SRC / "brickwork" / "templatetags").glob("*.py")):
         text = py_file.read_text(encoding="utf-8")
         for match in re.finditer(r'@register\.inclusion_tag\(\s*"([^"]+)"[^)]*\)\s*\ndef (\w+)\(', text):
             template_ref, func_name = match.group(1), match.group(2)
+            targets[template_ref] = func_name
+        for match in re.finditer(r"@register\.simple_tag(?:\([^)]*\))?\s*\ndef (\w+)\(", text):
+            func_name = match.group(1)
+            start = match.end()
+            next_at = text.find("\n@", start)
+            next_def = text.find("\n\ndef ", start)
+            ends = [pos for pos in (next_at, next_def) if pos != -1]
+            body = text[start : min(ends) if ends else len(text)]
+            render_match = re.search(r'render_to_string\(\s*"([^"]+)"', body)
+            if render_match is None:
+                continue
+            template_ref = render_match.group(1).split("#", 1)[0]
             targets[template_ref] = func_name
     return targets
 

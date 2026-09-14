@@ -61,6 +61,17 @@ embedded-document link, which a template tag on the first include cannot see.
 
 ## The load-bearing minimum: seven tokens make a brand
 
+**Counting note (icvoss/django-brickwork#246).** This section's "seven" is the
+core colour set base-theme derives fine tokens from. The machine-readable
+manifest (`token-manifest.json`, gated in `docs/POSITIONING.md`) records **10
+load-bearing** names in total, of which **8 are unconditional**:
+the seven below plus `--bw-color-fg-on-accent` (always verify at 4.5:1), with
+two **conditional** entries (`--bw-color-surface-inverse` when ink is not the
+inverse surface; `--bw-color-info` when a three-role brand collapses info onto
+accent). A minimum light plus dark brand is **14 CSS lines** (seven colours x
+two themes); a complete brand that authors `--bw-color-fg-on-accent` in both
+themes is **16 lines** (eight unconditional x two themes).
+
 base-theme derives everything else from seven load-bearing colour tokens per
 theme (DESIGN.md section 2 is the authoritative list):
 

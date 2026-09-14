@@ -32,6 +32,28 @@ _SOURCE = _ROOT / "src" / "brickwork" / "tokens" / "source"
 _DIST = _ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist"
 _FRONTEND = _ROOT / "frontend" / "src"
 
+# Per-instance CSS hooks set inline by templates; not emitted in tokens.css.
+# A var() reference with a fallback is exempt only when the name is listed here.
+_PER_INSTANCE_VAR_HOOKS = frozenset(
+    {
+        "--bw-progress-value",
+        "--bw-ranked-list-value",
+        "--bw-gauge-dash-array",
+        "--bw-gauge-dash-offset",
+        "--bw-skeleton-w",
+        "--bw-skeleton-h",
+        "--bw-icon-size",
+        "--bw-form-grid-columns",
+        "--bw-text-heading-md-tracking",
+        "--bw-component-stat-tile-value-size",
+        "--bw-chart-mount-min-height",
+        "--bw-chart-mount-aspect-ratio",
+        "--bw-overlay-frost",
+        "--bw-overlay-line",
+        "--bw-overlay-ink",
+    }
+)
+
 # Tolerances for the linear oklab-model recomputation against the baseline.
 _TOL_L = 0.015
 _TOL_C = 0.02
@@ -322,18 +344,38 @@ def test_derived_expressions_contain_no_dtcg_braces() -> None:
 def test_frontend_css_only_references_emitted_token_names() -> None:
     """Every fallback-less var(--bw-*) in the component CSS must be emitted.
 
-    References WITH a fallback, e.g. var(--bw-icon-size, var(--bw-icon-size-md)),
-    are per-instance hooks set inline by templates and are exempt; their nested
-    fallback references are still collected and checked.
+    References with a fallback are exempt only when the name is a documented
+    per-instance hook in ``_PER_INSTANCE_VAR_HOOKS``; a comma alone must not
+    hide a misspelled token. Nested fallback references are still collected
+    and checked.
     """
     emitted = set(re.findall(r"^\s*(--bw-[a-z0-9-]+):", (_DIST / "tokens.css").read_text(), re.M))
     assert emitted, "no custom properties found in dist/tokens.css"
     missing: dict[str, set[str]] = {}
     for css_path in sorted(_FRONTEND.glob("*.css")):
         for name, terminator in re.findall(r"var\((--bw-[a-z0-9-]+)\s*([,)])", css_path.read_text()):
-            if terminator == ")" and name not in emitted:
-                missing.setdefault(css_path.name, set()).add(name)
+            if name in emitted:
+                continue
+            if terminator == "," and name in _PER_INSTANCE_VAR_HOOKS:
+                continue
+            missing.setdefault(css_path.name, set()).add(name)
     assert not missing, f"frontend CSS references token names tokens.css does not emit: {missing}"
+
+
+def test_frontend_css_rejects_misspelled_tokens_hiding_behind_a_fallback() -> None:
+    css_path = _FRONTEND / "components.css"
+    original = css_path.read_text(encoding="utf-8")
+    poisoned = original.replace(
+        "var(--bw-color-surface-sunken)",
+        "var(--bw-color-surface-sunkennn, 0)",
+        1,
+    )
+    try:
+        css_path.write_text(poisoned, encoding="utf-8")
+        with pytest.raises(AssertionError, match="tokens.css does not emit"):
+            test_frontend_css_only_references_emitted_token_names()
+    finally:
+        css_path.write_text(original, encoding="utf-8")
 
 
 @pytest.mark.parametrize(

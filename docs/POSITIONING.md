@@ -196,7 +196,8 @@ by touching component classes. 358 unique `--bw-*` tokens exist (dated at
 3.12.0), 286 overridable. 10 are load-bearing, of which 8 are unconditional:
 a brand supplies roughly 16 lines of CSS (8 tokens x light and dark) to
 rebrand the whole system, because base-theme derives its fine colour tokens
-live from that small load-bearing set (`docs/BRANDING.md:6-8`).
+live from that small load-bearing set (`docs/BRANDING.md`, "The load-bearing
+minimum: seven tokens make a brand", counting note).
 
 Dark mode is an authored surface, not a computed inversion: `data-theme`
 dark values are authored per token, not derived from light

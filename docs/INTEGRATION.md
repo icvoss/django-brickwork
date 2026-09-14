@@ -178,6 +178,16 @@ parameter from the **active route's** kwargs. Two ergonomics tiers:
           url_kwargs_from_request=project_kwargs)
   ```
 
+### href trust boundary (icvoss/django-brickwork#274)
+
+brickwork styles markup and does not sanitise caller-supplied content, but an
+`href` on an anchor the package constructs is still caller-owned input emitted
+into attribute position. Components and nav renderers do **not** validate URL
+schemes: pass only URLs you have already validated, especially when the value
+comes from user input. Each href-bearing component docstring states this
+boundary; `NavItem.external_url` and `NavItem.href` document it on the nav
+configuration side.
+
 ### Three renderers over one tree (brickwork#82, brickwork#102)
 
 One `NavItem` tree feeds every renderer; the tags differ only in the render

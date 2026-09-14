@@ -169,6 +169,14 @@ def test_a_tag_consumed_component_records_tag_consumption() -> None:
     assert "app/dashboard.html" in entry["usedByArchetypes"]
 
 
+def test_a_simple_tag_rendered_component_records_tag_consumption() -> None:
+    # bw_sparkline is a simple_tag (as var composition) but still tag-consumed;
+    # the manifest must not tell consumers to {% include %} the partial.
+    entry = item("component/sparkline")
+    assert entry is not None
+    assert entry["consumption"] == "tag"
+
+
 def test_an_include_consumed_component_records_include_consumption() -> None:
     entry = item("component/data_table")
     assert entry is not None

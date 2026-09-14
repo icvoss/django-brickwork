@@ -24,7 +24,9 @@ component's request-free render contract is unchanged.
 
 Required context: page_obj (a Page, or a flat duck-typed equivalent, see
 above). Optional: querystring (the request-free fallback: the current GET
-params minus 'page').
+params minus 'page'). Trust boundary: prev/next hrefs preserve the caller's
+GET params and are emitted as constructed; brickwork does not validate URL
+schemes on caller-supplied query values.
 
 States: rendered / not-rendered (a single page or an absent page_obj
   renders nothing at all, STA-014), and per-link enabled/disabled (the
