@@ -33,7 +33,9 @@ export default [
     // Governs discovery (the walk), not rule selection: any of these
     // three venv names can exist in a contributor's checkout depending
     // on which they used to follow the umbrella CLAUDE.md's `pip install
-    // -e ".[dev]"` setup.
+    // -e ".[dev]"` setup. Keep in step with .gitignore's Virtualenvs block
+    // (icvoss/django-brickwork#346): git ignore and ESLint ignore must name
+    // the same set even though they answer different questions.
     //
     // node_modules is deliberately absent: ESLint's flat config already
     // ignores it by default, so repeating it here would imply the

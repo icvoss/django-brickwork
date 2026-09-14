@@ -63,19 +63,12 @@ such), label/current/previous/period_label are plain caller text end to
 end.
 
 size is the one context variable that DOES reach attribute position
-(class="..." on the root), and escaping is deliberately NOT how this
-template defends that site: {{ size }} in an attribute is unconditionally
-escaped only via a template filter (escape/force_escape), which is a
-different mechanism from the Python-side escape_attribute_value helper
-this file cannot call (it is a plain {% include %}, not a tag), and
-carries its own caveat (a template autoescape block or a prior |safe on
-the value can still defeat a bare |escape at the call site, in a way a
-Python-side unconditional escape() cannot be). This template instead
-closes the seam entirely (ADR-084's stated option: constrain rather than
-escape): size is matched against explicit {% if %}/{% elif %} literals
-below, so only the two literal strings "sm" and "lg" ever reach the class
-attribute, and no caller-supplied value, safe or not, is interpolated into
-it at all. See the size entry below for the full reasoning.
+(class="..." on the root). This template closes that seam with a closed
+vocabulary rather than interpolation or a template filter: size is matched
+against explicit {% if %}/{% elif %} literals below, so only the two literal
+strings "sm" and "lg" ever reach the class attribute, and no caller-supplied
+value, safe or not, is interpolated into it at all (ADR-084's constrain-rather-
+than-escape option). See the size entry below for the full reasoning.
 
 Required context:
   current: the current period's value, pre-formatted by the caller

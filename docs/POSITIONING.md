@@ -196,7 +196,8 @@ by touching component classes. 358 unique `--bw-*` tokens exist (dated at
 3.12.0), 286 overridable. 10 are load-bearing, of which 8 are unconditional:
 a brand supplies roughly 16 lines of CSS (8 tokens x light and dark) to
 rebrand the whole system, because base-theme derives its fine colour tokens
-live from that small load-bearing set (`docs/BRANDING.md:6-8`).
+live from that small load-bearing set (`docs/BRANDING.md`, "The load-bearing
+minimum: seven tokens make a brand", counting note).
 
 Dark mode is an authored surface, not a computed inversion: `data-theme`
 dark values are authored per token, not derived from light
@@ -228,7 +229,7 @@ sight, and are refreshed by hand at the next audit.
 | Shells | 6 | base, app, auth, centred, docs, marketing. **Gated** against `catalogue-manifest.json` |
 | Sections | 29 | **Gated** against `catalogue-manifest.json` |
 | Archetypes | 28 | **Gated** against `catalogue-manifest.json`. `examples/base.html` moved out of this count into its own `skeleton` kind (icvoss/django-brickwork#464): it is a raw document skeleton a consumer copies, not a complete page, and was the only archetype ever carrying `family: null` |
-| Template tag registrations | 28 total | 18 `inclusion_tag`, 9 `simple_tag`, 1 `filter`. Write "18 component tags" or state the 28 total; never a bare "18 template tags". **Gated** by importing the templatetags libraries and counting `register.tags`/`register.filters` |
+| Template tag registrations | 29 total | 18 `inclusion_tag`, 10 `simple_tag`, 1 `filter`. Write "18 component tags" or state the 29 total; never a bare "18 template tags". **Gated** by importing the templatetags libraries and counting `register.tags`/`register.filters` |
 
 | Tokens | 358 unique `--bw-*` | 286 overridable; 10 load-bearing, 8 unconditional. **Overridable count gated** against `token-manifest.json`; the 358 total (all custom properties in compiled `tokens.css`) is **dated** at 3.12.0 |
 | Alpine components | 16 | bwDropdown, bwTabs, bwModal, bwToastRegion, bwToast, bwCombobox, bwDismissible, bwTooltip, bwTagInput, bwDropzone, bwSidebarCollapse, bwSlideOver, bwTableSelection, bwSortable, bwThemeSwitch, bwCodeCopy. **Gated** by parsing the `Alpine.data(...)` calls in `frontend/src/js/index.js`'s single registration point |

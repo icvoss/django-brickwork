@@ -7,7 +7,9 @@ The icon is decorative; the heading + body carry the meaning (both required, no
 package-supplied default copy, STA-003).
 
 Required context: heading (except at size="sm", see below), body (required at
-every scale, STA-003). DEBUG: `{% bw_require body=body %}` always, and
+every scale, STA-003). Trust boundary: action_href is emitted as given;
+brickwork does not validate URL schemes and callers passing user-supplied
+URLs must validate them first. DEBUG: `{% bw_require body=body %}` always, and
 `{% bw_require heading=heading %}` when size is not "sm"
 (icvoss/django-brickwork#482); production emits nothing. Optional: variant ("no_data" default or "no_results"),
 icon (registry name), action_href, action_label.

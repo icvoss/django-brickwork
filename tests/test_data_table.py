@@ -38,6 +38,12 @@ _ROWS = [
 # --- record variant (default) ---------------------------------------------
 
 
+def test_scroll_wrapper_carries_tabindex_for_keyboard_access() -> None:
+    out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
+    assert 'class="bw-data-table-wrap"' in out
+    assert 'tabindex="0"' in out.split("<table", 1)[0]
+
+
 def test_records_render_rows_with_stable_ids() -> None:
     out = _render(table_id="gadgets", columns=_COLUMNS, rows=_ROWS)
     assert 'id="gadgets-row-1"' in out
@@ -273,7 +279,7 @@ def test_descending_column_toggles_to_ascending() -> None:
 
 def test_querystring_is_threaded_through_the_sort_link() -> None:
     out = _render(table_id="t", columns=_SORTABLE, rows=_ROWS, querystring="status=active")
-    assert 'href="?sort=name&status=active"' in out
+    assert 'href="?status=active&amp;sort=name"' in out
 
 
 def test_explicit_next_sort_still_overrides_when_unsorted() -> None:
@@ -311,11 +317,40 @@ def test_sort_with_request_descending_to_ascending_drops_page_and_keeps_filters(
 
 
 def test_sort_without_request_falls_back_to_raw_querystring_var() -> None:
-    # regression guard: the request-free render contract is byte-identical to
-    # the pre-#41 behaviour, no "&amp;" HTML-escaping from {% querystring %}.
+    # #481: bw_query_href + bw_attr own the complete href, so query separators
+    # are HTML-escaped in attribute position (&amp;), matching the request path.
     out = _render(table_id="t", columns=_SORTABLE, rows=_ROWS, querystring="status=active")
-    assert 'href="?sort=name&status=active"' in out
-    assert "&amp;" not in out
+    assert 'href="?status=active&amp;sort=name"' in out
+
+
+def test_sort_href_rejects_mark_safe_breakout_in_sort_key() -> None:
+    """#481: mark_safe sort_key must not break out of the href attribute."""
+    from html.parser import HTMLParser
+
+    from django.utils.safestring import mark_safe
+
+    attack = mark_safe('name" onclick="alert(1)')
+    cols = [{"label": "Name", "sortable": True, "sort_key": attack}]
+    out = _render(table_id="t", columns=cols, rows=_ROWS)
+
+    class _Finder(HTMLParser):
+        bad: bool
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.bad = False
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            if tag != "a":
+                return
+            names = {name for name, _ in attrs}
+            if "onclick" in names:
+                self.bad = True
+
+    parser = _Finder()
+    parser.feed(out)
+    assert not parser.bad, "onclick must not appear as a separate attribute"
+    assert 'onclick="alert(1)' not in out
 
 
 # --- table_rows partial (semver-public, BR-BW-TPL-001/BR-BW-HTMX-005) ------

@@ -1,4 +1,4 @@
-{% load brickwork_icons %}
+{% load brickwork_components brickwork_icons %}
 {% comment %}
 Topbar search component (#155). Rendered only by {% bw_search %}, whose tag
 requires a real GET action and validates the optional scope mapping.
@@ -28,17 +28,17 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   inside a narrow topbar rather than forcing the shell wide, fluid at every
   viewport rather than a named-breakpoint jump.
 {% endcomment %}
-<form class="bw-search" method="get" action="{{ action }}" role="search">
+<form class="bw-search" method="get" {% bw_attr "action" action %} role="search">
   {% if scope %}
-    <input type="hidden" name="{{ scope.name }}" value="{{ scope.value }}">
+    <input type="hidden" {% bw_attr "name" scope.name %} {% bw_attr "value" scope.value %}>
     <span class="bw-search__scope">
       <span class="bw-search__scope-label">{{ scope.label }}</span>
-      <a class="bw-search__scope-clear" href="{{ scope.clear_href }}" aria-label="{{ scope.clear_label }}">&times;</a>
+      <a class="bw-search__scope-clear" {% bw_attr "href" scope.clear_href %} {% bw_attr "aria-label" scope.clear_label %}>&times;</a>
     </span>
   {% endif %}
   <label class="bw-search__label">
     <span class="bw-visually-hidden">{{ search_label }}</span>
-    <input class="bw-input bw-search__input" type="search" name="{{ name }}" placeholder="{{ placeholder }}" value="{{ value }}">
+    <input class="bw-input bw-search__input" type="search" {% bw_attr "name" name %} {% bw_attr "placeholder" placeholder %} {% bw_attr "value" value %}>
   </label>
   <button class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only" type="submit" aria-label="{{ search_label }}">
     {% bw_icon "search" size="sm" decorative=True %}

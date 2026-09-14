@@ -4591,6 +4591,15 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   font-style: italic;
 }
 
+.bw-prose :where(blockquote cite) {
+  display: block;
+  margin-block-start: var(--bw-space-2);
+  font-style: normal;
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+  color: var(--bw-color-fg-muted);
+}
+
 .bw-prose :where(code) {
   padding: var(--bw-space-0-5) var(--bw-space-1-5);
   border-radius: var(--bw-radius-sm);
@@ -4660,9 +4669,10 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   overflow-wrap: normal;
 }
 
-/* Tables scroll rather than overflow. The wrapper is tabindex="0" in the
- * examples so a keyboard user can reach the scroll region (axe scrollable-region
- * -focusable), matching the shipped _data_table.html contract. */
+/* Tables scroll rather than overflow. .bw-data-table-wrap carries tabindex="0"
+ * in _data_table.html so a keyboard user can reach the scroll region (axe
+ * scrollable-region-focusable). Prose examples mirror the same pattern on
+ * .bw-prose__table-wrap. */
 .bw-prose :where(.bw-prose__table-wrap) {
   overflow-x: auto;
   /* contain: paint is load-bearing here, not an optimisation, and this is the

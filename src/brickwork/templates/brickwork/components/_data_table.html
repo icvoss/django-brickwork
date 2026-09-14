@@ -120,7 +120,9 @@ Accessibility: sortable headers carry aria-sort; every selection checkbox
   labelled by empty_action_label with no extra wiring needed here. The
   no-JS floor is a real HTML table with real links/checkboxes/
   a real GET-param sort; selection's enhanced count/indeterminate state is
-  bwTableSelection, opt-in only. Covered by axe.spec.mjs against
+  bwTableSelection, opt-in only. The scroll wrapper carries tabindex="0" so
+  a keyboard user can reach a horizontally overflowing table (axe
+  scrollable-region-focusable). Covered by axe.spec.mjs against
   list-*.html/dashboard-*.html (records, sortable, definition tables all
   appear across those fixtures), table-selection-*.html (selectable), and
   data-table-empty-cta-*.html (the empty branch's action CTA, #185); the
@@ -148,7 +150,7 @@ undefined variable under a consumer's string_if_invalid, leaking the invalid
 marker into ids and attributes; firstof resolves with failures ignored.
 {% endcomment %}{% firstof density '' as density %}{% bw_options component="brickwork/components/_data_table.html" density=density %}
 {% firstof table_id 'bw-data-table' as table_id %}
-<div {% bw_attr "id" table_id %} class="bw-data-table-wrap{% if sticky_header %} bw-data-table-wrap--sticky{% endif %}{% if density == "compact" %} bw-data-table-wrap--density-compact{% endif %}">
+<div {% bw_attr "id" table_id %} class="bw-data-table-wrap{% if sticky_header %} bw-data-table-wrap--sticky{% endif %}{% if density == "compact" %} bw-data-table-wrap--density-compact{% endif %}" tabindex="0">
   {% if loading %}
     <div class="bw-data-table__skeleton" aria-hidden="true">
       {% for _ in "xxxxx" %}<div class="bw-skeleton bw-skeleton--row"></div>{% endfor %}
@@ -173,15 +175,15 @@ marker into ids and attributes; firstof resolves with failures ignored.
     sort_link (private partial, dedup only, no consumer contract): the three
     sortable-header states (ascending, descending, unsorted) differ ONLY in
     the target sort key substituted into the href and the icon, so the one
-    href construction (the #41 request-aware querystring split, with its
-    documented no-request fallback) is written once and varied per state via
-    {% with %} (partials take no arguments). Context: col, current_sort,
-    request, querystring (as documented above), plus target_sort (the sort
-    key this link's href should apply), icon_name and icon_css_class (empty
-    string when the icon needs no extra class).
+    href construction (#41 / #481: bw_query_href then bw_attr) is written
+    once and varied per state via {% with %} (partials take no arguments).
+    Context: col, current_sort, request, querystring (as documented above),
+    plus target_sort (the sort key this link's href should apply), icon_name
+    and icon_css_class (empty string when the icon needs no extra class).
     {% endcomment %}
     {% partialdef sort_link %}
-    <a class="bw-data-table__sort" href="{% if request %}{% querystring sort=target_sort page=None %}{% else %}?sort={{ target_sort }}{% if querystring %}&{{ querystring }}{% endif %}{% endif %}">
+    {% bw_query_href sort=target_sort page=None as sort_href %}
+    <a class="bw-data-table__sort" {% bw_attr "href" sort_href %}>
       {{ col.label }}{% bw_icon icon_name size="sm" decorative=True css_class=icon_css_class %}
     </a>
     {% endpartialdef %}

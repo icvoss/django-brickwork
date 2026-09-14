@@ -103,7 +103,9 @@ class NavItem:
     icon) and never participates in active-route resolution (resolver_match
     cannot match an external href). "External" is about the URL being off-site;
     whether it opens in a new tab is the separate ``opens_in_new_tab`` axis
-    below (an external link no longer forces a new tab)."""
+    below (an external link no longer forces a new tab). Trust boundary:
+    brickwork does not validate URL schemes; values are emitted as given and
+    callers passing user-supplied URLs must validate them first."""
 
     href: str | None = None
     """A raw, already-resolved INTERNAL path (e.g. ``"/docs/getting-started/"``),
@@ -113,7 +115,9 @@ class NavItem:
     same tab by default) and DOES participate in active state, matched by path
     against the current ``request.path`` (not by ``resolver_match``, which a raw
     path cannot drive). This is the seam for a CMS-managed menu whose items only
-    expose ``page.get_absolute_url()`` paths, never route names (NAV-019)."""
+    expose ``page.get_absolute_url()`` paths, never route names (NAV-019). Trust
+    boundary: brickwork does not validate URL schemes; values are emitted as
+    given and callers passing user-supplied URLs must validate them first."""
 
     opens_in_new_tab: bool | None = None
     """Whether this item's link opens in a new browser tab (``target="_blank"``

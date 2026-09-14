@@ -14,6 +14,15 @@ Public surface (semver-stable names):
 - ``overridable_names()`` -> the full frozenset of overridable ``--bw-*`` names.
 - ``is_overridable(name)`` -> membership test against that set.
 - ``manifest()`` -> the whole parsed manifest dict (escape hatch).
+
+Failure modes (icvoss/django-brickwork#490): the manifest is read from the
+installed package at ``static/brickwork/dist/token-manifest.json``. A corrupted
+or unusually built install where that file is missing raises
+``FileNotFoundError`` from ``importlib.resources``; malformed JSON raises
+``json.JSONDecodeError``; a structurally incomplete file (for example a missing
+``overridable`` key) raises ``KeyError`` when an accessor reads the expected
+section. These are not wrapped: they surface at first access, which is the
+signal that the wheel or checkout is incomplete.
 """
 
 from __future__ import annotations

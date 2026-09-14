@@ -152,22 +152,21 @@ tagged build's test job can fail to resolve dependencies and block the publish.
 
 ## Consumer smoke-test gate (Django packages, ADR-027)
 
-CI carries a `smoke-test` job that installs this package **as a built wheel**
-into a fresh venv and runs the checks a real consumer runs against a throwaway
-consumer project: `makemigrations --check --dry-run`, a fresh-DB `migrate`, and
-`mypy` with the `django-stubs` plugin. This exists because two published
-versions (icv-identity 0.3.0's unmigrated manager change; the boundary /
-icv-identity django-stubs wall) shipped defects only a real consumer surfaced,
-after release. The gate moves those to "caught before the tag".
+ADR-027 describes a wheel-install smoke job (`makemigrations --check`,
+`migrate`, `mypy` against a throwaway consumer project). **This package
+does not run that job.** `publish.yml` and `ci.yml` have no separate
+`smoke-test` workflow step of that shape.
 
-- **The gate is blocking.** A red `smoke-test` blocks the PR, so it blocks the
-  release (tagging is gated on a green `main`).
-- **Declared mypy / django-stubs pair.** This package typechecks clean against a
-  specific `mypy` + `django-stubs` pair, declared in the `[dev]` extra of
-  `pyproject.toml`. Consumers pin the same pair. Current pair:
-  `mypy 1.10+ + django-stubs ~6.0.0` (icvoss/django-brickwork#207). The `mypy`
-  leg in `ci.yml` is blocking: the package typechecks clean (zero errors) as of
-  the release that closed #207.
+What CI does run instead:
+
+- a **blocking mypy job** on `src/brickwork` (see `ci.yml`);
+- a **consumer smoke pytest leg** under `tests.settings_consumer` that
+  exercises `tests/test_consumer_smoke.py` against the V3-shaped fixture app
+  in `tests/consumer/` (brickwork#61).
+
+Treat ADR-027's wheel-install recipe as guidance for consumers verifying an
+upgrade, not as a release gate this repo currently enforces in CI
+(icvoss/django-brickwork#278).
 
 ## Never hand-merge a gated count
 
@@ -198,8 +197,9 @@ Before pushing the tag (the irreversible step):
 - [ ] Version bumped in `pyproject.toml` **and** `src/brickwork/__init__.py`,
       and they match.
 - [ ] CI Django pin matches the package's minimum, if the floor changed.
-- [ ] **Consumer smoke-test green** (`makemigrations --check`, `migrate`, and
-      `mypy` where blocking) — see the smoke-test gate section above (ADR-027).
+- [ ] **CI green on the commit being tagged**, including the mypy job and the
+      ``tests/test_consumer_smoke.py`` leg (see the consumer smoke-test section
+      above; this is not ADR-027's separate wheel-install job).
 - [ ] Tests pass locally and the package builds (`python -m build`).
 - [ ] The PR is **merged to `main`** and you are tagging that commit.
 - [ ] Tag format is `v<version>`.

@@ -50,7 +50,9 @@ Optional:
   icon (registry name): a leading flat glyph for the tile (VIZ-018).
   href: wraps the tile in an anchor (VIZ-024) which takes the interactive
         card's shadow raise. Omitted renders a plain non-interactive <div>,
-        never a clickable-looking tile with no destination.
+        never a clickable-looking tile with no destination. Trust boundary:
+        brickwork does not validate URL schemes; href values are emitted as
+        given and callers passing user-supplied URLs must validate them first.
   loading (bool): renders skeleton rows instead of the content (STA-004).
   size ("sm" | "md" | "lg", default "md"): emitted as bw-stat--<value> only
         when supplied (VIZ-027).

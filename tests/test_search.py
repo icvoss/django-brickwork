@@ -1,8 +1,13 @@
 """Rendered-contract tests for {% bw_search %} (#155)."""
 
+from __future__ import annotations
+
+from html.parser import HTMLParser
+
 import pytest
 from django.template import engines
 from django.template.exceptions import TemplateSyntaxError
+from django.utils.safestring import mark_safe
 
 _TAG = '{% bw_search action="/search/" value="invoice" %}'
 _SCOPE = {
@@ -61,3 +66,34 @@ def test_invalid_public_arguments_fail_at_render_time(source: str, message: str)
     context = {"scope": {"label": "Project: Acme"}}
     with pytest.raises(TemplateSyntaxError, match=message):
         _render(source, **context)
+
+
+ATTACK = mark_safe('a" onclick="alert(1)')
+
+
+def _on_star_attrs(html: str) -> list[tuple[str, str]]:
+    class _Finder(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.found: list[tuple[str, str]] = []
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            self.found.extend((tag, name) for name, _value in attrs if name.startswith("on"))
+
+    parser = _Finder()
+    parser.feed(html)
+    return parser.found
+
+
+@pytest.mark.parametrize(
+    "source,context",
+    [
+        ('{% bw_search action="/search/" scope=scope %}', {"scope": {**_SCOPE, "clear_label": ATTACK}}),
+        ('{% bw_search action="/search/" placeholder=attack %}', {"attack": ATTACK}),
+        ('{% bw_search action="/search/" scope=scope %}', {"scope": {**_SCOPE, "clear_href": ATTACK}}),
+        ('{% bw_search action="/search/" value=attack %}', {"attack": ATTACK}),
+    ],
+)
+def test_consumer_supplied_search_values_cannot_break_out_of_attributes(source: str, context: dict) -> None:
+    html = _render(source, **context)
+    assert _on_star_attrs(html) == []

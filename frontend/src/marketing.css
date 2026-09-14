@@ -600,6 +600,13 @@
   display: none;
 }
 
+/* icvoss/django-brickwork#267: collapse the footer landmark when both content
+ * slots are empty. The inner markup keeps block output flush so an unfilled
+ * marketing_footer leaves the legal wrapper as the sole (empty) child. */
+.bw-marketing-footer:has(.bw-marketing-footer__legal:only-child:empty) {
+  display: none;
+}
+
 /* Every marketing section wraps at the marketing measure, stacked at the
  * marketing section rhythm. Applied to the direct section-level components
  * a page composes (hero, feature grid, pricing, cta, testimonial and so on),

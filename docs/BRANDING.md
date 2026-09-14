@@ -61,6 +61,17 @@ embedded-document link, which a template tag on the first include cannot see.
 
 ## The load-bearing minimum: seven tokens make a brand
 
+**Counting note (icvoss/django-brickwork#246).** This section's "seven" is the
+core colour set base-theme derives fine tokens from. The machine-readable
+manifest (`token-manifest.json`, gated in `docs/POSITIONING.md`) records **10
+load-bearing** names in total, of which **8 are unconditional**:
+the seven below plus `--bw-color-fg-on-accent` (always verify at 4.5:1), with
+two **conditional** entries (`--bw-color-surface-inverse` when ink is not the
+inverse surface; `--bw-color-info` when a three-role brand collapses info onto
+accent). A minimum light plus dark brand is **14 CSS lines** (seven colours x
+two themes); a complete brand that authors `--bw-color-fg-on-accent` in both
+themes is **16 lines** (eight unconditional x two themes).
+
 base-theme derives everything else from seven load-bearing colour tokens per
 theme (DESIGN.md section 2 is the authoritative list):
 
@@ -530,6 +541,18 @@ root, since `visibility` merely inherits and a descendant's own specified
 value always wins over an inherited one regardless of `!important` on the
 ancestor: a plain rule targeting one inner element cannot silently unhide
 it.
+
+**Static fixture and prerender pipelines (icvoss/django-brickwork#243).**
+Components that ship with a no-JS pre-init class and rely on a small init
+script to reveal themselves (`{% bw_theme_switch %}`, marketing overlay chrome,
+and any sibling using the same pattern) stay in their pre-init state when a
+pipeline renders HTML with scripts stripped or never executed: a11y fixture
+generators, prerenderers, and snapshot tests. That is expected, not a runtime
+defect: the live page runs the script; the static artefact does not. Treat a
+hidden theme switch or overlay header in a fixture as a signal that the
+pipeline is exercising the no-JS floor, and measure layout against a browser
+session with scripts enabled when the post-init geometry is what you care
+about.
 
 **Persistence follows SHL-003** (the same rule
 `frontend/src/js/sidebar_collapse.js` documents for the sidebar): localStorage

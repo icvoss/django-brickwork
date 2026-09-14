@@ -240,7 +240,24 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 ### Branches and PRs
 
 Push feature branches and open a pull request against `main`. CI must pass
-before merging. Prefer small, focused commits over large ones.
+before merging. Prefer small, focused commits over a large one.
+
+### Auditing what a branch actually changed
+
+`git diff origin/main..<branch>` reads like "what this branch changes", but
+**it stops being that the moment `main` moves**: once the branch trails merged
+work on `main`, the two-dot form lists commits and files that landed on `main`
+from other PRs, not from this branch. For a branch's real scope, diff from the
+merge base instead:
+
+```bash
+git diff --name-only "$(git merge-base origin/main origin/<branch>)"..origin/<branch>
+```
+
+The merge-base form and `origin/main..branch` agree on a freshly branched PR;
+they diverge only after `main` advances. Use the merge-base form when reviewing
+an older branch, preparing a rebase, or checking whether a stale local diff
+still matches what the PR will merge (icvoss/django-brickwork#324).
 
 ### Changelog fragments (not CHANGELOG.md)
 

@@ -60,10 +60,41 @@ _VALUE_PATTERNS = (
 )
 _VALUE = re.compile("|".join(f"(?:{p})" for p in _VALUE_PATTERNS), re.IGNORECASE)
 
+# Derived colour expressions a brand may legitimately author for --bw-color-* tokens
+# (DESIGN.md section 3 single-level grammar). Plain _VALUE does not cover these,
+# which is how brickwork rejected its own shipped defaults (icvoss/django-brickwork#473).
+_COLOUR_MIX = re.compile(
+    r"^color-mix\(in oklab, var\(--bw-[a-z0-9-]+\) \d+(?:\.\d+)?%, "
+    r"(?:black|white|transparent|var\(--bw-[a-z0-9-]+\))\)$"
+)
+
+# Non-colour overridable tokens (typography, spacing, breakpoints, component
+# dimensions, and so on): a font stack or ``64rem`` is not a colour literal.
+_GENERIC_UNIT = (
+    r"(?:rem|em|ex|ch|vw|vh|vmin|vmax|svw|svh|lvw|lvh|dvw|dvh|cm|mm|in|pt|pc|px|deg|grad|rad|turn|s|ms|%|fr)"
+)
+_GENERIC_VALUE_PATTERNS = (
+    rf"^{_NUM}$",
+    rf"^{_NUM}{_GENERIC_UNIT}$",
+    r"^var\(\s*--[a-z0-9-]+\s*(?:,\s*[^(){};<>@\\]*)?\)$",
+    r"^calc\([^(){};<>@\\]*\)$",
+    r"^cubic-bezier\([^(){};<>@\\]+\)$",
+    r"^(?:linear|ease(?:-in|-out|-in-out)?)$",
+    # Font-family stacks and similar comma-separated identifier lists.
+    r"^(?:[\"'][^\"'{};<>@\\]*[\"']|[\w-]+)(?:\s*,\s*(?:[\"'][^\"'{};<>@\\]*[\"']|[\w-]+))*$",
+)
+_GENERIC_VALUE = re.compile("|".join(f"(?:{p})" for p in _GENERIC_VALUE_PATTERNS), re.IGNORECASE)
+
+# Complex shorthands the closed patterns above do not enumerate (box-shadow,
+# transition, min()/max(), color-mix on component tokens, and so on). Still
+# injection-guarded: no braces, semicolons, or remote url().
+_GENERIC_FALLBACK = re.compile(r"^[\w\s\"'(),./%+:#\\=-]+$")
+
 # Belt and braces alongside the allowlist above: these can never appear in a valid
 # colour value, so if a future syntax addition widens _VALUE too far, the hole does
-# not silently reopen. `url(` is listed because it exfiltrates on render.
-_FORBIDDEN = ("{", "}", ";", "<", ">", "@", "/*", "*/", "\\", "url(")
+# not silently reopen. Remote `url(` exfiltrates on render; data: URLs are allowed
+# on the generic path only (checkbox/select indicator glyphs).
+_FORBIDDEN = ("{", "}", ";", "<", ">", "@", "/*", "*/", "\\")
 
 _FOCUS_RING = "--bw-color-focus-ring"
 _ACCENT = "--bw-color-accent"
@@ -129,8 +160,8 @@ _DERIVED_MIX = re.compile(
 
 class BrandValidationError(BrickworkError):
     """A brand override failed validation (unknown token name, a value that is not a
-    recognised CSS colour, or a hard contrast failure on an authored-per-theme
-    constraint).
+    recognised CSS shape for that token, or a hard contrast failure on an authored-
+    per-theme constraint).
 
     The value check is unconditional: unlike the name and contrast checks it is not
     governed by ``render_brand_css(..., validate=False)``, because emitting an
@@ -138,8 +169,40 @@ class BrandValidationError(BrickworkError):
     trusts its data (brickwork#133)."""
 
 
+def _is_colour_token(name: str) -> bool:
+    """Whether ``name`` expects a colour literal rather than a general CSS value."""
+    return name.startswith("--bw-color-")
+
+
+def _value_looks_like_colour(value: str) -> bool:
+    v = value.strip().lower()
+    return v.startswith(("oklch(", "oklab(", "lab(", "lch(", "#", "rgb", "hsl", "color-mix(")) or v in {
+        "transparent",
+        "currentcolor",
+        "inherit",
+        "rebeccapurple",
+    }
+
+
+def _forbidden_substring(value: str, *, allow_data_url: bool) -> str | None:
+    lowered = value.lower()
+    if "url(" in lowered:
+        if allow_data_url and re.match(r"^url\(\s*[\"']?data:", value.strip(), re.IGNORECASE):
+            pass
+        else:
+            return "url("
+    for bad in _FORBIDDEN:
+        if bad in lowered:
+            return bad
+    return None
+
+
 def _check_value(name: str, value: str) -> None:
-    """Reject any value that is not a recognised CSS colour literal.
+    """Reject values that are empty, injectable, or not a recognised CSS shape.
+
+    ``--bw-color-*`` tokens take the colour allowlist (oklch, hex, color-mix, ...).
+    Every other overridable token takes the general allowlist (dimensions, font
+    stacks, var(), calc(), ...). Both paths share the injection guard.
 
     Raises ``BrandValidationError`` rather than warning. A warning here would be
     worse than useless: the caller has already been handed the malicious stylesheet
@@ -148,25 +211,36 @@ def _check_value(name: str, value: str) -> None:
     v = value.strip()
     if not v:
         raise BrandValidationError(
-            f"brickwork: empty value for {name!r}. Supply a CSS colour literal "
-            f"(oklch() preferred, see docs/BRANDING.md)."
+            f"brickwork: empty value for {name!r}. Supply a CSS value appropriate to "
+            f"that token (colour literals for --bw-color-*, see docs/BRANDING.md)."
         )
-    lowered = v.lower()
-    for bad in _FORBIDDEN:
-        if bad in lowered:
-            raise BrandValidationError(
-                f"brickwork: value for {name!r} contains {bad!r}, which cannot appear in a "
-                f"CSS colour value. Brand values are interpolated into a stylesheet and CSS "
-                f"has no escaping mechanism, so this is rejected rather than sanitised "
-                f"(brickwork#133)."
-            )
-    if not _VALUE.match(v):
+    colour_path = _is_colour_token(name) or _value_looks_like_colour(v)
+    bad = _forbidden_substring(v, allow_data_url=not colour_path)
+    if bad is not None:
         raise BrandValidationError(
-            f"brickwork: value {value!r} for {name!r} is not a recognised CSS colour. "
-            f"Accepted: oklch() (preferred, and the only form the contrast check can "
-            f"verify), oklab(), lab(), lch(), hex, rgb()/rgba(), hsl()/hsla(), or a bare "
-            f"keyword such as 'transparent' (docs/BRANDING.md)."
+            f"brickwork: value for {name!r} contains {bad!r}, which cannot appear in a "
+            f"CSS custom-property value. Brand values are interpolated into a stylesheet "
+            f"and CSS has no escaping mechanism, so this is rejected rather than "
+            f"sanitised (brickwork#133)."
         )
+    if colour_path:
+        if not (_VALUE.match(v) or _COLOUR_MIX.match(v)):
+            raise BrandValidationError(
+                f"brickwork: value {value!r} for {name!r} is not a recognised CSS colour. "
+                f"Accepted: oklch() (preferred, and the only form the contrast check can "
+                f"verify), oklab(), lab(), lch(), hex, rgb()/rgba(), hsl()/hsla(), "
+                f"color-mix(in oklab, ...), or a bare keyword such as 'transparent' "
+                f"(docs/BRANDING.md)."
+            )
+        return
+    if _GENERIC_VALUE.match(v) or (len(v) <= 512 and _GENERIC_FALLBACK.match(v)):
+        return
+    raise BrandValidationError(
+        f"brickwork: value {value!r} for {name!r} is not a recognised CSS value for "
+        f"this token. Accepted: dimensions (e.g. 64rem, 1px), numbers, var(--bw-*), "
+        f"calc(), easing keywords, or a comma-separated font stack "
+        f"(icvoss/django-brickwork#473)."
+    )
 
 
 def _normalise_name(name: str) -> str:
@@ -503,10 +577,12 @@ def render_brand_css(
     - a **status hue collapsed onto the accent** emits a warning (not an error).
 
     Independently of ``validate``, **every value is checked against the accepted CSS
-    colour syntaxes** and a non-conforming one raises ``BrandValidationError``. This
-    check cannot be switched off: values are interpolated into a stylesheet, CSS has
-    no escaping mechanism for them, and a value containing ``}`` would otherwise close
-    brickwork's block and take over the rest of the sheet (brickwork#133).
+    syntax for that token** (colour literals for ``--bw-color-*``, general CSS
+    values for every other overridable name) and a non-conforming one raises
+    ``BrandValidationError``. This check cannot be switched off: values are
+    interpolated into a stylesheet, CSS has no escaping mechanism for them, and a
+    value containing ``}`` would otherwise close brickwork's block and take over the
+    rest of the sheet (brickwork#133).
 
     Set ``validate=False`` to skip the name and contrast checks (e.g. when the values
     are known good and the call is hot); the value check still runs. Returns the CSS

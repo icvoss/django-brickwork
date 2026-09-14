@@ -198,10 +198,7 @@ Overlay mode (ADR-105, icvoss/django-brickwork#565, BR-BW-MKT-006): opt in
 
   {% block marketing_footer_region %}
   <footer class="bw-marketing-footer">
-    <div class="bw-marketing-footer__inner">
-      {% block marketing_footer %}{% endblock %}
-      <div class="bw-marketing-footer__legal">{% block footer_legal %}{% endblock %}</div>
-    </div>
+    <div class="bw-marketing-footer__inner">{% block marketing_footer %}{% endblock %}<div class="bw-marketing-footer__legal">{% block footer_legal %}{% endblock %}</div></div>
   </footer>
   {% endblock %}
 </div>
