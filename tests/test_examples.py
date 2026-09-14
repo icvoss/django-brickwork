@@ -23,7 +23,7 @@ from urllib.parse import quote
 
 import pytest
 from django import forms
-from django.template import Context, Engine, TemplateDoesNotExist
+from django.template import Context, Engine, Template, TemplateDoesNotExist
 from django.template.backends.django import get_installed_libraries as get_default_libraries
 from django.template.loader import get_template, render_to_string
 from django.utils import dates as django_dates
@@ -189,6 +189,47 @@ _TABLE_ROWS = [
     {"id": 6, "cells": ["INV-2422", "North Quay Ltd", "£1,475.00"]},
 ]
 
+# Invoice line items for app/detail.html (Beat F.2 S2): not the list columns.
+_LINE_COLUMNS = [
+    {"label": "Description", "sortable": False},
+    {"label": "Qty", "sortable": False, "align": "end"},
+    {"label": "Unit", "sortable": False, "align": "end"},
+    {"label": "Amount", "sortable": False, "align": "end"},
+]
+_LINE_ROWS = [
+    {"id": 1, "cells": ["Platform subscription (annual)", "1", "£960.00", "£960.00"]},
+    {"id": 2, "cells": ["Seat add-on (4 seats)", "4", "£45.00", "£180.00"]},
+    {"id": 3, "cells": ["Priority support", "1", "£100.00", "£100.00"]},
+]
+
+
+def _dashboard_trend_mount() -> object:
+    """Clean-room SVG area chart for the Overview chart card (no JS engine).
+
+    Look and idea only relative to Plus dashboards: a filled trend with a
+    visible caption. Not kit markup.
+    """
+    # Path in a 640x200 viewBox; y grows downward.
+    points = [42, 55, 48, 62, 58, 71, 66, 78, 74, 88, 82, 95]
+    n = len(points) - 1
+    coords = [(i * (640 / n), 200 - (p / 100) * 180 - 10) for i, p in enumerate(points)]
+    line = " ".join(f"{x:.1f},{y:.1f}" for x, y in coords)
+    area = f"M {coords[0][0]:.1f},200 L " + " L ".join(f"{x:.1f},{y:.1f}" for x, y in coords) + " L 640,200 Z"
+    svg = (
+        '<svg class="bw-dashboard-trend" viewBox="0 0 640 200" width="100%" '
+        'height="200" role="img" aria-label="Revenue by week for the last 12 weeks, '
+        'rising from about forty-two to ninety-five thousand pounds.">'
+        '<defs><linearGradient id="bw-dash-trend-fill" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0%" stop-color="var(--bw-color-chart-1)" stop-opacity="0.35"/>'
+        '<stop offset="100%" stop-color="var(--bw-color-chart-1)" stop-opacity="0"/>'
+        "</linearGradient></defs>"
+        f'<path d="{area}" fill="url(#bw-dash-trend-fill)"/>'
+        f'<polyline fill="none" stroke="var(--bw-color-chart-1)" stroke-width="2.5" '
+        f'points="{line}"/>'
+        "</svg>"
+    )
+    return mark_safe(svg)  # noqa: S308 (example-authored trusted markup)
+
 
 def _logo_data_uri(label: str, fill: str) -> str:
     """Inline SVG data URI so the logo cloud never depends on a missing static file."""
@@ -238,17 +279,56 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "invoice_facts": [
             {"label": "Account", "value": "Acme Corp"},
             {"label": "Raised", "value": "14 July 2026"},
+            {"label": "Due", "value": "28 July 2026"},
+            {"label": "Status", "value": "Open"},
+            {"label": "Currency", "value": "GBP"},
+            {"label": "Purchase order", "value": "PO-8841"},
         ],
-        "line_columns": _TABLE_COLUMNS,
-        "line_rows": _TABLE_ROWS,
+        "line_columns": _LINE_COLUMNS,
+        "line_rows": _LINE_ROWS,
     },
     "app/dashboard.html": {
         **_NAV_CONTEXT,
         "nav_active": _APP_NAV_ITEMS[2],
-        "activity_columns": _TABLE_COLUMNS,
-        "activity_rows": _TABLE_ROWS,
+        "activity_columns": [
+            {"label": "When", "sortable": False},
+            {"label": "Event", "sortable": False},
+            {"label": "Amount", "sortable": False, "align": "end"},
+        ],
+        "activity_rows": [
+            {"id": 1, "cells": ["Today, 09:14", "Invoice INV-2422 paid", "£1,475.00"]},
+            {"id": 2, "cells": ["Yesterday", "Invoice INV-2419 sent", "£3,150.00"]},
+            {"id": 3, "cells": ["2 days ago", "Credit note CN-118", "−£220.00"]},
+            {"id": 4, "cells": ["4 days ago", "Invoice INV-2417 viewed", "£1,240.00"]},
+            {"id": 5, "cells": ["Last week", "Invoice INV-2418 overdue", "£880.00"]},
+        ],
+        "top_accounts_rows": [
+            {"label": "Dunmore Retail", "amount": 3150, "value": "£3,150"},
+            {"label": "Carrick & Sons", "amount": 2090, "value": "£2,090"},
+            {"label": "North Quay Ltd", "amount": 1475, "value": "£1,475"},
+            {"label": "Acme Corp", "amount": 1240, "value": "£1,240"},
+            {"label": "Halden Group", "amount": 880, "value": "£880"},
+        ],
+        "trend_mount": _dashboard_trend_mount(),
+        "trend_data_table": Template(
+            "{% load brickwork_components %}"
+            "{% bw_chart_data_table caption=caption columns=columns rows=rows "
+            'data_table_mode="toggle" toggle_label="Show revenue by week" %}'
+        ).render(
+            Context(
+                {
+                    "caption": "Revenue by week (last 12 weeks)",
+                    "columns": ("Week", "Revenue"),
+                    "rows": [
+                        (f"W{i + 1}", f"£{v},000")
+                        for i, v in enumerate([42, 55, 48, 62, 58, 71, 66, 78, 74, 88, 82, 95])
+                    ],
+                }
+            )
+        ),
         # Weighted scorecard (icvoss/django-brickwork#512): revenue is the
-        # argument; supporting tiles take one column each.
+        # argument; supporting tiles take one column each. The trend chart
+        # below carries the shape-over-time reading (no tile sparklines).
         "headline_tiles": [
             {
                 "content": mark_safe(  # noqa: S308 (example-authored trusted markup)

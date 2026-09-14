@@ -2752,6 +2752,15 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   block-size: 100%;
 }
 
+/* App Overview example: server-rendered trend SVG passed as chart_card mount=
+ * (no JS engine). Fills the mount slot without fighting the card chrome. */
+.bw-chart-card__mount > .bw-dashboard-trend {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: 14rem;
+}
+
 /* The legend region (CHT-003, CHT-014): brickwork styles the row/column
  * chrome only, the consumer supplies each swatch+label pair's markup.
  * Wrapping and gap match the density axis's stack rhythm used elsewhere

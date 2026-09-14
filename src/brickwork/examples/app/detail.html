@@ -61,13 +61,14 @@ the view or a context processor; hard-coded here so the example reads.
   {% include "brickwork/components/_data_table.html" with table_id="invoice-facts" variant="definition" rows=invoice_facts %}
 
   {% comment %}
-  Related records. An {% templatetag openblock %} include {% templatetag closeblock %}
-  cannot fill another template's blocks, so a card that needs a header and body
-  is written as a tiny template of your own that EXTENDS _card.html and fills
-  them, which you then include here. That is the one piece of card mechanics
-  worth knowing; see _card.html's own header comment for the shape.
+  Line items for THIS invoice (description / qty / unit / amount), not a
+  related-invoices list. The definition table above holds the record facts;
+  this table is the billable body.
   {% endcomment %}
-  {% include "brickwork/components/_data_table.html" with table_id="invoice-lines" columns=line_columns rows=line_rows empty_heading="No line items" empty_body="This invoice has no line items yet." %}
+  <section aria-labelledby="invoice-lines-heading">
+    <h2 id="invoice-lines-heading" class="bw-band-heading">Line items</h2>
+    {% include "brickwork/components/_data_table.html" with table_id="invoice-lines" columns=line_columns rows=line_rows empty_heading="No line items" empty_body="This invoice has no line items yet." %}
+  </section>
 
   {% comment %}
   The danger zone (icvoss/django-brickwork#526): a bordered card with a

@@ -73,8 +73,10 @@
       "requiresContext": true,
       "composesItems": [
         "brickwork/components/_button.html",
+        "brickwork/components/_chart_card.html",
         "brickwork/components/_data_table.html",
         "brickwork/components/_page_header.html",
+        "brickwork/components/_ranked_list.html",
         "brickwork/components/_scorecard.html",
         "brickwork/nav/_nav.html",
         "brickwork/shell/app.html"
@@ -651,6 +653,7 @@
       "docSource": "brickwork/components/_chart_card.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "app/dashboard.html",
         "ops/analysis-dashboard.html"
       ],
       "usedBySections": [],
@@ -1122,6 +1125,7 @@
       "docSource": "brickwork/components/_ranked_list.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "app/dashboard.html",
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/report.html"

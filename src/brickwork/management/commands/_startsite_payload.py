@@ -318,6 +318,8 @@ def landing(request):
 
 def dashboard(request):
     """The app dashboard (from brickwork's examples/app/dashboard.html)."""
+    from django.template import Context, Template
+
     activity_columns = [
         {"label": "Item", "sortable": False},
         {"label": "Status", "sortable": False},
@@ -328,6 +330,46 @@ def dashboard(request):
         {"id": "row-2", "cells": ["Client onboarding", "In progress", "Yesterday"]},
         {"id": "row-3", "cells": ["Budget review", "Complete", "3 days ago"]},
     ]
+    top_accounts_rows = [
+        {"label": "Dunmore Retail", "amount": 3150, "value": "£3,150"},
+        {"label": "Carrick & Sons", "amount": 2090, "value": "£2,090"},
+        {"label": "Acme Corp", "amount": 1240, "value": "£1,240"},
+    ]
+    # Server-rendered trend SVG (no JS chart engine); matches the example shape.
+    points = [42, 55, 48, 62, 58, 71, 66, 78, 74, 88, 82, 95]
+    n = len(points) - 1
+    coords = [(i * (640 / n), 200 - (p / 100) * 180 - 10) for i, p in enumerate(points)]
+    line = " ".join(f"{x:.1f},{y:.1f}" for x, y in coords)
+    area = (
+        f"M {coords[0][0]:.1f},200 L "
+        + " L ".join(f"{x:.1f},{y:.1f}" for x, y in coords)
+        + " L 640,200 Z"
+    )
+    trend_mount = mark_safe(
+        '<svg class="bw-dashboard-trend" viewBox="0 0 640 200" width="100%" '
+        'height="200" role="img" aria-label="Revenue by week for the last 12 weeks.">'
+        '<defs><linearGradient id="bw-dash-trend-fill" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0%" stop-color="var(--bw-color-chart-1)" stop-opacity="0.35"/>'
+        '<stop offset="100%" stop-color="var(--bw-color-chart-1)" stop-opacity="0"/>'
+        "</linearGradient></defs>"
+        f'<path d="{area}" fill="url(#bw-dash-trend-fill)"/>'
+        f'<polyline fill="none" stroke="var(--bw-color-chart-1)" stroke-width="2.5" '
+        f'points="{line}"/>'
+        "</svg>"
+    )
+    trend_data_table = Template(
+        "{% load brickwork_components %}"
+        "{% bw_chart_data_table caption=caption columns=columns rows=rows "
+        'data_table_mode="toggle" toggle_label="Show revenue by week" %}'
+    ).render(
+        Context(
+            {
+                "caption": "Revenue by week (last 12 weeks)",
+                "columns": ("Week", "Revenue"),
+                "rows": [(f"W{i + 1}", f"£{v},000") for i, v in enumerate(points)],
+            }
+        )
+    )
     # Weighted scorecard: revenue is the argument; supporting tiles take one
     # column each (visual bar S4 / icvoss/django-brickwork#512).
     headline_tiles = [
@@ -382,6 +424,9 @@ def dashboard(request):
         {
             "activity_columns": activity_columns,
             "activity_rows": activity_rows,
+            "top_accounts_rows": top_accounts_rows,
+            "trend_mount": trend_mount,
+            "trend_data_table": trend_data_table,
             "headline_tiles": headline_tiles,
             "nav_items": NAV,
             "nav_active": active,

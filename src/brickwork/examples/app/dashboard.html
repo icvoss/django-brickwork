@@ -1,12 +1,15 @@
 {% extends "brickwork/shell/app.html" %}
 {% comment %}
-A dashboard: a weighted headline scorecard and recent activity.
+A dashboard: a weighted headline scorecard, the shape of the answer over
+time, then activity that explains it.
 
 COPY THIS FILE into your project and edit it. It is not on the template loader
 path, so you cannot extend it (ADR-056).
 
 What your view must supply:
     headline_tiles                weighted scorecard items (see below)
+    trend_mount / trend_data_table  chart card mount + accessible table
+    top_accounts_rows             ranked_list rows (label / amount / value)
     activity_rows / activity_columns  the recent-activity table data
     nav_items / nav_active            as in list.html
 
@@ -15,20 +18,24 @@ argument, not a row of equal tiles. Equal tiles say every number matters the
 same, which is never true. The scorecard's span= carries the ranking: the
 metric this page exists to report gets span=2, supporting metrics take one
 column. The ops analysis-dashboard example teaches the same shape in denser
-form; this page is the simpler app Overview.
+form; this page is the simpler app Overview, with a server-rendered trend
+SVG so the page still reads finished before a JS chart engine is wired.
 
 _scorecard.html takes items as a list of {content, span} dicts whose content
 is already-rendered safe markup, so the grid comes from the view (ADR-090).
 
 States: the scorecard tiles' own trend states (see _stat.html /
-  _stat_comparison.html); the activity table's loading/empty/row-link states.
+  _stat_comparison.html); the chart card's mount / data-table sibling
+  (CHT-012); the activity table's loading/empty/row-link states.
 Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
   page-header region; every trend reading pairs a decorative glyph with
-  visually-hidden direction text, never colour alone. Covered by the
-  archetype harness's full gate sweep at every W0.1 breakpoint, both themes.
+  visually-hidden direction text, never colour alone. The trend SVG carries
+  an aria-label; the chart data table is a sibling of the mount. Covered by
+  the archetype harness's full gate sweep at every W0.1 breakpoint, both
+  themes.
 Responsive: inherits shell/app.html's sidebar-to-drawer collapse at
   --bw-breakpoint-md (48rem). The scorecard grid reflows via its own
-  column tokens.
+  column tokens; .bw-band-grid--2 stacks the ranked list and table.
 {% endcomment %}
 {% load brickwork_components brickwork_nav %}
 
@@ -54,11 +61,18 @@ Responsive: inherits shell/app.html's sidebar-to-drawer collapse at
     {% include "brickwork/components/_scorecard.html" with items=headline_tiles %}
   </section>
 
-  {% comment %}
-  Recent activity. Rows with a url become clickable rows, keyboard-reachable
-  through the first cell's anchor.
-  {% endcomment %}
-  {% include "brickwork/components/_data_table.html" with table_id="recent-activity" columns=activity_columns rows=activity_rows empty_heading="Nothing yet" empty_body="Activity across your account will show up here." %}
+  <section aria-labelledby="overview-trend-heading">
+    <h2 id="overview-trend-heading" class="bw-visually-hidden">Revenue by week</h2>
+    {% include "brickwork/components/_chart_card.html" with title="Revenue by week" mount=trend_mount data_table=trend_data_table %}
+  </section>
+
+  <section aria-labelledby="overview-activity-heading">
+    <h2 id="overview-activity-heading" class="bw-band-heading">Activity</h2>
+    <div class="bw-band-grid--2">
+      {% bw_ranked_list top_accounts_rows basis="total" label="Top accounts" empty_heading="No accounts yet" empty_body="Accounts with recent invoice activity will appear here." %}
+      {% include "brickwork/components/_data_table.html" with table_id="recent-activity" columns=activity_columns rows=activity_rows empty_heading="Nothing yet" empty_body="Activity across your account will show up here." %}
+    </div>
+  </section>
 
 </div>
 {% endblock %}
