@@ -328,22 +328,14 @@ def test_no_legend_position_emits_no_modifier_class() -> None:
     assert "bw-chart-card--legend-" not in root_attrs
 
 
-def test_unrecognised_legend_position_passes_through_unvalidated() -> None:
-    # Pins the DOCUMENTED behaviour, which was corrected to match the code
-    # rather than the other way round. An include-only component cannot
-    # validate, so an unrecognised value reaches the class attribute verbatim
-    # and matches no rule: the legend renders in the base position and nothing
-    # errors. The docstring originally claimed the value was "silently
-    # ignored, no modifier class emitted", which was false in the half that
-    # matters to a consumer reading the root's class list.
-    #
-    # This is the stated contract, not a defect pin: it goes red if the
-    # component ever starts validating, which would be a deliberate change
-    # (and the signal to promote this to a tag, per the docstring's own
-    # revisit condition).
+def test_unrecognised_legend_position_emits_no_modifier_class() -> None:
+    # After icvoss/django-brickwork#481's closed-vocabulary constrain, an
+    # unrecognised legend_position no longer reaches the class attribute.
+    # Only bottom/side emit modifiers; anything else keeps the base layout.
     out = _card(legend_position="diagonal")
     root_attrs = _attrs_of(out, "bw-chart-card")
-    assert "bw-chart-card--legend-diagonal" in root_attrs
+    assert "bw-chart-card--legend-diagonal" not in root_attrs
+    assert "bw-chart-card--legend-" not in root_attrs
 
 
 # --- reservation: min_height/aspect_ratio reach the rendered element -------

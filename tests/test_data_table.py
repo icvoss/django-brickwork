@@ -426,3 +426,42 @@ def test_beautiful_default_data_table_wrap_has_fg_mix_edge_and_ambient() -> None
     assert "var(--bw-elevation-1)" in body
     assert "0 4px 14px -4px" in body
     assert "inset 0 1px 0 0" not in body
+
+
+# --- icvoss/django-brickwork#363: composed id/for cannot break out ----------
+
+
+def _on_star_attrs(html: str) -> list[tuple[str, str]]:
+    from html.parser import HTMLParser
+
+    class _Finder(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.found: list[tuple[str, str]] = []
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            self.found.extend((tag, name) for name, _value in attrs if name.startswith("on"))
+
+    parser = _Finder()
+    parser.feed(html)
+    return parser.found
+
+
+def test_row_id_mark_safed_payload_cannot_break_out_of_composed_id_attrs() -> None:
+    from django.utils.safestring import mark_safe
+
+    attack = mark_safe('a" onclick="alert(1)')
+    rows = [{"id": attack, "cells": ["Gadget"]}]
+    out = _render(table_id="gadgets", columns=_COLUMNS, rows=rows, selectable=True)
+    assert _on_star_attrs(out) == []
+    assert 'id="gadgets-row-a&quot; onclick=&quot;alert(1)"' in out
+
+
+def test_table_id_mark_safed_payload_cannot_break_out_of_select_all_attrs() -> None:
+    from django.utils.safestring import mark_safe
+
+    attack = mark_safe('t" onclick="alert(1)')
+    out = _render(table_id=attack, columns=_COLUMNS, rows=_ROWS, selectable=True)
+    assert _on_star_attrs(out) == []
+    assert 'id="t&quot; onclick=&quot;alert(1)"' in out
+    assert 'id="t&quot; onclick=&quot;alert(1)-select-all"' in out or 'id="t&quot; onclick=&quot;alert(1)-tbody"' in out

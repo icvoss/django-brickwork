@@ -70,7 +70,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-alert* selector. The banner is full-width within its container at
   every viewport size.
 {% endcomment %}
-{% if variant == "success" %}{% firstof icon "success" as bw_alert_icon %}{% elif variant == "warning" %}{% firstof icon "alert-triangle" as bw_alert_icon %}{% elif variant == "danger" %}{% firstof icon "alert-circle" as bw_alert_icon %}{% else %}{% firstof icon "info" as bw_alert_icon %}{% endif %}<div class="bw-alert bw-alert--{% firstof variant 'info' %}" role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
+{% if variant == "success" %}{% firstof icon "success" as bw_alert_icon %}{% elif variant == "warning" %}{% firstof icon "alert-triangle" as bw_alert_icon %}{% elif variant == "danger" %}{% firstof icon "alert-circle" as bw_alert_icon %}{% else %}{% firstof icon "info" as bw_alert_icon %}{% endif %}<div class="bw-alert bw-alert--{% if variant == "success" %}success{% elif variant == "warning" %}warning{% elif variant == "danger" %}danger{% else %}info{% endif %}" role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
   {% bw_icon bw_alert_icon size="md" decorative=True css_class="bw-alert__icon" %}
   <div class="bw-alert__body">
     {% if title %}<p class="bw-alert__title">{{ title }}</p>{% endif %}

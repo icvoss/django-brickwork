@@ -359,3 +359,19 @@ def test_docs_shell_ships_a_mobile_nav_jump_link_and_nav_anchor() -> None:
     assert 'id="bw-docs-nav"' in html
     assert html.index("bw-docs-nav-jump") < html.index("CONTENT-SENTINEL")
     assert html.index("CONTENT-SENTINEL") < html.index('id="bw-docs-nav"')
+
+
+# --- icvoss/django-brickwork#485: consumer-nameable docs rail label ----------
+
+
+def test_docs_nav_label_context_renames_summary_and_aria_label() -> None:
+    html = _extend(_DOCS_SHELL, "", docs_nav_label="Client guides")
+    assert "Client guides" in html
+    assert 'aria-label="Client guides"' in html
+    assert 'aria-label="Documentation"' not in html
+
+
+def test_docs_nav_label_default_remains_documentation() -> None:
+    html = _extend(_DOCS_SHELL, "")
+    assert '<summary class="bw-docs-layout__nav-summary">Documentation</summary>' in html
+    assert 'aria-label="Documentation"' in html

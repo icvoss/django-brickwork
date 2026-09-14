@@ -36,3 +36,49 @@ def test_neither_block_filled_emits_no_extra_markup() -> None:
     out = _extend("", variant="info", title="Heads up", message="Something happened.")
     assert "Heads up" in out
     assert "Something happened." in out
+
+
+# --- icvoss/django-brickwork#476: include-path variant constrain ---------------
+
+
+def _on_star_attrs(html: str) -> list[tuple[str, str]]:
+    from html.parser import HTMLParser
+
+    class _Finder(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.found: list[tuple[str, str]] = []
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            self.found.extend((tag, name) for name, _value in attrs if name.startswith("on"))
+
+    parser = _Finder()
+    parser.feed(html)
+    return parser.found
+
+
+def _include_alert(**ctx: object) -> str:
+    from django.template.loader import render_to_string
+
+    return render_to_string("brickwork/components/_alert.html", ctx)
+
+
+def test_include_path_variant_mark_safed_payload_cannot_break_out() -> None:
+    from django.utils.safestring import mark_safe
+
+    attack = mark_safe('a" onclick="alert(1)')
+    out = _include_alert(variant=attack, title="t", message="m")
+    assert "alert(1)" not in out
+    assert _on_star_attrs(out) == []
+    assert "bw-alert--info" in out
+
+
+def test_include_path_unrecognised_variant_falls_back_to_info() -> None:
+    out = _include_alert(variant="not-real", title="t", message="m")
+    assert "bw-alert--info" in out
+    assert "bw-alert--not-real" not in out
+
+
+def test_include_path_success_variant_still_emits_its_literal() -> None:
+    out = _include_alert(variant="success", title="t", message="m")
+    assert "bw-alert--success" in out
