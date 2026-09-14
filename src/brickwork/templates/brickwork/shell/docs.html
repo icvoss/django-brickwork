@@ -109,14 +109,17 @@ because the region does not exist on your site, never merely to restyle it,
 which is what overriding the region non-empty is for.
 
 Declined regions (ADR-091 decision 2, reasons stated rather than deferred
-silently): a table of contents / in-page navigation is not shipped, since a
-TOC is generated from rendered heading structure, a content-pipeline concern
-this package does not own; a version region is not shipped, since version
-switching is application routing the package cannot know the shape of
-(docs_header_region is the home for a consumer-authored switcher); a feedback
-region is not shipped, since a feedback control posts to a consumer endpoint
-(docs_footer_region is its home). Revisit each when a consumer has built one
-and can say what it needed.
+silently): a table of contents / in-page navigation is not shipped as a
+shell region, since a TOC is generated from rendered heading structure, a
+content-pipeline concern this package does not own. A consumer who already
+knows the heading ids authors the equivalent by hand (see
+examples/docs/article.html's .bw-docs-toc composition and shell.css). A
+version region is not shipped, since version switching is application
+routing the package cannot know the shape of (docs_header_region is the
+home for a consumer-authored switcher); a feedback region is not shipped,
+since a feedback control posts to a consumer endpoint (docs_footer_region
+is its home). Revisit each when a consumer has built one and can say what
+it needed.
 
 Source order is normative (ADR-091 decision 3): the article (content) MUST
 render before the rail (docs_nav_region) in document order. This is the one

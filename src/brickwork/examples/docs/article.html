@@ -8,13 +8,14 @@ COPY THIS FILE into your project and edit it. It is not on the template loader
 path, so you cannot extend it (ADR-056).
 
 What your view must supply:
-    crumbs              breadcrumb trail: [{label, url}, ...], last unlinked
-    docs_nav_items       this section's nav tree (see docs_nav below)
-    docs_nav_active      which item in docs_nav_items is current
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_items           this section's nav tree (see docs_nav below)
+    docs_nav_active          which item in docs_nav_items is current
+    docs_search_action       the URL bw_search in docs_site_header submits to (GET)
     reminder_schedule_code   the multi-line Python snippet in "Escalation order"
     reminder_test_code       the multi-line test snippet in "Testing a schedule"
-The heading text, prose, callouts and table below are typed into the template,
-which is where you change them.
+The heading text, prose, callouts, on-this-page links and table below are typed
+into the template, which is where you change them.
 
 WHY THIS PAGE IS SHAPED THIS WAY, since it is the part worth copying:
 
@@ -62,11 +63,24 @@ header for the exact recipe. This file does not imply brickwork highlights
 code: it deliberately does not, by design (ADR-081's reasoning, restated in
 _code.html).
 
-THE CALLOUT vs {% bw_alert %}: the warning below about the escalation cutover
-is editorial, part of the document and true every time the page is read, not
-a status message about something that just happened, so it is hand-authored
-bw-callout markup, never {% bw_alert %}. See callout.html's own header for
-the reasoning in full.
+THE CALLOUT vs {% bw_alert %}: the warning and tip below are editorial, part
+of the document and true every time the page is read, not status messages
+about something that just happened, so they are hand-authored bw-callout
+markup, never {% bw_alert %}. Two kinds on one page (warning then info) is
+deliberate craft: a finished docs article usually needs more than one note
+shape. See callout.html's own header for the reasoning in full.
+
+ON THIS PAGE (ADR-091 decision 2): the docs shell declines a package-owned
+TOC region because heading trees are a content-pipeline concern. This page
+authors the equivalent by hand once its heading ids are known: a
+<nav class="bw-docs-toc"> landmark listing those anchors. That is the
+consumer pattern ADR-091 leaves open, not a generator this package ships.
+
+SITE SEARCH: docs_site_header carries brand plus {% bw_search %}, the same
+control the docs home leads with in its body. A returning reader arriving
+mid-tree should not have to leave the article to find search; the shell's
+site-header flex row is the seam (see shell.css's .bw-docs-site-header
+rules). docs_search_action is the consumer's own search view.
 
 THE HEADING ANCHOR (icvoss/django-brickwork#457): every h2 and the one h3 in
 the prose below carries an id and an adjacent bw-prose__anchor permalink,
@@ -122,13 +136,16 @@ Accessibility: inherits the docs shell's skip link and lang/dir/theme
   attributes from base.html, and its main landmark structure (article before
   rail in source order, ADR-091 decision 3). This page's own contribution: a
   <nav class="bw-breadcrumbs" aria-label="Breadcrumb"> landmark authored in
-  docs_header (the docs shell ships none), a semantic bw-prose body (real
-  h2/h3/p/ul/blockquote/table, never div soup), a wide table wrapped in a
-  focusable, labelled scroll region, a code panel with its own labelled
-  scroll region and text (never colour-only) language label, an editorial
-  callout deliberately carrying no role="alert"/aria-live (see WHY THE
-  CALLOUT above), and per-heading permalinks whose accessible name states
-  the section by name. Prev/next links in docs_footer are plain <a> text
+  docs_header (the docs shell ships none), a role="search" landmark in
+  docs_site_header via {% bw_search %}, a consumer-authored
+  <nav class="bw-docs-toc"> "On this page" landmark whose links name the
+  section destinations, a semantic bw-prose body (real h2/h3/p/ul/blockquote/
+  table, never div soup), a wide table wrapped in a focusable, labelled
+  scroll region, code panels with labelled scroll regions, text (never
+  colour-only) language labels and copy controls, editorial callouts
+  deliberately carrying no role="alert"/aria-live (see WHY THE CALLOUT
+  above), and per-heading permalinks whose accessible name states the
+  section by name. Prev/next links in docs_footer are plain <a> text
   naming the destination ("Next: ...") rather than a bare arrow icon, so
   their purpose survives being read out of context (WCAG 2.4.4).
 Responsive: no breakpoint of its own inside the article; bw-prose holds a
@@ -140,7 +157,7 @@ Responsive: no breakpoint of its own inside the article; bw-prose holds a
   are all owned by the docs shell and components.css respectively; this
   template supplies none of that behaviour itself.
 {% endcomment %}
-{% load i18n brickwork_nav %}
+{% load i18n brickwork_components brickwork_nav %}
 
 {% block page_title %}Configuring reminder escalation - Northwind docs{% endblock %}
 
@@ -148,9 +165,12 @@ Responsive: no breakpoint of its own inside the article; bw-prose holds a
   {% comment %}
   Site chrome (icvoss/django-brickwork#523): without this fill the shell's
   .bw-docs-site-header collapses to 0px tall at every viewport, so the scorecard
-  docs surface shipped with no product identity above the article.
+  docs surface shipped with no product identity above the article. Search sits
+  beside the brand so a mid-tree reader can jump without leaving the page
+  (Beat S7 craft; same {% bw_search %} the docs home uses in its body).
   {% endcomment %}
   <a class="bw-docs-site-header__brand" href="/docs/">{% translate "Northwind docs" %}</a>
+  {% bw_search docs_search_action placeholder="Search the docs..." %}
 {% endblock %}
 
 {% block docs_header %}
@@ -165,10 +185,29 @@ Responsive: no breakpoint of its own inside the article; bw-prose holds a
   </nav>
 
   <h1>Configuring reminder escalation</h1>
+  <p>
+    Set the stage order, change the day thresholds, and prove a schedule
+    change with a boundary test before it reaches real customers.
+  </p>
   <p>Last updated 12 August 2026.</p>
 {% endblock %}
 
 {% block content %}
+  {% comment %}
+  On this page: consumer-authored TOC over the heading ids below. Lives
+  OUTSIDE .bw-prose so the TOC list is not restyled by the prose floor, and
+  ahead of the article body so a scanner can jump before reading.
+  {% endcomment %}
+  <nav class="bw-docs-toc" aria-labelledby="bw-docs-toc-heading">
+    <p class="bw-docs-toc__title" id="bw-docs-toc-heading">{% translate "On this page" %}</p>
+    <ol class="bw-docs-toc__list">
+      <li><a href="#escalation-order">{% translate "Escalation order" %}</a></li>
+      <li class="bw-docs-toc__sub"><a href="#changing-the-thresholds">{% translate "Changing the thresholds" %}</a></li>
+      <li><a href="#testing-a-schedule">{% translate "Testing a schedule change" %}</a></li>
+      <li><a href="#recovery-by-stage">{% translate "Recovery by stage" %}</a></li>
+    </ol>
+  </nav>
+
   {% comment %}
   The article body: one bw-prose wrapper, authored FLAT. bw-prose's flow
   rule is a direct-child combinator (.bw-prose > * + *), so wrapping any of
@@ -207,7 +246,7 @@ Responsive: no breakpoint of its own inside the article; bw-prose holds a
     with= argument (see the WHY note above and _code.html's own header).
     filename is supplied and language is a text label, never colour alone.
     {% endcomment %}
-    {% include "brickwork/components/_code.html" with filename="billing/reminders.py" language="Python" code=reminder_schedule_code %}
+    {% include "brickwork/components/_code.html" with filename="billing/reminders.py" language="Python" copyable=True code=reminder_schedule_code %}
 
     <p>
       Stage order matters more than stage timing: a customer who pays between
@@ -224,6 +263,17 @@ Responsive: no breakpoint of its own inside the article; bw-prose holds a
           invoice, including ones already overdue under the old manual
           process. Run a dry run first, with <code>DRY_RUN=1</code>, to see
           exactly who would be contacted before the first real send.
+        </p>
+      </div>
+    </div>
+
+    <div class="bw-callout bw-callout--info">
+      <p class="bw-callout__title">{% translate "You should know" %}</p>
+      <div class="bw-prose bw-callout__body">
+        <p>
+          Stages are evaluated in the account's own timezone, not the
+          server's. An invoice due on the 30th in Sydney is chased on the
+          30th in Sydney, even when the scheduler runs from London.
         </p>
       </div>
     </div>

@@ -52,6 +52,14 @@ def test_docs_article_example_fills_site_header() -> None:
     html = _example_engine().get_template("docs/article.html").render(Context(_EXAMPLE_CONTEXTS["docs/article.html"]))
     assert "bw-docs-site-header" in html
     assert "Northwind docs" in html
+    assert 'role="search"' in html
+    assert 'action="/docs/search/"' in html
+    assert "bw-docs-toc" in html
+    assert "On this page" in html
+    assert html.count("bw-callout") >= 2
+    assert html.count("bw-code") >= 2
+    assert "bw-code__copy" in html
+    assert "next_reminder" in html
 
 
 def test_landing_fixtures_use_real_tokens_and_inline_logos() -> None:
@@ -60,8 +68,15 @@ def test_landing_fixtures_use_real_tokens_and_inline_logos() -> None:
     ctx = _EXAMPLE_CONTEXTS["marketing/landing.html"]
     assert len(ctx["logos"]) >= 3
     assert all(str(logo["src"]).startswith("data:image/svg+xml,") for logo in ctx["logos"])
-    assert "surface-subtle" not in str(ctx["hero_media"])
-    assert "surface-raised" in str(ctx["hero_media"])
+    hero = str(ctx["hero_media"])
+    assert "surface-subtle" not in hero
+    # Beat S5: layered product chrome (CSS tokens), not a flat placeholder SVG.
+    assert "bw-product-chrome" in hero
+    assert "bw-product-chrome-stack" in hero
+    assert "var(--bw-color-" in hero
+    assert "feature_rows" in ctx
+    assert len(ctx["feature_rows"]) >= 2
+    assert all("bw-product-chrome" in str(row["media"]) for row in ctx["feature_rows"])
 
 
 def test_detail_example_danger_zone_is_a_card_not_a_full_bleed_button() -> None:

@@ -621,6 +621,84 @@
     0 4px 14px -4px oklch(0 0 0 / 0.1);
 }
 
+/* Product chrome: framed product surface for marketing media slots (Beat S5).
+ * Clean-room depth argument for hero / feature-row media: a raised panel with
+ * an optional rear layer. Tokens and elevation only; not kit markup. */
+.bw-product-chrome-stack {
+  position: relative;
+  isolation: isolate;
+  inline-size: 100%;
+  /* Room for the rear panel to peek without clipping the front. */
+  padding-block-start: var(--bw-space-5);
+  padding-inline-end: var(--bw-space-5);
+}
+
+.bw-product-chrome {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  inline-size: 100%;
+  border-radius: var(--bw-radius-xl);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
+  background: var(--bw-color-surface-raised);
+  box-shadow:
+    var(--bw-elevation-2),
+    0 8px 28px -10px oklch(0 0 0 / 0.14);
+}
+
+.bw-product-chrome--rear {
+  position: absolute;
+  z-index: 0;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  inline-size: 90%;
+  block-size: 88%;
+  background: var(--bw-color-surface-inverse);
+  border-color: transparent;
+  box-shadow: var(--bw-elevation-1);
+  /* Offset only: no rotate. Decorative depth, not motion. */
+  transform: translate(calc(var(--bw-space-3) * -1), var(--bw-space-3));
+}
+
+.bw-product-chrome__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  min-block-size: var(--bw-size-control-height-sm);
+  padding-inline: var(--bw-space-3);
+  border-block-end: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 10%, transparent);
+  background: var(--bw-color-surface-sunken);
+}
+
+.bw-product-chrome__title {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-family: var(--bw-text-caption-family);
+  font-size: var(--bw-text-caption-size);
+  font-weight: var(--bw-text-caption-weight);
+  line-height: var(--bw-text-caption-line-height);
+  letter-spacing: var(--bw-text-caption-tracking);
+}
+
+.bw-product-chrome__stage {
+  padding: var(--bw-space-3);
+}
+
+.bw-product-chrome__stage :where(svg) {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.bw-feature-row__media .bw-product-chrome-stack,
+.bw-feature-row__media .bw-product-chrome,
+.bw-hero__media .bw-product-chrome-stack,
+.bw-hero__media .bw-product-chrome {
+  max-inline-size: 100%;
+}
+
 /* --- Hero media placement (ADR-057 section 1a, #118) ------------------------- */
 
 /* The media_placement axis. "below" is the default and deliberately has NO
@@ -2120,7 +2198,11 @@
 [data-theme="dark"] .bw-stat-band-section,
 [data-theme="dark"] .bw-stat-band .bw-stat,
 [data-theme="dark"] .bw-hero__media img,
+[data-theme="dark"] .bw-product-chrome,
 [data-theme="dark"] .bw-marketing-header {
+  box-shadow: var(--bw-elevation-1);
+}
+[data-theme="dark"] .bw-product-chrome--rear {
   box-shadow: var(--bw-elevation-1);
 }
 [data-theme="dark"] .bw-feature-grid > .bw-feature-card--link:hover,

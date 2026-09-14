@@ -231,6 +231,114 @@ def _dashboard_trend_mount() -> object:
     return mark_safe(svg)  # noqa: S308 (example-authored trusted markup)
 
 
+def _invoice_stage_svg(*, view_box: str = "0 0 480 300") -> str:
+    """Decorative invoice-list stage for product chrome (tokens only)."""
+    return (
+        f'<svg viewBox="{view_box}" aria-hidden="true" focusable="false">'
+        # Sidebar rail
+        '<rect x="0" y="0" width="112" height="300" fill="var(--bw-color-surface-sunken)"/>'
+        '<rect x="16" y="20" width="80" height="10" rx="3" fill="var(--bw-color-accent)" opacity="0.9"/>'
+        '<rect x="16" y="48" width="64" height="8" rx="2" fill="currentColor" opacity="0.18"/>'
+        '<rect x="16" y="68" width="72" height="8" rx="2" fill="currentColor" opacity="0.12"/>'
+        '<rect x="16" y="88" width="56" height="8" rx="2" fill="currentColor" opacity="0.12"/>'
+        '<rect x="16" y="108" width="68" height="8" rx="2" fill="currentColor" opacity="0.12"/>'
+        # Main panel header + rows
+        '<rect x="128" y="20" width="160" height="14" rx="3" fill="currentColor" opacity="0.22"/>'
+        '<rect x="128" y="48" width="336" height="56" rx="8" fill="var(--bw-color-surface)" '
+        'stroke="var(--bw-color-border)" stroke-width="1"/>'
+        '<rect x="140" y="60" width="120" height="8" rx="2" fill="currentColor" opacity="0.2"/>'
+        '<rect x="140" y="76" width="200" height="8" rx="2" fill="currentColor" opacity="0.1"/>'
+        '<rect x="400" y="64" width="48" height="20" rx="4" fill="var(--bw-color-accent)" opacity="0.25"/>'
+        '<rect x="128" y="116" width="336" height="56" rx="8" fill="var(--bw-color-surface)" '
+        'stroke="var(--bw-color-border)" stroke-width="1"/>'
+        '<rect x="140" y="128" width="100" height="8" rx="2" fill="currentColor" opacity="0.2"/>'
+        '<rect x="140" y="144" width="180" height="8" rx="2" fill="currentColor" opacity="0.1"/>'
+        '<rect x="400" y="132" width="48" height="20" rx="4" fill="currentColor" opacity="0.08"/>'
+        '<rect x="128" y="184" width="336" height="56" rx="8" fill="var(--bw-color-surface)" '
+        'stroke="var(--bw-color-border)" stroke-width="1"/>'
+        '<rect x="140" y="196" width="140" height="8" rx="2" fill="currentColor" opacity="0.2"/>'
+        '<rect x="140" y="212" width="160" height="8" rx="2" fill="currentColor" opacity="0.1"/>'
+        '<rect x="400" y="200" width="48" height="20" rx="4" fill="currentColor" opacity="0.08"/>'
+        '<rect x="128" y="252" width="96" height="28" rx="6" fill="var(--bw-color-accent)" opacity="0.85"/>'
+        "</svg>"
+    )
+
+
+def _reminder_stage_svg() -> str:
+    """Decorative reminder schedule stage for a feature-row media slot."""
+    return (
+        '<svg viewBox="0 0 400 240" aria-hidden="true" focusable="false">'
+        '<rect x="0" y="0" width="400" height="240" fill="var(--bw-color-surface)"/>'
+        '<rect x="24" y="24" width="140" height="12" rx="3" fill="currentColor" opacity="0.2"/>'
+        '<rect x="24" y="56" width="352" height="48" rx="8" fill="var(--bw-color-surface-sunken)"/>'
+        '<rect x="40" y="70" width="24" height="24" rx="12" fill="var(--bw-color-accent)" opacity="0.85"/>'
+        '<rect x="76" y="72" width="160" height="8" rx="2" fill="currentColor" opacity="0.22"/>'
+        '<rect x="76" y="88" width="220" height="8" rx="2" fill="currentColor" opacity="0.1"/>'
+        '<rect x="24" y="120" width="352" height="48" rx="8" fill="var(--bw-color-surface-sunken)"/>'
+        '<rect x="40" y="134" width="24" height="24" rx="12" fill="currentColor" opacity="0.16"/>'
+        '<rect x="76" y="136" width="140" height="8" rx="2" fill="currentColor" opacity="0.22"/>'
+        '<rect x="76" y="152" width="200" height="8" rx="2" fill="currentColor" opacity="0.1"/>'
+        '<rect x="24" y="184" width="352" height="36" rx="8" fill="var(--bw-color-accent)" opacity="0.12"/>'
+        '<rect x="40" y="196" width="180" height="10" rx="2" fill="var(--bw-color-accent)" opacity="0.7"/>'
+        "</svg>"
+    )
+
+
+def _prediction_stage_svg() -> str:
+    """Decorative late-payment prediction stage for a feature-row media slot."""
+    return (
+        '<svg viewBox="0 0 400 240" aria-hidden="true" focusable="false">'
+        '<rect x="0" y="0" width="400" height="240" fill="var(--bw-color-surface)"/>'
+        '<rect x="24" y="20" width="180" height="12" rx="3" fill="currentColor" opacity="0.2"/>'
+        # Three account cards with risk bars
+        '<rect x="24" y="52" width="170" height="160" rx="10" fill="var(--bw-color-surface-sunken)" '
+        'stroke="var(--bw-color-border)" stroke-width="1"/>'
+        '<rect x="40" y="68" width="100" height="8" rx="2" fill="currentColor" opacity="0.22"/>'
+        '<rect x="40" y="88" width="138" height="8" rx="2" fill="currentColor" opacity="0.1"/>'
+        '<rect x="40" y="120" width="138" height="10" rx="5" fill="currentColor" opacity="0.08"/>'
+        '<rect x="40" y="120" width="96" height="10" rx="5" fill="var(--bw-color-accent)" opacity="0.75"/>'
+        '<rect x="206" y="52" width="170" height="160" rx="10" fill="var(--bw-color-surface-sunken)" '
+        'stroke="var(--bw-color-border)" stroke-width="1"/>'
+        '<rect x="222" y="68" width="88" height="8" rx="2" fill="currentColor" opacity="0.22"/>'
+        '<rect x="222" y="88" width="130" height="8" rx="2" fill="currentColor" opacity="0.1"/>'
+        '<rect x="222" y="120" width="138" height="10" rx="5" fill="currentColor" opacity="0.08"/>'
+        '<rect x="222" y="120" width="52" height="10" rx="5" fill="currentColor" opacity="0.28"/>'
+        '<rect x="40" y="152" width="60" height="28" rx="6" fill="var(--bw-color-accent)" opacity="0.2"/>'
+        '<rect x="222" y="152" width="60" height="28" rx="6" fill="currentColor" opacity="0.1"/>'
+        "</svg>"
+    )
+
+
+def _product_chrome(*, title: str, stage_svg: str, stacked: bool = False) -> object:
+    """Package product-chrome frame for marketing media (Beat S5).
+
+    Clean-room look/idea only relative to Plus stills: a framed product surface
+    with optional rear layer for depth. Not kit markup or class names.
+    """
+    chrome = (
+        f'<div class="bw-product-chrome">'
+        f'<div class="bw-product-chrome__bar">'
+        f'<p class="bw-product-chrome__title">{title}</p>'
+        f"</div>"
+        f'<div class="bw-product-chrome__stage">{stage_svg}</div>'
+        f"</div>"
+    )
+    if stacked:
+        html = (
+            '<div class="bw-product-chrome-stack" aria-hidden="true">'
+            '<div class="bw-product-chrome bw-product-chrome--rear"></div>'
+            f"{chrome}"
+            "</div>"
+        )
+    else:
+        html = chrome.replace(
+            '<div class="bw-product-chrome">',
+            '<div class="bw-product-chrome" aria-hidden="true">',
+            1,
+        )
+    return mark_safe(html)  # noqa: S308 (example-authored trusted markup)
+
+
 def _logo_data_uri(label: str, fill: str) -> str:
     """Inline SVG data URI so the logo cloud never depends on a missing static file."""
     svg = (
@@ -579,28 +687,68 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "docs_nav_items": _DOCS_NAV_ITEMS,
         "docs_nav_active": _DOCS_NAV_ITEMS[1],
+        "docs_search_action": "/docs/search/",
         # Multi-line source cannot be an {% include %} argument (Django's tag
         # tokenizer splits on whitespace before it parses quoting), so a real
         # code panel takes its source from the view. The article's own header
-        # says so; these two stand in for that.
+        # says so; these two stand in for that. Shaped to match the page's
+        # documented stage function and boundary test, not one-liners.
         "reminder_schedule_code": (
-            "REMINDER_SCHEDULE = [\n    (-7, 'friendly'),\n    (0, 'due_today'),\n    (3, 'overdue'),\n]"
+            "def next_reminder(invoice):\n"
+            "    if invoice.days_overdue >= 14:\n"
+            "        return Stage.FINAL_NOTICE\n"
+            "    if invoice.days_overdue >= 3:\n"
+            "        return Stage.OVERDUE\n"
+            "    return Stage.DUE\n"
         ),
         "reminder_test_code": (
-            "def test_schedule_skips_weekends():\n"
-            "    sent = run_schedule(invoice, today=friday)\n"
-            "    assert sent.next_run.weekday() == 0"
+            "def test_overdue_boundary_is_day_three():\n"
+            "    invoice = make_invoice(days_overdue=3)\n"
+            "    assert next_reminder(invoice) is Stage.OVERDUE\n"
+            "\n"
+            "def test_day_before_overdue_stays_due():\n"
+            "    invoice = make_invoice(days_overdue=2)\n"
+            "    assert next_reminder(invoice) is Stage.DUE\n"
         ),
     },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
-            {"icon": "bell", "heading": "Automatic reminders", "body": "Chases send themselves."},
-            {"icon": "check", "heading": "Reconciliation", "body": "Payments match themselves off."},
+            {
+                "icon": "bell",
+                "heading": "Automatic reminders",
+                "body": "Chases send themselves on your schedule, and stop the moment the money lands.",
+                "url": "/features/reminders/",
+            },
+            {
+                "icon": "check",
+                "heading": "Reconciliation",
+                "body": "Payments match themselves off against open invoices, without a spreadsheet.",
+                "url": "/features/reconciliation/",
+            },
             {
                 "icon": "calendar",
                 "heading": "Late-payment prediction",
-                "body": "Know which accounts slip before they do.",
+                "body": "Know which accounts slip before they do, from how they have paid you before.",
+                "url": "/features/prediction/",
+            },
+        ],
+        "feature_rows": [
+            {
+                "heading": "Reminders that go out without you",
+                "body": (
+                    "Set the schedule once. Northwind sends the first nudge before the due "
+                    "date, the firm one after it, and stops the moment the money lands."
+                ),
+                "media": _product_chrome(title="Reminder schedule", stage_svg=_reminder_stage_svg()),
+            },
+            {
+                "heading": "Know who is about to run late",
+                "body": (
+                    "Every account carries a prediction based on how it has actually paid you "
+                    "before, not on its stated terms."
+                ),
+                "media": _product_chrome(title="Payment risk", stage_svg=_prediction_stage_svg()),
             },
         ],
         "stats": [
@@ -609,19 +757,12 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             {"value": "4.9/5", "label": "Finance team review score"},
         ],
         "footer_groups": _MARKETING_FOOTER_GROUPS,
-        # Decorative product-panel stand-in for scorecard S5 (beside placement).
-        # Inline SVG so the example does not depend on a missing static asset.
-        # Use a real surface token (icvoss/django-brickwork#524): surface-subtle
-        # does not exist, so the light fallback previously stuck in dark mode.
-        "hero_media": mark_safe(  # noqa: S308 (example-authored trusted markup)
-            '<svg viewBox="0 0 480 320" aria-hidden="true" focusable="false">'
-            '<rect width="480" height="320" rx="12" fill="var(--bw-color-surface-raised)"/>'
-            '<rect x="32" y="40" width="180" height="24" rx="4" fill="var(--bw-color-accent)" opacity="0.85"/>'
-            '<rect x="32" y="88" width="416" height="12" rx="3" fill="currentColor" opacity="0.12"/>'
-            '<rect x="32" y="112" width="360" height="12" rx="3" fill="currentColor" opacity="0.12"/>'
-            '<rect x="32" y="160" width="200" height="120" rx="8" fill="currentColor" opacity="0.08"/>'
-            '<rect x="248" y="160" width="200" height="120" rx="8" fill="currentColor" opacity="0.08"/>'
-            "</svg>"
+        # Layered product chrome for scorecard S5 (beside placement). Tokens
+        # only; clean-room depth vs Plus stills, never kit markup.
+        "hero_media": _product_chrome(
+            title="Open invoices",
+            stage_svg=_invoice_stage_svg(),
+            stacked=True,
         ),
     },
     "marketing/pricing.html": {

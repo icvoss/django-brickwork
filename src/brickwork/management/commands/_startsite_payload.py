@@ -304,15 +304,58 @@ def landing(request):
             "body": "Every workspace is different. Set it up the way your team works.",
         },
     ]
+    feature_rows = [
+        {
+            "heading": "Reminders that go out without you",
+            "body": "Set the schedule once. Northwind sends the nudges and stops when paid.",
+        },
+        {
+            "heading": "Know who is about to run late",
+            "body": "Every account carries a prediction based on how it has actually paid you.",
+        },
+    ]
     stats = [
         {"value": "2,400+", "label": "Teams onboarded"},
         {"value": "99.98%", "label": "Uptime last quarter"},
         {"value": "4.8/5", "label": "Average review score"},
     ]
+    footer_groups = [
+        {
+            "heading": "Product",
+            "links": [
+                {"label": "Features", "href": "/features/"},
+                {"label": "Pricing", "href": "/pricing/"},
+            ],
+        },
+        {
+            "heading": "Company",
+            "links": [
+                {"label": "About", "href": "/about/"},
+                {"label": "Contact", "href": "/contact/"},
+            ],
+        },
+    ]
+    # Beside-hero media: layered product chrome (tokens only; example-owned SVG).
+    hero_media = mark_safe(
+        '<div class="bw-product-chrome bw-product-chrome--stack" aria-hidden="true">'
+        '<div class="bw-product-chrome__frame bw-product-chrome__frame--rear"></div>'
+        '<div class="bw-product-chrome__frame">'
+        '<div class="bw-product-chrome__bar"><span class="bw-product-chrome__title">'
+        "Open invoices</span></div>"
+        '<div class="bw-product-chrome__stage"></div>'
+        "</div></div>"
+    )
     return render(
         request,
         "pages/landing.html",
-        {"logos": logos, "features": features, "stats": stats},
+        {
+            "logos": logos,
+            "features": features,
+            "feature_rows": feature_rows,
+            "stats": stats,
+            "footer_groups": footer_groups,
+            "hero_media": hero_media,
+        },
     )
 
 
