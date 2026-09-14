@@ -349,8 +349,10 @@
       "requiresContext": true,
       "composesItems": [
         "brickwork/components/_button.html",
-        "brickwork_marketing/components/_cta.html",
+        "brickwork_marketing/components/_cta_bleed.html",
+        "brickwork_marketing/components/_cta_split.html",
         "brickwork_marketing/components/_feature_grid.html",
+        "brickwork_marketing/components/_feature_rows.html",
         "brickwork_marketing/components/_hero.html",
         "brickwork_marketing/components/_logo_cloud.html",
         "brickwork_marketing/components/_marketing_footer_groups.html",
@@ -717,7 +719,6 @@
       "usedByArchetypes": [
         "marketing/about.html",
         "marketing/comparison.html",
-        "marketing/landing.html",
         "marketing/pricing.html"
       ],
       "usedBySections": [
@@ -732,7 +733,9 @@
       "templatePath": "brickwork_marketing/components/_cta_bleed.html",
       "docSource": "brickwork_marketing/components/_cta_bleed.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "marketing/landing.html"
+      ],
       "usedBySections": [
         "sections/cta/full-bleed.html"
       ],
@@ -745,7 +748,9 @@
       "templatePath": "brickwork_marketing/components/_cta_split.html",
       "docSource": "brickwork_marketing/components/_cta_split.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "marketing/landing.html"
+      ],
       "usedBySections": [
         "sections/cta/split.html"
       ],
@@ -882,7 +887,9 @@
       "templatePath": "brickwork_marketing/components/_feature_rows.html",
       "docSource": "brickwork_marketing/components/_feature_rows.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "marketing/landing.html"
+      ],
       "usedBySections": [
         "sections/features/alternating-rows.html"
       ],
