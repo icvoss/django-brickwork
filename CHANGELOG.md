@@ -8,6 +8,11 @@ versioning contract).
 
 ## Unreleased
 
+## [3.27.0] - 2026-09-14
+
+Minor: opt-in marketing header overlay mode for full-bleed heroes (ADR-105).
+Default sticky solid header is unchanged; consumers must opt in.
+
 ### Added
 
 - **Marketing header overlay mode** (icvoss/django-brickwork#565, ADR-105).
