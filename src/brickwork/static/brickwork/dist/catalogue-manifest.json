@@ -287,6 +287,7 @@
         "brickwork/components/_breadcrumbs.html",
         "brickwork/components/_code.html",
         "brickwork/components/_pager.html",
+        "brickwork/components/_search.html",
         "brickwork/nav/_nav.html",
         "brickwork/shell/docs.html"
       ]
@@ -1155,6 +1156,7 @@
       "docSource": "brickwork/components/_search.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "docs/article.html",
         "docs/home.html"
       ],
       "usedBySections": [],

@@ -52,6 +52,14 @@ def test_docs_article_example_fills_site_header() -> None:
     html = _example_engine().get_template("docs/article.html").render(Context(_EXAMPLE_CONTEXTS["docs/article.html"]))
     assert "bw-docs-site-header" in html
     assert "Northwind docs" in html
+    assert 'role="search"' in html
+    assert 'action="/docs/search/"' in html
+    assert "bw-docs-toc" in html
+    assert "On this page" in html
+    assert html.count("bw-callout") >= 2
+    assert html.count("bw-code") >= 2
+    assert "bw-code__copy" in html
+    assert "next_reminder" in html
 
 
 def test_landing_fixtures_use_real_tokens_and_inline_logos() -> None:

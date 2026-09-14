@@ -579,17 +579,28 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "docs_nav_items": _DOCS_NAV_ITEMS,
         "docs_nav_active": _DOCS_NAV_ITEMS[1],
+        "docs_search_action": "/docs/search/",
         # Multi-line source cannot be an {% include %} argument (Django's tag
         # tokenizer splits on whitespace before it parses quoting), so a real
         # code panel takes its source from the view. The article's own header
-        # says so; these two stand in for that.
+        # says so; these two stand in for that. Shaped to match the page's
+        # documented stage function and boundary test, not one-liners.
         "reminder_schedule_code": (
-            "REMINDER_SCHEDULE = [\n    (-7, 'friendly'),\n    (0, 'due_today'),\n    (3, 'overdue'),\n]"
+            "def next_reminder(invoice):\n"
+            "    if invoice.days_overdue >= 14:\n"
+            "        return Stage.FINAL_NOTICE\n"
+            "    if invoice.days_overdue >= 3:\n"
+            "        return Stage.OVERDUE\n"
+            "    return Stage.DUE\n"
         ),
         "reminder_test_code": (
-            "def test_schedule_skips_weekends():\n"
-            "    sent = run_schedule(invoice, today=friday)\n"
-            "    assert sent.next_run.weekday() == 0"
+            "def test_overdue_boundary_is_day_three():\n"
+            "    invoice = make_invoice(days_overdue=3)\n"
+            "    assert next_reminder(invoice) is Stage.OVERDUE\n"
+            "\n"
+            "def test_day_before_overdue_stays_due():\n"
+            "    invoice = make_invoice(days_overdue=2)\n"
+            "    assert next_reminder(invoice) is Stage.DUE\n"
         ),
     },
     "marketing/landing.html": {

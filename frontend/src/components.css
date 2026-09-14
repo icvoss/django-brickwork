@@ -4912,6 +4912,7 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   gap: var(--bw-space-3);
   padding: var(--bw-space-2) var(--bw-space-4);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  background: var(--bw-color-surface);
 }
 
 /* Groups filename and language so the copy control sits at the header's
