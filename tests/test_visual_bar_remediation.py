@@ -68,8 +68,15 @@ def test_landing_fixtures_use_real_tokens_and_inline_logos() -> None:
     ctx = _EXAMPLE_CONTEXTS["marketing/landing.html"]
     assert len(ctx["logos"]) >= 3
     assert all(str(logo["src"]).startswith("data:image/svg+xml,") for logo in ctx["logos"])
-    assert "surface-subtle" not in str(ctx["hero_media"])
-    assert "surface-raised" in str(ctx["hero_media"])
+    hero = str(ctx["hero_media"])
+    assert "surface-subtle" not in hero
+    # Beat S5: layered product chrome (CSS tokens), not a flat placeholder SVG.
+    assert "bw-product-chrome" in hero
+    assert "bw-product-chrome-stack" in hero
+    assert "var(--bw-color-" in hero
+    assert "feature_rows" in ctx
+    assert len(ctx["feature_rows"]) >= 2
+    assert all("bw-product-chrome" in str(row["media"]) for row in ctx["feature_rows"])
 
 
 def test_detail_example_danger_zone_is_a_card_not_a_full_bleed_button() -> None:

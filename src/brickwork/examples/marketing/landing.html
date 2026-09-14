@@ -15,19 +15,22 @@ Here instead every section carries its own content, scoped to its own include.
 There is no page-level bag, no prefix soup, and reordering, dropping, or
 duplicating a section is editing this file, which is yours.
 
-What your view must supply: nothing at all for the copy. Three sections take
-lists, which a Django template cannot build inline, so they come from context:
+What your view must supply: nothing at all for the copy. List-shaped sections
+cannot be built inline, so they come from context:
     features  [{icon, heading, body, url?}]
     logos     the logo cloud's items
+    feature_rows  [{heading, body, media?}] for the alternating depth band
     footer_groups  [{heading, links:[{label, href}]}] for the footer include
 Optional for a media-led hero (scorecard S5):
-    hero_media  pre-rendered safe HTML (img or svg) for media_placement="beside"
+    hero_media  pre-rendered safe HTML for media_placement="beside"
+                (prefer a .bw-product-chrome / .bw-product-chrome-stack frame
+                with an illustrative SVG stage, not a flat placeholder panel)
 Everything else below is typed straight into the template.
 
 States: the auth-aware header actions branch on request.user.is_authenticated
   (a signed-in vs signed-out header state); every composed component's own
-  states (hero, logo cloud, feature grid, stat band, testimonial, CTA) are
-  unchanged, see each component's own header.
+  states (hero, logo cloud, feature grid, feature rows, cta split, stat band,
+  testimonial, cta bleed) are unchanged, see each component's own header.
 Accessibility: inherits shell/marketing.html's skip link and header/footer
   landmarks; the composed hero renders the page's own <h1>. Covered by the
   archetype harness's full gate sweep (render, axe WCAG 2.2 AA, no
@@ -41,8 +44,9 @@ Accessibility: inherits shell/marketing.html's skip link and header/footer
 Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
   fluid header wrap and content-column cap. Each composed section carries
   whatever responsive behaviour its own header documents (feature grid: 1/2/3
-  columns at sm/lg; footer groups: 1 then 2 columns via
-  .bw-marketing-footer__groups; the rest: fluid, no named breakpoint).
+  columns at sm/lg; feature rows and cta split: stack then two columns from
+  md; footer groups: 1 then 2 columns via .bw-marketing-footer__groups; the
+  testimonial grid: auto-fit columns; the rest: fluid, no named breakpoint).
 {% endcomment %}
 {% load brickwork_components %}
 
@@ -86,8 +90,9 @@ your branch, not a package feature. Note Django's logout is POST-only.
   The hero. CTAs take flat label/url pairs, so a plain template can drive them
   with no view involvement. (They also accept {label, url} dicts if the data
   already exists in your context; the dict wins when both are given.)
-  hero_media is optional pre-rendered safe HTML (img or svg) for the media
-  column; media_placement="beside" is the screenshot/diagram shape.
+  hero_media is optional pre-rendered safe HTML for the media column;
+  media_placement="beside" is the screenshot/diagram shape. Prefer product
+  chrome (see fixture) over a flat coloured rectangle.
   {% endcomment %}
   {% include "brickwork_marketing/components/_hero.html" with eyebrow="Invoicing" heading="Invoicing that chases itself" lede="Northwind raises your invoices, sends the reminders, and tells you who is about to pay late. You do the work. It does the asking." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_href="/demo/" media=hero_media media_placement="beside" %}
 
@@ -105,22 +110,42 @@ your branch, not a package feature. Note Django's logout is POST-only.
   {% include "brickwork_marketing/components/_feature_grid.html" with heading="Everything the chasing needs" lede="The parts of getting paid that nobody wants to do by hand." items=features columns=3 %}
 
   {% comment %}
+  Alternating feature rows: the two or three capabilities that sell the
+  product, each with its own media. List-shaped media HTML comes from context
+  (same product-chrome idea as the hero).
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_feature_rows.html" with heading="Built for the boring half of getting paid" items=feature_rows %}
+
+  {% comment %}
+  Mid-page CTA split: a nudge, not the page ending. Sibling of the closing
+  bleed below.
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_cta_split.html" with heading="See what changes in the first quarter" body="Most teams cut days-to-pay without hiring anyone. Start free, import when you are ready." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Talk to us" secondary_cta_href="/contact/" %}
+
+  {% comment %}
   Stats. The band takes a list too, but a three-number band is often clearer
   written straight into your view as [{value, label}].
   {% endcomment %}
   {% include "brickwork_marketing/components/_stat_band.html" with heading="What changes in the first quarter" stats=stats %}
 
   {% comment %}
-  A testimonial. All flat strings, so it is fully template-authorable.
+  Quote grid: three testimonials that answer different doubts. Markup for the
+  grid wrapper lives here (nothing in the kit arranges several quotes); each
+  card is still the shipped _testimonial.html include.
   {% endcomment %}
-  {% include "brickwork_marketing/components/_testimonial.html" with quote="We cut our average days-to-pay from 38 to 21 without hiring anyone. The reminders just go out." author="Priya Raman" role="Finance Director, Halden Group" %}
+  <section class="bw-testimonial-grid-section">
+    <h2 class="bw-testimonial-grid-section__heading">What finance teams say after a quarter</h2>
+    <div class="bw-testimonial-grid">
+      {% include "brickwork_marketing/components/_testimonial.html" with quote="We cut our average days-to-pay from 38 to 21 without hiring anyone. The reminders just go out." author="Priya Raman" role="Finance Director, Halden Group" %}
+      {% include "brickwork_marketing/components/_testimonial.html" with quote="I imported two years of invoices on a Tuesday afternoon and the first reminders went out that evening. There was no implementation project." author="Daniel Okoro" role="Head of Operations, Cransley Freight" %}
+      {% include "brickwork_marketing/components/_testimonial.html" with quote="The thing I was worried about was sounding aggressive to customers I like. It stops the moment they pay, so nobody has been chased for an invoice they already settled." author="Marta Lindqvist" role="Owner, Lindqvist Joinery" %}
+    </div>
+  </section>
 
   {% comment %}
-  The closing CTA. Its own heading and CTA names are scoped to this include,
-  so they cannot collide with the hero's above. That is the whole argument for
-  composing pages this way rather than feeding one page a flat bag.
+  Closing CTA as inverse full-bleed: once per page, at the end.
   {% endcomment %}
-  {% include "brickwork_marketing/components/_cta.html" with heading="Stop writing chase emails" body="Free for 30 days. No card, no setup call, no data import to sit through." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Talk to us" secondary_cta_href="/contact/" %}
+  {% include "brickwork_marketing/components/_cta_bleed.html" with heading="Stop writing chase emails" body="Free for 30 days. No card, no setup call, no data import to sit through." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_href="/demo/" %}
 
 {% endblock %}
 
