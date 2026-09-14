@@ -254,3 +254,11 @@ def test_a_real_bw_sparkline_survives_the_stat_slot_intact() -> None:
     assert "<svg" in out
     # And the geometry survives rather than being stripped or re-escaped.
     assert 'd="M' in out
+
+
+def test_bw_sparkline_rejects_more_than_the_point_cap() -> None:
+    from brickwork.templatetags.brickwork_components import _SPARKLINE_MAX_POINTS, bw_sparkline
+
+    points = list(range(_SPARKLINE_MAX_POINTS + 1))
+    with pytest.raises(TemplateSyntaxError, match="at most"):
+        bw_sparkline(points=points, label="Trend")

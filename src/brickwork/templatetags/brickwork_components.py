@@ -2040,6 +2040,9 @@ def bw_ranked_list(
 
 
 _SPARKLINE_TONES = {"neutral", "trend"}
+# Beyond a few hundred points a sparkline path has more vertices than pixels;
+# cap here rather than silently shipping six-figure path strings (icvoss/django-brickwork#333).
+_SPARKLINE_MAX_POINTS = 400
 
 
 def _sparkline_path(points: list[float], *, width: float, height: float) -> str:
@@ -2164,8 +2167,8 @@ def bw_sparkline(
     Required context:
       points: a non-empty list/tuple of numbers (int, float, or Decimal; VIZ-
           020 numbers are never formatted by the package, so the geometry
-          accepts whatever numeric type the caller already has). Fewer than
-          two points still renders (a flat line, see ``_sparkline_path``),
+          accepts whatever numeric type the caller already has), capped at
+          ``_SPARKLINE_MAX_POINTS`` (400). Fewer than two points still renders (a flat line, see ``_sparkline_path``),
           but a sparkline of one point communicates nothing: that is a
           caller authoring choice, not something this tag corrects for.
       label: the accessible summary of what the line shows (e.g. "Revenue,
@@ -2179,7 +2182,8 @@ def bw_sparkline(
       value (str): a pre-formatted current/latest-value string (VIZ-020: the
           package never formats numbers), rendered as visible text beside
           the label. Omitted renders no value text, only the label.
-      tone ("neutral" | "trend", default "neutral"): "neutral" strokes the
+      tone ("neutral" | "trend", default "neutral"): closed vocabulary; any
+          other value raises ``TemplateSyntaxError``. "neutral" strokes the
           line with the shared chart palette's first colour (VIZ-026:
           --bw-color-chart-1, reused rather than a new sparkline-only token,
           since nothing about a neutral sparkline needs a colour distinct
@@ -2244,6 +2248,11 @@ def bw_sparkline(
         raise TemplateSyntaxError(f"bw_sparkline points must all be numbers, got {points!r}") from exc
     if not all(math.isfinite(point) for point in numeric_points):
         raise TemplateSyntaxError(f"bw_sparkline points must all be finite numbers, got {points!r}")
+    if len(numeric_points) > _SPARKLINE_MAX_POINTS:
+        raise TemplateSyntaxError(
+            f"bw_sparkline accepts at most {_SPARKLINE_MAX_POINTS} points, got {len(numeric_points)} "
+            f"(icvoss/django-brickwork#333)."
+        )
     if tone not in _SPARKLINE_TONES:
         raise TemplateSyntaxError(f"bw_sparkline tone must be one of {sorted(_SPARKLINE_TONES)}, got {tone!r}")
 

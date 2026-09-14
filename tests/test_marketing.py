@@ -83,7 +83,7 @@ def test_the_marketing_shell_with_no_blocks_filled_renders_a_complete_document()
 
 
 def test_the_marketing_shell_carries_the_public_chrome_not_the_app_shell_s() -> None:
-    html = _extend(_MARKETING_SHELL, "")
+    html = _extend(_MARKETING_SHELL, "{% block marketing_footer %}<a href='/about/'>About</a>{% endblock %}")
     assert "bw-marketing" in html
     assert "bw-marketing-header" in html
     assert "bw-marketing-footer" in html
@@ -94,6 +94,22 @@ def test_the_marketing_shell_carries_the_public_chrome_not_the_app_shell_s() -> 
     # default is not overlay (BR-BW-MKT-006 / ADR-105)
     assert "bw-marketing-header--overlay" not in html
     assert "marketing-overlay.js" in html
+
+
+def test_empty_marketing_footer_collapses_the_footer_landmark() -> None:
+    # icvoss/django-brickwork#267: the shell keeps the landmark markup but CSS
+    # hides the whole footer when both slots are empty (same :empty/idom as
+    # the header brand wrappers, test_brand_wrappers_do_not_grow_or_shrink...).
+    html = _extend(_MARKETING_SHELL, "{% block content %}CONTENT-SENTINEL{% endblock %}")
+    compact = re.sub(r"\s+", "", html)
+    assert '<divclass="bw-marketing-footer__inner"><divclass="bw-marketing-footer__legal"></div></div>' in compact
+    css = (_DIST / "brickwork.css").read_text()
+    collapsed = re.search(
+        r"\.bw-marketing-footer:has\(\.bw-marketing-footer__legal:only-child:empty\)\{([^}]*)\}",
+        css.replace(" ", ""),
+    )
+    assert collapsed is not None
+    assert "display:none" in collapsed.group(1)
 
 
 def test_marketing_shell_overlay_modifier_and_attrs_are_opt_in() -> None:
@@ -695,6 +711,16 @@ def test_feature_grid_empty_items_renders_intro_alone() -> None:
 def test_feature_grid_fully_empty_renders_nothing() -> None:
     html = _render("brickwork_marketing/components/_feature_grid.html")
     assert html.strip() == ""
+
+
+def test_feature_grid_invalid_columns_falls_back_to_three() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "One", "body": "Body"}],
+        columns=7,
+    )
+    assert "bw-feature-grid--3" in html
+    assert "bw-feature-grid--7" not in html
 
 
 def test_feature_grid_item_without_icon_renders_no_icon() -> None:
