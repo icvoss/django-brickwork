@@ -91,6 +91,49 @@ def test_the_marketing_shell_carries_the_public_chrome_not_the_app_shell_s() -> 
     assert "bw-sidebar" not in html
     assert "bw-topbar" not in html
     assert "bw-app" not in html
+    # default is not overlay (BR-BW-MKT-006 / ADR-105)
+    assert "bw-marketing-header--overlay" not in html
+    assert "marketing-overlay.js" in html
+
+
+def test_marketing_shell_overlay_modifier_and_attrs_are_opt_in() -> None:
+    # BR-BW-MKT-006: overlay is opt-in via marketing_header_modifiers;
+    # initial context may be authored via marketing_header_attrs.
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block marketing_header_modifiers %}bw-marketing-header--overlay{% endblock %}"
+        '{% block marketing_header_attrs %} data-bw-nav-context="dark"{% endblock %}'
+        "{% block content %}"
+        '<section class="bw-hero" data-bw-nav-context="dark">Hero</section>'
+        "{% endblock %}",
+    )
+    assert 'class="bw-marketing-header bw-marketing-header--overlay"' in html
+    assert 'data-bw-nav-context="dark"' in html
+    assert "marketing-overlay.js" in html
+
+
+def test_overlay_css_ships_fixed_header_and_clearance_rules() -> None:
+    css = (_DIST / "brickwork.css").read_text(encoding="utf-8")
+    assert ".bw-marketing-header--overlay" in css
+    assert "position:fixed" in css or "position: fixed" in css
+    assert "--bw-marketing-header-clearance" in css
+    assert "data-bw-overlay-ready" in css
+    assert "data-bw-nav-context" in css
+    assert "data-bw-scrolled" in css
+    overlay_js = (
+        Path(__file__).resolve().parent.parent
+        / "src"
+        / "brickwork"
+        / "static"
+        / "brickwork"
+        / "js"
+        / "marketing-overlay.js"
+    )
+    assert overlay_js.is_file()
+    body = overlay_js.read_text(encoding="utf-8")
+    assert "data-bw-overlay-ready" in body
+    assert "data-bw-scrolled" in body
+    assert "data-bw-nav-context" in body
 
 
 def test_the_marketing_shell_fabricates_no_marketing_copy_of_its_own() -> None:

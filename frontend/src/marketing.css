@@ -37,6 +37,135 @@
   z-index: var(--bw-z-sticky);
 }
 
+/* --- Overlay mode (ADR-105, icvoss/django-brickwork#565) --------------------
+ * Opt-in via .bw-marketing-header--overlay. Default sticky solid header above
+ * is unchanged. Overlay is fixed so the first content band can paint under
+ * the chrome; package-owned clearance padding (below) keeps copy readable.
+ * No-JS floor: opaque surface + theme ink. Transparency / context ink only
+ * after data-bw-overlay-ready (marketing-overlay.js).
+ */
+.bw-marketing-header--overlay {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-start: 0;
+  inline-size: 100%;
+}
+
+/* Clearance on the marketing root (inherits to content), not on the header:
+ * custom properties do not cross to siblings. Value = logo row + header
+ * inner block padding so copy clears the fixed chrome. */
+.bw-marketing:has(> .bw-marketing-header--overlay) {
+  --bw-marketing-header-clearance: calc(
+    var(--bw-component-logo-height) + (var(--bw-space-3) * 2) + var(--bw-space-2)
+  );
+}
+
+.bw-marketing:has(> .bw-marketing-header--overlay) .bw-marketing__content > .bw-hero:first-child {
+  padding-block-start: calc(
+    var(--bw-marketing-header-clearance) + var(--bw-space-10)
+  );
+}
+
+.bw-marketing:has(> .bw-marketing-header--overlay)
+  .bw-marketing__content
+  > *:first-child:not(.bw-hero) {
+  margin-block-start: 0;
+  padding-block-start: calc(
+    var(--bw-marketing-header-clearance) +
+      var(--bw-component-section-gap-marketing)
+  );
+}
+
+/* Enhanced: transparent until scrolled; ink follows panel context. */
+.bw-marketing-header--overlay[data-bw-overlay-ready]:not([data-bw-scrolled="true"]) {
+  background: transparent;
+  border-block-end-color: transparent;
+  box-shadow: none;
+}
+
+.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-nav-context="dark"] {
+  --bw-overlay-ink: oklch(0.98 0.002 265);
+  --bw-overlay-ink-muted: color-mix(in oklab, oklch(0.98 0.002 265) 72%, transparent);
+  --bw-overlay-frost: color-mix(in oklab, oklch(0.16 0.02 265) 78%, transparent);
+  --bw-overlay-line: oklch(1 0 0 / 0.14);
+}
+
+.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-nav-context="light"] {
+  --bw-overlay-ink: oklch(0.205 0.005 265);
+  --bw-overlay-ink-muted: color-mix(in oklab, oklch(0.205 0.005 265) 68%, transparent);
+  --bw-overlay-frost: color-mix(in oklab, oklch(1 0 0) 82%, transparent);
+  --bw-overlay-line: oklch(0.205 0.005 265 / 0.14);
+}
+
+.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
+  background: var(--bw-overlay-frost);
+  border-block-end-color: var(--bw-overlay-line);
+  box-shadow: var(--bw-elevation-1);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-marketing-header--overlay[data-bw-overlay-ready] {
+    transition: none;
+  }
+  .bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+.bw-marketing-header--overlay[data-bw-overlay-ready] {
+  color: var(--bw-overlay-ink);
+  transition:
+    background var(--bw-duration-normal) var(--bw-ease-standard),
+    border-color var(--bw-duration-normal) var(--bw-ease-standard),
+    box-shadow var(--bw-duration-normal) var(--bw-ease-standard),
+    color var(--bw-duration-normal) var(--bw-ease-standard);
+}
+
+.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark,
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-marketing-header__nav
+  :where(a):not(.bw-btn),
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-marketing-header__actions
+  > :where(a):not(.bw-btn) {
+  color: var(--bw-overlay-ink-muted);
+}
+
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-marketing-header__nav
+  :where(a:hover):not(.bw-btn),
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-marketing-header__actions
+  > :where(a:hover):not(.bw-btn),
+.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark:hover {
+  color: var(--bw-overlay-ink);
+}
+
+/* Open mobile disclosure under overlay: keep opaque panel readable. */
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-marketing-header__nav,
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-marketing-header__actions {
+  background: var(--bw-color-surface);
+  color: var(--bw-color-fg);
+}
+
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-marketing-header__nav
+  a,
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-marketing-header__actions
+  > a:not(.bw-btn) {
+  color: var(--bw-color-fg);
+}
+
 .bw-marketing-header__inner {
   max-inline-size: var(--bw-component-content-max-width-marketing);
   margin-inline: auto;

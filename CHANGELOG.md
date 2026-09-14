@@ -8,6 +8,16 @@ versioning contract).
 
 ## Unreleased
 
+### Added
+
+- **Marketing header overlay mode** (icvoss/django-brickwork#565, ADR-105).
+  Opt in with `{% block marketing_header_modifiers %}bw-marketing-header--overlay{% endblock %}`.
+  Package CSS fixes the header over the first content band and clears that
+  child's top padding. Vanilla PE script (`brickwork/js/marketing-overlay.js`)
+  sets `data-bw-overlay-ready`, `data-bw-scrolled`, and `data-bw-nav-context`
+  (`light`|`dark`) from marked bands. No-JS floor stays opaque and readable.
+  Default sticky solid header is unchanged. Spec: BR-BW-MKT-006.
+
 ## [3.26.1] - 2026-09-14
 
 Patch: feature-row media containment for full-page specimens, plus the Beat F.4

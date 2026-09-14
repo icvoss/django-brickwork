@@ -3517,6 +3517,102 @@ def render_mobile_nav_toggle(theme: str) -> str:
     return _inline_css(html)
 
 
+# --- marketing header overlay (ADR-105, icvoss/django-brickwork#565) ---------
+#
+# Default landing fixtures keep the sticky solid header. These fixtures cover
+# BR-BW-MKT-006: no-JS opaque overlay floor, enhanced light/dark context ink,
+# and scrolled frost. Attribute stamps are author-literal so axe examines the
+# enhanced states without depending on file:// script resolution; the PE
+# script behaviour is asserted separately by a11y/marketing_overlay.spec.mjs.
+
+_OVERLAY_JS = (ROOT / "src/brickwork/static/brickwork/js/marketing-overlay.js").read_text(
+    encoding="utf-8"
+)
+_OVERLAY_SCRIPT_TAG = re.compile(
+    r'<script src="[^"]*marketing-overlay\.js"[^>]*></script>',
+    re.IGNORECASE,
+)
+
+
+def _inline_overlay_script(html: str, *, inject: bool) -> str:
+    """Drop or inline the shell's marketing-overlay.js for file:// fixtures."""
+    if inject:
+        return _OVERLAY_SCRIPT_TAG.sub(f"<script>{_OVERLAY_JS}</script>", html)
+    return _OVERLAY_SCRIPT_TAG.sub("", html)
+
+
+def _overlay_shell_source(
+    *,
+    attrs: str = "",
+    hero_context: str = "dark",
+    band_context: str = "light",
+) -> str:
+    return (
+        '{% extends "brickwork_marketing/shell/marketing.html" %}'
+        "{% load brickwork_components i18n %}"
+        "{% block marketing_header_modifiers %}bw-marketing-header--overlay{% endblock %}"
+        f"{{% block marketing_header_attrs %}}{attrs}{{% endblock %}}"
+        "{% block brand_wordmark %}Acme{% endblock %}"
+        "{% block marketing_nav %}"
+        '<a href="#features">Features</a>'
+        '<a href="#pricing">Pricing</a>'
+        '<a href="#about">About</a>'
+        "{% endblock %}"
+        "{% block marketing_actions %}"
+        '<a href="#signin">Sign in</a>'
+        '{% bw_button "Get started" href="#start" variant="primary" size="sm" %}'
+        "{% endblock %}"
+        "{% block content %}"
+        f'<section data-bw-nav-context="{hero_context}" '
+        'style="background: oklch(0.18 0.02 265); color: oklch(0.98 0.002 265);'
+        ' padding-block: 6rem;">'
+        "<h1>Full-bleed under the nav</h1>"
+        "<p>Package-owned overlay chrome clears this copy.</p>"
+        "</section>"
+        f'<section data-bw-nav-context="{band_context}" '
+        'style="padding-block: 6rem; background: oklch(0.98 0.002 265); color: oklch(0.2 0.02 265);">'
+        "<h2>Light band</h2>"
+        "<p>Context flips when this band sits under the header.</p>"
+        "</section>"
+        "{% endblock %}"
+        "{% block footer_legal %}&copy; 2026 Acme Ltd. All rights reserved.{% endblock %}"
+    )
+
+
+def render_marketing_overlay(theme: str, *, state: str = "nojs") -> str:
+    """state: nojs | dark | light-scrolled | dark-scrolled | js-boot."""
+    attrs = ""
+    inject = False
+    if state == "dark":
+        attrs = (
+            ' data-bw-overlay-ready data-bw-nav-context="dark" data-bw-scrolled="false"'
+        )
+    elif state == "light-scrolled":
+        attrs = (
+            ' data-bw-overlay-ready data-bw-nav-context="light" data-bw-scrolled="true"'
+        )
+    elif state == "dark-scrolled":
+        attrs = (
+            ' data-bw-overlay-ready data-bw-nav-context="dark" data-bw-scrolled="true"'
+        )
+    elif state == "js-boot":
+        attrs = ' data-bw-nav-context="dark"'
+        inject = True
+    request = RequestFactory().get(f"/marketing/overlay/{state}/")
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Overlay",
+        "bw_page_title": f"Overlay {state}, Acme",
+    }
+    html = engines["django"].from_string(_overlay_shell_source(attrs=attrs)).render(
+        ctx, request=request
+    )
+    return _inline_overlay_script(_inline_css(html), inject=inject)
+
+
 # --- the hero media_placement axis (ADR-057 section 1a, icvoss/django-brickwork#118) ---
 #
 # None of landing/pricing/about above ever passes media_placement, so they all
@@ -4486,6 +4582,33 @@ def main() -> None:
         # include pattern; landing/pricing/about omit it so coarse-pointer nav
         # assertions keep a permanently visible header row
         _emit(OUT / f"mobile-nav-toggle-{theme}.html", render_mobile_nav_toggle(theme), written)
+        # marketing header overlay (ADR-105 / #565): no-JS opaque floor plus
+        # statically stamped enhanced light/dark and scrolled states for axe
+        _emit(
+            OUT / f"marketing-overlay-{theme}.html",
+            render_marketing_overlay(theme, state="nojs"),
+            written,
+        )
+        _emit(
+            OUT / f"marketing-overlay-dark-{theme}.html",
+            render_marketing_overlay(theme, state="dark"),
+            written,
+        )
+        _emit(
+            OUT / f"marketing-overlay-light-scrolled-{theme}.html",
+            render_marketing_overlay(theme, state="light-scrolled"),
+            written,
+        )
+        _emit(
+            OUT / f"marketing-overlay-dark-scrolled-{theme}.html",
+            render_marketing_overlay(theme, state="dark-scrolled"),
+            written,
+        )
+        _emit(
+            OUT / f"marketing-overlay-js-{theme}.html",
+            render_marketing_overlay(theme, state="js-boot"),
+            written,
+        )
         # the hero media_placement axis (ADR-057 section 1a, #118): "behind"
         # (no/light/dark media) and "beside", none of which landing/pricing/
         # about above ever render, so axe never examined the new CSS
