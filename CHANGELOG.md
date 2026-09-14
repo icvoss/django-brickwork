@@ -8,6 +8,70 @@ versioning contract).
 
 ## Unreleased
 
+## [3.29.0] - 2026-09-14
+
+Minor: Phase B hygiene and proof wave, plus Phase C composed-href sealing.
+New public tag `bw_query_href` for ADR-097-complete query links; behaviour
+fixes across brand CSS, search attributes, sparkline bounds, and catalogue
+honesty. No default chrome change for existing call sites.
+
+### Added
+
+- **No-JS reveal trap for static pipelines** (icvoss/django-brickwork#243). `docs/BRANDING.md` documents that components using pre-init hiding stay hidden when fixture generators or prerenderers strip scripts.
+
+- **Merge-base branch scope guidance** (icvoss/django-brickwork#324). `CONTRIBUTING.md` explains when to diff from `git merge-base` instead of `origin/main..branch`.
+
+- **Related-items composition documented** (icvoss/django-brickwork#456). `docs/INTEGRATION.md` describes the shipped `.bw-band-grid` + `a.bw-card` pattern for docs "see also" blocks.
+
+- **`token_manifest` failure modes documented** (icvoss/django-brickwork#490). The module docstring names `FileNotFoundError`, `JSONDecodeError`, and `KeyError` for a missing or malformed manifest.
+
+- **Additional failure modes documented** (icvoss/django-brickwork#492). `bw_ranked_list`, `bw_sparkline`, and `startsite` docstrings now state the exception classes callers see for the traced conditions.
+
+### Changed
+
+- **Load-bearing token counting reconciled** (icvoss/django-brickwork#246). `docs/BRANDING.md` now explains how its seven-token headline relates to the manifest's 10 load-bearing / 8 unconditional figures cited in `docs/POSITIONING.md`.
+
+- **Documentation URL points at brickworkui.com** (icvoss/django-brickwork#255). `pyproject.toml` `[project.urls] Documentation` now matches the ratified public docs site.
+
+- **href trust boundary documented** (icvoss/django-brickwork#274). Key href-bearing components, `NavItem`, and `docs/INTEGRATION.md` now state that brickwork does not validate URL schemes and callers must validate user-supplied URLs before passing them.
+
+- **Honest RELEASING smoke-test section** (icvoss/django-brickwork#278). Documents the mypy job and `tests/test_consumer_smoke.py` leg CI actually runs, rather than ADR-027's separate wheel-install job this repo does not have.
+
+- **Reciprocal venv ignore comments** (icvoss/django-brickwork#346). `.gitignore` and `eslint.config.mjs` now cross-reference each other so the two lists stay visibly coupled.
+
+### Fixed
+
+- **`_feature_grid` columns closed set** (icvoss/django-brickwork#203). Only `2`, `3`, and `4` reach the modifier class; any other value falls back to `3`.
+
+- **Empty marketing footer collapses** (icvoss/django-brickwork#267). When both `marketing_footer` and `footer_legal` are unfilled, the footer landmark is hidden with the same `:empty` / `:has()` treatment the header brand slots use.
+
+- **Encoding-contract helper regex defects** (icvoss/django-brickwork#303). Ordered-list, progress-element and aria-value* checks now share the module's class and attribute-name machinery, closing false passes and false failures without waiting for the deferred parser rewrite.
+
+- **`bw_sparkline` point cap** (icvoss/django-brickwork#333). The tag raises `TemplateSyntaxError` when more than 400 points are supplied, rather than rendering a six-figure path string.
+
+- **Per-instance `var()` hook allowlist** (icvoss/django-brickwork#340). Frontend CSS token drift tests now exempt fallback references only when the name is on an explicit per-instance hook list, so a typo cannot hide behind a comma.
+
+- **`package.json` fixture scripts call `python3`** (icvoss/django-brickwork#345). npm runs scripts through `sh`, which does not see a `python` shell alias.
+
+- **`{% bw_search %}` attribute escaping** (icvoss/django-brickwork#358). Scope and input values now render through `{% bw_attr %}`, so a consumer-supplied `SafeString` cannot break out of attribute position.
+
+- **`_data_table.html` scroll focus** (icvoss/django-brickwork#368). The table wrapper now carries `tabindex="0"` to match the documented keyboard contract, and the prose CSS comment no longer claims a contract the component lacked.
+
+- **Removed false `force_escape` claims** (icvoss/django-brickwork#379). `_stat_comparison.html` now documents the closed-vocabulary `size` seam accurately; no template in the package uses `|force_escape`.
+
+- **Sparkline catalogue `consumption`** (icvoss/django-brickwork#381). The catalogue manifest generator now treats `@register.simple_tag` renderers that call `render_to_string()` as tag-consumed, so `_sparkline.html` records `consumption: "tag"`.
+
+- **`.bw-prose blockquote cite` styling** (icvoss/django-brickwork#455). Quotations with a `<cite>` source now render the attribution in caption voice beneath the quote.
+
+- **`render_brand_css` accepts non-colour overridable tokens** (icvoss/django-brickwork#473). Value validation now routes `--bw-color-*` through the colour allowlist and every other overridable name through a general CSS value check (dimensions, font stacks, transitions, data URLs, and so on). Hostile injection characters are still rejected on every path.
+
+- **Sort and pagination hrefs go through `bw_query_href` then `bw_attr`**
+  (icvoss/django-brickwork#481). Composed `?sort=` / `?page=` links are built
+  as one value in Python and emitted as a complete attribute, matching
+  ADR-097. Composed row ids were already sealed in 3.28.0; partial-value class
+  modifiers remain closed `if`/`elif` vocabularies rather than raw
+  interpolations.
+
 ## [3.28.0] - 2026-09-14
 
 Minor: LTS-candidate hardening. Closes the accepted single-phase backlog,
