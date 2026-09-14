@@ -43,12 +43,23 @@ builder, a CMS, or a general Tailwind utility layer (see Boundaries, section
 
 Package defaults aim at finished interfaces that can stand next to leading
 Tailwind UI kits on the jobs in [VISUAL-BAR.md](VISUAL-BAR.md). That aim is
-evidenced by the independent rendered pass
+evidenced by the independent rendered meet-bar pass
 [audits/2026-09-12-visual-bar-signoff-pass.md](audits/2026-09-12-visual-bar-signoff-pass.md)
 (tip `e79f828`), not by composition examples, axe gates or inventory counts
 alone. Residual tracked misses named in that audit stay honest; they are not
 soft-passed. Marketing footer link-group vocabulary (#500) is corrected in
 the substrate-ready honesty pass after that sign-off tip.
+
+On the beat win bar, prefer Brickwork only where the evidence says so. An
+independent review on package-default CSS recorded Brickwork leading or tying
+Tailwind Plus on **6 of 8** VISUAL-BAR surfaces
+([audits/2026-09-14-beat-win-scorecard-s5s7.md](audits/2026-09-14-beat-win-scorecard-s5s7.md)):
+ties on S1, S2, S4, S6, S7 and S8; **no surface Lead**. S5 marketing landing
+remains **Lose** (Plus still leads product media depth); do not soft-pass it
+to Tie. S3 app form stays **N/S** (Plus still is partial marketing contact
+chrome, not a matched Application UI create-form); do not invent Plus Lead or
+Tie for S3. Soft-pass is forbidden. Meet-bar PASS and beat 6/8 PASS are
+separate cites; neither revokes the other.
 
 An independent rendered design review judges hierarchy, content, spacing,
 typography, navigation, relevant states and responsive composition. Source

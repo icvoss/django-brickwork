@@ -3,10 +3,14 @@
 **Building blocks for beautiful apps and websites.** Brickwork supplies
 reusable tokens, components and shells whose package defaults aim at finished
 interfaces on the jobs in [docs/VISUAL-BAR.md](docs/VISUAL-BAR.md), evidenced
-by the independent rendered pass
+by the independent rendered meet-bar pass
 [docs/audits/2026-09-12-visual-bar-signoff-pass.md](docs/audits/2026-09-12-visual-bar-signoff-pass.md).
-That pass is not a house aesthetic, does not name competitors as brickwork's
-identity, and does not claim examples alone proved beauty. Brickwork ships 57
+An independent beat win scorecard further records lead or tie on 6 of 8
+VISUAL-BAR surfaces on package-default CSS
+([docs/audits/2026-09-14-beat-win-scorecard-s5s7.md](docs/audits/2026-09-14-beat-win-scorecard-s5s7.md));
+S5 remains a Lose and S3 is not scored as Plus lead or tie. Those passes are
+not a house aesthetic, do not name competitors as brickwork's identity, and
+do not claim examples alone proved beauty. Brickwork ships 57
 examples (28 archetype pages, 29 sections; a 58th file, `base.html`, is a
 copied document skeleton). 56 of the 58 files add no CSS. The date range
 picker uses existing `--bw-*` tokens in its own scoped CSS because the package
