@@ -514,6 +514,32 @@ ownership: the region seam shipped with Wave 2 shell work; the package-owned
 collapse behaviour closes the rest of #263 under Wave 3 public-navigation
 craft.
 
+### Marketing header overlay (ADR-105, brickwork#565)
+
+Opt in on any page that extends the marketing shell. Default sticky solid
+header is unchanged.
+
+```django
+{% block marketing_header_modifiers %}bw-marketing-header--overlay{% endblock %}
+{% block marketing_header_attrs %} data-bw-nav-context="dark"{% endblock %}
+
+{% block content %}
+  <section data-bw-nav-context="dark">
+    {% include "brickwork_marketing/components/_hero.html" with heading=... %}
+  </section>
+  <section data-bw-nav-context="light">
+    ...
+  </section>
+{% endblock %}
+```
+
+Package CSS fixes the header over the first band and clears that first child's
+top padding. The shell loads `brickwork/js/marketing-overlay.js` (vanilla,
+no Alpine): after enhancement the header goes transparent, frosts on scroll
+(`data-bw-scrolled`), and flips ink with `data-bw-nav-context` on marked
+bands. Without JS the overlay header stays opaque and readable. ADR-057
+`media_placement` is unchanged and composes with overlay.
+
 ## 6. The htmx version floor (brickwork#48)
 
 brickwork's interaction contracts (the 422 form swap, toast delivery via

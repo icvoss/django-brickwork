@@ -91,6 +91,49 @@ def test_the_marketing_shell_carries_the_public_chrome_not_the_app_shell_s() -> 
     assert "bw-sidebar" not in html
     assert "bw-topbar" not in html
     assert "bw-app" not in html
+    # default is not overlay (BR-BW-MKT-006 / ADR-105)
+    assert "bw-marketing-header--overlay" not in html
+    assert "marketing-overlay.js" in html
+
+
+def test_marketing_shell_overlay_modifier_and_attrs_are_opt_in() -> None:
+    # BR-BW-MKT-006: overlay is opt-in via marketing_header_modifiers;
+    # initial context may be authored via marketing_header_attrs.
+    html = _extend(
+        _MARKETING_SHELL,
+        "{% block marketing_header_modifiers %}bw-marketing-header--overlay{% endblock %}"
+        '{% block marketing_header_attrs %} data-bw-nav-context="dark"{% endblock %}'
+        "{% block content %}"
+        '<section class="bw-hero" data-bw-nav-context="dark">Hero</section>'
+        "{% endblock %}",
+    )
+    assert 'class="bw-marketing-header bw-marketing-header--overlay"' in html
+    assert 'data-bw-nav-context="dark"' in html
+    assert "marketing-overlay.js" in html
+
+
+def test_overlay_css_ships_fixed_header_and_clearance_rules() -> None:
+    css = (_DIST / "brickwork.css").read_text(encoding="utf-8")
+    assert ".bw-marketing-header--overlay" in css
+    assert "position:fixed" in css or "position: fixed" in css
+    assert "--bw-marketing-header-clearance" in css
+    assert "data-bw-overlay-ready" in css
+    assert "data-bw-nav-context" in css
+    assert "data-bw-scrolled" in css
+    overlay_js = (
+        Path(__file__).resolve().parent.parent
+        / "src"
+        / "brickwork"
+        / "static"
+        / "brickwork"
+        / "js"
+        / "marketing-overlay.js"
+    )
+    assert overlay_js.is_file()
+    body = overlay_js.read_text(encoding="utf-8")
+    assert "data-bw-overlay-ready" in body
+    assert "data-bw-scrolled" in body
+    assert "data-bw-nav-context" in body
 
 
 def test_the_marketing_shell_fabricates_no_marketing_copy_of_its_own() -> None:
@@ -1309,13 +1352,17 @@ def test_the_first_marketing_section_gets_block_start_spacing() -> None:
     # for element matching) and may merge this selector with the `* + *` rule
     # above when they share a declaration block, so this matches the
     # selector/declaration pair rather than a single exact rule string.
+    # Overlay mode (ADR-105) adds a second first-child:not(.bw-hero) rule for
+    # clearance padding; assert the #111 margin still exists on some rule.
     css = (_DIST / "brickwork.css").read_text().replace(" ", "")
-    rule = re.search(
+    rules = re.findall(
         r"([^{}]*\.bw-marketing__content>:first-child:not\(\.bw-hero\)[^{}]*)\{([^}]*)\}",
         css,
     )
-    assert rule is not None, "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
-    assert "margin-block-start:var(--bw-component-section-gap-marketing)" in rule.group(2)
+    assert rules, "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
+    assert any("margin-block-start:var(--bw-component-section-gap-marketing)" in body for _sel, body in rules), (
+        f"#111 margin missing from first-child rules: {rules!r}"
+    )
 
 
 def test_the_hero_opts_out_of_the_first_child_spacing() -> None:

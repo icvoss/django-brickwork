@@ -1,5 +1,5 @@
 {% extends "brickwork/shell/base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% comment %}
 Marketing shell (04-interfaces.md section 4d, 1.2.0, BR-BW-MKT-005): the
 public-site counterpart of shell/app.html. It reuses base.html's document
@@ -10,6 +10,12 @@ page {% extends %} this shell and is itself {% extends %}d by a consuming
 page (BR-BW-PAGE-001 at marketing scope), never {% include %}d.
 
 Named blocks (semver-public, BR-BW-TPL-001), all empty-graceful:
+  marketing_header_modifiers
+                       empty by default. Set to bw-marketing-header--overlay
+                       to opt into overlay mode (ADR-105 / BR-BW-MKT-006).
+  marketing_header_attrs
+                       empty by default. Extra attributes on <header> (include
+                       a leading space), e.g. data-bw-nav-context="dark".
   marketing_header    default: a header row with brand_logo/brand_wordmark at
                        the inline start and marketing_nav at the end.
   brand_logo           wrapped in the brickwork-owned
@@ -150,12 +156,22 @@ Responsive: with `_mobile_nav_toggle.html` included, marketing.css collapses
   The content column and footer are both capped at
   --bw-component-content-max-width-marketing and centred, fluid below that
   width.
+
+Overlay mode (ADR-105, icvoss/django-brickwork#565, BR-BW-MKT-006): opt in
+  with marketing_header_modifiers = "bw-marketing-header--overlay". Default
+  sticky solid header is unchanged. Overlay fixes the header over the first
+  content band; package CSS clears the first child so copy is not under the
+  chrome. Optional marketing_header_attrs may set an initial
+  data-bw-nav-context="light"|"dark". Mark bands with the same attribute so
+  the package PE script (body_js) can flip chrome ink. No-JS keeps an opaque
+  readable header; transparency and context ink require the script.
+  media_placement (ADR-057) is unchanged and composes with overlay.
 {% endcomment %}
 {% block shell_variant %}marketing{% endblock %}
 
 {% block shell %}
 <div class="bw-marketing">
-  <header class="bw-marketing-header">
+  <header class="bw-marketing-header {% block marketing_header_modifiers %}{% endblock %}"{% block marketing_header_attrs %}{% endblock %}>
     <div class="bw-marketing-header__inner">
       <div class="bw-marketing-header__brand">
         {% block marketing_header %}
@@ -189,4 +205,9 @@ Responsive: with `_mobile_nav_toggle.html` included, marketing.css collapses
   </footer>
   {% endblock %}
 </div>
+{% endblock %}
+
+{% block body_js %}
+{{ block.super }}
+<script src="{% static 'brickwork/js/marketing-overlay.js' %}" defer></script>
 {% endblock %}
