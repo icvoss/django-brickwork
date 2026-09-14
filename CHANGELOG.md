@@ -10,6 +10,9 @@ versioning contract).
 
 ## [3.26.1] - 2026-09-14
 
+Patch: feature-row media containment for full-page specimens, plus the Beat F.4
+claim-cite docs that landed after 3.26.0.
+
 ### Changed
 
 - **Beat F.4 claim cite.** POSITIONING and README may now state prefer-where-
@@ -20,13 +23,10 @@ versioning contract).
 
 ### Fixed
 
-### Fixed
-
-- **Feature-row media no longer expands the page** when a consumer
-  embeds a wide full-page specimen. `.bw-feature-row` and its copy/media
-  cells now set `min-inline-size: 0`, and media scrolls internally
-  (`overflow: auto`), so mobile sideways-scroll gates stay honest
-  (brickworkui.com sell-pass a11y).
+- **Feature-row media no longer expands the page** when a consumer embeds a
+  wide full-page specimen. `.bw-feature-row` and its copy/media cells now set
+  `min-inline-size: 0`, and media scrolls internally (`overflow: auto`), so
+  mobile sideways-scroll gates stay honest (brickworkui.com sell-pass a11y).
 
 ## [3.26.0] - 2026-09-14
 
