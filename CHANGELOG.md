@@ -8,6 +8,45 @@ versioning contract).
 
 ## Unreleased
 
+## [3.28.0] - 2026-09-14
+
+Minor: LTS-candidate hardening. Closes the accepted single-phase backlog,
+documents the htmx 422 responseHandling opt-in, and seals data-table
+composed id/for breakouts. Default sticky chrome and existing call sites
+are unchanged unless they relied on unconstrained class interpolation.
+Composed sort/pagination hrefs remain on #481.
+
+### Added
+
+- **Docs shell rail label is consumer-nameable** (icvoss/django-brickwork#485).
+  Pass context `docs_nav_label` to rename the summary and the nav
+  `aria-label` together; default remains "Documentation".
+
+### Changed
+
+- **INTEGRATION.md documents the htmx 2 `responseHandling` opt-in for 422**
+  (icvoss/django-brickwork#567). Section 4 carries the boot snippet; section 6
+  no longer implies htmx 2 alone swaps 422 bodies.
+
+### Fixed
+
+- **Data-table composed `id`/`for` attributes go through `bw_attr`**
+  (icvoss/django-brickwork#363, #481). `row.id` and `table_id` can no longer
+  break out of the select-all or per-row checkbox identity attributes.
+  Closed-vocabulary class modifiers on card, stat, chart-card, stepper and
+  alert/disclosure also use literal constrain. Composed sort/pagination
+  hrefs remain tracked on #481.
+
+- **Alert and disclosure `variant` no longer interpolate into the class
+  attribute** (icvoss/django-brickwork#476). Include-path renders now match
+  author-written literals the same way `_empty_state` does after #391; the
+  `bw_alert` tag raise stays for authoring feedback.
+
+- **Compact `bw_theme_switch` panel scrolls on short viewports**
+  (icvoss/django-brickwork#484). `.bw-theme-switch__panel` now caps
+  `max-block-size` to the dynamic viewport and uses `overflow-y: auto`, so
+  options under a sticky host stay reachable.
+
 ## [3.27.0] - 2026-09-14
 
 Minor: opt-in marketing header overlay mode for full-bleed heroes (ADR-105).
