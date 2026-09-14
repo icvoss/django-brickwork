@@ -214,7 +214,6 @@ def _check_value(name: str, value: str) -> None:
             f"brickwork: empty value for {name!r}. Supply a CSS value appropriate to "
             f"that token (colour literals for --bw-color-*, see docs/BRANDING.md)."
         )
-    lowered = v.lower()
     colour_path = _is_colour_token(name) or _value_looks_like_colour(v)
     bad = _forbidden_substring(v, allow_data_url=not colour_path)
     if bad is not None:
