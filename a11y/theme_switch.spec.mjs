@@ -686,26 +686,46 @@ test.describe("layout=\"compact\"", () => {
   });
 
   test("on a short viewport every option is reachable via panel scroll (#484)", async ({ page }) => {
-    // Sticky-host absolute panels once grew unbounded; lower fieldsets fell
+    // Sticky-host absolute panels once grew unbounded; lower options fell
     // below the fold with no recoverable page scroll. Cap + overflow-y on
-    // .bw-theme-switch__panel must keep every option scrollable into view.
-    await page.setViewportSize({ width: 390, height: 520 });
+    // .bw-theme-switch__panel must keep the panel box on-screen and let
+    // overflow content scroll into view.
+    await page.setViewportSize({ width: 390, height: 400 });
     await bootCompact(page);
     const panel = compactSection(page).locator(".bw-theme-switch__panel");
-    const options = compactSection(page).locator(".bw-theme-switch__option");
-    const count = await options.count();
-    expect(count).toBeGreaterThan(6);
-    const panelBox = await panel.evaluate((el) => {
-      const r = el.getBoundingClientRect();
-      return { height: r.height, scrollHeight: el.scrollHeight };
+    const style = await panel.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { overflowY: cs.overflowY, maxBlockSize: cs.maxBlockSize };
     });
-    expect(panelBox.scrollHeight, "four-axis compact must overshoot the short viewport").toBeGreaterThan(
-      panelBox.height + 1,
-    );
-    const last = options.nth(count - 1);
+    expect(style.overflowY).toMatch(/auto|scroll/);
+    expect(style.maxBlockSize, "panel must advertise a block-size cap").not.toBe("none");
+
+    // Force content taller than the capped panel so scroll is exercised
+    // without changing the three-axis fixture the rest of this suite pins.
+    await panel.evaluate((el) => {
+      for (let i = 0; i < 16; i += 1) {
+        const label = document.createElement("label");
+        label.className = "bw-theme-switch__option";
+        label.style.minBlockSize = "44px";
+        label.textContent = `Extra option ${i}`;
+        el.appendChild(label);
+      }
+    });
+    const metrics = await panel.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return {
+        top: r.top,
+        bottom: r.bottom,
+        scrollHeight: el.scrollHeight,
+        clientHeight: el.clientHeight,
+      };
+    });
+    const viewport = page.viewportSize();
+    expect(metrics.bottom).toBeLessThanOrEqual(viewport.height + 0.5);
+    expect(metrics.scrollHeight).toBeGreaterThan(metrics.clientHeight + 1);
+    const last = compactSection(page).locator(".bw-theme-switch__option").last();
     await last.scrollIntoViewIfNeeded();
     await expect(last).toBeVisible();
-    await last.click();
   });
 
   test("ArrowDown/ArrowRight move focus and selection within a fieldset's own radio group", async ({ page }) => {
