@@ -64,9 +64,9 @@ Responsive: orientation="horizontal" (default) switches at
   the connectors stretching between markers. orientation="vertical" is
   unaffected by this breakpoint: it stacks at every width by request.
 {% endcomment %}
-<ol class="bw-stepper bw-stepper--{% firstof orientation 'horizontal' %}">
+<ol class="bw-stepper bw-stepper--{% if orientation == "vertical" %}vertical{% else %}horizontal{% endif %}">
   {% for step in steps %}
-    <li class="bw-stepper__step{% if mode != 'sequence' %} bw-stepper__step--{{ step.status }}{% endif %}"
+    <li class="bw-stepper__step{% if mode != 'sequence' %}{% if step.status == "complete" %} bw-stepper__step--complete{% elif step.status == "current" %} bw-stepper__step--current{% elif step.status == "upcoming" %} bw-stepper__step--upcoming{% endif %}{% endif %}"
         {% if mode != "sequence" and step.status == "current" %}aria-current="step"{% endif %}>
       <span class="bw-stepper__marker" aria-hidden="true">
         {% if mode != "sequence" and step.status == "complete" %}

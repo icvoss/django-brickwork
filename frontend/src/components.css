@@ -786,6 +786,14 @@ input.bw-toggle:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: var(--bw-density-stack-gap);
+  /* #484: compact panels with many axes overshoot short viewports under a
+   * sticky host; page scroll cannot recover absolute overflow. Cap to the
+   * dynamic viewport minus sticky-header gutter and scroll inside (combobox
+   * listbox chrome). */
+  max-block-size: calc(100dvh - var(--bw-space-16));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bw-color-border) transparent;
   background: var(--bw-color-surface-raised);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-radius: var(--bw-radius-lg);

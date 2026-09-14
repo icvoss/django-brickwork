@@ -685,6 +685,29 @@ test.describe("layout=\"compact\"", () => {
     expect(rect.bottom, "panel bottom edge is off-viewport").toBeLessThanOrEqual(viewport.height + 0.5);
   });
 
+  test("on a short viewport every option is reachable via panel scroll (#484)", async ({ page }) => {
+    // Sticky-host absolute panels once grew unbounded; lower fieldsets fell
+    // below the fold with no recoverable page scroll. Cap + overflow-y on
+    // .bw-theme-switch__panel must keep every option scrollable into view.
+    await page.setViewportSize({ width: 390, height: 520 });
+    await bootCompact(page);
+    const panel = compactSection(page).locator(".bw-theme-switch__panel");
+    const options = compactSection(page).locator(".bw-theme-switch__option");
+    const count = await options.count();
+    expect(count).toBeGreaterThan(6);
+    const panelBox = await panel.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return { height: r.height, scrollHeight: el.scrollHeight };
+    });
+    expect(panelBox.scrollHeight, "four-axis compact must overshoot the short viewport").toBeGreaterThan(
+      panelBox.height + 1,
+    );
+    const last = options.nth(count - 1);
+    await last.scrollIntoViewIfNeeded();
+    await expect(last).toBeVisible();
+    await last.click();
+  });
+
   test("ArrowDown/ArrowRight move focus and selection within a fieldset's own radio group", async ({ page }) => {
     // Suggestion taken (#247 review): this is native <fieldset>/radio-group
     // keyboard behaviour, not code bwThemeSwitch itself implements (no

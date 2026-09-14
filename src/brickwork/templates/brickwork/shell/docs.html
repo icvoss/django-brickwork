@@ -1,5 +1,5 @@
 {% extends "brickwork/shell/base.html" %}
-{% load i18n %}
+{% load i18n brickwork_components %}
 {% comment %}
 Docs shell (ADR-091, icvoss/django-brickwork#439): the documentation
 surface, a new shell rather than regions bolted onto the marketing shell. It
@@ -76,7 +76,9 @@ seam can never do.
                        Carries no landmark.
   docs_footer_region  wraps the whole <footer> element, inside the article.
   docs_nav_region     wraps the <details> disclosure rail containing
-                       <nav aria-label="Documentation">.
+                       <nav> whose aria-label defaults to "Documentation".
+                       Pass context ``docs_nav_label`` to rename the summary
+                       and landmark together (icvoss/django-brickwork#485).
   docs_site_header_region  wraps the whole <header> element, OUTSIDE <main>,
                        above the two-column layout. The wrapper always
                        renders (the same idiom as docs_header_region's <div>),
@@ -266,9 +268,11 @@ Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
       </article>
 
       {% block docs_nav_region %}
+      {% translate "Documentation" as bw_docs_nav_label_default %}
+      {% firstof docs_nav_label bw_docs_nav_label_default as bw_docs_nav_label %}
       <details class="bw-docs-layout__nav" id="bw-docs-nav">
-        <summary class="bw-docs-layout__nav-summary">{% translate "Documentation" %}</summary>
-        <nav class="bw-docs-layout__nav-body" aria-label="{% translate 'Documentation' %}">
+        <summary class="bw-docs-layout__nav-summary">{{ bw_docs_nav_label }}</summary>
+        <nav class="bw-docs-layout__nav-body" {% bw_attr "aria-label" bw_docs_nav_label %}>
           {% block docs_nav %}{% endblock %}
         </nav>
       </details>

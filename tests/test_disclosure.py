@@ -145,3 +145,36 @@ def test_a_group_of_three_shares_one_name() -> None:
     html = template.render({"items": [{"label": f"Q{n}", "content": f"A{n}"} for n in range(3)]})
     assert html.count('name="faq"') == 3
     assert html.count("<details") == 3
+
+
+# --- icvoss/django-brickwork#476: variant constrain ---------------------------
+
+
+def _on_star_attrs(html: str) -> list[tuple[str, str]]:
+    from html.parser import HTMLParser
+
+    class _Finder(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.found: list[tuple[str, str]] = []
+
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            self.found.extend((tag, name) for name, _value in attrs if name.startswith("on"))
+
+    parser = _Finder()
+    parser.feed(html)
+    return parser.found
+
+
+def test_variant_mark_safed_payload_cannot_break_out_of_the_class_attribute() -> None:
+    attack = mark_safe('a" onclick="alert(1)')
+    out = _render(variant=attack)
+    assert "alert(1)" not in out
+    assert _on_star_attrs(out) == []
+    assert "bw-disclosure--divided" in out
+
+
+def test_variant_unrecognised_value_falls_back_to_divided() -> None:
+    out = _render(variant="not-a-real-variant")
+    assert "bw-disclosure--divided" in out
+    assert "bw-disclosure--not-a-real-variant" not in out

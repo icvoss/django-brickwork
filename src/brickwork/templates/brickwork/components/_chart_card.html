@@ -105,7 +105,10 @@ Optional:
       DEBUG included. The visible outcome resembles "ignored", but the class
       really is emitted, which matters to a consumer whose own CSS or test
       selectors read the root's class list.
-      Validating legend_position is therefore the CONSUMER's responsibility;
+      Validating legend_position is therefore the CONSUMER's responsibility
+      at the tag path; the template itself constrains to bottom/side
+      literals (icvoss/django-brickwork#481) so an unrecognised value emits
+      no modifier.
       this template validates nothing, because {% include %} has no seam to
       validate through. This is a deliberate consequence of choosing include
       over a tag (see the revisit condition below), not an oversight.
@@ -192,7 +195,7 @@ Responsive: no breakpoint switch of its own; legend_position is a fixed
   belongs to the consumer's engine, never this chrome.
 {% endcomment %}
 {% block body %}
-<div class="bw-chart-card{% if legend_position and legend_position != 'top' %} bw-chart-card--legend-{{ legend_position }}{% endif %}">
+<div class="bw-chart-card{% if legend_position == "bottom" %} bw-chart-card--legend-bottom{% elif legend_position == "side" %} bw-chart-card--legend-side{% endif %}">
   {% block chart_legend %}{% endblock %}
   <div class="bw-chart-card__mount">
     {% block chart_mount %}

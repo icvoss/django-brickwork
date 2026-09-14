@@ -2420,9 +2420,11 @@ __JS_BOOT__
 def _render_theme_switch_compact_fixture() -> str:
     from django.template import Context, Template
 
+    # Four axes (#484): three-axis compact fixtures never overshot short
+    # viewports enough to exercise the panel scroll cap.
     return Template(
-        '{% load brickwork_theming %}{% bw_theme_switch axes="theme density dir" layout="compact" %}'
-    ).render(Context({}))
+        '{% load brickwork_theming %}{% bw_theme_switch axes="theme density dir brand" brands=brands layout="compact" %}'
+    ).render(Context({"brands": {"acme": "Acme", "globex": "Globex"}}))
 
 
 def render_theme_switch_compact(theme: str) -> str:

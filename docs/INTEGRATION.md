@@ -360,7 +360,26 @@ duck-typed `request.htmx` when you run django-htmx); what stays yours is
 everything above: the partial, the `hx-*` attributes, the region id, and both
 branches. Because the fragment and the page are one file, there is no second
 template to keep in sync and nothing for the two renders to drift apart on.
-See section 6 for the htmx version floor.
+
+### htmx 2 must opt 422 into responseHandling (icvoss/django-brickwork#567)
+
+htmx 2.0.x still treats `[45]..` as `swap: false, error: true` by default.
+A view that returns 422 with the form region is not enough: without an
+explicit 422 entry, the browser discards the body and the loop never
+visibly re-renders. Opt in once at boot, for example:
+
+```js
+htmx.config.responseHandling = [
+  { code: "204", swap: false },
+  { code: "422", swap: true },
+  { code: "[23]..", swap: true },
+  { code: "[45]..", swap: false, error: true },
+];
+```
+
+An `htmx-config` meta tag or an `htmx:beforeSwap` handler that forces swap
+on 422 is equivalent. Flagship wiring lives in brickworkui.com's
+`frontend/js/main.js`. See section 6 for the htmx version floor.
 
 brickwork uses the same built-in for its own shipped fragments: see
 `tab_panel` in `_tabs.html`, a semver-public partial exercised cross-file by
@@ -546,9 +565,10 @@ brickwork's interaction contracts (the 422 form swap, toast delivery via
 `hx-swap-oob`, modal dismissal via the `HX-Trigger: bw:modal:close` response
 header, combobox server filtering) are built and CI-gated on **htmx >= 2.0**
 only. That is the declared floor (BR-BW-HTMX-010): htmx 1.9 is out of contract.
-htmx 2 changed default response handling in ways the 422 loop relies on; on 1.x
-a consumer would have to wire `htmx:beforeSwap` by hand, and brickwork does not
-test that path.
+htmx 2 alone does **not** make 422 swap: its default `responseHandling` still
+marks `[45]..` as non-swapping errors. Consumers must opt 422 in (section 4),
+or use an equivalent `htmx:beforeSwap` / meta `htmx-config` path. brickwork
+does not test the htmx 1.x `beforeSwap` workaround.
 
 A brownfield app on htmx 1.9 should treat the htmx 1 -> 2 upgrade as a
 prerequisite workstream before the brickwork cutover, not something to reconcile
