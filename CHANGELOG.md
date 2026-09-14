@@ -8,6 +8,45 @@ versioning contract).
 
 ## Unreleased
 
+## [3.26.0] - 2026-09-14
+
+**Beat Phase F craft and win scorecard.** Brand-torture harness (F.1), S2/S4/S5/S7
+fixture craft, and independent F.2 win scorecard **PASS** at 6/8 lead or tie vs
+Tailwind Plus on package-default CSS
+([audits/2026-09-14-beat-win-scorecard-s5s7.md](docs/audits/2026-09-14-beat-win-scorecard-s5s7.md)).
+S5 remains Lose; S3 remains N/S. Proof-site (F.3) and claim cite (F.4) stay
+separate steps.
+
+### Added
+
+- **Visual-bar brand torture harness (Beat F.1)**
+  (icvoss/django-brickwork#545). Adds fictional `harbour` and `folio` brand-pack
+  skeletons beside `northline`, and extends the visual-bar fixture generator and
+  capture script for three packs, `VISUAL_BAR_DENSITY` (`comfortable` /
+  `compact`), and optional `VISUAL_BAR_SURFACES` filtering. npm scripts cover
+  harbour and folio fixtures and capture.
+
+### Changed
+
+- **Beat craft for Lose surfaces (S2/S4)** (icvoss/django-brickwork#558).
+  `app/detail.html` fixture now uses invoice line items and richer facts, and
+  `app/dashboard.html` adds a server-rendered trend chart card, ranked top
+  accounts, and an activity table beside them. Package-default stills under
+  `docs/audits/_stills/2026-09-14-beat-craft-lose/`.
+
+- **Beat S5 marketing landing craft.** Package-default `marketing/landing.html`
+  now leads with layered product chrome in the beside hero, adds feature rows
+  with framed media, a mid-page CTA split, a three-quote grid, and an inverse
+  CTA bleed. New `.bw-product-chrome` / `.bw-product-chrome-stack` tokens-only
+  pattern for media depth. `startsite` landing context emits the section stack
+  so copied templates render depth bands.
+
+- **Beat S7 docs article craft.** `examples/docs/article.html` now puts
+  `{% bw_search %}` in the docs site header, an authored "On this page" TOC
+  (`.bw-docs-toc`), dual warning and info callouts, and copyable code panels
+  with richer fixtures. Shell CSS adds header search flex and the TOC
+  composition pattern; code panel headers gain a surface fill.
+
 ## [3.25.0] - 2026-09-13
 
 **Journey contracts for beat Phase D.** Five copyable examples prove form
