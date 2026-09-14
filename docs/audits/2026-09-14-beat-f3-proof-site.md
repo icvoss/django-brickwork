@@ -8,7 +8,8 @@ app archetype compose with package options + brand tokens only.
 
 | Item | Value |
 |---|---|
-| Site tip | `chore/pin-brickwork-3.26.0` (pin PR; merge SHA recorded after land) |
+| Site tip | `106ef62` (`chore: pin django-brickwork 3.26.0 (F.3 proof) (#199)`) |
+| Live release | `20260914T075250Z` (deploy succeeded; footer reads 3.26.0) |
 | Package pin | django-brickwork **3.26.0** (PyPI) |
 | Package tip cited | `d104988` (release tag `v3.26.0`) |
 | Brand pack | kiln (`BRICKWORK_DEFAULT_BRAND`; `frontend/brands/kiln/tokens.css`) |
