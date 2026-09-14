@@ -1352,13 +1352,17 @@ def test_the_first_marketing_section_gets_block_start_spacing() -> None:
     # for element matching) and may merge this selector with the `* + *` rule
     # above when they share a declaration block, so this matches the
     # selector/declaration pair rather than a single exact rule string.
+    # Overlay mode (ADR-105) adds a second first-child:not(.bw-hero) rule for
+    # clearance padding; assert the #111 margin still exists on some rule.
     css = (_DIST / "brickwork.css").read_text().replace(" ", "")
-    rule = re.search(
+    rules = re.findall(
         r"([^{}]*\.bw-marketing__content>:first-child:not\(\.bw-hero\)[^{}]*)\{([^}]*)\}",
         css,
     )
-    assert rule is not None, "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
-    assert "margin-block-start:var(--bw-component-section-gap-marketing)" in rule.group(2)
+    assert rules, "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
+    assert any(
+        "margin-block-start:var(--bw-component-section-gap-marketing)" in body for _sel, body in rules
+    ), f"#111 margin missing from first-child rules: {rules!r}"
 
 
 def test_the_hero_opts_out_of_the_first_child_spacing() -> None:

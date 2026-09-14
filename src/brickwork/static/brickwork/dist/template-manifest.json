@@ -63,7 +63,8 @@
     {
       "name": "body_js",
       "declaredIn": [
-        "brickwork/shell/base.html"
+        "brickwork/shell/base.html",
+        "brickwork_marketing/shell/marketing.html"
       ],
       "consumption": [
         "include"
@@ -473,6 +474,24 @@
     },
     {
       "name": "marketing_header",
+      "declaredIn": [
+        "brickwork_marketing/shell/marketing.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "marketing_header_attrs",
+      "declaredIn": [
+        "brickwork_marketing/shell/marketing.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "marketing_header_modifiers",
       "declaredIn": [
         "brickwork_marketing/shell/marketing.html"
       ],
