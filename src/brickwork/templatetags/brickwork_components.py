@@ -17,6 +17,7 @@ from html import unescape
 from html.parser import HTMLParser
 
 from django import template
+from django.http import QueryDict
 from django.template.exceptions import TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.encoding import force_str
@@ -297,6 +298,37 @@ def bw_attr(
     # write and forget. A value that needs a wrapper built from CONSUMER data
     # is out of scope by construction, because prefix/suffix take no variable.
     return mark_safe(f'{escape(name)}="{escape(prefix)}{rendered_value}{escape(suffix)}"')
+
+
+@register.simple_tag(takes_context=True)
+def bw_query_href(context: template.Context, **params: object) -> str:
+    """Build a complete relative ``?key=value`` href for ``{% bw_attr "href" %}``.
+
+    ADR-097 / icvoss/django-brickwork#481: sort and pagination links used to
+    compose ``href`` inline from ``{% querystring %}`` or ``?page={{ n }}``
+    interpolations. ``bw_attr`` can only own a whole attribute value, so this
+    tag assembles the query string in Python and returns a plain ``str`` the
+    template then passes through ``bw_attr``.
+
+    When ``request`` is in context, start from ``request.GET`` and apply
+    ``params`` (a ``None`` value drops that key). Without ``request``, start
+    from the optional ``querystring`` context var (raw ``a=b&c=d``, no leading
+    ``?``) then apply ``params``. Always returns a string beginning with ``?``.
+    """
+    request = context.get("request")
+    if request is not None:
+        query = request.GET.copy()
+    else:
+        raw = context.get("querystring") or ""
+        raw_str = str(raw).lstrip("?")
+        query = QueryDict(raw_str, mutable=True) if raw_str else QueryDict(mutable=True)
+    for key, value in params.items():
+        if value is None:
+            query.pop(key, None)
+        else:
+            query[key] = str(value)
+    encoded = query.urlencode()
+    return f"?{encoded}" if encoded else "?"
 
 
 def _required_context_is_missing(value: object) -> bool:
