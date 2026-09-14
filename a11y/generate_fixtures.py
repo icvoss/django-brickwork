@@ -3525,9 +3525,7 @@ def render_mobile_nav_toggle(theme: str) -> str:
 # enhanced states without depending on file:// script resolution; the PE
 # script behaviour is asserted separately by a11y/marketing_overlay.spec.mjs.
 
-_OVERLAY_JS = (ROOT / "src/brickwork/static/brickwork/js/marketing-overlay.js").read_text(
-    encoding="utf-8"
-)
+_OVERLAY_JS = (ROOT / "src/brickwork/static/brickwork/js/marketing-overlay.js").read_text(encoding="utf-8")
 _OVERLAY_SCRIPT_TAG = re.compile(
     r'<script src="[^"]*marketing-overlay\.js"[^>]*></script>',
     re.IGNORECASE,
@@ -3584,17 +3582,11 @@ def render_marketing_overlay(theme: str, *, state: str = "nojs") -> str:
     attrs = ""
     inject = False
     if state == "dark":
-        attrs = (
-            ' data-bw-overlay-ready data-bw-nav-context="dark" data-bw-scrolled="false"'
-        )
+        attrs = ' data-bw-overlay-ready data-bw-nav-context="dark" data-bw-scrolled="false"'
     elif state == "light-scrolled":
-        attrs = (
-            ' data-bw-overlay-ready data-bw-nav-context="light" data-bw-scrolled="true"'
-        )
+        attrs = ' data-bw-overlay-ready data-bw-nav-context="light" data-bw-scrolled="true"'
     elif state == "dark-scrolled":
-        attrs = (
-            ' data-bw-overlay-ready data-bw-nav-context="dark" data-bw-scrolled="true"'
-        )
+        attrs = ' data-bw-overlay-ready data-bw-nav-context="dark" data-bw-scrolled="true"'
     elif state == "js-boot":
         attrs = ' data-bw-nav-context="dark"'
         inject = True
@@ -3607,9 +3599,7 @@ def render_marketing_overlay(theme: str, *, state: str = "nojs") -> str:
         "title": "Overlay",
         "bw_page_title": f"Overlay {state}, Acme",
     }
-    html = engines["django"].from_string(_overlay_shell_source(attrs=attrs)).render(
-        ctx, request=request
-    )
+    html = engines["django"].from_string(_overlay_shell_source(attrs=attrs)).render(ctx, request=request)
     return _inline_overlay_script(_inline_css(html), inject=inject)
 
 
