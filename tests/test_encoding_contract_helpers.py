@@ -16,10 +16,7 @@ def test_ordered_list_helper_finds_a_root_with_modifier_classes() -> None:
 
 
 def test_ordered_list_helper_rejects_a_demoted_root_even_when_a_decoy_ol_exists() -> None:
-    html = (
-        '<ol class="bw-ranked-list"><li>decoy</li></ol>'
-        '<div class="bw-ranked-list"><li>real rows</li></div>'
-    )
+    html = '<ol class="bw-ranked-list"><li>decoy</li></ol><div class="bw-ranked-list"><li>real rows</li></div>'
     with pytest.raises(AssertionError, match="not an <ol>"):
         assert_ordered_list_element_survives_stripping(html, list_class="bw-ranked-list")
 
@@ -44,9 +41,5 @@ def test_aria_value_substring_in_visible_label_text_does_not_false_fail() -> Non
 
 
 def test_progress_chart_element_does_not_false_fail_progress_element_check() -> None:
-    html = (
-        '<ol class="bw-ranked-list">'
-        '<progress-chart class="bw-ranked-list__chart"></progress-chart>'
-        "</ol>"
-    )
+    html = '<ol class="bw-ranked-list"><progress-chart class="bw-ranked-list__chart"></progress-chart></ol>'
     assert_no_progressbar_semantics(html, component_tag="ol", component_class="bw-ranked-list")
