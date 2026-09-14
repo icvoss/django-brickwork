@@ -787,11 +787,12 @@ input.bw-toggle:disabled {
   flex-wrap: wrap;
   gap: var(--bw-density-stack-gap);
   /* #484: compact panels with many axes overshoot short viewports under a
-   * sticky host; page scroll cannot recover absolute overflow. Cap below the
-   * remaining viewport (header + trigger gutter) and scroll inside (combobox
-   * listbox chrome). min() keeps the panel box on-screen even when content
-   * is taller than the open disclosure's offset from the top. */
-  max-block-size: min(20rem, calc(100dvh - 8rem));
+   * sticky host; page scroll cannot recover absolute overflow. Cap to the
+   * lesser of a content-sized rem floor and ~half the viewport so the box
+   * stays on-screen even when the disclosure opens mid-page (vh, not only
+   * dvh: some engines resolve dvh late or not at all in max()). Scroll
+   * inside, matching combobox listbox chrome. */
+  max-block-size: min(18rem, 45vh);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--bw-color-border) transparent;
