@@ -531,6 +531,18 @@ value always wins over an inherited one regardless of `!important` on the
 ancestor: a plain rule targeting one inner element cannot silently unhide
 it.
 
+**Static fixture and prerender pipelines (icvoss/django-brickwork#243).**
+Components that ship with a no-JS pre-init class and rely on a small init
+script to reveal themselves (`{% bw_theme_switch %}`, marketing overlay chrome,
+and any sibling using the same pattern) stay in their pre-init state when a
+pipeline renders HTML with scripts stripped or never executed: a11y fixture
+generators, prerenderers, and snapshot tests. That is expected, not a runtime
+defect: the live page runs the script; the static artefact does not. Treat a
+hidden theme switch or overlay header in a fixture as a signal that the
+pipeline is exercising the no-JS floor, and measure layout against a browser
+session with scripts enabled when the post-init geometry is what you care
+about.
+
 **Persistence follows SHL-003** (the same rule
 `frontend/src/js/sidebar_collapse.js` documents for the sidebar): localStorage
 is the switch's own DEFAULT persistence, itself overridable by the host. Per

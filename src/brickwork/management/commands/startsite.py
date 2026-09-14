@@ -21,6 +21,12 @@ plain, owned copy from the moment it is written: no update command, no
 re-run-to-upgrade path, no semver guarantee on anything this command writes.
 The command itself, its name, its flags and its exit behaviour, is the
 governed surface; what it produces is a starting point.
+
+Failure modes (icvoss/django-brickwork#492): a non-empty target directory
+raises ``CommandError`` before any write. Filesystem failures during emission
+(permission denied, read-only volume, disk full) propagate as the underlying
+``OSError`` subclass from ``Path.mkdir`` or ``Path.write_text``; they are not
+caught or translated.
 """
 
 from __future__ import annotations

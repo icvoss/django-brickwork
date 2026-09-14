@@ -882,6 +882,22 @@ switcher, or a feedback control into `docs_nav_region`, `docs_header_region`
 or `docs_footer_region` respectively, as your own site-owned markup, exactly
 as you already build `{% bw_nav %}` composition into the nav rail today.
 
+### Related items / "see also" blocks (icvoss/django-brickwork#456)
+
+There is no dedicated related-items component. Compose one from shipped
+primitives on the docs shell (or any surface using family-neutral `.bw-card`):
+
+1. Wrap the block in `.bw-band-grid.bw-band-grid--2` or `--3` for a responsive
+   column layout (same grid vocabulary as feature bands and footer groups).
+2. Render each item as `<a class="bw-card" href="...">` with a heading and
+   short lede inside the card body. Whole-card links use the shipped
+   `a.bw-card` treatment in `frontend/src/components.css`.
+3. Keep copy in the view or template context; the partials take flat kwargs
+   only, matching other marketing and docs bands.
+
+See `examples/docs/home.html` for a three-card discovery grid using the same
+card and grid vocabulary at docs scope.
+
 ### Site-wide chrome around the docs shell (icvoss/django-brickwork#448)
 
 `docs_header_region` / `docs_footer_region` are **page-local**: scoped inside

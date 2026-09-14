@@ -55,7 +55,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/icvoss/django-brickwork"
-Documentation = "https://github.com/icvoss/django-brickwork"
+Documentation = "https://brickworkui.com"
 Changelog = "https://github.com/icvoss/django-brickwork/blob/main/CHANGELOG.md"
 "Issue Tracker" = "https://github.com/icvoss/django-brickwork/issues"
 "Source Code" = "https://github.com/icvoss/django-brickwork"
