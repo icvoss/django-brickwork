@@ -1360,9 +1360,9 @@ def test_the_first_marketing_section_gets_block_start_spacing() -> None:
         css,
     )
     assert rules, "the first-child marketing spacing rule must remain in dist/brickwork.css (#111)"
-    assert any(
-        "margin-block-start:var(--bw-component-section-gap-marketing)" in body for _sel, body in rules
-    ), f"#111 margin missing from first-child rules: {rules!r}"
+    assert any("margin-block-start:var(--bw-component-section-gap-marketing)" in body for _sel, body in rules), (
+        f"#111 margin missing from first-child rules: {rules!r}"
+    )
 
 
 def test_the_hero_opts_out_of_the_first_child_spacing() -> None:
