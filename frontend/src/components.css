@@ -3826,6 +3826,25 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   padding: var(--bw-density-card-padding);
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
 }
+/* header_recipe / footer_recipe (Beat Phase E, #540): match modal region recipes. */
+.bw-slide-over__header--muted,
+.bw-slide-over--header-muted .bw-slide-over__header {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-slide-over__header--bordered,
+.bw-slide-over--header-bordered .bw-slide-over__header {
+  border-block-end-width: var(--bw-size-border-thick);
+  border-block-end-color: var(--bw-color-border-strong);
+}
+.bw-slide-over--footer-muted .bw-slide-over__footer,
+.bw-slide-over__footer--muted {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-slide-over--footer-actions .bw-slide-over__footer,
+.bw-slide-over__footer--actions {
+  justify-content: flex-end;
+  gap: var(--bw-space-3);
+}
 
 /* --- Toast region + toast (0.9.0 interaction set, CBH-009..012, CMP-022/023) - */
 

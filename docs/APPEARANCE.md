@@ -129,3 +129,4 @@ or first-class include does **not** count.
 | Page header | plain default; `surface="tint"`; breadcrumbs + actions via the public `breadcrumb` / `actions` blocks |
 | Table / list | `_data_table.html` `variant="records"`; `variant="definition"`; `density="compact"`. List: `_list_item.html` (+ `density="compact"`) |
 | Modal | size ladder `sm` / `md` / `lg` / `full`; `header_recipe` plain / muted / bordered; `footer_recipe` plain / muted / actions |
+| Slide-over | size ladder `sm` / `md` / `lg`; `header_recipe` plain / muted / bordered; `footer_recipe` plain / muted / actions (same recipes as modal; Beat Phase E) |

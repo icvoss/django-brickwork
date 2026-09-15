@@ -161,8 +161,16 @@ Responsive: no breakpoint switch. Panel width is the fixed size scale
   (sm/md/lg, the same --bw-size-max-width-modal-* tokens the modal uses),
   not a viewport-driven rule; the panel is fluid down to the viewport
   width at every size below its cap.
-{% endcomment %}{% firstof slide_over_id "bw-slide-over" as bw_slide_over_instance_id %}
-<div class="bw-slide-over bw-slide-over--{% firstof size 'md' %} bw-slide-over--{% firstof placement 'end' %}"
+
+Appearance (Beat Phase E, icvoss/django-brickwork#540):
+  header_recipe ("plain" default | "muted" | "bordered"): region recipe on
+      the sticky header. Same closed set as _modal.html. plain is the
+      authored hairline divider (omit emits no extra modifier).
+  footer_recipe ("plain" default | "muted" | "actions"): root modifier so a
+      consumer-authored .bw-slide-over__footer shares the recipe look. The
+      footer block still owns its own <footer> wrapper.
+{% endcomment %}{% firstof header_recipe '' as header_recipe %}{% firstof footer_recipe '' as footer_recipe %}{% firstof size '' as size %}{% bw_options component="brickwork/components/_slide_over.html" header_recipe=header_recipe footer_recipe=footer_recipe size=size %}{% firstof slide_over_id "bw-slide-over" as bw_slide_over_instance_id %}
+<div class="bw-slide-over bw-slide-over--{% firstof size 'md' %} bw-slide-over--{% firstof placement 'end' %}{% if header_recipe and header_recipe != "plain" %} bw-slide-over--header-{{ header_recipe }}{% endif %}{% if footer_recipe and footer_recipe != "plain" %} bw-slide-over--footer-{{ footer_recipe }}{% endif %}"
      id="{{ bw_slide_over_instance_id }}"
      x-data="bwSlideOver({ backdropDismiss: {% if backdrop_dismiss == False %}false{% else %}true{% endif %} })">
   <div class="bw-slide-over__scrim" data-bw-slide-over-scrim aria-hidden="true"></div>
@@ -171,7 +179,7 @@ Responsive: no breakpoint switch. Panel width is the fixed size scale
        aria-modal="true"
        aria-labelledby="{{ bw_slide_over_instance_id }}-title"
        x-trap.inert.noscroll="isOpen">
-    <header class="bw-slide-over__header">
+    <header class="bw-slide-over__header{% if header_recipe and header_recipe != "plain" %} bw-slide-over__header--{{ header_recipe }}{% endif %}">
       <h2 class="bw-slide-over__title" id="{{ bw_slide_over_instance_id }}-title">{% block title %}{% block slide_over_title %}{{ title }}{% endblock %}{% endblock %}</h2>
       {% translate "Close" as bw_slide_over_close_label %}
       {% if close_href %}

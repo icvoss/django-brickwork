@@ -19,6 +19,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import pytest
 from django.template import engines
 from django.template.loader import render_to_string
 
@@ -227,3 +228,30 @@ def test_slide_over_title_successor_replaces_rather_than_appends() -> None:
     )
     assert "OLD-SENTINEL" in old_only
     assert "Ignored title" not in old_only
+
+
+def test_header_recipe_muted_emits_root_and_region_modifiers() -> None:
+    html = _render(header_recipe="muted", footer_recipe="actions")
+    assert "bw-slide-over--header-muted" in html
+    assert "bw-slide-over__header--muted" in html
+    assert "bw-slide-over--footer-actions" in html
+
+
+def test_header_recipe_plain_emits_no_extra_modifier() -> None:
+    html = _render(header_recipe="plain")
+    assert "bw-slide-over--header-" not in html
+    assert "bw-slide-over__header--" not in html
+
+
+def test_unknown_header_recipe_raises() -> None:
+    from django.template.exceptions import TemplateSyntaxError
+
+    with pytest.raises(TemplateSyntaxError, match="header_recipe"):
+        _render(header_recipe="accent")
+
+
+def test_dist_css_ships_slide_over_recipe_modifiers() -> None:
+    css = Path(__file__).resolve().parent.parent / "src/brickwork/static/brickwork/dist/brickwork.css"
+    text = css.read_text(encoding="utf-8")
+    assert ".bw-slide-over__header--muted" in text
+    assert ".bw-slide-over--footer-actions" in text
