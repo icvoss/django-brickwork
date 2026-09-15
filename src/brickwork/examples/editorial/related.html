@@ -1,0 +1,110 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+An editorial related-content page: the full "continue reading" surface
+(icvoss/django-brickwork#420). Sixth archetype in the Editorial and
+publishing family.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_label           rail / jump label (this page uses "Related groups")
+    docs_search_action       the URL bw_search in the site header submits to
+    source_title             the article this page continues from
+    source_href              URL back to that article
+    groups                   list of {id, heading, items: [{title, href,
+                              snippet, meta}]}, or ()
+    related_state            "ready" | "empty" | "error"
+The headings and static rail copy below are typed into the template.
+
+WHY THIS IS NOT THE ARTICLE SIBLING RAIL:
+
+examples/editorial/article.html's rail is a preview of three neighbours in
+one category. This page is the full related-content job: multiple deliberate
+groups (same category, same author, further reading), each with its own
+heading and cards. Closing #420 with the article rail alone would understate
+the archetype.
+
+WHY THIS PAGE EXTENDS THE DOCS SHELL, NOT A NEW EDITORIAL SHELL:
+
+Same deciding fact as examples/editorial/article.html and ADR-091. Family
+taxonomy stays the examples/ directory.
+
+RELATED ROWS ARE FAMILY-NEUTRAL CARDS, not .bw-listing-list__item.
+
+States: related_state is the page's real branch.
+  "ready": source link-back, grouped related cards, group jump rail.
+  "empty": no related pieces curated yet. _empty_state.html; chrome stays.
+  "error": the content store failed. bw_alert danger.
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: group headings are real <h2> targets; cards are real <a>
+  elements; empty and error keep search + breadcrumbs.
+Responsive: inherits the docs shell; cards stack in one column.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}{% if related_state == "ready" %}Related to {{ source_title }} - Northwind Journal{% else %}Related - Northwind Journal{% endif %}{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/journal/">{% translate "Northwind Journal" %}</a>
+  {% bw_search docs_search_action placeholder="Search the journal..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  {% if related_state == "error" %}
+  <h1>{% translate "Related reading unavailable" %}</h1>
+  <p>{% translate "The journal could not load related pieces." %}</p>
+  {% elif related_state == "empty" %}
+  <h1>{% translate "Related reading" %}</h1>
+  <p>{% translate "Nothing is curated beside this piece yet." %}</p>
+  {% else %}
+  <h1>{% translate "Related reading" %}</h1>
+  <p>
+    {% translate "Continuing from" %}
+    <a href="{{ source_href }}">{{ source_title }}</a>.
+  </p>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if related_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No related pieces yet" body="Editors have not curated neighbours for this article. Return to the piece you were reading, or browse the journal home." icon="document" action_href="/journal/" action_label="Back to the journal" %}
+
+  {% elif related_state == "error" %}
+  {% bw_alert "The journal could not load related reading. Retry in a moment, or open another piece from the journal home." title="Could not load related reading" variant="danger" %}
+
+  {% else %}
+  <div class="bw-section-stack">
+    {% for group in groups %}
+    <section aria-labelledby="{{ group.id }}">
+      <h2 id="{{ group.id }}" class="bw-band-heading">{{ group.heading }}</h2>
+      {% for item in group.items %}
+      <a class="bw-card bw-card--interactive bw-card--bordered" href="{{ item.href }}">
+        <h3 class="bw-card__title">{{ item.title }}</h3>
+        <div class="bw-card__body">
+          <p>{{ item.snippet }}</p>
+          <p>{{ item.meta }}</p>
+        </div>
+      </a>
+      {% endfor %}
+    </section>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% if related_state == "ready" %}
+  <p>{% translate "Related groups" %}</p>
+  <ul>
+    {% for group in groups %}
+    <li><a href="#{{ group.id }}">{{ group.heading }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+{% endblock %}

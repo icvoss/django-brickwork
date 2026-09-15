@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 68,
     "sections": 29,
-    "archetypes": 38,
+    "archetypes": 39,
     "skeletons": 1
   },
   "families": [
@@ -22,7 +22,7 @@
     },
     {
       "name": "Editorial and publishing",
-      "archetypeCount": 5,
+      "archetypeCount": 6,
       "sectionCount": 0
     },
     {
@@ -464,6 +464,21 @@
       ]
     },
     {
+      "name": "examples/editorial/related.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/related.html",
+      "docSource": "examples/editorial/related.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/editorial/series.html",
       "kind": "archetype",
       "family": "Editorial and publishing",
@@ -692,6 +707,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/related.html",
         "editorial/series.html"
       ],
       "usedBySections": [
@@ -762,6 +778,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/related.html",
         "editorial/series.html"
       ],
       "usedBySections": [],
@@ -1045,6 +1062,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/related.html",
         "editorial/series.html"
       ],
       "usedBySections": [],
@@ -1410,6 +1428,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/related.html",
         "editorial/series.html"
       ],
       "usedBySections": [],
@@ -2052,6 +2071,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/related.html",
         "editorial/series.html"
       ],
       "usedBySections": [],

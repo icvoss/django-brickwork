@@ -157,6 +157,7 @@ is also linked from there.
 | `editorial/category.html` | Editorial category: badge, description, published-piece cards, sibling rail |
 | `editorial/archive.html` | Editorial archive: month bands, dated cards, year jump rail |
 | `editorial/series.html` | Editorial series: ordered parts, upcoming state, series rail |
+| `editorial/related.html` | Editorial related: grouped continue-reading cards (not the article rail) |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |

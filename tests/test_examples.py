@@ -1090,6 +1090,75 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "series_state": "ready",
     },
+    "editorial/related.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Operations", "url": "/journal/operations/"},
+            {
+                "label": "Why we moved reminder thresholds",
+                "url": "/journal/operations/reminder-thresholds/",
+            },
+            {"label": "Related"},
+        ],
+        "docs_nav_label": "Related groups",
+        "docs_search_action": "/journal/search/",
+        "source_title": "Why we moved reminder thresholds",
+        "source_href": "/journal/operations/reminder-thresholds/",
+        "groups": [
+            {
+                "id": "related-same-category",
+                "heading": "More in Operations",
+                "items": [
+                    {
+                        "title": "How a dispute flag pauses escalation",
+                        "href": "/journal/operations/dispute-flags/",
+                        "snippet": (
+                            "A genuine dispute should stop the clock, not just change the wording on the next nudge."
+                        ),
+                        "meta": "Amira Okonkwo · 6 min read",
+                    },
+                    {
+                        "title": "When collections handoff fires",
+                        "href": "/journal/operations/collections-handoff/",
+                        "snippet": (
+                            "The handoff is a product event with an owner, "
+                            "not a spreadsheet row that someone might notice."
+                        ),
+                        "meta": "Jordan Ellis · 5 min read",
+                    },
+                ],
+            },
+            {
+                "id": "related-same-author",
+                "heading": "More by Amira Okonkwo",
+                "items": [
+                    {
+                        "title": "The evidence from six hundred accounts",
+                        "href": "/journal/series/reminder-thresholds/2/",
+                        "snippet": (
+                            "Median recovery by stage, and why earlier contact reduced the share that needed a call."
+                        ),
+                        "meta": "Series · 7 min read",
+                    },
+                ],
+            },
+            {
+                "id": "related-further",
+                "heading": "Further reading",
+                "items": [
+                    {
+                        "title": "Late-payment prediction, explained",
+                        "href": "/journal/product/late-payment-prediction/",
+                        "snippet": (
+                            "What the model sees, what it does not, and how a finance team should read the score."
+                        ),
+                        "meta": "Product · 7 min read",
+                    },
+                ],
+            },
+        ],
+        "related_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -2343,6 +2412,35 @@ def test_the_editorial_series_empty_and_error_states_replace_the_body() -> None:
     assert "In this series" in ready
 
     assert "Reminder thresholds" in empty
+    assert "bw-empty-state" in empty
+    assert "bw-card" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-card" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_related_empty_and_error_states_replace_the_body() -> None:
+    """editorial/related.html's three related_state branches."""
+    template = _example_engine().get_template("editorial/related.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/related.html"])
+
+    ready = template.render(Context({**base, "related_state": "ready"}))
+    empty = template.render(Context({**base, "related_state": "empty", "groups": ()}))
+    error = template.render(Context({**base, "related_state": "error"}))
+
+    assert "Related reading" in ready
+    assert "More in Operations" in ready
+    assert "bw-card" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "Related groups" in ready
+
     assert "bw-empty-state" in empty
     assert "bw-card" not in empty
     assert 'role="alert"' not in empty
