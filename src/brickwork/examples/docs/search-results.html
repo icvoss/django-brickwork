@@ -1,0 +1,107 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+A documentation search-results page: everything downstream of a submitted
+{% templatetag openblock %} bw_search {% templatetag closeblock %} query
+(icvoss/django-brickwork#411, carrying the asks closed under #261).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_items           this section's nav tree
+    docs_nav_active          which rail item is current
+    docs_search_action       the URL bw_search submits to (GET), usually this page
+    query                    the submitted q= string (may be empty)
+    results                  list of {title, href, snippet, section} dicts, or ()
+    results_state            "ready" | "empty_query" | "empty_results" | "error"
+The copy below is typed into the template.
+
+WHY THIS PAGE IS SHAPED THIS WAY:
+
+bw_search is only a form. This page is the contract for what happens after
+submit: echo the query, list matches, and distinguish "nothing typed" from
+"typed but nothing matched" from "the search backend failed". Conflating the
+two empties is the standard defect #261 named.
+
+RESULT ROWS ARE FAMILY-NEUTRAL CARDS, not .bw-listing-list__item. That listing
+class is marketing-family (tests/test_family_boundary.py); using it on the docs
+shell would fail the gate. Each result is an interactive bordered bw-card whose
+whole surface is the link, matching the docs home start-here cards.
+
+GROUPING: results are listed flat with the section name as muted text on each
+card. A consumer who wants section headings above groups can wrap the loop;
+this page keeps one list so the empty/error branches stay simple.
+
+States: results_state is the page's real branch.
+  "ready": query echoed, result cards render (results may still be one item).
+  "empty_query": the form was submitted with no q= (or the reader opened the
+    URL bare). Prompt to type a query; not an empty-result empty state.
+  "empty_results": a non-empty query returned nothing. Different copy from
+    empty_query; offers clear-back to docs home.
+  "error": the search backend failed. bw_alert danger.
+  LOADING: not applicable for the default server-rendered path. A consumer
+    who fetches results over htmx adds a loading band in their own copy.
+Accessibility: query echo is visible text, not colour alone. Result cards are
+  real <a> elements. Empty and error keep search + breadcrumbs landmarks.
+Responsive: inherits docs shell; bw-band-grid is not used (results are a
+  single column of cards so snippets stay readable).
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}{% if query %}{{ query }} - {% endif %}Search - Northwind docs{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/docs/">{% translate "Northwind docs" %}</a>
+  {% bw_search docs_search_action placeholder="Search the docs..." value=query %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  <h1>{% translate "Search results" %}</h1>
+  {% if results_state == "ready" or results_state == "empty_results" %}
+  <p>
+    {% blocktranslate count counter=results|length trimmed %}
+      {{ counter }} result for “{{ query }}”.
+    {% plural %}
+      {{ counter }} results for “{{ query }}”.
+    {% endblocktranslate %}
+  </p>
+  {% elif results_state == "empty_query" %}
+  <p>{% translate "Type a query to search guides, API reference and the changelog." %}</p>
+  {% else %}
+  <p>{% translate "Search is temporarily unavailable." %}</p>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if results_state == "empty_query" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No query yet" body="Enter a search term above. Try a guide title, an endpoint path, or an error code." icon="search" action_href="/docs/" action_label="Back to documentation home" %}
+
+  {% elif results_state == "empty_results" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No results" body="Nothing matched that query. Check the spelling, try a broader term, or browse from the documentation home." icon="search" action_href="/docs/" action_label="Back to documentation home" %}
+
+  {% elif results_state == "error" %}
+  {% bw_alert "The documentation search index could not be queried. Retry in a moment, or browse from the rail if you know the section." title="Search unavailable" variant="danger" %}
+
+  {% else %}
+  <div class="bw-section-stack">
+    {% for result in results %}
+    <a class="bw-card bw-card--interactive bw-card--bordered" href="{{ result.href }}">
+      <h2 class="bw-card__title">{{ result.title }}</h2>
+      <div class="bw-card__body">
+        <p>{{ result.snippet }}</p>
+        <p>{{ result.section }}</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% bw_nav items=docs_nav_items active=docs_nav_active %}
+{% endblock %}

@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 67,
     "sections": 29,
-    "archetypes": 31,
+    "archetypes": 32,
     "skeletons": 1
   },
   "families": [
@@ -17,7 +17,7 @@
     },
     {
       "name": "Documentation",
-      "archetypeCount": 5,
+      "archetypeCount": 6,
       "sectionCount": 0
     },
     {
@@ -343,6 +343,22 @@
       ]
     },
     {
+      "name": "examples/docs/search-results.html",
+      "kind": "archetype",
+      "family": "Documentation",
+      "templatePath": "examples/docs/search-results.html",
+      "docSource": "examples/docs/search-results.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_search.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/docs/toc.html",
       "kind": "archetype",
       "family": "Documentation",
@@ -565,6 +581,7 @@
         "docs/api-reference.html",
         "docs/article.html",
         "docs/navigation.html",
+        "docs/search-results.html",
         "docs/toc.html"
       ],
       "usedBySections": [
@@ -621,6 +638,7 @@
         "docs/api-reference.html",
         "docs/article.html",
         "docs/navigation.html",
+        "docs/search-results.html",
         "docs/toc.html"
       ],
       "usedBySections": [],
@@ -897,6 +915,7 @@
         "docs/api-reference.html",
         "docs/home.html",
         "docs/navigation.html",
+        "docs/search-results.html",
         "docs/toc.html"
       ],
       "usedBySections": [],
@@ -1254,6 +1273,7 @@
         "docs/article.html",
         "docs/home.html",
         "docs/navigation.html",
+        "docs/search-results.html",
         "docs/toc.html"
       ],
       "usedBySections": [],
@@ -1876,6 +1896,7 @@
         "docs/article.html",
         "docs/home.html",
         "docs/navigation.html",
+        "docs/search-results.html",
         "docs/toc.html"
       ],
       "usedBySections": [],

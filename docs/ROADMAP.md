@@ -234,23 +234,26 @@ as well as product applications.
   list omitted navigation, table of contents, versioned content, related
   content and reading progress, and merged the two families' separate article
   archetypes into one. All fourteen are filed as
-  icvoss/django-brickwork#408 to #421. **Five of the fourteen ship:** the
+  icvoss/django-brickwork#408 to #421. **Six of the fourteen ship:** the
   Documentation family's home (icvoss/django-brickwork#408), article
   (icvoss/django-brickwork#409), API reference
   (icvoss/django-brickwork#410), table of contents
-  (icvoss/django-brickwork#413) and navigation
-  (icvoss/django-brickwork#412), as `examples/docs/home.html`,
+  (icvoss/django-brickwork#413), navigation
+  (icvoss/django-brickwork#412) and search results
+  (icvoss/django-brickwork#411), as `examples/docs/home.html`,
   `examples/docs/article.html`, `examples/docs/api-reference.html`,
-  `examples/docs/toc.html` and `examples/docs/navigation.html`. They are
+  `examples/docs/toc.html`, `examples/docs/navigation.html` and
+  `examples/docs/search-results.html`. They are
   the first shipped templates to extend
   `brickwork/shell/docs.html`, and so the first bound by
   `tests/test_family_boundary.py`'s docs entry, which until then was a forward
-  guard catching nothing. The family's other two (search
-  results, versioned content) remain open.
+  guard catching nothing. The family's remaining gap is versioned content
+  (#414).
   icvoss/django-brickwork#412 uses `{% bw_nav orientation="horizontal" %}`
   for the section switcher (since 3.31.0 / #430). #413 records that no TOC
   component was needed: nested prose lists plus the existing `.bw-docs-toc`
-  on-this-page treatment cover the jobs.
+  on-this-page treatment cover the jobs. #411 uses family-neutral result
+  cards rather than marketing `.bw-listing-list__item`.
 - Define content accessibility rules: heading order, landmark structure, code
   labelling, table responsiveness, reading measure and reading progress.
 
