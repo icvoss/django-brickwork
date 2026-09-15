@@ -260,7 +260,9 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     (icvoss/django-brickwork#269) then added a preview-frame fixture pair,
     moving the real count to 75/150.) The proof collage work
     (icvoss/django-brickwork#572) then added a proof-collage fixture pair,
-    moving the real count to 76/152.)
+    moving the real count to 76/152.) The version-switch work
+    (icvoss/django-brickwork#414) then added a version-switch fixture pair,
+    moving the real count to 77/154.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -273,7 +275,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     document_count = manifest["counts"]["archetypes"] + manifest["counts"]["skeletons"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 152 + (document_count * 2)
+    assert _leading_int(value) == 154 + (document_count * 2)
     assert f"{document_count} catalogue documents x light and dark" in note
 
 
