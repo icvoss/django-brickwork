@@ -2355,6 +2355,52 @@ def render_theme_switch(theme: str, *, inject_js: bool = False) -> str:
     return page.replace("__JS_BOOT__", _JS_BOOT if inject_js else "")
 
 
+# --- token specimen (THM-016, icvoss/django-brickwork#268) -------------------
+#
+# token-specimen-<theme>.html covers the no-JS floor: dual light/dark panes,
+# load-bearing rows, contrast-pair chips, and the live swatch var() wiring.
+# The PE script that fills resolved values is stripped for file:// (same
+# pattern as marketing-overlay nojs); unit tests cover the script itself.
+
+_TOKEN_SPECIMEN_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token specimen (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Token specimen</h1>
+  __SPECIMEN__
+</main>
+</body>
+</html>
+"""
+
+_TOKEN_SPECIMEN_SCRIPT_TAG = re.compile(
+    r'<script src="[^"]*token-specimen\.js"[^>]*></script>',
+    re.IGNORECASE,
+)
+
+
+def _render_token_specimen_fixture() -> str:
+    from django.template import Context, Template
+
+    html = Template("{% load brickwork_theming %}{% bw_token_specimen %}").render(Context({}))
+    return _TOKEN_SPECIMEN_SCRIPT_TAG.sub("", html)
+
+
+def render_token_specimen(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _TOKEN_SPECIMEN_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__SPECIMEN__", _render_token_specimen_fixture())
+    )
+
+
 def render_theme_switch_invalid_root(theme: str) -> str:
     """The JS leg with a BOGUS data-theme baked into <html> from render time
     (icvoss/django-brickwork#117 review): the consumer-template-mistake case
@@ -4525,6 +4571,8 @@ def main() -> None:
             render_theme_switch_invalid_root(theme),
             written,
         )
+        # bw_token_specimen (#268): load-bearing dual-pane specimen, no-JS floor
+        _emit(OUT / f"token-specimen-{theme}.html", render_token_specimen(theme), written)
         # layout="compact" (#235): the no-JS floor (#272 review: the
         # pre-existing no-JS test only ever rendered layout="inline",
         # leaving the compact root's own reserved-pre-init state

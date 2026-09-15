@@ -141,7 +141,7 @@ def test_items_covers_every_shell_component_section_and_archetype() -> None:
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 6
-    assert len(items_by_kind("component")) == 64
+    assert len(items_by_kind("component")) == 65
     assert len(items_by_kind("section")) == 29
     assert len(items_by_kind("archetype")) == 28
     assert len(items_by_kind("skeleton")) == 1

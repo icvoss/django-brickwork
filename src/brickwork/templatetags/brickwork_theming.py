@@ -81,9 +81,12 @@ from django import template
 from django.template.exceptions import TemplateSyntaxError
 from django.utils.translation import gettext
 
+from brickwork.services.token_manifest import is_overridable, load_bearing
 from brickwork.services.tokens import BRAND_SLUG_RE
 
 register = template.Library()
+
+_TOKEN_SPECIMEN_THEMES = ("light", "dark")
 
 # ADR-060: one name per concept. "brand" stays opt-in per the ruling; the
 # other three are the always-available axes. Order here is the order the
@@ -321,4 +324,87 @@ def bw_theme_switch(
         "valid_values": valid_values,
         "layout": layout,
         "placement": resolved_placement,
+    }
+
+
+def _normalise_token_name(name: object) -> str:
+    """Accept ``--bw-color-accent`` or ``bw-color-accent``; reject anything else."""
+    if not isinstance(name, str) or not name.strip():
+        raise TemplateSyntaxError(f"bw_token_specimen tokens= entries must be non-empty --bw-* names, got {name!r}.")
+    cleaned = name.strip()
+    if not cleaned.startswith("--"):
+        cleaned = f"--{cleaned}"
+    if not cleaned.startswith("--bw-"):
+        raise TemplateSyntaxError(f"bw_token_specimen tokens= must name a --bw-* custom property, got {name!r}.")
+    if not is_overridable(cleaned):
+        raise TemplateSyntaxError(
+            f"bw_token_specimen tokens= names {cleaned!r}, which is not in the overridable "
+            f"token vocabulary (see brickwork.services.token_manifest)."
+        )
+    return cleaned
+
+
+def _rows_from_load_bearing() -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for entry in load_bearing():
+        row: dict[str, object] = {"name": entry["name"]}
+        if entry.get("contrastPair"):
+            row["contrast_pair"] = entry["contrastPair"]
+            row["min_contrast"] = entry.get("minContrast", 4.5)
+        if entry.get("conditional"):
+            row["conditional"] = True
+        if entry.get("authoredPerTheme"):
+            row["authored_per_theme"] = True
+        if entry.get("collapsesTo"):
+            row["collapses_to"] = entry["collapsesTo"]
+        rows.append(row)
+    return rows
+
+
+def _rows_from_token_names(tokens: object) -> list[dict[str, object]]:
+    if isinstance(tokens, str) or not hasattr(tokens, "__iter__"):
+        raise TemplateSyntaxError(
+            f"bw_token_specimen tokens= must be a sequence of --bw-* names (list/tuple), got {type(tokens).__name__}."
+        )
+    names = [_normalise_token_name(item) for item in tokens]
+    if not names:
+        raise TemplateSyntaxError("bw_token_specimen tokens= must not be empty.")
+    # Preserve load-bearing metadata when the caller re-lists a known name.
+    by_name = {entry["name"]: entry for entry in load_bearing()}
+    rows: list[dict[str, object]] = []
+    for name in names:
+        entry = by_name.get(name)
+        if entry is None:
+            rows.append({"name": name})
+            continue
+        row: dict[str, object] = {"name": name}
+        if entry.get("contrastPair"):
+            row["contrast_pair"] = entry["contrastPair"]
+            row["min_contrast"] = entry.get("minContrast", 4.5)
+        if entry.get("conditional"):
+            row["conditional"] = True
+        if entry.get("authoredPerTheme"):
+            row["authored_per_theme"] = True
+        if entry.get("collapsesTo"):
+            row["collapses_to"] = entry["collapsesTo"]
+        rows.append(row)
+    return rows
+
+
+@register.inclusion_tag("brickwork/components/_token_specimen.html")
+def bw_token_specimen(
+    tokens: object | None = None,
+    *,
+    heading: str | None = None,
+) -> dict[str, object]:
+    """Live visual specimen for brand token values (THM-016, #268).
+
+    Defaults to the manifest load-bearing set. Pass ``tokens=`` (a sequence of
+    ``--bw-*`` names) to present a custom list; each name must be overridable.
+    """
+    rows = _rows_from_load_bearing() if tokens is None else _rows_from_token_names(tokens)
+    return {
+        "heading": heading or gettext("Brand tokens"),
+        "rows": rows,
+        "themes": _TOKEN_SPECIMEN_THEMES,
     }

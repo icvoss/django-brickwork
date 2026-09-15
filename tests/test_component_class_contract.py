@@ -1084,6 +1084,9 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         # through the tag and checks its fixed, non-option-driven class set,
         # matching the dropdown/tabs/toast/combobox precedent above.
         "_theme_switch.html",
+        # bw_token_specimen's private render target (icvoss/django-brickwork#268):
+        # dedicated tests in test_token_specimen.py render through the tag.
+        "_token_specimen.html",
     }
     shell_dirs = {"shell"}
 

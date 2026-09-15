@@ -254,7 +254,9 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     covering divider, avatar(+group), chip, button_group, callout and
     list_item, moving the real count to 68/136.) The marketing header overlay
     work (icvoss/django-brickwork#565) then added five marketing-overlay
-    fixture pairs, moving the real count to 73/146.)
+    fixture pairs, moving the real count to 73/146.) The token specimen work
+    (icvoss/django-brickwork#268) then added a token-specimen fixture pair,
+    moving the real count to 74/148.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -267,7 +269,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     document_count = manifest["counts"]["archetypes"] + manifest["counts"]["skeletons"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 146 + (document_count * 2)
+    assert _leading_int(value) == 148 + (document_count * 2)
     assert f"{document_count} catalogue documents x light and dark" in note
 
 

@@ -1,0 +1,79 @@
+{% load i18n static %}
+{% comment %}
+Token specimen (THM-016, icvoss/django-brickwork#268): live visual
+presentation of brand token values from the cascade this element sits in.
+Private render target of {% bw_token_specimen %}
+(templatetags/brickwork_theming.py): never {% include %} directly; the tag
+builds the row list from the token manifest (or validates tokens=).
+
+Required context: none (the tag defaults to load_bearing()).
+
+Optional context (supplied only by the tag):
+  heading (str): section heading above the panes.
+  rows (list of dicts): {name, contrast_pair?, min_contrast?, conditional?,
+        authored_per_theme?, collapses_to?}. Built by the tag.
+  themes (tuple): theme pane ids, default ("light", "dark").
+
+States: none of its own. Each pane scopes data-theme so light and dark
+  resolve side by side without flipping the page theme. Progressive
+  enhancement (token-specimen.js) fills resolved computed values and
+  measured contrast ratios; without JS those cells stay empty and the
+  manifest minContrast floor still shows on contrast rows.
+Accessibility: the specimen is a section with an h2; each theme pane is a
+  labelled group; swatches are aria-hidden (the token name is the accessible
+  label); contrast sample chips carry an accessible name naming both tokens
+  and the required floor. Covered by axe.spec.mjs against
+  token-specimen-*.html, both themes.
+Responsive: panes stack to one column below --bw-breakpoint-md; row grid
+  remains name | swatch | value at every width, with the contrast sample
+  wrapping under the name when needed.
+{% endcomment %}
+<section class="bw-token-specimen" data-bw-token-specimen>
+  {% if heading %}<h2 class="bw-token-specimen__heading">{{ heading }}</h2>{% endif %}
+  <div class="bw-token-specimen__panes">
+    {% for theme in themes %}
+      <div class="bw-token-specimen__pane" data-theme="{{ theme }}">
+        <h3 class="bw-token-specimen__pane-label">
+          {% if theme == "light" %}{% translate "Light" %}{% else %}{% translate "Dark" %}{% endif %}
+        </h3>
+        <ul class="bw-token-specimen__list" role="list">
+          {% for row in rows %}
+            <li class="bw-token-specimen__row{% if row.contrast_pair %} bw-token-specimen__row--pair{% endif %}"
+                data-bw-token="{{ row.name }}"
+                {% if row.contrast_pair %}data-bw-token-pair="{{ row.contrast_pair }}" data-bw-min-contrast="{{ row.min_contrast }}"{% endif %}>
+              <div class="bw-token-specimen__meta">
+                <code class="bw-token-specimen__name">{{ row.name }}</code>
+                {% if row.conditional %}
+                  <span class="bw-token-specimen__flag">{% translate "conditional" %}</span>
+                {% endif %}
+                {% if row.authored_per_theme %}
+                  <span class="bw-token-specimen__flag">{% translate "per theme" %}</span>
+                {% endif %}
+                {% if row.collapses_to %}
+                  <span class="bw-token-specimen__flag">{% blocktranslate with target=row.collapses_to %}collapses to {{ target }}{% endblocktranslate %}</span>
+                {% endif %}
+              </div>
+              <span class="bw-token-specimen__swatch"
+                    style="background: var({{ row.name }})"
+                    aria-hidden="true"></span>
+              <code class="bw-token-specimen__value" data-bw-token-resolved></code>
+              {% if row.contrast_pair %}
+                <div class="bw-token-specimen__pair"
+                     style="background: var({{ row.contrast_pair }}); color: var({{ row.name }})"
+                     role="img"
+                     aria-label="{% blocktranslate with fg=row.name bg=row.contrast_pair floor=row.min_contrast %}{{ fg }} on {{ bg }}, must clear {{ floor }}:1{% endblocktranslate %}">
+                  <span class="bw-token-specimen__pair-sample" aria-hidden="true">Aa</span>
+                  <span class="bw-token-specimen__pair-floor">
+                    {% blocktranslate with floor=row.min_contrast %}≥ {{ floor }}:1{% endblocktranslate %}
+                  </span>
+                  <span class="bw-token-specimen__pair-measured" data-bw-contrast-measured hidden></span>
+                </div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  </div>
+  <script src="{% static 'brickwork/js/token-specimen.js' %}" defer></script>
+</section>
