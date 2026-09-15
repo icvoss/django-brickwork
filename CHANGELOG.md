@@ -10,6 +10,11 @@ versioning contract).
 
 ### Added
 
+- Brickwork Theme Phase D preview: `{% bw_token_specimen level="L3" %}` /
+  `L4` renders recommended tokens with live radius, elevation, type, and
+  spacing samples; THEME.md documents required shell/card/form/marketing
+  surfaces; `docs/examples/theming/theme-preview.html` sketches the
+  composition (icvoss/django-brickwork#599).
 - Brickwork Theme Phase C helpers (`brickwork.services.theme_profile`,
   re-exported from `brickwork.services.tokens`): `infer_theme_level`,
   `check_theme_level`, `recommended_tokens_for_level`, and kit-owned reporting.

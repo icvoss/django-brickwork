@@ -66,3 +66,28 @@ def test_shipped_pe_script_exists_beside_marketing_overlay() -> None:
     text = (root / "token-specimen.js").read_text(encoding="utf-8")
     assert "data-bw-token-resolved" in text
     assert "getComputedStyle" in text
+
+
+def test_level_l3_renders_radius_elevation_and_type_samples() -> None:
+    html = _render('{% bw_token_specimen level="L3" %}')
+    assert 'data-bw-token-kind="radius"' in html
+    assert 'data-bw-token-kind="elevation"' in html
+    assert 'data-bw-token-kind="type"' in html
+    assert "bw-token-specimen__sample--radius" in html
+    assert "border-radius: var(--bw-radius-md)" in html
+    assert "box-shadow: var(--bw-elevation-2)" in html
+    assert "font-family: var(--bw-font-family-sans)" in html
+    assert "Theme tokens (L3)" in html
+
+
+def test_level_and_tokens_are_mutually_exclusive() -> None:
+    with pytest.raises(TemplateSyntaxError, match="tokens= or level="):
+        _render(
+            '{% bw_token_specimen level="L2" tokens=tokens %}',
+            tokens=["--bw-color-accent"],
+        )
+
+
+def test_invalid_level_raises() -> None:
+    with pytest.raises(TemplateSyntaxError, match="level="):
+        _render('{% bw_token_specimen level="L9" %}')

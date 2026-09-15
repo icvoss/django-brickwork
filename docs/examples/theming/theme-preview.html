@@ -1,0 +1,30 @@
+{#
+  Brickwork Theme L3/L4 preview composition (Phase D / #599).
+  Documentation sketch: copy patterns into a consumer view after loading the
+  pack tokens.css and setting data-bw-brand (and data-density for L4).
+#}
+{% load brickwork_components brickwork_theming brickwork_forms %}
+{% comment %}
+Required L3/L4 proof surfaces (THEME.md):
+1. shell chrome (consumer bw_shell / docs_shell / marketing shell)
+2. card
+3. form (field + primary button)
+4. one marketing band
+plus {% bw_token_specimen level="L3" %} (or L4).
+{% endcomment %}
+
+<section class="bw-theme-preview" data-bw-theme-preview>
+  <h1>Theme preview</h1>
+
+  {% include "brickwork/components/_card.html" with title="Material card" body="Radius and elevation should follow the pack tokens." %}
+
+  <form method="post" action="#">
+    {% csrf_token %}
+    {% bw_field field=preview_field %}
+    {% bw_button label="Save" type="submit" variant="primary" %}
+  </form>
+
+  {% include "brickwork_marketing/components/_cta.html" with heading="Preview band" body="One marketing band under the brand." primary_label="Continue" primary_url="#" %}
+
+  {% bw_token_specimen level="L3" %}
+</section>

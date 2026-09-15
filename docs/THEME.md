@@ -126,6 +126,29 @@ Import order for a themed Tailwind consumer:
 
 `brickwork.css` alone does not emit a general utility layer.
 
+## Preview surfaces (L3 / L4)
+
+An L3 or L4 pack must prove overrides on **kit chrome**, not only swatches:
+
+1. Application **shell** (topbar / sidebar chrome)
+2. A **card**
+3. A **form** (at least one text field + primary button)
+4. One **marketing band** (hero or CTA section)
+
+Compose those from shipped brickwork tags, load the pack `tokens.css` after
+`brickwork.css`, set `data-bw-brand`, and render:
+
+```django
+{% load brickwork_theming %}
+{% bw_token_specimen level="L3" %}
+```
+
+``level="L3"`` / ``L4`` uses ``recommended_tokens_for_level`` so radius,
+elevation, type (and L4 space) samples are visible beside colours. Default
+``{% bw_token_specimen %}`` remains the load-bearing colour set.
+
+Worked composition: [examples/theming/theme-preview.html](examples/theming/theme-preview.html).
+
 ## Honesty rules
 
 1. Never claim "rebrand the whole system in 16 lines" as a full brand.
@@ -145,7 +168,7 @@ Import order for a themed Tailwind consumer:
 | `render_brand_css()` | Emitter for validated overrides (colours + L2 to L4 overridable values) |
 | `infer_theme_level` / `check_theme_level` | Pure level inference and claimed-vs-evidenced check (`brickwork.services.theme_profile`, re-exported from `brickwork.services.tokens`) |
 | `recommended_tokens_for_level` | Checklist-driven recommended token names per level |
-| `{% bw_token_specimen %}` | Live preview when wired (#268) |
+| `{% bw_token_specimen %}` | Live preview; `level="L3"`/`L4` shows material axes (#268, #599) |
 
 ### Level check (Phase C)
 

@@ -6,26 +6,29 @@ Private render target of {% bw_token_specimen %}
 (templatetags/brickwork_theming.py): never {% include %} directly; the tag
 builds the row list from the token manifest (or validates tokens=).
 
-Required context: none (the tag defaults to load_bearing()).
-
 Optional context (supplied only by the tag):
   heading (str): section heading above the panes.
-  rows (list of dicts): {name, contrast_pair?, min_contrast?, conditional?,
-        authored_per_theme?, collapses_to?}. Built by the tag.
+  rows (list of dicts): {name, kind, contrast_pair?, min_contrast?, conditional?,
+        authored_per_theme?, collapses_to?}. Built by the tag. ``kind`` is
+        colour | radius | elevation | type | space | other and selects the
+        live sample (swatch, rounded tile, elevated tile, type sample, or
+        spacing bar) so L3/L4 axes are visible without DevTools.
   themes (tuple): theme pane ids, default ("light", "dark").
 
+Tag options: default load-bearing colours; ``tokens=`` custom list;
+  ``level="L1"|"L2"|"L3"|"L4"`` uses recommended_tokens_for_level (THEME.md).
 States: none of its own. Each pane scopes data-theme so light and dark
   resolve side by side without flipping the page theme. Progressive
   enhancement (token-specimen.js) fills resolved computed values and
   measured contrast ratios; without JS those cells stay empty and the
   manifest minContrast floor still shows on contrast rows.
 Accessibility: the specimen is a section with an h2; each theme pane is a
-  labelled group; swatches are aria-hidden (the token name is the accessible
-  label); contrast sample chips carry an accessible name naming both tokens
-  and the required floor. Covered by axe.spec.mjs against
+  labelled group; visual samples are aria-hidden (the token name is the
+  accessible label); contrast sample chips carry an accessible name naming
+  both tokens and the required floor. Covered by axe.spec.mjs against
   token-specimen-*.html, both themes.
 Responsive: panes stack to one column below --bw-breakpoint-md; row grid
-  remains name | swatch | value at every width, with the contrast sample
+  remains name | sample | value at every width, with the contrast sample
   wrapping under the name when needed.
 {% endcomment %}
 <section class="bw-token-specimen" data-bw-token-specimen>
@@ -38,8 +41,9 @@ Responsive: panes stack to one column below --bw-breakpoint-md; row grid
         </h3>
         <ul class="bw-token-specimen__list" role="list">
           {% for row in rows %}
-            <li class="bw-token-specimen__row{% if row.contrast_pair %} bw-token-specimen__row--pair{% endif %}"
+            <li class="bw-token-specimen__row{% if row.contrast_pair %} bw-token-specimen__row--pair{% endif %} bw-token-specimen__row--{{ row.kind }}"
                 data-bw-token="{{ row.name }}"
+                data-bw-token-kind="{{ row.kind }}"
                 {% if row.contrast_pair %}data-bw-token-pair="{{ row.contrast_pair }}" data-bw-min-contrast="{{ row.min_contrast }}"{% endif %}>
               <div class="bw-token-specimen__meta">
                 <code class="bw-token-specimen__name">{{ row.name }}</code>
@@ -53,9 +57,30 @@ Responsive: panes stack to one column below --bw-breakpoint-md; row grid
                   <span class="bw-token-specimen__flag">{% blocktranslate with target=row.collapses_to %}collapses to {{ target }}{% endblocktranslate %}</span>
                 {% endif %}
               </div>
-              <span class="bw-token-specimen__swatch"
-                    style="background: var({{ row.name }})"
-                    aria-hidden="true"></span>
+              {% if row.kind == "colour" %}
+                <span class="bw-token-specimen__swatch"
+                      style="background: var({{ row.name }})"
+                      aria-hidden="true"></span>
+              {% elif row.kind == "radius" %}
+                <span class="bw-token-specimen__sample bw-token-specimen__sample--radius"
+                      style="border-radius: var({{ row.name }})"
+                      aria-hidden="true"></span>
+              {% elif row.kind == "elevation" %}
+                <span class="bw-token-specimen__sample bw-token-specimen__sample--elevation"
+                      style="box-shadow: var({{ row.name }})"
+                      aria-hidden="true"></span>
+              {% elif row.kind == "type" %}
+                <span class="bw-token-specimen__sample bw-token-specimen__sample--type"
+                      style="font-family: var({{ row.name }})"
+                      aria-hidden="true">Ag</span>
+              {% elif row.kind == "space" %}
+                <span class="bw-token-specimen__sample bw-token-specimen__sample--space"
+                      style="inline-size: calc(var({{ row.name }}) * 8)"
+                      aria-hidden="true"></span>
+              {% else %}
+                <span class="bw-token-specimen__sample bw-token-specimen__sample--other"
+                      aria-hidden="true"></span>
+              {% endif %}
               <code class="bw-token-specimen__value" data-bw-token-resolved></code>
               {% if row.contrast_pair %}
                 <div class="bw-token-specimen__pair"

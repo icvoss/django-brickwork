@@ -155,7 +155,13 @@ stylesheet and setting `data-bw-brand` when the pack uses one.
 {% load brickwork_theming %}
 {% bw_token_specimen %}
 {% bw_token_specimen tokens=accent_delta heading="Accent delta" %}
+{% bw_token_specimen level="L3" %}
 ```
+
+L3/L4 packs: use ``level="L3"`` or ``level="L4"`` so radius, elevation, and
+type (and L4 spacing) render as live samples, then also compose shell, card,
+form, and one marketing band under the pack brand (see [THEME.md](THEME.md)
+Preview surfaces).
 
 Do not treat static open-design-style preview HTML as a second component kit.
 
