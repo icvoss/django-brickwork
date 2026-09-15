@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 68,
     "sections": 29,
-    "archetypes": 39,
+    "archetypes": 40,
     "skeletons": 1
   },
   "families": [
@@ -22,7 +22,7 @@
     },
     {
       "name": "Editorial and publishing",
-      "archetypeCount": 6,
+      "archetypeCount": 7,
       "sectionCount": 0
     },
     {
@@ -464,6 +464,22 @@
       ]
     },
     {
+      "name": "examples/editorial/reading-progress.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/reading-progress.html",
+      "docSource": "examples/editorial/reading-progress.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_progress.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/editorial/related.html",
       "kind": "archetype",
       "family": "Editorial and publishing",
@@ -707,6 +723,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/reading-progress.html",
         "editorial/related.html",
         "editorial/series.html"
       ],
@@ -778,6 +795,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/reading-progress.html",
         "editorial/related.html",
         "editorial/series.html"
       ],
@@ -1062,6 +1080,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/reading-progress.html",
         "editorial/related.html",
         "editorial/series.html"
       ],
@@ -1364,7 +1383,9 @@
       "templatePath": "brickwork/components/_progress.html",
       "docSource": "brickwork/components/_progress.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "editorial/reading-progress.html"
+      ],
       "usedBySections": [],
       "usedBySkeleton": []
     },
@@ -1428,6 +1449,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/reading-progress.html",
         "editorial/related.html",
         "editorial/series.html"
       ],
@@ -2071,6 +2093,7 @@
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html",
+        "editorial/reading-progress.html",
         "editorial/related.html",
         "editorial/series.html"
       ],

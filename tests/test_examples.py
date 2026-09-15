@@ -1159,6 +1159,16 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "related_state": "ready",
     },
+    "editorial/reading-progress.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Operations", "url": "/journal/operations/"},
+            {"label": "Why we moved reminder thresholds"},
+        ],
+        "docs_nav_label": "On this page",
+        "docs_search_action": "/journal/search/",
+        "progress_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -2452,3 +2462,48 @@ def test_the_editorial_related_empty_and_error_states_replace_the_body() -> None
     for html, label in ((empty, "empty"), (error, "error")):
         assert 'role="search"' in html, f"the {label} branch dropped search"
         assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_reading_progress_empty_and_error_states_replace_the_body() -> None:
+    """editorial/reading-progress.html's three progress_state branches."""
+    template = _example_engine().get_template("editorial/reading-progress.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/reading-progress.html"])
+
+    ready = template.render(Context({**base, "progress_state": "ready"}))
+    empty = template.render(Context({**base, "progress_state": "empty"}))
+    error = template.render(Context({**base, "progress_state": "error"}))
+
+    assert "data-bw-reading-progress" in ready
+    assert "bw-progress" in ready
+    assert 'aria-hidden="true"' in ready
+    assert "bw-prose" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "On this page" in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-progress" not in empty
+    assert "bw-prose" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-progress" not in error
+    assert "bw-prose" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_reading_progress_composes_progress_not_a_new_primitive() -> None:
+    """#421 / #260: scroll glue updates --bw-progress-value on _progress.html."""
+    template = _example_engine().get_template("editorial/reading-progress.html")
+    html = template.render(Context(_EXAMPLE_CONTEXTS["editorial/reading-progress.html"]))
+
+    assert 'include "brickwork/components/_progress.html"' not in html
+    assert "bw-progress__fill" in html
+    assert "--bw-progress-value" in html
+    assert "data-bw-reading-progress-article" in html
+    assert "setProperty" in html
+    assert "aria-hidden" in html

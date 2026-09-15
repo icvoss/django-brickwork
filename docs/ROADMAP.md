@@ -234,8 +234,8 @@ as well as product applications.
   list omitted navigation, table of contents, versioned content, related
   content and reading progress, and merged the two families' separate article
   archetypes into one. All fourteen are filed as
-  icvoss/django-brickwork#408 to #421. **Thirteen of the fourteen ship**
-  (Documentation complete at 7 of 7; Editorial open at 6 of 7): documentation
+  icvoss/django-brickwork#408 to #421. **Fourteen of the fourteen ship**
+  (Documentation complete at 7 of 7; Editorial complete at 7 of 7): documentation
   home (icvoss/django-brickwork#408), article
   (icvoss/django-brickwork#409), API reference
   (icvoss/django-brickwork#410), table of contents
@@ -247,8 +247,9 @@ as well as product applications.
   (icvoss/django-brickwork#416), editorial category
   (icvoss/django-brickwork#417), editorial archive
   (icvoss/django-brickwork#418), editorial series
-  (icvoss/django-brickwork#419), and editorial related content
-  (icvoss/django-brickwork#420), as `examples/docs/home.html`,
+  (icvoss/django-brickwork#419), editorial related content
+  (icvoss/django-brickwork#420), and editorial reading-progress
+  (icvoss/django-brickwork#421), as `examples/docs/home.html`,
   `examples/docs/article.html`, `examples/docs/api-reference.html`,
   `examples/docs/toc.html`, `examples/docs/navigation.html`,
   `examples/docs/search-results.html`,
@@ -257,8 +258,9 @@ as well as product applications.
   `examples/editorial/author.html`,
   `examples/editorial/category.html`,
   `examples/editorial/archive.html`,
-  `examples/editorial/series.html` and
-  `examples/editorial/related.html`. The Documentation pages are
+  `examples/editorial/series.html`,
+  `examples/editorial/related.html` and
+  `examples/editorial/reading-progress.html`. The Documentation pages are
   the first shipped templates to extend
   `brickwork/shell/docs.html`, and so the first bound by
   `tests/test_family_boundary.py`'s docs entry, which until then was a forward
@@ -282,7 +284,9 @@ as well as product applications.
   with an upcoming state and an in-series rail (distinct from category topic
   grouping and archive chronology). The editorial related-content page
   reuses the same shell with grouped continue-reading cards; the article
-  sibling rail remains only a preview and does not close #420.
+  sibling rail remains only a preview and does not close #420. Reading
+  progress (#421) composes `_progress.html` with consumer scroll glue and an
+  aria-hidden decorative bar (DESIGN.md); it is not a new primitive.
 - Define content accessibility rules: heading order, landmark structure, code
   labelling, table responsiveness, reading measure and reading progress.
 

@@ -1,0 +1,180 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+An editorial reading-progress pattern: scroll glue over `_progress.html`
+(icvoss/django-brickwork#421), proving the #260 ruling that reading progress
+is composition, not a new primitive.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_label           rail / jump label (this page uses "On this page")
+    docs_search_action       the URL bw_search in the site header submits to
+    progress_state           "ready" | "empty" | "error"
+The article copy and the scroll-glue script below are typed into the template.
+
+WHY THIS IS NOT A NEW COMPONENT:
+
+`_progress.html` already ships the visual and ARIA surface of a determinate
+progressbar (role, name, valuemin/max/now, `--bw-progress-value` fill). What
+was missing was scroll-tracking glue: compute a percentage from how far the
+reader has moved through the article and write it to that custom property.
+That glue is consumer JavaScript against a shipped component. If building
+this page had shown a primitive was required, that finding would overturn
+the #260 ruling and would be filed with evidence. It did not.
+
+ACCESSIBILITY CHOICE (deliberate):
+
+A continuously-updating `aria-valuenow` on a live progressbar is announced
+repeatedly by some screen readers and becomes noise (docs/DESIGN.md section
+6, Reading progress). This page treats the scroll indicator as decorative:
+the track sits in an `aria-hidden="true"` region so AT ignores the live
+percentage, while the document itself (headings, prose, on-this-page TOC)
+carries the reading structure. Motion stays CSS-owned on `_progress.html`'s
+fill; `prefers-reduced-motion` already gates the indeterminate sweep, and
+the determinate fill here has no animated sweep of its own beyond width
+changes driven by the custom property.
+
+States: progress_state is the page's real branch (same shape as the article
+archetype so the pattern stays copyable beside empty/error editorial pages).
+  "ready": sticky decorative progress + long-form article + TOC rail.
+  "empty": article unavailable; no progress chrome.
+  "error": store failed; bw_alert danger; no progress chrome.
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: decorative progress is aria-hidden; TOC and headings remain
+  the orientation path; empty and error keep search + breadcrumbs.
+Responsive: sticky bar spans the reading column; inherits docs shell.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}{% if progress_state == "ready" %}Reading progress - Northwind Journal{% else %}Article - Northwind Journal{% endif %}{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/journal/">{% translate "Northwind Journal" %}</a>
+  {% bw_search docs_search_action placeholder="Search the journal..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  {% if progress_state == "ready" %}
+  <h1>{% translate "Why we moved reminder thresholds" %}</h1>
+  <p>{% translate "A long-form piece with scroll-linked reading progress composed over _progress.html." %}</p>
+  {% elif progress_state == "empty" %}
+  <h1>{% translate "Article unavailable" %}</h1>
+  <p>{% translate "This piece is not published yet." %}</p>
+  {% else %}
+  <h1>{% translate "Article unavailable" %}</h1>
+  <p>{% translate "The journal could not load this piece." %}</p>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if progress_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="Not published yet" body="This article is still in draft, or it was withdrawn. Browse the journal for live pieces." icon="document" action_href="/journal/" action_label="Back to the journal" %}
+
+  {% elif progress_state == "error" %}
+  {% bw_alert "The journal could not load this article. Retry in a moment, or open another piece from the journal home." title="Could not load article" variant="danger" %}
+
+  {% else %}
+  {% comment %}
+  Decorative sticky reading progress. aria-hidden so live percentage updates
+  do not spam screen readers (DESIGN.md). data-bw-reading-progress marks the
+  root the consumer script updates; the fill starts at 0.
+  {% endcomment %}
+  <div
+    class="bw-editorial-reading-progress"
+    data-bw-reading-progress
+    aria-hidden="true"
+    style="position: sticky; inset-block-start: 0; z-index: 1; padding-block: 0.5rem; background: var(--bw-color-bg, Canvas);"
+  >
+    {% include "brickwork/components/_progress.html" with label="Reading progress" value=0 %}
+  </div>
+
+  <nav class="bw-docs-toc" aria-labelledby="bw-reading-progress-toc-heading">
+    <p class="bw-docs-toc__title" id="bw-reading-progress-toc-heading">{% translate "On this page" %}</p>
+    <ol class="bw-docs-toc__list">
+      <li><a href="#what-changed">{% translate "What changed" %}</a></li>
+      <li><a href="#the-evidence">{% translate "The evidence" %}</a></li>
+      <li><a href="#what-we-kept">{% translate "What we kept" %}</a></li>
+    </ol>
+  </nav>
+
+  <div class="bw-prose" data-bw-reading-progress-article>
+    <p class="bw-prose__lede">
+      {% translate "Finance teams told us the seven-day overdue window felt polite. What it actually did was leave a genuine dispute unanswered for three days while the system waited to escalate." %}
+    </p>
+
+    <h2 id="what-changed">
+      {% translate "What changed" %}
+      <a class="bw-prose__anchor" href="#what-changed" aria-label="{% translate 'Link to the What changed section' %}">#</a>
+    </h2>
+    <p>
+      {% translate "The due-today stage stayed put. Overdue now starts on day three. Final notice still lands on day fourteen. Collections handoff is unchanged. The only deliberate move was bringing the first human-shaped nudge forward." %}
+    </p>
+    <p>
+      {% translate "Scroll this column to drive the decorative progress bar above. The bar is aria-hidden; headings and the on-this-page list remain the accessible orientation path." %}
+    </p>
+
+    <h2 id="the-evidence">
+      {% translate "The evidence" %}
+      <a class="bw-prose__anchor" href="#the-evidence" aria-label="{% translate 'Link to the The evidence section' %}">#</a>
+    </h2>
+    <p>
+      {% translate "Across six hundred Northwind accounts, the share that needed a call after the overdue stage dropped once the threshold moved. Earlier stages recover more without a call." %}
+    </p>
+    <p>
+      {% translate "The figure is the shape of that shift, not a promise for every ledger. Teams still own their calendar; Northwind only ships the mechanism." %}
+    </p>
+
+    <h2 id="what-we-kept">
+      {% translate "What we kept" %}
+      <a class="bw-prose__anchor" href="#what-we-kept" aria-label="{% translate 'Link to the What we kept section' %}">#</a>
+    </h2>
+    <p>
+      {% translate "Dispute flags still pause escalation. Prediction still ranks who is likely to slip. The schedule is still a consumer-owned calendar, not a Northwind policy dressed as product." %}
+    </p>
+    <p>
+      {% translate "Further reading lives on the related-content page (#420), not in this progress demonstration." %}
+    </p>
+  </div>
+
+  {% comment %}
+  Consumer scroll glue. Updates --bw-progress-value on the fill. Not a
+  package Alpine registration: this is the documented composition pattern.
+  {% endcomment %}
+  <script>
+    (function () {
+      var root = document.querySelector("[data-bw-reading-progress]");
+      var article = document.querySelector("[data-bw-reading-progress-article]");
+      if (!root || !article) return;
+      var fill = root.querySelector(".bw-progress__fill");
+      if (!fill) return;
+      function update() {
+        var total = article.offsetHeight - window.innerHeight;
+        var top = article.getBoundingClientRect().top + window.scrollY;
+        var y = window.scrollY - top;
+        var pct = total <= 0 ? 100 : Math.round(Math.min(100, Math.max(0, (y / total) * 100)));
+        fill.style.setProperty("--bw-progress-value", String(pct));
+      }
+      window.addEventListener("scroll", update, { passive: true });
+      window.addEventListener("resize", update);
+      update();
+    })();
+  </script>
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% if progress_state == "ready" %}
+  <p>{% translate "On this page" %}</p>
+  <ul>
+    <li><a href="#what-changed">{% translate "What changed" %}</a></li>
+    <li><a href="#the-evidence">{% translate "The evidence" %}</a></li>
+    <li><a href="#what-we-kept">{% translate "What we kept" %}</a></li>
+  </ul>
+  {% endif %}
+{% endblock %}
