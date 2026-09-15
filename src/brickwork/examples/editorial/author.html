@@ -1,0 +1,135 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+An editorial author profile: the page a byline links to
+(icvoss/django-brickwork#416). Second archetype in the Editorial and
+publishing family.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_label           rail / jump label (this page uses "Also writing")
+    docs_search_action       the URL bw_search in the site header submits to
+    author_name              display name (profile heading and avatar label)
+    author_initials          initials fallback for {% include %} _avatar.html
+    author_role              short role line under the name (e.g. "Staff writer")
+    author_bio               longer biography paragraph
+    articles                 list of {title, href, snippet, category_label,
+                              category_href, published_on, reading_time}, or ()
+    author_state             "ready" | "empty" | "error"
+The headings and static rail copy below are typed into the template.
+
+WHY THIS PAGE EXTENDS THE DOCS SHELL, NOT A NEW EDITORIAL SHELL:
+
+Same deciding fact as examples/editorial/article.html and ADR-091: reading
+column plus optional rail, site chrome outside <main>. An author profile is
+still a journal reading surface; inventing a parallel shell would fork the
+same seams. Family taxonomy stays the examples/ directory
+(`editorial/` -> "Editorial and publishing").
+
+WHAT THIS PAGE IS FOR:
+
+The article byline already names the author and links here. This page is the
+full profile: portrait or initials, bio, and the author's published pieces as
+a list. It is not marketing #116 (person / portrait section on a campaign
+page); that issue stays demand-gated unless the engage homepage is the
+consumer.
+
+ARTICLE ROWS ARE FAMILY-NEUTRAL CARDS, not .bw-listing-list__item. That
+listing class is marketing-family (tests/test_family_boundary.py). Each piece
+is an interactive bordered bw-card whose whole surface is the link, matching
+docs/search-results.html and the docs home start-here cards. Category text
+on the card is plain meta, not a nested link: nesting an interactive control
+inside the card's <a> would break the single-link surface.
+
+States: author_state is the page's real branch.
+  "ready": profile header, article cards, category rail.
+  "empty": the author is known but has no published pieces yet (or they were
+    all withdrawn). Profile header stays so the reader knows who they found;
+    the list band is _empty_state.html. Chrome and breadcrumbs stay.
+  "error": the content store failed. bw_alert danger; no invented profile.
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: avatar aria-label matches author_name; article cards are real
+  <a> elements; empty and error keep search + breadcrumbs. Role and bio are
+  text, not colour alone.
+Responsive: inherits the docs shell; article cards stack in one column so
+  snippets stay readable (same craft as docs search-results).
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}{% if author_state == "error" %}Author - Northwind Journal{% else %}{{ author_name }} - Northwind Journal{% endif %}{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/journal/">{% translate "Northwind Journal" %}</a>
+  {% bw_search docs_search_action placeholder="Search the journal..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  {% if author_state == "error" %}
+  <h1>{% translate "Author unavailable" %}</h1>
+  <p>{% translate "The journal could not load this author." %}</p>
+  {% else %}
+  <p>
+    {% include "brickwork/components/_avatar.html" with initials=author_initials aria_label=author_name size="lg" %}
+  </p>
+  <h1>{{ author_name }}</h1>
+  <p>{{ author_role }}</p>
+  <p>{{ author_bio }}</p>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if author_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No published pieces yet" body="This author has nothing live in the journal right now. Browse other writers from the journal home, or check back after the next issue." icon="document" action_href="/journal/" action_label="Back to the journal" %}
+
+  {% elif author_state == "error" %}
+  {% bw_alert "The journal could not load this author profile. Retry in a moment, or open another piece from the journal home." title="Could not load author" variant="danger" %}
+
+  {% else %}
+  <div class="bw-section-stack">
+    <section aria-labelledby="author-articles-heading">
+      <h2 id="author-articles-heading" class="bw-band-heading">
+        {% blocktranslate count counter=articles|length trimmed %}
+          {{ counter }} published piece
+        {% plural %}
+          {{ counter }} published pieces
+        {% endblocktranslate %}
+      </h2>
+      {% for article in articles %}
+      <a class="bw-card bw-card--interactive bw-card--bordered" href="{{ article.href }}">
+        <h3 class="bw-card__title">{{ article.title }}</h3>
+        <div class="bw-card__body">
+          <p>{{ article.snippet }}</p>
+          <p>
+            {{ article.category_label }}
+            · <time datetime="{{ article.published_iso }}">{{ article.published_on }}</time>
+            · {{ article.reading_time }}
+          </p>
+        </div>
+      </a>
+      {% endfor %}
+    </section>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% comment %}
+  Rail content only: the shell already wraps this block in <nav>. Category
+  links preview the category archetype (#417) without claiming it. Empty and
+  error leave the rail blank so the disclosure has nothing to invent.
+  {% endcomment %}
+  {% if author_state == "ready" %}
+  <p>{% translate "Also writing in" %}</p>
+  <ul>
+    <li><a href="/journal/operations/">{% translate "Operations" %}</a></li>
+    <li><a href="/journal/product/">{% translate "Product" %}</a></li>
+    <li><a href="/journal/customers/">{% translate "Customers" %}</a></li>
+  </ul>
+  {% endif %}
+{% endblock %}

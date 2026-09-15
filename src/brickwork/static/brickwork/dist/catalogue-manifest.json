@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 68,
     "sections": 29,
-    "archetypes": 34,
+    "archetypes": 35,
     "skeletons": 1
   },
   "families": [
@@ -22,7 +22,7 @@
     },
     {
       "name": "Editorial and publishing",
-      "archetypeCount": 1,
+      "archetypeCount": 2,
       "sectionCount": 0
     },
     {
@@ -417,6 +417,22 @@
       ]
     },
     {
+      "name": "examples/editorial/author.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/author.html",
+      "docSource": "examples/editorial/author.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_avatar.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/marketing/about.html",
       "kind": "archetype",
       "family": "Marketing and public web",
@@ -625,7 +641,8 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
-        "editorial/article.html"
+        "editorial/article.html",
+        "editorial/author.html"
       ],
       "usedBySections": [
         "sections/content/callout.html"
@@ -640,7 +657,8 @@
       "docSource": "brickwork/components/_avatar.html",
       "consumption": "include",
       "usedByArchetypes": [
-        "editorial/article.html"
+        "editorial/article.html",
+        "editorial/author.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -688,7 +706,8 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
-        "editorial/article.html"
+        "editorial/article.html",
+        "editorial/author.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -967,7 +986,8 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
-        "editorial/article.html"
+        "editorial/article.html",
+        "editorial/author.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1328,7 +1348,8 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
-        "editorial/article.html"
+        "editorial/article.html",
+        "editorial/author.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1966,7 +1987,8 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
-        "editorial/article.html"
+        "editorial/article.html",
+        "editorial/author.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
