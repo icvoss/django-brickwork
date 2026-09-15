@@ -1016,6 +1016,27 @@ for _component, _option, _value, _css_class in _VOCABULARIES:
             )
         )
         continue
+    if _component == "_slide_over":
+        # size / placement / header_recipe / footer_recipe share value
+        # spellings (md, end, muted, actions). Binding every non-size value
+        # as placement= (the old lambda) emits bw-slide-over--muted etc with
+        # no CSS rule. Pass the real option name; footer recipes need a
+        # consumer footer so the region selector also has something to style.
+        _slide_blocks = "{% block slide_over_body %}<p>Body.</p>{% endblock %}"
+        if _option == "footer_recipe":
+            _slide_blocks += (
+                '{% block slide_over_footer %}<footer class="bw-slide-over__footer">'
+                "<button type='button'>Save</button></footer>{% endblock %}"
+            )
+        _COMPONENT_RENDERS[f"{_component} {_option}={_value!r} (vocabulary)"] = (
+            lambda option=_option, value=_value, blocks=_slide_blocks: _extend(
+                "brickwork/components/_slide_over.html",
+                blocks,
+                title="Panel",
+                **{option: value},
+            )
+        )
+        continue
     _builder = _VOCABULARY_CONTEXTS.get(_component)
     if _builder is None:
         continue  # covered directly above with a fixed value already
