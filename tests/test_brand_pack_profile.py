@@ -36,9 +36,7 @@ def test_example_brand_packs_declare_profile_level() -> None:
         profile = (pack / "PROFILE.md").read_text(encoding="utf-8")
         match = _LEVEL_RE.search(profile)
         assert match is not None, f"{slug}: PROFILE.md has no 'Level claimed: Ln' line"
-        assert match.group(1) == expected, (
-            f"{slug}: claimed {match.group(1)!r}, expected {expected!r}"
-        )
+        assert match.group(1) == expected, f"{slug}: claimed {match.group(1)!r}, expected {expected!r}"
         assert _THEME_RE.search(profile), f"{slug}: PROFILE.md must cite THEME.md"
 
         design = (pack / "DESIGN.md").read_text(encoding="utf-8")
