@@ -143,7 +143,7 @@ def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 6
     assert len(items_by_kind("component")) == 68
     assert len(items_by_kind("section")) == 29
-    assert len(items_by_kind("archetype")) == 37
+    assert len(items_by_kind("archetype")) == 38
     assert len(items_by_kind("skeleton")) == 1
 
 

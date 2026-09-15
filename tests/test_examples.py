@@ -1034,6 +1034,62 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "archive_state": "ready",
     },
+    "editorial/series.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Series", "url": "/journal/series/"},
+            {"label": "Reminder thresholds"},
+        ],
+        "docs_nav_label": "In this series",
+        "docs_search_action": "/journal/search/",
+        "series_title": "Reminder thresholds",
+        "series_description": (
+            "Four parts on why Northwind moved overdue from day seven to day "
+            "three, what the evidence showed, and what stayed put."
+        ),
+        "parts": [
+            {
+                "number": 1,
+                "title": "Why we moved reminder thresholds",
+                "href": "/journal/series/reminder-thresholds/1/",
+                "snippet": ("Three days beats seven when the goal is a conversation, not a chase."),
+                "status": "ready",
+                "published_on": "12 August 2026",
+                "published_iso": "2026-08-12",
+                "reading_time": "8 min read",
+            },
+            {
+                "number": 2,
+                "title": "The evidence from six hundred accounts",
+                "href": "/journal/series/reminder-thresholds/2/",
+                "snippet": ("Median recovery by stage, and why earlier contact reduced the share that needed a call."),
+                "status": "ready",
+                "published_on": "19 August 2026",
+                "published_iso": "2026-08-19",
+                "reading_time": "7 min read",
+            },
+            {
+                "number": 3,
+                "title": "What we kept unchanged",
+                "href": "/journal/series/reminder-thresholds/3/",
+                "snippet": (
+                    "Dispute flags, prediction ranking and the day-fourteen final notice stayed where they were."
+                ),
+                "status": "ready",
+                "published_on": "26 August 2026",
+                "published_iso": "2026-08-26",
+                "reading_time": "5 min read",
+            },
+            {
+                "number": 4,
+                "title": "How to adopt the calendar in your ledger",
+                "href": "/journal/series/reminder-thresholds/4/",
+                "snippet": ("A consumer-owned schedule, not a Northwind policy dressed as product."),
+                "status": "upcoming",
+            },
+        ],
+        "series_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -2256,6 +2312,37 @@ def test_the_editorial_archive_empty_and_error_states_replace_the_body() -> None
     assert 'role="alert"' not in ready
     assert "Jump by year" in ready
 
+    assert "bw-empty-state" in empty
+    assert "bw-card" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-card" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_series_empty_and_error_states_replace_the_body() -> None:
+    """editorial/series.html's three series_state branches."""
+    template = _example_engine().get_template("editorial/series.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/series.html"])
+
+    ready = template.render(Context({**base, "series_state": "ready"}))
+    empty = template.render(Context({**base, "series_state": "empty", "parts": ()}))
+    error = template.render(Context({**base, "series_state": "error"}))
+
+    assert "Reminder thresholds" in ready
+    assert "bw-card" in ready
+    assert "Part 1:" in ready
+    assert "Upcoming" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "In this series" in ready
+
+    assert "Reminder thresholds" in empty
     assert "bw-empty-state" in empty
     assert "bw-card" not in empty
     assert 'role="alert"' not in empty
