@@ -89,11 +89,13 @@ There is no update command and nothing here reaches back into it later
 the same seams by hand for a project that already has its own settings and
 routing to wire brickwork into, rather than starting from nothing.
 
-## A first taste of re-skinning
+## A first taste of re-skinning (L1 Recolour)
 
-Seven load-bearing colour tokens make a brand: base-theme derives the hover
-shades, subtle tints, muted foregrounds, status tiers and component roles
-from these values, live in the browser, with no rebuild.
+Seven load-bearing colour tokens start an **L1 Brickwork Theme**
+([THEME.md](THEME.md)): base-theme derives the hover shades, subtle tints,
+muted foregrounds, status tiers and component roles from these values, live
+in the browser, with no rebuild. That is recolour, not a full brand; add fonts
+(L2), material axes (L3), and rhythm (L4) when you need them.
 
 ```css
 /* your brand.css, loaded after brickwork's tokens.css */
@@ -120,7 +122,7 @@ from these values, live in the browser, with no rebuild.
 Load order is load-bearing and fails silently: your brand stylesheet must
 load after brickwork's, or your overrides lose the cascade.
 
-These seven are the load-bearing minimum, not the whole story.
+These seven are the L1 load-bearing minimum, not the whole theme story.
 `--bw-color-fg-on-accent` is authored per theme, never derived, and must be
 verified at 4.5:1 against its own accent: white is not a safe default, the
 safe value flips with the accent's lightness, and a dark theme with a light
@@ -154,9 +156,10 @@ for the worked failure.
   how to use one.
 - **Token reference:** [docs/DESIGN.md](DESIGN.md) is the authoritative
   list of every `--bw-*` token, its default, and its derivation rule.
-- **A portable brand documentation pack:** [docs/brand-pack.md](brand-pack.md)
-  binds measured identity prose to a `--bw-*` override delta and a preview
-  path; copy the fictional
+- **Brickwork Theme:** [docs/THEME.md](THEME.md) defines L1 to L4 profiles on
+  `--bw-*`. **A portable brand documentation pack:** [docs/brand-pack.md](brand-pack.md)
+  binds measured identity prose to a `--bw-*` override delta, PROFILE level,
+  and a preview path; copy the fictional
   [northline skeleton](examples/brand-pack/northline/) to start.
 - **Re-skinning the whole site:** [docs/BRANDING.md](BRANDING.md) takes the
   seven tokens above further: dark mode, the four theme axes, and dynamic

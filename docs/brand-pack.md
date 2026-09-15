@@ -1,7 +1,8 @@
 # Brand-pack contract for brickwork consumers
 
 **Status:** normative consumer documentation contract.
-**Companion:** [BRANDING.md](BRANDING.md) teaches the override mechanism and
+**Companion:** [THEME.md](THEME.md) (Brickwork Theme product and L1 to L4
+ladder, ADR-110); [BRANDING.md](BRANDING.md) teaches the override mechanism and
 axis recipes; [DESIGN.md](DESIGN.md) is the authoritative `--bw-*` vocabulary.
 This file defines the portable per-brand documentation unit a consumer (or
 agent) authors when a brand needs measured identity prose bound to an exact
@@ -27,18 +28,34 @@ A consumer brand pack is a directory containing at least:
 
 | File | Job |
 |---|---|
+| `PROFILE.md` | Declares claimed theme level (L1 to L4), lists authored axes/tokens, preview routes, deferred axes, and contrast notes. See [THEME.md](THEME.md). |
 | `DESIGN.md` | Measured identity prose. Required H2 jobs below. Every numeric claim cites a `--bw-*` override or is marked deferred to base-theme. |
 | `tokens.css` (or a clearly named fragment such as `brand.css`) | Only the override delta: `--bw-*` custom properties the brand authors. Load this stylesheet **after** the package `tokens.css` / `brickwork.css` so the cascade wins ([BRANDING.md](BRANDING.md)). |
-| Preview path | A documented route or file that proves the overrides on real surfaces. Prefer `{% bw_token_specimen %}` (THM-016, icvoss/django-brickwork#268) on a Django-rendered theming or brand page after the override stylesheet; a static HTML page remains an acceptable interim only when the live route is not yet wired. |
+| Preview path | A documented route or file that proves the overrides on real surfaces. Prefer `{% bw_token_specimen %}` (THM-016, icvoss/django-brickwork#268) on a Django-rendered theming or brand page after the override stylesheet; a static HTML page remains an acceptable interim only when the live route is not yet wired. L3/L4 packs must preview shell, card, form, and one marketing band. |
 
 Optional and still consumer-owned: font files, logo assets, a short `USAGE.md`
-for site-specific composition notes. None of those replace the three required
+for site-specific composition notes. None of those replace the required
 files.
 
 Place the pack wherever the consuming project keeps brand artefacts (for
 example `frontend/brands/<slug>/` or `docs/brands/<slug>/`). The package does
-not prescribe a site path; it only requires the three artefacts and the rules
+not prescribe a site path; it only requires the artefacts and the rules
 below.
+
+### PROFILE.md minimum
+
+```text
+Level claimed: L1 | L2 | L3 | L4
+Light + dark: yes/no
+Axes authored: (bullet list of token names or THEME.md axis groups)
+Kit exceptions: none | list
+Preview routes: ...
+Contrast: fg-on-accent light __ dark __
+Deferred: ...
+```
+
+Claiming a level whose required axes are missing is a contract defect.
+
 
 ---
 
@@ -151,6 +168,7 @@ identity and must not be treated as kiln or as a recommended look.
 
 The skeleton includes:
 
+- `PROFILE.md` declaring claimed level (northline is L2: colours + fonts)
 - `DESIGN.md` with all nine H2 jobs, several sections deliberately deferred
 - `tokens.css` with a small light and dark override delta
 - `preview/README.md` pointing at the interim preview expectation and #268
@@ -168,7 +186,8 @@ beauty certification and does not ship product identity from this package.
 
 | Need | Document |
 |---|---|
+| Brickwork Theme product and L1 to L4 ladder | [THEME.md](THEME.md) |
 | How to override tokens, axes, emitter, fg-on-accent | [BRANDING.md](BRANDING.md) |
 | Every token name and derivation | [DESIGN.md](DESIGN.md) |
-| Portable per-brand prose + delta + preview unit | This file |
+| Portable per-brand prose + delta + PROFILE + preview unit | This file |
 | Ownership of foundations vs consumer identity | [INTERFACE-SYSTEM.md](INTERFACE-SYSTEM.md) |
