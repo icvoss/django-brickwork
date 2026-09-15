@@ -327,6 +327,24 @@ def bw_theme_switch(
     }
 
 
+_SPECIMEN_LEVELS = frozenset({"L1", "L2", "L3", "L4"})
+
+
+def _specimen_kind(name: str) -> str:
+    """How the specimen should visualise this token (colour swatch vs material)."""
+    if name.startswith("--bw-color-"):
+        return "colour"
+    if name.startswith("--bw-radius-"):
+        return "radius"
+    if name.startswith("--bw-elevation-"):
+        return "elevation"
+    if name.startswith("--bw-font-family-"):
+        return "type"
+    if name.startswith("--bw-space-") or name.startswith("--bw-density-"):
+        return "space"
+    return "other"
+
+
 def _normalise_token_name(name: object) -> str:
     """Accept ``--bw-color-accent`` or ``bw-color-accent``; reject anything else."""
     if not isinstance(name, str) or not name.strip():
@@ -344,6 +362,13 @@ def _normalise_token_name(name: object) -> str:
     return cleaned
 
 
+def _annotate_row(row: dict[str, object]) -> dict[str, object]:
+    name = row["name"]
+    assert isinstance(name, str)
+    row["kind"] = _specimen_kind(name)
+    return row
+
+
 def _rows_from_load_bearing() -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for entry in load_bearing():
@@ -357,7 +382,7 @@ def _rows_from_load_bearing() -> list[dict[str, object]]:
             row["authored_per_theme"] = True
         if entry.get("collapsesTo"):
             row["collapses_to"] = entry["collapsesTo"]
-        rows.append(row)
+        rows.append(_annotate_row(row))
     return rows
 
 
@@ -375,7 +400,7 @@ def _rows_from_token_names(tokens: object) -> list[dict[str, object]]:
     for name in names:
         entry = by_name.get(name)
         if entry is None:
-            rows.append({"name": name})
+            rows.append(_annotate_row({"name": name}))
             continue
         row: dict[str, object] = {"name": name}
         if entry.get("contrastPair"):
@@ -387,8 +412,18 @@ def _rows_from_token_names(tokens: object) -> list[dict[str, object]]:
             row["authored_per_theme"] = True
         if entry.get("collapsesTo"):
             row["collapses_to"] = entry["collapsesTo"]
-        rows.append(row)
+        rows.append(_annotate_row(row))
     return rows
+
+
+def _rows_from_level(level: str) -> list[dict[str, object]]:
+    from brickwork.services.theme_profile import recommended_tokens_for_level
+
+    normalised = level.strip().upper()
+    if normalised not in _SPECIMEN_LEVELS:
+        raise TemplateSyntaxError(f"bw_token_specimen level= must be one of {sorted(_SPECIMEN_LEVELS)}, got {level!r}.")
+    names = sorted(recommended_tokens_for_level(normalised))  # type: ignore[arg-type]
+    return _rows_from_token_names(names)
 
 
 @register.inclusion_tag("brickwork/components/_token_specimen.html")
@@ -396,15 +431,29 @@ def bw_token_specimen(
     tokens: object | None = None,
     *,
     heading: str | None = None,
+    level: str | None = None,
 ) -> dict[str, object]:
     """Live visual specimen for brand token values (THM-016, #268).
 
     Defaults to the manifest load-bearing set. Pass ``tokens=`` (a sequence of
     ``--bw-*`` names) to present a custom list; each name must be overridable.
+    Pass ``level=`` (``L1`` to ``L4``) to render ``recommended_tokens_for_level``
+    so radius, elevation, and type axes are visible for L3/L4 packs. ``tokens``
+    and ``level`` are mutually exclusive.
     """
-    rows = _rows_from_load_bearing() if tokens is None else _rows_from_token_names(tokens)
+    if tokens is not None and level is not None:
+        raise TemplateSyntaxError("bw_token_specimen accepts tokens= or level=, not both.")
+    if level is not None:
+        rows = _rows_from_level(level)
+        default_heading = gettext("Theme tokens (%(level)s)") % {"level": level.strip().upper()}
+    elif tokens is None:
+        rows = _rows_from_load_bearing()
+        default_heading = gettext("Brand tokens")
+    else:
+        rows = _rows_from_token_names(tokens)
+        default_heading = gettext("Brand tokens")
     return {
-        "heading": heading or gettext("Brand tokens"),
+        "heading": heading or default_heading,
         "rows": rows,
         "themes": _TOKEN_SPECIMEN_THEMES,
     }

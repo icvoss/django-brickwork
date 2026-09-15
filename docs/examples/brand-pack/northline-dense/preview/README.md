@@ -10,3 +10,5 @@ Northline-dense is an L4 documentation skeleton. Prove overrides by:
    density are visible without DevTools archaeology.
 
 Do not treat a static HTML kit as a second component catalogue.
+
+Prefer `{% bw_token_specimen level="L3" %}` (or `L4` for dense) so radius, elevation, and type samples are visible without DevTools.

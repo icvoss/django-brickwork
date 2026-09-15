@@ -5844,6 +5844,54 @@ a.bw-chip {
   flex-shrink: 0;
 }
 
+.bw-token-specimen__sample {
+  grid-area: swatch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-inline-size: 2.5rem;
+  min-block-size: 2.5rem;
+}
+
+.bw-token-specimen__sample--radius {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  background: var(--bw-color-accent);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-token-specimen__sample--elevation {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  background: var(--bw-color-surface-raised);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-md);
+}
+
+.bw-token-specimen__sample--type {
+  font-size: var(--bw-font-size-lg);
+  font-weight: var(--bw-font-weight-semibold);
+  color: var(--bw-color-fg);
+  line-height: 1;
+  min-inline-size: 2.5rem;
+}
+
+.bw-token-specimen__sample--space {
+  block-size: 0.75rem;
+  min-inline-size: 0.5rem;
+  max-inline-size: 8rem;
+  background: var(--bw-color-accent);
+  border-radius: var(--bw-radius-sm);
+}
+
+.bw-token-specimen__sample--other {
+  inline-size: 2rem;
+  block-size: 2rem;
+  border: var(--bw-size-border-hairline) dashed var(--bw-color-border);
+  border-radius: var(--bw-radius-sm);
+}
+
 .bw-token-specimen__value {
   grid-area: value;
   font-family: var(--bw-font-family-mono);
