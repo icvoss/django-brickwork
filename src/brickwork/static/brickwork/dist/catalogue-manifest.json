@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 68,
     "sections": 29,
-    "archetypes": 35,
+    "archetypes": 40,
     "skeletons": 1
   },
   "families": [
@@ -22,7 +22,7 @@
     },
     {
       "name": "Editorial and publishing",
-      "archetypeCount": 2,
+      "archetypeCount": 7,
       "sectionCount": 0
     },
     {
@@ -399,6 +399,21 @@
       ]
     },
     {
+      "name": "examples/editorial/archive.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/archive.html",
+      "docSource": "examples/editorial/archive.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/editorial/article.html",
       "kind": "archetype",
       "family": "Editorial and publishing",
@@ -426,6 +441,69 @@
       "composesItems": [
         "brickwork/components/_alert.html",
         "brickwork/components/_avatar.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
+      "name": "examples/editorial/category.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/category.html",
+      "docSource": "examples/editorial/category.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_badge.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
+      "name": "examples/editorial/reading-progress.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/reading-progress.html",
+      "docSource": "examples/editorial/reading-progress.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_progress.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
+      "name": "examples/editorial/related.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/related.html",
+      "docSource": "examples/editorial/related.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
+      "name": "examples/editorial/series.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/series.html",
+      "docSource": "examples/editorial/series.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_badge.html",
         "brickwork/components/_breadcrumbs.html",
         "brickwork/components/_empty_state.html",
         "brickwork/components/_search.html",
@@ -641,8 +719,13 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
-        "editorial/author.html"
+        "editorial/author.html",
+        "editorial/category.html",
+        "editorial/reading-progress.html",
+        "editorial/related.html",
+        "editorial/series.html"
       ],
       "usedBySections": [
         "sections/content/callout.html"
@@ -686,6 +769,8 @@
         "docs/api-reference.html",
         "docs/versioned-content.html",
         "editorial/article.html",
+        "editorial/category.html",
+        "editorial/series.html",
         "marketing/comparison.html"
       ],
       "usedBySections": [],
@@ -706,8 +791,13 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
-        "editorial/author.html"
+        "editorial/author.html",
+        "editorial/category.html",
+        "editorial/reading-progress.html",
+        "editorial/related.html",
+        "editorial/series.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -986,8 +1076,13 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
-        "editorial/author.html"
+        "editorial/author.html",
+        "editorial/category.html",
+        "editorial/reading-progress.html",
+        "editorial/related.html",
+        "editorial/series.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1288,7 +1383,9 @@
       "templatePath": "brickwork/components/_progress.html",
       "docSource": "brickwork/components/_progress.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "editorial/reading-progress.html"
+      ],
       "usedBySections": [],
       "usedBySkeleton": []
     },
@@ -1348,8 +1445,13 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
-        "editorial/author.html"
+        "editorial/author.html",
+        "editorial/category.html",
+        "editorial/reading-progress.html",
+        "editorial/related.html",
+        "editorial/series.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1987,8 +2089,13 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
-        "editorial/author.html"
+        "editorial/author.html",
+        "editorial/category.html",
+        "editorial/reading-progress.html",
+        "editorial/related.html",
+        "editorial/series.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []

@@ -154,6 +154,11 @@ is also linked from there.
 | `docs/versioned-content.html` | Versioned docs: version switcher, out-of-date banner, since/deprecated badges |
 | `editorial/article.html` | Editorial article: byline, category, prose, figure, on-this-page, sibling rail |
 | `editorial/author.html` | Editorial author: avatar, bio, published-piece cards, category rail |
+| `editorial/category.html` | Editorial category: badge, description, published-piece cards, sibling rail |
+| `editorial/archive.html` | Editorial archive: month bands, dated cards, year jump rail |
+| `editorial/series.html` | Editorial series: ordered parts, upcoming state, series rail |
+| `editorial/related.html` | Editorial related: grouped continue-reading cards (not the article rail) |
+| `editorial/reading-progress.html` | Editorial reading progress: scroll glue over `_progress.html` |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |

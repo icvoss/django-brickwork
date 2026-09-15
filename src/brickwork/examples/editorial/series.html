@@ -1,0 +1,137 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+An editorial series: an ordered set of articles a reader works through in
+sequence (icvoss/django-brickwork#419). Fifth archetype in the Editorial and
+publishing family.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_label           rail / jump label (this page uses "In this series")
+    docs_search_action       the URL bw_search in the site header submits to
+    series_title             series name (page heading)
+    series_description       short lede under the heading
+    parts                    list of {number, title, href, snippet, status
+                              ("ready"|"upcoming"), published_on?,
+                              published_iso?, reading_time?}, in series order,
+                              or ()
+    series_state             "ready" | "empty" | "error"
+The headings and static rail copy below are typed into the template.
+
+WHY SERIES IS NOT CATEGORY OR ARCHIVE:
+
+Category (#417) groups by topic without order. Archive (#418) is chronological
+across the journal. A series is a deliberate sequence the reader is meant to
+follow (part 1, then 2, then 3). Evidence: reminder-threshold deep dives are
+one topic AND one dated stream, but they are also a named curriculum with a
+start and a next step; category and archive cannot express "you are on part 2
+of 4" without inventing order that neither archetype owns.
+
+WHY THIS PAGE EXTENDS THE DOCS SHELL, NOT A NEW EDITORIAL SHELL:
+
+Same deciding fact as examples/editorial/article.html and ADR-091. Family
+taxonomy stays the examples/ directory.
+
+PART ROWS ARE FAMILY-NEUTRAL CARDS. Upcoming parts are non-interactive cards
+(no href) so the reader sees the planned sequence without a dead link.
+Ready parts are interactive bordered cards. Number + title carry sequence;
+status is stated in text ("Upcoming"), not colour alone.
+
+States: series_state is the page's real branch.
+  "ready": series header, ordered part cards, series rail.
+  "empty": the series exists but has no published parts yet. Header stays;
+    list band is _empty_state.html.
+  "error": the content store failed. bw_alert danger.
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: part numbers are visible text; upcoming is labelled in words;
+  ready cards are real <a> elements; empty and error keep search + breadcrumbs.
+Responsive: inherits the docs shell; cards stack in one column.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}{% if series_state == "error" %}Series - Northwind Journal{% else %}{{ series_title }} - Northwind Journal{% endif %}{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/journal/">{% translate "Northwind Journal" %}</a>
+  {% bw_search docs_search_action placeholder="Search the journal..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  {% if series_state == "error" %}
+  <h1>{% translate "Series unavailable" %}</h1>
+  <p>{% translate "The journal could not load this series." %}</p>
+  {% else %}
+  <p>{% bw_badge "Series" variant="info" %}</p>
+  <h1>{{ series_title }}</h1>
+  <p>{{ series_description }}</p>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if series_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No parts published yet" body="This series is planned but has nothing live. Check back after the first part ships, or browse the journal home for other reading." icon="document" action_href="/journal/" action_label="Back to the journal" %}
+
+  {% elif series_state == "error" %}
+  {% bw_alert "The journal could not load this series. Retry in a moment, or open another piece from the journal home." title="Could not load series" variant="danger" %}
+
+  {% else %}
+  <div class="bw-section-stack">
+    <section aria-labelledby="series-parts-heading">
+      <h2 id="series-parts-heading" class="bw-band-heading">
+        {% blocktranslate count counter=parts|length trimmed %}
+          {{ counter }} part
+        {% plural %}
+          {{ counter }} parts
+        {% endblocktranslate %}
+      </h2>
+      {% for part in parts %}
+        {% if part.status == "ready" %}
+        <a class="bw-card bw-card--interactive bw-card--bordered" href="{{ part.href }}">
+          <h3 class="bw-card__title">
+            {% translate "Part" %} {{ part.number }}: {{ part.title }}
+          </h3>
+          <div class="bw-card__body">
+            <p>{{ part.snippet }}</p>
+            <p>
+              <time datetime="{{ part.published_iso }}">{{ part.published_on }}</time>
+              · {{ part.reading_time }}
+            </p>
+          </div>
+        </a>
+        {% else %}
+        <div class="bw-card bw-card--bordered">
+          <h3 class="bw-card__title">
+            {% translate "Part" %} {{ part.number }}: {{ part.title }}
+          </h3>
+          <div class="bw-card__body">
+            <p>{{ part.snippet }}</p>
+            <p>{% translate "Upcoming" %}</p>
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </section>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% if series_state == "ready" %}
+  <p>{% translate "In this series" %}</p>
+  <ol>
+    {% for part in parts %}
+      {% if part.status == "ready" %}
+      <li><a href="{{ part.href }}">{% translate "Part" %} {{ part.number }}</a></li>
+      {% else %}
+      <li>{% translate "Part" %} {{ part.number }} ({% translate "upcoming" %})</li>
+      {% endif %}
+    {% endfor %}
+  </ol>
+  {% endif %}
+{% endblock %}

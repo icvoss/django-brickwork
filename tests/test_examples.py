@@ -910,6 +910,265 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "author_state": "ready",
     },
+    "editorial/category.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Operations"},
+        ],
+        "docs_nav_label": "Other categories",
+        "docs_search_action": "/journal/search/",
+        "category_label": "Operations",
+        "category_description": (
+            "How finance teams run reminders, disputes and collections: "
+            "thresholds, flags, handoffs and the evidence behind each change."
+        ),
+        "articles": [
+            {
+                "title": "Why we moved reminder thresholds",
+                "href": "/journal/operations/reminder-thresholds/",
+                "snippet": ("Three days beats seven when the goal is a conversation, not a chase."),
+                "author_name": "Amira Okonkwo",
+                "author_href": "/journal/authors/amira-okonkwo/",
+                "published_on": "12 August 2026",
+                "published_iso": "2026-08-12",
+                "reading_time": "8 min read",
+            },
+            {
+                "title": "How a dispute flag pauses escalation",
+                "href": "/journal/operations/dispute-flags/",
+                "snippet": ("A genuine dispute should stop the clock, not just change the wording on the next nudge."),
+                "author_name": "Amira Okonkwo",
+                "author_href": "/journal/authors/amira-okonkwo/",
+                "published_on": "28 July 2026",
+                "published_iso": "2026-07-28",
+                "reading_time": "6 min read",
+            },
+            {
+                "title": "When collections handoff fires",
+                "href": "/journal/operations/collections-handoff/",
+                "snippet": (
+                    "The handoff is a product event with an owner, not a spreadsheet row that someone might notice."
+                ),
+                "author_name": "Jordan Ellis",
+                "author_href": "/journal/authors/jordan-ellis/",
+                "published_on": "4 July 2026",
+                "published_iso": "2026-07-04",
+                "reading_time": "5 min read",
+            },
+        ],
+        "category_state": "ready",
+    },
+    "editorial/archive.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Archive"},
+        ],
+        "docs_nav_label": "Jump by year",
+        "docs_search_action": "/journal/search/",
+        "months": [
+            {
+                "label": "August 2026",
+                "id": "archive-2026-08",
+                "articles": [
+                    {
+                        "title": "Why we moved reminder thresholds",
+                        "href": "/journal/operations/reminder-thresholds/",
+                        "snippet": ("Three days beats seven when the goal is a conversation, not a chase."),
+                        "category_label": "Operations",
+                        "author_name": "Amira Okonkwo",
+                        "published_on": "12 August 2026",
+                        "published_iso": "2026-08-12",
+                        "reading_time": "8 min read",
+                    },
+                ],
+            },
+            {
+                "label": "July 2026",
+                "id": "archive-2026-07",
+                "articles": [
+                    {
+                        "title": "How a dispute flag pauses escalation",
+                        "href": "/journal/operations/dispute-flags/",
+                        "snippet": (
+                            "A genuine dispute should stop the clock, not just change the wording on the next nudge."
+                        ),
+                        "category_label": "Operations",
+                        "author_name": "Amira Okonkwo",
+                        "published_on": "28 July 2026",
+                        "published_iso": "2026-07-28",
+                        "reading_time": "6 min read",
+                    },
+                    {
+                        "title": "When collections handoff fires",
+                        "href": "/journal/operations/collections-handoff/",
+                        "snippet": (
+                            "The handoff is a product event with an owner, "
+                            "not a spreadsheet row that someone might notice."
+                        ),
+                        "category_label": "Operations",
+                        "author_name": "Jordan Ellis",
+                        "published_on": "4 July 2026",
+                        "published_iso": "2026-07-04",
+                        "reading_time": "5 min read",
+                    },
+                ],
+            },
+            {
+                "label": "November 2025",
+                "id": "archive-2025-11",
+                "articles": [
+                    {
+                        "title": "Late-payment prediction, explained",
+                        "href": "/journal/product/late-payment-prediction/",
+                        "snippet": (
+                            "What the model sees, what it does not, and how a finance team should read the score."
+                        ),
+                        "category_label": "Product",
+                        "author_name": "Sam Rivera",
+                        "published_on": "18 November 2025",
+                        "published_iso": "2025-11-18",
+                        "reading_time": "7 min read",
+                    },
+                ],
+            },
+        ],
+        "archive_state": "ready",
+    },
+    "editorial/series.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Series", "url": "/journal/series/"},
+            {"label": "Reminder thresholds"},
+        ],
+        "docs_nav_label": "In this series",
+        "docs_search_action": "/journal/search/",
+        "series_title": "Reminder thresholds",
+        "series_description": (
+            "Four parts on why Northwind moved overdue from day seven to day "
+            "three, what the evidence showed, and what stayed put."
+        ),
+        "parts": [
+            {
+                "number": 1,
+                "title": "Why we moved reminder thresholds",
+                "href": "/journal/series/reminder-thresholds/1/",
+                "snippet": ("Three days beats seven when the goal is a conversation, not a chase."),
+                "status": "ready",
+                "published_on": "12 August 2026",
+                "published_iso": "2026-08-12",
+                "reading_time": "8 min read",
+            },
+            {
+                "number": 2,
+                "title": "The evidence from six hundred accounts",
+                "href": "/journal/series/reminder-thresholds/2/",
+                "snippet": ("Median recovery by stage, and why earlier contact reduced the share that needed a call."),
+                "status": "ready",
+                "published_on": "19 August 2026",
+                "published_iso": "2026-08-19",
+                "reading_time": "7 min read",
+            },
+            {
+                "number": 3,
+                "title": "What we kept unchanged",
+                "href": "/journal/series/reminder-thresholds/3/",
+                "snippet": (
+                    "Dispute flags, prediction ranking and the day-fourteen final notice stayed where they were."
+                ),
+                "status": "ready",
+                "published_on": "26 August 2026",
+                "published_iso": "2026-08-26",
+                "reading_time": "5 min read",
+            },
+            {
+                "number": 4,
+                "title": "How to adopt the calendar in your ledger",
+                "href": "/journal/series/reminder-thresholds/4/",
+                "snippet": ("A consumer-owned schedule, not a Northwind policy dressed as product."),
+                "status": "upcoming",
+            },
+        ],
+        "series_state": "ready",
+    },
+    "editorial/related.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Operations", "url": "/journal/operations/"},
+            {
+                "label": "Why we moved reminder thresholds",
+                "url": "/journal/operations/reminder-thresholds/",
+            },
+            {"label": "Related"},
+        ],
+        "docs_nav_label": "Related groups",
+        "docs_search_action": "/journal/search/",
+        "source_title": "Why we moved reminder thresholds",
+        "source_href": "/journal/operations/reminder-thresholds/",
+        "groups": [
+            {
+                "id": "related-same-category",
+                "heading": "More in Operations",
+                "items": [
+                    {
+                        "title": "How a dispute flag pauses escalation",
+                        "href": "/journal/operations/dispute-flags/",
+                        "snippet": (
+                            "A genuine dispute should stop the clock, not just change the wording on the next nudge."
+                        ),
+                        "meta": "Amira Okonkwo · 6 min read",
+                    },
+                    {
+                        "title": "When collections handoff fires",
+                        "href": "/journal/operations/collections-handoff/",
+                        "snippet": (
+                            "The handoff is a product event with an owner, "
+                            "not a spreadsheet row that someone might notice."
+                        ),
+                        "meta": "Jordan Ellis · 5 min read",
+                    },
+                ],
+            },
+            {
+                "id": "related-same-author",
+                "heading": "More by Amira Okonkwo",
+                "items": [
+                    {
+                        "title": "The evidence from six hundred accounts",
+                        "href": "/journal/series/reminder-thresholds/2/",
+                        "snippet": (
+                            "Median recovery by stage, and why earlier contact reduced the share that needed a call."
+                        ),
+                        "meta": "Series · 7 min read",
+                    },
+                ],
+            },
+            {
+                "id": "related-further",
+                "heading": "Further reading",
+                "items": [
+                    {
+                        "title": "Late-payment prediction, explained",
+                        "href": "/journal/product/late-payment-prediction/",
+                        "snippet": (
+                            "What the model sees, what it does not, and how a finance team should read the score."
+                        ),
+                        "meta": "Product · 7 min read",
+                    },
+                ],
+            },
+        ],
+        "related_state": "ready",
+    },
+    "editorial/reading-progress.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Operations", "url": "/journal/operations/"},
+            {"label": "Why we moved reminder thresholds"},
+        ],
+        "docs_nav_label": "On this page",
+        "docs_search_action": "/journal/search/",
+        "progress_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -2073,3 +2332,178 @@ def test_the_editorial_author_empty_and_error_states_replace_the_body() -> None:
     for html, label in ((empty, "empty"), (error, "error")):
         assert 'role="search"' in html, f"the {label} branch dropped search"
         assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_category_empty_and_error_states_replace_the_body() -> None:
+    """editorial/category.html's three category_state branches.
+
+    Ready shows badge + article cards; empty keeps the category header and
+    swaps the list for an empty state; error drops the invented listing.
+    """
+    template = _example_engine().get_template("editorial/category.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/category.html"])
+
+    ready = template.render(Context({**base, "category_state": "ready"}))
+    empty = template.render(Context({**base, "category_state": "empty", "articles": ()}))
+    error = template.render(Context({**base, "category_state": "error"}))
+
+    assert "Operations" in ready
+    assert "bw-badge" in ready
+    assert "bw-card" in ready
+    assert "Why we moved reminder thresholds" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "Other categories" in ready
+
+    assert "Operations" in empty
+    assert "bw-badge" in empty
+    assert "bw-empty-state" in empty
+    assert "bw-card" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-card" not in error
+    assert "bw-badge" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_archive_empty_and_error_states_replace_the_body() -> None:
+    """editorial/archive.html's three archive_state branches.
+
+    Ready shows month bands and cards; empty and error swap the body
+    without dropping chrome.
+    """
+    template = _example_engine().get_template("editorial/archive.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/archive.html"])
+
+    ready = template.render(Context({**base, "archive_state": "ready"}))
+    empty = template.render(Context({**base, "archive_state": "empty", "months": ()}))
+    error = template.render(Context({**base, "archive_state": "error"}))
+
+    assert "August 2026" in ready
+    assert "bw-card" in ready
+    assert "Why we moved reminder thresholds" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "Jump by year" in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-card" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-card" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_series_empty_and_error_states_replace_the_body() -> None:
+    """editorial/series.html's three series_state branches."""
+    template = _example_engine().get_template("editorial/series.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/series.html"])
+
+    ready = template.render(Context({**base, "series_state": "ready"}))
+    empty = template.render(Context({**base, "series_state": "empty", "parts": ()}))
+    error = template.render(Context({**base, "series_state": "error"}))
+
+    assert "Reminder thresholds" in ready
+    assert "bw-card" in ready
+    assert "Part 1:" in ready
+    assert "Upcoming" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "In this series" in ready
+
+    assert "Reminder thresholds" in empty
+    assert "bw-empty-state" in empty
+    assert "bw-card" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-card" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_related_empty_and_error_states_replace_the_body() -> None:
+    """editorial/related.html's three related_state branches."""
+    template = _example_engine().get_template("editorial/related.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/related.html"])
+
+    ready = template.render(Context({**base, "related_state": "ready"}))
+    empty = template.render(Context({**base, "related_state": "empty", "groups": ()}))
+    error = template.render(Context({**base, "related_state": "error"}))
+
+    assert "Related reading" in ready
+    assert "More in Operations" in ready
+    assert "bw-card" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "Related groups" in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-card" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-card" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_reading_progress_empty_and_error_states_replace_the_body() -> None:
+    """editorial/reading-progress.html's three progress_state branches."""
+    template = _example_engine().get_template("editorial/reading-progress.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/reading-progress.html"])
+
+    ready = template.render(Context({**base, "progress_state": "ready"}))
+    empty = template.render(Context({**base, "progress_state": "empty"}))
+    error = template.render(Context({**base, "progress_state": "error"}))
+
+    assert "data-bw-reading-progress" in ready
+    assert "bw-progress" in ready
+    assert 'aria-hidden="true"' in ready
+    assert "bw-prose" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "On this page" in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-progress" not in empty
+    assert "bw-prose" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-progress" not in error
+    assert "bw-prose" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_reading_progress_composes_progress_not_a_new_primitive() -> None:
+    """#421 / #260: scroll glue updates --bw-progress-value on _progress.html."""
+    template = _example_engine().get_template("editorial/reading-progress.html")
+    html = template.render(Context(_EXAMPLE_CONTEXTS["editorial/reading-progress.html"]))
+
+    assert 'include "brickwork/components/_progress.html"' not in html
+    assert "bw-progress__fill" in html
+    assert "--bw-progress-value" in html
+    assert "data-bw-reading-progress-article" in html
+    assert "setProperty" in html
+    assert "aria-hidden" in html

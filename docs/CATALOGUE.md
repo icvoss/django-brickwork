@@ -48,15 +48,14 @@ template they are.
 | Marketing and public web | landing, pricing, about, plan comparison |
 | Data-heavy operations | queue, audit trail, report, comparison, analysis dashboard, dense list |
 | Documentation | documentation home, article, API reference, table of contents, navigation, search results, versioned content |
-| Editorial and publishing | article, author |
+| Editorial and publishing | article, author, category, archive, series, related content, reading-progress patterns |
 
 **Planned, not yet shipped** (INTERFACE-SYSTEM.md names the required
 archetype set; ROADMAP.md carries the wave each family expands in). This
 document does not restate the wave numbers: see section 6 for why, and read
 ROADMAP.md directly for current wave assignments, which move as waves land.
-
-- Editorial and publishing remainder: category, archive, series, related
-  content, reading-progress patterns
+Documentation and Editorial and publishing are complete at 7 of 7; remaining
+gaps live on icvoss/django-brickwork#428.
 
 **Arranging bands within an app-surface archetype** (product applications and
 data-heavy operations both extend an app-family shell) uses a closed,

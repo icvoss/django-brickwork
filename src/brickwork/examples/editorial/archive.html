@@ -1,0 +1,118 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+An editorial archive: chronological / dated index of journal pieces
+(icvoss/django-brickwork#418). Fourth archetype in the Editorial and
+publishing family.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_label           rail / jump label (this page uses "Jump by year")
+    docs_search_action       the URL bw_search in the site header submits to
+    months                   list of {label, id, articles: [{title, href,
+                              snippet, category_label, author_name,
+                              published_on, published_iso, reading_time}]},
+                              newest month first, or ()
+    archive_state            "ready" | "empty" | "error"
+The headings and static rail copy below are typed into the template.
+
+WHY THIS PAGE EXTENDS THE DOCS SHELL, NOT A NEW EDITORIAL SHELL:
+
+Same deciding fact as examples/editorial/article.html and ADR-091. An archive
+is still a journal reading surface. Family taxonomy stays the examples/
+directory (`editorial/` -> "Editorial and publishing").
+
+WHAT THIS PAGE IS FOR:
+
+A dated index across categories: the reader who wants "what published when",
+not "everything in Operations" (that is #417) and not an ordered series
+(#419). Month bands with anchor ids let the year rail jump without a second
+shell. Category and author on each card are plain meta, not nested links
+(single-link card surface, same craft as author and category).
+
+ARTICLE ROWS ARE FAMILY-NEUTRAL CARDS, not .bw-listing-list__item.
+
+States: archive_state is the page's real branch.
+  "ready": month bands with article cards, year jump rail.
+  "empty": the journal has no published pieces yet. _empty_state.html;
+    chrome and breadcrumbs stay.
+  "error": the content store failed. bw_alert danger.
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: month headings are real <h2> targets; year rail links name
+  the year; article cards are real <a> elements; empty and error keep search
+  + breadcrumbs.
+Responsive: inherits the docs shell; cards stack in one column.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}Archive - Northwind Journal{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/journal/">{% translate "Northwind Journal" %}</a>
+  {% bw_search docs_search_action placeholder="Search the journal..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  {% if archive_state == "error" %}
+  <h1>{% translate "Archive unavailable" %}</h1>
+  <p>{% translate "The journal could not load the archive." %}</p>
+  {% elif archive_state == "empty" %}
+  <h1>{% translate "Archive" %}</h1>
+  <p>{% translate "Nothing has been published yet." %}</p>
+  {% else %}
+  <h1>{% translate "Archive" %}</h1>
+  <p>{% translate "Every published piece in the journal, newest first." %}</p>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if archive_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No published pieces yet" body="The archive will fill as issues land. Browse authors and categories from the journal home once the first pieces go live." icon="document" action_href="/journal/" action_label="Back to the journal" %}
+
+  {% elif archive_state == "error" %}
+  {% bw_alert "The journal could not load the archive. Retry in a moment, or open another piece from the journal home." title="Could not load archive" variant="danger" %}
+
+  {% else %}
+  <div class="bw-section-stack">
+    {% for month in months %}
+    <section aria-labelledby="{{ month.id }}">
+      <h2 id="{{ month.id }}" class="bw-band-heading">{{ month.label }}</h2>
+      {% for article in month.articles %}
+      <a class="bw-card bw-card--interactive bw-card--bordered" href="{{ article.href }}">
+        <h3 class="bw-card__title">{{ article.title }}</h3>
+        <div class="bw-card__body">
+          <p>{{ article.snippet }}</p>
+          <p>
+            {{ article.category_label }}
+            · {{ article.author_name }}
+            · <time datetime="{{ article.published_iso }}">{{ article.published_on }}</time>
+            · {{ article.reading_time }}
+          </p>
+        </div>
+      </a>
+      {% endfor %}
+    </section>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% comment %}
+  Rail content only. Year jumps target month-band ids in the ready body.
+  Empty and error leave the rail blank.
+  {% endcomment %}
+  {% if archive_state == "ready" %}
+  <p>{% translate "Jump by year" %}</p>
+  <ul>
+    <li><a href="#archive-2026-08">{% translate "2026" %}</a></li>
+    <li><a href="#archive-2025-11">{% translate "2025" %}</a></li>
+  </ul>
+  {% endif %}
+{% endblock %}

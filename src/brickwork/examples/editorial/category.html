@@ -1,0 +1,126 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+An editorial category listing: the page a category badge links to
+(icvoss/django-brickwork#417). Third archetype in the Editorial and
+publishing family.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_label           rail / jump label (this page uses "Other categories")
+    docs_search_action       the URL bw_search in the site header submits to
+    category_label           category name (heading and badge)
+    category_description     short lede under the heading
+    articles                 list of {title, href, snippet, author_name,
+                              author_href, published_on, published_iso,
+                              reading_time}, or ()
+    category_state           "ready" | "empty" | "error"
+The headings and static rail copy below are typed into the template.
+
+WHY THIS PAGE EXTENDS THE DOCS SHELL, NOT A NEW EDITORIAL SHELL:
+
+Same deciding fact as examples/editorial/article.html and ADR-091: reading
+column plus optional rail, site chrome outside <main>. A category listing is
+still a journal reading surface. Family taxonomy stays the examples/
+directory (`editorial/` -> "Editorial and publishing").
+
+WHAT THIS PAGE IS FOR:
+
+The article's category badge already links here. This page lists every live
+piece in one category, with author and date meta on each card. It is not the
+archive (#418, chronological across categories) and not a series (#419,
+ordered set). Sibling categories in the rail preview other doors without
+claiming those archetypes.
+
+ARTICLE ROWS ARE FAMILY-NEUTRAL CARDS, not .bw-listing-list__item. That
+listing class is marketing-family (tests/test_family_boundary.py). Each piece
+is an interactive bordered bw-card whose whole surface is the link. Author
+text on the card is plain meta, not a nested link: nesting an interactive
+control inside the card's <a> would break the single-link surface.
+
+States: category_state is the page's real branch.
+  "ready": category header, article cards, sibling-category rail.
+  "empty": the category exists but has no published pieces. Header stays;
+    the list band is _empty_state.html. Chrome and breadcrumbs stay.
+  "error": the content store failed. bw_alert danger; no invented listing.
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: category badge text is visible; article cards are real <a>
+  elements; empty and error keep search + breadcrumbs.
+Responsive: inherits the docs shell; article cards stack in one column.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}{% if category_state == "error" %}Category - Northwind Journal{% else %}{{ category_label }} - Northwind Journal{% endif %}{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/journal/">{% translate "Northwind Journal" %}</a>
+  {% bw_search docs_search_action placeholder="Search the journal..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  {% if category_state == "error" %}
+  <h1>{% translate "Category unavailable" %}</h1>
+  <p>{% translate "The journal could not load this category." %}</p>
+  {% else %}
+  <p>{% bw_badge category_label variant="info" %}</p>
+  <h1>{{ category_label }}</h1>
+  <p>{{ category_description }}</p>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if category_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No published pieces yet" body="This category has nothing live in the journal right now. Browse other categories from the rail, or check back after the next issue." icon="document" action_href="/journal/" action_label="Back to the journal" %}
+
+  {% elif category_state == "error" %}
+  {% bw_alert "The journal could not load this category. Retry in a moment, or open another piece from the journal home." title="Could not load category" variant="danger" %}
+
+  {% else %}
+  <div class="bw-section-stack">
+    <section aria-labelledby="category-articles-heading">
+      <h2 id="category-articles-heading" class="bw-band-heading">
+        {% blocktranslate count counter=articles|length trimmed %}
+          {{ counter }} published piece
+        {% plural %}
+          {{ counter }} published pieces
+        {% endblocktranslate %}
+      </h2>
+      {% for article in articles %}
+      <a class="bw-card bw-card--interactive bw-card--bordered" href="{{ article.href }}">
+        <h3 class="bw-card__title">{{ article.title }}</h3>
+        <div class="bw-card__body">
+          <p>{{ article.snippet }}</p>
+          <p>
+            {{ article.author_name }}
+            · <time datetime="{{ article.published_iso }}">{{ article.published_on }}</time>
+            · {{ article.reading_time }}
+          </p>
+        </div>
+      </a>
+      {% endfor %}
+    </section>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% comment %}
+  Rail content only: the shell already wraps this block in <nav>. Sibling
+  categories keep the reader moving without claiming archive (#418) or
+  series (#419). Empty and error leave the rail blank.
+  {% endcomment %}
+  {% if category_state == "ready" %}
+  <p>{% translate "Other categories" %}</p>
+  <ul>
+    <li><a href="/journal/product/">{% translate "Product" %}</a></li>
+    <li><a href="/journal/customers/">{% translate "Customers" %}</a></li>
+    <li><a href="/journal/archive/">{% translate "Full archive" %}</a></li>
+  </ul>
+  {% endif %}
+{% endblock %}
