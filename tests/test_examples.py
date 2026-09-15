@@ -1845,9 +1845,7 @@ def test_the_docs_search_results_states_are_mutually_exclusive() -> None:
     base = dict(_EXAMPLE_CONTEXTS["docs/search-results.html"])
 
     ready = template.render(Context({**base, "results_state": "ready"}))
-    empty_query = template.render(
-        Context({**base, "results_state": "empty_query", "query": "", "results": ()})
-    )
+    empty_query = template.render(Context({**base, "results_state": "empty_query", "query": "", "results": ()}))
     empty_results = template.render(
         Context({**base, "results_state": "empty_results", "query": "xyzzy", "results": ()})
     )
