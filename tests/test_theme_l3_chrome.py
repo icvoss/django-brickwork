@@ -11,12 +11,8 @@ from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parent.parent
 _COMPONENTS = (_ROOT / "frontend" / "src" / "components.css").read_text(encoding="utf-8")
-_PACK = (
-    _ROOT / "docs" / "examples" / "brand-pack" / "northline-material" / "tokens.css"
-).read_text(encoding="utf-8")
-_DEFAULTS = (_ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist" / "tokens.css").read_text(
-    encoding="utf-8"
-)
+_PACK = (_ROOT / "docs" / "examples" / "brand-pack" / "northline-material" / "tokens.css").read_text(encoding="utf-8")
+_DEFAULTS = (_ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist" / "tokens.css").read_text(encoding="utf-8")
 
 
 def _rules(css: str) -> list[tuple[str, str]]:
@@ -43,8 +39,7 @@ def test_button_chrome_reads_radius_and_elevation_tokens() -> None:
     elev = [
         body
         for sel, body in _rules(_COMPONENTS)
-        if re.sub(r"\s+", "", sel)
-        == ".bw-btn--primary:not(.bw-btn--disabled),.bw-btn--danger:not(.bw-btn--disabled)"
+        if re.sub(r"\s+", "", sel) == ".bw-btn--primary:not(.bw-btn--disabled),.bw-btn--danger:not(.bw-btn--disabled)"
     ]
     assert elev, "missing primary/danger elevation rule"
     assert "var(--bw-elevation-1)" in elev[0]
