@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 68,
     "sections": 29,
-    "archetypes": 33,
+    "archetypes": 34,
     "skeletons": 1
   },
   "families": [
@@ -18,6 +18,11 @@
     {
       "name": "Documentation",
       "archetypeCount": 7,
+      "sectionCount": 0
+    },
+    {
+      "name": "Editorial and publishing",
+      "archetypeCount": 1,
       "sectionCount": 0
     },
     {
@@ -394,6 +399,24 @@
       ]
     },
     {
+      "name": "examples/editorial/article.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/article.html",
+      "docSource": "examples/editorial/article.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_avatar.html",
+        "brickwork/components/_badge.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_pager.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/marketing/about.html",
       "kind": "archetype",
       "family": "Marketing and public web",
@@ -601,7 +624,8 @@
         "docs/navigation.html",
         "docs/search-results.html",
         "docs/toc.html",
-        "docs/versioned-content.html"
+        "docs/versioned-content.html",
+        "editorial/article.html"
       ],
       "usedBySections": [
         "sections/content/callout.html"
@@ -615,7 +639,9 @@
       "templatePath": "brickwork/components/_avatar.html",
       "docSource": "brickwork/components/_avatar.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "editorial/article.html"
+      ],
       "usedBySections": [],
       "usedBySkeleton": []
     },
@@ -641,6 +667,7 @@
         "app/status-tracker.html",
         "docs/api-reference.html",
         "docs/versioned-content.html",
+        "editorial/article.html",
         "marketing/comparison.html"
       ],
       "usedBySections": [],
@@ -660,7 +687,8 @@
         "docs/navigation.html",
         "docs/search-results.html",
         "docs/toc.html",
-        "docs/versioned-content.html"
+        "docs/versioned-content.html",
+        "editorial/article.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -938,7 +966,8 @@
         "docs/navigation.html",
         "docs/search-results.html",
         "docs/toc.html",
-        "docs/versioned-content.html"
+        "docs/versioned-content.html",
+        "editorial/article.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1156,7 +1185,8 @@
       "usedByArchetypes": [
         "docs/api-reference.html",
         "docs/article.html",
-        "docs/toc.html"
+        "docs/toc.html",
+        "editorial/article.html"
       ],
       "usedBySections": [
         "sections/content/pager.html"
@@ -1297,7 +1327,8 @@
         "docs/navigation.html",
         "docs/search-results.html",
         "docs/toc.html",
-        "docs/versioned-content.html"
+        "docs/versioned-content.html",
+        "editorial/article.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1934,7 +1965,8 @@
         "docs/navigation.html",
         "docs/search-results.html",
         "docs/toc.html",
-        "docs/versioned-content.html"
+        "docs/versioned-content.html",
+        "editorial/article.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []

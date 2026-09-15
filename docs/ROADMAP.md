@@ -234,19 +234,21 @@ as well as product applications.
   list omitted navigation, table of contents, versioned content, related
   content and reading progress, and merged the two families' separate article
   archetypes into one. All fourteen are filed as
-  icvoss/django-brickwork#408 to #421. **Seven of the fourteen ship** (the
-  Documentation family is complete; Editorial still open): documentation
+  icvoss/django-brickwork#408 to #421. **Eight of the fourteen ship**
+  (Documentation complete at 7 of 7; Editorial open at 1 of 7): documentation
   home (icvoss/django-brickwork#408), article
   (icvoss/django-brickwork#409), API reference
   (icvoss/django-brickwork#410), table of contents
   (icvoss/django-brickwork#413), navigation
   (icvoss/django-brickwork#412), search results
-  (icvoss/django-brickwork#411) and versioned content
-  (icvoss/django-brickwork#414), as `examples/docs/home.html`,
+  (icvoss/django-brickwork#411), versioned content
+  (icvoss/django-brickwork#414), and editorial article
+  (icvoss/django-brickwork#415), as `examples/docs/home.html`,
   `examples/docs/article.html`, `examples/docs/api-reference.html`,
   `examples/docs/toc.html`, `examples/docs/navigation.html`,
-  `examples/docs/search-results.html` and
-  `examples/docs/versioned-content.html`. They are
+  `examples/docs/search-results.html`,
+  `examples/docs/versioned-content.html` and
+  `examples/editorial/article.html`. The Documentation pages are
   the first shipped templates to extend
   `brickwork/shell/docs.html`, and so the first bound by
   `tests/test_family_boundary.py`'s docs entry, which until then was a forward
@@ -258,7 +260,9 @@ as well as product applications.
   for the section switcher (since 3.31.0 / #430). #413 records that no TOC
   component was needed: nested prose lists plus the existing `.bw-docs-toc`
   on-this-page treatment cover the jobs. #411 uses family-neutral result
-  cards rather than marketing `.bw-listing-list__item`.
+  cards rather than marketing `.bw-listing-list__item`. The editorial article
+  reuses the docs shell (same article-then-rail seams; no parallel editorial
+  shell) and maps family from the `editorial/` examples directory.
 - Define content accessibility rules: heading order, landmark structure, code
   labelling, table responsiveness, reading measure and reading progress.
 

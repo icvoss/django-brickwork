@@ -841,6 +841,23 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "latest_version_href": "/docs/3.31.0/guides/reminders/",
         "version_state": "ready",
     },
+    "editorial/article.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Operations", "url": "/journal/operations/"},
+            {"label": "Why we moved reminder thresholds"},
+        ],
+        "docs_nav_label": "In this article",
+        "docs_search_action": "/journal/search/",
+        "author_name": "Amira Okonkwo",
+        "author_href": "/journal/authors/amira-okonkwo/",
+        "author_initials": "AO",
+        "published_on": "12 August 2026",
+        "reading_time": "8 min read",
+        "category_label": "Operations",
+        "category_href": "/journal/operations/",
+        "article_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -1926,6 +1943,42 @@ def test_the_docs_versioned_content_states_are_mutually_exclusive() -> None:
     assert 'role="alert"' in error
     assert "bw-version-switch" not in error
     assert "bw-empty-state" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_article_empty_and_error_states_replace_the_body() -> None:
+    """editorial/article.html's three article_state branches.
+
+    Same discriminator pattern as the later docs archetypes: ready shows
+    byline and prose; empty and error swap the body without dropping chrome.
+    """
+    template = _example_engine().get_template("editorial/article.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/article.html"])
+
+    ready = template.render(Context({**base, "article_state": "ready"}))
+    empty = template.render(Context({**base, "article_state": "empty"}))
+    error = template.render(Context({**base, "article_state": "error"}))
+
+    assert "Why we moved reminder thresholds" in ready
+    assert "bw-avatar" in ready
+    assert "bw-prose" in ready
+    assert "bw-docs-toc" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "In this article" in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-prose" not in empty
+    assert "bw-docs-toc" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-prose" not in error
+    assert "bw-docs-toc" not in error
 
     for html, label in ((empty, "empty"), (error, "error")):
         assert 'role="search"' in html, f"the {label} branch dropped search"

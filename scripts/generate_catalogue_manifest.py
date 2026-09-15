@@ -113,6 +113,7 @@ _FAMILY_BY_EXAMPLE_DIR = {
     "app": "Product applications",
     "auth": "Transactional journeys",
     "docs": "Documentation",
+    "editorial": "Editorial and publishing",
     "marketing": "Marketing and public web",
     "ops": "Data-heavy operations",
 }

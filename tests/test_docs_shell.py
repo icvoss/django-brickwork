@@ -369,9 +369,16 @@ def test_docs_nav_label_context_renames_summary_and_aria_label() -> None:
     assert "Client guides" in html
     assert 'aria-label="Client guides"' in html
     assert 'aria-label="Documentation"' not in html
+    # Phone jump uses the same label (editorial and other non-docs consumers
+    # of this shell must not see a hardcoded "Documentation menu").
+    assert 'class="bw-docs-nav-jump"' in html
+    assert ">Client guides</a>" in html
+    assert "Documentation menu" not in html
 
 
 def test_docs_nav_label_default_remains_documentation() -> None:
     html = _extend(_DOCS_SHELL, "")
     assert '<summary class="bw-docs-layout__nav-summary">Documentation</summary>' in html
     assert 'aria-label="Documentation"' in html
+    assert 'class="bw-docs-nav-jump"' in html
+    assert ">Documentation</a>" in html
