@@ -47,4 +47,5 @@ def test_empty_items_with_heading_only_is_graceful() -> None:
 
 def test_completely_empty_collapses() -> None:
     html = Template("{% include 'brickwork_marketing/components/_proof_collage.html' %}").render(Context({}))
-    assert html == ""
+    assert "bw-proof-collage" not in html
+    assert html.strip() == ""
