@@ -24,12 +24,17 @@
   --bw-radius-sm: 0.5rem;
   --bw-radius-md: 0.875rem;
   --bw-radius-lg: 1.25rem;
+  /* Overlay chrome (modal/toast) reads xl; beyond L3 minimum sm/md/lg. */
+  --bw-radius-xl: 1.75rem;
 
   --bw-elevation-1: 0 2px 4px 0 oklch(0.3 0.02 250 / 0.08);
   --bw-elevation-2: 0 6px 12px -2px oklch(0.3 0.02 250 / 0.14),
     0 2px 4px -1px oklch(0.3 0.02 250 / 0.08);
   --bw-elevation-3: 0 16px 28px -6px oklch(0.3 0.02 250 / 0.18),
     0 6px 12px -4px oklch(0.3 0.02 250 / 0.1);
+  /* Open modal altitude; beyond L3 minimum elevation-1..3. */
+  --bw-elevation-4: 0 24px 40px -8px oklch(0.3 0.02 250 / 0.22),
+    0 10px 16px -6px oklch(0.3 0.02 250 / 0.12);
 }
 
 [data-theme="dark"],
@@ -52,4 +57,7 @@
   --bw-elevation-3: 0 20px 36px -8px oklch(0 0 0 / 0.55),
     0 8px 14px -4px oklch(0 0 0 / 0.4),
     inset 0 1px 0 0 oklch(1 0 0 / 0.06);
+  --bw-elevation-4: 0 28px 48px -10px oklch(0 0 0 / 0.6),
+    0 12px 20px -6px oklch(0 0 0 / 0.45),
+    inset 0 1px 0 0 oklch(1 0 0 / 0.07);
 }

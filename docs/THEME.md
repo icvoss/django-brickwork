@@ -72,6 +72,14 @@ All L2 required, plus a coherent authored set in **at least one** of:
 
 Document which material axes are deferred.
 
+**Overlay chrome beyond the L3 minimum:** modal, toast, and popover panels
+read `--bw-radius-xl`; open modal / slide-over read `--bw-elevation-4`; toast
+reads `--bw-elevation-5` (see DESIGN.md component map). Author those steps when
+you want overlay altitude and radius to follow the pack. Cards, buttons, and
+floor modal elevation already move on the L3 minimum set. Soft ambient shadow
+layers beside elevation tokens are kit craft (beat / beautiful-defaults), not
+theme dials; they stack with elevation and do not replace it.
+
 ### L4 requirements
 
 All L3 requirements for the claimed material axes, plus **either**:
@@ -177,6 +185,7 @@ Worked composition: [examples/theming/theme-preview.html](examples/theming/theme
 | `infer_theme_level` / `check_theme_level` | Pure level inference and claimed-vs-evidenced check (`brickwork.services.theme_profile`, re-exported from `brickwork.services.tokens`) |
 | `recommended_tokens_for_level` | Checklist-driven recommended token names per level |
 | `{% bw_token_specimen %}` | Live preview; `level="L3"`/`L4` shows material axes (#268, #599) |
+| Phase E audit | [audits/2026-09-15-theme-phase-e-token-compliance.md](audits/2026-09-15-theme-phase-e-token-compliance.md) (#600) |
 
 ### Level check (Phase C)
 
