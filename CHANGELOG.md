@@ -8,6 +8,37 @@ versioning contract).
 
 ## Unreleased
 
+## [3.30.0] - 2026-09-15
+
+Minor: marketing proof stack for the flagship kit. New catalogue presentation
+for brand tokens, a surface-guarded live-render frame, and a reusable proof
+collage / page-as-proof section (ADR-108: finished homepage folds stay on the
+consumer). No default chrome change for existing call sites.
+
+### Added
+
+- **`{% bw_token_specimen %}`** (icvoss/django-brickwork#268, THM-016). A
+  catalogue-listed presentation of brand token values as a live specimen:
+  token name, cascade swatch, light and dark panes side by side, and
+  contrast-pair chips for load-bearing pairs that declare a floor. Defaults
+  to the token-manifest load-bearing set; optional `tokens=` accepts a
+  sequence of overridable `--bw-*` names. Resolved computed values and
+  measured contrast ratios are progressive enhancement
+  (`brickwork/js/token-specimen.js`); the no-JS floor keeps names, swatches,
+  panes and floor annotations.
+
+- **`_preview_frame.html`** (icvoss/django-brickwork#269, ILL-026). A
+  catalogue-listed, surface-guarded container for presenting live-rendered
+  UI as a visual object. Viewport fill is always `--bw-color-surface` so the
+  frame cannot invalidate verified contrast; optional `scale="card"` for
+  index-card thumbnails and `scrollable` for tall specimens. Distinct from
+  decorative `.bw-product-chrome` marketing media chrome.
+
+- **`_proof_collage.html`** (icvoss/django-brickwork#572). A marketing-kit
+  section for kit collage or page-as-proof layouts. Each tile wraps live
+  markup in `_preview_frame.html` so the surface guard holds. Reusable
+  primitive only (ADR-108): finished homepage folds stay on the consumer.
+
 ## [3.29.0] - 2026-09-14
 
 Minor: Phase B hygiene and proof wave, plus Phase C composed-href sealing.
