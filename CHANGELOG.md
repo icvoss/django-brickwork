@@ -8,6 +8,92 @@ versioning contract).
 
 ## Unreleased
 
+## [3.32.0] - 2026-09-15
+
+Minor: Documentation family completes at 7 of 7, Editorial and publishing
+completes at 7 of 7, and the TYP-022 chrome-floor gate lands. No breaking
+change for existing consumers; new example pages and one new gate only.
+
+### Added
+
+- Documentation API reference archetype (`examples/docs/api-reference.html`,
+  closes #410): one HTTP operation composed on the docs shell with method
+  badge + path signature, parameter and status tables, copyable request and
+  response code panels, editorial callouts, and deliberate `reference_state`
+  branches for ready / empty / error. Pure composition; no bespoke CSS or
+  new endpoint component.
+- Documentation search-results archetype (`examples/docs/search-results.html`,
+  closes #411): the surface downstream of `{% bw_search %}`, with query echo,
+  family-neutral result cards, and distinct empty_query / empty_results /
+  error / ready `results_state` branches (#261 asks 1 and 3).
+- Documentation navigation archetype (`examples/docs/navigation.html`,
+  closes #412): proves the two docs nav seams together, a horizontal section
+  switcher (`{% bw_nav orientation="horizontal" %}`, #430) in the site header
+  and a hierarchical vertical rail, with ready / empty / error
+  `navigation_state` branches.
+- Documentation table of contents archetype (`examples/docs/toc.html`,
+  closes #413): a section outline page on the docs shell with hierarchical
+  prose lists, ready / empty / error `toc_state` branches, and an explicit
+  primitive decision that no new TOC component is required (nested lists and
+  the existing `.bw-docs-toc` on-this-page treatment already cover the jobs).
+- Documentation versioned-content archetype (`examples/docs/versioned-content.html`,
+  closes #414): version switcher in `docs_header`, out-of-date `bw_alert` banner,
+  since/deprecated `bw_badge` annotations, and ready / outdated / empty / error
+  `version_state` branches. Completes the Documentation family (7 of 7).
+- `{% bw_version_switch %}`: docs chrome control with current-version trigger,
+  `aria-current` on the viewed release, and optional latest/deprecated status
+  text (not a dressed-up dropdown; ADR-091 still declines a package-owned
+  version region).
+- Editorial article archetype (`examples/editorial/article.html`, closes #415):
+  first page in the Editorial and publishing family. Byline (avatar + author +
+  date + reading time), category badge, captioned figure, on-this-page TOC,
+  sibling rail, pager, and ready / empty / error `article_state` branches.
+  Extends the docs shell honestly (same article-then-rail seams); family comes
+  from the `editorial/` examples directory, not a parallel shell.
+- Catalogue family mapping for `editorial/` to "Editorial and publishing".
+- Editorial author archetype (`examples/editorial/author.html`, closes #416):
+  profile with large avatar, role, bio, published-piece cards, category rail,
+  and ready / empty / error `author_state` branches. Empty keeps the profile
+  and swaps the list for `_empty_state.html`; error drops the invented profile
+  for a danger alert. Reuses the docs shell; family stays `editorial/`.
+- Editorial category archetype (`examples/editorial/category.html`, closes
+  #417): one-category listing with badge, description, published-piece cards,
+  sibling-category rail, and ready / empty / error `category_state` branches.
+  Empty keeps the category header and swaps the list for `_empty_state.html`.
+  Reuses the docs shell; family stays `editorial/`.
+- Editorial archive archetype (`examples/editorial/archive.html`, closes
+  #418): chronological month bands with dated article cards, year jump rail,
+  and ready / empty / error `archive_state` branches. Reuses the docs shell;
+  family stays `editorial/`.
+- Editorial series archetype (`examples/editorial/series.html`, closes #419):
+  ordered part cards with ready/upcoming status, in-series rail, and ready /
+  empty / error `series_state` branches. Distinct from category (topic) and
+  archive (chronology). Reuses the docs shell; family stays `editorial/`.
+- Editorial related-content archetype (`examples/editorial/related.html`,
+  closes #420): full continue-reading page with grouped cards (same
+  category, same author, further reading), group jump rail, and ready /
+  empty / error `related_state` branches. Distinct from the article sibling
+  rail preview. Reuses the docs shell; family stays `editorial/`.
+- Editorial reading-progress archetype (`examples/editorial/reading-progress.html`,
+  closes #421): proves scroll glue over `_progress.html` (decorative
+  `aria-hidden` bar, consumer script writing `--bw-progress-value`), with
+  ready / empty / error `progress_state` branches. Not a new component
+  (ruling from #260). Reuses the docs shell; family stays `editorial/`.
+  Completes the Editorial and publishing family (7 of 7).
+- TYP-022 chrome-floor gate (`tests/test_typ022_chrome_floor.py`, closes #581):
+  every shipped `2xs` / overline-size `font-size` site must sit on the chrome
+  allowlist; content type-role tokens and button / field help / field error /
+  data-table cell / prose body declarations must not resolve there.
+
+### Fixed
+
+- Docs shell phone jump link now uses `docs_nav_label` (same string as the rail
+  summary and landmark) instead of a hardcoded "Documentation menu", so a
+  renamed rail stays honest below the layout breakpoint.
+- Docs shell themed bare-link ink now covers `docs_header` and the docs rail as
+  well as `docs_footer`, so a byline author link outside `.bw-prose` does not
+  fall back to UA blue on dark (2.12:1 axe failure found by #415).
+
 ## [3.31.0] - 2026-09-15
 
 Minor: `bw_nav` orientation, flat disabled colour tokens, and honesty for the
