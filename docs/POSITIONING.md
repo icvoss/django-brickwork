@@ -1,8 +1,8 @@
 # brickwork positioning
 
-**Status:** canonical positioning source. Updated by owner direction 2026-09-14
-(three-product split; umbrella ADR-108). Previous 2026-09-11 visual-bar
-honesty rules remain.
+**Status:** canonical positioning source. Updated by owner direction 2026-09-15
+(ADR-108 ownership line: package foundations vs showcase sell pages).
+Previous 2026-09-11 visual-bar honesty rules remain.
 **Scope:** every brickwork-facing copy surface (README.md, brickworkui.com,
 PyPI description, any future landing page or pitch) derives its claims from
 this document and must not diverge from it. Where a surface currently
@@ -14,7 +14,8 @@ brickwork-facing prose lifts claims from here, with the evidence attached.
 
 **Product shape:** umbrella ADR-108
 (`docs/adrs/ADR-108-brickwork-three-product-split.md` in the ICV OSS
-umbrella): substrate, designed catalogue, installable template.
+umbrella). The package owns substrate, reference catalogue, and starter.
+brickworkui.com owns flagship sell page compositions as a designed consumer.
 
 ---
 
@@ -27,16 +28,23 @@ documentation, editorial publishing and transactional journeys: foundations,
 components, layouts, interaction patterns and copyable page archetypes, on
 Tailwind 4, Alpine 3 and HTMX 2. Django is its only hard runtime dependency.
 
-That offer is **three products in one distribution** (ADR-108). Public copy
-must name which product a claim is about:
+That package offer is **three jobs in one distribution** (ADR-108). Public
+copy must name which job a claim is about:
 
-| Product | Job | Consumer verb |
+| Package job | Job | Consumer verb |
 |---|---|---|
 | **Substrate** | Tokens, shells, polished primitives, layout structures, interaction contracts, WCAG/a11y gates, brand override by `--bw-*` | install, pin, compose, override tokens |
-| **Designed catalogue** | Finished compositions plus Alpine/HTMX wiring instructions; copy and own | browse, copy, adapt |
+| **Reference catalogue** | Archetypes and compositions that prove coverage, plus Alpine/HTMX wiring; copy and own | browse, copy, adapt |
 | **Installable template** | `manage.py startsite` emits a running project that is yours | emit once |
 
-Do not attribute catalogue craft to a substrate include API. Do not treat a
+**Showcase ownership (brickworkui.com).** The flagship site owns its brand
+pack and its sell page compositions. It proves the package by composing it;
+it does not redefine the package as whatever the homepage needs. Missing
+reusable primitives are package work. Finished theatre for one brand is site
+page work (ADR-056 consumer pages), not a second kit and not an automatic
+package example.
+
+Do not attribute showcase sell craft to a substrate include API. Do not treat a
 copied example as a package page contract (ADR-056). Do not treat starter
 output as supported surface (ADR-095).
 
