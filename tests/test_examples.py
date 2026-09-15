@@ -1440,6 +1440,27 @@ _SECTION_STATS = [
     {"value": "94%", "label": "Invoices paid without a phone call"},
 ]
 
+# Pre-rendered portrait / bio images for #116 section examples. SVG so the
+# fixture needs no binary asset; alt text is the accessible name.
+_SECTION_PORTRAIT_IMAGE = mark_safe(
+    '<svg viewBox="0 0 300 400" width="300" height="400" role="img" '
+    'aria-labelledby="portrait-ada-title">'
+    '<title id="portrait-ada-title">Ada Lovelace</title>'
+    '<rect width="300" height="400" rx="12" fill="var(--bw-color-surface-sunken)"/>'
+    '<circle cx="150" cy="140" r="56" fill="var(--bw-color-border-strong)"/>'
+    '<rect x="70" y="220" width="160" height="120" rx="80" fill="var(--bw-color-border-strong)"/>'
+    "</svg>"
+)
+_SECTION_BIO_IMAGE = mark_safe(
+    '<svg viewBox="0 0 96 96" width="96" height="96" role="img" '
+    'aria-labelledby="bio-ada-title">'
+    '<title id="bio-ada-title">Ada Lovelace</title>'
+    '<rect width="96" height="96" rx="12" fill="var(--bw-color-surface-sunken)"/>'
+    '<circle cx="48" cy="36" r="18" fill="var(--bw-color-border-strong)"/>'
+    '<rect x="18" y="60" width="60" height="40" rx="30" fill="var(--bw-color-border-strong)"/>'
+    "</svg>"
+)
+
 _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     # Modal journey fragment (Beat Phase D): extends the shipped modal chrome,
     # so it is a fragment like a section, not a full document.
@@ -1459,6 +1480,7 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/cta/centred-band.html": {},
     "sections/cta/full-bleed.html": {},
     "sections/cta/split.html": {},
+    "sections/bio/article-foot.html": {"bio_image": _SECTION_BIO_IMAGE},
     "sections/features/alternating-rows.html": {"feature_rows": _SECTION_FEATURE_ROWS},
     "sections/features/icon-grid.html": {"features": _SECTION_FEATURES},
     "sections/features/simple-list.html": {"feature_list_items": _SECTION_FEATURE_LIST_ITEMS},
@@ -1471,6 +1493,8 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/listing/media-list.html": {"entries": _SECTION_ENTRIES},
     "sections/faq/single-column.html": {},
     "sections/faq/two-column.html": {},
+    "sections/portrait/end.html": {"portrait_image": _SECTION_PORTRAIT_IMAGE},
+    "sections/portrait/start.html": {"portrait_image": _SECTION_PORTRAIT_IMAGE},
     "sections/pricing/comparison-table.html": {
         "comparison_plans": _SECTION_COMPARISON_PLANS,
         "comparison_rows": _SECTION_COMPARISON_ROWS,

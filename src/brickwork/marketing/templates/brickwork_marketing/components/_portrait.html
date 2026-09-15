@@ -1,0 +1,57 @@
+{% load brickwork_components %}
+{% comment %}
+Portrait (icvoss/django-brickwork#116): marketing person-presentation band.
+The founder / operator photograph at real size with a stated position, name,
+role, body and optional CTAs. Structural include (BR-BW-MKT §4d).
+
+Not `_testimonial.html` (quote-led, avatar subordinate). Not the Editorial
+author archetype (a full profile page on the editorial shell). This is the
+marketing-kit section a consultant or practice site uses to present THE
+PERSON whose site it is.
+
+Required context: none. An all-empty portrait renders nothing.
+
+Optional context:
+  image   (safe string): pre-rendered HTML for the portrait slot, matching
+          `_hero.html`'s media contract. Caller owns escaping. Package CSS
+          constrains `img` to aspect-ratio 3/4 and object-fit cover, so an
+          unconstrained natural-size photo is not the failure mode.
+  name    (str): display name; rendered as the section <h2>.
+  role    (str): short role line under the name.
+  body    (str): supporting paragraph.
+  primary_cta / secondary_cta ({label, url}): via {% bw_button %}.
+  primary_cta_label / primary_cta_href, secondary_cta_label /
+  secondary_cta_href (str, #98): flat-kwarg spellings; dict wins when both
+  are supplied.
+  align   ("start" default | "end"): image on the inline-start or
+          inline-end from --bw-breakpoint-md up. CSS-only; document order
+          stays copy then image so reading and tab order are unchanged.
+
+Named blocks (semver-public, BR-BW-TPL-001): image, name, role, body,
+actions. Flat context variables render byte-identical when blocks are
+unused.
+
+States: none beyond the CTA buttons' own states; two align states.
+Accessibility: name is the section <h2>; the caller supplies an accessible
+  name on the image (alt on <img>, or role="img" + <title> on SVG). Covered
+  by axe.spec.mjs against sections-*.html, both themes.
+Responsive: stacks below --bw-breakpoint-md; two-column from md up.
+{% endcomment %}
+{% if image or name or role or body or primary_cta or secondary_cta or primary_cta_label or secondary_cta_label %}
+<section class="bw-portrait bw-portrait--align-{% firstof align 'start' %}">
+  <div class="bw-portrait__copy">
+    {% block name %}{% if name %}<h2 class="bw-portrait__name">{{ name }}</h2>{% endif %}{% endblock %}
+    {% block role %}{% if role %}<p class="bw-portrait__role">{{ role }}</p>{% endif %}{% endblock %}
+    {% block body %}{% if body %}<p class="bw-portrait__body">{{ body }}</p>{% endif %}{% endblock %}
+    {% block actions %}
+    {% if primary_cta or secondary_cta or primary_cta_label or secondary_cta_label %}
+      <div class="bw-portrait__actions">
+        {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% elif primary_cta_label %}{% bw_button primary_cta_label variant="primary" size="lg" href=primary_cta_href %}{% endif %}
+        {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% elif secondary_cta_label %}{% bw_button secondary_cta_label variant="secondary" size="lg" href=secondary_cta_href %}{% endif %}
+      </div>
+    {% endif %}
+    {% endblock %}
+  </div>
+  {% block image %}{% if image %}<div class="bw-portrait__image">{{ image }}</div>{% endif %}{% endblock %}
+</section>
+{% endif %}

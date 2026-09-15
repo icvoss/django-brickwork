@@ -1,0 +1,49 @@
+{% comment %}
+Bio (icvoss/django-brickwork#116): compact person strip for the foot of an
+article or a short about band. Structural include (BR-BW-MKT §4d).
+
+Sibling of `_portrait.html` (the full marketing band). Not the Editorial
+author archetype and not `_testimonial.html`.
+
+Required context: none. An all-empty bio renders nothing.
+
+Optional context:
+  image   (safe string): pre-rendered HTML for a small square portrait.
+          Caller owns escaping. Package CSS constrains `img` to 1:1 and
+          object-fit cover.
+  name    (str): display name.
+  role    (str): short role line.
+  body    (str): short biography paragraph.
+  profile ({label, url}): optional link to a full profile page.
+  profile_label / profile_href (str, #98): flat form of profile; dict wins
+          when both are supplied.
+
+Named blocks (semver-public, BR-BW-TPL-001): image, name, role, body,
+profile. Flat context variables render byte-identical when blocks are
+unused.
+
+States: none.
+Accessibility: name is a strong line, not an <h2>, so an article foot does
+  not inject a heading into the page outline; the caller supplies an
+  accessible name on the image. Covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: always a horizontal flex row that wraps cleanly; no
+  breakpoint-gated layout switch.
+{% endcomment %}
+{% if image or name or role or body or profile or profile_label %}
+<aside class="bw-bio">
+  {% block image %}{% if image %}<div class="bw-bio__image">{{ image }}</div>{% endif %}{% endblock %}
+  <div class="bw-bio__copy">
+    {% block name %}{% if name %}<p class="bw-bio__name">{{ name }}</p>{% endif %}{% endblock %}
+    {% block role %}{% if role %}<p class="bw-bio__role">{{ role }}</p>{% endif %}{% endblock %}
+    {% block body %}{% if body %}<p class="bw-bio__body">{{ body }}</p>{% endif %}{% endblock %}
+    {% block profile %}
+    {% if profile %}
+      <p class="bw-bio__profile"><a class="bw-bio__profile-link" href="{{ profile.url }}">{{ profile.label }}</a></p>
+    {% elif profile_label %}
+      <p class="bw-bio__profile"><a class="bw-bio__profile-link" href="{{ profile_href }}">{{ profile_label }}</a></p>
+    {% endif %}
+    {% endblock %}
+  </div>
+</aside>
+{% endif %}
