@@ -215,6 +215,7 @@ def bw_nav(
     items: tuple[NavItem, ...],
     active: NavItem | None = None,
     resolver_match=None,
+    orientation: str = "vertical",
 ) -> dict:
     """Render the nav tree. ``items`` should already be visibility-filtered
     (via visible_items in a context processor); ``active`` from resolve_active_item.
@@ -222,8 +223,20 @@ def bw_nav(
     ``resolver_match`` drives route-parameter-dependent item URLs
     (``NavItem.url_kwargs_from_request``); it defaults to the current request's
     ``resolver_match`` from the template context, so a consumer rarely passes it
-    explicitly."""
-    return {"bw_nav_tree": _prepare_tree(context, items, active, resolver_match)}
+    explicitly.
+
+    ``orientation`` is ``"vertical"`` (default, sidebar column) or
+    ``"horizontal"`` (wrapping row with block-end active marker). Any other
+    value falls back to vertical. App-shell horizontal chrome for the recursive
+    sidebar renderer (icvoss/django-brickwork#430, NAV-024); marketing header
+    rows stay on ``{% bw_nav_header %}``. The topbar shell layout still forces
+    a horizontal band via its own layout CSS when ``data-layout="topbar"``.
+    """
+    resolved = orientation if orientation == "horizontal" else "vertical"
+    return {
+        "bw_nav_tree": _prepare_tree(context, items, active, resolver_match),
+        "orientation": resolved,
+    }
 
 
 @register.inclusion_tag("brickwork/nav/_nav_header.html", takes_context=True)
