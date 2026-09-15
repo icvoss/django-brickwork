@@ -1,0 +1,163 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+A documentation versioned-content page: one topic that exists across releases,
+with a version switcher, an out-of-date banner when the viewed release is not
+current, and since/deprecated annotations inside the prose
+(icvoss/django-brickwork#414).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_items           this section's nav tree
+    docs_nav_active          which rail item is current
+    docs_search_action       the URL bw_search submits to (GET)
+    versions                 list of {label, href, status?} for bw_version_switch
+    current_version          label of the version being viewed (must match one)
+    latest_version_href      URL of the same page on the latest release (banner CTA)
+    version_state            "ready" | "outdated" | "empty" | "error"
+The headings and copy below are typed into the template.
+
+WHY THIS PAGE IS SHAPED THIS WAY:
+
+Versioned docs are not a different article layout: they are the article job
+plus three chrome obligations the rest of the family does not carry.
+
+1. VERSION SWITCHER in docs_header ({% templatetag openblock %} bw_version_switch
+   {% templatetag closeblock %}). ADR-091 declined a package-owned version
+   *region* because routing is application-owned; this page is the copyable
+   proof of the control that fills that seam. The tag is not a dressed-up
+   dropdown: the trigger names the viewed version, the panel marks it with
+   aria-current, and optional latest/deprecated status is text.
+2. OUT-OF-DATE BANNER when version_state is "outdated". {% templatetag openblock %}
+   bw_alert {% templatetag closeblock %} composition, not a new component: the
+   warning is page status about the release being read, exactly the job alert
+   already owns. The CTA href is the consumer's latest_version_href.
+3. SINCE / DEPRECATED ANNOTATIONS in the body. The package already writes these
+   semantics in component docstring prose; this page is the UI expression.
+   {% templatetag openblock %} bw_badge {% templatetag closeblock %} carries the
+   label ("Since 3.2.0", "Deprecated"); a new annotation primitive is not
+   warranted while badge already names status without colour alone.
+
+PRIMITIVE DECISION: bw_version_switch ships with this archetype because a
+plain dropdown cannot express current-version state honestly (#414 comment 2).
+Since/deprecated stay badge composition; the out-of-date banner stays alert
+composition. Version *data* and content management stay consumer-owned.
+
+States: version_state is the page's real branch.
+  "ready": viewing the current (latest) release. Switcher + annotations; no
+    out-of-date banner.
+  "outdated": viewing an older release. Warning alert with link to latest,
+    then the same body. Switcher still renders so the reader can leave.
+  "empty": no versions published yet. Empty state; no switcher.
+  "error": the version list failed to load. Danger alert; no switcher.
+  LOADING: not applicable. Server-rendered from request-time context.
+Accessibility: inherits docs shell. Switcher is a real nav landmark; current
+  version uses aria-current; badge text (not colour) carries since/deprecated;
+  alert is role=alert. Method/meaning never rides on colour.
+Responsive: inherits docs shell; switcher panel uses the menu min-width token.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}
+  {% if version_state == "empty" %}{% translate "Versions" %} - Northwind docs
+  {% elif version_state == "error" %}{% translate "Versions unavailable" %} - Northwind docs
+  {% else %}Configuring reminder escalation - {{ current_version }} - Northwind docs
+  {% endif %}
+{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/docs/">{% translate "Northwind docs" %}</a>
+  {% bw_search docs_search_action placeholder="Search the docs..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  {% if version_state == "empty" or version_state == "error" %}
+  <h1>{% translate "Versioned documentation" %}</h1>
+  <p>
+    {% if version_state == "empty" %}
+    {% translate "Release versions of this documentation set." %}
+    {% else %}
+    {% translate "The version list could not be loaded." %}
+    {% endif %}
+  </p>
+  {% else %}
+  <div class="bw-docs-version-header">
+    <div>
+      <h1>{% translate "Configuring reminder escalation" %}</h1>
+      <p>
+        {% blocktranslate trimmed with version=current_version %}
+          How reminder stages advance, for documentation version {{ version }}.
+        {% endblocktranslate %}
+      </p>
+    </div>
+    {% bw_version_switch versions=versions current=current_version %}
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if version_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No versions published yet" body="This documentation set has no release versions. Publish the first versioned guide, or contact support if you expected content here." icon="document" action_href="/support/" action_label="Contact support" %}
+
+  {% elif version_state == "error" %}
+  {% bw_alert "The documentation version list could not be loaded. Retry in a moment, or open the unversioned guide from the rail if you know the title." title="Versions unavailable" variant="danger" %}
+
+  {% else %}
+  {% if version_state == "outdated" %}
+  {% bw_alert "You are reading an older release of this page. Behaviour and field names may have changed." title="Out of date" variant="warning" %}
+  <p>
+    <a class="bw-btn bw-btn--secondary bw-btn--sm" href="{{ latest_version_href }}">{% translate "View the latest version" %}</a>
+  </p>
+  {% endif %}
+
+  <div class="bw-section-stack">
+    <div class="bw-prose">
+      <p class="bw-prose__lede">
+        Reminder escalation moves an unpaid invoice through named stages on a
+        schedule you own. This page is the same topic on every release; the
+        switcher above chooses which release's wording you read.
+      </p>
+
+      <h2 id="stages">{% translate "Escalation stages" %}</h2>
+      <p>
+        {% bw_badge "Since 3.2.0" variant="info" %}
+        {% translate "Each invoice carries one stage at a time: due, overdue, then final notice." %}
+      </p>
+      <p>
+        {% translate "Stages advance on the schedule you configure. Payment clears the stage and stops further reminders." %}
+      </p>
+
+      <h2 id="legacy-hooks">{% translate "Legacy webhook hooks" %}</h2>
+      <p>
+        {% bw_badge "Deprecated" variant="warning" %}
+        {% translate "The invoice.reminder_sent event name is deprecated. Prefer reminder.stage_changed, which includes the stage key." %}
+      </p>
+      <p>
+        {% translate "Existing subscriptions keep delivering until you rotate them. Removal is scheduled for the next major release." %}
+      </p>
+    </div>
+
+    <div class="bw-callout bw-callout--note">
+      <p class="bw-callout__title">{% translate "Version data is yours" %}</p>
+      <div class="bw-prose bw-callout__body">
+        <p>
+          The package ships the switcher, the out-of-date alert pattern, and
+          the annotation treatment. Your view builds the versions list, decides
+          which label is current, and owns the href for each release of this
+          page.
+        </p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% bw_nav items=docs_nav_items active=docs_nav_active %}
+{% endblock %}

@@ -47,7 +47,7 @@ template they are.
 | Transactional journeys | sign-in, sign-up, password reset |
 | Marketing and public web | landing, pricing, about, plan comparison |
 | Data-heavy operations | queue, audit trail, report, comparison, analysis dashboard, dense list |
-| Documentation | documentation home, article, API reference, table of contents, navigation, search results |
+| Documentation | documentation home, article, API reference, table of contents, navigation, search results, versioned content |
 
 **Planned, not yet shipped** (INTERFACE-SYSTEM.md names the required
 archetype set; ROADMAP.md carries the wave each family expands in). This

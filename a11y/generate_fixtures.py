@@ -4288,6 +4288,61 @@ def render_search(theme: str) -> str:
     )
 
 
+# --- version switcher (icvoss/django-brickwork#414) --------------------------
+#
+# version-switch-<theme>.html is a standalone page mirroring render_search:
+# {% bw_version_switch %} is a private render target with no demo page of its
+# own, so the fixture composes the REAL tag directly (current latest plus an
+# older deprecated entry) so axe sees the disclosure, aria-current marking,
+# and status text.
+
+_VERSION_SWITCH_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Version switch (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Version switch</h1>
+  <section aria-labelledby="version-switch-heading">
+    <h2 id="version-switch-heading">Documentation version</h2>
+    __VERSION_SWITCH__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_version_switch_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template("{% load brickwork_components %}{% bw_version_switch versions=versions current=current %}").render(
+        Context(
+            {
+                "versions": [
+                    {"label": "3.31.0", "href": "/docs/3.31.0/", "status": "latest"},
+                    {"label": "3.30.0", "href": "/docs/3.30.0/"},
+                    {"label": "3.28.0", "href": "/docs/3.28.0/", "status": "deprecated"},
+                ],
+                "current": "3.31.0",
+            }
+        )
+    )
+
+
+def render_version_switch(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _VERSION_SWITCH_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__VERSION_SWITCH__", _render_version_switch_fixture())
+    )
+
+
 # --- the code display content primitive (icvoss/django-brickwork#259) -------
 #
 # code-display-<theme>.html is a standalone (non-shell) page, mirroring
@@ -4802,6 +4857,8 @@ def main() -> None:
         # search + loading button (#226): bw_search and _spinner.html's
         # loading=True mount, neither previously rendered by any fixture
         _emit(OUT / f"search-{theme}.html", render_search(theme), written)
+        # version switcher (#414): bw_version_switch current-version disclosure
+        _emit(OUT / f"version-switch-{theme}.html", render_version_switch(theme), written)
         # the docs shell (ADR-091, #439): a populated two-column docs page
         # (real article content in .bw-prose, a real {% bw_nav %} rail),
         # never rendered by any other fixture before this shell existed

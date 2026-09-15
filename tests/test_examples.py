@@ -823,6 +823,24 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "results_state": "ready",
     },
+    "docs/versioned-content.html": {
+        "crumbs": [
+            {"label": "Documentation", "url": "/docs/"},
+            {"label": "Guides", "url": "/docs/guides/"},
+            {"label": "Configuring reminder escalation"},
+        ],
+        "docs_nav_items": _DOCS_NAV_ITEMS,
+        "docs_nav_active": _DOCS_NAV_ITEMS[1],
+        "docs_search_action": "/docs/search/",
+        "versions": [
+            {"label": "3.31.0", "href": "/docs/3.31.0/guides/reminders/", "status": "latest"},
+            {"label": "3.30.0", "href": "/docs/3.30.0/guides/reminders/"},
+            {"label": "3.28.0", "href": "/docs/3.28.0/guides/reminders/", "status": "deprecated"},
+        ],
+        "current_version": "3.31.0",
+        "latest_version_href": "/docs/3.31.0/guides/reminders/",
+        "version_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -1873,5 +1891,42 @@ def test_the_docs_search_results_states_are_mutually_exclusive() -> None:
         (empty_results, "empty_results"),
         (error, "error"),
     ):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_docs_versioned_content_states_are_mutually_exclusive() -> None:
+    """docs/versioned-content.html: ready, outdated, empty, error (#414)."""
+    template = _example_engine().get_template("docs/versioned-content.html")
+    base = dict(_EXAMPLE_CONTEXTS["docs/versioned-content.html"])
+
+    ready = template.render(Context({**base, "version_state": "ready"}))
+    outdated = template.render(Context({**base, "version_state": "outdated", "current_version": "3.30.0"}))
+    empty = template.render(Context({**base, "version_state": "empty", "versions": ()}))
+    error = template.render(Context({**base, "version_state": "error", "versions": ()}))
+
+    assert "bw-version-switch" in ready
+    assert "Since 3.2.0" in ready
+    assert "Deprecated" in ready
+    assert "Out of date" not in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+
+    assert "bw-version-switch" in outdated
+    assert "Out of date" in outdated
+    assert "View the latest version" in outdated
+    assert 'role="alert"' in outdated
+    assert "bw-empty-state" not in outdated
+
+    assert "No versions published yet" in empty
+    assert "bw-version-switch" not in empty
+    assert "Since 3.2.0" not in empty
+
+    assert "Versions unavailable" in error
+    assert 'role="alert"' in error
+    assert "bw-version-switch" not in error
+    assert "bw-empty-state" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
         assert 'role="search"' in html, f"the {label} branch dropped search"
         assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"

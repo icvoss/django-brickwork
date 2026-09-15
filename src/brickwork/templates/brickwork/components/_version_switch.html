@@ -1,0 +1,52 @@
+{% load i18n brickwork_icons %}
+{% comment %}
+Documentation version switcher (icvoss/django-brickwork#414). PRIVATE render
+target of {% bw_version_switch %}: never {% include %} this file directly; the
+tag enforces a non-empty versions list, a current= that matches exactly one
+label, and the closed status set.
+
+Why this is not bw_dropdown: a version switcher carries current-version state
+(the trigger names the viewed version; the panel marks it with
+aria-current="true"), optional latest/deprecated status as text, and the
+consequence of picking another version (consumer-owned href routing). A menu
+of actions does not. ADR-091 still declines a package-owned version region;
+docs_header is the home for this control.
+
+No-JS floor: a native <details>/<summary> of plain links in a labelled <nav>
+landmark. Deliberately NO ARIA menu roles (role="menu" would promise arrow-key
+behaviour this floor does not provide, and version switching is navigation,
+not a menu of commands). No Alpine upgrade ships here; a consumer who wants
+typeahead composes their own enhancement.
+
+Arguments (via the tag): versions (RenderedVersion list), current_label,
+landmark_label / landmark_label_attr, placement (start|end).
+
+States: closed (default) and open via [open]; each version may carry status
+  latest or deprecated (text after the label, never colour alone). Exactly
+  one item is current.
+Accessibility: <nav aria-label> landmark; current version uses
+  aria-current="true"; status text is visible, not colour-only. Covered by
+  the versioned-content archetype fixture once generated, and by
+  tests/test_version_switch.py at the Python/string level.
+Responsive: no breakpoint switch; the panel uses the same menu min-width
+  token as bw_dropdown. Fluid inside docs_header at every viewport.
+{% endcomment %}
+<details class="bw-version-switch{% if placement == 'end' %} bw-version-switch--end{% endif %}">
+  <summary class="bw-version-switch__trigger bw-btn bw-btn--secondary bw-btn--sm"
+           aria-label="{{ summary_aria_label }}">
+    <span class="bw-version-switch__label">{{ current_label }}</span>
+    {% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-version-switch__caret" %}
+  </summary>
+  <nav class="bw-version-switch__panel" aria-label="{{ landmark_label_attr }}">
+    {% for version in versions %}
+    <a class="bw-version-switch__item{% if version.is_current %} bw-version-switch__item--current{% endif %}"
+       href="{{ version.href }}"
+       {% if version.is_current %}aria-current="true"{% endif %}>
+      <span class="bw-version-switch__item-label">{{ version.label }}</span>
+      {% if version.status_label %}
+      <span class="bw-version-switch__status">{{ version.status_label }}</span>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </nav>
+</details>
