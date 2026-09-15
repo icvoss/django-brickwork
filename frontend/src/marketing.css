@@ -2372,3 +2372,82 @@
 [data-theme="dark"] .bw-pricing-tier--highlighted {
   box-shadow: var(--bw-elevation-3);
 }
+
+/* --- Proof collage (#572, ADR-108 reusable marketing proof primitive) ------
+ * Kit collage or page-as-proof stage. Tiles compose _preview_frame.html for
+ * the surface guard. Not gallery chrome and not product-chrome.
+ */
+.bw-proof-collage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-6);
+  margin-block: var(--bw-component-section-gap-marketing);
+}
+
+.bw-proof-collage__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-3);
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+
+.bw-proof-collage__heading {
+  margin: 0;
+  font-family: var(--bw-font-family-display);
+  font-size: var(--bw-font-size-3xl);
+  font-weight: var(--bw-font-weight-semibold);
+  color: var(--bw-color-fg);
+  line-height: var(--bw-font-line-height-tight);
+  letter-spacing: -0.02em;
+}
+
+.bw-proof-collage__lede {
+  margin: 0;
+  font-family: var(--bw-font-family-sans);
+  font-size: var(--bw-font-size-lg);
+  color: var(--bw-color-fg-muted);
+  line-height: var(--bw-font-line-height-relaxed);
+}
+
+.bw-proof-collage__grid {
+  display: grid;
+  gap: var(--bw-space-4);
+  align-items: start;
+}
+
+.bw-proof-collage--collage .bw-proof-collage__grid {
+  grid-template-columns: 1fr;
+}
+
+@media (width >= --theme(--breakpoint-sm)) {
+  .bw-proof-collage--collage .bw-proof-collage__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width >= --theme(--breakpoint-lg)) {
+  .bw-proof-collage--collage .bw-proof-collage__grid {
+    grid-template-columns: 1.15fr 1fr 0.95fr;
+  }
+}
+
+.bw-proof-collage--page .bw-proof-collage__grid {
+  grid-template-columns: minmax(0, 1fr);
+  max-inline-size: var(--bw-component-content-max-width-marketing);
+  margin-inline: auto;
+}
+
+.bw-proof-collage__tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  min-inline-size: 0;
+}
+
+.bw-proof-collage__label {
+  margin: 0;
+  font-family: var(--bw-font-family-mono);
+  font-size: var(--bw-font-size-xs);
+  color: var(--bw-color-fg-muted);
+  letter-spacing: 0.02em;
+}

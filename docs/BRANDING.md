@@ -772,5 +772,9 @@ preview path. Every numeric claim must cite a `--bw-*` override or be marked
 deferred to base-theme: a reviewer rejects parallel spacing, elevation, or
 type scales. The package ships one fictional skeleton
 ([examples/brand-pack/northline/](examples/brand-pack/northline/)); kiln and
-demo identities stay out of django-brickwork. The preferred live specimen is
-tracked as [icvoss/django-brickwork#268](https://github.com/icvoss/django-brickwork/issues/268).
+demo identities stay out of django-brickwork. Present the live specimen with
+`{% bw_token_specimen %}` (THM-016, icvoss/django-brickwork#268): load-bearing
+token names, cascade swatches, light/dark panes, and contrast-pair chips.
+Wrap any live component render in `{% include "brickwork/components/_preview_frame.html" %}`
+(ILL-026, icvoss/django-brickwork#269) when presenting it as imagery: the
+viewport fill stays `--bw-color-surface` so verified contrast cannot lie.

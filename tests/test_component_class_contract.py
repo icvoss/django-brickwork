@@ -221,6 +221,17 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         size="lg",
     ),
     "_card (linked)": lambda: _include("brickwork/components/_card.html", href="/invoices/1/", size="sm"),
+    "_preview_frame (full, with caption)": lambda: _include(
+        "brickwork/components/_preview_frame.html",
+        content="<button class='bw-btn bw-btn--primary'>Save</button>",
+        caption="Primary button",
+    ),
+    "_preview_frame (card scale, scrollable)": lambda: _include(
+        "brickwork/components/_preview_frame.html",
+        content="<p>Long specimen</p>",
+        scale="card",
+        scrollable=True,
+    ),
     "_stat (trend, icon, href, sparkline)": lambda: _include(
         "brickwork/components/_stat.html",
         label="Average time to pay",
@@ -823,6 +834,17 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         highlighted=True,
         badge="Most popular",
     ),
+    "_proof_collage (marketing: collage)": lambda: _include(
+        "brickwork_marketing/components/_proof_collage.html",
+        heading="Kit proof",
+        layout="collage",
+        items=[{"label": "Actions", "content": "<button class='bw-btn'>Go</button>"}],
+    ),
+    "_proof_collage (marketing: page)": lambda: _include(
+        "brickwork_marketing/components/_proof_collage.html",
+        layout="page",
+        items=[{"content": "<p>Page proof</p>"}],
+    ),
     "_stat_band (marketing: trend)": lambda: _include(
         "brickwork_marketing/components/_stat_band.html",
         heading="By the numbers",
@@ -1084,6 +1106,9 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         # through the tag and checks its fixed, non-option-driven class set,
         # matching the dropdown/tabs/toast/combobox precedent above.
         "_theme_switch.html",
+        # bw_token_specimen's private render target (icvoss/django-brickwork#268):
+        # dedicated tests in test_token_specimen.py render through the tag.
+        "_token_specimen.html",
     }
     shell_dirs = {"shell"}
 

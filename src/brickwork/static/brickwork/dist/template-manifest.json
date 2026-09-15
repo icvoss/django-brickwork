@@ -619,6 +619,15 @@
       ]
     },
     {
+      "name": "preview",
+      "declaredIn": [
+        "brickwork/components/_preview_frame.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "shell",
       "declaredIn": [
         "brickwork/shell/app.html",

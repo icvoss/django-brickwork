@@ -1,0 +1,52 @@
+{% load i18n %}
+{% comment %}
+Preview frame (ILL-026, icvoss/django-brickwork#269): a framed,
+surface-guarded container for presenting live-rendered UI as a visual
+object on marketing pages, gallery detail pages or index cards.
+
+Structural, consumed via {% include %} or {% extends %} (same dual path
+as _card.html). Not decorative product-chrome (Beat S5 / #571): that
+window dressing is for marketing media slots. This frame is for live
+templates whose contrast was verified against --bw-color-surface.
+
+Required context: none.
+
+Optional context:
+  content   (safe HTML): the live-rendered markup to present on the
+            include path. Prefer a pre-rendered SafeString from the view.
+            When extending, fill {% block preview %} instead; the block
+            wins over content when both are set.
+  caption   (str): optional figcaption under the viewport.
+  scale     ("full"|"card", default "full"): "card" scales the stage for
+            index-card / thumbnail presentation; "full" is 1:1.
+  scrollable (bool, default False): caps the viewport and enables overflow
+            scroll for long shell / archetype specimens. Prefer True only
+            when the content is genuinely taller than the frame.
+
+Surface guard (load-bearing): the viewport fill is always
+--bw-color-surface. A raised or tinted fill would change the contrast
+context of the content and silently invalidate verified AA. The frame is
+delineated by border and padding, not by a different fill.
+contain: layout paint + isolation keep positioned descendants (modals,
+dropdowns, toasts) inside the frame.
+
+States: resting only; scale and scrollable are presentation options.
+Accessibility: the viewport is a labelled region; when scrollable it is
+  focusable so keyboard users can scroll it. Caption is a figcaption when
+  present. Covered by axe against preview-frame-*.html, both themes.
+Responsive: card scale stays transform-based at every width; scrollable
+  max-block-size uses the same rem cap on all viewports.
+{% endcomment %}
+<figure class="bw-preview-frame{% if scale == 'card' %} bw-preview-frame--card{% endif %}{% if scrollable %} bw-preview-frame--scrollable{% endif %}">
+  <div
+    class="bw-preview-frame__viewport"
+    role="region"
+    {% if scrollable %}tabindex="0"{% endif %}
+    aria-label="{% if scrollable %}{% translate 'Live preview, scroll to inspect the full specimen' %}{% else %}{% translate 'Live preview' %}{% endif %}"
+  >
+    <div class="bw-preview-frame__stage">
+      {% block preview %}{% if content %}{{ content }}{% endif %}{% endblock %}
+    </div>
+  </div>
+  {% if caption %}<figcaption class="bw-preview-frame__caption">{{ caption }}</figcaption>{% endif %}
+</figure>

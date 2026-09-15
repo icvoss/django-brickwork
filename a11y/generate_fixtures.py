@@ -2355,6 +2355,190 @@ def render_theme_switch(theme: str, *, inject_js: bool = False) -> str:
     return page.replace("__JS_BOOT__", _JS_BOOT if inject_js else "")
 
 
+# --- token specimen (THM-016, icvoss/django-brickwork#268) -------------------
+#
+# token-specimen-<theme>.html covers the no-JS floor: dual light/dark panes,
+# load-bearing rows, contrast-pair chips, and the live swatch var() wiring.
+# The PE script that fills resolved values is stripped for file:// (same
+# pattern as marketing-overlay nojs); unit tests cover the script itself.
+
+_TOKEN_SPECIMEN_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token specimen (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Token specimen</h1>
+  __SPECIMEN__
+</main>
+</body>
+</html>
+"""
+
+_TOKEN_SPECIMEN_SCRIPT_TAG = re.compile(
+    r'<script src="[^"]*token-specimen\.js"[^>]*></script>',
+    re.IGNORECASE,
+)
+
+
+def _render_token_specimen_fixture() -> str:
+    from django.template import Context, Template
+
+    html = Template("{% load brickwork_theming %}{% bw_token_specimen %}").render(Context({}))
+    return _TOKEN_SPECIMEN_SCRIPT_TAG.sub("", html)
+
+
+def render_token_specimen(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _TOKEN_SPECIMEN_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__SPECIMEN__", _render_token_specimen_fixture())
+    )
+
+
+# --- preview frame (ILL-026, icvoss/django-brickwork#269) --------------------
+#
+# preview-frame-<theme>.html covers the surface-guarded viewport with a live
+# component render, plus the card-scale and scrollable modifiers.
+
+_PREVIEW_FRAME_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview frame (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Preview frame</h1>
+  <section aria-labelledby="preview-frame-full-heading">
+    <h2 id="preview-frame-full-heading">Full scale</h2>
+    __PREVIEW_FULL__
+  </section>
+  <section aria-labelledby="preview-frame-card-heading">
+    <h2 id="preview-frame-card-heading">Card scale</h2>
+    __PREVIEW_CARD__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_preview_frame_fixture(**ctx: object) -> str:
+    return render_to_string("brickwork/components/_preview_frame.html", ctx)
+
+
+def render_preview_frame(theme: str) -> str:
+    from django.utils.safestring import mark_safe
+
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    full = _render_preview_frame_fixture(
+        content=mark_safe(
+            '<div class="bw-alert bw-alert--info" role="status">'
+            '<div class="bw-alert__body"><p class="bw-alert__title">Live render</p>'
+            '<p class="bw-alert__message">Surface-guarded against --bw-color-surface.</p></div></div>'
+        ),
+        caption="Info alert inside the frame",
+    )
+    # Card scale applies a CSS transform; interactive controls inside would
+    # measure below the 24x24 tap-target floor even when the unscaled control
+    # is compliant. Specimen content here is non-interactive on purpose.
+    card = _render_preview_frame_fixture(
+        content=mark_safe('<span class="bw-badge">Card scale</span>'),
+        scale="card",
+        caption="Card-scale badge",
+    )
+    return (
+        _PREVIEW_FRAME_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__PREVIEW_FULL__", full)
+        .replace("__PREVIEW_CARD__", card)
+    )
+
+
+# --- proof collage (icvoss/django-brickwork#572) -----------------------------
+
+_PROOF_COLLAGE_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proof collage (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Proof collage</h1>
+  __COLLAGE__
+  __PAGE__
+</main>
+</body>
+</html>
+"""
+
+
+def render_proof_collage(theme: str) -> str:
+    from django.utils.safestring import mark_safe
+
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    collage = render_to_string(
+        "brickwork_marketing/components/_proof_collage.html",
+        {
+            "heading": "Kit collage",
+            "lede": "Live package pieces as visual proof.",
+            "layout": "collage",
+            # Collage tiles always wrap at card scale, so specimen content
+            # stays non-interactive (scaled buttons fail the 24x24 sweep).
+            "items": [
+                {
+                    "label": "Chip",
+                    "content": mark_safe('<span class="bw-badge">Get started</span>'),
+                },
+                {
+                    "label": "Status",
+                    "content": mark_safe('<span class="bw-badge">Shipped</span>'),
+                },
+                {
+                    "label": "Callout",
+                    "content": mark_safe(
+                        '<div class="bw-alert bw-alert--info" role="status">'
+                        '<div class="bw-alert__body"><p class="bw-alert__title">Live</p></div></div>'
+                    ),
+                },
+            ],
+        },
+    )
+    page = render_to_string(
+        "brickwork_marketing/components/_proof_collage.html",
+        {
+            "heading": "Page as proof",
+            "layout": "page",
+            "items": [
+                {
+                    "content": mark_safe(
+                        "<section><h2>Pricing</h2>"
+                        '<p class="bw-prose">A composed marketing band.</p>'
+                        '<span class="bw-badge">Choose plan</span></section>'
+                    )
+                }
+            ],
+        },
+    )
+    return (
+        _PROOF_COLLAGE_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__COLLAGE__", collage)
+        .replace("__PAGE__", page)
+    )
+
+
 def render_theme_switch_invalid_root(theme: str) -> str:
     """The JS leg with a BOGUS data-theme baked into <html> from render time
     (icvoss/django-brickwork#117 review): the consumer-template-mistake case
@@ -4525,6 +4709,11 @@ def main() -> None:
             render_theme_switch_invalid_root(theme),
             written,
         )
+        # bw_token_specimen (#268): load-bearing dual-pane specimen, no-JS floor
+        _emit(OUT / f"token-specimen-{theme}.html", render_token_specimen(theme), written)
+        # _preview_frame (#269): surface-guarded live-render container
+        _emit(OUT / f"preview-frame-{theme}.html", render_preview_frame(theme), written)
+        _emit(OUT / f"proof-collage-{theme}.html", render_proof_collage(theme), written)
         # layout="compact" (#235): the no-JS floor (#272 review: the
         # pre-existing no-JS test only ever rendered layout="inline",
         # leaving the compact root's own reserved-pre-init state

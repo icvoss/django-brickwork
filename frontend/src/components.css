@@ -5595,3 +5595,217 @@ a.bw-chip {
 [data-theme="dark"] .bw-slide-over[data-bw-open] .bw-slide-over__panel {
   box-shadow: var(--bw-elevation-4);
 }
+
+/* --- Token specimen (THM-016, icvoss/django-brickwork#268) ----------------
+ * Live brand-token presentation: dual light/dark panes, swatch from the
+ * cascade, optional contrast-pair chip. Resolved values are PE (token-
+ * specimen.js). No Tailwind utilities; --bw-* only (BR-BW-TOK-001).
+ */
+.bw-token-specimen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-4);
+  margin-block: var(--bw-density-section-gap);
+}
+
+.bw-token-specimen__heading {
+  margin: 0;
+  font-family: var(--bw-font-family-sans);
+  font-size: var(--bw-font-size-xl);
+  font-weight: var(--bw-font-weight-semibold);
+  color: var(--bw-color-fg);
+  line-height: var(--bw-font-line-height-snug);
+}
+
+.bw-token-specimen__panes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bw-space-4);
+}
+
+@media (width < --theme(--breakpoint-md)) {
+  .bw-token-specimen__panes {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bw-token-specimen__pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-3);
+  padding: var(--bw-space-4);
+  background: var(--bw-color-surface);
+  color: var(--bw-color-fg);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+}
+
+.bw-token-specimen__pane-label {
+  margin: 0;
+  font-family: var(--bw-font-family-sans);
+  font-size: var(--bw-font-size-sm);
+  font-weight: var(--bw-font-weight-semibold);
+  color: var(--bw-color-fg-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bw-token-specimen__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+}
+
+.bw-token-specimen__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(6rem, 0.8fr);
+  grid-template-areas:
+    "meta swatch value"
+    "pair pair pair";
+  align-items: center;
+  gap: var(--bw-space-2) var(--bw-space-3);
+  padding-block: var(--bw-space-2);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-token-specimen__row:last-child {
+  border-block-end: none;
+  padding-block-end: 0;
+}
+
+.bw-token-specimen__meta {
+  grid-area: meta;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--bw-space-1) var(--bw-space-2);
+  min-inline-size: 0;
+}
+
+.bw-token-specimen__name {
+  font-family: var(--bw-font-family-mono);
+  font-size: var(--bw-font-size-xs);
+  color: var(--bw-color-fg);
+  word-break: break-all;
+}
+
+.bw-token-specimen__flag {
+  font-family: var(--bw-font-family-sans);
+  font-size: var(--bw-font-size-2xs);
+  color: var(--bw-color-fg-muted);
+  background: var(--bw-color-surface-sunken);
+  border-radius: var(--bw-radius-sm);
+  padding-inline: var(--bw-space-1);
+  padding-block: 0.1em;
+}
+
+.bw-token-specimen__swatch {
+  grid-area: swatch;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--bw-radius-md);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  flex-shrink: 0;
+}
+
+.bw-token-specimen__value {
+  grid-area: value;
+  font-family: var(--bw-font-family-mono);
+  font-size: var(--bw-font-size-2xs);
+  color: var(--bw-color-fg-muted);
+  min-block-size: 1em;
+  word-break: break-all;
+}
+
+.bw-token-specimen__pair {
+  grid-area: pair;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  justify-self: start;
+  padding-inline: var(--bw-space-3);
+  padding-block: var(--bw-space-2);
+  border-radius: var(--bw-radius-md);
+  border: var(--bw-size-border-hairline) solid color-mix(in oklab, var(--bw-color-border) 70%, transparent);
+  font-family: var(--bw-font-family-sans);
+  font-size: var(--bw-font-size-xs);
+}
+
+.bw-token-specimen__pair-sample {
+  font-weight: var(--bw-font-weight-semibold);
+  font-size: var(--bw-font-size-md);
+  line-height: 1;
+}
+
+.bw-token-specimen__pair-floor,
+.bw-token-specimen__pair-measured {
+  font-family: var(--bw-font-family-mono);
+  font-size: var(--bw-font-size-2xs);
+}
+
+/* --- Preview frame (ILL-026, icvoss/django-brickwork#269) -----------------
+ * Surface-guarded live-render container. Fill is ALWAYS --bw-color-surface
+ * (verified-contrast trap): raised/tint fills are forbidden here. Delineate
+ * with border + padding only. Distinct from .bw-product-chrome (decorative
+ * marketing media chrome, Beat S5 / #571).
+ */
+.bw-preview-frame {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.bw-preview-frame__viewport {
+  padding: var(--bw-space-3);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  background-color: var(--bw-color-surface);
+  contain: layout paint;
+  isolation: isolate;
+  min-inline-size: 0;
+}
+
+@media (width >= --theme(--breakpoint-md)) {
+  .bw-preview-frame__viewport {
+    padding: var(--bw-space-5);
+  }
+}
+
+.bw-preview-frame__viewport:focus-visible {
+  outline: var(--bw-size-border-thick) solid var(--bw-color-accent);
+  outline-offset: var(--bw-space-1);
+}
+
+.bw-preview-frame--scrollable .bw-preview-frame__viewport {
+  max-block-size: 42rem;
+  overflow: auto;
+}
+
+.bw-preview-frame__stage {
+  min-inline-size: 0;
+}
+
+.bw-preview-frame--card .bw-preview-frame__viewport {
+  overflow: hidden;
+  max-block-size: 14rem;
+  padding: var(--bw-space-2);
+}
+
+.bw-preview-frame--card .bw-preview-frame__stage {
+  transform: scale(0.5);
+  transform-origin: top left;
+  inline-size: 200%;
+}
+
+.bw-preview-frame__caption {
+  margin: 0;
+  font-family: var(--bw-font-family-sans);
+  font-size: var(--bw-font-size-sm);
+  color: var(--bw-color-fg-muted);
+  line-height: var(--bw-font-line-height-normal);
+}

@@ -29,7 +29,7 @@ A consumer brand pack is a directory containing at least:
 |---|---|
 | `DESIGN.md` | Measured identity prose. Required H2 jobs below. Every numeric claim cites a `--bw-*` override or is marked deferred to base-theme. |
 | `tokens.css` (or a clearly named fragment such as `brand.css`) | Only the override delta: `--bw-*` custom properties the brand authors. Load this stylesheet **after** the package `tokens.css` / `brickwork.css` so the cascade wins ([BRANDING.md](BRANDING.md)). |
-| Preview path | A documented route or file that proves the overrides on real surfaces. Prefer a Django-rendered live specimen once [icvoss/django-brickwork#268](https://github.com/icvoss/django-brickwork/issues/268) lands; until then a static HTML page or a named Django URL in the consuming project is an acceptable interim artefact. |
+| Preview path | A documented route or file that proves the overrides on real surfaces. Prefer `{% bw_token_specimen %}` (THM-016, icvoss/django-brickwork#268) on a Django-rendered theming or brand page after the override stylesheet; a static HTML page remains an acceptable interim only when the live route is not yet wired. |
 
 Optional and still consumer-owned: font files, logo assets, a short `USAGE.md`
 for site-specific composition notes. None of those replace the three required
@@ -125,11 +125,18 @@ This contract deliberately excludes:
 
 ## Preview and the live specimen
 
-The preferred proof surface is a Django-rendered token specimen that exercises
-package shells and components under the brand overrides. That capability is
-tracked as [icvoss/django-brickwork#268](https://github.com/icvoss/django-brickwork/issues/268).
-Until it ships, document an interim preview path in the pack (static HTML or
-a consumer URL) and state that it is interim.
+The preferred proof surface is `{% bw_token_specimen %}` (THM-016): a
+Django-rendered token specimen that reads the cascade it sits in, shows
+load-bearing tokens (or a consumer `tokens=` list) as named swatches in
+light and dark panes, and annotates load-bearing contrast pairs. Ship it on
+a theming or brand-pack preview route after loading the pack's override
+stylesheet and setting `data-bw-brand` when the pack uses one.
+
+```django
+{% load brickwork_theming %}
+{% bw_token_specimen %}
+{% bw_token_specimen tokens=accent_delta heading="Accent delta" %}
+```
 
 Do not treat static open-design-style preview HTML as a second component kit.
 
