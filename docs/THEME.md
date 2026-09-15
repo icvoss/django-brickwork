@@ -138,7 +138,10 @@ Import order for a themed Tailwind consumer:
 
 | Artefact | Role |
 |---|---|
-| [examples/brand-pack/northline/](examples/brand-pack/northline/) | Fictional skeleton; document its claimed level in PROFILE |
+| [examples/brand-pack/northline/](examples/brand-pack/northline/) | Fictional **L2** skeleton (`PROFILE.md`) |
+| [examples/brand-pack/northline-material/](examples/brand-pack/northline-material/) | Fictional **L3** torture (radius + elevation + raised surface) |
+| [examples/brand-pack/northline-dense/](examples/brand-pack/northline-dense/) | Fictional **L4** torture (material + space-1 + compact density) |
+| `harbour/`, `folio/` | Additional fictional **L2** voices |
 | `render_brand_css()` | Emitter for validated overrides (extend toward L3/L4 per plan) |
 | `{% bw_token_specimen %}` | Live preview when wired (#268) |
 

@@ -8,6 +8,13 @@ versioning contract).
 
 ## Unreleased
 
+### Added
+
+- Brand-pack Phase B skeletons for Brickwork Theme levels: northline,
+  harbour, and folio each declare **L2** in `PROFILE.md`; fictional
+  `northline-material` (**L3**) and `northline-dense` (**L4**) torture packs
+  demonstrate material and rhythm axes. Agent briefs point at `docs/THEME.md`.
+
 ## [3.32.0] - 2026-09-15
 
 Minor: Documentation family completes at 7 of 7, Editorial and publishing

@@ -96,8 +96,9 @@ folio-specific collapse table.
 
 ## 9. Agent brief
 
-Override only documented `--bw-*` names on `[data-bw-brand="folio"]`
-after brickwork tokens. Never invent token names. Verify fg-on-accent at
-4.5:1 in both themes. Compose pages from brickwork sections; do not fork
-components. Mark any undecided metric deferred to base-theme rather than
-inventing values.
+Read [THEME.md](../../../THEME.md) first and declare the claimed level in
+`PROFILE.md`. This pack is **L2** (recolour + font families). Override only
+documented `--bw-*` names on `[data-bw-brand="folio"]` after brickwork
+tokens. Never invent token names. Verify fg-on-accent at 4.5:1 in both
+themes. Compose pages from brickwork sections; do not fork components. Mark
+any undecided metric deferred to base-theme rather than inventing values.

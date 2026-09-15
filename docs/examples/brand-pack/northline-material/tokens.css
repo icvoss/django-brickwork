@@ -1,0 +1,55 @@
+/*
+ * Northline-material brand-pack skeleton (fictional L3 torture).
+ * Load AFTER brickwork's tokens.css / brickwork.css.
+ * Soft radius + raised surface + heavier elevation on northline colours.
+ * Not a product identity. Values deliberately exaggerated for level demos.
+ */
+
+:root,
+[data-bw-brand="northline-material"] {
+  --bw-color-surface: oklch(0.985 0.004 240);
+  --bw-color-surface-raised: oklch(1 0.002 240);
+  --bw-color-fg: oklch(0.26 0.02 250);
+  --bw-color-border: oklch(0.90 0.01 240);
+  --bw-color-accent: oklch(0.52 0.11 200);
+  --bw-color-danger: oklch(0.55 0.18 25);
+  --bw-color-success: oklch(0.56 0.13 155);
+  --bw-color-warning: oklch(0.70 0.14 75);
+  --bw-color-fg-on-accent: oklch(0.99 0 0);
+
+  --bw-font-family-sans: "Source Sans 3", system-ui, sans-serif;
+  --bw-font-family-display: "Source Serif 4", Georgia, serif;
+  --bw-font-family-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --bw-radius-sm: 0.5rem;
+  --bw-radius-md: 0.875rem;
+  --bw-radius-lg: 1.25rem;
+
+  --bw-elevation-1: 0 2px 4px 0 oklch(0.3 0.02 250 / 0.08);
+  --bw-elevation-2: 0 6px 12px -2px oklch(0.3 0.02 250 / 0.14),
+    0 2px 4px -1px oklch(0.3 0.02 250 / 0.08);
+  --bw-elevation-3: 0 16px 28px -6px oklch(0.3 0.02 250 / 0.18),
+    0 6px 12px -4px oklch(0.3 0.02 250 / 0.1);
+}
+
+[data-theme="dark"],
+[data-bw-brand="northline-material"][data-theme="dark"] {
+  --bw-color-surface: oklch(0.23 0.02 250);
+  --bw-color-surface-raised: oklch(0.28 0.02 250);
+  --bw-color-fg: oklch(0.93 0.01 90);
+  --bw-color-border: oklch(0.36 0.015 250);
+  --bw-color-accent: oklch(0.70 0.10 200);
+  --bw-color-danger: oklch(0.65 0.16 25);
+  --bw-color-success: oklch(0.66 0.12 155);
+  --bw-color-warning: oklch(0.74 0.12 80);
+  --bw-color-fg-on-accent: oklch(0.22 0.02 250);
+
+  --bw-elevation-1: 0 2px 4px 0 oklch(0 0 0 / 0.4),
+    inset 0 1px 0 0 oklch(1 0 0 / 0.04);
+  --bw-elevation-2: 0 8px 16px -2px oklch(0 0 0 / 0.5),
+    0 2px 4px -1px oklch(0 0 0 / 0.35),
+    inset 0 1px 0 0 oklch(1 0 0 / 0.05);
+  --bw-elevation-3: 0 20px 36px -8px oklch(0 0 0 / 0.55),
+    0 8px 14px -4px oklch(0 0 0 / 0.4),
+    inset 0 1px 0 0 oklch(1 0 0 / 0.06);
+}

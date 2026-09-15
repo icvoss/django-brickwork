@@ -90,9 +90,11 @@ does not decide.
 8. **Responsive behaviour**: brand-specific collapse notes only where they
    differ from substrate shells; otherwise defer to `--bw-breakpoint-*` and
    package shells.
-9. **Agent brief**: a pasteable paragraph: override only documented
-   `--bw-*` names after package tokens; verify fg-on-accent at 4.5:1 in both
-   themes; compose pages from brickwork sections; do not fork components.
+9. **Agent brief**: a pasteable paragraph that points at [THEME.md](THEME.md)
+   for the L1 to L4 ladder, states the pack's claimed level, and requires:
+   override only documented `--bw-*` names after package tokens; verify
+   fg-on-accent at 4.5:1 in both themes; compose pages from brickwork
+   sections; do not fork components.
 
 Sections may be short. An honest "deferred to base-theme" is correct; an
 invented parallel scale is not.
@@ -166,15 +168,23 @@ consuming project and rename the slug. Northline is a **fictional** B2B
 console brand written only to demonstrate the contract. It is not a product
 identity and must not be treated as kiln or as a recommended look.
 
-The skeleton includes:
+The primary skeleton includes:
 
 - `PROFILE.md` declaring claimed level (northline is L2: colours + fonts)
 - `DESIGN.md` with all nine H2 jobs, several sections deliberately deferred
 - `tokens.css` with a small light and dark override delta
 - `preview/README.md` pointing at the interim preview expectation and #268
 
+Optional torture skeletons (fictional; not recommended product looks):
+
+- [examples/brand-pack/northline-material/](examples/brand-pack/northline-material/): **L3** soft radius, raised surface, heavier elevation
+- [examples/brand-pack/northline-dense/](examples/brand-pack/northline-dense/): **L4** same material plus tighter `--bw-space-1` and compact density
+
+`harbour/` and `folio/` are additional L2 voice examples; each ships
+`PROFILE.md` with the same contract shape.
+
 **Visual-bar Brandability leg:** the private scorecard harness can render
-S1 to S8 under this skeleton via `npm run visual-bar:fixtures:northline` and
+S1 to S8 under the northline skeleton via `npm run visual-bar:fixtures:northline` and
 `npm run visual-bar:capture:northline` (see [VISUAL-BAR.md](VISUAL-BAR.md)
 section 5 and [audits/_stills/README.md](audits/_stills/README.md)). That
 proves the composition holds after the seven-token override; it is not a
