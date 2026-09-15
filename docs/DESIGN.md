@@ -1221,13 +1221,24 @@ straight into the generated utilities: switching `data-theme` or
 
 ### 12.1 Consumption
 
+**Consumer recipe (preferred):** [INTEGRATION.md §1.3](INTEGRATION.md#13-vite--tailwind-4-consumer-recipe-brickwork-theme-phase-f).
+Sync the fragment into the frontend tree with
+`manage.py sync_brickwork_projection` so Vite can import it; the shell's
+`brickwork.css` link already supplies the `--bw-*` values the projection
+references at runtime.
+
 Import the fragment in the consumer's entry CSS AFTER the line that pulls
-in Tailwind itself, alongside `tokens.css` (which supplies the `--bw-*`
-values the projection references):
+in Tailwind itself:
 
 ```css
 @import "tailwindcss";
-@import "<static path>/brickwork/dist/tokens.css";
+@import "../src/brickwork-theme.css"; /* from sync_brickwork_projection */
+```
+
+If you are not using Vite and can resolve package static paths directly:
+
+```css
+@import "tailwindcss";
 @import "<static path>/brickwork/dist/tailwind-theme.css";
 ```
 

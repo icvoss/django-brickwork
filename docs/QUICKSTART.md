@@ -161,6 +161,10 @@ for the worked failure.
   binds measured identity prose to a `--bw-*` override delta, PROFILE level,
   and a preview path; copy the fictional
   [northline skeleton](examples/brand-pack/northline/) to start.
+- **Own Vite + Tailwind layout utilities:** [INTEGRATION.md §1.3](INTEGRATION.md#13-vite--tailwind-4-consumer-recipe-brickwork-theme-phase-f)
+  and [examples/vite-tailwind/](examples/vite-tailwind/); sync the projection
+  with `manage.py sync_brickwork_projection` instead of copying from
+  site-packages.
 - **Re-skinning the whole site:** [docs/BRANDING.md](BRANDING.md) takes the
   seven tokens above further: dark mode, the four theme axes, and dynamic
   per-tenant or per-user theming.
