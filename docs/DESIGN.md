@@ -409,12 +409,13 @@ so hover composes with, rather than replaces, the underlying state.
 **Stacking order (normative for data_table and lists):** zebra stripe
 (`surface-sunken` on odd rows) → selected (`--bw-state-selected-bg` replaces
 the stripe) → hover overlay (always layers last, on top of whichever
-background resolved). Disabled: opacity remains the mechanism
-(`opacity: var(--bw-component-disabled-opacity)`, was
-`--bw-disabled-opacity` through 0.10.0, kept as a courtesy alias), with the
-nav item as the one documented exception, re-coloured via
-`--bw-component-nav-item-disabled-text`
-instead (no opacity stacking).
+background resolved). Disabled: flat colour tokens
+(`--bw-color-action-disabled-{bg,text,border}`, COL-018 /
+icvoss/django-brickwork#282), never opacity. Nav disabled rows use
+`--bw-component-nav-item-disabled-text` on the same flat-colour principle
+(the former "nav exception" is now the package pattern).
+`--bw-component-disabled-opacity` remains for non-colour dimming only
+(examples, HTMX indicator comparisons); it is not the disabled encoding.
 
 **Contrast note:** `fg-muted` text must not sit inside hover-overlaid
 containers; the 4 percent wash sinks it below AA (see 4.2).
@@ -929,9 +930,9 @@ northline brand-pack example.
 
 | Token | rem | px | Use |
 |---|---|---|---|
-| `3xs` **[NEW]** | 0.625 | 10 | bottom rung, no direct consumer |
-| `2xs` **[NEW]** | 0.6875 | 11 | overlines, micro-labels; the floor for chrome text, never sentences |
-| `xs` | 0.75 | 12 | captions, help, errors, timestamps |
+| `3xs` **[DEPRECATED]** | 0.625 | 10 | bottom rung, no direct consumer; deprecated (icvoss/django-brickwork#281), removal at next major |
+| `2xs` | 0.6875 | 11 | chrome text only (overlines, micro-labels); never sentences. Package policy floor for chrome; content floor is `xs` (TYP-022) |
+| `xs` | 0.75 | 12 | captions, help, errors, timestamps; content / legibility floor |
 | `sm` | 0.875 | 14 | dense UI text, table cells |
 | `md` | 1 | 16 | body, inputs, buttons |
 | `lg` | 1.125 | 18 | emphasised body, card titles |
@@ -1053,6 +1054,14 @@ removed, not left empty.
 | `overline` | sans | 2xs | none | semibold | wider |
 | `code` | mono | sm | normal | normal | *(not carried; weight defined, not wired, see below)* |
 
+**Overline / `2xs` consumer rule (TYP-022 / #281):** chrome text only. Never
+apply `--text-overline` or `--bw-font-size-2xs` to body or prose, interactive
+control labels, form help or error text, or table cell content. The package's
+own sites (nav section labels, stat labels) are the load-bearing chrome
+exceptions; the Tailwind `--text-overline` utility is the consumer-facing
+bypass and carries the same restriction. `3xs` is deprecated with no package
+consumer.
+
 **Component map:** page-header title heading-xl (description body-md +
 fg-muted); empty-state heading heading-lg, body body-md + fg-muted +
 max-width-form; alert title heading-sm; form-errors title heading-sm; card
@@ -1125,10 +1134,10 @@ unshipped extension point.
 
 | Token | Value | Role |
 |---|---|---|
-| `--bw-component-disabled-opacity` | `0.5` | existing value unchanged; was `--bw-disabled-opacity` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-disabled-opacity` | `0.5` | **Not the disabled encoding** (COL-018 / #282). Retained for non-colour dimming and legacy courtesy alias `--bw-disabled-opacity`. Disabled controls use `--bw-color-action-disabled-{bg,text,border}` |
 | `--bw-opacity-muted` **[NEW]** | `0.7` | de-emphasis that is not disabled; conservative floor, re-verify contrast per use |
 | `--bw-opacity-sort-idle` **[NEW]** | `0.4` | names the shipped sort-caret literal (decorative only) |
-| `--bw-component-htmx-indicator-opacity` **[NEW 0.9.0]** | `0.6` | STA-006 in-flight dimming of an htmx swap target via the `htmx-request` class convention; between disabled (0.5) and muted (0.7) so in-flight never reads as disabled; was `--bw-htmx-indicator-opacity` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-htmx-indicator-opacity` **[NEW 0.9.0]** | `0.6` | STA-006 in-flight dimming of an htmx swap target via the `htmx-request` class convention; between former disabled (0.5) and muted (0.7) so in-flight never reads as disabled; was `--bw-htmx-indicator-opacity` through 0.10.0, kept as a courtesy alias |
 
 ## 10. Reserved names (documented, deliberately not shipped)
 

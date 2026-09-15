@@ -218,6 +218,9 @@
   --bw-color-border: oklch(0.928 0.004 265);
   --bw-color-border-strong: color-mix(in oklab, var(--bw-color-border) 94%, black);
   --bw-color-border-control: color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface));
+  --bw-color-action-disabled-bg: color-mix(in oklab, var(--bw-color-surface) 96.5%, black);
+  --bw-color-action-disabled-text: color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface));
+  --bw-color-action-disabled-border: color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface));
   --bw-color-accent: oklch(0.546 0.192 262);
   --bw-color-accent-hover: color-mix(in oklab, var(--bw-color-accent) 89%, black);
   --bw-color-accent-subtle: color-mix(in oklab, var(--bw-color-accent) 7%, var(--bw-color-surface));
@@ -313,6 +316,9 @@
   --bw-color-border: oklch(0.928 0.004 265);
   --bw-color-border-strong: color-mix(in oklab, var(--bw-color-border) 94%, black);
   --bw-color-border-control: color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface));
+  --bw-color-action-disabled-bg: color-mix(in oklab, var(--bw-color-surface) 96.5%, black);
+  --bw-color-action-disabled-text: color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface));
+  --bw-color-action-disabled-border: color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface));
   --bw-color-accent: oklch(0.546 0.192 262);
   --bw-color-accent-hover: color-mix(in oklab, var(--bw-color-accent) 89%, black);
   --bw-color-accent-subtle: color-mix(in oklab, var(--bw-color-accent) 7%, var(--bw-color-surface));
@@ -393,6 +399,9 @@
   --bw-color-border: oklch(0.269 0.006 265);
   --bw-color-border-strong: color-mix(in oklab, var(--bw-color-border) 86%, white);
   --bw-color-border-control: color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface));
+  --bw-color-action-disabled-bg: color-mix(in oklab, var(--bw-color-surface) 76%, black);
+  --bw-color-action-disabled-text: color-mix(in oklab, var(--bw-color-fg) 72%, var(--bw-color-surface));
+  --bw-color-action-disabled-border: color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface));
   --bw-color-accent: oklch(0.707 0.165 254);
   --bw-color-accent-hover: color-mix(in oklab, var(--bw-color-accent) 88%, black);
   --bw-color-accent-subtle: color-mix(in oklab, var(--bw-color-accent) 30%, black);

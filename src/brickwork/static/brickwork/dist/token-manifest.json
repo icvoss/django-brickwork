@@ -42,6 +42,13 @@
   ],
   "contrastPairs": [
     {
+      "name": "--bw-color-action-disabled-text",
+      "derived": "color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface))",
+      "contrastPair": "--bw-color-action-disabled-bg",
+      "pairDerived": "color-mix(in oklab, var(--bw-color-surface) 96.5%, black)",
+      "minContrast": 4.5
+    },
+    {
       "name": "--bw-color-danger-fg",
       "derived": "color-mix(in oklab, var(--bw-color-danger) 87%, var(--bw-color-status-fg-ink))",
       "contrastPair": "--bw-color-danger-subtle",
@@ -106,6 +113,9 @@
     "--bw-color-accent",
     "--bw-color-accent-hover",
     "--bw-color-accent-subtle",
+    "--bw-color-action-disabled-bg",
+    "--bw-color-action-disabled-border",
+    "--bw-color-action-disabled-text",
     "--bw-color-border",
     "--bw-color-border-control",
     "--bw-color-border-strong",

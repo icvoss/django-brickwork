@@ -33,6 +33,9 @@
   --color-border: var(--bw-color-border);
   --color-border-strong: var(--bw-color-border-strong);
   --color-border-control: var(--bw-color-border-control);
+  --color-action-disabled-bg: var(--bw-color-action-disabled-bg);
+  --color-action-disabled-text: var(--bw-color-action-disabled-text);
+  --color-action-disabled-border: var(--bw-color-action-disabled-border);
   --color-accent: var(--bw-color-accent);
   --color-accent-hover: var(--bw-color-accent-hover);
   --color-accent-subtle: var(--bw-color-accent-subtle);

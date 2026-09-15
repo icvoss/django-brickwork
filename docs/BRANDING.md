@@ -206,9 +206,21 @@ between eight colours is a property of the whole set, so unlike a contrast
 check it can be destroyed by a change that leaves every individual colour
 looking fine.
 
-**The limit: brickwork guarantees the series stay distinguishable while your
-retinted palette keeps at least 70 percent of the shipped chroma.** Below
-that, the guarantee no longer holds and you should verify your own palette.
+**The limit: brickwork guarantees the series stay distinguishable while a
+uniform chroma scale of the shipped palette keeps at least 70 percent of
+shipped chroma** (each series' chroma multiplied by the same factor; lightness
+and hue held). That is the transformation `tests/test_chart_series_contract.py`
+models and the only retint shape ADR-082's scoped legs cover
+(icvoss/django-brickwork#302). Below x0.7, the guarantee no longer holds and
+you should verify your own palette.
+
+**Free overrides of `--bw-color-chart-1` through `-chart-8` are outside that
+guarantee.** `render_brand_css` accepts arbitrary series colours keyed by
+token name; nothing forces those eight values to be a uniform chroma reduction
+of the shipped set. Rotating one series' hue, changing lightness, or replacing
+a subset of series are all possible and all unguarded for separation. An
+optional warning when a free retint falls outside the envelope remains deferred
+(icvoss/django-brickwork#291).
 
 This is a statement about what the package guarantees, not a prohibition. You
 may retint however your brand requires. But desaturating the series heavily

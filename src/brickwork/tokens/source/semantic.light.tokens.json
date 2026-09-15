@@ -121,6 +121,35 @@
         }
       }
     },
+    "action-disabled-bg": {
+      "$value": "{primitive.gray.100}",
+      "$description": "Flat disabled control fill (COL-018 / icvoss/django-brickwork#282). Replaces opacity dimming so disabled contrast is a gated token pair rather than a blend against an unknown backdrop. Same mix as surface-sunken so a brand surface override flows through; expressed as color-mix (not a var() alias) so render_brand_css can resolve the contrastPair.",
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-surface) 96.5%, black)"
+        }
+      }
+    },
+    "action-disabled-text": {
+      "$value": "oklch(0.507 0.003 265)",
+      "$description": "Flat disabled control ink (COL-018 / icvoss/django-brickwork#282). Same mix as fg-muted so disabled labels clear AA on the disabled fill; expressed as color-mix so render_brand_css gates the pair. Nav's quieter `--bw-component-nav-item-disabled-text` stays on fg-subtle for chrome rows.",
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface))",
+          "contrastPair": "color-action-disabled-bg",
+          "minContrast": 4.5
+        }
+      }
+    },
+    "action-disabled-border": {
+      "$value": "oklch(0.65 0.002 265)",
+      "$description": "Flat disabled control boundary (COL-018 / icvoss/django-brickwork#282). Same mix as border-control so disabled borders keep the 1.4.11 floor without opacity.",
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface))"
+        }
+      }
+    },
     "accent": {
       "$value": "{primitive.blue.600}",
       "$extensions": {

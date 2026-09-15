@@ -23,8 +23,9 @@ eight-colour palette can hold the separation floor under dichromatic vision,
 so the figures are pinned to catch degradation rather than to assert a
 guarantee (see test_dichromatic_separation_is_no_worse_than_documented).
 
-All four hold across the retint envelope (chroma down to x0.7), which is their
-scope rather than a fifth property.
+All four hold across the retint envelope (uniform chroma scale down to x0.7),
+which is their scope rather than a fifth property. Free chart-token overrides
+are outside that guarantee (docs/BRANDING.md, icvoss/django-brickwork#302).
 
 Two of these exist because a palette that passed everything written at the time
 was still wrong:
@@ -68,8 +69,9 @@ _HUE_SEPARATION_FLOOR = 28.0
 # WCAG 1.4.11: a data series is a non-text graphical object. 3:1 is the
 # package's existing floor for exactly this case, including the 2px focus ring.
 _CONTRAST_FLOOR = 3.0
-# The retint envelope: below x0.7 chroma no eight-series palette can hold the
-# separation floor, so the package stops guaranteeing it (docs/BRANDING.md).
+# The retint envelope: uniform chroma scaling only (ADR-082 / #302). Below
+# x0.7 no eight-series palette can hold the separation floor, so the package
+# stops guaranteeing it (docs/BRANDING.md). Free overrides are untested here.
 _RETINT_CHROMA_STEPS = (1.0, 0.9, 0.8, 0.7)
 
 # Surfaces a series is drawn on. A chart card is elevated, so dark charts sit on
