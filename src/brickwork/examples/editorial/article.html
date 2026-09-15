@@ -1,0 +1,207 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+An editorial article: long-form publishing on the shared reading shell
+(icvoss/django-brickwork#415). First archetype in the Editorial and
+publishing family.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_label           rail / jump label (this page uses "In this article")
+    docs_search_action       the URL bw_search in the site header submits to
+    author_name              display name in the byline
+    author_href              author profile URL (full author page is #416)
+    author_initials          initials fallback for {% include %} _avatar.html
+    published_on             visible publication date string
+    reading_time             visible reading-time string (e.g. "8 min read")
+    category_label           category badge text (full category page is #417)
+    category_href            category listing URL
+    article_state            "ready" | "empty" | "error"
+The heading text, prose, callouts, figure and on-this-page links below are
+typed into the template.
+
+WHY THIS PAGE EXTENDS THE DOCS SHELL, NOT A NEW EDITORIAL SHELL:
+
+ADR-091 bought the docs shell for one deciding fact: article-then-rail in
+source order, with site chrome outside <main>. An editorial article needs
+the same seams (reading column, optional on-this-page rail, site header and
+footer). A second shell with the same regions would be a fork wearing a
+family name. Family taxonomy is the examples/ directory
+(`editorial/` -> "Editorial and publishing"), not which shell a page
+extends: shells are cross-family building blocks (docs/CATALOGUE.md). The
+phone jump and rail label are renamed via docs_nav_label so the chrome does
+not say "Documentation" on a journal page.
+
+WHAT DIFFERS FROM examples/docs/article.html:
+
+A docs article orients a reader who already chose a section of a reference
+tree: section rail, technical callouts, code panels. An editorial article
+orients a reader who chose a story: byline (avatar + author + date +
+reading time), a category badge, captioned figure, and continue-reading
+neighbours. Reading-progress glue stays on #421 (closed under #260 as
+documentation over _progress.html, not a new primitive). Full author,
+category, archive, series and related-content pages are #416 to #420.
+
+States: article_state is the page's real branch.
+  "ready": byline, prose, figure, on-this-page TOC, sibling rail, pager.
+  "empty": the article is not published yet (or was withdrawn). Empty state;
+    chrome and breadcrumbs stay so the reader can leave.
+  "error": the content store failed. bw_alert danger; same chrome rule.
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: byline text names the author (avatar aria-label matches);
+  category is a real link wrapping the badge text, not colour alone; heading
+  anchors name the section; pager direction is in the link text (WCAG 2.4.4);
+  empty and error keep search + breadcrumbs. On-this-page TOC sits in content
+  (not inside docs_nav) so it does not nest a second <nav> inside the shell's
+  rail landmark.
+Responsive: inherits the docs shell; bw-prose holds the 65ch measure; the
+  byline wraps naturally as inline avatar + text.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}{% if article_state == "ready" %}Why we moved reminder thresholds - Northwind Journal{% else %}Article - Northwind Journal{% endif %}{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/journal/">{% translate "Northwind Journal" %}</a>
+  {% bw_search docs_search_action placeholder="Search the journal..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  {% if article_state == "ready" %}
+  <p>
+    <a href="{{ category_href }}">{% bw_badge category_label variant="info" %}</a>
+  </p>
+  <h1>{% translate "Why we moved reminder thresholds" %}</h1>
+  <p>
+    {% translate "Three days beats seven when the goal is a conversation, not a chase. The evidence from six hundred Northwind accounts." %}
+  </p>
+  <p>
+    {% include "brickwork/components/_avatar.html" with initials=author_initials aria_label=author_name size="sm" %}
+    <a href="{{ author_href }}">{{ author_name }}</a>
+    · <time datetime="2026-08-12">{{ published_on }}</time>
+    · {{ reading_time }}
+  </p>
+  {% elif article_state == "empty" %}
+  <h1>{% translate "Article unavailable" %}</h1>
+  <p>{% translate "This piece is not published yet." %}</p>
+  {% else %}
+  <h1>{% translate "Article unavailable" %}</h1>
+  <p>{% translate "The journal could not load this piece." %}</p>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if article_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="Not published yet" body="This article is still in draft, or it was withdrawn. Browse the journal for live pieces, or contact the editor if you followed a shared link." icon="document" action_href="/journal/" action_label="Back to the journal" %}
+
+  {% elif article_state == "error" %}
+  {% bw_alert "The journal could not load this article. Retry in a moment, or open another piece from the journal home." title="Could not load article" variant="danger" %}
+
+  {% else %}
+  {% comment %}
+  On this page lives outside bw-prose (same craft as docs/article.html) so the
+  TOC list is not restyled by the prose floor. It is NOT placed in docs_nav:
+  that block is already wrapped in a <nav> by the shell, and nesting another
+  landmark would split the accessibility tree.
+  {% endcomment %}
+  <nav class="bw-docs-toc" aria-labelledby="bw-editorial-toc-heading">
+    <p class="bw-docs-toc__title" id="bw-editorial-toc-heading">{% translate "On this page" %}</p>
+    <ol class="bw-docs-toc__list">
+      <li><a href="#what-changed">{% translate "What changed" %}</a></li>
+      <li><a href="#the-evidence">{% translate "The evidence" %}</a></li>
+      <li><a href="#what-we-kept">{% translate "What we kept" %}</a></li>
+    </ol>
+  </nav>
+
+  <div class="bw-prose">
+    <p class="bw-prose__lede">
+      {% translate "Finance teams told us the seven-day overdue window felt polite. What it actually did was leave a genuine dispute unanswered for three days while the system waited to escalate." %}
+    </p>
+
+    <h2 id="what-changed">
+      {% translate "What changed" %}
+      <a class="bw-prose__anchor" href="#what-changed" aria-label="{% translate 'Link to the What changed section' %}">#</a>
+    </h2>
+    <p>
+      {% translate "The due-today stage stayed put. Overdue now starts on day three. Final notice still lands on day fourteen. Collections handoff is unchanged. The only deliberate move was bringing the first human-shaped nudge forward." %}
+    </p>
+
+    <div class="bw-callout bw-callout--note">
+      <p class="bw-callout__title">{% translate "This is not a collections hardening" %}</p>
+      <div class="bw-prose bw-callout__body">
+        <p>
+          {% translate "Earlier contact is for disputes and payment plans, not for harsher wording. The copy in every stage stayed the same; only the calendar moved." %}
+        </p>
+      </div>
+    </div>
+
+    <h2 id="the-evidence">
+      {% translate "The evidence" %}
+      <a class="bw-prose__anchor" href="#the-evidence" aria-label="{% translate 'Link to the The evidence section' %}">#</a>
+    </h2>
+    <p>
+      {% translate "Across six hundred Northwind accounts, the share that needed a call after the overdue stage dropped once the threshold moved. The figure below is the shape of that shift, not a promise for every ledger." %}
+    </p>
+
+    <figure>
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='280' viewBox='0 0 640 280' role='img'%3E%3Crect width='640' height='280' fill='%23e8eef5'/%3E%3Ctext x='32' y='48' font-family='system-ui,sans-serif' font-size='18' fill='%231a2332'%3ERecovery by stage%3C/text%3E%3Crect x='80' y='100' width='40' height='120' fill='%233d6b99'/%3E%3Crect x='200' y='140' width='40' height='80' fill='%233d6b99'/%3E%3Crect x='320' y='180' width='40' height='40' fill='%233d6b99'/%3E%3Crect x='440' y='200' width='40' height='20' fill='%233d6b99'/%3E%3C/svg%3E" width="640" height="280" alt="{% translate 'Bar chart of recovery by escalation stage' %}">
+      <figcaption>
+        {% translate "Median recovery across 600 Northwind accounts, 2025 to 2026. Earlier stages recover more without a call." %}
+      </figcaption>
+    </figure>
+
+    <h2 id="what-we-kept">
+      {% translate "What we kept" %}
+      <a class="bw-prose__anchor" href="#what-we-kept" aria-label="{% translate 'Link to the What we kept section' %}">#</a>
+    </h2>
+    <p>
+      {% translate "Dispute flags still pause escalation. Prediction still ranks who is likely to slip. The schedule is still a consumer-owned calendar, not a Northwind policy dressed as product." %}
+    </p>
+
+    <blockquote>
+      {% translate "We assumed a longer overdue window would feel gentler. It mostly just meant the first three days of a genuine dispute went unanswered." %}
+    </blockquote>
+
+    <hr>
+
+    <p>
+      {% translate "Further reading:" %}
+      <a href="/journal/operations/dispute-flags/">{% translate "How a dispute flag pauses escalation" %}</a>
+      {% translate "and" %}
+      <a href="/journal/operations/late-payment-prediction/">{% translate "How late-payment prediction works" %}</a>.
+    </p>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_footer %}
+  {% if article_state == "ready" %}
+  {% translate "More in Operations" as bw_pager_aria_label %}
+  {% translate "How a dispute flag pauses escalation" as bw_pager_previous_label %}
+  {% translate "How late-payment prediction works" as bw_pager_next_label %}
+  {% include "brickwork/components/_pager.html" with aria_label=bw_pager_aria_label previous_href="/journal/operations/dispute-flags/" previous_label=bw_pager_previous_label next_href="/journal/operations/late-payment-prediction/" next_label=bw_pager_next_label %}
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% comment %}
+  Rail content only: the shell already wraps this block in <nav>. Sibling
+  journal links preview the related-content job (#420) without claiming that
+  archetype. Empty and error leave the rail blank so the disclosure has
+  nothing to invent.
+  {% endcomment %}
+  {% if article_state == "ready" %}
+  <p>{% translate "More in Operations" %}</p>
+  <ul>
+    <li><a href="/journal/operations/dispute-flags/">{% translate "How a dispute flag pauses escalation" %}</a></li>
+    <li><a href="/journal/operations/late-payment-prediction/">{% translate "How late-payment prediction works" %}</a></li>
+    <li><a href="/journal/operations/collections-handoff/">{% translate "When collections handoff fires" %}</a></li>
+  </ul>
+  {% endif %}
+{% endblock %}

@@ -152,6 +152,7 @@ is also linked from there.
 | `docs/navigation.html` | Docs navigation: horizontal section switcher + hierarchical rail |
 | `docs/search-results.html` | Docs search results: query echo, result cards, empty/error states |
 | `docs/versioned-content.html` | Versioned docs: version switcher, out-of-date banner, since/deprecated badges |
+| `editorial/article.html` | Editorial article: byline, category, prose, figure, on-this-page, sibling rail |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |

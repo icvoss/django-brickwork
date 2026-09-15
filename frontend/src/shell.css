@@ -929,22 +929,27 @@
   padding-inline-start: var(--bw-space-4);
 }
 
-/* A bare <a> in docs_footer takes themed ink, never the UA default blue.
- * This mirrors the marketing footer's rule (BR-BW-MKT-002,
- * .bw-marketing-footer__inner) and exists for the same reason: the block is
- * consumer-owned prose, so the obvious thing to write there is a plain
- * anchor, and without this it renders #0000ee. Against the dark theme's
- * surface that measured 2.12:1, an axe color-contrast failure at the 4.5:1
- * AA bar, found by the docs fixture's own dark-theme sweep before this shell
- * had shipped to anyone. Written at zero specificity via :where() so a
+/* A bare <a> in docs_header, docs_footer or the docs rail takes themed ink,
+ * never the UA default blue. This mirrors the marketing footer's rule
+ * (BR-BW-MKT-002, .bw-marketing-footer__inner) and exists for the same
+ * reason: those blocks are consumer-owned prose, so the obvious thing to
+ * write there is a plain anchor, and without this it renders #0000ee.
+ * Against the dark theme's surface that measured 2.12:1, an axe
+ * color-contrast failure at the 4.5:1 AA bar. First found by the docs
+ * fixture's own dark-theme sweep on the footer before this shell had
+ * shipped to anyone; re-found on docs_header by the editorial article
+ * archetype (icvoss/django-brickwork#415) whose byline author link sits
+ * outside .bw-prose. Written at zero specificity via :where() so a
  * consumer's own class on the anchor wins without !important.
  * :not(.bw-btn) excludes a bw_button composed into the slot, since buttons
  * carry their own tier, matching the marketing rule this follows.
  * The 1.5rem floor is the WCAG 2.5.8 AA target size
  * (icvoss/django-brickwork#208) and the coarse-pointer tier below is
  * 2.5.5/platform-HIG (icvoss/django-brickwork#242); a fine-pointer desktop
- * render stays at the 24px floor and the footer's layout does not shift. */
-.bw-docs-layout__footer :where(a):not(.bw-btn) {
+ * render stays at the 24px floor and the layout does not shift. */
+.bw-docs-layout__header :where(a):not(.bw-btn),
+.bw-docs-layout__footer :where(a):not(.bw-btn),
+.bw-docs-layout__nav-body :where(a):not(.bw-btn) {
   display: inline-flex;
   align-items: center;
   min-block-size: 1.5rem;
@@ -953,12 +958,16 @@
   transition: var(--bw-transition-colors);
 }
 
-.bw-docs-layout__footer :where(a:hover):not(.bw-btn) {
+.bw-docs-layout__header :where(a:hover):not(.bw-btn),
+.bw-docs-layout__footer :where(a:hover):not(.bw-btn),
+.bw-docs-layout__nav-body :where(a:hover):not(.bw-btn) {
   color: var(--bw-color-fg);
 }
 
 @media (pointer: coarse) {
-  .bw-docs-layout__footer :where(a):not(.bw-btn) {
+  .bw-docs-layout__header :where(a):not(.bw-btn),
+  .bw-docs-layout__footer :where(a):not(.bw-btn),
+  .bw-docs-layout__nav-body :where(a):not(.bw-btn) {
     min-block-size: var(--bw-size-touch-target-min);
   }
 }

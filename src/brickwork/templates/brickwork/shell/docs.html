@@ -240,6 +240,15 @@ Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
   {% endblock %}
 
   <main id="bw-main" class="bw-docs" tabindex="-1">
+    {% comment %}
+    docs_nav_label is resolved once for the phone jump link, the <details>
+    summary, and the rail landmark (icvoss/django-brickwork#485). Editorial
+    and other non-docs consumers of this shell rename the rail honestly
+    (#415); the jump used to hardcode "Documentation menu" and would have
+    lied about that rename below the layout breakpoint.
+    {% endcomment %}
+    {% translate "Documentation" as bw_docs_nav_label_default %}
+    {% firstof docs_nav_label bw_docs_nav_label_default as bw_docs_nav_label %}
     <div class="bw-docs-layout">
       <article class="bw-docs-layout__main">
         {% comment %}
@@ -247,10 +256,10 @@ Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
         article-then-rail in source order, so the disclosure lands below a
         long article. This package-owned link (shown only below the layout
         breakpoint) makes the section menu discoverable above the fold
-        without reordering the DOM.
+        without reordering the DOM. The visible label matches docs_nav_label.
         {% endcomment %}
         <p class="bw-docs-nav-jump">
-          <a href="#bw-docs-nav">{% translate "Documentation menu" %}</a>
+          <a href="#bw-docs-nav">{{ bw_docs_nav_label }}</a>
         </p>
         {% block docs_header_region %}
         <div class="bw-docs-layout__header">
@@ -268,8 +277,6 @@ Responsive: single breakpoint, at --bw-breakpoint-lg (64rem, the layout
       </article>
 
       {% block docs_nav_region %}
-      {% translate "Documentation" as bw_docs_nav_label_default %}
-      {% firstof docs_nav_label bw_docs_nav_label_default as bw_docs_nav_label %}
       <details class="bw-docs-layout__nav" id="bw-docs-nav">
         <summary class="bw-docs-layout__nav-summary">{{ bw_docs_nav_label }}</summary>
         <nav class="bw-docs-layout__nav-body" {% bw_attr "aria-label" bw_docs_nav_label %}>

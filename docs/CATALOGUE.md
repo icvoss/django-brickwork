@@ -25,7 +25,7 @@ separate concept, but never a catalogue NOUN in this sense: see section 3.
 | Shell | The document skeleton and chrome a page extends | `templates/brickwork/shell/*.html`, `brickwork_marketing/shell/marketing.html` |
 | Component | A reusable piece: button, card, table, hero, pricing table, ... | `templates/brickwork/components/_*.html`, `brickwork_marketing/components/_*.html` |
 | Section | A copy-paste example of ONE band (a hero, a CTA, a pricing block) | `examples/sections/<type>/<variant>.html` |
-| Archetype | A copy-paste example of a COMPLETE page | `examples/app/*.html`, `examples/auth/*.html`, `examples/docs/*.html`, `examples/marketing/*.html`, `examples/ops/*.html` |
+| Archetype | A copy-paste example of a COMPLETE page | `examples/app/*.html`, `examples/auth/*.html`, `examples/docs/*.html`, `examples/editorial/*.html`, `examples/marketing/*.html`, `examples/ops/*.html` |
 | Skeleton | A raw document skeleton a consumer copies to become their OWN `templates/base.html`, not a complete page belonging to any family | `examples/base.html` (the only one) |
 
 Forms (`forms/_*.html`) and nav (`nav/_*.html`) templates are their own
@@ -48,13 +48,15 @@ template they are.
 | Marketing and public web | landing, pricing, about, plan comparison |
 | Data-heavy operations | queue, audit trail, report, comparison, analysis dashboard, dense list |
 | Documentation | documentation home, article, API reference, table of contents, navigation, search results, versioned content |
+| Editorial and publishing | article |
 
 **Planned, not yet shipped** (INTERFACE-SYSTEM.md names the required
 archetype set; ROADMAP.md carries the wave each family expands in). This
 document does not restate the wave numbers: see section 6 for why, and read
 ROADMAP.md directly for current wave assignments, which move as waves land.
 
-- Editorial and publishing
+- Editorial and publishing remainder: author, category, archive, series,
+  related content, reading-progress patterns
 
 **Arranging bands within an app-surface archetype** (product applications and
 data-heavy operations both extend an app-family shell) uses a closed,
