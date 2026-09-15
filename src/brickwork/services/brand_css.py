@@ -12,6 +12,9 @@ out, validated against the shipped manifest (brickwork#39) rather than a
 hand-kept second list. Pairs with ``docs/BRANDING.md``'s dynamic-theming recipe.
 
 Public surface (semver-stable): ``render_brand_css``, ``BrandValidationError``.
+Theme depth (L0 to L4) is checked by ``brickwork.services.theme_profile``;
+this emitter accepts any overridable value (including L2 to L4 axes) and
+does not infer profile level.
 """
 
 from __future__ import annotations

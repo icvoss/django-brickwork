@@ -142,8 +142,25 @@ Import order for a themed Tailwind consumer:
 | [examples/brand-pack/northline-material/](examples/brand-pack/northline-material/) | Fictional **L3** torture (radius + elevation + raised surface) |
 | [examples/brand-pack/northline-dense/](examples/brand-pack/northline-dense/) | Fictional **L4** torture (material + space-1 + compact density) |
 | `harbour/`, `folio/` | Additional fictional **L2** voices |
-| `render_brand_css()` | Emitter for validated overrides (extend toward L3/L4 per plan) |
+| `render_brand_css()` | Emitter for validated overrides (colours + L2 to L4 overridable values) |
+| `infer_theme_level` / `check_theme_level` | Pure level inference and claimed-vs-evidenced check (`brickwork.services.theme_profile`, re-exported from `brickwork.services.tokens`) |
+| `recommended_tokens_for_level` | Checklist-driven recommended token names per level |
 | `{% bw_token_specimen %}` | Live preview when wired (#268) |
+
+### Level check (Phase C)
+
+```python
+from brickwork.services.tokens import check_theme_level, render_brand_css
+
+report = check_theme_level("L3", light.keys())
+assert report.ok, report.message  # colours-only claiming L3 fails
+css = render_brand_css(light, dark)  # unknown names still raise BrandValidationError
+```
+
+Kit-owned tokens (focus geometry, z-index, motion, breakpoints, touch floor,
+most `--bw-component-*`, opacity roles) may still emit via `render_brand_css`
+when overridable, but **never evidence** a theme level (`kit_owned_present` /
+`ThemeLevelReport.kit_owned`).
 
 ## Related programmes
 

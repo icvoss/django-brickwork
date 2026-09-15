@@ -32,6 +32,13 @@ from brickwork.conf import get_setting
 # here so ``brickwork.services.tokens`` stays the single public token-services
 # entry point (docs/BRANDING.md points consumers at this path).
 from brickwork.services.brand_css import BrandValidationError, render_brand_css
+from brickwork.services.theme_profile import (
+    ThemeLevelReport,
+    check_theme_level,
+    infer_theme_level,
+    kit_owned_present,
+    recommended_tokens_for_level,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -42,6 +49,11 @@ __all__ = [
     "BRAND_SLUG_RE",
     "BrandValidationError",
     "ThemeAttributes",
+    "ThemeLevelReport",
+    "check_theme_level",
+    "infer_theme_level",
+    "kit_owned_present",
+    "recommended_tokens_for_level",
     "render_brand_css",
     "resolve_theme_attributes",
 ]
