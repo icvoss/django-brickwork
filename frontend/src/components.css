@@ -5623,7 +5623,7 @@ a.bw-chip {
   gap: var(--bw-space-4);
 }
 
-@media (max-width: 47.999rem) {
+@media (width < --theme(--breakpoint-md)) {
   .bw-token-specimen__panes {
     grid-template-columns: 1fr;
   }
@@ -5770,7 +5770,7 @@ a.bw-chip {
   min-inline-size: 0;
 }
 
-@media (min-width: 48rem) {
+@media (width >= --theme(--breakpoint-md)) {
   .bw-preview-frame__viewport {
     padding: var(--bw-space-5);
   }

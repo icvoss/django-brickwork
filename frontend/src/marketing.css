@@ -2419,13 +2419,13 @@
   grid-template-columns: 1fr;
 }
 
-@media (min-width: 40rem) {
+@media (width >= --theme(--breakpoint-sm)) {
   .bw-proof-collage--collage .bw-proof-collage__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 64rem) {
+@media (width >= --theme(--breakpoint-lg)) {
   .bw-proof-collage--collage .bw-proof-collage__grid {
     grid-template-columns: 1.15fr 1fr 0.95fr;
   }
