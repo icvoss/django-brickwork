@@ -75,9 +75,7 @@ def test_copy_dist_file_tokens_js(tmp_path: Path) -> None:
     dest = tmp_path / "tokens.js"
     result = copy_dist_file("tokens.js", dest)
     assert result.wrote is True
-    assert "export" in dest.read_text(encoding="utf-8") or "bw-" in dest.read_text(
-        encoding="utf-8"
-    )
+    assert "export" in dest.read_text(encoding="utf-8") or "bw-" in dest.read_text(encoding="utf-8")
 
 
 def test_management_command_writes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

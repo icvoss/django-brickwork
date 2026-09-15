@@ -48,13 +48,7 @@ class Command(BaseCommand):
 
         if result.wrote:
             self.stdout.write(
-                self.style.SUCCESS(
-                    f"Wrote {result.bytes_written} bytes to {result.destination} "
-                    f"(from {result.source})"
-                )
+                self.style.SUCCESS(f"Wrote {result.bytes_written} bytes to {result.destination} (from {result.source})")
             )
         else:
-            self.stdout.write(
-                f"Already up to date: {result.destination} "
-                f"(matches installed projection)"
-            )
+            self.stdout.write(f"Already up to date: {result.destination} (matches installed projection)")

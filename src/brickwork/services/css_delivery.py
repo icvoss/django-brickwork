@@ -52,9 +52,7 @@ def dist_root() -> Path:
     # token_manifest's ``files("brickwork").joinpath(...)`` reads.
     root = Path(str(files("brickwork").joinpath(_DIST))).resolve()
     if not root.is_dir():
-        raise FileNotFoundError(
-            f"brickwork dist directory missing at {root}; reinstall django-brickwork"
-        )
+        raise FileNotFoundError(f"brickwork dist directory missing at {root}; reinstall django-brickwork")
     return root
 
 
@@ -62,9 +60,7 @@ def projection_path() -> Path:
     """Absolute path to the installed ``tailwind-theme.css`` projection."""
     path = dist_root() / _PROJECTION_NAME
     if not path.is_file():
-        raise FileNotFoundError(
-            f"missing {_PROJECTION_NAME} under {path.parent}; reinstall django-brickwork"
-        )
+        raise FileNotFoundError(f"missing {_PROJECTION_NAME} under {path.parent}; reinstall django-brickwork")
     return path
 
 
@@ -98,11 +94,7 @@ def sync_tailwind_theme(destination: Path, *, force: bool = False) -> SyncResult
     source = projection_path()
     # Prefer Traversable read (same path as token_manifest) so a broken Path
     # str() conversion still surfaces as a clean FileNotFoundError from files().
-    source_text = (
-        files("brickwork")
-        .joinpath(f"{_DIST}/{_PROJECTION_NAME}")
-        .read_text(encoding="utf-8")
-    )
+    source_text = files("brickwork").joinpath(f"{_DIST}/{_PROJECTION_NAME}").read_text(encoding="utf-8")
     payload = _stamped_payload(source_text)
     payload_bytes = payload.encode("utf-8")
 
