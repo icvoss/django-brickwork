@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 67,
     "sections": 29,
-    "archetypes": 30,
+    "archetypes": 31,
     "skeletons": 1
   },
   "families": [
@@ -17,7 +17,7 @@
     },
     {
       "name": "Documentation",
-      "archetypeCount": 4,
+      "archetypeCount": 5,
       "sectionCount": 0
     },
     {
@@ -327,6 +327,22 @@
       ]
     },
     {
+      "name": "examples/docs/navigation.html",
+      "kind": "archetype",
+      "family": "Documentation",
+      "templatePath": "examples/docs/navigation.html",
+      "docSource": "examples/docs/navigation.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_search.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/docs/toc.html",
       "kind": "archetype",
       "family": "Documentation",
@@ -548,6 +564,7 @@
         "app/toast.html",
         "docs/api-reference.html",
         "docs/article.html",
+        "docs/navigation.html",
         "docs/toc.html"
       ],
       "usedBySections": [
@@ -603,6 +620,7 @@
         "app/detail.html",
         "docs/api-reference.html",
         "docs/article.html",
+        "docs/navigation.html",
         "docs/toc.html"
       ],
       "usedBySections": [],
@@ -878,6 +896,7 @@
         "app/console.html",
         "docs/api-reference.html",
         "docs/home.html",
+        "docs/navigation.html",
         "docs/toc.html"
       ],
       "usedBySections": [],
@@ -1234,6 +1253,7 @@
         "docs/api-reference.html",
         "docs/article.html",
         "docs/home.html",
+        "docs/navigation.html",
         "docs/toc.html"
       ],
       "usedBySections": [],
@@ -1855,6 +1875,7 @@
         "docs/api-reference.html",
         "docs/article.html",
         "docs/home.html",
+        "docs/navigation.html",
         "docs/toc.html"
       ],
       "usedBySections": [],

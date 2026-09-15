@@ -762,6 +762,42 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         # Normal case / a11y fixture. empty and error covered below.
         "toc_state": "ready",
     },
+    "docs/navigation.html": {
+        "crumbs": [
+            {"label": "Documentation", "url": "/docs/"},
+            {"label": "Browse"},
+        ],
+        "docs_section_items": (
+            NavItem(key="sec-guides", label="Guides", href="/docs/guides/"),
+            NavItem(key="sec-api", label="API reference", href="/docs/api-reference/"),
+            NavItem(key="sec-changelog", label="Changelog", href="/docs/changelog/"),
+        ),
+        "docs_section_active": NavItem(key="sec-guides", label="Guides", href="/docs/guides/"),
+        "docs_nav_items": (
+            NavItem(
+                key="guides-auth",
+                label="Authentication",
+                section_header=True,
+                children=(
+                    NavItem(key="guides-api-key", label="API keys", href="/docs/guides/authentication/"),
+                    NavItem(key="guides-oauth", label="OAuth", href="/docs/guides/oauth/"),
+                ),
+            ),
+            NavItem(
+                key="guides-webhooks",
+                label="Webhooks",
+                href="/docs/guides/webhooks/",
+            ),
+            NavItem(
+                key="guides-limits",
+                label="Rate limits",
+                href="/docs/guides/rate-limits/",
+            ),
+        ),
+        "docs_nav_active": NavItem(key="guides-webhooks", label="Webhooks", href="/docs/guides/webhooks/"),
+        "docs_search_action": "/docs/search/",
+        "navigation_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -1743,6 +1779,35 @@ def test_the_docs_toc_empty_and_error_states_replace_the_body() -> None:
     assert 'role="alert"' in error, "the error branch rendered no alert"
     assert "bw-empty-state" not in error, "the error branch also rendered the empty state"
     assert "Working with invoices" not in error, "the error branch also rendered the outline"
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_docs_navigation_empty_and_error_states_replace_the_body() -> None:
+    """docs/navigation.html's three navigation_state branches."""
+    template = _example_engine().get_template("docs/navigation.html")
+    base = dict(_EXAMPLE_CONTEXTS["docs/navigation.html"])
+
+    ready = template.render(Context({**base, "navigation_state": "ready"}))
+    empty = template.render(Context({**base, "navigation_state": "empty"}))
+    error = template.render(Context({**base, "navigation_state": "error"}))
+
+    assert "bw-nav__list--horizontal" in ready, "the ready branch lost its horizontal section switcher"
+    assert "bw-card--interactive" in ready, "the ready branch lost its section cards"
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-nav__list--horizontal" not in empty, "the empty branch still rendered the section switcher"
+    assert "bw-card--interactive" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-nav__list--horizontal" not in error
+    assert "bw-card--interactive" not in error
 
     for html, label in ((empty, "empty"), (error, "error")):
         assert 'role="search"' in html, f"the {label} branch dropped search"
