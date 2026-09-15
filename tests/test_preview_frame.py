@@ -8,9 +8,7 @@ from django.utils.safestring import mark_safe
 
 def _include(**ctx: object) -> str:
     keys = " ".join(f"{k}={k}" for k in ctx)
-    return Template("{% include 'brickwork/components/_preview_frame.html' with " + keys + " %}").render(
-        Context(ctx)
-    )
+    return Template("{% include 'brickwork/components/_preview_frame.html' with " + keys + " %}").render(Context(ctx))
 
 
 def _extend(blocks: str, **ctx: object) -> str:
@@ -54,13 +52,7 @@ def test_compiled_css_keeps_surface_fill_not_raised() -> None:
     from pathlib import Path
 
     css = (
-        Path(__file__).resolve().parent.parent
-        / "src"
-        / "brickwork"
-        / "static"
-        / "brickwork"
-        / "dist"
-        / "brickwork.css"
+        Path(__file__).resolve().parent.parent / "src" / "brickwork" / "static" / "brickwork" / "dist" / "brickwork.css"
     ).read_text(encoding="utf-8")
     # The guard is the package knowledge: surface, never raised.
     assert "bw-preview-frame__viewport" in css

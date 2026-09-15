@@ -2460,7 +2460,6 @@ def render_preview_frame(theme: str) -> str:
     )
 
 
-
 # --- proof collage (icvoss/django-brickwork#572) -----------------------------
 
 _PROOF_COLLAGE_PAGE = """<!doctype html>

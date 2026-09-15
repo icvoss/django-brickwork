@@ -8,9 +8,9 @@ from django.utils.safestring import mark_safe
 
 def _include(**ctx: object) -> str:
     keys = " ".join(f"{k}={k}" for k in ctx)
-    return Template(
-        "{% include 'brickwork_marketing/components/_proof_collage.html' with " + keys + " %}"
-    ).render(Context(ctx))
+    return Template("{% include 'brickwork_marketing/components/_proof_collage.html' with " + keys + " %}").render(
+        Context(ctx)
+    )
 
 
 def test_collage_layout_wraps_items_in_preview_frames() -> None:
