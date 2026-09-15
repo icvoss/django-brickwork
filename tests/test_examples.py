@@ -798,6 +798,31 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "docs_search_action": "/docs/search/",
         "navigation_state": "ready",
     },
+    "docs/search-results.html": {
+        "crumbs": [
+            {"label": "Documentation", "url": "/docs/"},
+            {"label": "Search"},
+        ],
+        "docs_nav_items": _DOCS_NAV_ITEMS,
+        "docs_nav_active": _DOCS_NAV_ITEMS[0],
+        "docs_search_action": "/docs/search/",
+        "query": "webhook",
+        "results": [
+            {
+                "title": "Setting up and verifying webhooks",
+                "href": "/docs/guides/webhooks/",
+                "snippet": "Receive signed events when an invoice is paid, disputed or written off.",
+                "section": "Guides",
+            },
+            {
+                "title": "Webhook endpoints",
+                "href": "/docs/api-reference/webhooks/",
+                "snippet": "List, create and rotate webhook endpoint secrets.",
+                "section": "API reference",
+            },
+        ],
+        "results_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -1810,5 +1835,43 @@ def test_the_docs_navigation_empty_and_error_states_replace_the_body() -> None:
     assert "bw-card--interactive" not in error
 
     for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_docs_search_results_states_are_mutually_exclusive() -> None:
+    """docs/search-results.html distinguishes empty_query, empty_results, error and ready."""
+    template = _example_engine().get_template("docs/search-results.html")
+    base = dict(_EXAMPLE_CONTEXTS["docs/search-results.html"])
+
+    ready = template.render(Context({**base, "results_state": "ready"}))
+    empty_query = template.render(Context({**base, "results_state": "empty_query", "query": "", "results": ()}))
+    empty_results = template.render(
+        Context({**base, "results_state": "empty_results", "query": "xyzzy", "results": ()})
+    )
+    error = template.render(Context({**base, "results_state": "error", "results": ()}))
+
+    assert "bw-card--interactive" in ready
+    assert "Setting up and verifying webhooks" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+
+    assert "No query yet" in empty_query
+    assert "bw-card--interactive" not in empty_query
+    assert "No results" not in empty_query
+
+    assert "No results" in empty_results
+    assert "No query yet" not in empty_results
+    assert "bw-card--interactive" not in empty_results
+
+    assert 'role="alert"' in error
+    assert "bw-card--interactive" not in error
+    assert "bw-empty-state" not in error
+
+    for html, label in (
+        (empty_query, "empty_query"),
+        (empty_results, "empty_results"),
+        (error, "error"),
+    ):
         assert 'role="search"' in html, f"the {label} branch dropped search"
         assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"

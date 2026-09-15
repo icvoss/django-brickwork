@@ -150,6 +150,7 @@ is also linked from there.
 | `docs/api-reference.html` | API reference: method + path, parameters, request/response, status codes |
 | `docs/toc.html` | Section table of contents: hierarchical outline of a docs section |
 | `docs/navigation.html` | Docs navigation: horizontal section switcher + hierarchical rail |
+| `docs/search-results.html` | Docs search results: query echo, result cards, empty/error states |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |
