@@ -8,6 +8,50 @@ versioning contract).
 
 ## Unreleased
 
+## [3.31.0] - 2026-09-15
+
+Minor: `bw_nav` orientation, flat disabled colour tokens, and honesty for the
+typography floor and chart retint guarantee. Disabled controls change
+visually on upgrade (muted flat chip instead of a 50 percent fade).
+
+### Added
+
+- **`{% bw_nav orientation= %}`** (icvoss/django-brickwork#430, NAV-024).
+  App-shell `bw_nav` accepts `orientation="vertical"` (default) or
+  `"horizontal"`. Horizontal marks the root list with
+  `bw-nav__list--horizontal` and shares the topbar shell's wrapping-row /
+  block-end active-marker chrome, so a consumer no longer styles
+  package-private nav BEM for a horizontal band. Marketing header rows stay
+  on `{% bw_nav_header %}`. Invalid values fall back to vertical.
+
+### Changed
+
+- **Typography floor is two-tier** (icvoss/django-brickwork#281, TYP-022).
+  Content and legibility floor stays `--bw-font-size-xs` (~12px). Chrome
+  text may use `--bw-font-size-2xs` (~11px) for overlines and micro-labels
+  only (never body, interactive labels, form help/error, or table cells).
+  `--bw-font-size-3xs` is deprecated with no package consumer; removal at
+  the next major. Documented in `docs/DESIGN.md` and the wall.
+
+- **Disabled controls use flat colour tokens, not opacity**
+  (icvoss/django-brickwork#282, COL-018). Buttons, inputs, checkboxes,
+  radios, toggles and pagination disabled states paint
+  `--bw-color-action-disabled-{bg,text,border}` instead of
+  `opacity: var(--bw-component-disabled-opacity)`. Opacity dimming failed
+  contrast on most surfaces and could not be gated under brand overrides.
+  `render_brand_css` now validates the disabled text/fill pair at 4.5:1.
+  **Visual change on upgrade:** disabled controls no longer look like a
+  50 percent fade of the enabled colours; they use the muted flat chip.
+  `--bw-component-disabled-opacity` remains for non-colour dimming only.
+
+- **Chart series retint guarantee is uniform chroma scaling only**
+  (icvoss/django-brickwork#302). `docs/BRANDING.md` and the chart series
+  contract tests now state that the ADR-082 envelope covers multiplying
+  every series' chroma by the same factor (down to x0.7), not free
+  per-token overrides of `--bw-color-chart-1` through `-chart-8`. Free
+  overrides remain possible and remain outside the guarantee; an optional
+  envelope warning stays deferred as #291.
+
 ## [3.30.0] - 2026-09-15
 
 Minor: marketing proof stack for the flagship kit. New catalogue presentation
