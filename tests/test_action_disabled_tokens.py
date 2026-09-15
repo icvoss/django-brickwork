@@ -34,8 +34,7 @@ def test_action_disabled_text_contrast_pair_is_manifested() -> None:
     pairs = [
         p
         for p in contrast_pairs()
-        if p["name"] == "--bw-color-action-disabled-text"
-        and p["contrastPair"] == "--bw-color-action-disabled-bg"
+        if p["name"] == "--bw-color-action-disabled-text" and p["contrastPair"] == "--bw-color-action-disabled-bg"
     ]
     assert len(pairs) == 1
     assert pairs[0]["minContrast"] == 4.5
