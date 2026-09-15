@@ -1,13 +1,18 @@
 # Branding brickwork: theming a consuming app token-first
 
-brickwork's whole point is that you rebrand it by overriding `--bw-*` tokens, not
-by reaching into its component classes. This guide covers how to bridge a real
-brand onto the token layer: colour, typography, and the four axes (theme,
-density, direction). Since 0.3.0, base-theme (the default values every
-brand inherits from) derives its fine colour tokens live from a small
-load-bearing set, so a brand is a handful of authored values, not a full
-palette. [DESIGN.md](DESIGN.md) is the authoritative token reference (every
-name, default value, and derivation rule); this guide covers the how.
+brickwork's whole point is that you theme it by overriding `--bw-*` tokens, not
+by reaching into its component classes. The product name for that capability is
+**Brickwork Theme** ([THEME.md](THEME.md), ADR-110): depth levels L1 (recolour)
+through L4 (rhythm), analogous to authoring a Tailwind theme on published
+dials, not a free CSS fork of `.bw-*`.
+
+This guide covers the override mechanism: colour, typography, and the four axes
+(theme, density, direction). Since 0.3.0, base-theme derives its fine colour
+tokens live from a small load-bearing set, so **L1 recolour** is a handful of
+authored colour values, not a full palette. Deeper look (type voice, radius,
+elevation, spacing/density) is still token overrides at L2 to L4, not component
+forks. [DESIGN.md](DESIGN.md) is the authoritative token reference; [brand-pack.md](brand-pack.md)
+is the portable pack unit.
 
 ## The mechanism: override tokens, don't touch classes
 
@@ -59,7 +64,7 @@ An idempotent include tag was declined for now: the shell already emits the
 canonical link once; the failure is almost always a second consumer or
 embedded-document link, which a template tag on the first include cannot see.
 
-## The load-bearing minimum: seven tokens make a brand
+## The load-bearing minimum: seven tokens make an L1 recolour
 
 **Counting note (icvoss/django-brickwork#246).** This section's "seven" is the
 core colour set base-theme derives fine tokens from. The machine-readable
@@ -114,7 +119,7 @@ A complete light plus dark brand is about fourteen lines:
 }
 ```
 
-That is the whole brand: base-theme derives the hover shades, subtle tints,
+That is L1 recolour: base-theme derives the hover shades, subtle tints,
 muted foregrounds, status tiers, and component roles from these values.
 
 ## The fg-on-accent trap: do not assume white (brickwork#35)

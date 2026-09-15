@@ -216,19 +216,32 @@ copy rather than omit it.
 `dir="rtl"` accessibility fixture in the 144-document gate. State this
 distinction; do not imply RTL is axe-tested.
 
-### 4.3 Token-first rebranding
+### 4.3 Brickwork Theme (token profiles)
 
-`docs/BRANDING.md:3-4`: rebranding is done by overriding `--bw-*` tokens, not
-by touching component classes. 358 unique `--bw-*` tokens exist (dated at
-3.12.0), 289 overridable. 10 are load-bearing, of which 8 are unconditional:
-a brand supplies roughly 16 lines of CSS (8 tokens x light and dark) to
-rebrand the whole system, because base-theme derives its fine colour tokens
-live from that small load-bearing set (`docs/BRANDING.md`, "The load-bearing
-minimum: seven tokens make a brand", counting note).
+Consumers build a **Brickwork Theme** by overriding `--bw-*` tokens, never by
+touching component classes ([docs/THEME.md](THEME.md), ADR-110). 358 unique
+`--bw-*` tokens exist (dated at 3.12.0), 289 overridable. 10 are load-bearing,
+of which 8 are unconditional.
+
+**L1 Recolour** (the load-bearing colour minimum plus `fg-on-accent`, light and
+dark) is roughly 16 lines of CSS and recolours the **derived colour cascade**
+live via `color-mix()`. That is not a full product brand. Deeper profiles are
+normative levels on the same substrate:
+
+| Level | What it adds |
+|---|---|
+| L1 Recolour | Load-bearing colours + `fg-on-accent` |
+| L2 Voice | Font stacks (optional type roles) |
+| L3 Material | Radius and/or elevation and/or surface ladder |
+| L4 Rhythm | Spacing base and/or density |
+
+Say "L1 recolour in ~16 lines"; never "16 lines rebrands the whole system."
+Base-theme already ships full default scales (radius, spacing, elevation,
+type); higher levels replace selected values. See [brand-pack.md](brand-pack.md).
 
 Dark mode is an authored surface, not a computed inversion: `data-theme`
 dark values are authored per token, not derived from light
-(BR-BW-TOK-002, `docs/BRANDING.md:161-166`). Four theme axes are verified
+(BR-BW-TOK-002, `docs/BRANDING.md`). Four theme axes are verified
 working: brand (`data-bw-brand`), theme (`data-theme`), density (3 token
 files), direction.
 

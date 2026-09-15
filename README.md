@@ -91,6 +91,7 @@ evidence than a gate that has never missed.
   leading Tailwind UI kits (internal; clean-room look/idea only).
 - [docs/ROADMAP.md](docs/ROADMAP.md): the active plan from the current package
   to complete interface-system coverage.
+- [docs/THEME.md](docs/THEME.md): Brickwork Theme (L1 to L4 profiles on `--bw-*`)
 - [docs/BRANDING.md](docs/BRANDING.md): how a consuming app brands brickwork
   (the load-bearing token minimum, dark mode, the four axes, the fg-on-accent
   contrast trap, and dynamic per-tenant / per-user theming recipes).
