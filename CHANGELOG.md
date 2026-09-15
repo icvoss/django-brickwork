@@ -10,6 +10,12 @@ versioning contract).
 
 ### Added
 
+- Brickwork Theme Phase C helpers (`brickwork.services.theme_profile`,
+  re-exported from `brickwork.services.tokens`): `infer_theme_level`,
+  `check_theme_level`, `recommended_tokens_for_level`, and kit-owned reporting.
+  A colours-only map claiming L3 fails the checker. `render_brand_css` already
+  accepts L2 to L4 overridable values; unknown names still raise
+  `BrandValidationError` (icvoss/django-brickwork#598).
 - Brand-pack Phase B skeletons for Brickwork Theme levels: northline,
   harbour, and folio each declare **L2** in `PROFILE.md`; fictional
   `northline-material` (**L3**) and `northline-dense` (**L4**) torture packs
