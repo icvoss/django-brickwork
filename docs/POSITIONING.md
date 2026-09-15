@@ -1,6 +1,8 @@
 # brickwork positioning
 
-**Status:** canonical positioning source. Updated by owner direction 2026-09-11.
+**Status:** canonical positioning source. Updated by owner direction 2026-09-14
+(three-product split; umbrella ADR-108). Previous 2026-09-11 visual-bar
+honesty rules remain.
 **Scope:** every brickwork-facing copy surface (README.md, brickworkui.com,
 PyPI description, any future landing page or pitch) derives its claims from
 this document and must not diverge from it. Where a surface currently
@@ -9,6 +11,10 @@ contradicts it, that surface is wrong; see "Required downstream fixes" below.
 **This is not itself marketing copy.** It is an internal reference: the
 position, the evidence for each claim, and the boundaries. Anyone writing
 brickwork-facing prose lifts claims from here, with the evidence attached.
+
+**Product shape:** umbrella ADR-108
+(`docs/adrs/ADR-108-brickwork-three-product-split.md` in the ICV OSS
+umbrella): substrate, designed catalogue, installable template.
 
 ---
 
@@ -20,6 +26,19 @@ across public sites, product applications, data-heavy operations,
 documentation, editorial publishing and transactional journeys: foundations,
 components, layouts, interaction patterns and copyable page archetypes, on
 Tailwind 4, Alpine 3 and HTMX 2. Django is its only hard runtime dependency.
+
+That offer is **three products in one distribution** (ADR-108). Public copy
+must name which product a claim is about:
+
+| Product | Job | Consumer verb |
+|---|---|---|
+| **Substrate** | Tokens, shells, polished primitives, layout structures, interaction contracts, WCAG/a11y gates, brand override by `--bw-*` | install, pin, compose, override tokens |
+| **Designed catalogue** | Finished compositions plus Alpine/HTMX wiring instructions; copy and own | browse, copy, adapt |
+| **Installable template** | `manage.py startsite` emits a running project that is yours | emit once |
+
+Do not attribute catalogue craft to a substrate include API. Do not treat a
+copied example as a package page contract (ADR-056). Do not treat starter
+output as supported surface (ADR-095).
 
 The current shipped component inventory is not yet that complete system. Public
 copy must distinguish the target from verified shipping coverage, while showing
