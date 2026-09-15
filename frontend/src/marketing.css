@@ -2527,7 +2527,7 @@
 .bw-bio__name {
   margin: 0;
   font-family: var(--bw-font-family-sans);
-  font-size: var(--bw-font-size-base);
+  font-size: var(--bw-text-body-md-size);
   font-weight: var(--bw-font-weight-semibold);
   color: var(--bw-color-fg);
   line-height: var(--bw-font-line-height-tight);
