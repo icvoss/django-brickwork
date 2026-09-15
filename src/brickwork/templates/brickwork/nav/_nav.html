@@ -9,6 +9,11 @@ Items arrive already prepared by {% bw_nav %} (URL resolved via safe_reverse,
 active/ancestor-active state and the disabled/external flags computed), so this
 template is pure presentation: no {% url %} that could 500 (BR-BW-NAV-003), no
 permission logic (visibility was filtered upstream).
+
+Optional context from the tag:
+  orientation ("vertical"|"horizontal", default "vertical"). Horizontal adds
+  bw-nav__list--horizontal on the root list (NAV-024 / #430) so a topbar-shaped
+  band does not require styling package-private BEM from the consumer.
 {% endcomment %}
 
 {% partialdef nav_item %}
@@ -50,6 +55,6 @@ permission logic (visibility was filtered upstream).
   {% endif %}
 {% endpartialdef %}
 
-<ul class="bw-nav__list" role="list">
+<ul class="bw-nav__list{% if orientation == 'horizontal' %} bw-nav__list--horizontal{% endif %}" role="list">
   {% for item in bw_nav_tree %}{% partial nav_item %}{% endfor %}
 </ul>

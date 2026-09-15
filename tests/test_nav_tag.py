@@ -243,3 +243,22 @@ def test_route_param_item_omitted_when_kwargs_unavailable() -> None:
     from brickwork.templatetags.brickwork_nav import _prepare
 
     assert _prepare(item, None, "omit", _Match({})) is None
+
+
+def test_orientation_horizontal_marks_the_root_list() -> None:
+    items = (NavItem(key="home", label="Home", external_url="https://example.com/"),)
+    html = Template("{% load brickwork_nav %}{% bw_nav items=items orientation='horizontal' %}").render(
+        Context({"items": items})
+    )
+    assert 'class="bw-nav__list bw-nav__list--horizontal"' in html
+
+
+def test_orientation_default_and_invalid_stay_vertical() -> None:
+    items = (NavItem(key="home", label="Home", external_url="https://example.com/"),)
+    default_html = _render_tree(items)
+    assert "bw-nav__list--horizontal" not in default_html
+    invalid_html = Template("{% load brickwork_nav %}{% bw_nav items=items orientation='diagonal' %}").render(
+        Context({"items": items})
+    )
+    assert "bw-nav__list--horizontal" not in invalid_html
+    assert 'class="bw-nav__list"' in invalid_html
