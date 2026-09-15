@@ -399,7 +399,7 @@ into, and every value is a --bw-* token: no new colour is invented.
      Tab/Shift+Tab never land on it either; arrow-key movement below
      explicitly skips disabled cells).
 
-     Dims colour and background via color-mix, NOT the element's own opacity:
+     Flat disabled tokens (COL-018 / #282), NOT the element's own opacity:
      opacity dims the whole rendered element, including border-color, which
      is wrong the moment a disabled day is ALSO today (a real, if unusual,
      configuration: today falls on a masked weekend or an explicit
@@ -410,21 +410,16 @@ into, and every value is a --bw-* token: no new colour is invented.
      inactive-component exemption disabled TEXT gets (WCAG 1.4.3): a sighted
      user should still be able to see which day is today even when it cannot
      be selected. aria-current="date" already carries this for screen-reader
-     users regardless of the ring's visual strength.
-
-     calc(var(--bw-component-disabled-opacity) * 100%) turns the existing
-     scalar opacity token into the color-mix percentage, so the dimming
-     amount still comes from one token rather than a second hard-coded
-     number. */
+     users regardless of the ring's visual strength. */
   .bw-drp-day[aria-disabled="true"] {
-    color: color-mix(in oklab, var(--bw-color-fg) calc(var(--bw-component-disabled-opacity) * 100%), var(--bw-color-surface-raised));
+    color: var(--bw-color-action-disabled-text);
     cursor: not-allowed;
   }
 
   .bw-drp-day[aria-disabled="true"][data-bw-endpoint],
   .bw-drp-day[aria-disabled="true"][data-bw-in-range],
   .bw-drp-day[aria-disabled="true"][data-bw-preview] {
-    background: color-mix(in oklab, var(--bw-color-accent-subtle) calc(var(--bw-component-disabled-opacity) * 100%), var(--bw-color-surface-raised));
+    background: var(--bw-color-action-disabled-bg);
   }
 
   /* The ring itself stays at full strength (border-color untouched above):

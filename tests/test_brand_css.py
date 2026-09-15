@@ -222,9 +222,18 @@ def test_fg_override_alone_does_not_break_status_text_contrast() -> None:
     # load-bearing tokens BRANDING.md tells every brand to author. This light
     # fg override measured danger-fg on danger-subtle at 3.55:1 under that
     # derivation. X-fg now mixes toward the dedicated --bw-color-status-fg-ink
-    # token instead, so the same override must raise nothing.
-    css = render_brand_css({"color-fg": "oklch(0.95 0.01 265)"})
-    assert "--bw-color-fg:" in css
+    # token instead, so the same override must not raise on a status pair.
+    #
+    # COL-018 / #282: flat disabled ink DOES track --bw-color-fg (same mix as
+    # fg-muted), so an extreme fg override correctly raises on the
+    # action-disabled pair. That is the gated disabled contract, not a
+    # regression of the status independence claim.
+    with pytest.raises(BrandValidationError, match="action-disabled-text") as exc:
+        render_brand_css({"color-fg": "oklch(0.95 0.01 265)"})
+    assert "danger-fg" not in str(exc.value)
+    assert "warning-fg" not in str(exc.value)
+    assert "success-fg" not in str(exc.value)
+    assert "info-fg" not in str(exc.value)
 
 
 def test_validate_false_skips_all_checks() -> None:

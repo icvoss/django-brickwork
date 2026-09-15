@@ -89,8 +89,8 @@
   padding-block: var(--bw-density-row-padding-block);
   padding-inline: var(--bw-density-row-padding-inline);
   border-radius: var(--bw-radius-md);
-  /* Colour token alone dims the row (the documented nav exception); adding
-     the disabled-opacity as well double-dims to roughly 1.9:1 contrast. */
+  /* Flat disabled ink (COL-018 pattern): colour token alone, never opacity.
+     Stacking opacity on top historically double-dimmed to roughly 1.9:1. */
   color: var(--bw-component-nav-item-disabled-text);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);

@@ -127,9 +127,15 @@
 .bw-btn--lg.bw-btn--icon-only {
   inline-size: var(--bw-size-control-height-lg);
 }
+/* Flat disabled colours (COL-018 / #282), not opacity: opacity failed
+ * contrast on most surfaces and cannot be gated under brand overrides. */
 .bw-btn:disabled,
 .bw-btn--disabled {
-  opacity: var(--bw-component-disabled-opacity);
+  background: var(--bw-color-action-disabled-bg);
+  background-image: none;
+  color: var(--bw-color-action-disabled-text);
+  border-color: var(--bw-color-action-disabled-border);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -405,7 +411,9 @@ select.bw-input {
   background: var(--bw-color-surface-sunken);
 }
 .bw-input:disabled {
-  opacity: var(--bw-component-disabled-opacity);
+  background: var(--bw-color-action-disabled-bg);
+  color: var(--bw-color-action-disabled-text);
+  border-color: var(--bw-color-action-disabled-border);
   cursor: not-allowed;
 }
 .bw-field--invalid .bw-input,
@@ -502,8 +510,20 @@ input.bw-radio:checked {
 }
 input.bw-checkbox:disabled,
 input.bw-radio:disabled {
-  opacity: var(--bw-component-disabled-opacity);
+  border-color: var(--bw-color-action-disabled-border);
+  background: var(--bw-color-action-disabled-bg);
   cursor: not-allowed;
+}
+input.bw-checkbox:disabled:checked {
+  border-color: var(--bw-color-action-disabled-border);
+  background-color: var(--bw-color-action-disabled-text);
+}
+input.bw-checkbox:disabled:checked::before {
+  background-color: var(--bw-color-action-disabled-bg);
+}
+input.bw-radio:disabled:checked {
+  border-color: var(--bw-color-action-disabled-text);
+  background-color: var(--bw-color-action-disabled-bg);
 }
 
 /* --- Toggle switch (0.13.0, BR-BW-INPUT-001, brickwork#57) ------------------ */
@@ -601,8 +621,18 @@ input.bw-toggle:checked::before {
     );
 }
 input.bw-toggle:disabled {
-  opacity: var(--bw-component-disabled-opacity);
   cursor: not-allowed;
+}
+input.bw-toggle:disabled::after {
+  border-color: var(--bw-color-action-disabled-border);
+  background: var(--bw-color-action-disabled-bg);
+}
+input.bw-toggle:disabled:checked::after {
+  border-color: var(--bw-color-action-disabled-border);
+  background: var(--bw-color-action-disabled-text);
+}
+input.bw-toggle:disabled::before {
+  box-shadow: none;
 }
 @media (prefers-reduced-motion: reduce) {
   input.bw-toggle::before {
@@ -720,7 +750,7 @@ input.bw-toggle:disabled {
   cursor: not-allowed;
 }
 .bw-theme-switch__input:disabled ~ .bw-theme-switch__option-label {
-  color: var(--bw-color-fg-subtle);
+  color: var(--bw-color-action-disabled-text);
 }
 .bw-theme-switch__option-label {
   font-size: var(--bw-text-body-sm-size);
@@ -1736,7 +1766,9 @@ button.bw-account-menu__item {
   transition-duration: var(--bw-duration-instant);
 }
 .bw-pagination__link--disabled {
-  opacity: var(--bw-component-disabled-opacity);
+  background: var(--bw-color-action-disabled-bg);
+  color: var(--bw-color-action-disabled-text);
+  border-color: var(--bw-color-action-disabled-border);
   cursor: not-allowed;
 }
 .bw-pagination__status {
