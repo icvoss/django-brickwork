@@ -115,12 +115,19 @@ widths, density modes). L0/L1 consumers get them automatically. Higher levels
 | `tailwind-theme.css` | Optional projection so consumer utilities inherit the theme |
 | Consumer Tailwind build | Page layout utilities (`grid`, `gap-4`, …) |
 
-Import order for a themed Tailwind consumer:
+**First-class recipe:** [INTEGRATION.md §1.3](INTEGRATION.md#13-vite--tailwind-4-consumer-recipe-brickwork-theme-phase-f)
+and the copy-paste tree [examples/vite-tailwind/](examples/vite-tailwind/).
+Vendor the projection with
+`manage.py sync_brickwork_projection frontend/src/brickwork-theme.css`
+(or `brickwork.services.css_delivery.sync_tailwind_theme`); do not hand-copy
+from site-packages.
+
+Import order for a themed Tailwind consumer (shell already links
+`brickwork.css`):
 
 ```css
 @import "tailwindcss";
-@import "<path>/brickwork/dist/tokens.css"; /* or rely on brickwork.css link */
-@import "<path>/brickwork/dist/tailwind-theme.css";
+@import "../src/brickwork-theme.css"; /* synced projection */
 /* then your brand tokens.css */
 ```
 
@@ -161,6 +168,7 @@ Worked composition: [examples/theming/theme-preview.html](examples/theming/theme
 
 | Artefact | Role |
 |---|---|
+| [examples/vite-tailwind/](examples/vite-tailwind/) | Vite + Tailwind 4 recipe + projection sync (#601) |
 | [examples/brand-pack/northline/](examples/brand-pack/northline/) | Fictional **L2** skeleton (`PROFILE.md`) |
 | [examples/brand-pack/northline-material/](examples/brand-pack/northline-material/) | Fictional **L3** torture (radius + elevation + raised surface) |
 | [examples/brand-pack/northline-dense/](examples/brand-pack/northline-dense/) | Fictional **L4** torture (material + space-1 + compact density) |

@@ -92,6 +92,8 @@ evidence than a gate that has never missed.
 - [docs/ROADMAP.md](docs/ROADMAP.md): the active plan from the current package
   to complete interface-system coverage.
 - [docs/THEME.md](docs/THEME.md): Brickwork Theme (L1 to L4 profiles on `--bw-*`)
+- [docs/examples/vite-tailwind/](docs/examples/vite-tailwind/): Vite + Tailwind
+  consumer recipe and projection sync (INTEGRATION.md §1.3)
 - [docs/BRANDING.md](docs/BRANDING.md): how a consuming app brands brickwork
   (the load-bearing token minimum, dark mode, the four axes, the fg-on-accent
   contrast trap, and dynamic per-tenant / per-user theming recipes).
@@ -101,7 +103,8 @@ evidence than a gate that has never missed.
 - [docs/QUICKSTART.md](docs/QUICKSTART.md): start here. Orients you, then
   routes you to the right guide below.
 - [docs/INTEGRATION.md](docs/INTEGRATION.md): the greenfield integration
-  cookbook, the seams a consuming app wires end to end (settings and static, nav
+  cookbook, including the Vite + Tailwind recipe (§1.3) and projection sync;
+  the seams a consuming app wires end to end (settings and static, nav
   config, context processor, a worked HTMX 422 form, the chrome/body boundary).
 - [docs/ADOPTION.md](docs/ADOPTION.md): the strangle guide for migrating an
   existing app onto brickwork cluster by cluster (multi-host, asset coexistence,

@@ -97,6 +97,79 @@ inside `brickwork.css`; 0.10.0 moved utility generation out to the projection, s
 a consumer implicitly relying on it must adopt path 1 or 2. See the 0.10.0
 migration note in the CHANGELOG.)
 
+### 1.3 Vite + Tailwind 4 consumer recipe (Brickwork Theme Phase F)
+
+This is the supported path for **theme + page layout** without reading three
+ADRs. Copy-paste tree: [examples/vite-tailwind/](examples/vite-tailwind/).
+Depth ladder and honesty rules: [THEME.md](THEME.md). Token projection
+mechanics: [DESIGN.md](DESIGN.md) section 12.
+
+**Cascade (load order is load-bearing):**
+
+1. Shell serves `{% static "brickwork/dist/brickwork.css" %}` (base tokens +
+   every `.bw-*` class). Do not route this file through Vite.
+2. Your Vite build emits a second stylesheet with Tailwind utilities and,
+   optionally, your brand pack. Link it in `head_extra` **after** brickwork.
+3. Brand `--bw-*` overrides win the cascade for both kit chrome and projected
+   utilities (`bg-accent`, `rounded-md`, `p-4`, …).
+
+**Entry CSS:**
+
+```css
+@import "tailwindcss";
+
+/* brickwork themes via data-theme, not prefers-color-scheme */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@source "../../templates";
+@source "../js";
+
+@import "../src/brickwork-theme.css"; /* vendored projection; see sync below */
+
+/* Optional Brickwork Theme profile (L1 to L4) */
+@import "../brands/your-brand/tokens.css";
+```
+
+**Vendor the projection (do not hand-copy from site-packages):**
+
+```bash
+python manage.py sync_brickwork_projection frontend/src/brickwork-theme.css
+```
+
+That command stamps the installed `tailwind-theme.css` into your frontend tree
+so Node can `@import` it. Re-run after every `django-brickwork` bump. The
+Python API is `brickwork.services.css_delivery.sync_tailwind_theme` (same
+bytes). This is the supported answer to the AgentPM-style vendor-copy tax;
+dual npm publish is not required and is out of scope (ADR-110).
+
+**Vite sketch** (`@tailwindcss/vite` + stable output name your templates
+reference via `{% static %}`):
+
+```js
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({
+  plugins: [tailwindcss()],
+  build: {
+    outDir: "static/dist",
+    emptyOutDir: true,
+    rollupOptions: {
+      input: "frontend/css/main.css",
+      output: { assetFileNames: "app.css" },
+    },
+  },
+});
+```
+
+**Alpine / htmx** stay host-owned: register brickwork against your Alpine
+instance, then `Alpine.start()` (section 5). Do not import `tokens.css` into
+Vite when the shell already links `brickwork.css`; the projection's
+`var(--bw-*)` references resolve from that cascade at runtime.
+
+**Non-goals of this recipe:** shipping Tailwind utilities inside
+`brickwork.css`; forking `.bw-*`; multi-framework adapters.
+
 ### Static include-linters: allowlist the `brickwork/` namespace (brickwork#34)
 
 brickwork ships its shell, component, and form templates **inside the installed

@@ -10,6 +10,11 @@ versioning contract).
 
 ### Added
 
+- Brickwork Theme Phase F Vite/Tailwind consumer recipe: INTEGRATION.md §1.3,
+  `docs/examples/vite-tailwind/`, and `manage.py sync_brickwork_projection`
+  (`brickwork.services.css_delivery.sync_tailwind_theme`) to vendor
+  `tailwind-theme.css` without hand-copying from site-packages or dual npm
+  (icvoss/django-brickwork#601).
 - Brickwork Theme Phase D preview: `{% bw_token_specimen level="L3" %}` /
   `L4` renders recommended tokens with live radius, elevation, type, and
   spacing samples; THEME.md documents required shell/card/form/marketing
