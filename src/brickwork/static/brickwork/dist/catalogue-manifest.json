@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 67,
     "sections": 29,
-    "archetypes": 29,
+    "archetypes": 30,
     "skeletons": 1
   },
   "families": [
@@ -17,7 +17,7 @@
     },
     {
       "name": "Documentation",
-      "archetypeCount": 3,
+      "archetypeCount": 4,
       "sectionCount": 0
     },
     {
@@ -327,6 +327,23 @@
       ]
     },
     {
+      "name": "examples/docs/toc.html",
+      "kind": "archetype",
+      "family": "Documentation",
+      "templatePath": "examples/docs/toc.html",
+      "docSource": "examples/docs/toc.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_pager.html",
+        "brickwork/components/_search.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/marketing/about.html",
       "kind": "archetype",
       "family": "Marketing and public web",
@@ -530,7 +547,8 @@
         "app/error-maintenance.html",
         "app/toast.html",
         "docs/api-reference.html",
-        "docs/article.html"
+        "docs/article.html",
+        "docs/toc.html"
       ],
       "usedBySections": [
         "sections/content/callout.html"
@@ -584,7 +602,8 @@
       "usedByArchetypes": [
         "app/detail.html",
         "docs/api-reference.html",
-        "docs/article.html"
+        "docs/article.html",
+        "docs/toc.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -858,7 +877,8 @@
       "usedByArchetypes": [
         "app/console.html",
         "docs/api-reference.html",
-        "docs/home.html"
+        "docs/home.html",
+        "docs/toc.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1075,7 +1095,8 @@
       "consumption": "include",
       "usedByArchetypes": [
         "docs/api-reference.html",
-        "docs/article.html"
+        "docs/article.html",
+        "docs/toc.html"
       ],
       "usedBySections": [
         "sections/content/pager.html"
@@ -1212,7 +1233,8 @@
       "usedByArchetypes": [
         "docs/api-reference.html",
         "docs/article.html",
-        "docs/home.html"
+        "docs/home.html",
+        "docs/toc.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1832,7 +1854,8 @@
       "usedByArchetypes": [
         "docs/api-reference.html",
         "docs/article.html",
-        "docs/home.html"
+        "docs/home.html",
+        "docs/toc.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []

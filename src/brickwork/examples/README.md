@@ -148,6 +148,7 @@ is also linked from there.
 | `docs/home.html` | Documentation home: search, start-here cards, popular pages |
 | `docs/article.html` | Documentation article: prose, code panels, callout, linkable headings |
 | `docs/api-reference.html` | API reference: method + path, parameters, request/response, status codes |
+| `docs/toc.html` | Section table of contents: hierarchical outline of a docs section |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |

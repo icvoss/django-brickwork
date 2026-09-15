@@ -751,6 +751,17 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             "}\n"
         ),
     },
+    "docs/toc.html": {
+        "crumbs": [
+            {"label": "Documentation", "url": "/docs/"},
+            {"label": "Billing"},
+        ],
+        "docs_nav_items": _DOCS_NAV_ITEMS,
+        "docs_nav_active": _DOCS_NAV_ITEMS[1],
+        "docs_search_action": "/docs/search/",
+        # Normal case / a11y fixture. empty and error covered below.
+        "toc_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -1703,6 +1714,36 @@ def test_the_docs_api_reference_empty_and_error_states_replace_the_body() -> Non
     assert "bw-code" not in error, "the error branch also rendered code panels"
 
     # Empty and error still keep docs chrome: search and breadcrumbs stay.
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_docs_toc_empty_and_error_states_replace_the_body() -> None:
+    """docs/toc.html's three toc_state branches.
+
+    Same discriminator pattern as the API reference: ready shows the outline;
+    empty and error swap the body without dropping docs chrome.
+    """
+    template = _example_engine().get_template("docs/toc.html")
+    base = dict(_EXAMPLE_CONTEXTS["docs/toc.html"])
+
+    ready = template.render(Context({**base, "toc_state": "ready"}))
+    empty = template.render(Context({**base, "toc_state": "empty"}))
+    error = template.render(Context({**base, "toc_state": "error"}))
+
+    assert "Working with invoices" in ready, "the ready branch lost its outline links"
+    assert "bw-empty-state" not in ready, "the ready branch also rendered the empty state"
+    assert 'role="alert"' not in ready, "the ready branch also rendered the error alert"
+
+    assert "bw-empty-state" in empty, "the empty branch rendered no empty state"
+    assert "Working with invoices" not in empty, "the empty branch also rendered the outline"
+    assert 'role="alert"' not in empty, "the empty branch also rendered the error alert"
+
+    assert 'role="alert"' in error, "the error branch rendered no alert"
+    assert "bw-empty-state" not in error, "the error branch also rendered the empty state"
+    assert "Working with invoices" not in error, "the error branch also rendered the outline"
+
     for html, label in ((empty, "empty"), (error, "error")):
         assert 'role="search"' in html, f"the {label} branch dropped search"
         assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"

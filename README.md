@@ -10,9 +10,9 @@ VISUAL-BAR surfaces on package-default CSS
 ([docs/audits/2026-09-14-beat-win-scorecard-s5s7.md](docs/audits/2026-09-14-beat-win-scorecard-s5s7.md));
 S5 remains a Lose and S3 is not scored as Plus lead or tie. Those passes are
 not a house aesthetic, do not name competitors as brickwork's identity, and
-do not claim examples alone proved beauty. Brickwork ships 58
-examples (29 archetype pages, 29 sections; a 59th file, `base.html`, is a
-copied document skeleton). 57 of the 59 files add no CSS. The date range
+do not claim examples alone proved beauty. Brickwork ships 59
+examples (30 archetype pages, 29 sections; a 60th file, `base.html`, is a
+copied document skeleton). 58 of the 60 files add no CSS. The date range
 picker uses existing `--bw-*` tokens in its own scoped CSS because the package
 has no maintained date picker component (see [Example pages](#example-pages)).
 
@@ -40,8 +40,8 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 212 documents (152 hand-maintained fixtures
-plus 60 catalogue-document pages, being 30 catalogue documents, 29 archetypes
+axe-core WCAG 2.2 AA scan across 214 documents (152 hand-maintained fixtures
+plus 62 catalogue-document pages, being 31 catalogue documents, 30 archetypes
 and 1 skeleton, each x light and dark themes), plus a no-JS floor suite,
 keyboard suites,
 mobile-overflow checks at
