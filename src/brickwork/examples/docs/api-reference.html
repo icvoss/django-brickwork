@@ -1,0 +1,319 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+An API reference page: one HTTP operation documented completely enough that an
+integrator can call it without leaving the page (icvoss/django-brickwork#410).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_items           this section's nav tree (see docs_nav below)
+    docs_nav_active          which item in docs_nav_items is current
+    docs_search_action       the URL bw_search in docs_site_header submits to (GET)
+    reference_state          "ready" | "empty" | "error" (see States below)
+    request_curl_code        multi-line curl snippet for the request example
+    request_python_code      multi-line Python snippet for the request example
+    response_success_code    multi-line JSON (or other) success response body
+The headings, parameter tables, status codes and copy below are typed into the
+template, which is where you change them.
+
+WHY THIS PAGE IS SHAPED THIS WAY:
+
+A reader arrives here from search or the rail already holding a specific verb
+and path ("GET /v3/invoices/{id}"). The page's job is to answer every question
+needed to make that call: what it does, what it needs, what a good request
+looks like, what comes back, and what each status code means. Prose is thin
+on purpose; the signature, the parameter tables and the copyable examples are
+the interface. Nothing here competes for attention the way a marketing CTA
+would.
+
+This is NOT a generated OpenAPI renderer. Brickwork ships the composition and
+the chrome; the consumer owns the schema pipeline that fills the tables and
+snippets. The page proves that an integrator-facing reference can be authored
+from the docs shell, bw-prose, badges, code panels, callouts, empty state and
+alert, without a bespoke "endpoint" component. If a consumer later needs a
+shared signature primitive (method + path as one contract), file that as its
+own issue rather than inventing CSS classes in a copy of this file.
+
+SIGNATURE COMPOSITION: the HTTP method is a {% templatetag openblock %} bw_badge
+{% templatetag closeblock %} whose label IS the verb ("GET"), so meaning never
+rides on colour alone (WCAG 1.4.1; same rule as queue.html's status badges).
+The path sits beside it as inline <code>. Variant="info" is a tint, not the
+signal; a screen reader hears "GET" from the badge text.
+
+MULTI-LINE CODE COMES FROM THE VIEW, for the same Django tokenizer reason the
+docs article documents: a literal newline inside an include with= value breaks
+the tag. request_curl_code, request_python_code and response_success_code are
+ordinary context strings, autoescaped; no |safe. A consumer who highlights
+server-side follows _code.html's own recipe.
+
+REQUEST EXAMPLES ARE STACKED, not tabbed. Language tabs ({% templatetag
+openblock %} bw_tabs {% templatetag closeblock %}) are available and legal on
+this shell, but a reference page whose job is "copy the call for your stack"
+benefits from both snippets being visible without a navigation. A consumer who
+prefers tabs composes them the same way settings.html does.
+
+BREADCRUMBS and ON THIS PAGE follow the article's pattern: the docs shell ships
+neither, so this page authors both once the heading ids are known (ADR-091
+decision 2).
+
+States: reference_state is the page's real branch.
+  "ready" (the normal case, and the a11y fixture): full signature, tables and
+    examples.
+  "empty": the operation is not published in this API version yet (or was
+    withdrawn). Renders _empty_state.html in place of the body bands; search,
+    breadcrumbs and the rail still render, because the rest of the docs site
+    is still there.
+  "error": the schema this page is generated from could not be loaded (a real
+    case for docs sites that build the reference from an OpenAPI fetch or a
+    build artefact). Renders {% templatetag openblock %} bw_alert {% templatetag closeblock %}
+    variant="danger", never a callout: this is a status failure
+    about something that just happened, not editorial advice that is always
+    true (see article.html's CALLOUT vs bw_alert note).
+  LOADING: not applicable. This page is server-rendered from context supplied
+    at request time; there is no client-side schema fetch of its own. A future
+    htmx-refreshed schema band would need a loading state; this one does not.
+Accessibility: inherits the docs shell's skip link and lang/dir/theme
+  attributes. This page's own contribution: breadcrumb landmark, role="search"
+  in the site header, consumer-authored On this page TOC, semantic bw-prose
+  body (real h2/h3/p/table), method badge whose label carries the verb in
+  words, parameter and status tables wrapped in focusable scroll regions,
+  code panels with copy controls, and prev/next links whose text names the
+  destination. The empty and error branches keep the same landmarks so a
+  screen-reader user is not dropped into a different page chrome when the
+  body swaps.
+Responsive: no breakpoint of its own; inherits shell/docs.html's
+  single-column-to-two-column switch at --bw-breakpoint-lg. Tables and code
+  panels scroll horizontally inside their own regions rather than reflowing.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}Retrieve an invoice - Northwind API{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/docs/">{% translate "Northwind docs" %}</a>
+  {% bw_search docs_search_action placeholder="Search the docs..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  <h1>{% translate "Retrieve an invoice" %}</h1>
+  <p>
+    {% translate "Return one invoice by id, including line items, balances and the current collection stage." %}
+  </p>
+  <p>{% translate "API v3 · Last updated 12 August 2026." %}</p>
+{% endblock %}
+
+{% block content %}
+  {% if reference_state == "empty" %}
+  {% comment %}
+  EMPTY: the operation is not published in this version. Same day-one /
+  withdrawn case as a docs home with no published sections, but scoped to one
+  operation rather than the whole tree.
+  {% endcomment %}
+  {% include "brickwork/components/_empty_state.html" with heading="Not in this API version" body="Retrieve invoice is not published on API v3 yet. Stay on v2 for this operation, or contact support if you were sent here from a migration guide." icon="document" action_href="/docs/v2/api-reference/invoices/retrieve/" action_label="Open the v2 reference" %}
+
+  {% elif reference_state == "error" %}
+  {% comment %}
+  ERROR: the schema behind this page failed to load. bw_alert, not a callout:
+  this is a status failure about the current request, announced via role="alert".
+  {% endcomment %}
+  {% bw_alert "The OpenAPI schema for API v3 could not be loaded, so this reference page has nothing trustworthy to show. Retry in a moment, or open the status page if the outage continues." title="Reference unavailable" variant="danger" %}
+
+  {% else %}
+  {% comment %}
+  READY: the full operation reference. On this page sits outside .bw-prose so
+  the TOC list is not restyled by the prose floor.
+  {% endcomment %}
+  <nav class="bw-docs-toc" aria-labelledby="bw-docs-toc-heading">
+    <p class="bw-docs-toc__title" id="bw-docs-toc-heading">{% translate "On this page" %}</p>
+    <ol class="bw-docs-toc__list">
+      <li><a href="#signature">{% translate "Signature" %}</a></li>
+      <li><a href="#parameters">{% translate "Parameters" %}</a></li>
+      <li><a href="#request">{% translate "Request" %}</a></li>
+      <li><a href="#response">{% translate "Response" %}</a></li>
+      <li><a href="#status-codes">{% translate "Status codes" %}</a></li>
+    </ol>
+  </nav>
+
+  <div class="bw-prose">
+    <p class="bw-prose__lede">
+      Use this operation when you already know the invoice id and need its
+      current state. List and search are separate endpoints; this one never
+      filters.
+    </p>
+
+    <h2 id="signature">
+      Signature
+      <a class="bw-prose__anchor" href="#signature" aria-label="{% translate 'Link to the Signature section' %}">#</a>
+    </h2>
+
+    <p>
+      {% bw_badge "GET" variant="info" %}
+      <code>/v3/invoices/{id}</code>
+    </p>
+
+    <div class="bw-callout bw-callout--note">
+      <p class="bw-callout__title">{% translate "Authentication" %}</p>
+      <div class="bw-prose bw-callout__body">
+        <p>
+          Requires a secret API key in the <code>Authorization</code> header
+          as <code>Bearer &lt;key&gt;</code>. Publishable keys are rejected
+          with <code>401</code>.
+        </p>
+      </div>
+    </div>
+
+    <h2 id="parameters">
+      Parameters
+      <a class="bw-prose__anchor" href="#parameters" aria-label="{% translate 'Link to the Parameters section' %}">#</a>
+    </h2>
+
+    <p>
+      Path parameters are required. Query parameters are optional and never
+      change which invoice is returned; they only shape the payload.
+    </p>
+
+    <div class="bw-prose__table-wrap" tabindex="0" role="region" aria-label="{% translate 'Path parameters' %}">
+      <table>
+        <caption>{% translate "Path parameters" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Name" %}</th>
+            <th scope="col">{% translate "Type" %}</th>
+            <th scope="col">{% translate "Description" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>id</code></td>
+            <td>{% translate "string" %}</td>
+            <td>{% translate "The invoice id returned by create or list. Format: inv_ followed by 24 hex characters." %}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bw-prose__table-wrap" tabindex="0" role="region" aria-label="{% translate 'Query parameters' %}">
+      <table>
+        <caption>{% translate "Query parameters" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Name" %}</th>
+            <th scope="col">{% translate "Type" %}</th>
+            <th scope="col">{% translate "Description" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>expand</code></td>
+            <td>{% translate "string" %}</td>
+            <td>{% translate "Comma-separated related objects to inline. Supported: customer, line_items." %}</td>
+          </tr>
+          <tr>
+            <td><code>idempotency_key</code></td>
+            <td>{% translate "string" %}</td>
+            <td>{% translate "Optional. Retrieve is safe to retry without it; include one only when your client retries every request uniformly." %}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="request">
+      Request
+      <a class="bw-prose__anchor" href="#request" aria-label="{% translate 'Link to the Request section' %}">#</a>
+    </h2>
+
+    <p>
+      No request body. The examples below fetch the same invoice with
+      <code>line_items</code> expanded.
+    </p>
+
+    {% include "brickwork/components/_code.html" with filename="Terminal" language="curl" copyable=True code=request_curl_code %}
+
+    {% include "brickwork/components/_code.html" with filename="retrieve_invoice.py" language="Python" copyable=True code=request_python_code %}
+
+    <h2 id="response">
+      Response
+      <a class="bw-prose__anchor" href="#response" aria-label="{% translate 'Link to the Response section' %}">#</a>
+    </h2>
+
+    <p>
+      A successful response returns the invoice object. Amounts are minor units
+      of the invoice currency; never floating-point major units.
+    </p>
+
+    {% include "brickwork/components/_code.html" with filename="200.json" language="JSON" copyable=True code=response_success_code %}
+
+    <div class="bw-callout bw-callout--warning">
+      <p class="bw-callout__title">{% translate "Before you cache this" %}</p>
+      <div class="bw-prose bw-callout__body">
+        <p>
+          <code>balance_due</code> and <code>collection_stage</code> change as
+          payments and reminders land. Cache the id and the static fields;
+          re-fetch before any chase or write-off decision.
+        </p>
+      </div>
+    </div>
+
+    <h2 id="status-codes">
+      Status codes
+      <a class="bw-prose__anchor" href="#status-codes" aria-label="{% translate 'Link to the Status codes section' %}">#</a>
+    </h2>
+
+    <div class="bw-prose__table-wrap" tabindex="0" role="region" aria-label="{% translate 'Status codes' %}">
+      <table>
+        <caption>{% translate "HTTP status codes this operation returns" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Code" %}</th>
+            <th scope="col">{% translate "Meaning" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>200</code></td>
+            <td>{% translate "Invoice found and returned." %}</td>
+          </tr>
+          <tr>
+            <td><code>401</code></td>
+            <td>{% translate "Missing or invalid API key, or a publishable key was used." %}</td>
+          </tr>
+          <tr>
+            <td><code>404</code></td>
+            <td>{% translate "No invoice with that id exists in this account." %}</td>
+          </tr>
+          <tr>
+            <td><code>429</code></td>
+            <td>{% translate "Rate limited. Retry after the Retry-After header." %}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr>
+
+    <p>
+      Further reading: <a href="/docs/api-reference/invoices/list/">List invoices</a>
+      and <a href="/docs/guides/authentication/">Authenticating requests with an API key</a>.
+    </p>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_footer %}
+  {% if reference_state == "ready" %}
+  {% translate "More in Invoices" as bw_pager_aria_label %}
+  {% translate "List invoices" as bw_pager_previous_label %}
+  {% translate "Create an invoice" as bw_pager_next_label %}
+  {% include "brickwork/components/_pager.html" with aria_label=bw_pager_aria_label previous_href="/docs/api-reference/invoices/list/" previous_label=bw_pager_previous_label next_href="/docs/api-reference/invoices/create/" next_label=bw_pager_next_label %}
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% bw_nav items=docs_nav_items active=docs_nav_active %}
+{% endblock %}

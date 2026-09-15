@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 67,
     "sections": 29,
-    "archetypes": 28,
+    "archetypes": 29,
     "skeletons": 1
   },
   "families": [
@@ -17,7 +17,7 @@
     },
     {
       "name": "Documentation",
-      "archetypeCount": 2,
+      "archetypeCount": 3,
       "sectionCount": 0
     },
     {
@@ -276,6 +276,25 @@
       ]
     },
     {
+      "name": "examples/docs/api-reference.html",
+      "kind": "archetype",
+      "family": "Documentation",
+      "templatePath": "examples/docs/api-reference.html",
+      "docSource": "examples/docs/api-reference.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_badge.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_code.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_pager.html",
+        "brickwork/components/_search.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/docs/article.html",
       "kind": "archetype",
       "family": "Documentation",
@@ -510,6 +529,7 @@
         "app/confirm.html",
         "app/error-maintenance.html",
         "app/toast.html",
+        "docs/api-reference.html",
         "docs/article.html"
       ],
       "usedBySections": [
@@ -548,6 +568,7 @@
       "consumption": "tag",
       "usedByArchetypes": [
         "app/status-tracker.html",
+        "docs/api-reference.html",
         "marketing/comparison.html"
       ],
       "usedBySections": [],
@@ -562,6 +583,7 @@
       "consumption": "include",
       "usedByArchetypes": [
         "app/detail.html",
+        "docs/api-reference.html",
         "docs/article.html"
       ],
       "usedBySections": [],
@@ -692,6 +714,7 @@
       "docSource": "brickwork/components/_code.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "docs/api-reference.html",
         "docs/article.html"
       ],
       "usedBySections": [
@@ -834,6 +857,7 @@
       "consumption": "include",
       "usedByArchetypes": [
         "app/console.html",
+        "docs/api-reference.html",
         "docs/home.html"
       ],
       "usedBySections": [],
@@ -1050,6 +1074,7 @@
       "docSource": "brickwork/components/_pager.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "docs/api-reference.html",
         "docs/article.html"
       ],
       "usedBySections": [
@@ -1185,6 +1210,7 @@
       "docSource": "brickwork/components/_search.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "docs/api-reference.html",
         "docs/article.html",
         "docs/home.html"
       ],
@@ -1804,6 +1830,7 @@
       "docSource": "brickwork/shell/docs.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "docs/api-reference.html",
         "docs/article.html",
         "docs/home.html"
       ],

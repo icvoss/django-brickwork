@@ -711,6 +711,46 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             "    assert next_reminder(invoice) is Stage.DUE\n"
         ),
     },
+    "docs/api-reference.html": {
+        "crumbs": [
+            {"label": "Documentation", "url": "/docs/"},
+            {"label": "API reference", "url": "/docs/api-reference/"},
+            {"label": "Invoices", "url": "/docs/api-reference/invoices/"},
+            {"label": "Retrieve"},
+        ],
+        "docs_nav_items": _DOCS_NAV_ITEMS,
+        "docs_nav_active": _DOCS_NAV_ITEMS[2],
+        "docs_search_action": "/docs/search/",
+        # The normal case, and the state the a11y fixture renders. empty and
+        # error branches are covered by dedicated tests below.
+        "reference_state": "ready",
+        "request_curl_code": (
+            "curl https://api.northwind.example/v3/invoices/inv_a1b2c3d4e5f678901234abcd \\\n"
+            "  -H 'Authorization: Bearer sk_live_...' \\\n"
+            "  -G --data-urlencode 'expand=line_items'\n"
+        ),
+        "request_python_code": (
+            "import northwind\n"
+            "\n"
+            "client = northwind.Client(api_key='sk_live_...')\n"
+            "invoice = client.invoices.retrieve(\n"
+            "    'inv_a1b2c3d4e5f678901234abcd',\n"
+            "    expand=['line_items'],\n"
+            ")\n"
+        ),
+        "response_success_code": (
+            "{\n"
+            '  "id": "inv_a1b2c3d4e5f678901234abcd",\n'
+            '  "object": "invoice",\n'
+            '  "currency": "gbp",\n'
+            '  "balance_due": 12500,\n'
+            '  "collection_stage": "overdue",\n'
+            '  "line_items": [\n'
+            '    {"description": "Monthly plan", "amount": 12500}\n'
+            "  ]\n"
+            "}\n"
+        ),
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -1627,3 +1667,42 @@ def test_the_docs_home_empty_state_replaces_the_start_here_cards() -> None:
     # swap, since a site with no published pages still has a search box that
     # legitimately returns nothing.
     assert 'role="search"' in empty, "the empty branch dropped search"
+
+
+def test_the_docs_api_reference_empty_and_error_states_replace_the_body() -> None:
+    """docs/api-reference.html's three reference_state branches.
+
+    The archetype contract requires empty and error states. The fixture context
+    renders ready only, so without this test the empty and error branches could
+    reference a renamed component and stay green for ever.
+
+    Asserts the DISCRIMINATOR for each branch: ready shows the signature and
+    code panels; empty swaps to _empty_state; error swaps to bw_alert danger.
+    A template that rendered two branches at once fails rather than passing on
+    a shared substring.
+    """
+    template = _example_engine().get_template("docs/api-reference.html")
+    base = dict(_EXAMPLE_CONTEXTS["docs/api-reference.html"])
+
+    ready = template.render(Context({**base, "reference_state": "ready"}))
+    empty = template.render(Context({**base, "reference_state": "empty"}))
+    error = template.render(Context({**base, "reference_state": "error"}))
+
+    assert "bw-badge" in ready and "/v3/invoices/{id}" in ready, "the ready branch lost its signature"
+    assert "bw-code" in ready, "the ready branch lost its request/response code panels"
+    assert "bw-empty-state" not in ready, "the ready branch also rendered the empty state"
+    assert 'role="alert"' not in ready, "the ready branch also rendered the error alert"
+
+    assert "bw-empty-state" in empty, "the empty branch rendered no empty state"
+    assert "bw-badge" not in empty, "the empty branch also rendered the signature badge"
+    assert "bw-code" not in empty, "the empty branch also rendered code panels"
+    assert 'role="alert"' not in empty, "the empty branch also rendered the error alert"
+
+    assert 'role="alert"' in error, "the error branch rendered no alert"
+    assert "bw-empty-state" not in error, "the error branch also rendered the empty state"
+    assert "bw-code" not in error, "the error branch also rendered code panels"
+
+    # Empty and error still keep docs chrome: search and breadcrumbs stay.
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"

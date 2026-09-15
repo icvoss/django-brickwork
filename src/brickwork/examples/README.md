@@ -147,6 +147,7 @@ is also linked from there.
 | `ops/dense-list.html` | Dense purchase-order / shipment index with bulk selection |
 | `docs/home.html` | Documentation home: search, start-here cards, popular pages |
 | `docs/article.html` | Documentation article: prose, code panels, callout, linkable headings |
+| `docs/api-reference.html` | API reference: method + path, parameters, request/response, status codes |
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |

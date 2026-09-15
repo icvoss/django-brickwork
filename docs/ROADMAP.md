@@ -234,13 +234,15 @@ as well as product applications.
   list omitted navigation, table of contents, versioned content, related
   content and reading progress, and merged the two families' separate article
   archetypes into one. All fourteen are filed as
-  icvoss/django-brickwork#408 to #421. **Two of the fourteen ship:** the
-  Documentation family's home (icvoss/django-brickwork#408) and article
-  (icvoss/django-brickwork#409), as `examples/docs/home.html` and
-  `examples/docs/article.html`. They are the first shipped templates to extend
+  icvoss/django-brickwork#408 to #421. **Three of the fourteen ship:** the
+  Documentation family's home (icvoss/django-brickwork#408), article
+  (icvoss/django-brickwork#409) and API reference
+  (icvoss/django-brickwork#410), as `examples/docs/home.html`,
+  `examples/docs/article.html` and `examples/docs/api-reference.html`. They are
+  the first shipped templates to extend
   `brickwork/shell/docs.html`, and so the first bound by
   `tests/test_family_boundary.py`'s docs entry, which until then was a forward
-  guard catching nothing. The family's other five (API reference, search
+  guard catching nothing. The family's other four (search
   results, navigation, table of contents, versioned content) remain open.
   icvoss/django-brickwork#412 (navigation) can use `{% bw_nav orientation= %}`
   since 3.31.0 (icvoss/django-brickwork#430); it is no longer blocked on a
