@@ -239,6 +239,17 @@ Say "L1 recolour in ~16 lines"; never "16 lines rebrands the whole system."
 Base-theme already ships full default scales (radius, spacing, elevation,
 type); higher levels replace selected values. See [brand-pack.md](brand-pack.md).
 
+**L3 / L4 public claims (Phase G, after #600):** you may say an authored L3
+profile changes kit chrome (radius, elevation, raised surfaces on card,
+button, and modal) on a white canvas, because Phase E proved token-compliance
+for those surfaces
+([audits/2026-09-15-theme-phase-e-token-compliance.md](audits/2026-09-15-theme-phase-e-token-compliance.md)).
+You may say L4 sets system rhythm via `--bw-space-1` (Tailwind projection)
+and/or density. Do **not** claim L3/L4 makes defaults beautiful: kit craft
+remains [VISUAL-BAR.md](VISUAL-BAR.md) / beat F.2. Overlay steps beyond the
+L3 minimum (`--bw-radius-xl`, `--bw-elevation-4` / `-5`) must be authored when
+you want modal/toast altitude to follow ([THEME.md](THEME.md)).
+
 Dark mode is an authored surface, not a computed inversion: `data-theme`
 dark values are authored per token, not derived from light
 (BR-BW-TOK-002, `docs/BRANDING.md`). Four theme axes are verified

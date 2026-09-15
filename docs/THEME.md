@@ -171,6 +171,9 @@ Worked composition: [examples/theming/theme-preview.html](examples/theming/theme
 3. Never invent token names outside `token-manifest.json` / DESIGN.md.
 4. Never restyle `.bw-*` in a theme pack.
 5. Kit craft (beauty of defaults) is a separate bar ([VISUAL-BAR.md](VISUAL-BAR.md)); a theme cannot rescue flat kit chrome.
+6. After Phase E (#600), public L3/L4 claims may state that authored material
+   and rhythm axes move kit chrome (card / button / modal gated). They must
+   not equate theme depth with meet-or-beat beauty (beat F.2 remains separate).
 
 ## Worked artefacts
 

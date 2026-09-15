@@ -91,7 +91,9 @@ evidence than a gate that has never missed.
   leading Tailwind UI kits (internal; clean-room look/idea only).
 - [docs/ROADMAP.md](docs/ROADMAP.md): the active plan from the current package
   to complete interface-system coverage.
-- [docs/THEME.md](docs/THEME.md): Brickwork Theme (L1 to L4 profiles on `--bw-*`)
+- [docs/THEME.md](docs/THEME.md): Brickwork Theme (L1 to L4 profiles on `--bw-*`;
+  L3/L4 may claim kit chrome follows authored axes after Phase E token-compliance;
+  beauty of defaults stays VISUAL-BAR / beat)
 - [docs/examples/vite-tailwind/](docs/examples/vite-tailwind/): Vite + Tailwind
   consumer recipe and projection sync (INTEGRATION.md §1.3)
 - [docs/BRANDING.md](docs/BRANDING.md): how a consuming app brands brickwork
