@@ -2447,10 +2447,13 @@ def render_preview_frame(theme: str) -> str:
         ),
         caption="Info alert inside the frame",
     )
+    # Card scale applies a CSS transform; interactive controls inside would
+    # measure below the 24x24 tap-target floor even when the unscaled control
+    # is compliant. Specimen content here is non-interactive on purpose.
     card = _render_preview_frame_fixture(
-        content=mark_safe('<button type="button" class="bw-btn bw-btn--primary">Save</button>'),
+        content=mark_safe('<span class="bw-badge">Card scale</span>'),
         scale="card",
-        caption="Card-scale button",
+        caption="Card-scale badge",
     )
     return (
         _PREVIEW_FRAME_PAGE.replace("__THEME__", theme)
@@ -2491,10 +2494,12 @@ def render_proof_collage(theme: str) -> str:
             "heading": "Kit collage",
             "lede": "Live package pieces as visual proof.",
             "layout": "collage",
+            # Collage tiles always wrap at card scale, so specimen content
+            # stays non-interactive (scaled buttons fail the 24x24 sweep).
             "items": [
                 {
-                    "label": "Actions",
-                    "content": mark_safe('<button type="button" class="bw-btn bw-btn--primary">Get started</button>'),
+                    "label": "Chip",
+                    "content": mark_safe('<span class="bw-badge">Get started</span>'),
                 },
                 {
                     "label": "Status",
@@ -2518,8 +2523,9 @@ def render_proof_collage(theme: str) -> str:
             "items": [
                 {
                     "content": mark_safe(
-                        '<section><h2>Pricing</h2><p class="bw-prose">A composed marketing band.</p>'
-                        '<button type="button" class="bw-btn bw-btn--primary">Choose plan</button></section>'
+                        "<section><h2>Pricing</h2>"
+                        '<p class="bw-prose">A composed marketing band.</p>'
+                        '<span class="bw-badge">Choose plan</span></section>'
                     )
                 }
             ],
