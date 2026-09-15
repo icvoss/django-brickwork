@@ -2401,6 +2401,65 @@ def render_token_specimen(theme: str) -> str:
     )
 
 
+# --- preview frame (ILL-026, icvoss/django-brickwork#269) --------------------
+#
+# preview-frame-<theme>.html covers the surface-guarded viewport with a live
+# component render, plus the card-scale and scrollable modifiers.
+
+_PREVIEW_FRAME_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview frame (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Preview frame</h1>
+  <section aria-labelledby="preview-frame-full-heading">
+    <h2 id="preview-frame-full-heading">Full scale</h2>
+    __PREVIEW_FULL__
+  </section>
+  <section aria-labelledby="preview-frame-card-heading">
+    <h2 id="preview-frame-card-heading">Card scale</h2>
+    __PREVIEW_CARD__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_preview_frame_fixture(**ctx: object) -> str:
+    return render_to_string("brickwork/components/_preview_frame.html", ctx)
+
+
+def render_preview_frame(theme: str) -> str:
+    from django.utils.safestring import mark_safe
+
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    full = _render_preview_frame_fixture(
+        content=mark_safe(
+            '<div class="bw-alert bw-alert--info" role="status">'
+            '<div class="bw-alert__body"><p class="bw-alert__title">Live render</p>'
+            '<p class="bw-alert__message">Surface-guarded against --bw-color-surface.</p></div></div>'
+        ),
+        caption="Info alert inside the frame",
+    )
+    card = _render_preview_frame_fixture(
+        content=mark_safe('<button type="button" class="bw-btn bw-btn--primary">Save</button>'),
+        scale="card",
+        caption="Card-scale button",
+    )
+    return (
+        _PREVIEW_FRAME_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__PREVIEW_FULL__", full)
+        .replace("__PREVIEW_CARD__", card)
+    )
+
+
 def render_theme_switch_invalid_root(theme: str) -> str:
     """The JS leg with a BOGUS data-theme baked into <html> from render time
     (icvoss/django-brickwork#117 review): the consumer-template-mistake case
@@ -4573,6 +4632,8 @@ def main() -> None:
         )
         # bw_token_specimen (#268): load-bearing dual-pane specimen, no-JS floor
         _emit(OUT / f"token-specimen-{theme}.html", render_token_specimen(theme), written)
+        # _preview_frame (#269): surface-guarded live-render container
+        _emit(OUT / f"preview-frame-{theme}.html", render_preview_frame(theme), written)
         # layout="compact" (#235): the no-JS floor (#272 review: the
         # pre-existing no-JS test only ever rendered layout="inline",
         # leaving the compact root's own reserved-pre-init state

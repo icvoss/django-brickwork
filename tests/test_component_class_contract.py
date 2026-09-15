@@ -221,6 +221,17 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         size="lg",
     ),
     "_card (linked)": lambda: _include("brickwork/components/_card.html", href="/invoices/1/", size="sm"),
+    "_preview_frame (full, with caption)": lambda: _include(
+        "brickwork/components/_preview_frame.html",
+        content="<button class='bw-btn bw-btn--primary'>Save</button>",
+        caption="Primary button",
+    ),
+    "_preview_frame (card scale, scrollable)": lambda: _include(
+        "brickwork/components/_preview_frame.html",
+        content="<p>Long specimen</p>",
+        scale="card",
+        scrollable=True,
+    ),
     "_stat (trend, icon, href, sparkline)": lambda: _include(
         "brickwork/components/_stat.html",
         label="Average time to pay",

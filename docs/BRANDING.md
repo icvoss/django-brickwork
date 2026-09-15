@@ -775,3 +775,6 @@ type scales. The package ships one fictional skeleton
 demo identities stay out of django-brickwork. Present the live specimen with
 `{% bw_token_specimen %}` (THM-016, icvoss/django-brickwork#268): load-bearing
 token names, cascade swatches, light/dark panes, and contrast-pair chips.
+Wrap any live component render in `{% include "brickwork/components/_preview_frame.html" %}`
+(ILL-026, icvoss/django-brickwork#269) when presenting it as imagery: the
+viewport fill stays `--bw-color-surface` so verified contrast cannot lie.
