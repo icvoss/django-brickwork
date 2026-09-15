@@ -1,0 +1,164 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+A documentation table of contents: the page whose job is the outline of a
+section, not one topic inside it (icvoss/django-brickwork#413).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                   breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_nav_items           this section's nav tree (see docs_nav below)
+    docs_nav_active          which item in docs_nav_items is current
+    docs_search_action       the URL bw_search in docs_site_header submits to (GET)
+    toc_state                "ready" | "empty" | "error" (see States below)
+The section title, lede and outline links below are typed into the template,
+which is where you change them.
+
+WHY THIS PAGE IS SHAPED THIS WAY:
+
+A reader opens a section contents page when they want the map before the
+territory: "what exists under Billing, in what order, and where do I start".
+That is a different job from the article's on-this-page box (which jumps
+within one document) and from the docs home (which ranks three doors across
+the whole site). The outline IS the content. Hierarchy, not chrome, carries
+the page.
+
+PRIMITIVE DECISION (the question #413 deferred to this archetype): no new
+TOC component ships here. Nested ordered lists inside .bw-prose already style
+a hierarchical outline, and the article already ships .bw-docs-toc for the
+compact on-this-page landmark. Building this page did not invent a third
+treatment, so the wave rule ("a component earns inclusion only when it
+eliminates repeated design work across at least one archetype") does not
+fire. ADR-091 decision 2's declined TOC *region* still stands: the package
+still does not generate heading trees. This page is consumer-authored
+outline markup, exactly as the article's on-this-page nav is.
+
+ON THIS PAGE vs SECTION CONTENTS: this page does not carry a .bw-docs-toc
+box. The outline below is the page body; wrapping it in the compact raised
+panel would demote the thing the page exists to show. Use .bw-docs-toc on
+articles (see examples/docs/article.html); use a prose outline on a contents
+page.
+
+States: toc_state is the page's real branch.
+  "ready" (normal case, a11y fixture): hierarchical outline of the section.
+  "empty": the section has no published pages yet. Renders _empty_state.html;
+    search, breadcrumbs and the rail still render.
+  "error": the outline could not be loaded (CMS/export failure). Renders
+    {% templatetag openblock %} bw_alert {% templatetag closeblock %}
+    variant="danger", never a callout.
+  LOADING: not applicable. Server-rendered from request-time context; no
+    client-side outline fetch of its own.
+Accessibility: inherits the docs shell's skip link and lang/dir/theme.
+  Breadcrumb landmark, role="search" in the site header, semantic nested
+  lists (real ol/li/a, never div soup), and prev/next naming destinations.
+  Empty and error keep the same chrome landmarks.
+Responsive: no breakpoint of its own; inherits shell/docs.html at
+  --bw-breakpoint-lg. Nested lists reflow inside the prose measure.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}Billing - contents - Northwind docs{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/docs/">{% translate "Northwind docs" %}</a>
+  {% bw_search docs_search_action placeholder="Search the docs..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  <h1>{% translate "Billing" %}</h1>
+  <p>
+    {% translate "Guides and API reference for invoices, reminders and collections. Read top to bottom, or jump to the page you need." %}
+  </p>
+  <p>{% translate "Last updated 12 August 2026." %}</p>
+{% endblock %}
+
+{% block content %}
+  {% if toc_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="Nothing in this section yet" body="Billing pages are being written. Check back soon, or open Getting started if you are new to Northwind." icon="document" action_href="/docs/getting-started/" action_label="Open Getting started" %}
+
+  {% elif toc_state == "error" %}
+  {% bw_alert "The Billing outline could not be loaded from the docs catalogue. Retry in a moment, or browse the rail if you already know the page you need." title="Contents unavailable" variant="danger" %}
+
+  {% else %}
+  <div class="bw-prose">
+    <p class="bw-prose__lede">
+      Twelve pages in this section. Guides first, then the API reference for
+      the same objects, so a reader who needs the "how" before the "what"
+      stays on the same path.
+    </p>
+
+    <h2 id="guides">
+      Guides
+      <a class="bw-prose__anchor" href="#guides" aria-label="{% translate 'Link to the Guides section' %}">#</a>
+    </h2>
+
+    <ol>
+      <li>
+        <a href="/docs/billing/invoices/">Working with invoices</a>
+        <ol>
+          <li><a href="/docs/billing/invoices/create/">Creating an invoice</a></li>
+          <li><a href="/docs/billing/invoices/line-items/">Line items and tax</a></li>
+          <li><a href="/docs/billing/invoices/void/">Voiding and credit notes</a></li>
+        </ol>
+      </li>
+      <li>
+        <a href="/docs/reminders/schedules/">Setting up a reminder schedule</a>
+      </li>
+      <li>
+        <a href="/docs/reminders/escalation/">Configuring reminder escalation</a>
+        <ol>
+          <li><a href="/docs/reminders/escalation/#changing-the-thresholds">Changing the thresholds</a></li>
+          <li><a href="/docs/reminders/escalation/#testing-a-schedule">Testing a schedule change</a></li>
+        </ol>
+      </li>
+      <li>
+        <a href="/docs/reminders/disputes/">How a dispute flag pauses escalation</a>
+      </li>
+      <li>
+        <a href="/docs/reminders/predictions/">How late-payment prediction works</a>
+      </li>
+    </ol>
+
+    <h2 id="api-reference">
+      API reference
+      <a class="bw-prose__anchor" href="#api-reference" aria-label="{% translate 'Link to the API reference section' %}">#</a>
+    </h2>
+
+    <ol>
+      <li><a href="/docs/api-reference/invoices/list/">List invoices</a></li>
+      <li><a href="/docs/api-reference/invoices/retrieve/">Retrieve an invoice</a></li>
+      <li><a href="/docs/api-reference/invoices/create/">Create an invoice</a></li>
+      <li><a href="/docs/api-reference/reminders/">Reminders</a></li>
+    </ol>
+
+    <div class="bw-callout bw-callout--info">
+      <p class="bw-callout__title">{% translate "New to Billing?" %}</p>
+      <div class="bw-prose bw-callout__body">
+        <p>
+          Start with <a href="/docs/billing/invoices/">Working with invoices</a>,
+          then <a href="/docs/reminders/schedules/">Setting up a reminder
+          schedule</a>. The API reference assumes those two.
+        </p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_footer %}
+  {% if toc_state == "ready" %}
+  {% translate "More in Documentation" as bw_pager_aria_label %}
+  {% translate "Documentation home" as bw_pager_previous_label %}
+  {% translate "Working with invoices" as bw_pager_next_label %}
+  {% include "brickwork/components/_pager.html" with aria_label=bw_pager_aria_label previous_href="/docs/" previous_label=bw_pager_previous_label next_href="/docs/billing/invoices/" next_label=bw_pager_next_label %}
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% bw_nav items=docs_nav_items active=docs_nav_active %}
+{% endblock %}
