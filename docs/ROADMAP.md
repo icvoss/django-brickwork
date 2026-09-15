@@ -234,8 +234,8 @@ as well as product applications.
   list omitted navigation, table of contents, versioned content, related
   content and reading progress, and merged the two families' separate article
   archetypes into one. All fourteen are filed as
-  icvoss/django-brickwork#408 to #421. **Ten of the fourteen ship**
-  (Documentation complete at 7 of 7; Editorial open at 3 of 7): documentation
+  icvoss/django-brickwork#408 to #421. **Eleven of the fourteen ship**
+  (Documentation complete at 7 of 7; Editorial open at 4 of 7): documentation
   home (icvoss/django-brickwork#408), article
   (icvoss/django-brickwork#409), API reference
   (icvoss/django-brickwork#410), table of contents
@@ -244,15 +244,17 @@ as well as product applications.
   (icvoss/django-brickwork#411), versioned content
   (icvoss/django-brickwork#414), editorial article
   (icvoss/django-brickwork#415), editorial author
-  (icvoss/django-brickwork#416), and editorial category
-  (icvoss/django-brickwork#417), as `examples/docs/home.html`,
+  (icvoss/django-brickwork#416), editorial category
+  (icvoss/django-brickwork#417), and editorial archive
+  (icvoss/django-brickwork#418), as `examples/docs/home.html`,
   `examples/docs/article.html`, `examples/docs/api-reference.html`,
   `examples/docs/toc.html`, `examples/docs/navigation.html`,
   `examples/docs/search-results.html`,
   `examples/docs/versioned-content.html`,
   `examples/editorial/article.html`,
-  `examples/editorial/author.html` and
-  `examples/editorial/category.html`. The Documentation pages are
+  `examples/editorial/author.html`,
+  `examples/editorial/category.html` and
+  `examples/editorial/archive.html`. The Documentation pages are
   the first shipped templates to extend
   `brickwork/shell/docs.html`, and so the first bound by
   `tests/test_family_boundary.py`'s docs entry, which until then was a forward
@@ -270,7 +272,9 @@ as well as product applications.
   editorial author profile reuses the same shell: large avatar, role, bio,
   published-piece cards and a category rail (preview of #417). The editorial
   category listing reuses the same shell: badge, description, published-piece
-  cards and a sibling-category rail (archive link previews #418).
+  cards and a sibling-category rail (archive link previews #418). The
+  editorial archive reuses the same shell: month bands, dated cards and a
+  year jump rail.
 - Define content accessibility rules: heading order, landmark structure, code
   labelling, table responsiveness, reading measure and reading progress.
 

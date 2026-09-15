@@ -48,14 +48,14 @@ template they are.
 | Marketing and public web | landing, pricing, about, plan comparison |
 | Data-heavy operations | queue, audit trail, report, comparison, analysis dashboard, dense list |
 | Documentation | documentation home, article, API reference, table of contents, navigation, search results, versioned content |
-| Editorial and publishing | article, author, category |
+| Editorial and publishing | article, author, category, archive |
 
 **Planned, not yet shipped** (INTERFACE-SYSTEM.md names the required
 archetype set; ROADMAP.md carries the wave each family expands in). This
 document does not restate the wave numbers: see section 6 for why, and read
 ROADMAP.md directly for current wave assignments, which move as waves land.
 
-- Editorial and publishing remainder: archive, series, related content,
+- Editorial and publishing remainder: series, related content,
   reading-progress patterns
 
 **Arranging bands within an app-surface archetype** (product applications and

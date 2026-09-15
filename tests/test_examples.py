@@ -958,6 +958,82 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "category_state": "ready",
     },
+    "editorial/archive.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Archive"},
+        ],
+        "docs_nav_label": "Jump by year",
+        "docs_search_action": "/journal/search/",
+        "months": [
+            {
+                "label": "August 2026",
+                "id": "archive-2026-08",
+                "articles": [
+                    {
+                        "title": "Why we moved reminder thresholds",
+                        "href": "/journal/operations/reminder-thresholds/",
+                        "snippet": ("Three days beats seven when the goal is a conversation, not a chase."),
+                        "category_label": "Operations",
+                        "author_name": "Amira Okonkwo",
+                        "published_on": "12 August 2026",
+                        "published_iso": "2026-08-12",
+                        "reading_time": "8 min read",
+                    },
+                ],
+            },
+            {
+                "label": "July 2026",
+                "id": "archive-2026-07",
+                "articles": [
+                    {
+                        "title": "How a dispute flag pauses escalation",
+                        "href": "/journal/operations/dispute-flags/",
+                        "snippet": (
+                            "A genuine dispute should stop the clock, not just change the wording on the next nudge."
+                        ),
+                        "category_label": "Operations",
+                        "author_name": "Amira Okonkwo",
+                        "published_on": "28 July 2026",
+                        "published_iso": "2026-07-28",
+                        "reading_time": "6 min read",
+                    },
+                    {
+                        "title": "When collections handoff fires",
+                        "href": "/journal/operations/collections-handoff/",
+                        "snippet": (
+                            "The handoff is a product event with an owner, "
+                            "not a spreadsheet row that someone might notice."
+                        ),
+                        "category_label": "Operations",
+                        "author_name": "Jordan Ellis",
+                        "published_on": "4 July 2026",
+                        "published_iso": "2026-07-04",
+                        "reading_time": "5 min read",
+                    },
+                ],
+            },
+            {
+                "label": "November 2025",
+                "id": "archive-2025-11",
+                "articles": [
+                    {
+                        "title": "Late-payment prediction, explained",
+                        "href": "/journal/product/late-payment-prediction/",
+                        "snippet": (
+                            "What the model sees, what it does not, and how a finance team should read the score."
+                        ),
+                        "category_label": "Product",
+                        "author_name": "Sam Rivera",
+                        "published_on": "18 November 2025",
+                        "published_iso": "2025-11-18",
+                        "reading_time": "7 min read",
+                    },
+                ],
+            },
+        ],
+        "archive_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -2154,6 +2230,39 @@ def test_the_editorial_category_empty_and_error_states_replace_the_body() -> Non
     assert "bw-empty-state" not in error
     assert "bw-card" not in error
     assert "bw-badge" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_archive_empty_and_error_states_replace_the_body() -> None:
+    """editorial/archive.html's three archive_state branches.
+
+    Ready shows month bands and cards; empty and error swap the body
+    without dropping chrome.
+    """
+    template = _example_engine().get_template("editorial/archive.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/archive.html"])
+
+    ready = template.render(Context({**base, "archive_state": "ready"}))
+    empty = template.render(Context({**base, "archive_state": "empty", "months": ()}))
+    error = template.render(Context({**base, "archive_state": "error"}))
+
+    assert "August 2026" in ready
+    assert "bw-card" in ready
+    assert "Why we moved reminder thresholds" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "Jump by year" in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-card" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-card" not in error
 
     for html, label in ((empty, "empty"), (error, "error")):
         assert 'role="search"' in html, f"the {label} branch dropped search"

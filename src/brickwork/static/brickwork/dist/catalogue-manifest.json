@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 68,
     "sections": 29,
-    "archetypes": 36,
+    "archetypes": 37,
     "skeletons": 1
   },
   "families": [
@@ -22,7 +22,7 @@
     },
     {
       "name": "Editorial and publishing",
-      "archetypeCount": 3,
+      "archetypeCount": 4,
       "sectionCount": 0
     },
     {
@@ -399,6 +399,21 @@
       ]
     },
     {
+      "name": "examples/editorial/archive.html",
+      "kind": "archetype",
+      "family": "Editorial and publishing",
+      "templatePath": "examples/editorial/archive.html",
+      "docSource": "examples/editorial/archive.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_breadcrumbs.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_search.html",
+        "brickwork/shell/docs.html"
+      ]
+    },
+    {
       "name": "examples/editorial/article.html",
       "kind": "archetype",
       "family": "Editorial and publishing",
@@ -657,6 +672,7 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html"
@@ -724,6 +740,7 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html"
@@ -1005,6 +1022,7 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html"
@@ -1368,6 +1386,7 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html"
@@ -2008,6 +2027,7 @@
         "docs/search-results.html",
         "docs/toc.html",
         "docs/versioned-content.html",
+        "editorial/archive.html",
         "editorial/article.html",
         "editorial/author.html",
         "editorial/category.html"
