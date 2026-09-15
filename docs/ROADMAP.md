@@ -241,9 +241,10 @@ as well as product applications.
   `brickwork/shell/docs.html`, and so the first bound by
   `tests/test_family_boundary.py`'s docs entry, which until then was a forward
   guard catching nothing. The family's other five (API reference, search
-  results, navigation, table of contents, versioned content) remain open, and
-  icvoss/django-brickwork#412 (navigation) still carries the
-  icvoss/django-brickwork#430 constraint that `bw_nav` ships one orientation.
+  results, navigation, table of contents, versioned content) remain open.
+  icvoss/django-brickwork#412 (navigation) can use `{% bw_nav orientation= %}`
+  since 3.31.0 (icvoss/django-brickwork#430); it is no longer blocked on a
+  missing horizontal orientation.
 - Define content accessibility rules: heading order, landmark structure, code
   labelling, table responsiveness, reading measure and reading progress.
 
