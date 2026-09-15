@@ -89,6 +89,13 @@ COMPONENT_OPTIONS: Final[dict[str, dict[str, frozenset[str]]]] = {
         "header_recipe": frozenset({"plain", "muted", "bordered"}),
         "footer_recipe": frozenset({"plain", "muted", "actions"}),
     },
+    # Beat Phase E (icvoss/django-brickwork#540): same header/footer recipes
+    # as modal. Size stays sm/md/lg (no full: a slide-over is edge-anchored).
+    "brickwork/components/_slide_over.html": {
+        "size": frozenset({"sm", "md", "lg"}),
+        "header_recipe": frozenset({"plain", "muted", "bordered"}),
+        "footer_recipe": frozenset({"plain", "muted", "actions"}),
+    },
 }
 
 

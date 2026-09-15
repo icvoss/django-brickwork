@@ -82,6 +82,11 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     ("_card", "media_recipe", "icon", "bw-card__media--icon"),
     ("_slide_over", "placement", "start", "bw-slide-over--start"),
     ("_slide_over", "placement", "end", "bw-slide-over--end"),
+    # Beat Phase E (#540): same header/footer recipes as modal.
+    ("_slide_over", "header_recipe", "muted", "bw-slide-over__header--muted"),
+    ("_slide_over", "header_recipe", "bordered", "bw-slide-over__header--bordered"),
+    ("_slide_over", "footer_recipe", "muted", "bw-slide-over__footer--muted"),
+    ("_slide_over", "footer_recipe", "actions", "bw-slide-over__footer--actions"),
     ("_account_menu", "placement", "start", "bw-account-menu--start"),
     ("_account_menu", "placement", "end", "bw-account-menu--end"),
     ("_dropdown", "placement", "end", "bw-dropdown--end"),
