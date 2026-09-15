@@ -8,28 +8,53 @@ versioning contract).
 
 ## Unreleased
 
+## [3.33.0] - 2026-09-15
+
+Minor: **Brickwork Theme** product surface (L1 to L4) lands for consumers:
+PROFILE ladder, level checker, L3/L4 specimen, Vite/Tailwind projection recipe,
+kit token-compliance gate, and honest public L3/L4 claims. Also ships marketing
+portrait/bio bands and slide-over region recipes. No breaking change for
+existing consumers; beauty of kit defaults remains VISUAL-BAR / beat F.2.
+
 ### Added
 
-- Brickwork Theme Phase F Vite/Tailwind consumer recipe: INTEGRATION.md §1.3,
-  `docs/examples/vite-tailwind/`, and `manage.py sync_brickwork_projection`
-  (`brickwork.services.css_delivery.sync_tailwind_theme`) to vendor
-  `tailwind-theme.css` without hand-copying from site-packages or dual npm
-  (icvoss/django-brickwork#601).
-- Brickwork Theme Phase D preview: `{% bw_token_specimen level="L3" %}` /
-  `L4` renders recommended tokens with live radius, elevation, type, and
-  spacing samples; THEME.md documents required shell/card/form/marketing
-  surfaces; `docs/examples/theming/theme-preview.html` sketches the
-  composition (icvoss/django-brickwork#599).
+- Brand-pack Phase B skeletons for Brickwork Theme levels: northline, harbour,
+  and folio each declare **L2** in `PROFILE.md`; fictional
+  `northline-material` (**L3**) and `northline-dense` (**L4**) torture packs
+  demonstrate material and rhythm axes. Agent briefs point at `docs/THEME.md`.
 - Brickwork Theme Phase C helpers (`brickwork.services.theme_profile`,
   re-exported from `brickwork.services.tokens`): `infer_theme_level`,
   `check_theme_level`, `recommended_tokens_for_level`, and kit-owned reporting.
   A colours-only map claiming L3 fails the checker. `render_brand_css` already
   accepts L2 to L4 overridable values; unknown names still raise
   `BrandValidationError` (icvoss/django-brickwork#598).
-- Brand-pack Phase B skeletons for Brickwork Theme levels: northline,
-  harbour, and folio each declare **L2** in `PROFILE.md`; fictional
-  `northline-material` (**L3**) and `northline-dense` (**L4**) torture packs
-  demonstrate material and rhythm axes. Agent briefs point at `docs/THEME.md`.
+- `{% bw_token_specimen level="L3" %}` / `L4` renders recommended theme tokens
+  with live radius, elevation, type, and spacing samples; THEME.md documents
+  required shell/card/form/marketing preview surfaces
+  (`docs/examples/theming/`) (icvoss/django-brickwork#599).
+- `manage.py sync_brickwork_projection` and INTEGRATION.md §1.3 Vite/Tailwind
+  recipe vendor `tailwind-theme.css` without site-packages hand copies
+  (`docs/examples/vite-tailwind/`) (icvoss/django-brickwork#601).
+- **`_portrait.html` and `_bio.html`** (icvoss/django-brickwork#116). Marketing-kit
+  person presentation: a constrained 3:4 portrait band with name, role, body,
+  optional CTAs and `align="start"|"end"`, plus a compact article-foot bio strip
+  with an optional profile link. Distinct from `_testimonial.html` and from the
+  Editorial author archetype.
+- Slide-over gains the same closed `header_recipe` / `footer_recipe` options as
+  modal (`plain`, `muted`, `bordered` / `plain`, `muted`, `actions`), closing the
+  Beat Phase E overlay-grammar gap on icvoss/django-brickwork#540.
+
+### Changed
+
+- Kit token-compliance for Brickwork Theme L3: audit of high-traffic chrome,
+  northline-material overlay radius/elevation steps, and a measured-style gate
+  that card/modal/button follow the L3 torture pack on a white canvas
+  (`docs/audits/2026-09-15-theme-phase-e-token-compliance.md`)
+  (icvoss/django-brickwork#600).
+- Public L3/L4 Brickwork Theme claims are allowed after Phase E
+  token-compliance: POSITIONING and README cite THEME.md levels and state that
+  authored axes move kit chrome without claiming beauty (beat F.2 remains
+  separate).
 
 ## [3.32.0] - 2026-09-15
 

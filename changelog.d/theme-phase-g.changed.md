@@ -1,1 +1,0 @@
-Public L3/L4 Brickwork Theme claims are allowed after Phase E token-compliance: POSITIONING and README cite THEME.md levels and state that authored axes move kit chrome without claiming beauty (beat F.2 remains separate).
