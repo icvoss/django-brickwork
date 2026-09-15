@@ -1,0 +1,148 @@
+{% extends "brickwork/shell/docs.html" %}
+{% comment %}
+A documentation navigation page: the page that proves how a docs site is
+browsed, not how one topic is read (icvoss/django-brickwork#412).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    crumbs                      breadcrumb trail: [{label, url}, ...], last unlinked
+    docs_section_items          horizontal section switcher (bw_nav items)
+    docs_section_active         which section switcher item is current
+    docs_nav_items              hierarchical rail tree (bw_nav items)
+    docs_nav_active             which rail item is current
+    docs_search_action          the URL bw_search submits to (GET)
+    navigation_state            "ready" | "empty" | "error" (see States below)
+The headings and copy below are typed into the template.
+
+WHY THIS PAGE IS SHAPED THIS WAY:
+
+Documentation navigation is two seams working together, and this page is the
+copyable proof of both:
+
+1. A HORIZONTAL section switcher in docs_site_header
+   ({% templatetag openblock %} bw_nav orientation="horizontal"
+   {% templatetag closeblock %}), for top-level areas (Guides, API, Changelog).
+   This is the surface #430 / NAV-024 unblocked: before 3.31.0 the package
+   could not express a horizontal docs section row without hand-rolled CSS.
+2. A VERTICAL hierarchical rail in docs_nav (default orientation), for the
+   tree inside the current section. Section headers and children are ordinary
+   NavItem values the view already builds for every other docs page.
+
+The body is orientation guidance, not a third nav: search for the returning
+reader, a short "how the tree works" lede, and three start cards that name
+concrete doors. Duplicating the rail as a body sitemap would fight the shell.
+
+SCOPE NOTE on a comment filed against this issue on 2026-08-31 that restates
+#261's search-results asks: those asks belong on #411 (search results), not
+here. This page is navigation chrome. Search results is a separate archetype.
+
+States: navigation_state is the page's real branch.
+  "ready": both nav seams and the body guidance render.
+  "empty": no sections published yet (day-one docs site). Empty state in the
+    body; search still renders. The horizontal switcher and rail are omitted
+    when empty so a reader is not offered dead trees.
+  "error": the nav tree failed to load. bw_alert danger in the body; chrome
+    without the failed trees.
+  LOADING: not applicable. Server-rendered from request-time context.
+Accessibility: inherits docs shell skip link and landmarks. Horizontal nav
+  is a real list of links (bw_nav); section switcher and rail are distinct
+  landmarks via their wrapping regions. Method/meaning never rides on colour.
+Responsive: horizontal nav wraps inside the site header; rail collapses to
+  the docs shell disclosure below --bw-breakpoint-lg.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}Browse the docs - Northwind{% endblock %}
+
+{% block docs_site_header %}
+  <a class="bw-docs-site-header__brand" href="/docs/">{% translate "Northwind docs" %}</a>
+  {% if navigation_state == "ready" %}
+  {% bw_nav items=docs_section_items active=docs_section_active orientation="horizontal" %}
+  {% endif %}
+  {% bw_search docs_search_action placeholder="Search the docs..." %}
+{% endblock %}
+
+{% block docs_header %}
+  <nav class="bw-breadcrumbs" aria-label="{% translate 'Breadcrumb' %}">
+    {% include "brickwork/components/_breadcrumbs.html" with crumbs=crumbs %}
+  </nav>
+
+  <h1>{% translate "Browse the docs" %}</h1>
+  <p>
+    {% translate "Sections across the top, the tree for the current section in the rail. Search if you already know the words." %}
+  </p>
+{% endblock %}
+
+{% block content %}
+  {% if navigation_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No sections published yet" body="The documentation tree is empty. Publish the first guide to populate the section switcher and the rail, or contact support if you expected content here." icon="document" action_href="/support/" action_label="Contact support" %}
+
+  {% elif navigation_state == "error" %}
+  {% bw_alert "The documentation navigation tree could not be loaded. Retry in a moment, or use search if you know the page title." title="Navigation unavailable" variant="danger" %}
+
+  {% else %}
+  <div class="bw-section-stack">
+
+    <section aria-labelledby="how-heading">
+      <h2 id="how-heading" class="bw-band-heading">{% translate "How navigation works" %}</h2>
+      <div class="bw-prose">
+        <p class="bw-prose__lede">
+          The row under the brand switches section. The rail lists every page
+          in the section you are in. Search sits beside the brand for a
+          returning reader who already has the words. Neither the row nor the
+          rail replaces search.
+        </p>
+        <ul>
+          <li>{% translate "Guides hold task walkthroughs. Start here for authentication, webhooks and rate limits." %}</li>
+          <li>{% translate "API reference holds one page per operation. Open it when you already know the verb and path." %}</li>
+          <li>{% translate "Changelog lists what changed per release, newest first." %}</li>
+        </ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="doors-heading">
+      <h2 id="doors-heading" class="bw-band-heading">{% translate "Open a section" %}</h2>
+      <div class="bw-band-grid--3">
+        <a class="bw-card bw-card--interactive bw-card--bordered" href="/docs/guides/">
+          <h3 class="bw-card__title">{% translate "Guides" %}</h3>
+          <div class="bw-card__body">
+            <p>{% translate "Task-by-task walkthroughs. The rail under Guides lists every guide in reading order." %}</p>
+          </div>
+        </a>
+        <a class="bw-card bw-card--interactive bw-card--bordered" href="/docs/api-reference/">
+          <h3 class="bw-card__title">{% translate "API reference" %}</h3>
+          <div class="bw-card__body">
+            <p>{% translate "Every endpoint, field and status code. Grouped by resource in the rail." %}</p>
+          </div>
+        </a>
+        <a class="bw-card bw-card--interactive bw-card--bordered" href="/docs/changelog/">
+          <h3 class="bw-card__title">{% translate "Changelog" %}</h3>
+          <div class="bw-card__body">
+            <p>{% translate "What shipped in each release. Newest first; breaking changes called out in the entry." %}</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <div class="bw-callout bw-callout--note">
+      <p class="bw-callout__title">{% translate "You are in Guides" %}</p>
+      <div class="bw-prose bw-callout__body">
+        <p>
+          The horizontal switcher marks Guides as current. The rail on the
+          right (or under Documentation menu on a narrow viewport) is the
+          Guides tree only.
+        </p>
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+{% endblock %}
+
+{% block docs_nav %}
+  {% if navigation_state == "ready" %}
+  {% bw_nav items=docs_nav_items active=docs_nav_active %}
+  {% endif %}
+{% endblock %}
