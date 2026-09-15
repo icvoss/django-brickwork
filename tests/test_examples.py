@@ -878,10 +878,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             {
                 "title": "Why we moved reminder thresholds",
                 "href": "/journal/operations/reminder-thresholds/",
-                "snippet": (
-                    "Three days beats seven when the goal is a conversation, "
-                    "not a chase."
-                ),
+                "snippet": ("Three days beats seven when the goal is a conversation, not a chase."),
                 "category_label": "Operations",
                 "category_href": "/journal/operations/",
                 "published_on": "12 August 2026",
@@ -891,10 +888,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             {
                 "title": "How a dispute flag pauses escalation",
                 "href": "/journal/operations/dispute-flags/",
-                "snippet": (
-                    "A genuine dispute should stop the clock, not just change "
-                    "the wording on the next nudge."
-                ),
+                "snippet": ("A genuine dispute should stop the clock, not just change the wording on the next nudge."),
                 "category_label": "Operations",
                 "category_href": "/journal/operations/",
                 "published_on": "28 July 2026",
@@ -905,8 +899,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
                 "title": "When collections handoff fires",
                 "href": "/journal/operations/collections-handoff/",
                 "snippet": (
-                    "The handoff is a product event with an owner, not a "
-                    "spreadsheet row that someone might notice."
+                    "The handoff is a product event with an owner, not a spreadsheet row that someone might notice."
                 ),
                 "category_label": "Operations",
                 "category_href": "/journal/operations/",
@@ -2055,9 +2048,7 @@ def test_the_editorial_author_empty_and_error_states_replace_the_body() -> None:
     base = dict(_EXAMPLE_CONTEXTS["editorial/author.html"])
 
     ready = template.render(Context({**base, "author_state": "ready"}))
-    empty = template.render(
-        Context({**base, "author_state": "empty", "articles": ()})
-    )
+    empty = template.render(Context({**base, "author_state": "empty", "articles": ()}))
     error = template.render(Context({**base, "author_state": "error"}))
 
     assert "Amira Okonkwo" in ready
