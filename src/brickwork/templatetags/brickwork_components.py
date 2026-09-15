@@ -661,6 +661,111 @@ def bw_search(
     }
 
 
+_VERSION_STATUSES = frozenset({"", "latest", "deprecated"})
+_VERSION_SWITCH_PLACEMENTS = frozenset({"start", "end"})
+
+
+@dataclass(frozen=True)
+class RenderedVersion:
+    """One entry in ``{% bw_version_switch %}`` after validation."""
+
+    label: str
+    href: str
+    is_current: bool
+    status: str
+    status_label: str
+
+
+def _shape_version(raw: object, *, current: str) -> RenderedVersion:
+    if not isinstance(raw, Mapping):
+        raise TemplateSyntaxError(f"bw_version_switch versions must be mappings, got {raw!r}")
+    label = normalise_accessible_name(raw.get("label", ""))
+    href = str(raw.get("href", "") or "").strip()
+    if not label or not href:
+        raise TemplateSyntaxError(f'bw_version_switch versions require non-empty "label" and "href", got {dict(raw)!r}')
+    status = str(raw.get("status", "") or "").strip()
+    if status not in _VERSION_STATUSES:
+        raise TemplateSyntaxError(
+            f"bw_version_switch version status must be one of {sorted(_VERSION_STATUSES - {''}) or '(empty)'}, "
+            f"got {status!r}"
+        )
+    status_labels = {
+        "latest": gettext("Latest"),
+        "deprecated": gettext("Deprecated"),
+        "": "",
+    }
+    return RenderedVersion(
+        label=label,
+        href=href,
+        is_current=label == current,
+        status=status,
+        status_label=status_labels[status],
+    )
+
+
+@register.inclusion_tag("brickwork/components/_version_switch.html")
+def bw_version_switch(
+    versions: object,
+    *,
+    current: str,
+    label: str = "",
+    placement: str = "start",
+) -> dict:
+    """A documentation version switcher (icvoss/django-brickwork#414).
+
+    Not a bare dropdown: the trigger always names the version the reader is
+    on, the panel marks that entry with ``aria-current="true"``, and optional
+    ``status`` values (``latest``, ``deprecated``) are text, not colour alone.
+    Routing between versions is the consumer's: each item's ``href`` is the
+    URL for that version of the same page (or a fallback the consumer owns).
+    ADR-091 still declines a package-owned version *region*; this is the
+    control that fills ``docs_header``.
+
+    ``versions`` is a non-empty sequence of ``{label, href}`` mappings;
+    optional ``status`` is ``""``, ``"latest"``, or ``"deprecated"``.
+    ``current`` is the label of the version being viewed and must match
+    exactly one item. ``label`` names the landmark (default translated
+    "Documentation version"). ``placement`` is ``start`` or ``end``.
+
+    No-JS floor: a native ``<details>`` of plain links in a labelled
+    ``<nav>``. No ARIA menu roles (version switching is navigation, not a
+    menu button), matching the search control's progressive-enhancement
+    bar rather than ``bw_dropdown``.
+    """
+    if not isinstance(versions, list | tuple) or not versions:
+        raise TemplateSyntaxError("bw_version_switch requires versions=, a non-empty list/tuple of version dicts")
+    current_label = normalise_accessible_name(current)
+    if not current_label:
+        raise TemplateSyntaxError("bw_version_switch requires a non-empty current= (the label of the viewed version)")
+    if placement not in _VERSION_SWITCH_PLACEMENTS:
+        raise TemplateSyntaxError(
+            f"bw_version_switch placement must be one of {sorted(_VERSION_SWITCH_PLACEMENTS)}, got {placement!r}"
+        )
+
+    shaped = [_shape_version(raw, current=current_label) for raw in versions]
+    matches = [item for item in shaped if item.is_current]
+    if len(matches) != 1:
+        raise TemplateSyntaxError(
+            f"bw_version_switch current={current_label!r} must match exactly one version label, "
+            f"matched {len(matches)} of {[item.label for item in shaped]}"
+        )
+
+    landmark = normalise_accessible_name(label) or gettext("Documentation version")
+    # Summary aria-label is attribute-only and combines landmark + current
+    # label; escape the finished string once for attribute position rather
+    # than concatenating a pre-escaped landmark with a text-escaped current
+    # in the template (the dual-position trap #349 documents for dropdown).
+    summary_aria = escape_attribute_value(f"{force_str(landmark)}: {force_str(current_label)}")
+    return {
+        "versions": shaped,
+        "current_label": current_label,
+        "landmark_label": landmark,
+        "landmark_label_attr": escape_attribute_value(landmark),
+        "summary_aria_label": summary_aria,
+        "placement": placement,
+    }
+
+
 @register.inclusion_tag("brickwork/components/_toggle.html")
 def bw_toggle(
     label: str,

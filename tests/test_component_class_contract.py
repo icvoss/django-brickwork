@@ -210,6 +210,15 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         '{% bw_search action="/search/" value="invoice" scope=scope %}',
         scope={"label": "Project: Acme", "name": "project", "value": "acme", "clear_href": "/search/?q=invoice"},
     ),
+    "_version_switch (bw_version_switch: current + statuses)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_version_switch versions=versions current='3.31.0' %}",
+        versions=[
+            {"label": "3.31.0", "href": "/docs/3.31.0/", "status": "latest"},
+            {"label": "3.30.0", "href": "/docs/3.30.0/"},
+            {"label": "3.28.0", "href": "/docs/3.28.0/", "status": "deprecated"},
+        ],
+    ),
     "_card (extended, all regions, interactive+bordered)": lambda: _extend(
         "brickwork/components/_card.html",
         '{% block card_header %}<div class="bw-card__header"><h2 class="bw-card__title">Members</h2>'
@@ -1109,6 +1118,9 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
         # bw_token_specimen's private render target (icvoss/django-brickwork#268):
         # dedicated tests in test_token_specimen.py render through the tag.
         "_token_specimen.html",
+        # bw_version_switch's private render target (icvoss/django-brickwork#414):
+        # dedicated tests in test_version_switch.py render through the tag.
+        "_version_switch.html",
     }
     shell_dirs = {"shell"}
 
@@ -1123,7 +1135,14 @@ def test_the_registry_covers_every_shipped_component_form_nav_and_marketing_temp
     # cover them), absent from `shipped` (no standalone template exists or
     # {% include %} is forbidden), so excluded here to keep both sides of
     # the assertion below in agreement.
-    not_independently_shipped = {"_dropdown", "_tabs", "_toast", "_combobox", "_chart_mount"}
+    not_independently_shipped = {
+        "_dropdown",
+        "_tabs",
+        "_toast",
+        "_combobox",
+        "_chart_mount",
+        "_version_switch",
+    }
     covered_stems = registry_stems - not_independently_shipped
 
     templates_dirs = [root / "templates" / "brickwork", root / "marketing" / "templates" / "brickwork_marketing"]
@@ -1165,10 +1184,18 @@ def test_a_registered_but_unlisted_component_is_now_caught() -> None:
         "_toast",
         "_combobox",
         "_chart_mount",
+        "_version_switch",
     }
     hand_maintained_with_a_dropped_entry.discard("_empty_state")  # simulates a component silently dropped by hand
 
-    derived = registry_stems - {"_dropdown", "_tabs", "_toast", "_combobox", "_chart_mount"}
+    derived = registry_stems - {
+        "_dropdown",
+        "_tabs",
+        "_toast",
+        "_combobox",
+        "_chart_mount",
+        "_version_switch",
+    }
 
     assert derived != hand_maintained_with_a_dropped_entry, (
         "the derived set must disagree with a hand-maintained set missing a "

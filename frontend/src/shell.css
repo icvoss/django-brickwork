@@ -855,6 +855,25 @@
   display: none;
 }
 
+/* Versioned-content archetype (#414): title stack beside the version
+ * switcher in docs_header. Wraps on narrow viewports so the switcher stays
+ * reachable under the heading rather than competing for one row. */
+.bw-docs-version-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--bw-space-4);
+}
+.bw-docs-version-header > :first-child {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+}
+.bw-docs-version-header .bw-version-switch {
+  flex: 0 0 auto;
+  margin-block-start: var(--bw-space-1);
+}
+
 /* In-page TOC composition (Beat S7 craft): ADR-091 declines a package-owned
  * TOC region because heading trees are a content-pipeline concern. This is
  * the consumer-authored equivalent an article example can type by hand once
