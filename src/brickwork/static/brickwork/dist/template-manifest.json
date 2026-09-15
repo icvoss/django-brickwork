@@ -18,7 +18,8 @@
         "brickwork/components/_card.html",
         "brickwork/components/_list_item.html",
         "brickwork/components/_page_header.html",
-        "brickwork_marketing/components/_hero.html"
+        "brickwork_marketing/components/_hero.html",
+        "brickwork_marketing/components/_portrait.html"
       ],
       "consumption": [
         "include"
@@ -52,7 +53,9 @@
         "brickwork/components/_empty_state.html",
         "brickwork/components/_list_item.html",
         "brickwork/components/_modal.html",
-        "brickwork/components/_slide_over.html"
+        "brickwork/components/_slide_over.html",
+        "brickwork_marketing/components/_bio.html",
+        "brickwork_marketing/components/_portrait.html"
       ],
       "consumption": [
         "extend",
@@ -419,6 +422,16 @@
       ]
     },
     {
+      "name": "image",
+      "declaredIn": [
+        "brickwork_marketing/components/_bio.html",
+        "brickwork_marketing/components/_portrait.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "lede",
       "declaredIn": [
         "brickwork_marketing/components/_hero.html"
@@ -583,6 +596,16 @@
       ]
     },
     {
+      "name": "name",
+      "declaredIn": [
+        "brickwork_marketing/components/_bio.html",
+        "brickwork_marketing/components/_portrait.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "page_actions",
       "declaredIn": [
         "brickwork/shell/app.html"
@@ -622,6 +645,25 @@
       "name": "preview",
       "declaredIn": [
         "brickwork/components/_preview_frame.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "profile",
+      "declaredIn": [
+        "brickwork_marketing/components/_bio.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "role",
+      "declaredIn": [
+        "brickwork_marketing/components/_bio.html",
+        "brickwork_marketing/components/_portrait.html"
       ],
       "consumption": [
         "include"

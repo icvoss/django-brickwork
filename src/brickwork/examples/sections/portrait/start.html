@@ -1,0 +1,26 @@
+{% comment %}
+PORTRAIT / start: person band with the image on the inline-start.
+
+WHEN TO USE THIS. A consultant, solo operator or practice site whose primary
+trust asset is the founder's photograph at real size, not a 40px avatar
+inside a testimonial. Compose beside a testimonial on the same page when you
+also want third-party words.
+
+This one is the shipped _portrait.html include (icvoss/django-brickwork#116)
+with align="start" (the default). Pass image as pre-rendered safe HTML from
+the view; the package constrains img to 3:4 cover.
+
+WHAT YOUR VIEW MUST SUPPLY for a filled image slot:
+
+    from django.utils.safestring import mark_safe
+    portrait_image = mark_safe('<img src="..." alt="Ada Lovelace">')
+
+Required context: none for the thin include; optional image (and the other
+slots _portrait.html documents) when composing with real media.
+
+States: see _portrait.html.
+Accessibility: see _portrait.html; covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: see _portrait.html.
+{% endcomment %}
+{% include "brickwork_marketing/components/_portrait.html" with name="Ada Lovelace" role="Analytical Engine" body="I am much pleased to find how very well I stand work and how my powers of attention and continued effort increase." primary_cta_label="Book a conversation" primary_cta_href="/contact/" secondary_cta_label="Read the notes" secondary_cta_href="/writing/" image=portrait_image align="start" %}

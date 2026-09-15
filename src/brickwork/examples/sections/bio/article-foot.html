@@ -1,0 +1,19 @@
+{% comment %}
+BIO / article foot: compact person strip.
+
+WHEN TO USE THIS. The foot of an article or a short about band where a face
+and a paragraph are enough, and a full portrait band would overpower the
+page. Link onward to a profile when one exists.
+
+This one is the shipped _bio.html include (icvoss/django-brickwork#116).
+Pass image as pre-rendered safe HTML from the view.
+
+Required context: optional bio_image (bound as image) and the other slots
+_bio.html documents.
+
+States: see _bio.html.
+Accessibility: see _bio.html; covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: see _bio.html.
+{% endcomment %}
+{% include "brickwork_marketing/components/_bio.html" with name="Ada Lovelace" role="Staff writer" body="Writes about computation, looms, and the poetry of notation." profile_label="More from Ada" profile_href="/authors/ada/" image=bio_image %}

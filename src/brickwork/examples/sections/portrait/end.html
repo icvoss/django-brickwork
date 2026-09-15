@@ -1,0 +1,17 @@
+{% comment %}
+PORTRAIT / end: person band with the image on the inline-end.
+
+WHEN TO USE THIS. Same job as portrait/start.html; choose end when the
+composition wants the photograph after the copy on wide viewports (for
+example under a hero that already led with media on the start side).
+
+This one is the shipped _portrait.html include with align="end".
+
+Required context: optional image (safe HTML) as for start.html.
+
+States: see _portrait.html.
+Accessibility: see _portrait.html; covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: see _portrait.html.
+{% endcomment %}
+{% include "brickwork_marketing/components/_portrait.html" with name="Ada Lovelace" role="Analytical Engine" body="The Analytical Engine weaves algebraic patterns just as the Jacquard loom weaves flowers and leaves." primary_cta_label="Book a conversation" primary_cta_href="/contact/" image=portrait_image align="end" %}
