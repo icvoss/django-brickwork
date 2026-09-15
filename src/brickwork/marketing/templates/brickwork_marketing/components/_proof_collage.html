@@ -1,0 +1,61 @@
+{% comment %}
+Proof collage (icvoss/django-brickwork#572, ADR-108 reusable primitive): a
+marketing section whose subject is live UI as visual proof, either as a
+kit collage or as a single page-as-proof stage. Structural include.
+
+Not a finished homepage fold (ADR-108: brickworkui owns sell compositions).
+Not gallery inspection framing and not app-shell specimen theatre: tiles
+compose `_preview_frame.html` (ILL-026) so the surface guard holds, without
+`.bw-gallery-preview-frame` captions or product-chrome window dressing.
+
+Required context: none.
+
+Optional context:
+  heading (str): section heading.
+  lede    (str): supporting sentence under the heading.
+  layout  ("collage"|"page", default "collage"):
+          collage = multi-tile airy grid for kit pieces;
+          page    = one dominant stage for a composed marketing page proof.
+  items   (list of dicts): {content, label?}. content is safe HTML of live
+          package markup (buttons, sections, a mini page fragment). label is
+          an optional short tile caption above the frame. List-shaped, so
+          supply from context (#98). An empty items list renders the intro
+          alone (or nothing if that too is empty).
+  scrollable (bool, default False): forwarded to each tile's preview frame;
+          useful for layout="page" when the specimen is a tall shell.
+
+Each tile wraps content in `_preview_frame.html` with scale="card" for
+collage and scale="full" for page, so consumers do not re-invent the
+surface guard.
+
+States: none (static proof band).
+Accessibility: section heading is an <h2>; each tile label is a <p>; the
+  preview frame supplies its own region label. Covered by
+  proof-collage-*.html, both themes.
+Responsive: collage is 1 column below 40rem, 2 from sm, 3 from md; page
+  layout is a single centred stage at every width.
+{% endcomment %}
+{% if heading or lede or items %}
+<section class="bw-proof-collage{% if layout == 'page' %} bw-proof-collage--page{% else %} bw-proof-collage--collage{% endif %}">
+  {% if heading or lede %}
+    <div class="bw-proof-collage__intro">
+      {% if heading %}<h2 class="bw-proof-collage__heading">{{ heading }}</h2>{% endif %}
+      {% if lede %}<p class="bw-proof-collage__lede">{{ lede }}</p>{% endif %}
+    </div>
+  {% endif %}
+  {% if items %}
+    <div class="bw-proof-collage__grid" role="list">
+      {% for item in items %}
+        <div class="bw-proof-collage__tile" role="listitem">
+          {% if item.label %}<p class="bw-proof-collage__label">{{ item.label }}</p>{% endif %}
+          {% if layout == "page" %}
+            {% include "brickwork/components/_preview_frame.html" with content=item.content scale="full" scrollable=scrollable %}
+          {% else %}
+            {% include "brickwork/components/_preview_frame.html" with content=item.content scale="card" scrollable=scrollable %}
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endif %}

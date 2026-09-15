@@ -2460,6 +2460,80 @@ def render_preview_frame(theme: str) -> str:
     )
 
 
+
+# --- proof collage (icvoss/django-brickwork#572) -----------------------------
+
+_PROOF_COLLAGE_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proof collage (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Proof collage</h1>
+  __COLLAGE__
+  __PAGE__
+</main>
+</body>
+</html>
+"""
+
+
+def render_proof_collage(theme: str) -> str:
+    from django.utils.safestring import mark_safe
+
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    collage = render_to_string(
+        "brickwork_marketing/components/_proof_collage.html",
+        {
+            "heading": "Kit collage",
+            "lede": "Live package pieces as visual proof.",
+            "layout": "collage",
+            "items": [
+                {
+                    "label": "Actions",
+                    "content": mark_safe('<button type="button" class="bw-btn bw-btn--primary">Get started</button>'),
+                },
+                {
+                    "label": "Status",
+                    "content": mark_safe('<span class="bw-badge">Shipped</span>'),
+                },
+                {
+                    "label": "Callout",
+                    "content": mark_safe(
+                        '<div class="bw-alert bw-alert--info" role="status">'
+                        '<div class="bw-alert__body"><p class="bw-alert__title">Live</p></div></div>'
+                    ),
+                },
+            ],
+        },
+    )
+    page = render_to_string(
+        "brickwork_marketing/components/_proof_collage.html",
+        {
+            "heading": "Page as proof",
+            "layout": "page",
+            "items": [
+                {
+                    "content": mark_safe(
+                        '<section><h2>Pricing</h2><p class="bw-prose">A composed marketing band.</p>'
+                        '<button type="button" class="bw-btn bw-btn--primary">Choose plan</button></section>'
+                    )
+                }
+            ],
+        },
+    )
+    return (
+        _PROOF_COLLAGE_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__COLLAGE__", collage)
+        .replace("__PAGE__", page)
+    )
+
+
 def render_theme_switch_invalid_root(theme: str) -> str:
     """The JS leg with a BOGUS data-theme baked into <html> from render time
     (icvoss/django-brickwork#117 review): the consumer-template-mistake case
@@ -4634,6 +4708,7 @@ def main() -> None:
         _emit(OUT / f"token-specimen-{theme}.html", render_token_specimen(theme), written)
         # _preview_frame (#269): surface-guarded live-render container
         _emit(OUT / f"preview-frame-{theme}.html", render_preview_frame(theme), written)
+        _emit(OUT / f"proof-collage-{theme}.html", render_proof_collage(theme), written)
         # layout="compact" (#235): the no-JS floor (#272 review: the
         # pre-existing no-JS test only ever rendered layout="inline",
         # leaving the compact root's own reserved-pre-init state

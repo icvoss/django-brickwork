@@ -834,6 +834,17 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         highlighted=True,
         badge="Most popular",
     ),
+    "_proof_collage (marketing: collage)": lambda: _include(
+        "brickwork_marketing/components/_proof_collage.html",
+        heading="Kit proof",
+        layout="collage",
+        items=[{"label": "Actions", "content": "<button class='bw-btn'>Go</button>"}],
+    ),
+    "_proof_collage (marketing: page)": lambda: _include(
+        "brickwork_marketing/components/_proof_collage.html",
+        layout="page",
+        items=[{"content": "<p>Page proof</p>"}],
+    ),
     "_stat_band (marketing: trend)": lambda: _include(
         "brickwork_marketing/components/_stat_band.html",
         heading="By the numbers",
