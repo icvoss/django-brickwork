@@ -910,6 +910,54 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         ],
         "author_state": "ready",
     },
+    "editorial/category.html": {
+        "crumbs": [
+            {"label": "Journal", "url": "/journal/"},
+            {"label": "Operations"},
+        ],
+        "docs_nav_label": "Other categories",
+        "docs_search_action": "/journal/search/",
+        "category_label": "Operations",
+        "category_description": (
+            "How finance teams run reminders, disputes and collections: "
+            "thresholds, flags, handoffs and the evidence behind each change."
+        ),
+        "articles": [
+            {
+                "title": "Why we moved reminder thresholds",
+                "href": "/journal/operations/reminder-thresholds/",
+                "snippet": ("Three days beats seven when the goal is a conversation, not a chase."),
+                "author_name": "Amira Okonkwo",
+                "author_href": "/journal/authors/amira-okonkwo/",
+                "published_on": "12 August 2026",
+                "published_iso": "2026-08-12",
+                "reading_time": "8 min read",
+            },
+            {
+                "title": "How a dispute flag pauses escalation",
+                "href": "/journal/operations/dispute-flags/",
+                "snippet": ("A genuine dispute should stop the clock, not just change the wording on the next nudge."),
+                "author_name": "Amira Okonkwo",
+                "author_href": "/journal/authors/amira-okonkwo/",
+                "published_on": "28 July 2026",
+                "published_iso": "2026-07-28",
+                "reading_time": "6 min read",
+            },
+            {
+                "title": "When collections handoff fires",
+                "href": "/journal/operations/collections-handoff/",
+                "snippet": (
+                    "The handoff is a product event with an owner, not a spreadsheet row that someone might notice."
+                ),
+                "author_name": "Jordan Ellis",
+                "author_href": "/journal/authors/jordan-ellis/",
+                "published_on": "4 July 2026",
+                "published_iso": "2026-07-04",
+                "reading_time": "5 min read",
+            },
+        ],
+        "category_state": "ready",
+    },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
         "features": [
@@ -2069,6 +2117,43 @@ def test_the_editorial_author_empty_and_error_states_replace_the_body() -> None:
     assert "bw-empty-state" not in error
     assert "bw-card" not in error
     assert "bw-avatar" not in error
+
+    for html, label in ((empty, "empty"), (error, "error")):
+        assert 'role="search"' in html, f"the {label} branch dropped search"
+        assert "bw-breadcrumbs" in html, f"the {label} branch dropped breadcrumbs"
+
+
+def test_the_editorial_category_empty_and_error_states_replace_the_body() -> None:
+    """editorial/category.html's three category_state branches.
+
+    Ready shows badge + article cards; empty keeps the category header and
+    swaps the list for an empty state; error drops the invented listing.
+    """
+    template = _example_engine().get_template("editorial/category.html")
+    base = dict(_EXAMPLE_CONTEXTS["editorial/category.html"])
+
+    ready = template.render(Context({**base, "category_state": "ready"}))
+    empty = template.render(Context({**base, "category_state": "empty", "articles": ()}))
+    error = template.render(Context({**base, "category_state": "error"}))
+
+    assert "Operations" in ready
+    assert "bw-badge" in ready
+    assert "bw-card" in ready
+    assert "Why we moved reminder thresholds" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert "Other categories" in ready
+
+    assert "Operations" in empty
+    assert "bw-badge" in empty
+    assert "bw-empty-state" in empty
+    assert "bw-card" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-card" not in error
+    assert "bw-badge" not in error
 
     for html, label in ((empty, "empty"), (error, "error")):
         assert 'role="search"' in html, f"the {label} branch dropped search"
