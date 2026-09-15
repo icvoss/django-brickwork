@@ -90,10 +90,7 @@ def test_every_2xs_font_size_site_is_named_chrome() -> None:
                 leaf = part.split()[-1] if part else part
                 if leaf not in _CHROME_2XS_SELECTORS:
                     offenders.append(f"{path.name}: {part}")
-    assert not offenders, (
-        "TYP-022: 2xs / overline-size used outside the chrome allowlist:\n"
-        + "\n".join(offenders)
-    )
+    assert not offenders, "TYP-022: 2xs / overline-size used outside the chrome allowlist:\n" + "\n".join(offenders)
 
 
 def test_content_type_roles_do_not_resolve_to_2xs() -> None:
