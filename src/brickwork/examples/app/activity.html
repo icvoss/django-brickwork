@@ -1,0 +1,111 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A product activity feed: recent events across the workspace that a user
+reads to stay current, not to investigate an incident
+(icvoss/django-brickwork#405). Distinct from ops/audit-trail.html (who did
+what, for investigation) and from app/status-tracker.html (one visit's
+progress). Distinct from the dashboard's recent-activity table, which is a
+supporting band on Overview; this page is the full feed.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056); copying is the only way to use it.
+
+What your view must supply, and nothing else:
+    events               list of {title, href, summary, when, kind,
+                          kind_variant} dicts, or ()
+    activity_state       "ready" | "empty" | "error" | "loading"
+    nav_items / nav_active  as in list.html
+The headings and alert copy below are typed into the template.
+
+WHY THIS PAGE IS SHAPED THIS WAY:
+
+Product activity is a chronological feed of things that already happened to
+records the reader cares about: an invoice paid, a reminder sent, a contact
+added. It is not an append-only security log and not a work queue. Time is
+the primary axis; each row links through to the record it concerns. Outcome
+and kind reach the reader as words on a badge, never as colour alone.
+
+No timeline component ships (ADR-092 / VIZ-029 remains bricked). This page
+composes `_list_item.html`, `{% bw_badge %}`, `_empty_state.html` and
+`{% bw_alert %}` instead. That is the product-activity answer until a
+standalone timeline earns its own brick with more than one consumer.
+
+States: activity_state is the page's real branch.
+  "ready": optional notice alert, then the event list (may be one item).
+  "empty": the workspace has no recorded product events yet. Empty state
+    with an action into invoices, not a filtered-empty clear path.
+  "error": the activity store failed. bw_alert danger; no invented feed.
+  "loading": the feed is in flight. Skeleton band with a polite live
+    status; not an empty state and not an error.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; each list item title is a real heading and the only
+  link; badge labels carry kind in words; empty, error and loading keep
+  page chrome. Covered by the archetype harness's full gate sweep (render,
+  axe WCAG 2.2 AA, no horizontal overflow, light/dark distinctness,
+  skip-link first-tab-stop with JS disabled) at every W0.1 breakpoint,
+  both themes.
+Responsive: inherits shell/app.html's sidebar-to-drawer collapse at
+  --bw-breakpoint-md (48rem). `_list_item.html` stacks below
+  --bw-breakpoint-sm; this page adds no further breakpoint of its own.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}Activity - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% if activity_state == "error" %}
+  {% include "brickwork/components/_page_header.html" with title="Activity unavailable" description="Recent events could not be loaded." %}
+  {% elif activity_state == "loading" %}
+  {% include "brickwork/components/_page_header.html" with title="Activity" description="Loading recent events across your accounts." %}
+  {% else %}
+  {% include "brickwork/components/_page_header.html" with title="Activity" description="What has happened across your accounts, newest first." %}
+  {% endif %}
+{% endblock %}
+
+{% block page_actions %}
+  {% if activity_state == "ready" or activity_state == "empty" %}
+  {% bw_button "Open invoices" variant="secondary" href="/invoices/" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% if activity_state == "empty" %}
+  {% include "brickwork/components/_empty_state.html" with variant="no_data" icon="bell" heading="No activity yet" body="Payments, reminders and account changes will appear here as they happen. Raise an invoice to get started." action_label="New invoice" action_href="/invoices/new/" %}
+  {% elif activity_state == "error" %}
+  {% bw_alert "Recent activity could not be loaded. Retry in a moment, or open Invoices from the sidebar if you need a specific record." title="Activity unavailable" variant="danger" %}
+
+  {% elif activity_state == "loading" %}
+  <div role="status" aria-live="polite" aria-busy="true">
+    <p class="bw-visually-hidden">{% translate "Loading activity, please wait." %}</p>
+    <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
+    <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
+    <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
+  </div>
+
+  {% else %}
+  {% comment %}
+  A short notice for something that needs attention without turning the feed
+  into an ops incident page. Omit the alert when your view has nothing to
+  surface; the feed below still stands alone.
+  {% endcomment %}
+  {% bw_alert "Three invoices became overdue since yesterday. Review them from the invoices list." title="Attention needed" variant="warning" %}
+
+  <section aria-labelledby="activity-feed-heading">
+    <h2 id="activity-feed-heading" class="bw-band-heading">{% translate "Recent events" %}</h2>
+    {% for event in events %}
+    <div>
+      <p>{% bw_badge event.kind variant=event.kind_variant %}</p>
+      {% include "brickwork/components/_list_item.html" with title=event.title href=event.href summary=event.summary meta=event.when heading_level="3" %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -6,13 +6,13 @@
     "shells": 6,
     "components": 70,
     "sections": 32,
-    "archetypes": 43,
+    "archetypes": 46,
     "skeletons": 1
   },
   "families": [
     {
       "name": "Data-heavy operations",
-      "archetypeCount": 6,
+      "archetypeCount": 7,
       "sectionCount": 0
     },
     {
@@ -32,7 +32,7 @@
     },
     {
       "name": "Product applications",
-      "archetypeCount": 13,
+      "archetypeCount": 15,
       "sectionCount": 0
     },
     {
@@ -42,6 +42,24 @@
     }
   ],
   "items": [
+    {
+      "name": "examples/app/activity.html",
+      "kind": "archetype",
+      "family": "Product applications",
+      "templatePath": "examples/app/activity.html",
+      "docSource": "examples/app/activity.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_badge.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_list_item.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
     {
       "name": "examples/app/confirm.html",
       "kind": "archetype",
@@ -174,6 +192,22 @@
         "brickwork/components/_stepper.html",
         "brickwork/forms/_form.html",
         "brickwork/shell/centred.html"
+      ]
+    },
+    {
+      "name": "examples/app/search.html",
+      "kind": "archetype",
+      "family": "Product applications",
+      "templatePath": "examples/app/search.html",
+      "docSource": "examples/app/search.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_search.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
       ]
     },
     {
@@ -697,6 +731,25 @@
       ]
     },
     {
+      "name": "examples/ops/data-empty-error.html",
+      "kind": "archetype",
+      "family": "Data-heavy operations",
+      "templatePath": "examples/ops/data-empty-error.html",
+      "docSource": "examples/ops/data-empty-error.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_filter_bar.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_stat.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
+    {
       "name": "examples/ops/dense-list.html",
       "kind": "archetype",
       "family": "Data-heavy operations",
@@ -769,8 +822,10 @@
       "docSource": "brickwork/components/_alert.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/confirm.html",
         "app/error-maintenance.html",
+        "app/search.html",
         "app/toast.html",
         "docs/api-reference.html",
         "docs/article.html",
@@ -786,7 +841,8 @@
         "editorial/related.html",
         "editorial/series.html",
         "marketing/contact.html",
-        "marketing/conversion.html"
+        "marketing/conversion.html",
+        "ops/data-empty-error.html"
       ],
       "usedBySections": [
         "sections/content/callout.html"
@@ -826,6 +882,7 @@
       "docSource": "brickwork/components/_badge.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/status-tracker.html",
         "docs/api-reference.html",
         "docs/versioned-content.html",
@@ -895,6 +952,7 @@
       "docSource": "brickwork/components/_button.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/confirm.html",
         "app/dashboard.html",
         "app/date-range-picker.html",
@@ -920,6 +978,7 @@
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
@@ -1086,6 +1145,7 @@
         "app/list.html",
         "app/status-tracker.html",
         "ops/audit-trail.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html"
       ],
@@ -1149,7 +1209,9 @@
       "docSource": "brickwork/components/_empty_state.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/console.html",
+        "app/search.html",
         "docs/api-reference.html",
         "docs/home.html",
         "docs/navigation.html",
@@ -1163,7 +1225,8 @@
         "editorial/reading-progress.html",
         "editorial/related.html",
         "editorial/series.html",
-        "marketing/contact.html"
+        "marketing/contact.html",
+        "ops/data-empty-error.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1239,6 +1302,7 @@
       "usedByArchetypes": [
         "app/list.html",
         "ops/audit-trail.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html"
       ],
@@ -1289,7 +1353,9 @@
       "templatePath": "brickwork/components/_list_item.html",
       "docSource": "brickwork/components/_list_item.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "app/activity.html"
+      ],
       "usedBySections": [],
       "usedBySkeleton": []
     },
@@ -1363,12 +1429,14 @@
       "docSource": "brickwork/components/_page_header.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/console.html",
         "app/dashboard.html",
         "app/date-range-picker.html",
         "app/detail.html",
         "app/form.html",
         "app/list.html",
+        "app/search.html",
         "app/settings.html",
         "app/status-tracker.html",
         "app/toast.html",
@@ -1377,6 +1445,7 @@
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
@@ -1546,6 +1615,7 @@
       "docSource": "brickwork/components/_search.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "app/search.html",
         "docs/api-reference.html",
         "docs/article.html",
         "docs/home.html",
@@ -1617,6 +1687,7 @@
       "consumption": "include",
       "usedByArchetypes": [
         "ops/audit-trail.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
@@ -2157,12 +2228,14 @@
       "docSource": "brickwork/shell/app.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/console.html",
         "app/dashboard.html",
         "app/date-range-picker.html",
         "app/detail.html",
         "app/form.html",
         "app/list.html",
+        "app/search.html",
         "app/settings.html",
         "app/status-tracker.html",
         "app/toast.html",
@@ -2170,6 +2243,7 @@
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"

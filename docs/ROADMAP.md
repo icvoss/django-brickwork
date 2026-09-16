@@ -22,10 +22,20 @@ accessibility-contract impact before work begins.
 ## Current baseline
 
 Brickwork already ships foundations, five shells, core forms and interactions,
-data-table patterns, 39 components, 42 copyable examples, and `bw-prose`.
+data-table patterns, 39 components, 74 copyable examples, and `bw-prose`.
 This is a strong application and marketing baseline, but it does not yet cover
 the full set of interface families in the contract. The source tree and example
 catalogue are the evidence for this baseline, not this plan.
+
+**Product applications delivery (2026-09-16).** The INTERFACE-SYSTEM required
+set for this family is complete: search (`examples/app/search.html`,
+icvoss/django-brickwork#404) and activity (`examples/app/activity.html`,
+icvoss/django-brickwork#405) ship alongside the existing dashboard, list,
+detail, form, settings and guided-task pages. The family is the deepest at 15
+archetypes (extras beyond the required eight include confirm, toast, console,
+onboarding, status tracker and date-range-picker). Search is the app-shell
+counterpart of docs search-results; activity is a product event feed, not the
+ops audit trail.
 
 ## Rules for every wave
 
@@ -113,20 +123,16 @@ answered by CHT-022's existing `chart_toolbar` slot, following TBL-019.
 *Chart components: shipped engine-free, as ADR-081 requires.* Bundling an
 engine remains forbidden; the mount is the consumer's seam.
 
-*Archetypes: the Data-heavy operations family is open, at five of the seven
-the contract requires.* All five planned for this wave ship on `main`:
-`analysis-dashboard.html`, `report.html`, `comparison.html`, `queue.html` and
-`audit-trail.html`. The cross-wave design-coherence gate ran on this wave's
-first archetype and passed.
+*Archetypes: the Data-heavy operations family is complete at seven of the seven
+the contract requires.* All seven ship on `main`:
+`analysis-dashboard.html`, `report.html`, `comparison.html`, `queue.html`,
+`audit-trail.html`, `dense-list.html` and `data-empty-error.html`
+(icvoss/django-brickwork#406, icvoss/django-brickwork#407). The cross-wave
+design-coherence gate ran on this wave's first archetype and passed.
 
-The two the contract still requires are the dense list and data-empty/error
-states (`docs/INTERFACE-SYSTEM.md`, required-archetype table), tracked as
-icvoss/django-brickwork#406 and icvoss/django-brickwork#407. This sentence
-previously read "the family is complete", which was false against the
-contract even though the exit criterion below it was met: the criterion is
-deliberately narrower than the family, and stating the narrow claim as the
-broad one is how a wave closes on a fiction. Say which of the two is being
-claimed, every time.
+This paragraph previously read "the family is open, at five of the seven" and
+then named dense list and data-empty/error as the remaining gaps. Both have
+shipped; say 7 of 7 when quoting the family.
 
 **EXIT CRITERION MET, 2026-08-29.** The criterion is a statement about pages
 shipping, not components existing, so it closes on the archetypes: a

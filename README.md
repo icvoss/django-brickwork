@@ -11,9 +11,9 @@ VISUAL-BAR surfaces on package-default CSS
 ([docs/audits/2026-09-14-beat-win-scorecard-s5s7.md](docs/audits/2026-09-14-beat-win-scorecard-s5s7.md));
 S5 remains a Lose and S3 is not scored as Plus lead or tie. Those passes are
 not a house aesthetic, do not name competitors as brickwork's identity, and
-do not claim examples alone proved beauty. Brickwork ships 61
-examples (32 archetype pages, 29 sections; a 62nd file, `base.html`, is a
-copied document skeleton). 60 of the 62 files add no CSS. The date range
+do not claim examples alone proved beauty. Brickwork ships 74
+examples (42 archetype pages, 32 sections; a 75th file, `base.html`, is a
+copied document skeleton). 73 of the 75 files add no CSS. The date range
 picker uses existing `--bw-*` tokens in its own scoped CSS because the package
 has no maintained date picker component (see [Example pages](#example-pages)).
 
@@ -45,8 +45,8 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 242 documents (154 hand-maintained fixtures
-plus 88 catalogue-document pages, being 44 catalogue documents, 43 archetypes
+axe-core WCAG 2.2 AA scan across 248 documents (154 hand-maintained fixtures
+plus 94 catalogue-document pages, being 47 catalogue documents, 46 archetypes
 and 1 skeleton, each x light and dark themes), plus a no-JS floor suite,
 keyboard suites,
 mobile-overflow checks at
@@ -271,14 +271,14 @@ Branding it is a handful of `--bw-*` token overrides
 ## Example pages
 
 A whole page is the most project-specific thing you own, so brickwork does not
-ship one as a template you extend. Instead it ships **56** HTML files under
-`src/brickwork/examples/`: **27** archetype pages, **28** sections, and
+ship one as a template you extend. Instead it ships **75** HTML files under
+`src/brickwork/examples/`: **42** archetype pages, **32** sections, and
 `base.html` (a copied document skeleton). That matches the lead inventory
 above; it is not a closed sixteen-page list.
 
 Useful starting pages (not exhaustive): `app/list`, `detail`, `dashboard`,
 `form`, `wizard`; `auth/signin`; `marketing/landing`, `pricing`;
-`docs/article`; `ops/dense-list`. The full catalogue, section variants, and
+`docs/article`; `ops/dense-list`; `ops/data-empty-error`. The full catalogue, section variants, and
 per-file view contracts live in
 [src/brickwork/examples/README.md](src/brickwork/examples/README.md).
 

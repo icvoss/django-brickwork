@@ -130,91 +130,6 @@ class _ExampleForm(forms.Form):
     email = forms.EmailField(label="Email address")
 
 
-class _ContactForm(forms.Form):
-    """Enquiry stand-in for examples/marketing/contact.html (#402)."""
-
-    name = forms.CharField(label="Name")
-    email = forms.EmailField(label="Email address")
-    company = forms.CharField(label="Company", required=False)
-    message = forms.CharField(
-        label="How can we help?",
-        widget=forms.Textarea(attrs={"rows": 4}),
-    )
-
-
-class _LeadForm(forms.Form):
-    """Lead-capture stand-in for examples/marketing/conversion.html (#403)."""
-
-    company = forms.CharField(label="Company name")
-    team_size = forms.ChoiceField(
-        label="Finance team size",
-        choices=[
-            ("1", "Just me"),
-            ("2-10", "Two to ten"),
-            ("11+", "Eleven or more"),
-        ],
-    )
-    invoices_a_month = forms.ChoiceField(
-        label="Invoices a month",
-        choices=[
-            ("under-50", "Under 50"),
-            ("50-500", "50 to 500"),
-            ("500-plus", "More than 500"),
-        ],
-    )
-
-
-def _bound_contact_form() -> _ContactForm:
-    """Bound invalid contact form so #402 exercises field errors."""
-    form = _ContactForm(
-        data={
-            "name": "",
-            "email": "not-an-email",
-            "company": "Halden Group",
-            "message": "",
-        }
-    )
-    form.is_valid()
-    return form
-
-
-def _bound_lead_form() -> _LeadForm:
-    """Bound invalid lead form so #403 exercises field errors."""
-    form = _LeadForm(
-        data={
-            "company": "",
-            "team_size": "1",
-            "invoices_a_month": "under-50",
-        }
-    )
-    form.is_valid()
-    return form
-
-
-_CONVERSION_STEPS = [
-    {"label": "Your details", "status": "complete"},
-    {"label": "Company", "status": "current"},
-    {"label": "Confirm", "status": "upcoming"},
-]
-
-_CONVERSION_STEPS_DONE = [
-    {"label": "Your details", "status": "complete"},
-    {"label": "Company", "status": "complete"},
-    {"label": "Confirm", "status": "complete"},
-]
-
-_CONTACT_FAQ = [
-    {
-        "question": "How fast do you reply?",
-        "answer": "Within one working day, usually the same morning.",
-    },
-    {
-        "question": "Can I book a demo from here?",
-        "answer": "Yes. Say you want a demo in the message, or use the demo request flow.",
-    },
-]
-
-
 class _InvoiceFilterForm(forms.Form):
     """List-page filter fields for the invoice scorecard example (S1)."""
 
@@ -453,6 +368,91 @@ _DRP_CONTEXT: dict[str, object] = {
     "bw_drp_first_day": get_format("FIRST_DAY_OF_WEEK"),
 }
 
+
+class _ContactForm(forms.Form):
+    """Enquiry stand-in for examples/marketing/contact.html (#402)."""
+
+    name = forms.CharField(label="Name")
+    email = forms.EmailField(label="Email address")
+    company = forms.CharField(label="Company", required=False)
+    message = forms.CharField(
+        label="How can we help?",
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
+
+
+class _LeadForm(forms.Form):
+    """Lead-capture stand-in for examples/marketing/conversion.html (#403)."""
+
+    company = forms.CharField(label="Company name")
+    team_size = forms.ChoiceField(
+        label="Finance team size",
+        choices=[
+            ("1", "Just me"),
+            ("2-10", "Two to ten"),
+            ("11+", "Eleven or more"),
+        ],
+    )
+    invoices_a_month = forms.ChoiceField(
+        label="Invoices a month",
+        choices=[
+            ("under-50", "Under 50"),
+            ("50-500", "50 to 500"),
+            ("500-plus", "More than 500"),
+        ],
+    )
+
+
+def _bound_contact_form() -> _ContactForm:
+    """Bound invalid contact form so #402 exercises field errors."""
+    form = _ContactForm(
+        data={
+            "name": "",
+            "email": "not-an-email",
+            "company": "Halden Group",
+            "message": "",
+        }
+    )
+    form.is_valid()
+    return form
+
+
+def _bound_lead_form() -> _LeadForm:
+    """Bound invalid lead form so #403 exercises field errors."""
+    form = _LeadForm(
+        data={
+            "company": "",
+            "team_size": "1",
+            "invoices_a_month": "under-50",
+        }
+    )
+    form.is_valid()
+    return form
+
+
+_CONVERSION_STEPS = [
+    {"label": "Your details", "status": "complete"},
+    {"label": "Company", "status": "current"},
+    {"label": "Confirm", "status": "upcoming"},
+]
+
+_CONVERSION_STEPS_DONE = [
+    {"label": "Your details", "status": "complete"},
+    {"label": "Company", "status": "complete"},
+    {"label": "Confirm", "status": "complete"},
+]
+
+_CONTACT_FAQ = [
+    {
+        "question": "How fast do you reply?",
+        "answer": "Within one working day, usually the same morning.",
+    },
+    {
+        "question": "Can I book a demo from here?",
+        "answer": "Yes. Say you want a demo in the message, or use the demo request flow.",
+    },
+]
+
 _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     "base.html": {},
     "app/list.html": {
@@ -582,6 +582,103 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     # onboarding renders {% bw_form form %}, the same as app/wizard.html.
     "app/onboarding.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
     "app/status-tracker.html": {**_NAV_CONTEXT},
+    # Product search (#404): app-shell equivalent of docs/search-results.html.
+    # results_state distinguishes empty_query from empty_results from error
+    # from loading; conflating the empties is the defect #261 closed for docs.
+    "app/search.html": {
+        **_NAV_CONTEXT,
+        "search_action": "/search/",
+        "query": "acme",
+        "results": [
+            {
+                "title": "Invoice INV-2417",
+                "href": "/invoices/INV-2417/",
+                "snippet": "Acme Corp · £1,240.00 · Open · raised 14 July 2026.",
+                "kind": "Invoice",
+            },
+            {
+                "title": "Acme Corp",
+                "href": "/accounts/acme-corp/",
+                "snippet": "Billing contact Priya Raman · 4 open invoices.",
+                "kind": "Account",
+            },
+            {
+                "title": "Priya Raman",
+                "href": "/contacts/priya-raman/",
+                "snippet": "Finance at Acme Corp · priya@acme.example.",
+                "kind": "Contact",
+            },
+        ],
+        "results_state": "ready",
+    },
+    # Product activity (#405): feed of product events, not ops audit-trail.
+    "app/activity.html": {
+        **_NAV_CONTEXT,
+        "events": [
+            {
+                "title": "Invoice INV-2422 paid",
+                "href": "/invoices/INV-2422/",
+                "summary": "Dunmore Retail paid £1,475.00 by bank transfer.",
+                "when": "Today, 09:14",
+                "kind": "Paid",
+                "kind_variant": "success",
+            },
+            {
+                "title": "Invoice INV-2419 sent",
+                "href": "/invoices/INV-2419/",
+                "summary": "Sent to finance@carrick.example with a 14-day due date.",
+                "when": "Yesterday, 16:02",
+                "kind": "Sent",
+                "kind_variant": "info",
+            },
+            {
+                "title": "Reminder for INV-2418",
+                "href": "/invoices/INV-2418/",
+                "summary": "First reminder emailed to Halden Group.",
+                "when": "2 days ago",
+                "kind": "Reminder",
+                "kind_variant": "warning",
+            },
+            {
+                "title": "Contact added on Acme Corp",
+                "href": "/accounts/acme-corp/",
+                "summary": "Jamie Cole added as warehouse manager.",
+                "when": "4 days ago",
+                "kind": "Account",
+                "kind_variant": "neutral",
+            },
+        ],
+        "activity_state": "ready",
+    },
+    "ops/data-empty-error.html": {
+        **_NAV_CONTEXT,
+        "data_state": "ready",
+        "filter_form": _InvoiceFilterForm(),
+        "export_columns": [
+            {"label": "Job", "sortable": True, "sort_key": "name"},
+            {"label": "Warehouse", "sortable": False},
+            {"label": "Scheduled", "sortable": True, "sort_key": "scheduled_at"},
+            {"label": "Status", "sortable": False},
+        ],
+        "export_rows": [
+            {
+                "id": 1,
+                "cells": ["Nightly stock", "Leeds DC", "16 Sep 2026, 02:00", "Completed"],
+            },
+            {
+                "id": 2,
+                "cells": ["Price book", "Bristol DC", "16 Sep 2026, 02:15", "Running"],
+            },
+            {
+                "id": 3,
+                "cells": ["Returns ledger", "Leeds DC", "16 Sep 2026, 03:00", "Waiting"],
+            },
+            {
+                "id": 4,
+                "cells": ["Supplier ASN", "Felixstowe", "15 Sep 2026, 23:30", "Failed"],
+            },
+        ],
+    },
     "ops/dense-list.html": {
         **_NAV_CONTEXT,
         "filter_form": _InvoiceFilterForm(),
@@ -1888,9 +1985,6 @@ _EXAMPLE_CTA_HREFS: dict[str, list[str]] = {
     "marketing/pricing.html": ["/accounts/signup/"],
     "marketing/about.html": ["/accounts/signup/", "/docs/"],
     "marketing/comparison.html": ["/accounts/signup/?plan=team"],
-    "marketing/campaign.html": ["/accounts/signup/?offer=q4-2026", "/contact/"],
-    "marketing/contact.html": ["/accounts/signup/"],
-    "marketing/conversion.html": ["/accounts/signup/"],
 }
 
 
@@ -1909,9 +2003,6 @@ def test_example_marketing_cta_hrefs_reach_the_rendered_button(name: str, hrefs:
         "marketing/pricing.html",
         "marketing/about.html",
         "marketing/comparison.html",
-        "marketing/campaign.html",
-        "marketing/contact.html",
-        "marketing/conversion.html",
     ],
 )
 def test_marketing_footers_use_shared_link_group_vocabulary(name: str) -> None:
@@ -2662,6 +2753,135 @@ def test_the_editorial_reading_progress_composes_progress_not_a_new_primitive() 
     assert "data-bw-reading-progress-article" in html
     assert "setProperty" in html
     assert "aria-hidden" in html
+
+
+def test_the_ops_data_empty_error_states_are_mutually_exclusive() -> None:
+    """ops/data-empty-error.html's four data_state branches (#407).
+
+    Ready shows stats and the job table; empty swaps to _empty_state; error
+    swaps to bw_alert danger; loading keeps the filter and shows the table
+    skeleton. Empty and error keep app chrome (nav + page header).
+
+    Do not use role="alert" as the error discriminator: the filter bar's
+    field-error containers also carry that role even when empty.
+    """
+    template = _example_engine().get_template("ops/data-empty-error.html")
+    base = dict(_EXAMPLE_CONTEXTS["ops/data-empty-error.html"])
+
+    ready = template.render(Context({**base, "data_state": "ready"}))
+    empty = template.render(Context({**base, "data_state": "empty", "export_rows": ()}))
+    error = template.render(Context({**base, "data_state": "error", "export_rows": ()}))
+    loading = template.render(Context({**base, "data_state": "loading", "export_rows": ()}))
+
+    assert "bw-stat-grid" in ready
+    assert "bw-data-table" in ready
+    assert "Nightly stock" in ready
+    assert "bw-empty-state" not in ready
+    assert "bw-alert--danger" not in ready
+    assert "bw-data-table__skeleton" not in ready
+
+    assert "bw-empty-state" in empty
+    assert "No export jobs yet" in empty
+    assert "bw-stat-grid" not in empty
+    assert "bw-data-table" not in empty
+    assert "bw-alert--danger" not in empty
+
+    assert "bw-alert--danger" in error
+    assert "Could not load export jobs" in error
+    assert "bw-empty-state" not in error
+    assert "bw-stat-grid" not in error
+    assert "bw-data-table" not in error
+
+    assert "bw-data-table__skeleton" in loading
+    assert "bw-filter-bar" in loading
+    assert "bw-stat-grid" not in loading
+    assert "bw-empty-state" not in loading
+    assert "bw-alert--danger" not in loading
+
+    for html, label in ((empty, "empty"), (error, "error"), (loading, "loading")):
+        assert "bw-nav" in html, f"the {label} branch dropped sidebar nav"
+        assert "Export jobs" in html, f"the {label} branch dropped the page header"
+
+
+def test_the_app_search_states_are_mutually_exclusive() -> None:
+    """app/search.html distinguishes empty_query, empty_results, error, loading and ready (#404)."""
+    template = _example_engine().get_template("app/search.html")
+    base = dict(_EXAMPLE_CONTEXTS["app/search.html"])
+
+    ready = template.render(Context({**base, "results_state": "ready"}))
+    empty_query = template.render(Context({**base, "results_state": "empty_query", "query": "", "results": ()}))
+    empty_results = template.render(
+        Context({**base, "results_state": "empty_results", "query": "xyzzy", "results": ()})
+    )
+    error = template.render(Context({**base, "results_state": "error", "results": ()}))
+    loading = template.render(Context({**base, "results_state": "loading", "results": ()}))
+
+    assert "bw-card--interactive" in ready
+    assert "Invoice INV-2417" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert 'aria-busy="true"' not in ready
+
+    assert "No query yet" in empty_query
+    assert "bw-card--interactive" not in empty_query
+    assert "No results" not in empty_query
+
+    assert "No results" in empty_results
+    assert "No query yet" not in empty_results
+    assert "bw-card--interactive" not in empty_results
+
+    assert 'role="alert"' in error
+    assert "bw-card--interactive" not in error
+    assert "bw-empty-state" not in error
+
+    assert 'aria-busy="true"' in loading
+    assert "bw-skeleton" in loading
+    assert "bw-card--interactive" not in loading
+    assert "bw-empty-state" not in loading
+    assert 'role="alert"' not in loading
+
+    for html, label in (
+        (ready, "ready"),
+        (empty_query, "empty_query"),
+        (empty_results, "empty_results"),
+        (error, "error"),
+        (loading, "loading"),
+    ):
+        assert 'role="search"' in html, f"the {label} branch dropped topbar search"
+
+
+def test_the_app_activity_states_are_mutually_exclusive() -> None:
+    """app/activity.html distinguishes ready, empty, error and loading (#405)."""
+    template = _example_engine().get_template("app/activity.html")
+    base = dict(_EXAMPLE_CONTEXTS["app/activity.html"])
+
+    ready = template.render(Context({**base, "activity_state": "ready"}))
+    empty = template.render(Context({**base, "activity_state": "empty", "events": ()}))
+    error = template.render(Context({**base, "activity_state": "error", "events": ()}))
+    loading = template.render(Context({**base, "activity_state": "loading", "events": ()}))
+
+    assert "bw-list-item" in ready
+    assert "Invoice INV-2422 paid" in ready
+    assert "bw-badge" in ready
+    assert "Attention needed" in ready
+    assert "bw-empty-state" not in ready
+    assert 'aria-busy="true"' not in ready
+
+    assert "No activity yet" in empty
+    assert "bw-empty-state" in empty
+    assert "bw-list-item" not in empty
+    assert "Attention needed" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "Activity unavailable" in error
+    assert "bw-list-item" not in error
+    assert "bw-empty-state" not in error
+
+    assert 'aria-busy="true"' in loading
+    assert "bw-skeleton" in loading
+    assert "bw-list-item" not in loading
+    assert "bw-empty-state" not in loading
 
 
 def test_the_marketing_contact_states_cover_form_empty_invalid_loading_error_success() -> None:
