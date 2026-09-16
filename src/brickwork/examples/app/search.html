@@ -1,0 +1,129 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+A product search page: everything downstream of a submitted
+{% templatetag openblock %} bw_search {% templatetag closeblock %} query
+inside the app shell (icvoss/django-brickwork#404). Distinct from
+docs/search-results.html, which is the documentation family's equivalent.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056); copying is the only way to use it.
+
+What your view must supply, and nothing else:
+    search_action            the URL bw_search submits to (GET), usually this page
+    query                    the submitted q= string (may be empty)
+    results                  list of {title, href, snippet, kind} dicts, or ()
+    results_state            "ready" | "empty_query" | "empty_results" | "error" | "loading"
+    nav_items / nav_active   as in list.html
+The rest of this page is content typed directly into the template.
+
+WHY THIS PAGE IS SHAPED THIS WAY:
+
+bw_search is only a form. This page is the contract for what happens after
+submit in a product application: echo the query, list matching records, and
+distinguish "nothing typed" from "typed but nothing matched" from "the search
+backend failed". Conflating the two empties is the standard defect #261 named;
+the docs search-results archetype closed that for documentation, and this page
+closes it for the app shell.
+
+RESULT ROWS ARE FAMILY-NEUTRAL CARDS, not .bw-listing-list__item. That listing
+class is marketing-family (tests/test_family_boundary.py). Each result is an
+interactive bordered bw-card whose whole surface is the link, matching the
+docs search-results craft on the product shell.
+
+SEARCH LIVES IN THE TOPBAR. The app shell's topbar_search block is the product
+equivalent of the docs site header search. The page body is the results
+surface; do not duplicate the form in content unless your layout needs a
+second entry point.
+
+States: results_state is the page's real branch.
+  "ready": query echoed, result cards render (results may still be one item).
+  "empty_query": the form was submitted with no q= (or the reader opened the
+    URL bare). Prompt to type a query; not an empty-result empty state.
+  "empty_results": a non-empty query returned nothing. Different copy from
+    empty_query; offers clear-back to the search root.
+  "error": the search backend failed. bw_alert danger.
+  "loading": results are in flight (htmx swap or deferred fetch). Skeleton
+    band with a polite live status; not an empty state and not an error.
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; query echo is visible text, not colour alone; result
+  cards are real <a> elements; empty, error and loading keep the topbar
+  search landmark. Covered by the archetype harness's full gate sweep
+  (render, axe WCAG 2.2 AA, no horizontal overflow, light/dark
+  distinctness, skip-link first-tab-stop with JS disabled) at every W0.1
+  breakpoint, both themes.
+Responsive: inherits shell/app.html's sidebar-to-drawer collapse at
+  --bw-breakpoint-md (48rem). Results are a single column of cards so
+  snippets stay readable; no bw-band-grid.
+{% endcomment %}
+{% load i18n brickwork_components brickwork_nav %}
+
+{% block page_title %}{% if query %}{{ query }} - {% endif %}Search - Northwind{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block topbar_search %}
+  {% bw_search search_action placeholder="Search invoices, accounts, contacts..." value=query %}
+{% endblock %}
+
+{% block page_header %}
+  {% if results_state == "ready" or results_state == "empty_results" %}
+  {% include "brickwork/components/_page_header.html" with title="Search results" description="Matches across invoices, accounts and contacts." %}
+  {% elif results_state == "empty_query" %}
+  {% include "brickwork/components/_page_header.html" with title="Search" description="Type a query to find invoices, accounts and contacts." %}
+  {% elif results_state == "loading" %}
+  {% include "brickwork/components/_page_header.html" with title="Search" description="Looking up matches across your workspace." %}
+  {% else %}
+  {% include "brickwork/components/_page_header.html" with title="Search unavailable" description="Search is temporarily unavailable." %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% if results_state == "empty_query" %}
+  {% include "brickwork/components/_empty_state.html" with heading="No query yet" body="Enter a search term in the top bar. Try an invoice number, an account name, or a contact email." icon="search" action_href="/search/" action_label="Clear search" %}
+
+  {% elif results_state == "empty_results" %}
+  <p>
+    {% blocktranslate count counter=results|length trimmed %}
+      {{ counter }} result for “{{ query }}”.
+    {% plural %}
+      {{ counter }} results for “{{ query }}”.
+    {% endblocktranslate %}
+  </p>
+  {% include "brickwork/components/_empty_state.html" with heading="No results" body="Nothing matched that query. Check the spelling, try a broader term, or browse invoices from the list." icon="search" variant="no_results" action_href="/search/" action_label="Clear search" %}
+
+  {% elif results_state == "error" %}
+  {% bw_alert "The search index could not be queried. Retry in a moment, or open Invoices from the sidebar if you know where to look." title="Search unavailable" variant="danger" %}
+
+  {% elif results_state == "loading" %}
+  <div role="status" aria-live="polite" aria-busy="true">
+    <p class="bw-visually-hidden">{% translate "Searching, please wait." %}</p>
+    <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
+    <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
+    <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
+  </div>
+
+  {% else %}
+  <p>
+    {% blocktranslate count counter=results|length trimmed %}
+      {{ counter }} result for “{{ query }}”.
+    {% plural %}
+      {{ counter }} results for “{{ query }}”.
+    {% endblocktranslate %}
+  </p>
+  {% for result in results %}
+  <a class="bw-card bw-card--interactive bw-card--bordered" href="{{ result.href }}">
+    <h2 class="bw-card__title">{{ result.title }}</h2>
+    <div class="bw-card__body">
+      <p>{{ result.snippet }}</p>
+      <p>{{ result.kind }}</p>
+    </div>
+  </a>
+  {% endfor %}
+  {% endif %}
+
+</div>
+{% endblock %}

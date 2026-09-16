@@ -139,6 +139,8 @@ is also linked from there.
 | `app/error-maintenance.html` | Planned maintenance / site unavailable |
 | `app/onboarding.html` | Mid-step onboarding (company → team → billing) with skip and resume |
 | `app/status-tracker.html` | Site-visit status tracker with stepper, detail, and timeline |
+| `app/search.html` | Product search: topbar query, result cards, empty/error/loading states |
+| `app/activity.html` | Product activity feed: badges, list items, empty/error/loading states |
 | `ops/queue.html` | Work queue: triage tabs, bulk actions over a selection |
 | `ops/audit-trail.html` | Chronological record: who did what, and whether it worked |
 | `ops/report.html` | Long-form printable performance report: summary, stats, tables, methodology |
