@@ -2675,9 +2675,7 @@ def test_the_marketing_contact_states_cover_form_empty_invalid_loading_error_suc
     base = dict(_EXAMPLE_CONTEXTS["marketing/contact.html"])
 
     ready = template.render(Context({**base, "contact_state": "ready"}))
-    invalid = template.render(
-        Context({**base, "contact_state": "invalid", "form": _bound_contact_form()})
-    )
+    invalid = template.render(Context({**base, "contact_state": "invalid", "form": _bound_contact_form()}))
     loading = template.render(Context({**base, "contact_state": "loading"}))
     error = template.render(Context({**base, "contact_state": "error"}))
     success = template.render(Context({**base, "contact_state": "success"}))
@@ -2725,9 +2723,7 @@ def test_the_marketing_conversion_states_cover_lead_capture_and_confirmation() -
     base = dict(_EXAMPLE_CONTEXTS["marketing/conversion.html"])
 
     ready = template.render(Context({**base, "conversion_state": "ready"}))
-    invalid = template.render(
-        Context({**base, "conversion_state": "invalid", "form": _bound_lead_form()})
-    )
+    invalid = template.render(Context({**base, "conversion_state": "invalid", "form": _bound_lead_form()}))
     loading = template.render(Context({**base, "conversion_state": "loading"}))
     error = template.render(Context({**base, "conversion_state": "error"}))
     success = template.render(
