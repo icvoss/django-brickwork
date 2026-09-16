@@ -145,6 +145,7 @@ is also linked from there.
 | `ops/comparison.html` | This-versus-that data comparison: two measured periods on quantitative metrics |
 | `ops/analysis-dashboard.html` | Weighted headline grid, trend chart, breakdowns, progress gauge |
 | `ops/dense-list.html` | Dense purchase-order / shipment index with bulk selection |
+| `ops/data-empty-error.html` | Export jobs ledger: ready, empty, error and loading states |
 | `docs/home.html` | Documentation home: search, start-here cards, popular pages |
 | `docs/article.html` | Documentation article: prose, code panels, callout, linkable headings |
 | `docs/api-reference.html` | API reference: method + path, parameters, request/response, status codes |

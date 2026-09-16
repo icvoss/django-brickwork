@@ -1,0 +1,140 @@
+{% extends "brickwork/shell/app.html" %}
+{% comment %}
+Data-empty / error states for a data-heavy ops surface: the same page under
+ready, empty, error and loading, so an operator never lands on a blank main
+(icvoss/django-brickwork#407). Seventh archetype in the Data-heavy operations
+family.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    data_state               "ready" | "empty" | "error" | "loading"
+    export_columns / export_rows  the table's columns and pre-rendered rows
+                              (used when data_state is "ready"; pass () for
+                              empty when testing the table's own zero-row
+                              branch elsewhere)
+    filter_form              your own filter form (the bar renders its fields)
+    nav_items / nav_active   as in app/list.html
+The counts, headings and copy below are typed into the template, which is where
+you change them.
+
+WHY THIS PAGE EXISTS AS ITS OWN ARCHETYPE:
+
+Every other Data-heavy page documents loading, empty and error in a comment and
+then renders the happy path. INTERFACE-SYSTEM's completion bar still requires
+those states as designed surfaces, not footnotes. This page IS the empty and
+error design: one ops job list under four real branches, so a consumer can copy
+the composition rather than inventing a blank main or a red banner from scratch.
+
+It is NOT app/console.html (a permanent blank slate with no data path) and NOT
+the in-table empty that _data_table.html already owns when rows is empty. Those
+remain correct for their jobs. This page answers "the warehouse job store failed"
+and "nobody has scheduled an export yet" as first-class page states on an
+app-shell ops surface.
+
+WHAT THIS PAGE IS FOR:
+
+An operator opens Export jobs expecting a ledger of nightly warehouse extracts.
+Most days the list is populated (ready). Day one, or after a purge, there is
+nothing to show (empty). When the job store is unreachable, inventing rows would
+be worse than saying so (error). When an htmx refresh is in flight, the table's
+own loading skeleton keeps layout stable (loading).
+
+States: data_state is the page's real branch.
+  "ready": stat row, filter bar, populated data table.
+  "empty": page header stays so the operator knows which surface they are on;
+    the body is _empty_state.html (no_data) with a create action. Chrome and
+    nav stay.
+  "error": bw_alert danger; no invented stats or rows. Chrome and nav stay.
+  "loading": page header and filter stay; the table renders with loading=True
+    so the skeleton replaces rows without collapsing the band (STA-004).
+Accessibility: inherits shell/app.html's skip link, sidebar/drawer nav and
+  page-header region; empty heading/body and the alert title/message carry
+  meaning in words, never colour alone; the loading skeleton is aria-hidden
+  on the table's own loading branch. Covered by the archetype harness's full
+  gate sweep (render, axe WCAG 2.2 AA, no horizontal overflow, light/dark
+  distinctness, skip-link first-tab-stop with JS disabled) at every W0.1
+  breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/app.html's
+  sidebar-to-drawer collapse at --bw-breakpoint-md (48rem). The stat row
+  (bw-stat-grid) reflows continuously with an auto-fit grid; the composed
+  table carries unconditional horizontal scroll (responsive="scroll", the
+  default) at every width.
+{% endcomment %}
+{% load brickwork_components brickwork_nav %}
+
+{% block page_title %}{% if data_state == "error" %}Export jobs unavailable - Northwind{% else %}Export jobs - Northwind{% endif %}{% endblock %}
+
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block page_header %}
+  {% if data_state == "error" %}
+  {% include "brickwork/components/_page_header.html" with title="Export jobs" description="The job store could not be reached. Retry once the warehouse API recovers." %}
+  {% else %}
+  {% include "brickwork/components/_page_header.html" with title="Export jobs" description="Nightly warehouse extracts waiting to land. Oldest unfinished job first." %}
+  {% endif %}
+{% endblock %}
+
+{% block page_actions %}
+  {% if data_state != "error" %}
+  {% bw_button "Schedule export" variant="primary" icon="plus" href="/exports/new/" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if data_state == "empty" %}
+  {% comment %}
+  EMPTY: nothing has ever been scheduled (or every job was purged). Keep the
+  page header above so the operator still knows which surface this is; swap
+  only the body for the empty state. Use no_data, not no_results: there is no
+  filter in play yet.
+  {% endcomment %}
+  {% include "brickwork/components/_empty_state.html" with variant="no_data" icon="upload" heading="No export jobs yet" body="Schedule the first nightly extract to see it here. Failed and delayed jobs land in this list as the warehouse reports them." action_href="/exports/new/" action_label="Schedule an export" %}
+
+  {% elif data_state == "error" %}
+  {% comment %}
+  ERROR: the job store failed. Say so with bw_alert danger; do not invent a
+  zeroed stat row or an empty table that looks like "no work today".
+  {% endcomment %}
+  {% bw_alert "The warehouse job store did not respond. Check the API status page, then retry. Do not treat a blank list as proof that every export succeeded." title="Could not load export jobs" variant="danger" %}
+
+  {% elif data_state == "loading" %}
+  {% comment %}
+  LOADING: an htmx refresh of the list is in flight. Keep the filter so the
+  operator's criteria stay visible; the table's own loading skeleton holds the
+  band open (see _data_table.html).
+  {% endcomment %}
+  <div class="bw-section-stack">
+    {% include "brickwork/components/_filter_bar.html" with fields=filter_form submit_label="Filter" clear_href="/exports/" hx_get="/exports/" hx_target="#export-table" %}
+    {% include "brickwork/components/_data_table.html" with table_id="export-table" columns=export_columns rows=export_rows loading=True sticky_header=True empty_heading="No export jobs yet" empty_body="Schedule the first nightly extract to see it here." %}
+  </div>
+
+  {% else %}
+  <div class="bw-section-stack">
+
+    {% comment %}
+    Vital signs for a job ledger: waiting, late and failed matter more than
+    total volume. Each trend pairs a direction glyph with visually hidden text.
+    {% endcomment %}
+    <div class="bw-stat-grid">
+      {% include "brickwork/components/_stat.html" with label="Waiting to run" value="6" icon="calendar" trend="up" trend_label="2 more than yesterday" %}
+      {% include "brickwork/components/_stat.html" with label="Running now" value="2" icon="upload" trend="flat" trend_label="unchanged since the last poll" %}
+      {% include "brickwork/components/_stat.html" with label="Failed overnight" value="1" icon="alert-circle" trend="down" trend_label="3 fewer than yesterday" %}
+      {% include "brickwork/components/_stat.html" with label="Completed today" value="14" trend="up" trend_label="4 more than the daily average" %}
+    </div>
+
+    {% include "brickwork/components/_filter_bar.html" with fields=filter_form submit_label="Filter" clear_href="/exports/" hx_get="/exports/" hx_target="#export-table" %}
+
+    {% comment %}
+    The ledger itself. Cells are pre-rendered strings from your view, so a
+    status cell can be a rendered badge. sticky_header keeps column labels in
+    view while a long job list scrolls.
+    {% endcomment %}
+    {% include "brickwork/components/_data_table.html" with table_id="export-table" columns=export_columns rows=export_rows sticky_header=True current_sort="scheduled_at" empty_heading="No export jobs match" empty_body="No jobs match these filters. Clear the status filter or widen the date range." empty_action_href="/exports/" empty_action_label="Clear filters" %}
+
+  </div>
+  {% endif %}
+{% endblock %}
