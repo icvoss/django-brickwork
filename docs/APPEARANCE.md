@@ -1,7 +1,8 @@
 # Appearance grammar: closed options for beautiful defaults
 
-**Status:** active (Phase 0 of the beautiful-defaults suite,
-icvoss/django-brickwork#533 / #534).  
+**Status:** active (beautiful-defaults suite Phases 0 to 5 complete;
+icvoss/django-brickwork#533 / #540). Phase 4 P1 and Phase 6 P2 leftovers stay
+deferred under INTERFACE-SYSTEM / ROADMAP with explicit N/A below.  
 **Governs:** closed appearance axes on brickwork components.  
 **Companions:** [DESIGN.md](DESIGN.md) (tokens), [VISUAL-BAR.md](VISUAL-BAR.md)
 (craft bar), ADR-057 §1a (section arrangement axes), ADR-060 (one name per
@@ -131,3 +132,136 @@ or first-class include does **not** count.
 | Table / list | `_data_table.html` `variant="records"`; `variant="definition"`; `density="compact"`. List: `_list_item.html` (+ `density="compact"`) |
 | Modal | size ladder `sm` / `md` / `lg` / `full`; `header_recipe` plain / muted / bordered; `footer_recipe` plain / muted / actions |
 | Slide-over | size ladder `sm` / `md` / `lg`; `header_recipe` plain / muted / bordered; `footer_recipe` plain / muted / actions (same recipes as modal; Beat Phase E) |
+
+## Phase 5: long-tail adoption (Should cleared or N/A)
+
+Suite Phase 5 (beat Phase E long-tail) is done when every catalogue component
+and shell either **adopts** the shared Should axes that apply, or records an
+explicit **N/A** here. Default craft raised in Beat Phase A counts as clearing
+a Should that asked for authored resting look without a new closed axis. Do
+not invent local spellings; do not absorb craft into Brickwork Theme.
+
+Status values:
+
+| Status | Meaning |
+|---|---|
+| Adopted | Closed axis (or first-class composition) ships and is validated |
+| N/A (defaults) | Should was resting craft; authored in Phase A/B without a new axis |
+| N/A (keep lean) | Suite said keep lean; no shared axis |
+| N/A (compose) | Satisfied by composing another component (usually card) |
+| N/A (local) | Component-local `variant` / `size` / layout axis already covers the job |
+| N/A (deferred) | Missing P1/P2 primitive; tracked outside this suite |
+
+<!-- phase5-adoption:start -->
+
+### Catalogue components
+
+| Component | Status | Notes |
+|---|---|---|
+| account_menu | N/A (defaults) | Panel elevation/radius authored with dropdown in Phase A |
+| alert | N/A (local) | `variant` already tints; denser padding authored Phase A; shared `surface` refused |
+| avatar | Adopted | `size`, `shape` via `{% bw_options %}` |
+| avatar_group | N/A (local) | `size` / overlap craft; no extra shared axis |
+| badge | N/A (local) | Intent via `variant`; soft/outline `tone` stays Could |
+| bio | N/A (local) | Marketing person strip; Phase C depth family |
+| breadcrumbs | N/A (defaults) | Current-page weight authored |
+| bulk_actions_bar | N/A (defaults) | Matches filter_bar surface craft from Phase A |
+| button | N/A (defaults) | Primary elevation/press authored; full-width `block` refused (consumer layout) |
+| button_group | Adopted | `variant` segmented/attached; `size` |
+| callout | Adopted | `variant` closed set |
+| card | Adopted | Full grammar (Phase 1 pilot); locked |
+| chart_card | N/A (compose) | Extends `_card.html`; appearance axes stay on card |
+| chart_data_table | N/A (defaults) | Header chrome shares data_table tokens |
+| chip | Adopted | `variant`, `size` |
+| code | N/A (defaults) | Muted/raised panel authored; line numbers stay Could |
+| combobox | N/A (defaults) | Listbox panel matches dropdown craft |
+| cta | Adopted | `band`, `width` (ADR-057) |
+| cta_bleed | N/A (local) | First-class Phase C composition (inverse bleed) |
+| cta_split | N/A (local) | First-class Phase C composition |
+| data_table | Adopted | `density`; muted header + row hover authored Phase A/C |
+| disclosure | N/A (local) | `variant` bordered/divided; card framing refused |
+| divider | Adopted | `tone`, `spacing` |
+| dropdown | N/A (defaults) | Panel elevation/radius authored Phase A |
+| dropzone | N/A (defaults) | Dashed/raised default authored Phase A |
+| empty_state | Adopted | `surface` framed/plain; `variant`, `size` |
+| faq | N/A (defaults) | Bordered disclosure defaults authored Phase A |
+| feature_grid | N/A (defaults) | Finished card defaults Phase A; per-item `surface` refused (use card) |
+| feature_list | N/A (local) | Phase C checklist composition |
+| feature_rows | N/A (local) | Phase C alternating composition |
+| filter_bar | N/A (defaults) | Raised surface + field rhythm authored Phase A |
+| gauge | N/A (defaults) | Track/rail contrast authored |
+| hero | N/A (local) | `align`, `media_placement`; optional `band` refused (behind already inverse) |
+| list_item | Adopted | `density` |
+| logo_cloud | N/A (defaults) | Quieter spacing authored Phase A |
+| marketing_footer_groups | N/A (local) | P0 shipped; groups/columns are data, not shared surface |
+| mobile_nav_toggle | N/A (keep lean) | Shell seam only |
+| modal | Adopted | `size`, `header_recipe`, `footer_recipe` |
+| page_header | Adopted | `surface` default/tint |
+| pager | N/A (defaults) | Matches pagination craft |
+| pagination | N/A (defaults) | Hit targets/spacing authored |
+| portrait | N/A (local) | Phase C person composition; `align` |
+| preview_frame | N/A (keep lean) | Surface-guarded specimen; fill locked to `--bw-color-surface` |
+| pricing_comparison | N/A (local) | Phase C comparison composition |
+| pricing_table | N/A (local) | Tier count is data; highlighted recipe on tier |
+| pricing_tier | N/A (local) | `highlighted` raises elevation; shared `surface`/`elevation` refused |
+| progress | N/A (keep lean) | Single authored track; consumer drives `--bw-progress-value` |
+| proof_collage | N/A (local) | Marketing proof section; band/width local |
+| ranked_list | N/A (compose) | Empty path uses `_empty_state`; list itself stays unframed |
+| scorecard | N/A (defaults) | Gap/padding tokens authored; `columns` stays consumer grid |
+| search | N/A (defaults) | Field chrome in topbar authored |
+| skeleton | N/A (local) | `variant` text/title/row/block is the preset set |
+| slide_over | Adopted | Same recipes as modal (Beat Phase E) |
+| sparkline | N/A (keep lean) | |
+| spinner | N/A (compose) | Size follows host control icon token; not standalone |
+| stat | N/A (local) | `size` ships; raised KPI tiles compose via card |
+| stat_band | N/A (defaults) | Tint band + tile elevation authored Phase A |
+| stat_comparison | N/A (local) | Same size ladder as stat |
+| stepper | N/A (defaults) | Current/complete states authored |
+| tabs | N/A (local) | `variant` underline/pill; soft panel Could |
+| tag_input | N/A (compose) | Chip look shared with `_chip` via tokens/CSS |
+| testimonial | N/A (defaults) | Card framing authored Phase A |
+| theme_switch | N/A (keep lean) | |
+| toast | N/A (defaults) | Elevation/edge authored Phase A; optional `surface` refused |
+| toast_region | N/A (local) | `placement` only |
+| toggle | N/A (keep lean) | |
+| token_specimen | N/A (keep lean) | Theme specimen; not kit chrome variation |
+| tooltip | N/A (keep lean) | |
+| trend_indicator | N/A (keep lean) | |
+| version_switch | N/A (local) | Docs version disclosure; not shared surface |
+
+### Shells
+
+| Shell | Status | Notes |
+|---|---|---|
+| base | N/A (defaults) | Focus/skip craft only |
+| app | N/A (defaults) | Sidebar selected/hover + topbar elevation Phase A |
+| auth | N/A (defaults) | Panel elevation/radius Phase A |
+| centred | N/A (defaults) | Same panel craft as auth |
+| docs | N/A (defaults) | Rail active + article measure Phase A; TOC stays P1 deferred |
+| marketing | N/A (defaults) | Header/footer craft; footer groups component shipped |
+
+### Phase 4 P1 (deferred; explicit N/A)
+
+These suite P1 rows stay demand-gated under INTERFACE-SYSTEM / ROADMAP. They
+do **not** block suite Phase 5 or beat programme close.
+
+| Missing | Status | Notes |
+|---|---|---|
+| timeline | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
+| saved_views | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
+| input_group | N/A (deferred) | Forms demand |
+| date_picker_chrome | N/A (deferred) | Archetype chrome only; engine stays consumer |
+| comparison_table | N/A (deferred) | Marketing section exists; component promote on demand |
+| toc | N/A (deferred) | Docs family |
+| article_meta | N/A (deferred) | Editorial family |
+
+### Phase 6 P2 (deferred; explicit N/A)
+
+| Missing | Status | Notes |
+|---|---|---|
+| command_palette | N/A (deferred) | ROADMAP Wave 5 / #156 |
+| notification_list | N/A (deferred) | ROADMAP Wave 5 |
+| popover | N/A (deferred) | Refuse while dropdown covers most cases |
+| newsletter_band | N/A (deferred) | Marketing demand |
+
+<!-- phase5-adoption:end -->
