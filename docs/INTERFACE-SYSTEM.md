@@ -111,12 +111,18 @@ accessibility contract rather than introducing a second design language.
 
 ## Current state and next work
 
-Brickwork currently has foundations, application and auth shells, core
-interaction and form primitives, data-table patterns, a marketing shell and
-sections, and a `bw-prose` content floor. It does not yet meet this full
-contract. The highest-priority missing families are documentation/editorial
-layouts and data-heavy visualisation patterns, followed by the remaining
-transactional and public-site archetypes.
+At **3.33.0** the catalogue ships Documentation and Editorial at **7/7**
+required archetypes, Product applications at **13**, Data-heavy operations at
+**6**, Marketing and public web at **4**, and Transactional journeys at **3**
+(see [POSITIONING.md](POSITIONING.md) section 1 and gated section 5 counts).
+Foundations, six shells, Theme L1 to L4, core interaction and form primitives,
+data-table patterns, the marketing kit and `bw-prose` are in the wheel.
+
+It does **not** yet meet the full INTERFACE-SYSTEM contract. Highest-priority
+remaining gaps are marketing/public-web archetype breadth and transactional
+journeys (including checkout-class flows), plus specialist visualisation that
+must still fit the data contract rather than introduce a second design
+language.
 
 This document is the source of truth for the intended coverage. The current
 component inventory and examples remain the source of truth for what ships in

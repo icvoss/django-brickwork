@@ -1,8 +1,10 @@
 # brickwork positioning
 
-**Status:** canonical positioning source. Updated by owner direction 2026-09-15
-(ADR-108 ownership line: package foundations vs showcase sell pages).
-Previous 2026-09-11 visual-bar honesty rules remain.
+**Status:** canonical positioning source. Updated 2026-09-16 from the
+greenfield capability review (`docs/plans/positioning-greenfield-3.33.md`,
+icvoss/django-brickwork#614): public lead G1; prior public leads retired.
+ADR-108 ownership line (2026-09-15) and 2026-09-11 visual-bar honesty rules
+remain.
 **Scope:** every brickwork-facing copy surface (README.md, brickworkui.com,
 PyPI description, any future landing page or pitch) derives its claims from
 this document and must not diverge from it. Where a surface currently
@@ -21,12 +23,18 @@ brickworkui.com owns flagship sell page compositions as a designed consumer.
 
 ## 1. Position statement
 
-brickwork is being built as the complete interface foundation for
-server-rendered Django. Its target coverage is the reusable design system
-across public sites, product applications, data-heavy operations,
-documentation, editorial publishing and transactional journeys: foundations,
-components, layouts, interaction patterns and copyable page archetypes, on
-Tailwind 4, Alpine 3 and HTMX 2. Django is its only hard runtime dependency.
+brickwork is the server-rendered Django interface foundation: one branded,
+accessible design system for the surfaces a team ships (public sites, product
+applications, data-heavy operations, documentation, editorial publishing and
+transactional journeys). It supplies foundations, components, shells, Theme
+profiles, interaction patterns and copyable page archetypes on Tailwind 4,
+Alpine 3 and HTMX 2. Django is its only hard runtime dependency.
+
+**Category:** interface foundation for hand-built Django UI. It is not a
+publishing platform, a CMS, a page builder, a Django-admin skin, or a general
+Tailwind utility layer. Interface families in
+[INTERFACE-SYSTEM.md](INTERFACE-SYSTEM.md) are coverage targets, not brand
+identity.
 
 That package offer is **three jobs in one distribution** (ADR-108). Public
 copy must name which job a claim is about:
@@ -48,25 +56,42 @@ Do not attribute showcase sell craft to a substrate include API. Do not treat a
 copied example as a package page contract (ADR-056). Do not treat starter
 output as supported surface (ADR-095).
 
-The current shipped component inventory is not yet that complete system. Public
-copy must distinguish the target from verified shipping coverage, while showing
-the examples and released components that prove each available part.
+**Shipping vs target.** Public copy must show the family shipping matrix
+(verified catalogue counts), not a blanket "complete" or "not yet complete"
+line. At 3.33.0 the catalogue ships Documentation 7/7 and Editorial 7/7
+required archetypes, with Product applications the deepest family (13
+archetypes), Data-heavy operations at 6, Marketing and public web at 4, and
+Transactional journeys at 3. Remaining INTERFACE-SYSTEM gaps concentrate in
+marketing/public-web breadth and transactional journeys (plus specialist viz
+fitting the data contract). Cite section 5 gated counts when quoting inventory.
 
 It is brand-agnostic by construction: every visual value is a `--bw-*`
 custom property, so a consumer rebrands it by overriding tokens, never by
-touching component classes (`docs/BRANDING.md:3-4`).
+touching component classes (`docs/BRANDING.md:3-4`). Brickwork Theme
+([THEME.md](THEME.md)) is the named profile ladder (L1 Recolour through L4
+Rhythm) on that mechanism.
 
 ## 2. Who it is for
 
-A Django team that wants one branded, accessible design system across every
-interface it ships, without rebuilding common design decisions for each new
-site, app, content surface or workflow. It is not a Django-admin skin, a page
-builder, a CMS, or a general Tailwind utility layer (see Boundaries, section
-6).
+A Django team that wants one branded, accessible design system across the
+interfaces it ships, without rebuilding common design decisions for each new
+site, app, ops console, docs surface, auth flow or content workflow. It is not
+a Django-admin skin, a page builder, a CMS, or a general Tailwind utility layer
+(see Boundaries, section 6).
 
 ## 3. The lead claim
 
-**Brickwork. Building blocks for beautiful apps and websites.**
+**One interface system for the Django surfaces you ship.**
+
+**Support (subordinate, not competing leads):** Pin the foundation. Own the
+pages. Theme with `--bw-*` profiles (L1 to L4).
+
+**Retired as public leads (2026-09-16):** "Beautiful interfaces for anything."
+and "Brickwork. Building blocks for beautiful apps and websites." Both may
+appear in historical artefacts; new copy uses the lead above. "Beautiful" remains
+an aim judged by [VISUAL-BAR.md](VISUAL-BAR.md) and cited audits, never a
+certified consumer outcome. "Anything" overclaims partial marketing and
+transactional coverage and must not return as an H1 hedge.
 
 Package defaults aim at finished interfaces that can stand next to leading
 Tailwind UI kits on the jobs in [VISUAL-BAR.md](VISUAL-BAR.md). That aim is
@@ -402,7 +427,8 @@ match it:
 | `README.md` | Was stale on package version and the a11y fixture/document count | RESOLVED 2026-08-26: version updated to 3.10.0 and the a11y line restated in the current two-gate, 138-document framing (106 hand-maintained plus 32 archetype), consistent with section 5's A11y gate row |
 | `pyproject.toml:8` | Was "Accessible by construction" (a design claim), read against `README.md:11-12`'s "a *tested* guarantee... not a claim" (a verification claim positioned explicitly against design claims) | RESOLVED: `pyproject.toml:8` now reads "WCAG 2.2 AA tested in CI", which is a verification claim and aligns with README.md's framing; no reconciliation remains outstanding |
 | `PILOT-ADOPTION-BRIEF.md` | Was pinned to 0.3.0 and the private index, and dropped "professional" from the definition | RESOLVED 2026-08-24: rewritten as a routing quickstart and renamed `docs/QUICKSTART.md` |
-| Four documents each currently state brickwork's singular value differently: `README.md:10-13` ("its value is the professional baseline"), `docs/BRANDING.md:3-4` ("brickwork's whole point is that you rebrand it by overriding tokens"), `docs/DESIGN.md:15-18` (the beautiful-defaults founding statement), `pyproject.toml:8` (the category definition) | Four different leads for one product | The 2026-09-11 owner direction in section 3 supersedes the earlier beautiful-defaults lead. Token-first rebranding (4.3) and the professional/tested-accessibility framing (4.2) become supporting claims, not competing leads |
+| Four documents each currently state brickwork's singular value differently: `README.md:10-13` ("its value is the professional baseline"), `docs/BRANDING.md:3-4` ("brickwork's whole point is that you rebrand it by overriding tokens"), `docs/DESIGN.md:15-18` (the beautiful-defaults founding statement), `pyproject.toml:8` (the category definition) | Four different leads for one product | RESOLVED 2026-09-16: section 3 lead is G1 "One interface system for the Django surfaces you ship." Token-first rebranding (4.3) and tested accessibility (4.2) remain supporting claims. DESIGN.md may keep "beautiful defaults" as engineering intent; it must not compete as the public lead |
+| brickworkui.com homepage H1 and site copy-platform still lead with "Beautiful interfaces for anything." | Diverges from package POSITIONING at the installed pin | OPEN: site remaster icvoss/brickworkui.com#233 must align H1/meta to G1 |
 
 ---
 

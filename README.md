@@ -1,9 +1,10 @@
 # brickwork
 
-**Building blocks for beautiful apps and websites.** Brickwork supplies
-reusable tokens, components and shells whose package defaults aim at finished
-interfaces on the jobs in [docs/VISUAL-BAR.md](docs/VISUAL-BAR.md), evidenced
-by the independent rendered meet-bar pass
+**One interface system for the Django surfaces you ship.** Brickwork is the
+server-rendered Django interface foundation: reusable tokens, shells,
+components, Theme profiles and copyable pages you own. Package defaults aim at
+finished interfaces on the jobs in [docs/VISUAL-BAR.md](docs/VISUAL-BAR.md),
+evidenced by the independent rendered meet-bar pass
 [docs/audits/2026-09-12-visual-bar-signoff-pass.md](docs/audits/2026-09-12-visual-bar-signoff-pass.md).
 An independent beat win scorecard further records lead or tie on 6 of 8
 VISUAL-BAR surfaces on package-default CSS
@@ -16,6 +17,9 @@ copied document skeleton). 60 of the 62 files add no CSS. The date range
 picker uses existing `--bw-*` tokens in its own scoped CSS because the package
 has no maintained date picker component (see [Example pages](#example-pages)).
 
+**Mechanism (subordinate):** pin the foundation; own the pages (ADR-056);
+Theme with `--bw-*` profiles L1 to L4 ([docs/THEME.md](docs/THEME.md)).
+
 Read and render the examples to assess composition. Accessibility checks
 establish specific implementation properties. Visual quality also depends on
 content, hierarchy, spacing, typography and responsive composition; consumers
@@ -23,11 +27,12 @@ own those choices in their finished pages.
 
 A brand-agnostic interface foundation for server-rendered Django, on the
 ecosystem stack: Tailwind 4 (CSS-first), Alpine 3, HTMX 2, Django 6.0.
-Brickwork is designed to cover public sites, product applications, data-heavy
-operations, documentation, editorial publishing and transactional journeys
-through shared foundations, components, layouts and copyable archetypes.
-Its target is that a team can deliver those interfaces without introducing a
-second UI kit or design language. See [the interface-system
+Brickwork covers public sites, product applications, data-heavy operations,
+documentation, editorial publishing and transactional journeys through shared
+foundations, components, layouts and copyable archetypes. Quote the family
+shipping matrix in [docs/POSITIONING.md](docs/POSITIONING.md) (section 1) and
+the gated counts in section 5; do not claim every INTERFACE-SYSTEM archetype
+is shipped. See [the interface-system
 contract](docs/INTERFACE-SYSTEM.md) for the intended coverage and the current
 example catalogue for what ships today.
 
