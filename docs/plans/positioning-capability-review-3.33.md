@@ -1,6 +1,11 @@
 # Positioning capability review (django-brickwork 3.33.0)
 
 **Status:** decision input. Not a rewrite of `docs/POSITIONING.md`.
+**Superseded as decision frame by**
+`docs/plans/positioning-greenfield-3.33.md` (greenfield buyer/capability pass;
+prior A/B slogans are scored, not defaults). Keep this file as capability
+inventory notes only.
+
 **Tag reviewed:** `v3.33.0` (`8e6500d`).
 **Tracker:** [icvoss/django-brickwork#614](https://github.com/icvoss/django-brickwork/issues/614).
 **Companion:** site remaster `icvoss/brickworkui.com#233` (must not lock lead
