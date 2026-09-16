@@ -314,6 +314,12 @@ public-site coverage.
 - Add archetypes that prove a public site can share the same brand system as a
   product application without looking like its console.
 
+**Shipped against this wave (required INTERFACE-SYSTEM set):** landing,
+pricing, about, plan comparison (`marketing/comparison.html`), campaign
+(`#400`), contact (`#402`) and conversion flows (`#403`). Marketing and public
+web is **7/7**. Customer story, careers, event and resource-listing remain
+optional breadth beyond the required seven.
+
 **Exit evidence:** a team can launch a public product site and its conversion
 journeys on the same Brickwork brand system as the application.
 

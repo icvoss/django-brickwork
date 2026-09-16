@@ -166,9 +166,12 @@ is also linked from there.
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |
 | `marketing/landing.html` | Product landing page |
+| `marketing/campaign.html` | Time-bound campaign / offer landing |
 | `marketing/pricing.html` | Pricing with tiers and FAQ |
 | `marketing/comparison.html` | Plan comparison matrix with recommended column and FAQ |
 | `marketing/about.html` | About page |
+| `marketing/contact.html` | Contact / enquiry form with empty, invalid, loading, error and success states |
+| `marketing/conversion.html` | Public lead-capture conversion flow (demo request) with confirmation |
 
 ## The content is fake, and that is the point
 

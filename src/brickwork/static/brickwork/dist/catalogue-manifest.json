@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 70,
     "sections": 32,
-    "archetypes": 43,
+    "archetypes": 46,
     "skeletons": 1
   },
   "families": [
@@ -27,7 +27,7 @@
     },
     {
       "name": "Marketing and public web",
-      "archetypeCount": 4,
+      "archetypeCount": 7,
       "sectionCount": 0
     },
     {
@@ -562,6 +562,26 @@
       ]
     },
     {
+      "name": "examples/marketing/campaign.html",
+      "kind": "archetype",
+      "family": "Marketing and public web",
+      "templatePath": "examples/marketing/campaign.html",
+      "docSource": "examples/marketing/campaign.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_button.html",
+        "brickwork_marketing/components/_cta_bleed.html",
+        "brickwork_marketing/components/_faq.html",
+        "brickwork_marketing/components/_feature_list.html",
+        "brickwork_marketing/components/_hero.html",
+        "brickwork_marketing/components/_marketing_footer_groups.html",
+        "brickwork_marketing/components/_mobile_nav_toggle.html",
+        "brickwork_marketing/components/_stat_band.html",
+        "brickwork_marketing/components/_testimonial.html",
+        "brickwork_marketing/shell/marketing.html"
+      ]
+    },
+    {
       "name": "examples/marketing/comparison.html",
       "kind": "archetype",
       "family": "Marketing and public web",
@@ -575,6 +595,45 @@
         "brickwork_marketing/components/_faq.html",
         "brickwork_marketing/components/_hero.html",
         "brickwork_marketing/components/_marketing_footer_groups.html",
+        "brickwork_marketing/shell/marketing.html"
+      ]
+    },
+    {
+      "name": "examples/marketing/contact.html",
+      "kind": "archetype",
+      "family": "Marketing and public web",
+      "templatePath": "examples/marketing/contact.html",
+      "docSource": "examples/marketing/contact.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/forms/_form.html",
+        "brickwork_marketing/components/_cta.html",
+        "brickwork_marketing/components/_faq.html",
+        "brickwork_marketing/components/_hero.html",
+        "brickwork_marketing/components/_marketing_footer_groups.html",
+        "brickwork_marketing/components/_mobile_nav_toggle.html",
+        "brickwork_marketing/shell/marketing.html"
+      ]
+    },
+    {
+      "name": "examples/marketing/conversion.html",
+      "kind": "archetype",
+      "family": "Marketing and public web",
+      "templatePath": "examples/marketing/conversion.html",
+      "docSource": "examples/marketing/conversion.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_stepper.html",
+        "brickwork/forms/_form.html",
+        "brickwork_marketing/components/_cta.html",
+        "brickwork_marketing/components/_hero.html",
+        "brickwork_marketing/components/_marketing_footer_groups.html",
+        "brickwork_marketing/components/_mobile_nav_toggle.html",
         "brickwork_marketing/shell/marketing.html"
       ]
     },
@@ -781,6 +840,8 @@
         "editorial/reading-progress.html",
         "editorial/related.html",
         "editorial/series.html",
+        "marketing/contact.html",
+        "marketing/conversion.html",
         "ops/data-empty-error.html"
       ],
       "usedBySections": [
@@ -908,7 +969,10 @@
         "auth/signin.html",
         "auth/signup.html",
         "marketing/about.html",
+        "marketing/campaign.html",
         "marketing/comparison.html",
+        "marketing/contact.html",
+        "marketing/conversion.html",
         "marketing/landing.html",
         "marketing/pricing.html",
         "ops/analysis-dashboard.html",
@@ -1028,6 +1092,8 @@
       "usedByArchetypes": [
         "marketing/about.html",
         "marketing/comparison.html",
+        "marketing/contact.html",
+        "marketing/conversion.html",
         "marketing/pricing.html"
       ],
       "usedBySections": [
@@ -1043,6 +1109,7 @@
       "docSource": "brickwork_marketing/components/_cta_bleed.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "marketing/campaign.html",
         "marketing/landing.html"
       ],
       "usedBySections": [
@@ -1158,6 +1225,7 @@
         "editorial/reading-progress.html",
         "editorial/related.html",
         "editorial/series.html",
+        "marketing/contact.html",
         "ops/data-empty-error.html"
       ],
       "usedBySections": [],
@@ -1171,7 +1239,9 @@
       "docSource": "brickwork_marketing/components/_faq.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "marketing/campaign.html",
         "marketing/comparison.html",
+        "marketing/contact.html",
         "marketing/pricing.html"
       ],
       "usedBySections": [],
@@ -1199,7 +1269,9 @@
       "templatePath": "brickwork_marketing/components/_feature_list.html",
       "docSource": "brickwork_marketing/components/_feature_list.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "marketing/campaign.html"
+      ],
       "usedBySections": [
         "sections/features/simple-list.html"
       ],
@@ -1259,7 +1331,10 @@
       "consumption": "include",
       "usedByArchetypes": [
         "marketing/about.html",
+        "marketing/campaign.html",
         "marketing/comparison.html",
+        "marketing/contact.html",
+        "marketing/conversion.html",
         "marketing/landing.html",
         "marketing/pricing.html"
       ],
@@ -1306,7 +1381,10 @@
       "consumption": "include",
       "usedByArchetypes": [
         "marketing/about.html",
+        "marketing/campaign.html",
         "marketing/comparison.html",
+        "marketing/contact.html",
+        "marketing/conversion.html",
         "marketing/landing.html",
         "marketing/pricing.html"
       ],
@@ -1321,6 +1399,9 @@
       "docSource": "brickwork_marketing/components/_mobile_nav_toggle.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "marketing/campaign.html",
+        "marketing/contact.html",
+        "marketing/conversion.html",
         "marketing/landing.html",
         "marketing/pricing.html"
       ],
@@ -1623,6 +1704,7 @@
       "consumption": "include",
       "usedByArchetypes": [
         "marketing/about.html",
+        "marketing/campaign.html",
         "marketing/landing.html"
       ],
       "usedBySections": [
@@ -1651,7 +1733,8 @@
       "usedByArchetypes": [
         "app/onboarding.html",
         "app/status-tracker.html",
-        "app/wizard.html"
+        "app/wizard.html",
+        "marketing/conversion.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1690,6 +1773,7 @@
       "consumption": "include",
       "usedByArchetypes": [
         "marketing/about.html",
+        "marketing/campaign.html",
         "marketing/landing.html"
       ],
       "usedBySections": [
@@ -2243,7 +2327,10 @@
       "consumption": "include",
       "usedByArchetypes": [
         "marketing/about.html",
+        "marketing/campaign.html",
         "marketing/comparison.html",
+        "marketing/contact.html",
+        "marketing/conversion.html",
         "marketing/landing.html",
         "marketing/pricing.html"
       ],

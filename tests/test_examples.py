@@ -368,6 +368,91 @@ _DRP_CONTEXT: dict[str, object] = {
     "bw_drp_first_day": get_format("FIRST_DAY_OF_WEEK"),
 }
 
+
+class _ContactForm(forms.Form):
+    """Enquiry stand-in for examples/marketing/contact.html (#402)."""
+
+    name = forms.CharField(label="Name")
+    email = forms.EmailField(label="Email address")
+    company = forms.CharField(label="Company", required=False)
+    message = forms.CharField(
+        label="How can we help?",
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
+
+
+class _LeadForm(forms.Form):
+    """Lead-capture stand-in for examples/marketing/conversion.html (#403)."""
+
+    company = forms.CharField(label="Company name")
+    team_size = forms.ChoiceField(
+        label="Finance team size",
+        choices=[
+            ("1", "Just me"),
+            ("2-10", "Two to ten"),
+            ("11+", "Eleven or more"),
+        ],
+    )
+    invoices_a_month = forms.ChoiceField(
+        label="Invoices a month",
+        choices=[
+            ("under-50", "Under 50"),
+            ("50-500", "50 to 500"),
+            ("500-plus", "More than 500"),
+        ],
+    )
+
+
+def _bound_contact_form() -> _ContactForm:
+    """Bound invalid contact form so #402 exercises field errors."""
+    form = _ContactForm(
+        data={
+            "name": "",
+            "email": "not-an-email",
+            "company": "Halden Group",
+            "message": "",
+        }
+    )
+    form.is_valid()
+    return form
+
+
+def _bound_lead_form() -> _LeadForm:
+    """Bound invalid lead form so #403 exercises field errors."""
+    form = _LeadForm(
+        data={
+            "company": "",
+            "team_size": "1",
+            "invoices_a_month": "under-50",
+        }
+    )
+    form.is_valid()
+    return form
+
+
+_CONVERSION_STEPS = [
+    {"label": "Your details", "status": "complete"},
+    {"label": "Company", "status": "current"},
+    {"label": "Confirm", "status": "upcoming"},
+]
+
+_CONVERSION_STEPS_DONE = [
+    {"label": "Your details", "status": "complete"},
+    {"label": "Company", "status": "complete"},
+    {"label": "Confirm", "status": "complete"},
+]
+
+_CONTACT_FAQ = [
+    {
+        "question": "How fast do you reply?",
+        "answer": "Within one working day, usually the same morning.",
+    },
+    {
+        "question": "Can I book a demo from here?",
+        "answer": "Yes. Say you want a demo in the message, or use the demo request flow.",
+    },
+]
+
 _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     "base.html": {},
     "app/list.html": {
@@ -1354,6 +1439,46 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     },
     "marketing/about.html": {
         "stats": [{"value": "11", "label": "People"}, {"value": "4", "label": "Countries"}],
+        "footer_groups": _MARKETING_FOOTER_GROUPS,
+    },
+    "marketing/campaign.html": {
+        "offer_inclusions": [
+            "Scale features for ninety days",
+            "Team rate locked for the first year",
+            "Dedicated onboarding call",
+            "Import help for your first ledger",
+        ],
+        "stats": [
+            {"value": "31 Oct", "label": "Offer closes"},
+            {"value": "90 days", "label": "Scale included"},
+            {"value": "£29", "label": "Locked monthly rate"},
+        ],
+        "faq_items": [
+            {
+                "question": "What happens after 31 October?",
+                "answer": "New signups return to list price. Anyone who claimed the offer keeps the locked Team rate for the first year.",
+            },
+            {
+                "question": "Do I need a card to claim it?",
+                "answer": "No. The thirty-day trial still needs no card. The locked rate applies only if you stay after the trial.",
+            },
+            {
+                "question": "Can I switch to Solo later?",
+                "answer": "Yes. Downgrades take effect on the next invoice; the Scale window ends when you leave Team or Scale.",
+            },
+        ],
+        "footer_groups": _MARKETING_FOOTER_GROUPS,
+    },
+    "marketing/contact.html": {
+        "form": _ContactForm(),
+        "contact_state": "ready",
+        "faq_items": _CONTACT_FAQ,
+        "footer_groups": _MARKETING_FOOTER_GROUPS,
+    },
+    "marketing/conversion.html": {
+        "form": _LeadForm(),
+        "steps": _CONVERSION_STEPS,
+        "conversion_state": "ready",
         "footer_groups": _MARKETING_FOOTER_GROUPS,
     },
 }
@@ -2757,3 +2882,99 @@ def test_the_app_activity_states_are_mutually_exclusive() -> None:
     assert "bw-skeleton" in loading
     assert "bw-list-item" not in loading
     assert "bw-empty-state" not in loading
+
+
+def test_the_marketing_contact_states_cover_form_empty_invalid_loading_error_success() -> None:
+    """marketing/contact.html's contact_state branches (#402).
+
+    Ready shows a blank form; invalid mounts field errors; loading mounts a
+    busy submit; error keeps the form under a danger alert; success and
+    empty replace the form band without dropping marketing chrome.
+    """
+    template = _example_engine().get_template("marketing/contact.html")
+    base = dict(_EXAMPLE_CONTEXTS["marketing/contact.html"])
+
+    ready = template.render(Context({**base, "contact_state": "ready"}))
+    invalid = template.render(Context({**base, "contact_state": "invalid", "form": _bound_contact_form()}))
+    loading = template.render(Context({**base, "contact_state": "loading"}))
+    error = template.render(Context({**base, "contact_state": "error"}))
+    success = template.render(Context({**base, "contact_state": "success"}))
+    empty = template.render(Context({**base, "contact_state": "empty"}))
+
+    assert 'method="post"' in ready
+    assert "How can we help?" in ready
+    assert "bw-empty-state" not in ready
+    assert "Before you write" in ready
+
+    assert "Check the highlighted fields" in invalid
+    assert 'method="post"' in invalid
+    assert "errorlist" in invalid or "bw-field__error" in invalid or "error" in invalid.lower()
+
+    assert 'aria-busy="true"' in loading
+    assert "Sending" in loading
+    assert 'method="post"' in loading
+
+    assert "We could not send that" in error
+    assert 'method="post"' in error
+    assert "bw-empty-state" not in error
+
+    assert "Message received" in success
+    assert "We have your message" in success
+    assert 'method="post"' not in success
+    assert "bw-empty-state" not in success
+
+    assert "bw-empty-state" in empty
+    assert 'method="post"' not in empty
+    assert "Contact closed until Monday" in empty
+
+    for html, label in ((ready, "ready"), (success, "success"), (empty, "empty")):
+        assert "bw-marketing-header" in html, f"the {label} branch dropped marketing chrome"
+        assert "bw-marketing-footer" in html, f"the {label} branch dropped the footer"
+
+
+def test_the_marketing_conversion_states_cover_lead_capture_and_confirmation() -> None:
+    """marketing/conversion.html's conversion_state branches (#403).
+
+    Ready is mid-flow lead capture with a stepper; invalid and error keep
+    the form; loading mounts a busy continue; success is the confirmation
+    status after the last step.
+    """
+    template = _example_engine().get_template("marketing/conversion.html")
+    base = dict(_EXAMPLE_CONTEXTS["marketing/conversion.html"])
+
+    ready = template.render(Context({**base, "conversion_state": "ready"}))
+    invalid = template.render(Context({**base, "conversion_state": "invalid", "form": _bound_lead_form()}))
+    loading = template.render(Context({**base, "conversion_state": "loading"}))
+    error = template.render(Context({**base, "conversion_state": "error"}))
+    success = template.render(
+        Context(
+            {
+                **base,
+                "conversion_state": "success",
+                "steps": _CONVERSION_STEPS_DONE,
+            }
+        )
+    )
+
+    assert "bw-stepper" in ready
+    assert "About your company" in ready
+    assert 'method="post"' in ready
+    assert "You are on the calendar" not in ready
+
+    assert "Check the highlighted fields" in invalid
+    assert 'method="post"' in invalid
+
+    assert 'aria-busy="true"' in loading
+    assert "Saving" in loading
+
+    assert "We could not save that step" in error
+    assert 'method="post"' in error
+
+    assert "You are on the calendar" in success
+    assert "Demo confirmed" in success
+    assert 'method="post"' not in success
+    assert "bw-stepper" in success
+
+    for html, label in ((ready, "ready"), (success, "success")):
+        assert "bw-marketing-header" in html, f"the {label} branch dropped marketing chrome"
+        assert "bw-marketing-footer" in html, f"the {label} branch dropped the footer"
