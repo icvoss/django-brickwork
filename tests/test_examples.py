@@ -497,6 +497,35 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     # onboarding renders {% bw_form form %}, the same as app/wizard.html.
     "app/onboarding.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
     "app/status-tracker.html": {**_NAV_CONTEXT},
+    "ops/data-empty-error.html": {
+        **_NAV_CONTEXT,
+        "data_state": "ready",
+        "filter_form": _InvoiceFilterForm(),
+        "export_columns": [
+            {"label": "Job", "sortable": True, "sort_key": "name"},
+            {"label": "Warehouse", "sortable": False},
+            {"label": "Scheduled", "sortable": True, "sort_key": "scheduled_at"},
+            {"label": "Status", "sortable": False},
+        ],
+        "export_rows": [
+            {
+                "id": 1,
+                "cells": ["Nightly stock", "Leeds DC", "16 Sep 2026, 02:00", "Completed"],
+            },
+            {
+                "id": 2,
+                "cells": ["Price book", "Bristol DC", "16 Sep 2026, 02:15", "Running"],
+            },
+            {
+                "id": 3,
+                "cells": ["Returns ledger", "Leeds DC", "16 Sep 2026, 03:00", "Waiting"],
+            },
+            {
+                "id": 4,
+                "cells": ["Supplier ASN", "Felixstowe", "15 Sep 2026, 23:30", "Failed"],
+            },
+        ],
+    },
     "ops/dense-list.html": {
         **_NAV_CONTEXT,
         "filter_form": _InvoiceFilterForm(),
@@ -2531,3 +2560,51 @@ def test_the_editorial_reading_progress_composes_progress_not_a_new_primitive() 
     assert "data-bw-reading-progress-article" in html
     assert "setProperty" in html
     assert "aria-hidden" in html
+
+
+def test_the_ops_data_empty_error_states_are_mutually_exclusive() -> None:
+    """ops/data-empty-error.html's four data_state branches (#407).
+
+    Ready shows stats and the job table; empty swaps to _empty_state; error
+    swaps to bw_alert danger; loading keeps the filter and shows the table
+    skeleton. Empty and error keep app chrome (nav + page header).
+
+    Do not use role="alert" as the error discriminator: the filter bar's
+    field-error containers also carry that role even when empty.
+    """
+    template = _example_engine().get_template("ops/data-empty-error.html")
+    base = dict(_EXAMPLE_CONTEXTS["ops/data-empty-error.html"])
+
+    ready = template.render(Context({**base, "data_state": "ready"}))
+    empty = template.render(Context({**base, "data_state": "empty", "export_rows": ()}))
+    error = template.render(Context({**base, "data_state": "error", "export_rows": ()}))
+    loading = template.render(Context({**base, "data_state": "loading", "export_rows": ()}))
+
+    assert "bw-stat-grid" in ready
+    assert "bw-data-table" in ready
+    assert "Nightly stock" in ready
+    assert "bw-empty-state" not in ready
+    assert "bw-alert--danger" not in ready
+    assert "bw-data-table__skeleton" not in ready
+
+    assert "bw-empty-state" in empty
+    assert "No export jobs yet" in empty
+    assert "bw-stat-grid" not in empty
+    assert "bw-data-table" not in empty
+    assert "bw-alert--danger" not in empty
+
+    assert "bw-alert--danger" in error
+    assert "Could not load export jobs" in error
+    assert "bw-empty-state" not in error
+    assert "bw-stat-grid" not in error
+    assert "bw-data-table" not in error
+
+    assert "bw-data-table__skeleton" in loading
+    assert "bw-filter-bar" in loading
+    assert "bw-stat-grid" not in loading
+    assert "bw-empty-state" not in loading
+    assert "bw-alert--danger" not in loading
+
+    for html, label in ((empty, "empty"), (error, "error"), (loading, "loading")):
+        assert "bw-nav" in html, f"the {label} branch dropped sidebar nav"
+        assert "Export jobs" in html, f"the {label} branch dropped the page header"

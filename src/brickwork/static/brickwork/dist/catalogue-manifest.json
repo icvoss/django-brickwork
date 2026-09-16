@@ -6,13 +6,13 @@
     "shells": 6,
     "components": 70,
     "sections": 32,
-    "archetypes": 40,
+    "archetypes": 41,
     "skeletons": 1
   },
   "families": [
     {
       "name": "Data-heavy operations",
-      "archetypeCount": 6,
+      "archetypeCount": 7,
       "sectionCount": 0
     },
     {
@@ -638,6 +638,25 @@
       ]
     },
     {
+      "name": "examples/ops/data-empty-error.html",
+      "kind": "archetype",
+      "family": "Data-heavy operations",
+      "templatePath": "examples/ops/data-empty-error.html",
+      "docSource": "examples/ops/data-empty-error.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_filter_bar.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_stat.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
+    {
       "name": "examples/ops/dense-list.html",
       "kind": "archetype",
       "family": "Data-heavy operations",
@@ -725,7 +744,8 @@
         "editorial/category.html",
         "editorial/reading-progress.html",
         "editorial/related.html",
-        "editorial/series.html"
+        "editorial/series.html",
+        "ops/data-empty-error.html"
       ],
       "usedBySections": [
         "sections/content/callout.html"
@@ -856,6 +876,7 @@
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
@@ -1019,6 +1040,7 @@
         "app/list.html",
         "app/status-tracker.html",
         "ops/audit-trail.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html"
       ],
@@ -1095,7 +1117,8 @@
         "editorial/category.html",
         "editorial/reading-progress.html",
         "editorial/related.html",
-        "editorial/series.html"
+        "editorial/series.html",
+        "ops/data-empty-error.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -1167,6 +1190,7 @@
       "usedByArchetypes": [
         "app/list.html",
         "ops/audit-trail.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html"
       ],
@@ -1296,6 +1320,7 @@
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
@@ -1536,6 +1561,7 @@
       "consumption": "include",
       "usedByArchetypes": [
         "ops/audit-trail.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"
@@ -2086,6 +2112,7 @@
         "ops/analysis-dashboard.html",
         "ops/audit-trail.html",
         "ops/comparison.html",
+        "ops/data-empty-error.html",
         "ops/dense-list.html",
         "ops/queue.html",
         "ops/report.html"

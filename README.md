@@ -45,8 +45,8 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 236 documents (154 hand-maintained fixtures
-plus 82 catalogue-document pages, being 41 catalogue documents, 40 archetypes
+axe-core WCAG 2.2 AA scan across 238 documents (154 hand-maintained fixtures
+plus 84 catalogue-document pages, being 42 catalogue documents, 41 archetypes
 and 1 skeleton, each x light and dark themes), plus a no-JS floor suite,
 keyboard suites,
 mobile-overflow checks at
@@ -278,7 +278,7 @@ above; it is not a closed sixteen-page list.
 
 Useful starting pages (not exhaustive): `app/list`, `detail`, `dashboard`,
 `form`, `wizard`; `auth/signin`; `marketing/landing`, `pricing`;
-`docs/article`; `ops/dense-list`. The full catalogue, section variants, and
+`docs/article`; `ops/dense-list`; `ops/data-empty-error`. The full catalogue, section variants, and
 per-file view contracts live in
 [src/brickwork/examples/README.md](src/brickwork/examples/README.md).
 
