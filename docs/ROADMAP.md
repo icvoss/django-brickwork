@@ -22,10 +22,20 @@ accessibility-contract impact before work begins.
 ## Current baseline
 
 Brickwork already ships foundations, five shells, core forms and interactions,
-data-table patterns, 39 components, 42 copyable examples, and `bw-prose`.
+data-table patterns, 39 components, 74 copyable examples, and `bw-prose`.
 This is a strong application and marketing baseline, but it does not yet cover
 the full set of interface families in the contract. The source tree and example
 catalogue are the evidence for this baseline, not this plan.
+
+**Product applications delivery (2026-09-16).** The INTERFACE-SYSTEM required
+set for this family is complete: search (`examples/app/search.html`,
+icvoss/django-brickwork#404) and activity (`examples/app/activity.html`,
+icvoss/django-brickwork#405) ship alongside the existing dashboard, list,
+detail, form, settings and guided-task pages. The family is the deepest at 15
+archetypes (extras beyond the required eight include confirm, toast, console,
+onboarding, status tracker and date-range-picker). Search is the app-shell
+counterpart of docs search-results; activity is a product event feed, not the
+ops audit trail.
 
 ## Rules for every wave
 

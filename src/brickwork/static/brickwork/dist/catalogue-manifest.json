@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 70,
     "sections": 32,
-    "archetypes": 41,
+    "archetypes": 43,
     "skeletons": 1
   },
   "families": [
@@ -32,7 +32,7 @@
     },
     {
       "name": "Product applications",
-      "archetypeCount": 13,
+      "archetypeCount": 15,
       "sectionCount": 0
     },
     {
@@ -42,6 +42,24 @@
     }
   ],
   "items": [
+    {
+      "name": "examples/app/activity.html",
+      "kind": "archetype",
+      "family": "Product applications",
+      "templatePath": "examples/app/activity.html",
+      "docSource": "examples/app/activity.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_badge.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_list_item.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
+      ]
+    },
     {
       "name": "examples/app/confirm.html",
       "kind": "archetype",
@@ -174,6 +192,22 @@
         "brickwork/components/_stepper.html",
         "brickwork/forms/_form.html",
         "brickwork/shell/centred.html"
+      ]
+    },
+    {
+      "name": "examples/app/search.html",
+      "kind": "archetype",
+      "family": "Product applications",
+      "templatePath": "examples/app/search.html",
+      "docSource": "examples/app/search.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_page_header.html",
+        "brickwork/components/_search.html",
+        "brickwork/nav/_nav.html",
+        "brickwork/shell/app.html"
       ]
     },
     {
@@ -729,8 +763,10 @@
       "docSource": "brickwork/components/_alert.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/confirm.html",
         "app/error-maintenance.html",
+        "app/search.html",
         "app/toast.html",
         "docs/api-reference.html",
         "docs/article.html",
@@ -785,6 +821,7 @@
       "docSource": "brickwork/components/_badge.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/status-tracker.html",
         "docs/api-reference.html",
         "docs/versioned-content.html",
@@ -854,6 +891,7 @@
       "docSource": "brickwork/components/_button.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/confirm.html",
         "app/dashboard.html",
         "app/date-range-picker.html",
@@ -1104,7 +1142,9 @@
       "docSource": "brickwork/components/_empty_state.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/console.html",
+        "app/search.html",
         "docs/api-reference.html",
         "docs/home.html",
         "docs/navigation.html",
@@ -1238,7 +1278,9 @@
       "templatePath": "brickwork/components/_list_item.html",
       "docSource": "brickwork/components/_list_item.html",
       "consumption": "include",
-      "usedByArchetypes": [],
+      "usedByArchetypes": [
+        "app/activity.html"
+      ],
       "usedBySections": [],
       "usedBySkeleton": []
     },
@@ -1306,12 +1348,14 @@
       "docSource": "brickwork/components/_page_header.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/console.html",
         "app/dashboard.html",
         "app/date-range-picker.html",
         "app/detail.html",
         "app/form.html",
         "app/list.html",
+        "app/search.html",
         "app/settings.html",
         "app/status-tracker.html",
         "app/toast.html",
@@ -1490,6 +1534,7 @@
       "docSource": "brickwork/components/_search.html",
       "consumption": "tag",
       "usedByArchetypes": [
+        "app/search.html",
         "docs/api-reference.html",
         "docs/article.html",
         "docs/home.html",
@@ -2099,12 +2144,14 @@
       "docSource": "brickwork/shell/app.html",
       "consumption": "include",
       "usedByArchetypes": [
+        "app/activity.html",
         "app/console.html",
         "app/dashboard.html",
         "app/date-range-picker.html",
         "app/detail.html",
         "app/form.html",
         "app/list.html",
+        "app/search.html",
         "app/settings.html",
         "app/status-tracker.html",
         "app/toast.html",
