@@ -497,34 +497,6 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     # onboarding renders {% bw_form form %}, the same as app/wizard.html.
     "app/onboarding.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
     "app/status-tracker.html": {**_NAV_CONTEXT},
-    "ops/data-empty-error.html": {
-        **_NAV_CONTEXT,
-        "data_state": "ready",
-        "filter_form": _InvoiceFilterForm(),
-        "export_columns": [
-            {"label": "Job", "sortable": True, "sort_key": "name"},
-            {"label": "Warehouse", "sortable": False},
-            {"label": "Scheduled", "sortable": True, "sort_key": "scheduled_at"},
-            {"label": "Status", "sortable": False},
-        ],
-        "export_rows": [
-            {
-                "id": 1,
-                "cells": ["Nightly stock", "Leeds DC", "16 Sep 2026, 02:00", "Completed"],
-            },
-            {
-                "id": 2,
-                "cells": ["Price book", "Bristol DC", "16 Sep 2026, 02:15", "Running"],
-            },
-            {
-                "id": 3,
-                "cells": ["Returns ledger", "Leeds DC", "16 Sep 2026, 03:00", "Waiting"],
-            },
-            {
-                "id": 4,
-                "cells": ["Supplier ASN", "Felixstowe", "15 Sep 2026, 23:30", "Failed"],
-            },
-        ],
     # Product search (#404): app-shell equivalent of docs/search-results.html.
     # results_state distinguishes empty_query from empty_results from error
     # from loading; conflating the empties is the defect #261 closed for docs.
@@ -592,6 +564,35 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             },
         ],
         "activity_state": "ready",
+    },
+    "ops/data-empty-error.html": {
+        **_NAV_CONTEXT,
+        "data_state": "ready",
+        "filter_form": _InvoiceFilterForm(),
+        "export_columns": [
+            {"label": "Job", "sortable": True, "sort_key": "name"},
+            {"label": "Warehouse", "sortable": False},
+            {"label": "Scheduled", "sortable": True, "sort_key": "scheduled_at"},
+            {"label": "Status", "sortable": False},
+        ],
+        "export_rows": [
+            {
+                "id": 1,
+                "cells": ["Nightly stock", "Leeds DC", "16 Sep 2026, 02:00", "Completed"],
+            },
+            {
+                "id": 2,
+                "cells": ["Price book", "Bristol DC", "16 Sep 2026, 02:15", "Running"],
+            },
+            {
+                "id": 3,
+                "cells": ["Returns ledger", "Leeds DC", "16 Sep 2026, 03:00", "Waiting"],
+            },
+            {
+                "id": 4,
+                "cells": ["Supplier ASN", "Felixstowe", "15 Sep 2026, 23:30", "Failed"],
+            },
+        ],
     },
     "ops/dense-list.html": {
         **_NAV_CONTEXT,
@@ -2675,6 +2676,8 @@ def test_the_ops_data_empty_error_states_are_mutually_exclusive() -> None:
     for html, label in ((empty, "empty"), (error, "error"), (loading, "loading")):
         assert "bw-nav" in html, f"the {label} branch dropped sidebar nav"
         assert "Export jobs" in html, f"the {label} branch dropped the page header"
+
+
 def test_the_app_search_states_are_mutually_exclusive() -> None:
     """app/search.html distinguishes empty_query, empty_results, error, loading and ready (#404)."""
     template = _example_engine().get_template("app/search.html")
