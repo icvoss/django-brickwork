@@ -13,15 +13,7 @@ from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parent.parent
 _APPEARANCE = _ROOT / "docs" / "APPEARANCE.md"
-_MANIFEST = (
-    _ROOT
-    / "src"
-    / "brickwork"
-    / "static"
-    / "brickwork"
-    / "dist"
-    / "catalogue-manifest.json"
-)
+_MANIFEST = _ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist" / "catalogue-manifest.json"
 
 _START = "<!-- phase5-adoption:start -->"
 _END = "<!-- phase5-adoption:end -->"
@@ -42,11 +34,7 @@ _ALLOWED_STATUS = {
 
 def _catalogue_component_names() -> set[str]:
     man = json.loads(_MANIFEST.read_text())
-    return {
-        e["name"].split("/")[-1]
-        for e in man["items"]
-        if e.get("kind") == "component"
-    }
+    return {e["name"].split("/")[-1] for e in man["items"] if e.get("kind") == "component"}
 
 
 def _phase5_component_rows() -> dict[str, str]:
