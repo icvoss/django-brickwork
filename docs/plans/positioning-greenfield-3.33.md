@@ -1,11 +1,11 @@
 # Greenfield positioning review: django-brickwork at 3.33.0
 
-**Status:** decision input. Treat prior leads and marketing plans as
-**reference only**, not defaults to vote between.
-**Tag:** `v3.33.0`.
+**Status:** RATIFIED as working canon 2026-09-16 (implementation of lead G1 on
+`docs/positioning-g1-lead`; tracker #614). Prior leads retired in POSITIONING.
+**Tag reviewed:** `v3.33.0`.
 **Tracker:** [icvoss/django-brickwork#614](https://github.com/icvoss/django-brickwork/issues/614).
 **Method:** buyer job and package capability first; slogan last. Existing
-POSITIONING / site copy are cited only as drift evidence.
+POSITIONING / site copy were cited only as drift evidence.
 
 This document deliberately ignores "Beautiful interfaces for anything" and
 "Building blocks for beautiful apps and websites" as candidates until the

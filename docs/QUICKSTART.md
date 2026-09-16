@@ -9,16 +9,20 @@ themselves.
 
 ## What brickwork is
 
-**Building blocks for beautiful apps and websites.** brickwork is a brand-agnostic
-interface foundation for server-rendered Django. It owns reusable design across
+**One interface system for the Django surfaces you ship.** brickwork is the
+server-rendered Django interface foundation: brand-agnostic tokens, shells,
+components, Theme profiles and copyable pages you own, on Tailwind 4
+(CSS-first), Alpine 3 and HTMX 2. Django is its only hard runtime dependency.
+It is not a Django-admin skin: it is for your hand-built interfaces across
 public sites, product applications, data-heavy operations, documentation,
-editorial publishing and transactional journeys, on Tailwind 4 (CSS-first),
-Alpine 3 and HTMX 2. Django is its only hard runtime dependency. It is not a
-Django-admin skin: it is for your hand-built interfaces.
+editorial publishing and transactional journeys. Quote shipping coverage from
+[docs/POSITIONING.md](POSITIONING.md); do not claim every interface-system
+archetype is done.
 
-Rebranding is token-first: every visual value is a `--bw-*` custom property,
-so you rebrand by overriding tokens, never by touching component classes
-([docs/BRANDING.md](BRANDING.md)).
+**Mechanism:** pin the foundation; own the pages; Theme with `--bw-*` (L1 to
+L4). Rebranding is token-first: every visual value is a `--bw-*` custom
+property, so you rebrand by overriding tokens, never by touching component
+classes ([docs/BRANDING.md](BRANDING.md)).
 
 ## Prerequisites
 
