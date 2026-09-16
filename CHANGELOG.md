@@ -8,6 +8,16 @@ versioning contract).
 
 ## Unreleased
 
+### Changed
+
+- **Beautiful-defaults Phase 5 / beat E long-tail closed.** `docs/APPEARANCE.md`
+  now lists every catalogue component and shell with an Adopted or explicit
+  N/A disposition (defaults authored, keep lean, compose, local, or deferred
+  P1/P2). Phase 4 P1 primitives and Phase 6 P2 command surfaces stay deferred
+  under INTERFACE-SYSTEM / ROADMAP and do not reopen the beat win claim
+  (icvoss/django-brickwork#540). Regression:
+  `tests/test_appearance_phase5.py`.
+
 ## [3.33.0] - 2026-09-15
 
 Minor: **Brickwork Theme** product surface (L1 to L4) lands for consumers:
