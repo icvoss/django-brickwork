@@ -1,0 +1,100 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+A time-bound campaign landing page (not the evergreen product landing).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    offer_inclusions  [str, ...] for the feature-list checklist
+    stats             [{value, label}] for the urgency band
+    faq_items         [{question, answer}]
+    footer_groups     [{heading, links:[{label, href}]}]
+
+This is the page for a dated offer, a seasonal promotion, or a launch window.
+marketing/landing.html sells the product indefinitely; this page sells a
+decision that expires. Lead with the deadline in the hero eyebrow, prove what
+the offer includes, answer the doubts that delay signup, and close with a
+single primary CTA. Do not paste the landing stack here: no logo cloud, no
+alternating feature rows, no three-testimonial grid. Urgency is the hierarchy.
+
+States: the auth-aware header actions branch on request.user.is_authenticated;
+  every composed component's own states (hero, feature list, stat band, FAQ,
+  CTA bleed) are unchanged, see each component's own header. There is no
+  empty or error branch of the page itself: a campaign that has ended is a
+  redirect or a different page your view chooses, not a second layout inside
+  this file. LOADING: not applicable for the default server-rendered path.
+Accessibility: inherits shell/marketing.html's skip link and header/footer
+  landmarks; the current-page nav link carries aria-current="page"; the
+  composed hero renders the page's own <h1>. Covered by the archetype
+  harness's full gate sweep (render, axe WCAG 2.2 AA, no horizontal
+  overflow, light/dark distinctness, skip-link first-tab-stop with JS
+  disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
+  fluid header wrap and content-column cap. Each composed section carries
+  whatever responsive behaviour its own header documents.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}Q4 offer - Northwind{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% comment %}
+Package-owned mobile disclosure (icvoss/django-brickwork#263 / #509): include
+the toggle as a sibling of the nav via marketing_nav_region.
+{% endcomment %}
+{% block marketing_nav_region %}
+  {% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}
+  <nav class="bw-marketing-header__nav" aria-label="Primary">
+    {% block marketing_nav %}
+      <a href="/features/">Features</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/offer/" aria-current="page">Offer</a>
+      <a href="/docs/">Docs</a>
+    {% endblock %}
+  </nav>
+{% endblock %}
+
+{% block marketing_actions %}
+  {% if request.user.is_authenticated %}
+    <a href="/app/">Go to app</a>
+  {% else %}
+    <a href="/accounts/login/">Sign in</a>
+    {% bw_button "Claim the offer" variant="primary" href="/accounts/signup/?offer=q4-2026" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+  {% comment %}
+  Deadline lives in the eyebrow so the first line the reader sees is the
+  constraint, not the product category. Align centre keeps the campaign
+  feeling like a single decision, not a product tour.
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Offer ends 31 October 2026" heading="Three months of Scale for the price of Team" lede="Finance teams that start before the deadline get Scale features, a dedicated onboarding call, and the first year locked at the Team rate. No card up front." align="center" primary_cta_label="Claim the offer" primary_cta_href="/accounts/signup/?offer=q4-2026" secondary_cta_label="See what Scale includes" secondary_cta_href="/pricing/" %}
+
+  {% comment %}
+  Checklist of what the window unlocks. List-shaped, so offer_inclusions
+  comes from context. This is the campaign's "what's in the box", not the
+  evergreen feature grid on marketing/landing.html.
+  {% endcomment %}
+  {% include "brickwork_marketing/components/_feature_list.html" with heading="Included until the window closes" items=offer_inclusions %}
+
+  {% include "brickwork_marketing/components/_stat_band.html" with heading="Why teams act before the deadline" stats=stats %}
+
+  {% include "brickwork_marketing/components/_testimonial.html" with quote="We claimed it on a Thursday and had reminders running by Monday. The Scale trial meant we could prove multi-entity before we committed." author="Priya Raman" role="Finance Director, Halden Group" %}
+
+  {% include "brickwork_marketing/components/_faq.html" with heading="Questions about the offer" items=faq_items single_open=True %}
+
+  {% include "brickwork_marketing/components/_cta_bleed.html" with heading="The window closes on 31 October" body="Claim Scale at the Team rate before the deadline. Free for thirty days, then the locked price if you stay." primary_cta_label="Claim the offer" primary_cta_href="/accounts/signup/?offer=q4-2026" secondary_cta_label="Talk to sales" secondary_cta_href="/contact/" %}
+
+{% endblock %}
+
+{% block marketing_footer %}
+  {% include "brickwork_marketing/components/_marketing_footer_groups.html" with groups=footer_groups %}
+{% endblock %}
+
+{% block footer_legal %}
+  <p>Copyright 2026 Northwind Software Ltd. <a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></p>
+{% endblock %}

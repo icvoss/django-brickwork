@@ -1,0 +1,138 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+A public conversion flow: multi-step lead capture on the marketing shell.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056). In practice you copy it once per
+step, or copy it once and vary the step content by template.
+
+What your view must supply:
+    form               this step's own form
+    steps              [{label, status}] where status is
+                       "complete" | "current" | "upcoming"
+    conversion_state   "ready" | "invalid" | "loading" | "error" | "success"
+    footer_groups      [{heading, links:[{label, href}]}]
+
+This is the marketing-family conversion archetype: a visitor requests a demo
+or a callback without entering the product. It is not app/onboarding.html
+(centred shell, account setup) and not auth/signup.html (create an account).
+Keep it on the marketing shell so the public chrome, footer and campaign CTAs
+stay visible.
+
+HOW THE FLOW WORKS, matching app/wizard.html: brickwork ships the progress
+indicator and nothing else. There is no client-side wizard state machine.
+Each step is an ordinary Django page at its own URL:
+
+    /demo/request/        ->  /demo/company/  ->  /demo/confirm/
+
+Each step POSTs to itself. On valid, your view saves and redirects to the
+next step. On invalid, it re-renders this step with the bound form.
+"Back" is a plain link to the previous URL. Your view computes each step's
+status; brickwork does not track it.
+
+States: conversion_state is the page's real branch.
+  "ready": current step form + stepper.
+  "invalid": bound form with field errors; same stepper position.
+  "loading": submit in flight; primary button loading=True.
+  "error": backend failed after validation; bw_alert danger above the form.
+  "success": final confirmation (usually the last URL). No form; show the
+    completed stepper and a success alert. Empty is not used: an abandoned
+    flow is a redirect to step one, not a blank band.
+Accessibility: inherits shell/marketing.html's skip link and header/footer
+  landmarks; the stepper is a native <ol> with aria-current="step" on the
+  current item; form errors come from bw_form. Covered by the archetype
+  harness's full gate sweep (render, axe WCAG 2.2 AA, no horizontal
+  overflow, light/dark distinctness, skip-link first-tab-stop with JS
+  disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
+  fluid header wrap and content-column cap. The stepper stacks vertically
+  below --bw-breakpoint-md (see _stepper.html's own header).
+{% endcomment %}
+{% load brickwork_components brickwork_forms %}
+
+{% block page_title %}{% if conversion_state == "success" %}Demo booked - Northwind{% else %}Request a demo - Northwind{% endif %}{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block marketing_nav_region %}
+  {% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}
+  <nav class="bw-marketing-header__nav" aria-label="Primary">
+    {% block marketing_nav %}
+      <a href="/features/">Features</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/demo/" aria-current="page">Demo</a>
+      <a href="/docs/">Docs</a>
+    {% endblock %}
+  </nav>
+{% endblock %}
+
+{% block marketing_actions %}
+  {% if request.user.is_authenticated %}
+    <a href="/app/">Go to app</a>
+  {% else %}
+    <a href="/accounts/login/">Sign in</a>
+    {% bw_button "Start free trial" variant="primary" href="/accounts/signup/" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+  {% if conversion_state == "success" %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Request a demo" heading="You are on the calendar" lede="We sent a confirmation to your email. A specialist will join you at the time you chose." align="center" %}
+
+  <div class="bw-section-stack">
+    {% include "brickwork/components/_stepper.html" with steps=steps %}
+    {% include "brickwork/components/_alert.html" with variant="success" title="Demo confirmed" message="Add the invite from your inbox. If you need to reschedule, reply to that email or write to hello@northwind.example." %}
+  </div>
+
+  {% include "brickwork_marketing/components/_cta.html" with heading="Prefer to explore first?" body="The thirty-day trial needs no card. Import a handful of invoices and see the reminders go out." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Read the docs" secondary_cta_href="/docs/" %}
+
+  {% else %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Request a demo" heading="See Northwind on your invoices" lede="Fifteen minutes with a specialist. Bring a recent aged-debtors export if you have one; we will not ask for a card." align="center" %}
+
+  <div class="bw-section-stack">
+    {% include "brickwork/components/_stepper.html" with steps=steps %}
+
+    {% if conversion_state == "error" %}
+    {% include "brickwork/components/_alert.html" with variant="danger" title="We could not save that step" message="Nothing was booked. Check your connection and continue again. If it keeps failing, email hello@northwind.example." %}
+    {% endif %}
+
+    {% if conversion_state == "invalid" %}
+    {% include "brickwork/components/_alert.html" with variant="warning" title="Check the highlighted fields" message="Fix the errors below, then continue. Your earlier steps are already saved." %}
+    {% endif %}
+
+    <h2>About your company</h2>
+    <p>
+      Step 2 of 3. We use this to pick the right specialist, not to score a
+      lead.
+    </p>
+
+    <div class="bw-wizard__step">
+      <form method="post" action="/demo/company/"{% if conversion_state == "loading" %} aria-busy="true"{% endif %}>
+        {% csrf_token %}
+        {% bw_form form %}
+        <div class="bw-form__actions">
+          {% if conversion_state == "loading" %}
+            {% bw_button "Saving…" type="submit" variant="primary" loading=True %}
+          {% else %}
+            {% bw_button "Continue" type="submit" variant="primary" %}
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
+    <nav class="bw-wizard__nav" aria-label="Demo request navigation">
+      <a class="bw-btn bw-btn--ghost" href="/demo/request/">Back</a>
+    </nav>
+  </div>
+  {% endif %}
+
+{% endblock %}
+
+{% block marketing_footer %}
+  {% include "brickwork_marketing/components/_marketing_footer_groups.html" with groups=footer_groups %}
+{% endblock %}
+
+{% block footer_legal %}
+  <p>Copyright 2026 Northwind Software Ltd. <a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></p>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "brickwork_marketing/shell/marketing.html" %}
+{% comment %}
+A public contact page: hero, enquiry form, and the states a real form needs.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    form            the enquiry form (any fields; bw_form renders them)
+    contact_state   "ready" | "invalid" | "loading" | "error" | "success" | "empty"
+    faq_items       [{question, answer}] (ready/invalid/loading only)
+    footer_groups   [{heading, links:[{label, href}]}]
+
+You own the <form> tag and the submit button. bw_form only renders fields.
+
+States: contact_state is the page's real branch.
+  "ready": blank form, FAQ, side details. Empty fields are intentional: the
+    reader has not typed yet. Required markers come from the form field
+    definitions, not from inventing placeholder copy.
+  "invalid": bound form after a failed POST. bw_form renders field and
+    non-field errors inline; keep the same chrome and FAQ so the reader can
+    fix and resubmit without losing orientation.
+  "loading": submit in flight (htmx or a progressive-enhancement path). The
+    primary button mounts loading=True (spinner + aria-busy + disabled);
+    the fields stay visible and disabled via the form's own disabled attrs
+    when you set them in the view. Server-only POST/redirect flows skip this
+    branch: LOADING is for the async path.
+  "error": the mailer or CRM rejected the submission after validation. Show
+    bw_alert danger above a still-editable form so the reader can retry.
+  "success": thank-you confirmation; no form. Do not invent a second page
+    for this: swap the band in place so the URL can stay /contact/ after a
+    PRG redirect.
+  "empty": contact is temporarily closed (holiday, capacity). _empty_state
+    replaces the form band; header and footer stay so the reader can leave.
+Accessibility: inherits shell/marketing.html's skip link and header/footer
+  landmarks; the current-page nav link carries aria-current="page"; the
+  composed hero renders the page's own <h1>. Form labels, errors and the
+  loading button's aria-busy come from bw_form / bw_button. Covered by the
+  archetype harness's full gate sweep (render, axe WCAG 2.2 AA, no
+  horizontal overflow, light/dark distinctness, skip-link first-tab-stop
+  with JS disabled) at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
+  fluid header wrap and content-column cap. The form column and the side
+  details stack naturally inside .bw-section-stack.
+{% endcomment %}
+{% load brickwork_components brickwork_forms %}
+
+{% block page_title %}{% if contact_state == "success" %}Message sent - Northwind{% elif contact_state == "empty" %}Contact closed - Northwind{% else %}Contact - Northwind{% endif %}{% endblock %}
+
+{% block brand_wordmark %}Northwind{% endblock %}
+
+{% block marketing_nav_region %}
+  {% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}
+  <nav class="bw-marketing-header__nav" aria-label="Primary">
+    {% block marketing_nav %}
+      <a href="/features/">Features</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/contact/" aria-current="page">Contact</a>
+      <a href="/docs/">Docs</a>
+    {% endblock %}
+  </nav>
+{% endblock %}
+
+{% block marketing_actions %}
+  {% if request.user.is_authenticated %}
+    <a href="/app/">Go to app</a>
+  {% else %}
+    <a href="/accounts/login/">Sign in</a>
+    {% bw_button "Start free trial" variant="primary" href="/accounts/signup/" %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+  {% if contact_state == "empty" %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Contact" heading="We are not taking new enquiries this week" lede="The team is at capacity until Monday 20 October. Email support still answers existing customers." align="center" %}
+  {% include "brickwork/components/_empty_state.html" with heading="Contact closed until Monday" body="New sales and partnership messages will queue again from 09:00 BST on Monday. Existing customers can still reach support@northwind.example." icon="document" action_href="/docs/" action_label="Read the docs" %}
+
+  {% elif contact_state == "success" %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Contact" heading="Message received" lede="Thanks. A real person reads every enquiry. We reply within one working day." align="center" %}
+  {% include "brickwork/components/_alert.html" with variant="success" title="We have your message" message="Check your inbox for a short confirmation. If nothing arrives, look in spam, then try again from this page." %}
+  {% include "brickwork_marketing/components/_cta.html" with heading="While you wait" body="Most questions are answered in the docs. The trial is still free if you would rather try the product first." primary_cta_label="Read the docs" primary_cta_href="/docs/" secondary_cta_label="Start free trial" secondary_cta_href="/accounts/signup/" %}
+
+  {% else %}
+  {% include "brickwork_marketing/components/_hero.html" with eyebrow="Contact" heading="Talk to a real person" lede="Sales, partnerships, or a question the docs do not answer. We reply within one working day." align="center" %}
+
+  <div class="bw-section-stack">
+    {% if contact_state == "error" %}
+    {% include "brickwork/components/_alert.html" with variant="danger" title="We could not send that" message="The message did not reach us. Check your connection and try again. If it keeps failing, email hello@northwind.example directly." %}
+    {% endif %}
+
+    {% if contact_state == "invalid" %}
+    {% include "brickwork/components/_alert.html" with variant="warning" title="Check the highlighted fields" message="Something in the form needs fixing before we can send it. The errors sit under each field." %}
+    {% endif %}
+
+    <h2>Send a message</h2>
+    <p>
+      Tell us who you are and what you need. We do not use this form for
+      marketing lists.
+    </p>
+
+    <form method="post" action="/contact/"{% if contact_state == "loading" %} aria-busy="true"{% endif %}>
+      {% csrf_token %}
+      {% bw_form form %}
+      <div class="bw-form__actions">
+        {% if contact_state == "loading" %}
+          {% bw_button "Sending…" type="submit" variant="primary" loading=True %}
+        {% else %}
+          {% bw_button "Send message" type="submit" variant="primary" %}
+        {% endif %}
+      </div>
+    </form>
+
+    <h2>Other ways to reach us</h2>
+    <p>
+      Email <a href="mailto:hello@northwind.example">hello@northwind.example</a>
+      for sales, or
+      <a href="mailto:support@northwind.example">support@northwind.example</a>
+      if you already have an account. Office hours are Monday to Friday,
+      09:00 to 17:00 BST.
+    </p>
+  </div>
+
+  {% include "brickwork_marketing/components/_faq.html" with heading="Before you write" items=faq_items single_open=True %}
+  {% endif %}
+
+{% endblock %}
+
+{% block marketing_footer %}
+  {% include "brickwork_marketing/components/_marketing_footer_groups.html" with groups=footer_groups %}
+{% endblock %}
+
+{% block footer_legal %}
+  <p>Copyright 2026 Northwind Software Ltd. <a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></p>
+{% endblock %}
