@@ -139,12 +139,15 @@ is also linked from there.
 | `app/error-maintenance.html` | Planned maintenance / site unavailable |
 | `app/onboarding.html` | Mid-step onboarding (company → team → billing) with skip and resume |
 | `app/status-tracker.html` | Site-visit status tracker with stepper, detail, and timeline |
+| `app/search.html` | Product search: topbar query, result cards, empty/error/loading states |
+| `app/activity.html` | Product activity feed: badges, list items, empty/error/loading states |
 | `ops/queue.html` | Work queue: triage tabs, bulk actions over a selection |
 | `ops/audit-trail.html` | Chronological record: who did what, and whether it worked |
 | `ops/report.html` | Long-form printable performance report: summary, stats, tables, methodology |
 | `ops/comparison.html` | This-versus-that data comparison: two measured periods on quantitative metrics |
 | `ops/analysis-dashboard.html` | Weighted headline grid, trend chart, breakdowns, progress gauge |
 | `ops/dense-list.html` | Dense purchase-order / shipment index with bulk selection |
+| `ops/data-empty-error.html` | Export jobs ledger: ready, empty, error and loading states |
 | `docs/home.html` | Documentation home: search, start-here cards, popular pages |
 | `docs/article.html` | Documentation article: prose, code panels, callout, linkable headings |
 | `docs/api-reference.html` | API reference: method + path, parameters, request/response, status codes |
@@ -169,9 +172,12 @@ is also linked from there.
 | `auth/receipt.html` | Transaction receipt |
 | `auth/status-tracking.html` | Order / request status tracking |
 | `marketing/landing.html` | Product landing page |
+| `marketing/campaign.html` | Time-bound campaign / offer landing |
 | `marketing/pricing.html` | Pricing with tiers and FAQ |
 | `marketing/comparison.html` | Plan comparison matrix with recommended column and FAQ |
 | `marketing/about.html` | About page |
+| `marketing/contact.html` | Contact / enquiry form with empty, invalid, loading, error and success states |
+| `marketing/conversion.html` | Public lead-capture conversion flow (demo request) with confirmation |
 
 ## The content is fake, and that is the point
 
