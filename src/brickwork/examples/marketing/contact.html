@@ -111,14 +111,16 @@ Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
       </div>
     </form>
 
-    <h2>Other ways to reach us</h2>
-    <p>
-      Email <a href="mailto:hello@northwind.example">hello@northwind.example</a>
-      for sales, or
-      <a href="mailto:support@northwind.example">support@northwind.example</a>
-      if you already have an account. Office hours are Monday to Friday,
-      09:00 to 17:00 BST.
-    </p>
+    <div class="bw-prose">
+      <h2>Other ways to reach us</h2>
+      <p>
+        Email <a href="mailto:hello@northwind.example">hello@northwind.example</a>
+        for sales, or
+        <a href="mailto:support@northwind.example">support@northwind.example</a>
+        if you already have an account. Office hours are Monday to Friday,
+        09:00 to 17:00 BST.
+      </p>
+    </div>
   </div>
 
   {% include "brickwork_marketing/components/_faq.html" with heading="Before you write" items=faq_items single_open=True %}
