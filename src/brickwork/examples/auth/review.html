@@ -1,0 +1,68 @@
+{% extends "brickwork/shell/centred.html" %}
+{% comment %}
+Review before submit (icvoss/django-brickwork#424). Required Transactional
+journeys archetype.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    review_facts   [{label, value}] definition-table rows for what will be
+                   submitted
+    review_state   "ready" | "empty" | "error"
+
+This page is the last look before a high-stakes POST: checkout pay, enrolment
+finish, or a request submission. It is not app/confirm.html (destructive
+pre-delete) and not auth/confirmation.html (post-submit success).
+
+Name what will happen and to what. A vague "looks good?" is not a review.
+
+States: review_state is the page's real branch.
+  "ready": definition table of facts + submit POST + edit link.
+  "empty": nothing assembled to review (_empty_state).
+  "error": the draft could not be loaded (bw_alert danger).
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: inherits shell/centred.html; the summary is a definition
+  table; the submit is a real POST button, not a GET link. Covered by the
+  archetype harness's full gate sweep at every W0.1 breakpoint, both themes.
+Responsive: inherits shell/centred.html's fluid, no-breakpoint centred panel.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}{% if review_state == "error" %}Review unavailable - Northwind{% else %}Review and submit - Northwind{% endif %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% if review_state == "empty" %}
+  <h1 class="bw-page-header__title">Review and submit</h1>
+  {% include "brickwork/components/_empty_state.html" with heading="Nothing to review" body="There is no draft order or request waiting for submit. Return to checkout, or start a new request." icon="document" action_href="/checkout/basket/" action_label="Back to basket" %}
+
+  {% elif review_state == "error" %}
+  <h1 class="bw-page-header__title">Review unavailable</h1>
+  {% include "brickwork/components/_alert.html" with variant="danger" title="Could not load review" message="Northwind could not load the draft you were about to submit. Retry in a moment, or go back and rebuild the order." %}
+  <div class="bw-form__actions">
+    {% bw_button "Retry" variant="primary" href="/checkout/review/" %}
+    {% bw_button "Back to delivery" variant="ghost" href="/checkout/delivery/" %}
+  </div>
+
+  {% else %}
+  <h1 class="bw-page-header__title">Review and submit</h1>
+  <p class="bw-page-header__description">Check every line. Submitting places the order and charges the card ending 4242.</p>
+
+  {% include "brickwork/components/_alert.html" with variant="info" title="You are about to place order ORD-1042" message="After submit you cannot edit the lines below without cancelling and starting again." %}
+
+  <h2 class="bw-page-header__title">Order details</h2>
+  {% include "brickwork/components/_data_table.html" with table_id="review-facts" variant="definition" rows=review_facts %}
+
+  <div class="bw-form__actions">
+    <form method="post" action="{{ request.path }}">
+      {% csrf_token %}
+      {% bw_button "Place order" type="submit" variant="primary" %}
+    </form>
+    {% bw_button "Edit delivery" variant="ghost" href="/checkout/delivery/" %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

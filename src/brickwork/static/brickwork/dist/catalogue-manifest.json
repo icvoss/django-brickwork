@@ -6,7 +6,7 @@
     "shells": 6,
     "components": 70,
     "sections": 32,
-    "archetypes": 40,
+    "archetypes": 46,
     "skeletons": 1
   },
   "families": [
@@ -37,7 +37,7 @@
     },
     {
       "name": "Transactional journeys",
-      "archetypeCount": 3,
+      "archetypeCount": 9,
       "sectionCount": 0
     }
   ],
@@ -242,6 +242,70 @@
       ]
     },
     {
+      "name": "examples/auth/checkout.html",
+      "kind": "archetype",
+      "family": "Transactional journeys",
+      "templatePath": "examples/auth/checkout.html",
+      "docSource": "examples/auth/checkout.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_stepper.html",
+        "brickwork/forms/_form.html",
+        "brickwork/shell/centred.html"
+      ]
+    },
+    {
+      "name": "examples/auth/confirmation.html",
+      "kind": "archetype",
+      "family": "Transactional journeys",
+      "templatePath": "examples/auth/confirmation.html",
+      "docSource": "examples/auth/confirmation.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/shell/centred.html"
+      ]
+    },
+    {
+      "name": "examples/auth/enrolment.html",
+      "kind": "archetype",
+      "family": "Transactional journeys",
+      "templatePath": "examples/auth/enrolment.html",
+      "docSource": "examples/auth/enrolment.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_stepper.html",
+        "brickwork/forms/_form.html",
+        "brickwork/shell/centred.html"
+      ]
+    },
+    {
+      "name": "examples/auth/receipt.html",
+      "kind": "archetype",
+      "family": "Transactional journeys",
+      "templatePath": "examples/auth/receipt.html",
+      "docSource": "examples/auth/receipt.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_badge.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/shell/centred.html"
+      ]
+    },
+    {
       "name": "examples/auth/reset.html",
       "kind": "archetype",
       "family": "Transactional journeys",
@@ -252,6 +316,21 @@
         "brickwork/components/_button.html",
         "brickwork/forms/_form.html",
         "brickwork/shell/auth.html"
+      ]
+    },
+    {
+      "name": "examples/auth/review.html",
+      "kind": "archetype",
+      "family": "Transactional journeys",
+      "templatePath": "examples/auth/review.html",
+      "docSource": "examples/auth/review.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/shell/centred.html"
       ]
     },
     {
@@ -278,6 +357,23 @@
         "brickwork/components/_button.html",
         "brickwork/forms/_form.html",
         "brickwork/shell/auth.html"
+      ]
+    },
+    {
+      "name": "examples/auth/status-tracking.html",
+      "kind": "archetype",
+      "family": "Transactional journeys",
+      "templatePath": "examples/auth/status-tracking.html",
+      "docSource": "examples/auth/status-tracking.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork/components/_alert.html",
+        "brickwork/components/_badge.html",
+        "brickwork/components/_button.html",
+        "brickwork/components/_data_table.html",
+        "brickwork/components/_empty_state.html",
+        "brickwork/components/_stepper.html",
+        "brickwork/shell/centred.html"
       ]
     },
     {
@@ -713,6 +809,12 @@
         "app/confirm.html",
         "app/error-maintenance.html",
         "app/toast.html",
+        "auth/checkout.html",
+        "auth/confirmation.html",
+        "auth/enrolment.html",
+        "auth/receipt.html",
+        "auth/review.html",
+        "auth/status-tracking.html",
         "docs/api-reference.html",
         "docs/article.html",
         "docs/navigation.html",
@@ -766,6 +868,8 @@
       "consumption": "tag",
       "usedByArchetypes": [
         "app/status-tracker.html",
+        "auth/receipt.html",
+        "auth/status-tracking.html",
         "docs/api-reference.html",
         "docs/versioned-content.html",
         "editorial/article.html",
@@ -846,9 +950,15 @@
         "app/status-tracker.html",
         "app/toast.html",
         "app/wizard.html",
+        "auth/checkout.html",
+        "auth/confirmation.html",
+        "auth/enrolment.html",
+        "auth/receipt.html",
         "auth/reset.html",
+        "auth/review.html",
         "auth/signin.html",
         "auth/signup.html",
+        "auth/status-tracking.html",
         "marketing/about.html",
         "marketing/comparison.html",
         "marketing/landing.html",
@@ -1018,6 +1128,11 @@
         "app/detail.html",
         "app/list.html",
         "app/status-tracker.html",
+        "auth/checkout.html",
+        "auth/confirmation.html",
+        "auth/receipt.html",
+        "auth/review.html",
+        "auth/status-tracking.html",
         "ops/audit-trail.html",
         "ops/dense-list.html",
         "ops/queue.html"
@@ -1083,6 +1198,12 @@
       "consumption": "include",
       "usedByArchetypes": [
         "app/console.html",
+        "auth/checkout.html",
+        "auth/confirmation.html",
+        "auth/enrolment.html",
+        "auth/receipt.html",
+        "auth/review.html",
+        "auth/status-tracking.html",
         "docs/api-reference.html",
         "docs/home.html",
         "docs/navigation.html",
@@ -1580,7 +1701,10 @@
       "usedByArchetypes": [
         "app/onboarding.html",
         "app/status-tracker.html",
-        "app/wizard.html"
+        "app/wizard.html",
+        "auth/checkout.html",
+        "auth/enrolment.html",
+        "auth/status-tracking.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []
@@ -2129,7 +2253,13 @@
       "usedByArchetypes": [
         "app/confirm.html",
         "app/error-maintenance.html",
-        "app/onboarding.html"
+        "app/onboarding.html",
+        "auth/checkout.html",
+        "auth/confirmation.html",
+        "auth/enrolment.html",
+        "auth/receipt.html",
+        "auth/review.html",
+        "auth/status-tracking.html"
       ],
       "usedBySections": [],
       "usedBySkeleton": []

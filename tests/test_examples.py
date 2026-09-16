@@ -671,6 +671,79 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     "auth/signin.html": {"form": _ExampleForm()},
     "auth/signup.html": {"form": _ExampleForm()},
     "auth/reset.html": {"form": _ExampleForm()},
+    "auth/enrolment.html": {
+        "form": _ExampleForm(),
+        "steps": [
+            {"label": "Organisation", "status": "current"},
+            {"label": "Contact", "status": "upcoming"},
+            {"label": "Preferences", "status": "upcoming"},
+        ],
+        "enrolment_state": "ready",
+    },
+    "auth/checkout.html": {
+        "form": _ExampleForm(),
+        "steps": [
+            {"label": "Basket", "status": "complete"},
+            {"label": "Delivery", "status": "current"},
+            {"label": "Pay", "status": "upcoming"},
+        ],
+        "order_summary": [
+            {"label": "Plan", "value": "Professional, annual"},
+            {"label": "Seats", "value": "5"},
+            {"label": "Subtotal", "value": "£290.00"},
+            {"label": "VAT (20%)", "value": "£58.00"},
+            {"label": "Total due", "value": "£348.00"},
+        ],
+        "checkout_state": "ready",
+    },
+    "auth/review.html": {
+        "review_facts": [
+            {"label": "Order", "value": "ORD-1042"},
+            {"label": "Plan", "value": "Professional, annual"},
+            {"label": "Bill to", "value": "Acme Corp, Manchester"},
+            {"label": "Deliver invoice to", "value": "priya@acme.example"},
+            {"label": "Card", "value": "Ending 4242"},
+            {"label": "Total", "value": "£348.00"},
+        ],
+        "review_state": "ready",
+    },
+    "auth/confirmation.html": {
+        "confirmation_facts": [
+            {"label": "Reference", "value": "ORD-1042"},
+            {"label": "Submitted", "value": "16 September 2026, 14:02 BST"},
+            {"label": "Confirmation email", "value": "priya@acme.example"},
+            {"label": "Next step", "value": "Fulfilment starts within one working day"},
+        ],
+        "confirmation_state": "ready",
+    },
+    "auth/receipt.html": {
+        "receipt_facts": [
+            {"label": "Receipt", "value": "ORD-1042"},
+            {"label": "Paid on", "value": "16 September 2026"},
+            {"label": "Bill to", "value": "Acme Corp, Manchester"},
+            {"label": "Plan", "value": "Professional, annual (5 seats)"},
+            {"label": "Subtotal", "value": "£290.00"},
+            {"label": "VAT (20%)", "value": "£58.00"},
+            {"label": "Total paid", "value": "£348.00"},
+            {"label": "Payment method", "value": "Card ending 4242"},
+        ],
+        "receipt_state": "ready",
+    },
+    "auth/status-tracking.html": {
+        "steps": [
+            {"label": "Placed", "status": "complete"},
+            {"label": "Paid", "status": "complete"},
+            {"label": "Fulfilment", "status": "current"},
+            {"label": "Ready", "status": "upcoming"},
+        ],
+        "status_facts": [
+            {"label": "Order", "value": "ORD-1042"},
+            {"label": "Workspace", "value": "Acme Corp"},
+            {"label": "Owner", "value": "priya@acme.example"},
+            {"label": "Expected ready", "value": "17 September 2026"},
+        ],
+        "tracking_state": "ready",
+    },
     "docs/home.html": {
         **_DOCS_NAV_CONTEXT,
         "docs_search_action": "/docs/search/",
@@ -2531,3 +2604,145 @@ def test_the_editorial_reading_progress_composes_progress_not_a_new_primitive() 
     assert "data-bw-reading-progress-article" in html
     assert "setProperty" in html
     assert "aria-hidden" in html
+
+
+def test_the_auth_enrolment_empty_and_error_states_replace_the_body() -> None:
+    """auth/enrolment.html's three enrolment_state branches."""
+    template = _example_engine().get_template("auth/enrolment.html")
+    base = dict(_EXAMPLE_CONTEXTS["auth/enrolment.html"])
+
+    ready = template.render(Context({**base, "enrolment_state": "ready"}))
+    empty = template.render(Context({**base, "enrolment_state": "empty"}))
+    error = template.render(Context({**base, "enrolment_state": "error"}))
+
+    assert "Organisation details" in ready
+    assert "bw-stepper" in ready
+    assert "bw-form" in ready
+    assert "bw-empty-state" not in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-stepper" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-stepper" not in error
+
+
+def test_the_auth_checkout_empty_and_error_states_replace_the_body() -> None:
+    """auth/checkout.html's three checkout_state branches."""
+    template = _example_engine().get_template("auth/checkout.html")
+    base = dict(_EXAMPLE_CONTEXTS["auth/checkout.html"])
+
+    ready = template.render(Context({**base, "checkout_state": "ready"}))
+    empty = template.render(Context({**base, "checkout_state": "empty"}))
+    error = template.render(Context({**base, "checkout_state": "error"}))
+
+    assert "Delivery details" in ready
+    assert "bw-stepper" in ready
+    assert "Order summary" in ready
+    assert "bw-data-table" in ready
+    assert "bw-empty-state" not in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-stepper" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-stepper" not in error
+
+
+def test_the_auth_review_empty_and_error_states_replace_the_body() -> None:
+    """auth/review.html's three review_state branches."""
+    template = _example_engine().get_template("auth/review.html")
+    base = dict(_EXAMPLE_CONTEXTS["auth/review.html"])
+
+    ready = template.render(Context({**base, "review_state": "ready"}))
+    empty = template.render(Context({**base, "review_state": "empty"}))
+    error = template.render(Context({**base, "review_state": "error"}))
+
+    assert "Review and submit" in ready
+    assert "Place order" in ready
+    assert "bw-data-table" in ready
+    assert "bw-empty-state" not in ready
+
+    assert "bw-empty-state" in empty
+    assert "Place order" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "Place order" not in error
+
+
+def test_the_auth_confirmation_empty_and_error_states_replace_the_body() -> None:
+    """auth/confirmation.html's three confirmation_state branches."""
+    template = _example_engine().get_template("auth/confirmation.html")
+    base = dict(_EXAMPLE_CONTEXTS["auth/confirmation.html"])
+
+    ready = template.render(Context({**base, "confirmation_state": "ready"}))
+    empty = template.render(Context({**base, "confirmation_state": "empty"}))
+    error = template.render(Context({**base, "confirmation_state": "error"}))
+
+    assert "Order placed" in ready
+    assert "ORD-1042" in ready
+    assert "bw-data-table" in ready
+    assert "bw-empty-state" not in ready
+
+    assert "bw-empty-state" in empty
+    assert "View receipt" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "View receipt" not in error
+
+
+def test_the_auth_receipt_empty_and_error_states_replace_the_body() -> None:
+    """auth/receipt.html's three receipt_state branches."""
+    template = _example_engine().get_template("auth/receipt.html")
+    base = dict(_EXAMPLE_CONTEXTS["auth/receipt.html"])
+
+    ready = template.render(Context({**base, "receipt_state": "ready"}))
+    empty = template.render(Context({**base, "receipt_state": "empty"}))
+    error = template.render(Context({**base, "receipt_state": "error"}))
+
+    assert "Receipt ORD-1042" in ready
+    assert "Paid" in ready
+    assert "bw-data-table" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+
+    assert "bw-empty-state" in empty
+    assert "Download PDF" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "Download PDF" not in error
+
+
+def test_the_auth_status_tracking_empty_and_error_states_replace_the_body() -> None:
+    """auth/status-tracking.html's three tracking_state branches."""
+    template = _example_engine().get_template("auth/status-tracking.html")
+    base = dict(_EXAMPLE_CONTEXTS["auth/status-tracking.html"])
+
+    ready = template.render(Context({**base, "tracking_state": "ready"}))
+    empty = template.render(Context({**base, "tracking_state": "empty"}))
+    error = template.render(Context({**base, "tracking_state": "error"}))
+
+    assert "Order ORD-1042" in ready
+    assert "bw-stepper" in ready
+    assert "Timeline" in ready
+    assert "bw-data-table" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+
+    assert "bw-empty-state" in empty
+    assert "bw-stepper" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "bw-empty-state" not in error
+    assert "bw-stepper" not in error

@@ -1,0 +1,100 @@
+{% extends "brickwork/shell/centred.html" %}
+{% comment %}
+Transactional status tracking for an order or request
+(icvoss/django-brickwork#427). Required Transactional journeys archetype.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    steps               [{label, status}] where status is "complete" | "current" | "upcoming"
+    status_facts        [{label, value}] definition-table facts for the current step
+    tracking_state      "ready" | "empty" | "error"
+
+WHY THIS IS NOT app/status-tracker.html:
+
+app/status-tracker.html is a Product applications visit flow (site visit
+NW-2481 inside the app shell). This page is a transactional journey status
+for an order or request after checkout, on the centred shell, without app
+chrome. Closing #427 requires this file under examples/auth/, not a rename
+of the visit tracker.
+
+HOW THE FLOW WORKS: brickwork ships the progress indicator only. Your view
+computes each step's status from the order's current stage. On Failed: use
+a danger alert that names the failure in words; do not invent a fourth
+stepper status (same ruling as app/status-tracker.html).
+
+States: tracking_state is the page's real branch.
+  "ready": badge, stepper, current-step facts, timeline.
+  "empty": no order to track for this reference (_empty_state).
+  "error": tracking store failed (bw_alert danger).
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: inherits shell/centred.html; stepper is a native <ol> with
+  aria-current="step"; badge and timeline carry meaning in words. Covered by
+  the archetype harness's full gate sweep at every W0.1 breakpoint, both
+  themes.
+Responsive: inherits shell/centred.html; stepper stacks below
+  --bw-breakpoint-md.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}{% if tracking_state == "error" %}Tracking unavailable - Northwind{% elif tracking_state == "empty" %}Order not found - Northwind{% else %}Order ORD-1042 - Northwind{% endif %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% if tracking_state == "empty" %}
+  <h1 class="bw-page-header__title">Order not found</h1>
+  {% include "brickwork/components/_empty_state.html" with heading="Nothing to track" body="Northwind has no order matching that reference. Check the number from your confirmation email, or open orders from your account." icon="search" action_href="/account/orders/" action_label="View orders" %}
+
+  {% elif tracking_state == "error" %}
+  <h1 class="bw-page-header__title">Tracking unavailable</h1>
+  {% include "brickwork/components/_alert.html" with variant="danger" title="Could not load order status" message="Northwind could not load tracking for ORD-1042. Retry in a moment, or contact support with the order reference." %}
+  <div class="bw-form__actions">
+    {% bw_button "Retry" variant="primary" href="/orders/ORD-1042/status/" %}
+    {% bw_button "Contact support" variant="ghost" href="/support/" %}
+  </div>
+
+  {% else %}
+  <h1 class="bw-page-header__title">Order ORD-1042</h1>
+  <p class="bw-page-header__description">Professional plan for Acme Corp. Placed 16 September 2026.</p>
+  {% bw_badge "Fulfilment" variant="info" %}
+
+  {% comment %}
+  Failed orders: uncomment (or render from a view flag) when fulfilment cannot
+  continue. Keep the stepper on the last reached step; do not invent a fourth
+  stepper status.
+
+  {% templatetag openblock %} include "brickwork/components/_alert.html" with variant="danger" title="Order ORD-1042 failed" message="The payment cleared but fulfilment could not reserve a seat. Support will contact priya@acme.example within one working day." {% templatetag closeblock %}
+  {% endcomment %}
+
+  {% include "brickwork/components/_stepper.html" with steps=steps %}
+
+  <h2 class="bw-page-header__title">In fulfilment now</h2>
+  <p>Provisioning the Acme Corp workspace. Expected ready by 17 September 2026.</p>
+  {% include "brickwork/components/_data_table.html" with table_id="status-facts" variant="definition" rows=status_facts %}
+
+  <h2 class="bw-page-header__title">Timeline</h2>
+  <ol>
+    <li>
+      <strong>16 September 2026, 14:02 BST</strong>
+      Order placed and payment received.
+    </li>
+    <li>
+      <strong>16 September 2026, 14:03 BST</strong>
+      Confirmation sent to priya@acme.example.
+    </li>
+    <li>
+      <strong>16 September 2026, 14:18 BST</strong>
+      Fulfilment started. Current step.
+    </li>
+  </ol>
+
+  <div class="bw-form__actions">
+    {% bw_button "View receipt" variant="primary" href="/orders/ORD-1042/receipt/" %}
+    {% bw_button "Contact support" variant="ghost" href="/support/" %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

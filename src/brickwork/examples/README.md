@@ -162,6 +162,12 @@ is also linked from there.
 | `auth/signin.html` | Sign in |
 | `auth/signup.html` | Create an account |
 | `auth/reset.html` | Request a password reset |
+| `auth/enrolment.html` | Multi-step enrolment (organisation, contact, preferences) |
+| `auth/checkout.html` | Checkout: basket, delivery, pay |
+| `auth/review.html` | Review before submit |
+| `auth/confirmation.html` | Post-submit confirmation |
+| `auth/receipt.html` | Transaction receipt |
+| `auth/status-tracking.html` | Order / request status tracking |
 | `marketing/landing.html` | Product landing page |
 | `marketing/pricing.html` | Pricing with tiers and FAQ |
 | `marketing/comparison.html` | Plan comparison matrix with recommended column and FAQ |

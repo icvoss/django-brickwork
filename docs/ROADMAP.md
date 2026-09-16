@@ -317,7 +317,18 @@ journeys on the same Brickwork brand system as the application.
 pages and dashboards.
 
 - Expand authentication, onboarding, enrolment, request, checkout, review,
-  receipt and status-tracking patterns.
+  receipt and status-tracking patterns. **Six of the six required gap
+  archetypes ship** (icvoss/django-brickwork#422 to #427), completing
+  Transactional journeys at 7 of 7 required: sign-in already shipped;
+  enrolment (`examples/auth/enrolment.html`), checkout
+  (`examples/auth/checkout.html`), review (`examples/auth/review.html`),
+  confirmation (`examples/auth/confirmation.html`), receipt
+  (`examples/auth/receipt.html`), and status tracking
+  (`examples/auth/status-tracking.html`). Sign-up and password reset remain
+  as extras beyond the required seven. Enrolment is a multi-step guided
+  journey, not a rename of `signup.html`. Confirmation is post-submit, not
+  `app/confirm.html`. Status tracking is transactional order/request status
+  on the centred shell, not `app/status-tracker.html`'s visit flow.
 - Standardise validation, save progress, interruption, retry, confirmation,
   cancellation and recovery states.
 - Add accessible date, time, address, payment and file-entry interface

@@ -1,0 +1,81 @@
+{% extends "brickwork/shell/centred.html" %}
+{% comment %}
+Checkout flow: basket → delivery details → pay (icvoss/django-brickwork#423).
+Required Transactional journeys archetype (checkout or request; this page is
+checkout).
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056). Copy once per step, or vary the step
+content by template.
+
+What your view must supply:
+    form            this step's own form (delivery / payment fields)
+    steps           [{label, status}] where status is "complete" | "current" | "upcoming"
+    order_summary   [{label, value}] definition-table facts for the basket
+    checkout_state  "ready" | "empty" | "error"
+
+This page is the mid-flow checkout step (delivery details), not the separate
+review-before-submit archetype (auth/review.html) and not a marketing pricing
+page. Brickwork ships no payment provider, cart model, or URL.
+
+HOW THE FLOW WORKS, matching app/onboarding.html: each step is an ordinary
+Django page. POSTs go to the current URL; valid saves redirect to the next
+step; invalid re-renders with bw_form errors. "Back" is a plain link.
+
+States: checkout_state is the page's real branch.
+  "ready": stepper, order summary, delivery form.
+  "empty": basket has nothing to check out (_empty_state).
+  "error": checkout could not load (bw_alert danger).
+  Form valid/invalid: bw_form renders both. LOADING: not applicable for the
+  default server-rendered path.
+Accessibility: inherits shell/centred.html; stepper uses a native <ol> with
+  aria-current="step"; summary is a definition table. Covered by the
+  archetype harness's full gate sweep at every W0.1 breakpoint, both themes.
+Responsive: inherits shell/centred.html's fluid panel; stepper stacks below
+  --bw-breakpoint-md.
+{% endcomment %}
+{% load brickwork_components brickwork_forms %}
+
+{% block page_title %}{% if checkout_state == "error" %}Checkout unavailable - Northwind{% elif checkout_state == "empty" %}Your basket - Northwind{% else %}Delivery details - Northwind{% endif %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% if checkout_state == "empty" %}
+  <h1 class="bw-page-header__title">Your basket</h1>
+  {% include "brickwork/components/_empty_state.html" with heading="Nothing to check out" body="Your basket is empty. Add a plan or add-on, then return here to enter delivery details and pay." icon="folder" action_href="/pricing/" action_label="Browse plans" %}
+
+  {% elif checkout_state == "error" %}
+  <h1 class="bw-page-header__title">Checkout unavailable</h1>
+  {% include "brickwork/components/_alert.html" with variant="danger" title="Could not load checkout" message="Northwind could not load this basket. Retry in a moment, or return to pricing and start again." %}
+  <div class="bw-form__actions">
+    {% bw_button "Retry" variant="primary" href="/checkout/delivery/" %}
+    {% bw_button "Back to pricing" variant="ghost" href="/pricing/" %}
+  </div>
+
+  {% else %}
+  <h1 class="bw-page-header__title">Delivery details</h1>
+  <p class="bw-page-header__description">Step 2 of 3. Confirm where we send the invoice, then continue to pay.</p>
+
+  {% include "brickwork/components/_stepper.html" with steps=steps %}
+
+  <h2 class="bw-page-header__title">Order summary</h2>
+  {% include "brickwork/components/_data_table.html" with table_id="checkout-summary" variant="definition" rows=order_summary %}
+
+  <div class="bw-wizard__step">
+    <form method="post" action="{{ request.path }}">
+      {% csrf_token %}
+      {% bw_form form %}
+      <div class="bw-form__actions">
+        {% bw_button "Continue to pay" type="submit" variant="primary" %}
+      </div>
+    </form>
+  </div>
+
+  <nav class="bw-wizard__nav" aria-label="Checkout navigation">
+    <a class="bw-btn bw-btn--ghost" href="/checkout/basket/">Back to basket</a>
+  </nav>
+  {% endif %}
+
+</div>
+{% endblock %}
