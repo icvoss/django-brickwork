@@ -1,0 +1,66 @@
+{% extends "brickwork/shell/centred.html" %}
+{% comment %}
+Post-submit confirmation (icvoss/django-brickwork#425). Required Transactional
+journeys archetype.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    confirmation_facts  [{label, value}] reference and next-step facts
+    confirmation_state  "ready" | "empty" | "error"
+
+WHY THIS IS NOT app/confirm.html:
+
+app/confirm.html is a destructive pre-action interrupt ("Delete the Q3
+Migration project?"). This page is the calm post-submit receipt of a
+successful transactional POST: thank you, reference number, what happens next.
+auth/receipt.html carries the printable money/line-item record; this page is
+the immediate "we have it" moment.
+
+States: confirmation_state is the page's real branch.
+  "ready": success alert, reference facts, primary next action.
+  "empty": no confirmation to show for this session (_empty_state).
+  "error": confirmation details could not be loaded (bw_alert danger).
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: inherits shell/centred.html; success meaning is in the alert
+  title and body, never colour alone. Covered by the archetype harness's full
+  gate sweep at every W0.1 breakpoint, both themes.
+Responsive: inherits shell/centred.html's fluid, no-breakpoint centred panel.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}{% if confirmation_state == "error" %}Confirmation unavailable - Northwind{% elif confirmation_state == "empty" %}No confirmation - Northwind{% else %}Order placed - Northwind{% endif %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% if confirmation_state == "empty" %}
+  <h1 class="bw-page-header__title">No confirmation</h1>
+  {% include "brickwork/components/_empty_state.html" with heading="Nothing to confirm here" body="There is no recent submission tied to this session. If you just placed an order, open it from your account, or start checkout again." icon="check" action_href="/account/orders/" action_label="View orders" %}
+
+  {% elif confirmation_state == "error" %}
+  <h1 class="bw-page-header__title">Confirmation unavailable</h1>
+  {% include "brickwork/components/_alert.html" with variant="danger" title="Could not load confirmation" message="The order may still have been placed. Check your email for ORD-1042, or open orders from your account." %}
+  <div class="bw-form__actions">
+    {% bw_button "View orders" variant="primary" href="/account/orders/" %}
+    {% bw_button "Contact support" variant="ghost" href="/support/" %}
+  </div>
+
+  {% else %}
+  <h1 class="bw-page-header__title">Order placed</h1>
+  <p class="bw-page-header__description">Thank you. We have ORD-1042 and a confirmation is on its way to priya@acme.example.</p>
+
+  {% include "brickwork/components/_alert.html" with variant="success" title="Payment received" message="The card ending 4242 was charged £348.00. Keep the reference below for your records." %}
+
+  {% include "brickwork/components/_data_table.html" with table_id="confirmation-facts" variant="definition" rows=confirmation_facts %}
+
+  <div class="bw-form__actions">
+    {% bw_button "View receipt" variant="primary" href="/orders/ORD-1042/receipt/" %}
+    {% bw_button "Track order" variant="secondary" href="/orders/ORD-1042/status/" %}
+    {% bw_button "Back to account" variant="ghost" href="/account/" %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

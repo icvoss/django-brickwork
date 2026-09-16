@@ -1,0 +1,61 @@
+{% extends "brickwork/shell/centred.html" %}
+{% comment %}
+Transaction receipt (icvoss/django-brickwork#426). Required Transactional
+journeys archetype.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056).
+
+What your view must supply:
+    receipt_facts   [{label, value}] payment and line-item facts
+    receipt_state   "ready" | "empty" | "error"
+
+Distinct from auth/confirmation.html: confirmation is the immediate
+post-submit moment; the receipt is the durable record (amounts, tax,
+payment method, bill-to) a finance contact can keep or print.
+
+States: receipt_state is the page's real branch.
+  "ready": heading, badge, definition table, download/print actions.
+  "empty": no receipt for this reference (_empty_state).
+  "error": receipt store failed (bw_alert danger).
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: inherits shell/centred.html; amounts and labels are plain
+  text in a definition table; badge meaning is in words. Covered by the
+  archetype harness's full gate sweep at every W0.1 breakpoint, both themes.
+Responsive: inherits shell/centred.html's fluid, no-breakpoint centred panel.
+{% endcomment %}
+{% load brickwork_components %}
+
+{% block page_title %}{% if receipt_state == "error" %}Receipt unavailable - Northwind{% elif receipt_state == "empty" %}Receipt not found - Northwind{% else %}Receipt ORD-1042 - Northwind{% endif %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% if receipt_state == "empty" %}
+  <h1 class="bw-page-header__title">Receipt not found</h1>
+  {% include "brickwork/components/_empty_state.html" with heading="No receipt for this reference" body="Northwind has no receipt matching that order. Check the reference, or open orders from your account." icon="document" action_href="/account/orders/" action_label="View orders" %}
+
+  {% elif receipt_state == "error" %}
+  <h1 class="bw-page-header__title">Receipt unavailable</h1>
+  {% include "brickwork/components/_alert.html" with variant="danger" title="Could not load receipt" message="Northwind could not load receipt ORD-1042. Retry in a moment, or contact support with the order reference." %}
+  <div class="bw-form__actions">
+    {% bw_button "Retry" variant="primary" href="/orders/ORD-1042/receipt/" %}
+    {% bw_button "Contact support" variant="ghost" href="/support/" %}
+  </div>
+
+  {% else %}
+  <h1 class="bw-page-header__title">Receipt ORD-1042</h1>
+  <p class="bw-page-header__description">Paid on 16 September 2026. Bill to Acme Corp, Manchester.</p>
+  {% bw_badge "Paid" variant="success" %}
+
+  {% include "brickwork/components/_data_table.html" with table_id="receipt-facts" variant="definition" rows=receipt_facts %}
+
+  <div class="bw-form__actions">
+    {% bw_button "Download PDF" variant="primary" href="/orders/ORD-1042/receipt.pdf" %}
+    {% bw_button "Track order" variant="secondary" href="/orders/ORD-1042/status/" %}
+    {% bw_button "Back to confirmation" variant="ghost" href="/orders/ORD-1042/confirmation/" %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

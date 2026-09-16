@@ -1,0 +1,82 @@
+{% extends "brickwork/shell/centred.html" %}
+{% comment %}
+Multi-step enrolment (guided signup), not a one-shot create-account page
+(icvoss/django-brickwork#422). Required Transactional journeys archetype.
+
+COPY THIS FILE into your project and edit it. It is not on the template loader
+path, so you cannot extend it (ADR-056). In practice you copy it once per step,
+or copy it once and vary the step content by template.
+
+What your view must supply:
+    form             this step's own form
+    steps            [{label, status}] where status is "complete" | "current" | "upcoming"
+    enrolment_state  "ready" | "empty" | "error"
+
+WHY ENROLMENT IS NOT signup.html:
+
+signup.html is a single create-account form. Enrolment is a guided multi-step
+journey (organisation, then contact, then preferences) with a progress indicator, the
+same server-driven step model as app/onboarding.html. Renaming signup would
+not close this gap.
+
+HOW THE FLOW WORKS, matching app/onboarding.html: brickwork ships the progress
+indicator and nothing else. Each step is an ordinary Django page at its own
+URL. Each step POSTs to itself. On valid, your view saves and redirects to the
+next step. On invalid, it re-renders with the bound form. "Back" is a plain
+link to the previous URL.
+
+States: enrolment_state is the page's real branch.
+  "ready": stepper + this step's form (bw_form renders valid/invalid inline).
+  "empty": no enrolment session to resume (_empty_state).
+  "error": the enrolment store failed (bw_alert danger).
+  LOADING: not applicable for the default server-rendered path.
+Accessibility: inherits shell/centred.html's skip link, lang/dir/theme
+  attributes and <main id="bw-main" tabindex="-1">; the stepper is a native
+  <ol> with aria-current="step" on the current step. Covered by the archetype
+  harness's full gate sweep at every W0.1 breakpoint, both themes.
+Responsive: no breakpoint switch of its own; inherits shell/centred.html's
+  fluid, no-breakpoint centred panel. The stepper stacks vertically below
+  --bw-breakpoint-md.
+{% endcomment %}
+{% load brickwork_components brickwork_forms %}
+
+{% block page_title %}{% if enrolment_state == "error" %}Enrolment unavailable - Northwind{% else %}Organisation details - Northwind{% endif %}{% endblock %}
+
+{% block content %}
+<div class="bw-section-stack">
+
+  {% if enrolment_state == "empty" %}
+  <h1 class="bw-page-header__title">Start enrolment</h1>
+  {% include "brickwork/components/_empty_state.html" with heading="No enrolment in progress" body="There is no saved enrolment session for this browser. Start again to create your organisation workspace, or sign in if you already finished." icon="user" action_href="/enrolment/organisation/" action_label="Start enrolment" %}
+
+  {% elif enrolment_state == "error" %}
+  <h1 class="bw-page-header__title">Enrolment unavailable</h1>
+  {% include "brickwork/components/_alert.html" with variant="danger" title="Could not load enrolment" message="Northwind could not load your enrolment progress. Retry in a moment, or start again from the beginning." %}
+  <div class="bw-form__actions">
+    {% bw_button "Retry" variant="primary" href="/enrolment/organisation/" %}
+    {% bw_button "Sign in instead" variant="ghost" href="/accounts/login/" %}
+  </div>
+
+  {% else %}
+  <h1 class="bw-page-header__title">Organisation details</h1>
+  <p class="bw-page-header__description">Step 1 of 3. Tell us who you are enrolling, then your contact, then preferences.</p>
+
+  {% include "brickwork/components/_stepper.html" with steps=steps %}
+
+  <div class="bw-wizard__step">
+    <form method="post" action="{{ request.path }}">
+      {% csrf_token %}
+      {% bw_form form %}
+      <div class="bw-form__actions">
+        {% bw_button "Continue" type="submit" variant="primary" %}
+      </div>
+    </form>
+  </div>
+
+  <p>
+    Already enrolled? <a href="/accounts/login/">Sign in</a>
+  </p>
+  {% endif %}
+
+</div>
+{% endblock %}
