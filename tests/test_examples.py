@@ -497,6 +497,74 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
     # onboarding renders {% bw_form form %}, the same as app/wizard.html.
     "app/onboarding.html": {**_NAV_CONTEXT, "form": _ExampleForm()},
     "app/status-tracker.html": {**_NAV_CONTEXT},
+    # Product search (#404): app-shell equivalent of docs/search-results.html.
+    # results_state distinguishes empty_query from empty_results from error
+    # from loading; conflating the empties is the defect #261 closed for docs.
+    "app/search.html": {
+        **_NAV_CONTEXT,
+        "search_action": "/search/",
+        "query": "acme",
+        "results": [
+            {
+                "title": "Invoice INV-2417",
+                "href": "/invoices/INV-2417/",
+                "snippet": "Acme Corp · £1,240.00 · Open · raised 14 July 2026.",
+                "kind": "Invoice",
+            },
+            {
+                "title": "Acme Corp",
+                "href": "/accounts/acme-corp/",
+                "snippet": "Billing contact Priya Raman · 4 open invoices.",
+                "kind": "Account",
+            },
+            {
+                "title": "Priya Raman",
+                "href": "/contacts/priya-raman/",
+                "snippet": "Finance at Acme Corp · priya@acme.example.",
+                "kind": "Contact",
+            },
+        ],
+        "results_state": "ready",
+    },
+    # Product activity (#405): feed of product events, not ops audit-trail.
+    "app/activity.html": {
+        **_NAV_CONTEXT,
+        "events": [
+            {
+                "title": "Invoice INV-2422 paid",
+                "href": "/invoices/INV-2422/",
+                "summary": "Dunmore Retail paid £1,475.00 by bank transfer.",
+                "when": "Today, 09:14",
+                "kind": "Paid",
+                "kind_variant": "success",
+            },
+            {
+                "title": "Invoice INV-2419 sent",
+                "href": "/invoices/INV-2419/",
+                "summary": "Sent to finance@carrick.example with a 14-day due date.",
+                "when": "Yesterday, 16:02",
+                "kind": "Sent",
+                "kind_variant": "info",
+            },
+            {
+                "title": "Reminder for INV-2418",
+                "href": "/invoices/INV-2418/",
+                "summary": "First reminder emailed to Halden Group.",
+                "when": "2 days ago",
+                "kind": "Reminder",
+                "kind_variant": "warning",
+            },
+            {
+                "title": "Contact added on Acme Corp",
+                "href": "/accounts/acme-corp/",
+                "summary": "Jamie Cole added as warehouse manager.",
+                "when": "4 days ago",
+                "kind": "Account",
+                "kind_variant": "neutral",
+            },
+        ],
+        "activity_state": "ready",
+    },
     "ops/data-empty-error.html": {
         **_NAV_CONTEXT,
         "data_state": "ready",
@@ -2608,3 +2676,84 @@ def test_the_ops_data_empty_error_states_are_mutually_exclusive() -> None:
     for html, label in ((empty, "empty"), (error, "error"), (loading, "loading")):
         assert "bw-nav" in html, f"the {label} branch dropped sidebar nav"
         assert "Export jobs" in html, f"the {label} branch dropped the page header"
+
+
+def test_the_app_search_states_are_mutually_exclusive() -> None:
+    """app/search.html distinguishes empty_query, empty_results, error, loading and ready (#404)."""
+    template = _example_engine().get_template("app/search.html")
+    base = dict(_EXAMPLE_CONTEXTS["app/search.html"])
+
+    ready = template.render(Context({**base, "results_state": "ready"}))
+    empty_query = template.render(Context({**base, "results_state": "empty_query", "query": "", "results": ()}))
+    empty_results = template.render(
+        Context({**base, "results_state": "empty_results", "query": "xyzzy", "results": ()})
+    )
+    error = template.render(Context({**base, "results_state": "error", "results": ()}))
+    loading = template.render(Context({**base, "results_state": "loading", "results": ()}))
+
+    assert "bw-card--interactive" in ready
+    assert "Invoice INV-2417" in ready
+    assert "bw-empty-state" not in ready
+    assert 'role="alert"' not in ready
+    assert 'aria-busy="true"' not in ready
+
+    assert "No query yet" in empty_query
+    assert "bw-card--interactive" not in empty_query
+    assert "No results" not in empty_query
+
+    assert "No results" in empty_results
+    assert "No query yet" not in empty_results
+    assert "bw-card--interactive" not in empty_results
+
+    assert 'role="alert"' in error
+    assert "bw-card--interactive" not in error
+    assert "bw-empty-state" not in error
+
+    assert 'aria-busy="true"' in loading
+    assert "bw-skeleton" in loading
+    assert "bw-card--interactive" not in loading
+    assert "bw-empty-state" not in loading
+    assert 'role="alert"' not in loading
+
+    for html, label in (
+        (ready, "ready"),
+        (empty_query, "empty_query"),
+        (empty_results, "empty_results"),
+        (error, "error"),
+        (loading, "loading"),
+    ):
+        assert 'role="search"' in html, f"the {label} branch dropped topbar search"
+
+
+def test_the_app_activity_states_are_mutually_exclusive() -> None:
+    """app/activity.html distinguishes ready, empty, error and loading (#405)."""
+    template = _example_engine().get_template("app/activity.html")
+    base = dict(_EXAMPLE_CONTEXTS["app/activity.html"])
+
+    ready = template.render(Context({**base, "activity_state": "ready"}))
+    empty = template.render(Context({**base, "activity_state": "empty", "events": ()}))
+    error = template.render(Context({**base, "activity_state": "error", "events": ()}))
+    loading = template.render(Context({**base, "activity_state": "loading", "events": ()}))
+
+    assert "bw-list-item" in ready
+    assert "Invoice INV-2422 paid" in ready
+    assert "bw-badge" in ready
+    assert "Attention needed" in ready
+    assert "bw-empty-state" not in ready
+    assert 'aria-busy="true"' not in ready
+
+    assert "No activity yet" in empty
+    assert "bw-empty-state" in empty
+    assert "bw-list-item" not in empty
+    assert "Attention needed" not in empty
+    assert 'role="alert"' not in empty
+
+    assert 'role="alert"' in error
+    assert "Activity unavailable" in error
+    assert "bw-list-item" not in error
+    assert "bw-empty-state" not in error
+
+    assert 'aria-busy="true"' in loading
+    assert "bw-skeleton" in loading
+    assert "bw-list-item" not in loading
+    assert "bw-empty-state" not in loading

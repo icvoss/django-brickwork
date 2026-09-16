@@ -112,7 +112,7 @@ accessibility contract rather than introducing a second design language.
 ## Current state and next work
 
 At **3.33.0** the catalogue ships Documentation and Editorial at **7/7**
-required archetypes, Product applications at **13**, Data-heavy operations at
+required archetypes, Product applications at **15**, Data-heavy operations at
 **7/7**, Marketing and public web at **4**, and Transactional journeys at **3**
 (see [POSITIONING.md](POSITIONING.md) section 1 and gated section 5 counts).
 Foundations, six shells, Theme L1 to L4, core interaction and form primitives,
