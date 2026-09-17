@@ -156,6 +156,26 @@
       "$description": "Marketing brand-slot logo height (#83, ADR-054 beautiful-by-default): the default cap the marketing shell applies to an img/svg dropped into brand_logo or brand_wordmark, so an unconstrained mark/lockup renders at a sensible header size (2rem, the 32px end of the conventional 28-32px header-logo range) with width following the intrinsic ratio, out of the box. A consumer overrides the token to resize, or targets the zero-specificity shell rule directly."
     }
   },
+  "hero": {
+    "$description": "Hero decoration slot (#645): a watermark/stamp behind the copy on the ordinary surface. Applied only when the decoration region has content.",
+    "decoration": {
+      "opacity": {
+        "$type": "number",
+        "$value": "0.16",
+        "$description": "Default fade for a brand stamp behind hero copy (icvoss.com evidence: 16% opacity). Decorative only; never relied on for contrast."
+      },
+      "inset": {
+        "$type": "dimension",
+        "$value": "{size.space.8}",
+        "$description": "Block-start offset for the decoration; the CSS flips the sign for inset-inline-end so the mark hangs slightly past the trailing edge by the same magnitude."
+      },
+      "size": {
+        "$type": "dimension",
+        "$value": "14rem",
+        "$description": "Default inline size of the decoration mark, capped further at 50% of the hero in CSS so a large SVG cannot dominate the band."
+      }
+    }
+  },
   "topbar": {
     "position": {
       "$type": "other",
