@@ -27,6 +27,7 @@ _CHROME_2XS_SELECTORS = frozenset(
         ".bw-feature-card__badge",
         ".bw-feature-card__eyebrow",
         ".bw-feature-card__cta",
+        ".bw-directory__number",
         ".bw-token-specimen__flag",
         ".bw-token-specimen__value",
         ".bw-token-specimen__pair-floor",

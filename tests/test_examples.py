@@ -1689,6 +1689,35 @@ _SECTION_FEATURE_LIST_ITEMS = [
     "VAT returns prepared and filed",
     "Export to CSV, or the API if you would rather",
 ]
+_SECTION_DIRECTORY_ITEMS = [
+    {
+        "number": "01",
+        "icon": "folder",
+        "heading": "django-brickwork",
+        "url": "/packages/django-brickwork/",
+        "body": "The professional UI substrate for server-rendered Django.",
+        "version": "3.34.0",
+        "status": "Stable",
+        "install": "pip install django-brickwork",
+    },
+    {
+        "number": "02",
+        "icon": "file",
+        "heading": "django-icv-tree",
+        "url": "/packages/django-icv-tree/",
+        "body": "Materialised-path trees with a settings-string FK contract.",
+        "version": "1.4.0",
+        "status": "Stable",
+        "install": "pip install django-icv-tree",
+    },
+    {
+        "number": "03",
+        "heading": "django-boundary",
+        "body": "Tenant boundary mixins a consumer composes itself.",
+        "version": "0.9.0",
+        "status": "Beta",
+    },
+]
 _SECTION_COMPARISON_PLANS = [
     "Solo, £9 a month",
     "Team, £29 a month",
@@ -1808,6 +1837,7 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/features/alternating-rows.html": {"feature_rows": _SECTION_FEATURE_ROWS},
     "sections/features/icon-grid.html": {"features": _SECTION_FEATURES},
     "sections/features/simple-list.html": {"feature_list_items": _SECTION_FEATURE_LIST_ITEMS},
+    "sections/directory/numbered.html": {"directory_items": _SECTION_DIRECTORY_ITEMS},
     "sections/hero/centred.html": {},
     "sections/hero/media-behind.html": {},
     "sections/hero/minimal.html": {},

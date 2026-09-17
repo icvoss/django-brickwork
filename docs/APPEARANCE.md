@@ -124,6 +124,7 @@ or first-class include does **not** count.
 |---|---|
 | Hero | `_hero.html` `media_placement="below"` (default), `"behind"`, `"beside"`, `"above"` |
 | Features | `_feature_grid.html` (icon grid); `_feature_rows.html` (alternating); `_feature_list.html` (checklist) |
+| Directory | `_directory.html` (numbered index with optional mark, linked title, description and meta column) |
 | CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` |
 | Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_comparison_table.html` (marketing `_pricing_comparison.html` wrapper) |
 | Person | `_portrait.html` (`align="start"` default / `"end"`, constrained 3:4 image + CTAs); `_bio.html` (compact strip, optional profile link). Not `_testimonial.html` and not the Editorial author archetype |
@@ -183,6 +184,7 @@ Status values:
 | data_table | Adopted | `density`; muted header + row hover authored Phase A/C |
 | date_picker_chrome | Adopted | Field/panel chrome only; no date engine (BR-BW-INPUT-004) |
 | disclosure | N/A (local) | `variant` bordered/divided; card framing refused |
+| directory | N/A (local) | Marketing numbered index; list data, not shared surface |
 | divider | Adopted | `tone`, `spacing` |
 | dropdown | N/A (defaults) | Panel elevation/radius authored Phase A |
 | dropzone | N/A (defaults) | Dashed/raised default authored Phase A |

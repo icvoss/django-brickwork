@@ -843,6 +843,24 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         heading="What is included",
         items=["Unlimited invoices", "Automatic reminders"],
     ),
+    "_directory (marketing: numbered index)": lambda: _include(
+        "brickwork_marketing/components/_directory.html",
+        heading="Packages",
+        lede="Public packages on the index.",
+        items=[
+            {
+                "number": "01",
+                "icon": "folder",
+                "heading": "django-brickwork",
+                "url": "/packages/django-brickwork/",
+                "body": "The professional UI substrate.",
+                "version": "3.34.0",
+                "status": "Stable",
+                "install": "pip install django-brickwork",
+            },
+            {"heading": "django-icv-core", "body": "Shared helpers."},
+        ],
+    ),
     "_cta_split (marketing: mid-page split)": lambda: _include(
         "brickwork_marketing/components/_cta_split.html",
         heading="Try it on last month's invoices",

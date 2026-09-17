@@ -2705,3 +2705,182 @@
   color: var(--bw-color-fg-muted);
   letter-spacing: 0.02em;
 }
+
+/* Directory / numbered index (#647) ---------------------------------------- */
+
+.bw-directory-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.bw-directory-section__intro {
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-block-end: var(--bw-space-6);
+}
+
+.bw-directory-section__heading {
+  margin: 0;
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
+}
+
+.bw-directory-section__lede {
+  margin: var(--bw-space-2) 0 0;
+  color: var(--bw-color-fg-muted);
+  text-wrap: pretty;
+}
+
+.bw-directory {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bw-directory__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--bw-space-4);
+  row-gap: var(--bw-space-3);
+  align-items: start;
+  padding-block: var(--bw-space-5);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-directory__item:first-child {
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-directory__item--mark {
+  grid-template-columns: auto auto 1fr;
+}
+
+/* Overline role for the numeral (issue: typography is out of scope beyond
+ * that role). tabular-nums keeps 01/10 aligned in a column. */
+.bw-directory__number {
+  font-family: var(--bw-text-overline-family);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  line-height: var(--bw-text-overline-line-height);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
+  color: var(--bw-color-fg-muted);
+  font-variant-numeric: tabular-nums;
+  margin-block-start: 0.35em;
+}
+
+.bw-directory__mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  color: var(--bw-color-accent);
+}
+
+.bw-directory__icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.bw-directory__mark :where(img, svg) {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+}
+
+.bw-directory__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+  min-inline-size: 0;
+}
+
+.bw-directory__title {
+  margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+
+/* Title-only link (media-list pattern): full-row anchors would swallow the
+ * meta column. min-block-size meets the WCAG 2.5.8 24px floor. */
+.bw-directory__link {
+  display: block;
+  min-block-size: 1.5rem;
+  color: inherit;
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-directory__link:hover,
+.bw-directory__link:focus-visible {
+  color: var(--bw-color-accent);
+  text-decoration: underline;
+}
+
+.bw-directory__body {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+  text-wrap: pretty;
+}
+
+.bw-directory__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
+  align-items: flex-start;
+  grid-column: 1 / -1;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
+
+.bw-directory__version {
+  font-variant-numeric: tabular-nums;
+  color: var(--bw-color-fg);
+  font-weight: var(--bw-font-weight-medium);
+}
+
+.bw-directory__status {
+  color: var(--bw-color-fg-muted);
+}
+
+.bw-directory__install {
+  font-family: var(--bw-font-family-mono);
+  font-size: inherit;
+  color: var(--bw-color-fg-muted);
+}
+
+@media (width >= --theme(--breakpoint-md)) {
+  .bw-directory__item {
+    grid-template-columns: 3rem 1fr;
+    column-gap: var(--bw-space-6);
+    align-items: center;
+  }
+
+  .bw-directory__item--mark {
+    grid-template-columns: 3rem auto 1fr;
+  }
+
+  .bw-directory__item--meta {
+    grid-template-columns: 3rem 1fr minmax(10rem, 14rem);
+  }
+
+  .bw-directory__item--mark.bw-directory__item--meta {
+    grid-template-columns: 3rem auto 1fr minmax(10rem, 14rem);
+  }
+
+  .bw-directory__meta {
+    grid-column: auto;
+    align-items: flex-end;
+    text-align: end;
+  }
+}
