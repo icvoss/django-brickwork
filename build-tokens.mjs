@@ -60,6 +60,9 @@ const RENAMES = new Map([
   // Component tier: the canonical --bw-component-* grammar for the un-infixed
   // component tokens.
   ["bw-button-radius", "bw-component-button-radius"],
+  ["bw-button-elevation", "bw-component-button-elevation"],
+  ["bw-button-elevation-hover", "bw-component-button-elevation-hover"],
+  ["bw-button-hover-translate", "bw-component-button-hover-translate"],
   ["bw-icon-stroke-width", "bw-component-icon-stroke-width"],
   ["bw-content-max-width", "bw-component-content-max-width"],
   ["bw-content-max-width-marketing", "bw-component-content-max-width-marketing"],

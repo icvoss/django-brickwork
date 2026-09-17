@@ -547,9 +547,14 @@ dark under `[data-theme="dark"]`.
 resting = 1 (auth and centred panels: 2, they sit alone on a sunken page);
 interactive card hover = 2; dropdown, popover, account-menu panel = 3 (the
 fix for the hardcoded `0 4px 12px` literal); mobile drawer panel and modal
-= 4; toast = 5; topbar = border-only by default (a brand may add 2). The
-modal, toast, and popover entries are forward-looking (each row lands
-with its component); the card row shipped in 0.5.0 (_card.html).
+= 4; toast = 5; topbar = border-only by default (a brand may add 2).
+Primary, secondary, and danger buttons rest on
+`--bw-component-button-elevation` (default `var(--bw-elevation-1)`), with
+hover reading `--bw-component-button-elevation-hover` and optional
+`--bw-component-button-hover-translate` (icvoss/django-brickwork#649), so a
+brand can lift buttons without moving card/panel elevation. The modal,
+toast, and popover entries are forward-looking (each row lands with its
+component); the card row shipped in 0.5.0 (_card.html).
 
 ## 6. Spacing, radius, borders, z-index, sizing
 
@@ -627,7 +632,8 @@ through `-2xl`); it is distinct from the inline instance property
 `--bw-icon-size` (no step suffix, set per-icon by `{% bw_icon %}`), which is
 unchanged and is not a scale token.
 
-The un-infixed component tokens below (button radius, icon stroke width,
+The un-infixed component tokens below (button radius, button elevation,
+button hover translate, icon stroke width,
 content max-width, topbar position, disabled opacity, menu min-width,
 select indicator, checkbox glyph, stat-tile value size, drawer width, toast
 max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
@@ -635,6 +641,10 @@ max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
 
 | Token | Value | Notes |
 |---|---|---|
+| `--bw-component-button-radius` | `var(--bw-radius-md)` | button corner radius; tracks the md radius step so an L3 radius pack moves buttons |
+| `--bw-component-button-elevation` **[NEW, #649]** | `var(--bw-elevation-1)` | resting shadow for primary / secondary / danger (non-disabled); override to separate buttons from card/panel elevation |
+| `--bw-component-button-elevation-hover` **[NEW, #649]** | `var(--bw-component-button-elevation)` | hover shadow for those variants; defaults to resting so hover is a no-op until authored |
+| `--bw-component-button-hover-translate` **[NEW, #649]** | `0` | `translateY()` offset on hover; default `0` is byte-identical; suppressed under `prefers-reduced-motion: reduce` |
 | `--bw-component-icon-size-2xl` **[NEW]** | `2.5rem` | empty-state hero icons; was `--bw-icon-size-2xl` / `--bw-size-icon-2xl` through 0.10.0, kept as courtesy aliases |
 | `--bw-size-control-height-sm` **[NEW]** | `2rem` | fixed, not density-scaled (sm × compact would break touch targets) |
 | `--bw-size-control-height-md` **[NEW]** | `var(--bw-density-control-height)` | alias of the density token |

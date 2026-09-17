@@ -55,6 +55,9 @@
   --bw-component-icon-size-2xl: 2.5rem;
   --bw-component-icon-stroke-width: 2;
   --bw-component-button-radius: var(--bw-radius-md);
+  --bw-component-button-elevation: var(--bw-elevation-1);
+  --bw-component-button-elevation-hover: var(--bw-component-button-elevation);
+  --bw-component-button-hover-translate: 0;
   --bw-component-menu-min-width: 12rem;
   --bw-component-select-indicator: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='oklch(0.55 0.01 265)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
   --bw-component-checkbox-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m2.5 6.5 2.5 2.5 4.5-5.5'/%3E%3C/svg%3E");
@@ -520,6 +523,9 @@
  * kept under their old names so a 0.10.0 consumer does not break on this
  * minor. Time-boxed for the 0.x window; prefer the canonical names. */
 :root {
+  --bw-button-elevation: var(--bw-component-button-elevation);
+  --bw-button-elevation-hover: var(--bw-component-button-elevation-hover);
+  --bw-button-hover-translate: var(--bw-component-button-hover-translate);
   --bw-button-radius: var(--bw-component-button-radius);
   --bw-checkbox-glyph: var(--bw-component-checkbox-glyph);
   --bw-color-breadcrumb-current: var(--bw-component-breadcrumb-current);
