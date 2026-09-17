@@ -301,7 +301,7 @@ sight, and are refreshed by hand at the next audit.
 
 | Fact | Value | Note |
 |---|---|---|
-| Components | 70 | 51 core, 19 marketing. **Gated** against `catalogue-manifest.json` |
+| Components | 71 | 52 core, 19 marketing. **Gated** against `catalogue-manifest.json` |
 | Shells | 6 | base, app, auth, centred, docs, marketing. **Gated** against `catalogue-manifest.json` |
 | Sections | 32 | **Gated** against `catalogue-manifest.json` |
 | Archetypes | 52 | **Gated** against `catalogue-manifest.json`. `examples/base.html` moved out of this count into its own `skeleton` kind (icvoss/django-brickwork#464): it is a raw document skeleton a consumer copies, not a complete page, and was the only archetype ever carrying `family: null` |

@@ -191,6 +191,7 @@ Status values:
 | filter_bar | N/A (defaults) | Raised surface + field rhythm authored Phase A |
 | gauge | N/A (defaults) | Track/rail contrast authored |
 | hero | N/A (local) | `align`, `media_placement`; optional `band` refused (behind already inverse) |
+| input_group | Adopted | Lean; prefix/suffix text and icons; no closed appearance axes |
 | list_item | Adopted | `density` |
 | logo_cloud | N/A (defaults) | Quieter spacing authored Phase A |
 | marketing_footer_groups | N/A (local) | P0 shipped; groups/columns are data, not shared surface |
@@ -249,7 +250,6 @@ do **not** block suite Phase 5 or beat programme close.
 |---|---|---|
 | timeline | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
 | saved_views | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
-| input_group | N/A (deferred) | Forms demand |
 | date_picker_chrome | N/A (deferred) | Archetype chrome only; engine stays consumer |
 | comparison_table | N/A (deferred) | Marketing section exists; component promote on demand |
 | toc | N/A (deferred) | Docs family |

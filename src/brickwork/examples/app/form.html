@@ -76,7 +76,42 @@ Responsive: no breakpoint switch of its own; inherits shell/app.html's
         hx-target="this"
         hx-swap="outerHTML">
     {% csrf_token %}
-    {% bw_form form %}
+    {% comment %}
+    Stacked fields with the amount control wrapped in input_group for a
+    currency prefix (icvoss/django-brickwork#624). Other fields use the
+    ordinary _field.html chrome; non-field errors stay above the stack.
+    {% endcomment %}
+    {% include "brickwork/forms/_form_errors.html" with form=form %}
+    <div class="bw-form-fields bw-form-fields--stacked">
+      {% for field in form.visible_fields %}
+        <div class="bw-field-row">
+          {% if field.name == "amount" %}
+            {% with errors=field.errors help_id=field.auto_id|add:"_help" error_id=field.auto_id|add:"_errors" %}
+            <div class="bw-field{% if errors %} bw-field--invalid{% endif %}">
+              <label class="bw-field__label" {% bw_attr "for" field.id_for_label %}>
+                {{ field.label }}{% if field.field.required %} <span class="bw-field__required" aria-hidden="true">*</span>{% endif %}
+              </label>
+              <div class="bw-field__control">
+                {% bw_field_widget field as amount_widget %}
+                {% include "brickwork/components/_input_group.html" with prefix="£" field=amount_widget %}
+              </div>
+              {% if field.help_text %}
+                <p class="bw-field__help" id="{{ help_id }}">{{ field.help_text }}</p>
+              {% endif %}
+              <div class="bw-field__errors" id="{{ error_id }}" role="alert">
+                {% for error in errors %}
+                  <p class="bw-field__error">{{ error }}</p>
+                {% endfor %}
+              </div>
+            </div>
+            {% endwith %}
+          {% else %}
+            {% include "brickwork/forms/_field.html" with field=field %}
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
 
     {% comment %}
     The submit sits INSIDE the form, beside the fields. A cancel link beside

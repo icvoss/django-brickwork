@@ -994,6 +994,11 @@ __CSS__
     <h2 id="date-heading">Date field</h2>
     __DATE_FIELD__
   </section>
+
+  <section aria-labelledby="input-group-heading">
+    <h2 id="input-group-heading">Input group</h2>
+    __INPUT_GROUP__
+  </section>
 </main>
 </body>
 </html>
@@ -1035,6 +1040,40 @@ def _render_date_field_fixture() -> str:
     return f'<div class="bw-field">{label}<div class="bw-field__control">{widget}</div></div>'
 
 
+def _render_input_group_fixture() -> str:
+    """Currency prefix + search-icon prefix around real bw-input controls (#624)."""
+    from django import forms
+    from django.template import Context, Template
+    from django.utils.safestring import mark_safe
+
+    class _AmountForm(forms.Form):
+        amount = forms.DecimalField(label="Amount", max_digits=10, decimal_places=2)
+
+    field = _AmountForm()["amount"]
+    amount = Template(
+        "{% load brickwork_forms %}"
+        '<div class="bw-field">'
+        '<label class="bw-field__label" for="{{ field.id_for_label }}">{{ field.label }}</label>'
+        '<div class="bw-field__control">'
+        "{% bw_field_widget field as amount_widget %}"
+        '{% include "brickwork/components/_input_group.html" with prefix="£" field=amount_widget %}'
+        "</div></div>"
+    ).render(Context({"field": field}))
+    domain_control = mark_safe(  # noqa: S308 (fixture-authored trusted markup)
+        '<input class="bw-input" type="text" id="id_domain" name="domain" value="acme">'
+    )
+    domain = render_to_string(
+        "brickwork/components/_input_group.html",
+        {"prefix_icon": "search", "suffix": ".example", "field": domain_control},
+    )
+    return (
+        f"{amount}"
+        f'<div class="bw-field" style="margin-block-start:1rem">'
+        f'<label class="bw-field__label" for="id_domain">Domain</label>'
+        f'<div class="bw-field__control">{domain}</div></div>'
+    )
+
+
 def render_inputs(theme: str) -> str:
     css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
     return (
@@ -1044,6 +1083,7 @@ def render_inputs(theme: str) -> str:
         .replace("__TAG_INPUT__", _render_tag_input_fixture())
         .replace("__DROPZONE__", _render_dropzone_fixture())
         .replace("__DATE_FIELD__", _render_date_field_fixture())
+        .replace("__INPUT_GROUP__", _render_input_group_fixture())
     )
 
 
