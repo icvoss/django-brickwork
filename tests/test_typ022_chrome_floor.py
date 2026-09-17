@@ -24,6 +24,7 @@ _CHROME_2XS_SELECTORS = frozenset(
         ".bw-nav__section-label",
         ".bw-hero__eyebrow",
         ".bw-listing-card__tag",
+        ".bw-directory__number",
         ".bw-token-specimen__flag",
         ".bw-token-specimen__value",
         ".bw-token-specimen__pair-floor",

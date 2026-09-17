@@ -478,6 +478,7 @@ def test_marketing_section_intros_read_heading_section_not_heading_xl() -> None:
         ".bw-cta__heading",
         ".bw-faq-section__heading",
         ".bw-listing-section__heading",
+        ".bw-directory-section__heading",
     ):
         match = re.search(rf"{re.escape(selector)}\s*\{{([^}}]+)\}}", marketing)
         assert match, f"missing {selector} rule in marketing.css"

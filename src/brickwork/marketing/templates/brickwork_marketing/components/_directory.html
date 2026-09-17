@@ -1,0 +1,77 @@
+{% load brickwork_icons %}
+{% comment %}
+Directory (icvoss/django-brickwork#647): an ordered index of entries with an
+optional numeral, icon or logo, linked title, description, and meta column
+(version, status, install command). Structural sibling of _feature_list.html
+and the listing examples: a real <ol>, not a card grid and not a checklist.
+
+Required context: none.
+
+Optional context:
+  heading (str): section intro heading.
+  lede    (str): section intro body.
+  items   (list of dicts): {
+            number?,   # str or int; omitted, the loop counter is used
+            icon?,     # registry name, rendered via {% bw_icon %} decorative
+            logo?,     # pre-rendered safe HTML (img or svg); preferred over
+                       # icon when both are present
+            heading,   # entry title
+            url?,      # when present, the title alone is the link (kit hover
+                       # affordance); the row is never a full-row anchor
+            body?,     # description
+            version?,  # meta column
+            status?,   # meta column
+            install?,  # meta column; rendered in <code>
+          }. List-shaped, so supply from context (#98). An empty (or omitted)
+          items list renders the intro alone (or nothing if that too is
+          empty), never a fabricated placeholder row. Absent optional fields
+          are omitted from the markup.
+
+States: none. A linked title takes the standard link hover ink shift and the
+  global :focus-visible ring; an unlinked title has no interactive state.
+Accessibility: section h2, each entry h3; a real <ol> (default markers
+  suppressed; the visible numeral is the overline role, never list-style).
+  Icons are decorative. Logo alt text is the caller's responsibility.
+  Covered via sections-*.html after the example collapses to this include.
+Responsive: stack below --bw-breakpoint-md; number | mark | main | meta
+  columns from md up.
+{% endcomment %}
+{% if heading or lede or items %}
+<section class="bw-directory-section">
+  {% if heading or lede %}
+    <div class="bw-directory-section__intro">
+      {% if heading %}<h2 class="bw-directory-section__heading">{{ heading }}</h2>{% endif %}
+      {% if lede %}<p class="bw-directory-section__lede">{{ lede }}</p>{% endif %}
+    </div>
+  {% endif %}
+  {% if items %}
+    <ol class="bw-directory">
+      {% for item in items %}
+        <li class="bw-directory__item{% if item.logo or item.icon %} bw-directory__item--mark{% endif %}{% if item.version or item.status or item.install %} bw-directory__item--meta{% endif %}">
+          <span class="bw-directory__number">{% firstof item.number forloop.counter %}</span>
+          {% if item.logo or item.icon %}
+            <span class="bw-directory__mark">
+              {% if item.logo %}{{ item.logo }}{% else %}{% bw_icon item.icon size="md" decorative=True css_class="bw-directory__icon" %}{% endif %}
+            </span>
+          {% endif %}
+          <div class="bw-directory__main">
+            {% if item.heading %}
+              <h3 class="bw-directory__title">
+                {% if item.url %}<a class="bw-directory__link" href="{{ item.url }}">{{ item.heading }}</a>{% else %}{{ item.heading }}{% endif %}
+              </h3>
+            {% endif %}
+            {% if item.body %}<p class="bw-directory__body">{{ item.body }}</p>{% endif %}
+          </div>
+          {% if item.version or item.status or item.install %}
+            <div class="bw-directory__meta">
+              {% if item.version %}<span class="bw-directory__version">{{ item.version }}</span>{% endif %}
+              {% if item.status %}<span class="bw-directory__status">{{ item.status }}</span>{% endif %}
+              {% if item.install %}<code class="bw-directory__install">{{ item.install }}</code>{% endif %}
+            </div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+</section>
+{% endif %}

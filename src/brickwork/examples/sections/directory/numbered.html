@@ -1,0 +1,36 @@
+{% comment %}
+DIRECTORY / numbered: an ordered catalogue of entries (package index,
+changelog index, team roster, docs index).
+
+WHEN TO USE THIS INSTEAD OF LISTING OR FEATURE LIST. Listing is blog-style
+cards, media rows or a compact table. Feature list is a ticked checklist of
+short inclusions. This is the numbered index with an optional mark, a linked
+title, a description, and a meta column (version, status, install command).
+
+WHAT YOUR VIEW MUST SUPPLY. Pass directory_items as items (list of dicts):
+
+    directory_items = [
+        {
+            "number": "01",
+            "icon": "folder",
+            "heading": "django-brickwork",
+            "url": "/packages/django-brickwork/",
+            "body": "The professional UI substrate for server-rendered Django.",
+            "version": "3.34.0",
+            "status": "Stable",
+            "install": "pip install django-brickwork",
+        },
+        ...
+    ]
+
+`number`, `icon`/`logo`, `url`, `body`, `version`, `status` and `install`
+are each optional per item. Omit a field and it does not render. Without
+`number`, the loop counter is used. Prefer `logo` (pre-rendered safe HTML)
+over `icon` (registry name) when both are present.
+
+States: see _directory.html.
+Accessibility: see _directory.html; covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: see _directory.html.
+{% endcomment %}
+{% include "brickwork_marketing/components/_directory.html" with heading="Packages" lede="Every public package on the index, in the order they ship." items=directory_items %}
