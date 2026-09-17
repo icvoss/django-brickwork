@@ -1108,6 +1108,7 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "author_href": "/journal/authors/amira-okonkwo/",
         "author_initials": "AO",
         "published_on": "12 August 2026",
+        "published_iso": "2026-08-12",
         "reading_time": "8 min read",
         "category_label": "Operations",
         "category_href": "/journal/operations/",
@@ -2593,6 +2594,7 @@ def test_the_editorial_article_empty_and_error_states_replace_the_body() -> None
     error = template.render(Context({**base, "article_state": "error"}))
 
     assert "Why we moved reminder thresholds" in ready
+    assert "bw-article-meta" in ready
     assert "bw-avatar" in ready
     assert "bw-prose" in ready
     assert "bw-docs-toc" in ready

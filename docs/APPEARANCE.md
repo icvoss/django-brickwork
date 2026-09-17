@@ -160,6 +160,7 @@ Status values:
 |---|---|---|
 | account_menu | N/A (defaults) | Panel elevation/radius authored with dropdown in Phase A |
 | alert | N/A (local) | `variant` already tints; denser padding authored Phase A; shared `surface` refused |
+| article_meta | Adopted | First-class editorial byline composition; no shared axis (keep lean) |
 | avatar | Adopted | `size`, `shape` via `{% bw_options %}` |
 | avatar_group | N/A (local) | `size` / overlap craft; no extra shared axis |
 | badge | N/A (local) | Intent via `variant`; soft/outline `tone` stays Could |
@@ -253,7 +254,6 @@ do **not** block suite Phase 5 or beat programme close.
 | date_picker_chrome | N/A (deferred) | Archetype chrome only; engine stays consumer |
 | comparison_table | N/A (deferred) | Marketing section exists; component promote on demand |
 | toc | N/A (deferred) | Docs family |
-| article_meta | N/A (deferred) | Editorial family |
 
 ### Phase 6 P2 (deferred; explicit N/A)
 

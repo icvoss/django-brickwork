@@ -13,8 +13,9 @@ What your view must supply:
     docs_search_action       the URL bw_search in the site header submits to
     author_name              display name in the byline
     author_href              author profile URL (full author page is #416)
-    author_initials          initials fallback for {% include %} _avatar.html
+    author_initials          initials fallback for _article_meta avatar
     published_on             visible publication date string
+    published_iso            machine date for <time datetime> (e.g. "2026-08-12")
     reading_time             visible reading-time string (e.g. "8 min read")
     category_label           category badge text (full category page is #417)
     category_href            category listing URL
@@ -81,12 +82,7 @@ Responsive: inherits the docs shell; bw-prose holds the 65ch measure; the
   <p>
     {% translate "Three days beats seven when the goal is a conversation, not a chase. The evidence from six hundred Northwind accounts." %}
   </p>
-  <p>
-    {% include "brickwork/components/_avatar.html" with initials=author_initials aria_label=author_name size="sm" %}
-    <a href="{{ author_href }}">{{ author_name }}</a>
-    · <time datetime="2026-08-12">{{ published_on }}</time>
-    · {{ reading_time }}
-  </p>
+  {% include "brickwork/components/_article_meta.html" with author_name=author_name author_href=author_href author_initials=author_initials published_on=published_on published_iso=published_iso reading_time=reading_time %}
   {% elif article_state == "empty" %}
   <h1>{% translate "Article unavailable" %}</h1>
   <p>{% translate "This piece is not published yet." %}</p>
