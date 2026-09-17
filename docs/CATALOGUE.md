@@ -151,7 +151,8 @@ taking the archetype count from 22 to 27 and the item total from 107 to 112.
 Beat Phase B (icvoss/django-brickwork#542) then added eight P0 primitives
 (divider, avatar, avatar_group, chip, button_group, callout, list_item,
 marketing_footer_groups), taking components from 51 to 59 and the item total
-from 113 to 121. The 40th component was
+from 113 to 121. `article_meta` (#625) later added the editorial byline row.
+The 40th component was
 `_theme_switch.html` (W0.4, icvoss/django-brickwork#228), the 41st was
 `_ranked_list.html` (#183), and the 42nd was `_chart_card.html`, all shipped
 after this document's original W0.2 baseline of 39 was written. Wave 1's viz

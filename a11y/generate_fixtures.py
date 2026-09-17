@@ -820,7 +820,8 @@ def render_feedback(theme: str, *, inject_js: bool = False, tooltip_open: bool =
 
 
 # Beat Phase B primitives (#542): divider, avatar(+group), chip, button_group,
-# callout, list_item. marketing_footer_groups is covered by landing-*.html.
+# callout, list_item. article_meta (#625) enrolled on the same page.
+# marketing_footer_groups is covered by landing-*.html.
 
 _PRIMITIVES_PAGE = """<!doctype html>
 <html lang="en" data-theme="__THEME__">
@@ -860,6 +861,10 @@ __CSS__
   <section aria-labelledby="list-item-heading">
     <h2 id="list-item-heading">List item</h2>
     __LIST_ITEM__
+  </section>
+  <section aria-labelledby="article-meta-heading">
+    <h2 id="article-meta-heading">Article meta</h2>
+    __ARTICLE_META__
   </section>
 </main>
 </body>
@@ -926,6 +931,21 @@ def render_primitives(theme: str) -> str:
             "meta": "14 July 2026",
         },
     )
+    article_meta = render_to_string(
+        "brickwork/components/_article_meta.html",
+        {
+            "author_name": "Amira Okonkwo",
+            "author_href": "/journal/authors/amira-okonkwo/",
+            "author_initials": "AO",
+            "published_on": "12 August 2026",
+            "published_iso": "2026-08-12",
+            "reading_time": "8 min read",
+            "tags": [
+                {"label": "Operations", "href": "/journal/operations/"},
+                {"label": "Reminders"},
+            ],
+        },
+    )
     return (
         _PRIMITIVES_PAGE.replace("__THEME__", theme)
         .replace("__CSS__", f"<style>{css}</style>")
@@ -939,6 +959,7 @@ def render_primitives(theme: str) -> str:
         .replace("__BUTTON_GROUP_SEGMENTED__", button_group_seg)
         .replace("__CALLOUT__", callout)
         .replace("__LIST_ITEM__", list_item)
+        .replace("__ARTICLE_META__", article_meta)
     )
 
 
