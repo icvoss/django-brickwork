@@ -240,20 +240,23 @@ Status values:
 | docs | N/A (defaults) | Rail active + article measure Phase A; TOC stays P1 deferred |
 | marketing | N/A (defaults) | Header/footer craft; footer groups component shipped |
 
-### Phase 4 P1 (deferred; explicit N/A)
+### Phase 4 P1
 
-These suite P1 rows stay demand-gated under INTERFACE-SYSTEM / ROADMAP. They
-do **not** block suite Phase 5 or beat programme close.
+Owner demand ruling 2026-09-17: former "demand-gated" scheduling language is
+stale for the viable-primitives cut. `timeline` and `saved_views` stay
+deferred under ADR-092; the other P1 rows are **in demand** for the next
+minor and ship as Adopted when their PRs land (do not park for lack of a
+named consumer).
 
 | Missing | Status | Notes |
 |---|---|---|
 | timeline | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
 | saved_views | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
-| input_group | N/A (deferred) | Forms demand |
-| date_picker_chrome | N/A (deferred) | Archetype chrome only; engine stays consumer |
-| comparison_table | N/A (deferred) | Marketing section exists; component promote on demand |
-| toc | N/A (deferred) | Docs family |
-| article_meta | N/A (deferred) | Editorial family |
+| input_group | In demand | Forms prefix/suffix addons |
+| date_picker_chrome | In demand | Chrome/panel only; engine stays consumer |
+| comparison_table | In demand | Promote from marketing pricing comparison |
+| toc | In demand | First-class docs control |
+| article_meta | In demand | Editorial byline/meta |
 
 ### Phase 6 P2 (deferred; explicit N/A)
 

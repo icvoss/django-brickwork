@@ -8,15 +8,22 @@ versioning contract).
 
 ## Unreleased
 
+Fragments under `changelog.d/` hold the archetype-burn entries already on
+`main` (400 to 407, 422 to 427, 614) plus any later additive work. The release
+PR assembles them; do not hand-duplicate those bullets here.
+
 ### Changed
 
 - **Beautiful-defaults Phase 5 / beat E long-tail closed.** `docs/APPEARANCE.md`
   now lists every catalogue component and shell with an Adopted or explicit
   N/A disposition (defaults authored, keep lean, compose, local, or deferred
-  P1/P2). Phase 4 P1 primitives and Phase 6 P2 command surfaces stay deferred
-  under INTERFACE-SYSTEM / ROADMAP and do not reopen the beat win claim
-  (icvoss/django-brickwork#540). Regression:
-  `tests/test_appearance_phase5.py`.
+  P1/P2). Beat programme closed (icvoss/django-brickwork#540); Phase 4 P1
+  leftovers other than ADR-092-scoped `timeline` / `saved_views` are in demand
+  for the next minor (owner ruling 2026-09-17). Phase 6 P2 command surfaces
+  stay deferred. Regression: `tests/test_appearance_phase5.py`.
+- **INTERFACE-SYSTEM current state.** Required archetype matrix complete at
+  tip (Docs/Editorial/Data-heavy/Marketing/Transactional 7/7; Product 15).
+  Next work is the viable primitives pack, not further archetype breadth.
 
 ## [3.33.0] - 2026-09-15
 

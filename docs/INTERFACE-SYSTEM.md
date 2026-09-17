@@ -111,18 +111,32 @@ accessibility contract rather than introducing a second design language.
 
 ## Current state and next work
 
-At **3.33.0** the catalogue ships Documentation and Editorial at **7/7**
-required archetypes, Product applications at **15**, Data-heavy operations at
-**7/7**, Marketing and public web at **7/7**, and Transactional journeys at **7/7**
-(see [POSITIONING.md](POSITIONING.md) section 1 and gated section 5 counts).
-Foundations, six shells, Theme L1 to L4, core interaction and form primitives,
-data-table patterns, the marketing kit and `bw-prose` are in the wheel.
+At tip (ahead of the **3.33.0** PyPI pin) the required INTERFACE-SYSTEM
+archetype matrix is complete: Documentation and Editorial **7/7**, Product
+applications **15**, Data-heavy operations **7/7**, Marketing and public web
+**7/7**, and Transactional journeys **7/7** (see [POSITIONING.md](POSITIONING.md)
+section 1 and gated section 5 counts). Foundations, six shells, Theme L1 to
+L4, core interaction and form primitives, data-table patterns, the marketing
+kit and `bw-prose` are in the wheel. Archetype burn evidence lives in
+`changelog.d/` fragments (400 to 407, 422 to 427, 614) until the next minor
+assembles them.
 
-It does **not** yet meet the full INTERFACE-SYSTEM contract. Highest-priority
-remaining gaps are marketing/public-web archetype breadth and transactional
-journeys (including checkout-class flows), plus specialist visualisation that
-must still fit the data contract rather than introduce a second design
-language.
+The next delivery cut is the **viable primitives and cheap options** pack
+(owner demand ruling 2026-09-17; former "demand-gated" P1 rows are in demand
+for this session only): `input_group`, `article_meta`, `comparison_table`
+(promote from the marketing pricing comparison), `toc` (first-class docs
+control), `date_picker_chrome` (chrome and panel only; no date engine),
+hero `media_placement="above"` (#201), `bw_ranked_list` optionals (#604 to
+#606), and `bw_theme_switch` consumer `data=` passthrough (#253).
+
+Still explicitly deferred (do not silent-ship):
+
+- `timeline` and `saved_views` (ADR-092 scoped)
+- advanced filters, chart annotation, chart export (ADR-092 refusals)
+- Wave 5 / P2 command surfaces: `command_palette` (#156), `notification_list`,
+  `popover`, `newsletter_band`
+- Beat residuals #570 / #571 (soft-stage / product-shot)
+- #493 / #494 (DRF theme API / DB nav)
 
 This document is the source of truth for the intended coverage. The current
 component inventory and examples remain the source of truth for what ships in
