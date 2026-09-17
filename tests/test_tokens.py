@@ -440,6 +440,62 @@ def test_every_text_family_token_is_consumed_by_a_font_family_rule() -> None:
     )
 
 
+# --- #643: heading-section role for marketing section intros ---------------
+
+
+def test_heading_section_role_ships_with_heading_xl_defaults() -> None:
+    """Section intros share heading-xl's default scale refs, as a separate role.
+
+    Defaults stay visually identical at package default; brands can size
+    section intros without moving the page-header title
+    (icvoss/django-brickwork#643).
+    """
+    tokens_css = (_DIST / "tokens.css").read_text()
+    for prop, scale in (
+        ("family", "var(--bw-font-family-display)"),
+        ("size", "var(--bw-font-size-xl)"),
+        ("line-height", "var(--bw-font-line-height-tight)"),
+        ("weight", "var(--bw-font-weight-semibold)"),
+        ("tracking", "var(--bw-font-tracking-tight)"),
+    ):
+        assert re.search(
+            rf"--bw-text-heading-section-{prop}:\s*{re.escape(scale)}\s*;",
+            tokens_css,
+        ), f"expected --bw-text-heading-section-{prop} defaulting to {scale}"
+
+    manifest = json.loads((_DIST / "token-manifest.json").read_text())
+    overridable = set(manifest["overridable"])
+    for prop in ("family", "size", "line-height", "weight", "tracking"):
+        assert f"--bw-text-heading-section-{prop}" in overridable
+
+
+def test_marketing_section_intros_read_heading_section_not_heading_xl() -> None:
+    """Marketing section intro headings bind heading-section; page-header stays xl."""
+    marketing = (_FRONTEND_SRC / "marketing.css").read_text()
+    for selector in (
+        ".bw-feature-grid-section__heading",
+        ".bw-pricing-table-section__heading",
+        ".bw-cta__heading",
+        ".bw-faq-section__heading",
+        ".bw-listing-section__heading",
+    ):
+        match = re.search(rf"{re.escape(selector)}\s*\{{([^}}]+)\}}", marketing)
+        assert match, f"missing {selector} rule in marketing.css"
+        body = match.group(1)
+        assert "heading-section" in body, f"{selector} must read heading-section"
+        assert "heading-xl" not in body, f"{selector} must not still read heading-xl"
+
+    page_header = (_FRONTEND_SRC / "components.css").read_text()
+    match = re.search(r"\.bw-page-header__title\s*\{([^}]+)\}", page_header)
+    assert match, "missing .bw-page-header__title rule"
+    body = match.group(1)
+    assert "heading-xl" in body
+    assert "heading-section" not in body
+
+    dist = (_DIST / "brickwork.css").read_text()
+    assert "--bw-text-heading-section-size" in dist
+
+
 # --- #642: label role exposes family + tracking for button theming --------
 
 

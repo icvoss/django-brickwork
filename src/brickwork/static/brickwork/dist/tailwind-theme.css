@@ -100,6 +100,8 @@
   --text-heading-2xl--line-height: var(--bw-text-heading-2xl-line-height);
   --text-heading-xl: var(--bw-text-heading-xl-size);
   --text-heading-xl--line-height: var(--bw-text-heading-xl-line-height);
+  --text-heading-section: var(--bw-text-heading-section-size);
+  --text-heading-section--line-height: var(--bw-text-heading-section-line-height);
   --text-heading-lg: var(--bw-text-heading-lg-size);
   --text-heading-lg--line-height: var(--bw-text-heading-lg-line-height);
   --text-heading-md: var(--bw-text-heading-md-size);
