@@ -15,9 +15,11 @@
   border: var(--bw-size-border-hairline) solid transparent;
   border-radius: var(--bw-component-button-radius);
   font: inherit;
+  font-family: var(--bw-text-label-family);
   font-size: var(--bw-text-label-size);
   font-weight: var(--bw-text-label-weight);
   line-height: var(--bw-text-label-line-height);
+  letter-spacing: var(--bw-text-label-tracking);
   cursor: pointer;
   text-decoration: none;
   transition: var(--bw-transition-colors), var(--bw-transition-shadow);

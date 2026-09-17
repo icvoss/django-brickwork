@@ -171,9 +171,11 @@
   --bw-text-body-sm-size: var(--bw-font-size-sm);
   --bw-text-body-sm-line-height: var(--bw-font-line-height-normal);
   --bw-text-body-sm-weight: var(--bw-font-weight-normal);
+  --bw-text-label-family: var(--bw-font-family-sans);
   --bw-text-label-size: var(--bw-font-size-sm);
   --bw-text-label-line-height: var(--bw-font-line-height-none);
   --bw-text-label-weight: var(--bw-font-weight-medium);
+  --bw-text-label-tracking: var(--bw-font-tracking-normal);
   --bw-text-caption-family: var(--bw-font-family-sans);
   --bw-text-caption-size: var(--bw-font-size-xs);
   --bw-text-caption-line-height: var(--bw-font-line-height-normal);
