@@ -685,12 +685,56 @@ def test_hero_media_block_override_replaces_the_default_media_region() -> None:
     assert "MEDIA-SENTINEL" in html
 
 
+def test_hero_decoration_omitted_renders_no_decoration_region() -> None:
+    html = _render("brickwork_marketing/components/_hero.html", heading="Text only")
+    assert "bw-hero__decoration" not in html
+    assert "aria-hidden" not in html
+
+
+def test_hero_decoration_via_context_is_aria_hidden_behind_copy() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        decoration=mark_safe("<svg viewBox='0 0 1 1'></svg>"),
+    )
+    assert 'class="bw-hero__decoration" aria-hidden="true"' in html
+    assert "<svg viewBox='0 0 1 1'></svg>" in html
+    # Decoration sits after copy in document order (same line as media); CSS
+    # layers it behind the copy. Copy must still precede it as text.
+    assert html.index("bw-hero__copy") < html.index("bw-hero__decoration")
+
+
+def test_hero_decoration_composes_with_media_placement_beside() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Side by side",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        decoration=mark_safe("<svg viewBox='0 0 1 1'></svg>"),
+        media_placement="beside",
+    )
+    assert "bw-hero--media-beside" in html
+    assert 'class="bw-hero__decoration" aria-hidden="true"' in html
+    assert "bw-hero__media" in html
+
+
+def test_hero_decoration_block_override_wins_over_the_decoration_context() -> None:
+    html = _extend_hero(
+        "{% block decoration %}<div class='bw-hero__decoration' aria-hidden='true'>"
+        "DECORATION-SENTINEL</div>{% endblock %}",
+        heading="Ship faster",
+        decoration=mark_safe("<svg></svg>"),
+    )
+    assert "DECORATION-SENTINEL" in html
+    assert "<svg></svg>" not in html
+
+
 def test_hero_blocks_render_in_document_order() -> None:
     html = _extend_hero(
         "{% block eyebrow %}EYEBROW-SENTINEL{% endblock %}"
         "{% block heading %}HEADING-SENTINEL{% endblock %}"
         "{% block lede %}LEDE-SENTINEL{% endblock %}"
         "{% block actions %}ACTIONS-SENTINEL{% endblock %}"
+        "{% block decoration %}DECORATION-SENTINEL{% endblock %}"
         "{% block media %}MEDIA-SENTINEL{% endblock %}"
     )
     positions = [
@@ -698,6 +742,7 @@ def test_hero_blocks_render_in_document_order() -> None:
         html.index("HEADING-SENTINEL"),
         html.index("LEDE-SENTINEL"),
         html.index("ACTIONS-SENTINEL"),
+        html.index("DECORATION-SENTINEL"),
         html.index("MEDIA-SENTINEL"),
     ]
     assert positions == sorted(positions), f"hero blocks out of document order: {positions}"
@@ -1452,6 +1497,25 @@ def test_marketing_shell_unfilled_brand_blocks_leave_empty_wrappers() -> None:
 def test_logo_height_token_is_emitted_with_its_default() -> None:
     tokens = (_DIST / "tokens.css").read_text()
     assert "--bw-component-logo-height: 2rem;" in tokens
+
+
+def test_hero_decoration_tokens_are_emitted_with_their_defaults() -> None:
+    # #645: opacity matches the icvoss.com watermark evidence; inset/size only
+    # apply when the decoration region is present (CSS :has gate).
+    tokens = (_DIST / "tokens.css").read_text()
+    assert "--bw-component-hero-decoration-opacity: 0.16;" in tokens
+    assert "--bw-component-hero-decoration-inset: 2rem;" in tokens
+    assert "--bw-component-hero-decoration-size: 14rem;" in tokens
+
+
+def test_hero_decoration_css_gates_on_presence_and_uses_the_tokens() -> None:
+    css = (_DIST / "brickwork.css").read_text().replace(" ", "")
+    assert ".bw-hero:has(>.bw-hero__decoration){position:relative;overflow:clip;" in css or (
+        ".bw-hero:has(>.bw-hero__decoration){" in css and "overflow:clip" in css
+    )
+    assert "opacity:var(--bw-component-hero-decoration-opacity)" in css
+    assert "inline-size:var(--bw-component-hero-decoration-size)" in css
+    assert "inset-block-start:var(--bw-component-hero-decoration-inset)" in css
 
 
 def test_brand_slot_caps_a_dropped_in_logo_via_the_token_at_zero_specificity() -> None:

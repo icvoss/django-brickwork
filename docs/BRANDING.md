@@ -771,6 +771,25 @@ To resize, override the token once:
 The shell rule is zero-specificity (`:where`), so any one-class rule of your
 own also wins if a single logo needs bespoke treatment.
 
+## Hero decoration: a watermark behind the copy (brickwork#645)
+
+`_hero.html` accepts an optional safe-HTML `decoration` context (or the
+semver-public `decoration` named block) for a faded brand stamp behind the
+copy on the ordinary page surface. It is `aria-hidden` and
+`pointer-events: none`. Do not reach for `media_placement="behind"` for this:
+that option is an inverse product-shot panel with a scrim, not a watermark
+slot. Absent decoration stays byte-identical to a text-only hero.
+
+Tune with:
+
+```css
+:root {
+  --bw-component-hero-decoration-opacity: 0.16; /* evidence default */
+  --bw-component-hero-decoration-inset: 2rem;
+  --bw-component-hero-decoration-size: 14rem;
+}
+```
+
 ## Where the values live
 
 Author your overrides in your own stylesheet or, if you run a build, in a DTCG

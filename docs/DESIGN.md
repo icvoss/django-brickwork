@@ -669,6 +669,8 @@ max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
 | `--bw-component-hero-heading-max-width` **[NEW, #640]** | `100%` | Hero heading measure (`.bw-hero__heading`). Defaults to 100% so the heading fills the copy column at package default. Override after widening the copy column when the heading should sit at a specific width inside it |
 | `--bw-component-hero-lede-max-width` **[NEW, #640]** | `100%` | Hero lede measure (`.bw-hero__lede`). Defaults to 100% (fills the copy column). When the copy column is widened for the heading, set this to `var(--bw-size-max-width-prose)` or `62ch` so the lede stays at a readable measure without scoping a rule to `.bw-hero__*` |
 | `--bw-component-logo-height` **[NEW, unreleased]** | `2rem` | brickwork#83 (ADR-054 beautiful-by-default): the default cap the marketing shell applies to an `img`/`svg` dropped into `brand_logo` or `brand_wordmark` (block-size capped, width follows the intrinsic ratio), so an unconstrained mark/lockup renders at a sensible header size out of the box instead of a full-height banner. 2rem is the 32px end of the conventional 28-32px header-logo range. Applied through the brickwork-owned `.bw-marketing-header__brand-mark` / `__brand-wordmark` wrappers at zero specificity (`:where`), so a one-class consumer rule overrides it; or override the token itself to resize. Raw `--bw-logo-height` ships as a build alias of the canonical name |
+| `--bw-component-hero-decoration-inset` **[NEW, #645]** | `2rem` | Block-start offset for `_hero.html`'s decoration watermark; CSS flips the sign for `inset-inline-end` so the mark hangs slightly past the trailing edge by the same magnitude. Applied only when the decoration slot has content |
+| `--bw-component-hero-decoration-size` **[NEW, #645]** | `14rem` | Default inline size of the hero decoration mark, further capped at 50% of the hero in CSS |
 | `--bw-component-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar; was `--bw-topbar-position` through 0.10.0, kept as a courtesy alias |
 
 The `--bw-size-icon-*` / `--bw-icon-size-*` duplication (0.3.0 added `2xl`
@@ -1168,6 +1170,7 @@ unshipped extension point.
 | `--bw-opacity-muted` **[NEW]** | `0.7` | de-emphasis that is not disabled; conservative floor, re-verify contrast per use |
 | `--bw-opacity-sort-idle` **[NEW]** | `0.4` | names the shipped sort-caret literal (decorative only) |
 | `--bw-component-htmx-indicator-opacity` **[NEW 0.9.0]** | `0.6` | STA-006 in-flight dimming of an htmx swap target via the `htmx-request` class convention; between former disabled (0.5) and muted (0.7) so in-flight never reads as disabled; was `--bw-htmx-indicator-opacity` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-hero-decoration-opacity` **[NEW, #645]** | `0.16` | Default fade for `_hero.html`'s decoration watermark/stamp (icvoss.com evidence). Decorative only; never relied on for contrast |
 
 ## 10. Reserved names (documented, deliberately not shipped)
 

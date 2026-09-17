@@ -193,7 +193,7 @@ Status values:
 | feature_rows | N/A (local) | Phase C alternating composition |
 | filter_bar | N/A (defaults) | Raised surface + field rhythm authored Phase A |
 | gauge | N/A (defaults) | Track/rail contrast authored |
-| hero | N/A (local) | `align`, `media_placement`; optional `band` refused (behind already inverse) |
+| hero | N/A (local) | `align`, `media_placement`; optional `decoration` safe-HTML/block watermark (#645); optional `band` refused (behind already inverse) |
 | input_group | Adopted | Lean; prefix/suffix text and icons; no closed appearance axes |
 | list_item | Adopted | `density` |
 | logo_cloud | N/A (defaults) | Quieter spacing authored Phase A |

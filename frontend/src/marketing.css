@@ -784,6 +784,39 @@
     0 4px 14px -4px oklch(0 0 0 / 0.1);
 }
 
+/* Decoration (#645): a watermark/stamp behind the copy on the ordinary
+ * surface. Present only when the decoration slot has content; absent is
+ * byte-identical. Not media-behind: no inverse panel, no scrim. */
+.bw-hero:has(> .bw-hero__decoration) {
+  position: relative;
+  /* Clip a mark that hangs past the trailing edge via a negative inset. */
+  overflow: clip;
+}
+
+.bw-hero:has(> .bw-hero__decoration) .bw-hero__copy {
+  position: relative;
+  z-index: 1;
+}
+
+.bw-hero__decoration {
+  position: absolute;
+  z-index: 0;
+  inset-block-start: var(--bw-component-hero-decoration-inset);
+  /* Hang slightly past the trailing edge (evidence: icvoss.com mark). The
+   * inset token is the magnitude; the sign flips for the inline-end edge. */
+  inset-inline-end: calc(var(--bw-component-hero-decoration-inset) * -1);
+  inline-size: var(--bw-component-hero-decoration-size);
+  max-inline-size: 50%;
+  opacity: var(--bw-component-hero-decoration-opacity);
+  pointer-events: none;
+}
+
+.bw-hero__decoration :where(img, svg) {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
 /* Product chrome: framed product surface for marketing media slots (Beat S5).
  * Clean-room depth argument for hero / feature-row media: a raised panel with
  * an optional rear layer. Tokens and elevation only; not kit markup. */

@@ -175,7 +175,7 @@
     "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens), raised from 4rem in the Phase 3 visual-bar craft wave (icvoss/django-brickwork#510): the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA and so on), larger than the app's --bw-density-section-gap (2rem comfortable) since marketing pages read as fewer, more generous blocks rather than a dense workspace. Named distinctly from the density-scoped section-gap (not itself density-varying: marketing pages are not scoped by the density axis)."
   },
   "hero": {
-    "$description": "Hero copy-column measures (icvoss/django-brickwork#640). Three seams so a brand can widen the display heading without also widening the lede, without scoping a rule to .bw-hero__*. Defaults keep package-default layout byte-identical: the copy column still caps at the prose measure; heading and lede fill that column (100%). To widen heading only, raise --bw-component-hero-copy-max-width (and optionally heading) and set --bw-component-hero-lede-max-width to the prose measure or 62ch.",
+    "$description": "Hero component tokens. Copy-column measures (#640) and decoration watermark (#645). Measure defaults keep package-default layout byte-identical; decoration tokens apply only when the decoration region has content.",
     "copy-max-width": {
       "$type": "dimension",
       "$value": "{size.max-width.prose}",
@@ -195,6 +195,23 @@
       "$type": "dimension",
       "$value": "100%",
       "$description": "Max inline size of .bw-hero__lede. Defaults to 100% (fills the copy column). When the copy column is widened for a display heading, set this to var(--bw-size-max-width-prose) or 62ch to keep the lede at a readable measure."
+    },
+    "decoration": {
+      "opacity": {
+        "$type": "number",
+        "$value": "0.16",
+        "$description": "Default fade for a brand stamp behind hero copy (icvoss.com evidence: 16% opacity). Decorative only; never relied on for contrast."
+      },
+      "inset": {
+        "$type": "dimension",
+        "$value": "{size.space.8}",
+        "$description": "Block-start offset for the decoration; the CSS flips the sign for inset-inline-end so the mark hangs slightly past the trailing edge by the same magnitude."
+      },
+      "size": {
+        "$type": "dimension",
+        "$value": "14rem",
+        "$description": "Default inline size of the decoration mark, capped further at 50% of the hero in CSS so a large SVG cannot dominate the band."
+      }
     }
   },
   "logo": {
