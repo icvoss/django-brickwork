@@ -160,6 +160,7 @@ Status values:
 |---|---|---|
 | account_menu | N/A (defaults) | Panel elevation/radius authored with dropdown in Phase A |
 | alert | N/A (local) | `variant` already tints; denser padding authored Phase A; shared `surface` refused |
+| article_meta | Adopted | First-class editorial byline composition; no shared axis (keep lean) |
 | avatar | Adopted | `size`, `shape` via `{% bw_options %}` |
 | avatar_group | N/A (local) | `size` / overlap craft; no extra shared axis |
 | badge | N/A (local) | Intent via `variant`; soft/outline `tone` stays Could |
@@ -256,7 +257,7 @@ named consumer).
 | date_picker_chrome | In demand | Chrome/panel only; engine stays consumer |
 | comparison_table | In demand | Promote from marketing pricing comparison |
 | toc | In demand | First-class docs control |
-| article_meta | In demand | Editorial byline/meta |
+| article_meta | Adopted | See catalogue row; ships this release |
 
 ### Phase 6 P2 (deferred; explicit N/A)
 

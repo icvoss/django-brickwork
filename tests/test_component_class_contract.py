@@ -582,6 +582,16 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         media_src="/static/blog/chasing.jpg",
         media_alt="Invoice on a desk",
     ),
+    "_article_meta (byline with avatar and tags)": lambda: _include(
+        "brickwork/components/_article_meta.html",
+        author_name="Amira Okonkwo",
+        author_href="/journal/authors/amira-okonkwo/",
+        author_initials="AO",
+        published_on="12 August 2026",
+        published_iso="2026-08-12",
+        reading_time="8 min read",
+        tags=[{"label": "Operations", "href": "/journal/operations/"}],
+    ),
     "_pagination (mid-list)": lambda: _render_pagination(),
     "_pager (two-link)": lambda: _include(
         "brickwork/components/_pager.html",
