@@ -601,6 +601,7 @@ def test_hero_css_consumes_hero_measure_tokens() -> None:
     assert "--bw-component-hero-heading-max-width" in dist
     assert "--bw-component-hero-lede-max-width" in dist
 
+
 # --- #649: button elevation + hover-lift seams ----------------------------
 
 
@@ -644,9 +645,7 @@ def test_bw_btn_variants_read_button_elevation_and_hover_translate() -> None:
             if re.sub(r"\s+", "", sel) == re.sub(r"\s+", "", selector)
         ]
 
-    resting = _bodies(
-        ".bw-btn--primary:not(.bw-btn--disabled), .bw-btn--danger:not(.bw-btn--disabled)"
-    )
+    resting = _bodies(".bw-btn--primary:not(.bw-btn--disabled), .bw-btn--danger:not(.bw-btn--disabled)")
     assert resting and "var(--bw-component-button-elevation)" in resting[0]
     assert "inset 0 1px 0 0" in resting[0], "primary/danger must keep the inset highlight"
 

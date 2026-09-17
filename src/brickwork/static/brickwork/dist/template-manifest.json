@@ -226,6 +226,15 @@
       ]
     },
     {
+      "name": "decoration",
+      "declaredIn": [
+        "brickwork_marketing/components/_hero.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "description",
       "declaredIn": [
         "brickwork/components/_empty_state.html",
