@@ -74,6 +74,9 @@
   --bw-component-content-max-width: 72rem;
   --bw-component-content-max-width-marketing: 80rem;
   --bw-component-section-gap-marketing: 6rem;
+  --bw-component-hero-copy-max-width: var(--bw-size-max-width-prose);
+  --bw-component-hero-heading-max-width: 100%;
+  --bw-component-hero-lede-max-width: 100%;
   --bw-component-logo-height: 2rem;
   --bw-component-topbar-position: sticky;
   --bw-component-drawer-width: min(20rem, 80vw);
@@ -539,6 +542,9 @@
   --bw-gauge-diameter-md: var(--bw-component-gauge-diameter-md);
   --bw-gauge-diameter-sm: var(--bw-component-gauge-diameter-sm);
   --bw-gauge-stroke-width: var(--bw-component-gauge-stroke-width);
+  --bw-hero-copy-max-width: var(--bw-component-hero-copy-max-width);
+  --bw-hero-heading-max-width: var(--bw-component-hero-heading-max-width);
+  --bw-hero-lede-max-width: var(--bw-component-hero-lede-max-width);
   --bw-htmx-indicator-opacity: var(--bw-component-htmx-indicator-opacity);
   --bw-icon-size-2xl: var(--bw-component-icon-size-2xl);
   --bw-icon-size-lg: var(--bw-component-icon-size-lg);
