@@ -6,17 +6,28 @@ top-N breakdown). Consumed via the {% bw_ranked_list %} tag, never a plain
 Python, and this template only ever renders the finished numbers.
 
 Required context:
-  rows: a list of RankedListRow (label, value, percent, href, attrs_html),
-      already shaped by the tag. Ignored while loading is True or when
-      empty (see below).
+  rows: a list of RankedListRow (label, value, percent, href, attrs_html,
+      secondary, secondary_text), already shaped by the tag. Ignored while
+      loading is True or when empty (see below).
 Optional:
   label: the accessible name for the list (aria-label on the <ol>).
+  caption: optional top-N / truncation note below the list
+      (icvoss/django-brickwork#604). Empty when omitted.
+  secondary_caption / has_secondary: when has_secondary is True, a visual
+      column header for the secondary numeric column
+      (icvoss/django-brickwork#605) plus a visually-hidden copy of the
+      caption inside each secondary cell. The tag requires secondary_caption
+      whenever any row supplies secondary / secondary_value.
   loading (bool): renders a skeleton row set (STA-004) instead of rows.
   empty_heading, empty_body, empty_action_href, empty_action_label:
       passthrough to _empty_state.html (size="sm", VIZ-021) when rows is
       empty and loading is False.
   attrs_html: pre-rendered consumer data-* attributes for the list root
       (bw_data_attrs, mirroring _stat.html's own root data seam).
+
+Per-row optionals (already shaped onto RankedListRow):
+  secondary: secondary numeric column display string (#605); empty omitted.
+  secondary_text: plain text under the label (#606); empty omitted.
 
 States: loading (a skeleton row set stands in for the whole list) and empty
   (zero rows composes _empty_state.html at size="sm", VIZ-021); otherwise
@@ -27,13 +38,23 @@ Accessibility: an <ol> (rank order is meaning), each row rendering its
   (decorative). Deliberately NOT role="progressbar" per row (VIZ-015): that
   role's contract is one quantity's progress toward a known target, not an
   N-way ranked comparison, and COL-030 is already satisfied by the visible
-  text without it. A row with href renders as a real anchor (VIZ-024).
+  text without it. A row with href renders as a real anchor (VIZ-024). The
+  secondary column header is aria-hidden (visual alignment only); each
+  secondary cell carries a visually-hidden copy of secondary_caption so
+  assistive tech still hears what the figure means.
 Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-ranked-list* selector. Bar geometry is a fixed 0-100 number computed
   once in Python, never recomputed client-side: the list renders its final
   geometry server-side with zero layout shift on load.
 {% endcomment %}
-<ol class="bw-ranked-list"{% if label %} aria-label="{{ label }}"{% endif %}{{ attrs_html }}>
+{% if has_secondary %}
+<div class="bw-ranked-list__head" aria-hidden="true">
+  <span class="bw-ranked-list__primary"></span>
+  <span class="bw-ranked-list__value"></span>
+  <span class="bw-ranked-list__secondary">{{ secondary_caption }}</span>
+</div>
+{% endif %}
+<ol class="bw-ranked-list{% if has_secondary %} bw-ranked-list--with-secondary{% endif %}"{% if label %} aria-label="{{ label }}"{% endif %}{{ attrs_html }}>
   {% if loading %}
     {% for _ in "xxx" %}
       <li class="bw-ranked-list__row" aria-hidden="true">
@@ -49,11 +70,18 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
     {% for row in rows %}
       <li>
         {% if row.href %}<a class="bw-ranked-list__row" href="{{ row.href }}"{{ row.attrs_html }}>{% else %}<div class="bw-ranked-list__row"{{ row.attrs_html }}>{% endif %}
-          <span class="bw-ranked-list__label">{{ row.label }}</span>
+          <span class="bw-ranked-list__primary">
+            <span class="bw-ranked-list__label">{{ row.label }}</span>
+            {% if row.secondary_text %}<span class="bw-ranked-list__secondary-text">{{ row.secondary_text }}</span>{% endif %}
+          </span>
           <span class="bw-ranked-list__value">{{ row.value }}</span>
+          {% if has_secondary %}
+            <span class="bw-ranked-list__secondary">{% if row.secondary %}<span class="bw-visually-hidden">{{ secondary_caption }}: </span>{{ row.secondary }}{% endif %}</span>
+          {% endif %}
           <span class="bw-ranked-list__bar" aria-hidden="true" style="--bw-ranked-list-value: {{ row.percent }}"></span>
         {% if row.href %}</a>{% else %}</div>{% endif %}
       </li>
     {% endfor %}
   {% endif %}
 </ol>
+{% if caption %}<p class="bw-ranked-list__caption">{{ caption }}</p>{% endif %}

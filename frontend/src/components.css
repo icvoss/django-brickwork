@@ -2577,11 +2577,29 @@ a.bw-stat:hover {
   padding: 0;
   list-style: none;
 }
+/* Visual column header for the secondary numeric column
+   (icvoss/django-brickwork#605): mirrors .bw-ranked-list__row's three-column
+   grid so the caption aligns with the figures it labels. aria-hidden on the
+   element itself; each secondary cell carries a visually-hidden copy of the
+   caption for assistive tech. */
+.bw-ranked-list__head {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  column-gap: var(--bw-space-3);
+  margin-block-end: var(--bw-space-1);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+  text-align: end;
+}
 .bw-ranked-list__row {
   display: grid;
   grid-template-columns: 1fr auto;
   column-gap: var(--bw-space-3);
   row-gap: var(--bw-space-1);
+}
+.bw-ranked-list--with-secondary .bw-ranked-list__row {
+  grid-template-columns: 1fr auto auto;
 }
 /* A linked row (VIZ-024): the <li>'s only child IS the anchor (mirroring
    a.bw-stat, not a wrapper around already-laid-out children), so the whole
@@ -2596,12 +2614,29 @@ a.bw-ranked-list__row:hover .bw-ranked-list__label,
 a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   text-decoration: underline;
 }
+.bw-ranked-list__primary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-0-5);
+  min-inline-size: 0;
+}
 .bw-ranked-list__label {
   color: var(--bw-color-fg);
   font-size: var(--bw-text-body-md-size);
   line-height: var(--bw-text-body-md-line-height);
 }
+/* Plain already-formatted text under the label (icvoss/django-brickwork#606). */
+.bw-ranked-list__secondary-text {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
 .bw-ranked-list__value {
+  color: var(--bw-color-fg-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.bw-ranked-list__secondary {
   color: var(--bw-color-fg-muted);
   font-variant-numeric: tabular-nums;
   text-align: end;
@@ -2625,6 +2660,15 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   background: var(--bw-color-accent);
   border-radius: var(--bw-radius-full);
   width: calc(var(--bw-ranked-list-value, 0) * 1%);
+}
+/* Top-N / truncation note below the list (icvoss/django-brickwork#604).
+   fg-muted, not fg-subtle: caption-size subtle ink fails WCAG 1.4.3. */
+.bw-ranked-list__caption {
+  margin-block-start: var(--bw-space-3);
+  margin-block-end: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
 }
 
 /* --- Sparkline (VIZ-003/004/005/006) ---------------------------------------- */
