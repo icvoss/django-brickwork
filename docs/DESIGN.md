@@ -547,9 +547,14 @@ dark under `[data-theme="dark"]`.
 resting = 1 (auth and centred panels: 2, they sit alone on a sunken page);
 interactive card hover = 2; dropdown, popover, account-menu panel = 3 (the
 fix for the hardcoded `0 4px 12px` literal); mobile drawer panel and modal
-= 4; toast = 5; topbar = border-only by default (a brand may add 2). The
-modal, toast, and popover entries are forward-looking (each row lands
-with its component); the card row shipped in 0.5.0 (_card.html).
+= 4; toast = 5; topbar = border-only by default (a brand may add 2).
+Primary, secondary, and danger buttons rest on
+`--bw-component-button-elevation` (default `var(--bw-elevation-1)`), with
+hover reading `--bw-component-button-elevation-hover` and optional
+`--bw-component-button-hover-translate` (icvoss/django-brickwork#649), so a
+brand can lift buttons without moving card/panel elevation. The modal,
+toast, and popover entries are forward-looking (each row lands with its
+component); the card row shipped in 0.5.0 (_card.html).
 
 ## 6. Spacing, radius, borders, z-index, sizing
 
@@ -627,7 +632,8 @@ through `-2xl`); it is distinct from the inline instance property
 `--bw-icon-size` (no step suffix, set per-icon by `{% bw_icon %}`), which is
 unchanged and is not a scale token.
 
-The un-infixed component tokens below (button radius, icon stroke width,
+The un-infixed component tokens below (button radius, button elevation,
+button hover translate, icon stroke width,
 content max-width, topbar position, disabled opacity, menu min-width,
 select indicator, checkbox glyph, stat-tile value size, drawer width, toast
 max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
@@ -635,6 +641,10 @@ max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
 
 | Token | Value | Notes |
 |---|---|---|
+| `--bw-component-button-radius` | `var(--bw-radius-md)` | button corner radius; tracks the md radius step so an L3 radius pack moves buttons |
+| `--bw-component-button-elevation` **[NEW, #649]** | `var(--bw-elevation-1)` | resting shadow for primary / secondary / danger (non-disabled); override to separate buttons from card/panel elevation |
+| `--bw-component-button-elevation-hover` **[NEW, #649]** | `var(--bw-component-button-elevation)` | hover shadow for those variants; defaults to resting so hover is a no-op until authored |
+| `--bw-component-button-hover-translate` **[NEW, #649]** | `0` | `translateY()` offset on hover; default `0` is byte-identical; suppressed under `prefers-reduced-motion: reduce` |
 | `--bw-component-icon-size-2xl` **[NEW]** | `2.5rem` | empty-state hero icons; was `--bw-icon-size-2xl` / `--bw-size-icon-2xl` through 0.10.0, kept as courtesy aliases |
 | `--bw-size-control-height-sm` **[NEW]** | `2rem` | fixed, not density-scaled (sm × compact would break touch targets) |
 | `--bw-size-control-height-md` **[NEW]** | `var(--bw-density-control-height)` | alias of the density token |
@@ -659,6 +669,8 @@ max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
 | `--bw-component-hero-heading-max-width` **[NEW, #640]** | `100%` | Hero heading measure (`.bw-hero__heading`). Defaults to 100% so the heading fills the copy column at package default. Override after widening the copy column when the heading should sit at a specific width inside it |
 | `--bw-component-hero-lede-max-width` **[NEW, #640]** | `100%` | Hero lede measure (`.bw-hero__lede`). Defaults to 100% (fills the copy column). When the copy column is widened for the heading, set this to `var(--bw-size-max-width-prose)` or `62ch` so the lede stays at a readable measure without scoping a rule to `.bw-hero__*` |
 | `--bw-component-logo-height` **[NEW, unreleased]** | `2rem` | brickwork#83 (ADR-054 beautiful-by-default): the default cap the marketing shell applies to an `img`/`svg` dropped into `brand_logo` or `brand_wordmark` (block-size capped, width follows the intrinsic ratio), so an unconstrained mark/lockup renders at a sensible header size out of the box instead of a full-height banner. 2rem is the 32px end of the conventional 28-32px header-logo range. Applied through the brickwork-owned `.bw-marketing-header__brand-mark` / `__brand-wordmark` wrappers at zero specificity (`:where`), so a one-class consumer rule overrides it; or override the token itself to resize. Raw `--bw-logo-height` ships as a build alias of the canonical name |
+| `--bw-component-hero-decoration-inset` **[NEW, #645]** | `2rem` | Block-start offset for `_hero.html`'s decoration watermark; CSS flips the sign for `inset-inline-end` so the mark hangs slightly past the trailing edge by the same magnitude. Applied only when the decoration slot has content |
+| `--bw-component-hero-decoration-size` **[NEW, #645]** | `14rem` | Default inline size of the hero decoration mark, further capped at 50% of the hero in CSS |
 | `--bw-component-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar; was `--bw-topbar-position` through 0.10.0, kept as a courtesy alias |
 
 The `--bw-size-icon-*` / `--bw-icon-size-*` duplication (0.3.0 added `2xl`
@@ -1158,6 +1170,7 @@ unshipped extension point.
 | `--bw-opacity-muted` **[NEW]** | `0.7` | de-emphasis that is not disabled; conservative floor, re-verify contrast per use |
 | `--bw-opacity-sort-idle` **[NEW]** | `0.4` | names the shipped sort-caret literal (decorative only) |
 | `--bw-component-htmx-indicator-opacity` **[NEW 0.9.0]** | `0.6` | STA-006 in-flight dimming of an htmx swap target via the `htmx-request` class convention; between former disabled (0.5) and muted (0.7) so in-flight never reads as disabled; was `--bw-htmx-indicator-opacity` through 0.10.0, kept as a courtesy alias |
+| `--bw-component-hero-decoration-opacity` **[NEW, #645]** | `0.16` | Default fade for `_hero.html`'s decoration watermark/stamp (icvoss.com evidence). Decorative only; never relied on for contrast |
 
 ## 10. Reserved names (documented, deliberately not shipped)
 

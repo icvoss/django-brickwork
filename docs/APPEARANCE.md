@@ -124,6 +124,7 @@ or first-class include does **not** count.
 |---|---|
 | Hero | `_hero.html` `media_placement="below"` (default), `"behind"`, `"beside"`, `"above"` |
 | Features | `_feature_grid.html` (icon grid); `_feature_rows.html` (alternating); `_feature_list.html` (checklist) |
+| Directory | `_directory.html` (numbered index with optional mark, linked title, description and meta column) |
 | CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` |
 | Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_comparison_table.html` (marketing `_pricing_comparison.html` wrapper) |
 | Person | `_portrait.html` (`align="start"` default / `"end"`, constrained 3:4 image + CTAs); `_bio.html` (compact strip, optional profile link). Not `_testimonial.html` and not the Editorial author archetype |
@@ -183,17 +184,18 @@ Status values:
 | data_table | Adopted | `density`; muted header + row hover authored Phase A/C |
 | date_picker_chrome | Adopted | Field/panel chrome only; no date engine (BR-BW-INPUT-004) |
 | disclosure | N/A (local) | `variant` bordered/divided; card framing refused |
+| directory | N/A (local) | Marketing numbered index; list data, not shared surface |
 | divider | Adopted | `tone`, `spacing` |
 | dropdown | N/A (defaults) | Panel elevation/radius authored Phase A |
 | dropzone | N/A (defaults) | Dashed/raised default authored Phase A |
 | empty_state | Adopted | `surface` framed/plain; `variant`, `size` |
 | faq | N/A (defaults) | Bordered disclosure defaults authored Phase A |
-| feature_grid | N/A (defaults) | Finished card defaults Phase A; per-item `surface` refused (use card) |
+| feature_grid | N/A (local) | Finished card defaults Phase A; per-item `surface` refused (use card). Grid `variant` cards (default) / bordered (#646); item slots eyebrow / meta / badge / cta_label / pending (#641) |
 | feature_list | N/A (local) | Phase C checklist composition |
 | feature_rows | N/A (local) | Phase C alternating composition |
 | filter_bar | N/A (defaults) | Raised surface + field rhythm authored Phase A |
 | gauge | N/A (defaults) | Track/rail contrast authored |
-| hero | N/A (local) | `align`, `media_placement`; optional `band` refused (behind already inverse) |
+| hero | N/A (local) | `align`, `media_placement`; optional `decoration` safe-HTML/block watermark (#645); optional `band` refused (behind already inverse) |
 | input_group | Adopted | Lean; prefix/suffix text and icons; no closed appearance axes |
 | list_item | Adopted | `density` |
 | logo_cloud | N/A (defaults) | Quieter spacing authored Phase A |

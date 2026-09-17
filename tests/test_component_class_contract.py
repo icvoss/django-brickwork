@@ -807,14 +807,24 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         items=[
             {
                 "icon": "bell",
+                "eyebrow": "Reminders",
                 "heading": "Automatic reminders",
                 "body": "Chases send themselves.",
+                "meta": "On every plan",
+                "badge": "Popular",
                 "url": "/features/reminders/",
+                "cta_label": "Learn more",
                 "aria_label": "Learn about automatic reminders",
             },
-            {"icon": "check", "heading": "Reconciliation", "body": "Payments match themselves off."},
+            {
+                "icon": "check",
+                "heading": "Reconciliation",
+                "body": "Payments match themselves off.",
+                "pending": True,
+            },
         ],
         columns=2,
+        variant="bordered",
     ),
     "_feature_rows (marketing: alternating rows with media)": lambda: _include(
         "brickwork_marketing/components/_feature_rows.html",
@@ -832,6 +842,24 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         "brickwork_marketing/components/_feature_list.html",
         heading="What is included",
         items=["Unlimited invoices", "Automatic reminders"],
+    ),
+    "_directory (marketing: numbered index)": lambda: _include(
+        "brickwork_marketing/components/_directory.html",
+        heading="Packages",
+        lede="Public packages on the index.",
+        items=[
+            {
+                "number": "01",
+                "icon": "folder",
+                "heading": "django-brickwork",
+                "url": "/packages/django-brickwork/",
+                "body": "The professional UI substrate.",
+                "version": "3.34.0",
+                "status": "Stable",
+                "install": "pip install django-brickwork",
+            },
+            {"heading": "django-icv-core", "body": "Shared helpers."},
+        ],
     ),
     "_cta_split (marketing: mid-page split)": lambda: _include(
         "brickwork_marketing/components/_cta_split.html",
@@ -1088,11 +1116,6 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
             '<div class="bw-chart-mount" data-bw-chart-mount role="img" aria-label="Revenue by month"></div>'
         ),
     ),
-    "_feature_grid": lambda value: _include(
-        "brickwork_marketing/components/_feature_grid.html",
-        items=[{"heading": "Feature", "body": "Body"}],
-        columns=value,
-    ),
     "_cta": lambda value: _include(
         "brickwork_marketing/components/_cta.html",
         heading="Ready to get paid faster?",
@@ -1123,6 +1146,18 @@ for _component, _option, _value, _css_class in _VOCABULARIES:
             lambda option=_option, value=_value, extra=_extra: _include(
                 "brickwork/components/_card.html",
                 **extra,
+                **{option: value},
+            )
+        )
+        continue
+    if _component == "_feature_grid":
+        # columns and variant share no value spellings today, but pass the
+        # real option name so a future overlap cannot mis-bind the way the
+        # old columns=value-only lambda would for variant="bordered".
+        _COMPONENT_RENDERS[f"{_component} {_option}={_value!r} (vocabulary)"] = lambda option=_option, value=_value: (
+            _include(
+                "brickwork_marketing/components/_feature_grid.html",
+                items=[{"heading": "Feature", "body": "Body"}],
                 **{option: value},
             )
         )

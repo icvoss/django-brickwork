@@ -42,7 +42,14 @@ def test_button_chrome_reads_radius_and_elevation_tokens() -> None:
         if re.sub(r"\s+", "", sel) == ".bw-btn--primary:not(.bw-btn--disabled),.bw-btn--danger:not(.bw-btn--disabled)"
     ]
     assert elev, "missing primary/danger elevation rule"
-    assert "var(--bw-elevation-1)" in elev[0]
+    assert "var(--bw-component-button-elevation)" in elev[0]
+    secondary = [
+        body
+        for sel, body in _rules(_COMPONENTS)
+        if re.sub(r"\s+", "", sel) == ".bw-btn--secondary:not(.bw-btn--disabled)"
+    ]
+    assert secondary, "missing secondary elevation rule"
+    assert "var(--bw-component-button-elevation)" in secondary[0]
 
 
 def test_card_chrome_reads_l3_radius_elevation_and_surface_tokens() -> None:

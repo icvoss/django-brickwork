@@ -60,6 +60,9 @@ const RENAMES = new Map([
   // Component tier: the canonical --bw-component-* grammar for the un-infixed
   // component tokens.
   ["bw-button-radius", "bw-component-button-radius"],
+  ["bw-button-elevation", "bw-component-button-elevation"],
+  ["bw-button-elevation-hover", "bw-component-button-elevation-hover"],
+  ["bw-button-hover-translate", "bw-component-button-hover-translate"],
   ["bw-icon-stroke-width", "bw-component-icon-stroke-width"],
   ["bw-content-max-width", "bw-component-content-max-width"],
   ["bw-content-max-width-marketing", "bw-component-content-max-width-marketing"],
@@ -68,6 +71,9 @@ const RENAMES = new Map([
   ["bw-hero-heading-max-width", "bw-component-hero-heading-max-width"],
   ["bw-hero-lede-max-width", "bw-component-hero-lede-max-width"],
   ["bw-logo-height", "bw-component-logo-height"],
+  ["bw-hero-decoration-opacity", "bw-component-hero-decoration-opacity"],
+  ["bw-hero-decoration-inset", "bw-component-hero-decoration-inset"],
+  ["bw-hero-decoration-size", "bw-component-hero-decoration-size"],
   ["bw-topbar-position", "bw-component-topbar-position"],
   ["bw-disabled-opacity", "bw-component-disabled-opacity"],
   ["bw-menu-min-width", "bw-component-menu-min-width"],
