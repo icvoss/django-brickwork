@@ -188,7 +188,7 @@ Status values:
 | dropzone | N/A (defaults) | Dashed/raised default authored Phase A |
 | empty_state | Adopted | `surface` framed/plain; `variant`, `size` |
 | faq | N/A (defaults) | Bordered disclosure defaults authored Phase A |
-| feature_grid | N/A (defaults) | Finished card defaults Phase A; per-item `surface` refused (use card) |
+| feature_grid | N/A (local) | Finished card defaults Phase A; per-item `surface` refused (use card). Grid `variant` cards (default) / bordered (#646); item slots eyebrow / meta / badge / cta_label / pending (#641) |
 | feature_list | N/A (local) | Phase C checklist composition |
 | feature_rows | N/A (local) | Phase C alternating composition |
 | filter_bar | N/A (defaults) | Raised surface + field rhythm authored Phase A |

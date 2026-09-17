@@ -120,6 +120,11 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     ("_feature_grid", "columns", "2", "bw-feature-grid--2"),
     ("_feature_grid", "columns", "3", "bw-feature-grid--3"),
     ("_feature_grid", "columns", "4", "bw-feature-grid--4"),
+    # --- feature_grid variant (#646) ----------------------------------------
+    # "cards" is the honestly-named default (gapped raised cards) and emits
+    # no modifier class, so it has no entry here: there is no CSS rule to
+    # pin, only the byte-identity test in test_marketing.py.
+    ("_feature_grid", "variant", "bordered", "bw-feature-grid--bordered"),
     # --- scorecard span (VIZ-012) --------------------------------------------
     # Equal (one column, no modifier) is the default and deliberately absent
     # here, matching legend_position="top" above: there is no CSS rule to pin
