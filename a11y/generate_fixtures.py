@@ -3791,9 +3791,10 @@ def render_marketing_overlay(theme: str, *, state: str = "nojs") -> str:
 # --- the hero media_placement axis (ADR-057 section 1a, icvoss/django-brickwork#118) ---
 #
 # None of landing/pricing/about above ever passes media_placement, so they all
-# render the "below" default: the "behind" and "beside" CSS this option adds
-# (.bw-hero--media-behind, .bw-hero--media-beside in frontend/src/marketing.css)
-# had no fixture rendering it, so axe was never actually examining it and the
+# render the "below" default: the "behind", "beside" and "above" CSS this
+# option adds (.bw-hero--media-behind, .bw-hero--media-beside,
+# .bw-hero--media-above in frontend/src/marketing.css) had no fixture
+# rendering it, so axe was never actually examining it and the
 # 320-414px sweep never actually measured "beside" collapsing to one column.
 #
 # "behind" is the contrast-sensitive one (headline over an illustration), so
@@ -3805,7 +3806,8 @@ def render_marketing_overlay(theme: str, *, state: str = "nojs") -> str:
 #   3. a very dark illustration (near-black background)
 # A "beside" hero follows, with a real <img> in its media slot so the radius
 # scoping change (img keeps --bw-radius-lg, svg does not) is exercised here
-# alongside the placement axis itself.
+# alongside the placement axis itself. An "above" hero closes the set
+# (icvoss/django-brickwork#201): media stacked visually above the copy.
 _HERO_PLACEMENT_BEHIND_NO_MEDIA = (
     '{% include "brickwork_marketing/components/_hero.html" with'
     ' eyebrow="Behind, no media" heading="Still legible with nothing behind it"'
@@ -3830,6 +3832,12 @@ _HERO_PLACEMENT_BESIDE = (
     ' lede="Collapses to one column below the breakpoint; must not scroll the page sideways."'
     ' primary_cta=primary_cta secondary_cta=secondary_cta media=beside_media media_placement="beside" %}'
 )
+_HERO_PLACEMENT_ABOVE = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Above" heading="Media stacked above the copy"'
+    ' lede="Visual order only: document and tab order stay copy then media."'
+    ' primary_cta=primary_cta media=beside_media media_placement="above" %}'
+)
 
 _HERO_PLACEMENT_SOURCE = (
     '{% extends "brickwork_marketing/shell/marketing.html" %}'
@@ -3839,6 +3847,7 @@ _HERO_PLACEMENT_SOURCE = (
     + _HERO_PLACEMENT_BEHIND_LIGHT_MEDIA
     + _HERO_PLACEMENT_BEHIND_DARK_MEDIA
     + _HERO_PLACEMENT_BESIDE
+    + _HERO_PLACEMENT_ABOVE
     + "{% endblock %}"
 )
 

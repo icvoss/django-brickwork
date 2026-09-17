@@ -32,22 +32,25 @@ Optional context:
                 box. The caller owns escaping (mark it safe at the call
                 site), matching _stat.html's sparkline convention.
   align         ("start" | "center" | "end", default "start").
-  media_placement ("below" default | "behind" | "beside", ADR-057 section
-                1a): where the media slot sits relative to the copy. "below"
-                is the shipped 2.0.0 layout (a column flex, media after the
-                copy in document order) and is the honestly-named default,
-                not "beside": the copy and media were never side by side
-                until this option existed (icvoss/django-brickwork#118).
-                "behind" stacks the media in the same grid area as the copy,
-                with the copy on top; the section takes the inverse surface
-                (--bw-color-surface-inverse / --bw-color-fg-on-inverse) plus
-                a scrim over the media, so contrast holds in both themes
-                regardless of what the media itself contains. "beside" is a
-                true side-by-side row from 48rem up (single column below
-                it), replacing what a consumer previously had to hand-build
-                as its own section (src/brickwork/examples/sections/hero/
-                split-media.html, which collapses to an include of this
-                option, per ADR-077).
+  media_placement ("below" default | "behind" | "beside" | "above",
+                ADR-057 section 1a): where the media slot sits relative to
+                the copy. "below" is the shipped 2.0.0 layout (a column
+                flex, media after the copy in document order) and is the
+                honestly-named default, not "beside": the copy and media
+                were never side by side until this option existed
+                (icvoss/django-brickwork#118). "behind" stacks the media in
+                the same grid area as the copy, with the copy on top; the
+                section takes the inverse surface (--bw-color-surface-inverse
+                / --bw-color-fg-on-inverse) plus a scrim over the media, so
+                contrast holds in both themes regardless of what the media
+                itself contains. "beside" is a true side-by-side row from
+                48rem up (single column below it), replacing what a
+                consumer previously had to hand-build as its own section
+                (src/brickwork/examples/sections/hero/split-media.html,
+                which collapses to an include of this option, per ADR-077).
+                "above" stacks the media visually above the copy
+                (icvoss/django-brickwork#201); document order stays
+                copy-then-media because this axis is CSS-only.
 
                 This is a CSS-only option: it changes no markup, only the
                 modifier class on the section root, so a caller who has
@@ -70,29 +73,31 @@ mark, a rich lede with an inline link) that a flat string cannot carry,
 rather than adding yet another *_html kwarg per field.
 
 States: none of its own beyond the primary/secondary bw_button CTAs'
-  own states; three align states (start default, center, end) and three
-  media_placement states (below default, behind, beside), each a CSS-only
-  modifier class change.
+  own states; three align states (start default, center, end) and four
+  media_placement states (below default, behind, beside, above), each a
+  CSS-only modifier class change.
 Accessibility: the heading renders as the page's own <h1> (a page
   composing this include owns exactly one hero per page); with
   media_placement="behind" the copy takes the inverse foreground colour
   and a flat (never gradient) scrim sits between the copy and the media,
   a deliberate, uniform WCAG 1.4.3 guarantee that holds regardless of copy
   length or what media the caller passes (see the CONTRAST reasoning
-  inline above the CSS). Covered by axe.spec.mjs against landing-*.html/
-  pricing-*.html/about-*.html (the align="start"/"center" shapes) and
-  directly by hero-placement-*.html, which exercises every media_placement
-  value including a dedicated WCAG 1.4.3 composited-contrast measurement
-  over both pale and dark media for the "behind" case; also covered by
+  inline above the CSS). Reading and tab order stay copy-then-media for
+  every placement, including "above", because the axis is CSS-only.
+  Covered by axe.spec.mjs against landing-*.html/pricing-*.html/
+  about-*.html (the align="start"/"center" shapes) and directly by
+  hero-placement-*.html, which exercises every media_placement value
+  including a dedicated WCAG 1.4.3 composited-contrast measurement over
+  both pale and dark media for the "behind" case; also covered by
   sections-*.html via the four hero section examples.
-Responsive: media_placement="below" (the default) and "behind" carry no
-  @media rule of their own, applying identically at every viewport width.
-  media_placement="beside" is the one width-gated axis: below
-  --bw-breakpoint-md (48rem) it stacks in a single column; from md upward
-  it becomes a true two-column grid (1fr 1fr), media vertically centred
-  against the copy.
+Responsive: media_placement="below" (the default), "behind" and "above"
+  carry no @media rule of their own, applying identically at every
+  viewport width. media_placement="beside" is the one width-gated axis:
+  below --bw-breakpoint-md (48rem) it stacks in a single column; from md
+  upward it becomes a true two-column grid (1fr 1fr), media vertically
+  centred against the copy.
 {% endcomment %}
-<section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% endif %}">
+<section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% elif media_placement == 'above' %} bw-hero--media-above{% endif %}">
   <div class="bw-hero__copy">
     {% block eyebrow %}{% if eyebrow %}<p class="bw-hero__eyebrow">{{ eyebrow }}</p>{% endif %}{% endblock %}
     {% block heading %}{% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}{% endblock %}

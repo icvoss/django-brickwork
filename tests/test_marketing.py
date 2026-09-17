@@ -465,6 +465,7 @@ def test_hero_media_placement_omitted_emits_no_modifier_class() -> None:
     )
     assert "bw-hero--media-behind" not in html
     assert "bw-hero--media-beside" not in html
+    assert "bw-hero--media-above" not in html
 
 
 def test_hero_media_placement_below_is_explicitly_the_same_as_omitted() -> None:
@@ -491,6 +492,7 @@ def test_hero_media_placement_behind_emits_its_modifier_class() -> None:
     )
     assert "bw-hero--media-behind" in html
     assert "bw-hero--media-beside" not in html
+    assert "bw-hero--media-above" not in html
 
 
 def test_hero_media_placement_beside_emits_its_modifier_class() -> None:
@@ -502,6 +504,19 @@ def test_hero_media_placement_beside_emits_its_modifier_class() -> None:
     )
     assert "bw-hero--media-beside" in html
     assert "bw-hero--media-behind" not in html
+    assert "bw-hero--media-above" not in html
+
+
+def test_hero_media_placement_above_emits_its_modifier_class() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Media first",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="above",
+    )
+    assert "bw-hero--media-above" in html
+    assert "bw-hero--media-behind" not in html
+    assert "bw-hero--media-beside" not in html
 
 
 def test_hero_media_placement_is_css_only_and_adds_no_markup() -> None:
@@ -525,8 +540,14 @@ def test_hero_media_placement_is_css_only_and_adds_no_markup() -> None:
         media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
         media_placement="beside",
     )
+    above = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Same shape",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="above",
+    )
     strip_classes = lambda html: re.sub(r'\sclass="[^"]*"', "", html)  # noqa: E731
-    assert strip_classes(below) == strip_classes(behind) == strip_classes(beside)
+    assert strip_classes(below) == strip_classes(behind) == strip_classes(beside) == strip_classes(above)
 
 
 def test_hero_media_placement_unrecognised_value_falls_back_to_default() -> None:
@@ -541,6 +562,7 @@ def test_hero_media_placement_unrecognised_value_falls_back_to_default() -> None
     )
     assert "bw-hero--media-behind" not in html
     assert "bw-hero--media-beside" not in html
+    assert "bw-hero--media-above" not in html
 
 
 # --- components/_hero.html: flat CTA kwargs (#98) ---------------------------
