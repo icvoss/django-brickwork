@@ -219,6 +219,20 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             {"label": "3.28.0", "href": "/docs/3.28.0/", "status": "deprecated"},
         ],
     ),
+    "_toc (bw_toc: nested + active)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_toc items=items active='changing-the-thresholds' heading_id='bw-docs-toc-heading' %}",
+        items=[
+            {
+                "label": "Escalation order",
+                "href": "#escalation-order",
+                "children": [
+                    {"label": "Changing the thresholds", "href": "#changing-the-thresholds"},
+                ],
+            },
+            {"label": "Testing a schedule", "href": "#testing-a-schedule"},
+        ],
+    ),
     "_card (extended, all regions, interactive+bordered)": lambda: _extend(
         "brickwork/components/_card.html",
         '{% block card_header %}<div class="bw-card__header"><h2 class="bw-card__title">Members</h2>'

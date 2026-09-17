@@ -223,6 +223,7 @@ Status values:
 | theme_switch | N/A (keep lean) | |
 | toast | N/A (defaults) | Elevation/edge authored Phase A; optional `surface` refused |
 | toast_region | N/A (local) | `placement` only |
+| toc | Adopted | `{% bw_toc %}` / `_toc.html`; reuses `.bw-docs-toc` chrome; `items`, `active`, `heading` |
 | toggle | N/A (keep lean) | |
 | token_specimen | N/A (keep lean) | Theme specimen; not kit chrome variation |
 | tooltip | N/A (keep lean) | |
@@ -237,7 +238,7 @@ Status values:
 | app | N/A (defaults) | Sidebar selected/hover + topbar elevation Phase A |
 | auth | N/A (defaults) | Panel elevation/radius Phase A |
 | centred | N/A (defaults) | Same panel craft as auth |
-| docs | N/A (defaults) | Rail active + article measure Phase A; TOC stays P1 deferred |
+| docs | N/A (defaults) | Rail active + article measure Phase A; on-this-page via `{% bw_toc %}` (#627) |
 | marketing | N/A (defaults) | Header/footer craft; footer groups component shipped |
 
 ### Phase 4 P1 (deferred; explicit N/A)
@@ -252,7 +253,6 @@ do **not** block suite Phase 5 or beat programme close.
 | input_group | N/A (deferred) | Forms demand |
 | date_picker_chrome | N/A (deferred) | Archetype chrome only; engine stays consumer |
 | comparison_table | N/A (deferred) | Marketing section exists; component promote on demand |
-| toc | N/A (deferred) | Docs family |
 | article_meta | N/A (deferred) | Editorial family |
 
 ### Phase 6 P2 (deferred; explicit N/A)

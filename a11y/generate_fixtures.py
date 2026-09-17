@@ -4343,6 +4343,68 @@ def render_version_switch(theme: str) -> str:
     )
 
 
+# --- docs on-this-page toc (icvoss/django-brickwork#627) --------------------
+#
+# toc-<theme>.html is a standalone page mirroring render_version_switch:
+# {% bw_toc %} reuses .bw-docs-toc chrome with nested __sub entries and an
+# active aria-current="location" marker.
+
+_TOC_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Table of contents (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Table of contents</h1>
+  <section aria-labelledby="toc-fixture-heading">
+    <h2 id="toc-fixture-heading">On this page control</h2>
+    __TOC__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_toc_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template(
+        "{% load brickwork_components %}"
+        "{% bw_toc items=items active=active heading_id='bw-docs-toc-heading' %}"
+    ).render(
+        Context(
+            {
+                "items": [
+                    {
+                        "label": "Escalation order",
+                        "href": "#escalation-order",
+                        "children": [
+                            {"label": "Changing the thresholds", "href": "#changing-the-thresholds"},
+                        ],
+                    },
+                    {"label": "Testing a schedule change", "href": "#testing-a-schedule"},
+                    {"label": "Recovery by stage", "href": "#recovery-by-stage"},
+                ],
+                "active": "#changing-the-thresholds",
+            }
+        )
+    )
+
+
+def render_toc(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _TOC_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__TOC__", _render_toc_fixture())
+    )
+
+
 # --- the code display content primitive (icvoss/django-brickwork#259) -------
 #
 # code-display-<theme>.html is a standalone (non-shell) page, mirroring
@@ -4859,6 +4921,8 @@ def main() -> None:
         _emit(OUT / f"search-{theme}.html", render_search(theme), written)
         # version switcher (#414): bw_version_switch current-version disclosure
         _emit(OUT / f"version-switch-{theme}.html", render_version_switch(theme), written)
+        # docs on-this-page toc (#627): bw_toc nested entries + aria-current
+        _emit(OUT / f"toc-{theme}.html", render_toc(theme), written)
         # the docs shell (ADR-091, #439): a populated two-column docs page
         # (real article content in .bw-prose, a real {% bw_nav %} rail),
         # never rendered by any other fixture before this shell existed

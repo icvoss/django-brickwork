@@ -965,6 +965,17 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             "    invoice = make_invoice(days_overdue=2)\n"
             "    assert next_reminder(invoice) is Stage.DUE\n"
         ),
+        "toc_items": [
+            {
+                "label": "Escalation order",
+                "href": "#escalation-order",
+                "children": [
+                    {"label": "Changing the thresholds", "href": "#changing-the-thresholds"},
+                ],
+            },
+            {"label": "Testing a schedule change", "href": "#testing-a-schedule"},
+            {"label": "Recovery by stage", "href": "#recovery-by-stage"},
+        ],
     },
     "docs/api-reference.html": {
         "crumbs": [
@@ -1005,6 +1016,13 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             "  ]\n"
             "}\n"
         ),
+        "toc_items": [
+            {"label": "Signature", "href": "#signature"},
+            {"label": "Parameters", "href": "#parameters"},
+            {"label": "Request", "href": "#request"},
+            {"label": "Response", "href": "#response"},
+            {"label": "Status codes", "href": "#status-codes"},
+        ],
     },
     "docs/toc.html": {
         "crumbs": [
@@ -1112,6 +1130,11 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "category_label": "Operations",
         "category_href": "/journal/operations/",
         "article_state": "ready",
+        "toc_items": [
+            {"label": "What changed", "href": "#what-changed"},
+            {"label": "The evidence", "href": "#the-evidence"},
+            {"label": "What we kept", "href": "#what-we-kept"},
+        ],
     },
     "editorial/author.html": {
         "crumbs": [
@@ -1423,6 +1446,11 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "docs_nav_label": "On this page",
         "docs_search_action": "/journal/search/",
         "progress_state": "ready",
+        "toc_items": [
+            {"label": "What changed", "href": "#what-changed"},
+            {"label": "The evidence", "href": "#the-evidence"},
+            {"label": "What we kept", "href": "#what-we-kept"},
+        ],
     },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
