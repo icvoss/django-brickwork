@@ -655,6 +655,9 @@ max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
 | `--bw-component-content-max-width` | `72rem` | 0.4.0: was `none`; a default measure cap so bands stop degrading into full-bleed wires on wide monitors (invisible at 1280px); a consumer overrides it, including back to `none`. Token itself was `--bw-content-max-width` through 0.10.0, kept as a courtesy alias |
 | `--bw-component-content-max-width-marketing` **[NEW 1.2.0]** | `80rem` | ADR-055 marketing tokens: a wider content cap than the app shell's content-max-width (72rem), since a marketing canvas wants a wider column than a console. Used by `shell/marketing.html`'s content wrapper. Was `--bw-content-max-width-marketing` at the raw name before the `bw-component-*` rename applied at build time; the raw name is not kept as an alias (introduced post-0.10.0, so no prior consumer depends on it) |
 | `--bw-component-section-gap-marketing` **[NEW 1.2.0]** | `6rem` | ADR-055 marketing tokens: the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA), larger than the app's `--bw-density-section-gap` (2rem comfortable) since marketing pages read as fewer, more generous blocks. Raised from 4rem in the Phase 3 visual-bar craft wave (icvoss/django-brickwork#510). Density-agnostic (not itself part of the density axis) |
+| `--bw-component-hero-copy-max-width` **[NEW, #640]** | `var(--bw-size-max-width-prose)` | Hero copy-column measure (`.bw-hero__copy`, including media-behind). Defaults to the prose measure so package-default layout matches the pre-token binding. Raise this (and keep or raise heading) when a display heading needs a wider column than body copy |
+| `--bw-component-hero-heading-max-width` **[NEW, #640]** | `100%` | Hero heading measure (`.bw-hero__heading`). Defaults to 100% so the heading fills the copy column at package default. Override after widening the copy column when the heading should sit at a specific width inside it |
+| `--bw-component-hero-lede-max-width` **[NEW, #640]** | `100%` | Hero lede measure (`.bw-hero__lede`). Defaults to 100% (fills the copy column). When the copy column is widened for the heading, set this to `var(--bw-size-max-width-prose)` or `62ch` so the lede stays at a readable measure without scoping a rule to `.bw-hero__*` |
 | `--bw-component-logo-height` **[NEW, unreleased]** | `2rem` | brickwork#83 (ADR-054 beautiful-by-default): the default cap the marketing shell applies to an `img`/`svg` dropped into `brand_logo` or `brand_wordmark` (block-size capped, width follows the intrinsic ratio), so an unconstrained mark/lockup renders at a sensible header size out of the box instead of a full-height banner. 2rem is the 32px end of the conventional 28-32px header-logo range. Applied through the brickwork-owned `.bw-marketing-header__brand-mark` / `__brand-wordmark` wrappers at zero specificity (`:where`), so a one-class consumer rule overrides it; or override the token itself to resize. Raw `--bw-logo-height` ships as a build alias of the canonical name |
 | `--bw-component-hero-decoration-inset` **[NEW, #645]** | `2rem` | Block-start offset for `_hero.html`'s decoration watermark; CSS flips the sign for `inset-inline-end` so the mark hangs slightly past the trailing edge by the same magnitude. Applied only when the decoration slot has content |
 | `--bw-component-hero-decoration-size` **[NEW, #645]** | `14rem` | Default inline size of the hero decoration mark, further capped at 50% of the hero in CSS |
@@ -1184,9 +1187,15 @@ matching sections above rather than kept as one-off marketing-scoped classes:
 `--bw-text-heading-display-*` (a `heading-display` type role, §7.4),
 `--bw-component-content-max-width-marketing` and
 `--bw-component-section-gap-marketing` (§6.6), and
-`--bw-color-surface-marketing-tint` (§4.1). Marketing-scoped CSS classes are
-used only where a token would be the wrong shape (a layout construct, not a
-themeable value, e.g. `.bw-hero`, `.bw-pricing-tier`). See ADR-055 in the
+`--bw-color-surface-marketing-tint` (§4.1). Hero copy-column measures
+(`--bw-component-hero-copy-max-width`,
+`--bw-component-hero-heading-max-width`,
+`--bw-component-hero-lede-max-width`, §6.6, icvoss/django-brickwork#640)
+are the same shape: component tokens consumed by `.bw-hero__*`, so a brand
+can widen the display heading without also widening the lede. Marketing-scoped
+CSS classes are used only where a token would be the wrong shape (a layout
+construct, not a themeable value, e.g. `.bw-hero`, `.bw-pricing-tier`). See
+ADR-055 in the
 umbrella (`oss/docs/adrs/ADR-055-brickwork-marketing-kit-opt-in-subapp.md`)
 and the wider trajectory this opens
 (`oss/docs/plans/brickwork-templates-catalogue-direction.md`).
