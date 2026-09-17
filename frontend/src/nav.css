@@ -22,6 +22,13 @@
   display: flex;
   align-items: center;
   gap: var(--bw-space-2);
+  /* Fill the list column and allow shrink below content min-size so
+   * .bw-nav__label's text-overflow: ellipsis can engage in a narrow rail
+   * (docs shell, long page titles). Without this the flex link sizes to its
+   * label and overflows the column; measured on icvoss.com docs rail
+   * (icvoss/django-brickwork#623). Horizontal bands reset inline-size below. */
+  inline-size: 100%;
+  min-inline-size: 0;
   padding-block: var(--bw-density-row-padding-block);
   padding-inline: var(--bw-density-row-padding-inline);
   border-radius: var(--bw-radius-md);
@@ -199,6 +206,8 @@
  * .bw-nav__link--disabled carries .bw-nav__link too, so both are covered. */
 [data-layout="topbar"] .bw-sidebar .bw-nav__link,
 .bw-nav__list--horizontal .bw-nav__link {
+  /* Content-sized chips in a wrapping row; do not stretch to 100% of the band. */
+  inline-size: auto;
   border-inline-start: none;
   border-block-end: var(--bw-size-border-nav-marker) solid transparent;
 }
