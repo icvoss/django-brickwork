@@ -24,6 +24,14 @@
       "weight": { "$value": "var(--bw-font-weight-semibold)" },
       "tracking": { "$value": "var(--bw-font-tracking-tight)" }
     },
+    "heading-section": {
+      "$description": "Marketing section-intro type role (icvoss/django-brickwork#643). Independently themeable from the page-header title's heading-xl role. Defaults duplicate heading-xl's scale references (display family, xl size, tight leading, semibold, tight tracking) so package-default renders stay visually identical while a brand can size section intros without moving page titles, and vice versa.",
+      "family": { "$value": "var(--bw-font-family-display)" },
+      "size": { "$value": "var(--bw-font-size-xl)" },
+      "line-height": { "$value": "var(--bw-font-line-height-tight)" },
+      "weight": { "$value": "var(--bw-font-weight-semibold)" },
+      "tracking": { "$value": "var(--bw-font-tracking-tight)" }
+    },
     "heading-lg": {
       "family": { "$value": "var(--bw-font-family-sans)" },
       "size": { "$value": "var(--bw-font-size-lg)" },

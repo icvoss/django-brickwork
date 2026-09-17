@@ -956,10 +956,10 @@
 
 .bw-feature-grid-section__heading {
   margin: 0 0 var(--bw-space-2);
-  font-family: var(--bw-text-heading-xl-family);
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
+  font-family: var(--bw-text-heading-section-family);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
 }
 
 .bw-feature-grid-section__lede {
@@ -1082,10 +1082,10 @@
 
 .bw-pricing-table-section__heading {
   margin: 0 0 var(--bw-space-2);
-  font-family: var(--bw-text-heading-xl-family);
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
+  font-family: var(--bw-text-heading-section-family);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
 }
 
 .bw-pricing-table-section__lede {
@@ -1279,10 +1279,10 @@
 
 .bw-cta__heading {
   margin: 0;
-  font-family: var(--bw-text-heading-xl-family);
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
+  font-family: var(--bw-text-heading-section-family);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
   text-wrap: balance;
 }
 
@@ -1463,10 +1463,10 @@
 
 .bw-stat-band-section__heading {
   margin: 0 0 var(--bw-space-6);
-  font-family: var(--bw-text-heading-xl-family);
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
+  font-family: var(--bw-text-heading-section-family);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
 }
 
 /* Display-scale band, distinct from patterns/dashboard.html's dense KPI grid
@@ -1503,9 +1503,9 @@
 
 .bw-faq-section__heading {
   margin: 0 0 var(--bw-space-4);
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
   text-align: center;
 }
 
@@ -1523,10 +1523,10 @@
 
 .bw-feature-list-section__heading {
   margin: 0 0 var(--bw-space-6);
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
-  letter-spacing: var(--bw-text-heading-xl-tracking);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
 }
 
 .bw-feature-list {
@@ -1572,10 +1572,10 @@
 
 .bw-feature-rows__heading {
   margin: 0;
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
-  letter-spacing: var(--bw-text-heading-xl-tracking);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
   text-wrap: balance;
 }
 
@@ -1819,10 +1819,10 @@
 
 .bw-single-plan__heading {
   margin: 0;
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
-  letter-spacing: var(--bw-text-heading-xl-tracking);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
 }
 
 .bw-single-plan__lede {
@@ -1861,10 +1861,10 @@
 
 .bw-faq-columns__heading {
   margin: 0 0 var(--bw-space-8);
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
-  letter-spacing: var(--bw-text-heading-xl-tracking);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
 }
 
 /* One column on a phone, two from 48rem. Each column is its own exclusive
@@ -1893,10 +1893,10 @@
 
 .bw-testimonial-grid-section__heading {
   margin: 0 0 var(--bw-space-8);
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
-  letter-spacing: var(--bw-text-heading-xl-tracking);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
 }
 
 .bw-testimonial-grid {
@@ -1942,10 +1942,10 @@
 
 .bw-stat-cards-section__heading {
   margin: 0 0 var(--bw-space-8);
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
-  letter-spacing: var(--bw-text-heading-xl-tracking);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
 }
 
 .bw-stat-cards {
@@ -2007,9 +2007,9 @@
 
 .bw-listing-section__heading {
   margin: 0;
-  font-size: var(--bw-text-heading-xl-size);
-  font-weight: var(--bw-text-heading-xl-weight);
-  line-height: var(--bw-text-heading-xl-line-height);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
 }
 
 .bw-listing-section__lede {

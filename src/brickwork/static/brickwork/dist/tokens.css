@@ -143,6 +143,11 @@
   --bw-text-heading-xl-line-height: var(--bw-font-line-height-tight);
   --bw-text-heading-xl-weight: var(--bw-font-weight-semibold);
   --bw-text-heading-xl-tracking: var(--bw-font-tracking-tight);
+  --bw-text-heading-section-family: var(--bw-font-family-display);
+  --bw-text-heading-section-size: var(--bw-font-size-xl);
+  --bw-text-heading-section-line-height: var(--bw-font-line-height-tight);
+  --bw-text-heading-section-weight: var(--bw-font-weight-semibold);
+  --bw-text-heading-section-tracking: var(--bw-font-tracking-tight);
   --bw-text-heading-lg-family: var(--bw-font-family-sans);
   --bw-text-heading-lg-size: var(--bw-font-size-lg);
   --bw-text-heading-lg-line-height: var(--bw-font-line-height-snug);

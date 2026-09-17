@@ -921,7 +921,8 @@ reduced motion never leaves a blank track with no indication of progress
 ```
 
 Display is a deliberate system serif pairing (icvoss/django-brickwork#511),
-not an alias of sans: `heading-display`, `heading-2xl` and `heading-xl`
+not an alias of sans: `heading-display`, `heading-2xl`, `heading-xl` and
+`heading-section`
 consume it so hierarchy is not size-only out of the box. Brands override
 `--bw-font-family-display` (and/or sans) with their own faces; see the
 northline brand-pack example.
@@ -966,10 +967,10 @@ roles, never raw scale steps, so nothing drifts out of rhythm.
 **`-tracking` is carried for one of two reasons, and both must be named**,
 because a rule naming only the first would license deleting the second:
 
-1. **A typographic reason.** `heading-display`, `heading-2xl` and
-   `heading-xl` carry `tight`, because large display type needs negative
-   tracking. `overline` carries `wider`, because uppercase overlines read
-   tighter than mixed case.
+1. **A typographic reason.** `heading-display`, `heading-2xl`, `heading-xl`
+   and `heading-section` carry `tight`, because large display type needs
+   negative tracking. `overline` carries `wider`, because uppercase overlines
+   read tighter than mixed case.
 2. **Holding `0em` against inheritance.** `heading-lg` and `caption` carry
    `tracking: normal` so their consuming rules (`shell.css`'s `.bw-content`
    h2 and `.bw-footer` rules) can set an explicit `0em` that blocks an
@@ -1043,6 +1044,7 @@ removed, not left empty.
 | `heading-display` **[NEW 1.2.0]** | display | 5xl | tight | bold | tight |
 | `heading-2xl` | display | 2xl | tight | bold | tight |
 | `heading-xl` | display | xl | tight | semibold (0.4.0: was bold; 600 at 24px is the product-chrome cut, 2xl keeps bold for true display use) | tight |
+| `heading-section` **[NEW, #643]** | display | xl | tight | semibold | tight (defaults match `heading-xl` so package-default renders stay identical; independently overridable so a brand can size marketing section intros without moving the page-header title) |
 | `heading-lg` | sans | lg | snug | semibold | normal (holds `0em` against inheritance; see above) |
 | `heading-md` | sans | md | snug | semibold | *(not carried)* |
 | `heading-sm` | sans | sm | snug | semibold | *(not carried)* |
@@ -1070,8 +1072,10 @@ uppercase fg-muted (0.4.0: was label; the header band now reads as column
 apparatus, not a first data row; td body-sm; definition-mode label column
 body-sm + fg-subtle); field label label, help and errors caption; button
 label label; badge caption size at medium weight, tabular-nums; marketing hero
-heading heading-display, marketing section heading heading-xl (1.2.0,
-ADR-055 marketing tokens, `brickwork.marketing`); nav link
+heading heading-display, marketing section intro heading heading-section
+(icvoss/django-brickwork#643; defaults match the former heading-xl binding so
+package-default visuals stay identical while brands theme section intros and
+page titles independently; ADR-055 marketing tokens, `brickwork.marketing`); nav link
 body-sm (0.4.0: was body-md; chrome sits a step below content), nav
 section-label overline (uppercase at the component); breadcrumbs body-sm +
 fg-muted, current crumb breadcrumb-current; account-menu item body-sm
@@ -1253,7 +1257,7 @@ The table below covers the `@theme inline` semantic block only. The plain
 | `--color-<name>` | every semantic `--bw-color-<name>` | 51 | `bg-accent`, `text-fg-muted`, `border-danger-border` |
 | `--radius-<step>` | every `--bw-radius-<step>` (was `--bw-size-radius-<step>` through 0.10.0) | 7 | `rounded-md`, `rounded-full` |
 | `--shadow-<level>` | the elevation ladder `--bw-elevation-<level>` | 6 | `shadow-3` |
-| `--text-<role>` + `--text-<role>--line-height` | the type roles `--bw-text-<role>-size` / `-line-height` | 12 roles (24 keys) | `text-heading-lg`, `text-body-md` |
+| `--text-<role>` + `--text-<role>--line-height` | the type roles `--bw-text-<role>-size` / `-line-height` | 13 roles (26 keys) | `text-heading-lg`, `text-body-md` |
 | `--font-<name>` | the font stacks `--bw-font-family-<name>` | 3 | `font-sans`, `font-display`, `font-mono` |
 | `--spacing` | the dynamic base `--bw-space-1` (was `--bw-size-space-1` through 0.10.0) | 1 | `p-4`, `gap-2`, `mt-8` |
 | `--default-font-family`, `--default-mono-font-family` | `--bw-font-family-sans` / `-mono` | 2 | preflight body and code text |
