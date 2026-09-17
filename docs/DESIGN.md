@@ -980,7 +980,7 @@ because a rule naming only the first would license deleting the second:
    `0.3em` ancestor. Do not delete either on the strength of the
    consumption test alone.
 
-`heading-md`, `heading-sm`, `body-lg`, `body-md`, `body-sm`, `label` and
+`heading-md`, `heading-sm`, `body-lg`, `body-md`, `body-sm` and
 `code` carry neither reason: each resolves to `var(--bw-font-tracking-normal)`
 (`0em`, the browser default) and no rule on any path to them sets a
 non-`0em` ancestor tracking that would need blocking, so the property was a
@@ -989,6 +989,13 @@ dead lever, not a spare. Their `-tracking` properties were removed
 dead `-family` tokens below. A future role that needs `-tracking` for either
 of the two reasons above adds it back; the default for a new role is to omit
 it, and to justify the addition against this list, not the other way round.
+
+`label` carries `tracking: normal` again (icvoss/django-brickwork#642).
+`.bw-btn` binds the whole label bundle, including `letter-spacing`, so a brand
+can set button tracking once on the ladder without scoping to
+`.bw-btn--primary`. The default is `0em` (byte-identical at package defaults);
+the wired declaration also holds that `0em` against an ancestor's
+`letter-spacing`, the same mechanism `caption` and `heading-lg` use.
 
 **A role token that no rule consumes is a false affordance, not a spare.**
 Shipping a property on a role promises a consumer that setting it changes
@@ -1005,14 +1012,20 @@ enforces this for `-family` specifically, deriving the shipped set from the
 token manifest rather than a hardcoded list, so a newly added dead token
 fails the build instead of shipping unnoticed.
 
-**Not every role carries a `-family` token** (**CHANGED**, icvoss/django-brickwork#288). `body-lg`,
-`body-sm` and `label` deliberately have no `-family` property: those roles
+**Not every role carries a `-family` token** (**CHANGED**, icvoss/django-brickwork#288). `body-lg`
+and `body-sm` deliberately have no `-family` property: those roles
 inherit the sans stack from `.bw-body` rather than pinning it per role, so a
 per-size body family cannot be set without also touching `--bw-font-family-sans`,
 which is the intended override point. A per-size body family would make body
 copy internally inconsistent rather than giving a consumer a real theming
-lever, so this is a deliberate design choice, not an oversight; a consumer
-who wants a different label face changes `--bw-font-family-sans` instead.
+lever, so this is a deliberate design choice, not an oversight.
+
+`label` carries `-family` again (icvoss/django-brickwork#642). Buttons are the
+load-bearing consumer of the label role, and a brand that wants a distinct
+button face (for example monospace) must override `--bw-text-label-family`
+without also retargeting every sans role. The default remains
+`var(--bw-font-family-sans)`, so package defaults stay byte-identical;
+`.bw-btn` is the consuming rule.
 
 **`code` is wired** (icvoss/django-brickwork#293). `.bw-prose code` consumes
 `--bw-text-code-family`; `.bw-prose pre` consumes `--bw-text-code-family`,
@@ -1049,7 +1062,7 @@ removed, not left empty.
 | `body-lg` | *(none, inherits `.bw-body`)* | lg | relaxed | normal | *(not carried)* |
 | `body-md` | sans | md | normal | normal | *(not carried)* |
 | `body-sm` | *(none, inherits `.bw-body`)* | sm | normal | normal | *(not carried)* |
-| `label` | *(none, inherits `.bw-body`)* | sm | none | medium | *(not carried)* |
+| `label` | sans | sm | none | medium | normal (button ladder theming + holds `0em`; see #642) |
 | `caption` | sans | xs | normal | normal | normal (holds `0em` against inheritance; see above) |
 | `overline` | sans | 2xs | none | semibold | wider |
 | `code` | mono | sm | normal | normal | *(not carried; weight defined, not wired, see below)* |

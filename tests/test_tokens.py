@@ -438,3 +438,46 @@ def test_every_text_family_token_is_consumed_by_a_font_family_rule() -> None:
         f"--bw-text-*-family tokens defined but consumed by no font-family rule "
         f"in dist/brickwork.css (build dropped a source rule): {dead_in_dist}"
     )
+
+
+# --- #642: label role exposes family + tracking for button theming --------
+
+
+def test_label_role_ships_family_and_tracking_tokens() -> None:
+    """Label must expose the same theming levers as sibling typed roles.
+
+    Defaults remain sans + 0em tracking so package defaults stay
+    byte-identical; the tokens exist so a brand can override button type
+    once on the ladder (icvoss/django-brickwork#642).
+    """
+    tokens_css = (_DIST / "tokens.css").read_text()
+    assert re.search(
+        r"--bw-text-label-family:\s*var\(--bw-font-family-sans\)\s*;",
+        tokens_css,
+    ), "expected --bw-text-label-family defaulting to the sans family"
+    assert re.search(
+        r"--bw-text-label-tracking:\s*var\(--bw-font-tracking-normal\)\s*;",
+        tokens_css,
+    ), "expected --bw-text-label-tracking defaulting to normal (0em)"
+
+    manifest = json.loads((_DIST / "token-manifest.json").read_text())
+    overridable = set(manifest["overridable"])
+    assert "--bw-text-label-family" in overridable
+    assert "--bw-text-label-tracking" in overridable
+
+
+def test_bw_btn_reads_label_family_and_tracking() -> None:
+    """`.bw-btn` is the load-bearing consumer of the label family/tracking pair."""
+    components = (_FRONTEND_SRC / "components.css").read_text()
+    btn_match = re.search(r"\.bw-btn\s*\{([^}]+)\}", components)
+    assert btn_match, "missing .bw-btn rule in components.css"
+    body = btn_match.group(1)
+    assert "font-family: var(--bw-text-label-family)" in body
+    assert "letter-spacing: var(--bw-text-label-tracking)" in body
+
+    dist = (_DIST / "brickwork.css").read_text()
+    assert "font-family:var(--bw-text-label-family)" in dist or "font-family: var(--bw-text-label-family)" in dist
+    assert (
+        "letter-spacing:var(--bw-text-label-tracking)" in dist
+        or "letter-spacing: var(--bw-text-label-tracking)" in dist
+    )
