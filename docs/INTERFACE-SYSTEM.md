@@ -121,13 +121,11 @@ kit and `bw-prose` are in the wheel. Archetype burn evidence lives in
 `changelog.d/` fragments (400 to 407, 422 to 427, 614) until the next minor
 assembles them.
 
-The next delivery cut is the **viable primitives and cheap options** pack
-(owner demand ruling 2026-09-17; former "demand-gated" P1 rows are in demand
-for this session only): `input_group`, `article_meta`, `comparison_table`
-(promote from the marketing pricing comparison), `toc` (first-class docs
-control), `date_picker_chrome` (chrome and panel only; no date engine),
-hero `media_placement="above"` (#201), `bw_ranked_list` optionals (#604 to
-#606), and `bw_theme_switch` consumer `data=` passthrough (#253).
+At **3.34.0** the viable primitives and cheap options pack has landed:
+`input_group`, `article_meta`, `comparison_table`, `toc`,
+`date_picker_chrome` (chrome only), hero `media_placement="above"`,
+`bw_ranked_list` optionals (#604 to #606), and `bw_theme_switch` `data=`
+passthrough (#253).
 
 Still explicitly deferred (do not silent-ship):
 
