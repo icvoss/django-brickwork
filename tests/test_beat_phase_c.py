@@ -90,9 +90,9 @@ def test_pricing_comparison_yes_no_and_text_cells() -> None:
             {"label": "Reminders", "cells": [{"included": True}, {"included": False}]},
         ],
     )
-    assert "bw-pricing-comparison__table" in out
-    assert "bw-pricing-comparison__yes" in out
-    assert "bw-pricing-comparison__no" in out
+    assert "bw-comparison-table__table" in out
+    assert "bw-comparison-table__yes" in out
+    assert "bw-comparison-table__no" in out
     assert "Included" in out
     assert "Not included" in out
     assert "Users" in out
@@ -173,4 +173,5 @@ def test_phase_c_css_ships_new_modifiers() -> None:
     assert ".bw-feature-rows" in css
     assert ".bw-cta-split" in css
     assert ".bw-cta-bleed" in css
+    assert ".bw-comparison-table__table" in css
     assert ".bw-pricing-comparison__table" in css

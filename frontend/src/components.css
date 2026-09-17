@@ -5990,3 +5990,140 @@ a.bw-chip {
   color: var(--bw-color-fg-muted);
   line-height: var(--bw-font-line-height-normal);
 }
+
+/* --- Comparison table (#626) ----------------------------------------------
+ * First-class plan/capability matrix. Promoted from marketing
+ * .bw-pricing-comparison*; the old class names remain as aliases so
+ * hand-authored markup and the thin marketing wrapper stay pixel-identical.
+ */
+
+.bw-comparison-table,
+.bw-pricing-comparison {
+  display: flex;
+  flex-direction: column;
+}
+
+.bw-comparison-table__heading,
+.bw-pricing-comparison__heading {
+  margin: 0;
+  font-size: var(--bw-text-heading-xl-size);
+  font-weight: var(--bw-text-heading-xl-weight);
+  line-height: var(--bw-text-heading-xl-line-height);
+  letter-spacing: var(--bw-text-heading-xl-tracking);
+}
+
+.bw-comparison-table__lede,
+.bw-pricing-comparison__lede {
+  margin: var(--bw-space-3) 0 var(--bw-space-8);
+  max-inline-size: var(--bw-size-max-width-prose);
+  color: var(--bw-color-fg-muted);
+  text-wrap: pretty;
+}
+
+/* A comparison table cannot reflow to one column and stay a comparison, so it
+ * scrolls inside its own container instead of pushing the page sideways on a
+ * phone. The container is focusable in the markup so a keyboard can reach the
+ * scroll; its focus ring comes free from the global :focus-visible rule, whose
+ * selector already includes [tabindex]. */
+.bw-comparison-table__scroll,
+.bw-pricing-comparison__scroll {
+  overflow-x: auto;
+  /* contain: paint is load-bearing, not an optimisation. overflow-x alone does
+   * NOT stop a wide <table> painting outside this container: the box scrolls
+   * correctly (scrollWidth 687 against clientWidth 310 at 360px) while the
+   * table still renders to its full intrinsic width, so the PAGE gains a
+   * horizontal scrollbar even though the container has one. Containing paint
+   * clips it to this box, which is the behaviour overflow-x is assumed to have.
+   * Same class of defect as the 3.1.0 <pre>/<code> fix. Verified at 360, 375
+   * and 414px in both themes; the table keeps its full width and scrolls. */
+  contain: paint;
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+}
+
+.bw-comparison-table__table,
+.bw-pricing-comparison__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--bw-text-body-md-size);
+}
+
+.bw-comparison-table__caption,
+.bw-pricing-comparison__caption {
+  padding: var(--bw-space-4) var(--bw-space-4) 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  text-align: start;
+  caption-side: top;
+}
+
+.bw-comparison-table__table th,
+.bw-comparison-table__table td,
+.bw-pricing-comparison__table th,
+.bw-pricing-comparison__table td {
+  padding: var(--bw-space-3) var(--bw-space-4);
+  text-align: start;
+  vertical-align: middle;
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-comparison-table__table thead th,
+.bw-pricing-comparison__table thead th {
+  color: var(--bw-color-fg);
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  white-space: nowrap;
+}
+
+/* The capability column: it is the row's label, so it stays legible at body
+ * weight and gets the width it needs rather than being squeezed by the plans. */
+.bw-comparison-table__row-header,
+.bw-pricing-comparison__row-header {
+  font-weight: var(--bw-text-body-md-weight);
+  min-inline-size: 14rem;
+}
+
+.bw-comparison-table__table tbody tr:last-child th,
+.bw-comparison-table__table tbody tr:last-child td,
+.bw-pricing-comparison__table tbody tr:last-child th,
+.bw-pricing-comparison__table tbody tr:last-child td {
+  border-block-end: none;
+}
+
+/* Colour is reinforcement only: every cell also carries a visually-hidden
+ * "Included" or "Not included", so the meaning survives without it. */
+.bw-comparison-table__yes,
+.bw-pricing-comparison__yes {
+  color: var(--bw-color-success);
+}
+
+.bw-comparison-table__no,
+.bw-pricing-comparison__no {
+  color: var(--bw-color-icon-muted);
+}
+
+.bw-comparison-table__note,
+.bw-pricing-comparison__note {
+  margin: var(--bw-space-6) 0 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+}
+
+/* One recommended plan column. Accent wash + stronger header weight are
+ * reinforcement; the header also emits visually-hidden "(Recommended)" (or
+ * highlighted_label) so meaning does not ride on colour alone. */
+.bw-comparison-table__col--highlighted,
+.bw-pricing-comparison__col--highlighted {
+  background-color: color-mix(in oklch, var(--bw-color-accent) 8%, transparent);
+}
+
+.bw-comparison-table__table thead th.bw-comparison-table__col--highlighted,
+.bw-pricing-comparison__table thead th.bw-pricing-comparison__col--highlighted {
+  box-shadow: inset 0 calc(var(--bw-size-border-thick) * -1) 0 0 var(--bw-color-accent);
+  font-weight: var(--bw-text-heading-sm-weight);
+}
+
+[data-theme="dark"] .bw-comparison-table__col--highlighted,
+[data-theme="dark"] .bw-pricing-comparison__col--highlighted {
+  background-color: color-mix(in oklch, var(--bw-color-accent) 14%, transparent);
+}

@@ -5,15 +5,19 @@ WHEN TO USE THIS. Underneath the tier cards, not instead of them. The cards
 sell; this answers the reader who has narrowed it to two plans and wants to
 know precisely what the cheaper one gives up.
 
-This one is the shipped _pricing_comparison.html include (Beat Phase C).
+This one is the first-class _comparison_table.html include (#626), reached
+here via the marketing _pricing_comparison.html compat wrapper so existing
+call sites keep working. Prefer
+`brickwork/components/_comparison_table.html` for new work. Pass
+`highlighted` as a 0-based plan index or exact plan name to tint one column.
 
 WHAT YOUR VIEW MUST SUPPLY. Pass comparison_plans (list of str column
 headers) and comparison_rows (list of {label, cells}). A cell is a plain
 string or {included: True|False} for tick/dash with visually-hidden text.
 
-States: see _pricing_comparison.html.
-Accessibility: see _pricing_comparison.html; covered by axe.spec.mjs against
+States: see _comparison_table.html.
+Accessibility: see _comparison_table.html; covered by axe.spec.mjs against
   sections-*.html, both themes.
-Responsive: see _pricing_comparison.html.
+Responsive: see _comparison_table.html.
 {% endcomment %}
-{% include "brickwork_marketing/components/_pricing_comparison.html" with heading="Compare the plans" lede="Everything below is per account, not per invoice. The trial gives you Scale for thirty days whichever plan you end up on." plans=comparison_plans rows=comparison_rows caption="Northwind plan comparison. Scroll sideways to see every plan." note="Prices exclude VAT. Changing plan takes effect on the next invoice, and we credit the unused part of the current one." %}
+{% include "brickwork_marketing/components/_pricing_comparison.html" with heading="Compare the plans" lede="Everything below is per account, not per invoice. The trial gives you Scale for thirty days whichever plan you end up on." plans=comparison_plans rows=comparison_rows highlighted=1 caption="Northwind plan comparison. Scroll sideways to see every plan. Team is the recommended plan." note="Prices exclude VAT. Changing plan takes effect on the next invoice, and we credit the unused part of the current one." %}

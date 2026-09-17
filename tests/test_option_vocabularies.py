@@ -139,6 +139,11 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     # get wrong and are deliberately absent from this table.
     ("_sparkline", "tone", "neutral", "bw-sparkline--neutral"),
     ("_sparkline", "tone", "trend", "bw-sparkline--trend"),
+    # --- comparison_table highlighted column (#626) -------------------------
+    # The value is caller data (0-based index or plan name); the emitted
+    # modifier class is the closed half of the grammar. Digit "1" stands for
+    # any matching value that lights the column.
+    ("_comparison_table", "highlighted", "1", "bw-comparison-table__col--highlighted"),
 ]
 
 

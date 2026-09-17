@@ -821,7 +821,19 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
         note="Prices exclude VAT.",
     ),
-    "_pricing_comparison (marketing: plans and yes/no cells)": lambda: _include(
+    "_comparison_table (plans, yes/no cells, highlighted by index)": lambda: _include(
+        "brickwork/components/_comparison_table.html",
+        heading="Compare the plans",
+        lede="Per account.",
+        plans=["Solo", "Team"],
+        rows=[
+            {"label": "Users", "cells": ["1", "10"]},
+            {"label": "Reminders", "cells": [{"included": True}, {"included": False}]},
+        ],
+        highlighted=1,
+        note="Prices exclude VAT.",
+    ),
+    "_pricing_comparison (marketing wrapper: plans and yes/no cells)": lambda: _include(
         "brickwork_marketing/components/_pricing_comparison.html",
         heading="Compare the plans",
         lede="Per account.",
