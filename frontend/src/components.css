@@ -22,7 +22,10 @@
   letter-spacing: var(--bw-text-label-tracking);
   cursor: pointer;
   text-decoration: none;
-  transition: var(--bw-transition-colors), var(--bw-transition-shadow);
+  transition:
+    var(--bw-transition-colors),
+    var(--bw-transition-shadow),
+    var(--bw-transition-transform);
 }
 .bw-btn--sm {
   block-size: var(--bw-size-control-height-sm);
@@ -56,22 +59,26 @@
 }
 .bw-btn--primary:not(.bw-btn--disabled):hover {
   background: var(--bw-color-accent-hover);
+  box-shadow: var(--bw-component-button-elevation-hover), inset 0 1px 0 0 oklch(1 0 0 / 0.12);
+  transform: translateY(var(--bw-component-button-hover-translate));
 }
 /* Secondary is a raised chip (0.7.0 craft): surface fill, hairline border and
- * resting elevation-1; hover sinks the fill to the sunken surface and firms
- * the border instead of layering the translucent wash (ink on the sunken
- * fill measures 16.28:1 light / 16.25:1 dark). */
+ * resting button elevation; hover sinks the fill to the sunken surface and
+ * firms the border instead of layering the translucent wash (ink on the
+ * sunken fill measures 16.28:1 light / 16.25:1 dark). */
 .bw-btn--secondary {
   background: var(--bw-color-surface);
   color: var(--bw-color-fg);
   border-color: var(--bw-color-border);
 }
 .bw-btn--secondary:not(.bw-btn--disabled) {
-  box-shadow: var(--bw-elevation-1);
+  box-shadow: var(--bw-component-button-elevation);
 }
 .bw-btn--secondary:not(.bw-btn--disabled):hover {
   border-color: var(--bw-color-border-strong);
   background-color: var(--bw-color-surface-sunken);
+  box-shadow: var(--bw-component-button-elevation-hover);
+  transform: translateY(var(--bw-component-button-hover-translate));
 }
 .bw-btn--ghost {
   background: transparent;
@@ -91,17 +98,20 @@
 }
 .bw-btn--danger:not(.bw-btn--disabled):hover {
   background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
+  box-shadow: var(--bw-component-button-elevation-hover), inset 0 1px 0 0 oklch(1 0 0 / 0.12);
+  transform: translateY(var(--bw-component-button-hover-translate));
 }
 /* Filled action buttons carry physical weight: resting elevation plus a faint
  * top bevel; pressing swaps to an inset shadow so the button visibly sinks.
- * Shadow-only change (no new animation), so the reduced-motion floor holds. */
+ * Elevation is the per-button token (#649); the inset highlight is craft. */
 .bw-btn--primary:not(.bw-btn--disabled),
 .bw-btn--danger:not(.bw-btn--disabled) {
-  box-shadow: var(--bw-elevation-1), inset 0 1px 0 0 oklch(1 0 0 / 0.12);
+  box-shadow: var(--bw-component-button-elevation), inset 0 1px 0 0 oklch(1 0 0 / 0.12);
 }
 .bw-btn--primary:not(.bw-btn--disabled):active,
 .bw-btn--danger:not(.bw-btn--disabled):active {
   box-shadow: inset 0 1px 2px 0 oklch(0 0 0 / 0.2);
+  transform: none;
 }
 /* Pressed feedback for every variant: the active overlay layers on top of
  * whichever background resolved (DESIGN.md 4.6). Declared after the variant
@@ -111,11 +121,21 @@
 .bw-btn:not(.bw-btn--disabled):not(.bw-btn--ghost):active {
   background-image: linear-gradient(var(--bw-state-active-overlay), var(--bw-state-active-overlay));
   transition-duration: var(--bw-duration-instant);
+  transform: none;
 }
 .bw-btn--ghost:not(.bw-btn--disabled):active {
   background-color: var(--bw-state-active-overlay);
   background-image: none;
   transition-duration: var(--bw-duration-instant);
+}
+/* Hover-lift is opt-in via --bw-component-button-hover-translate (#649).
+ * Prefer no transform when the user asks for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .bw-btn--primary:not(.bw-btn--disabled):hover,
+  .bw-btn--secondary:not(.bw-btn--disabled):hover,
+  .bw-btn--danger:not(.bw-btn--disabled):hover {
+    transform: none;
+  }
 }
 .bw-btn--icon-only {
   inline-size: var(--bw-density-control-height);

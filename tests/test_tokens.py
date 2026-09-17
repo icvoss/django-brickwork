@@ -599,3 +599,78 @@ def test_hero_css_consumes_hero_measure_tokens() -> None:
     assert "--bw-component-hero-copy-max-width" in dist
     assert "--bw-component-hero-heading-max-width" in dist
     assert "--bw-component-hero-lede-max-width" in dist
+
+# --- #649: button elevation + hover-lift seams ----------------------------
+
+
+def test_button_elevation_tokens_ship_with_defaults() -> None:
+    """Button elevation seams default so package chrome stays byte-identical.
+
+    Resting elevation aliases the shared elevation-1 step; hover elevation
+    tracks the resting button token; hover translate is 0
+    (icvoss/django-brickwork#649).
+    """
+    tokens_css = (_DIST / "tokens.css").read_text()
+    assert re.search(
+        r"--bw-component-button-elevation:\s*var\(--bw-elevation-1\)\s*;",
+        tokens_css,
+    ), "expected --bw-component-button-elevation defaulting to elevation-1"
+    assert re.search(
+        r"--bw-component-button-elevation-hover:\s*var\(--bw-component-button-elevation\)\s*;",
+        tokens_css,
+    ), "expected --bw-component-button-elevation-hover to track resting button elevation"
+    assert re.search(
+        r"--bw-component-button-hover-translate:\s*0\s*;",
+        tokens_css,
+    ), "expected --bw-component-button-hover-translate defaulting to 0"
+
+    manifest = json.loads((_DIST / "token-manifest.json").read_text())
+    overridable = set(manifest["overridable"])
+    assert "--bw-component-button-elevation" in overridable
+    assert "--bw-component-button-elevation-hover" in overridable
+    assert "--bw-component-button-hover-translate" in overridable
+
+
+def test_bw_btn_variants_read_button_elevation_and_hover_translate() -> None:
+    """Primary, secondary, and danger non-disabled states consume the seams."""
+    components = (_FRONTEND_SRC / "components.css").read_text()
+
+    def _bodies(selector: str) -> list[str]:
+        css = re.sub(r"/\*.*?\*/", "", components, flags=re.S)
+        return [
+            body
+            for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)
+            if re.sub(r"\s+", "", sel) == re.sub(r"\s+", "", selector)
+        ]
+
+    resting = _bodies(
+        ".bw-btn--primary:not(.bw-btn--disabled), .bw-btn--danger:not(.bw-btn--disabled)"
+    )
+    assert resting and "var(--bw-component-button-elevation)" in resting[0]
+    assert "inset 0 1px 0 0" in resting[0], "primary/danger must keep the inset highlight"
+
+    secondary = _bodies(".bw-btn--secondary:not(.bw-btn--disabled)")
+    assert secondary and "var(--bw-component-button-elevation)" in secondary[0]
+
+    for hover_sel in (
+        ".bw-btn--primary:not(.bw-btn--disabled):hover",
+        ".bw-btn--secondary:not(.bw-btn--disabled):hover",
+        ".bw-btn--danger:not(.bw-btn--disabled):hover",
+    ):
+        hover = _bodies(hover_sel)
+        assert hover, f"missing {hover_sel}"
+        assert "var(--bw-component-button-elevation-hover)" in hover[0]
+        assert "var(--bw-component-button-hover-translate)" in hover[0]
+
+    assert "@media (prefers-reduced-motion: reduce)" in components
+    assert re.search(
+        r"prefers-reduced-motion:\s*reduce[^}]*"
+        r"\.bw-btn--primary:not\(\.bw-btn--disabled\):hover[^}]*transform:\s*none",
+        components,
+        flags=re.S,
+    ), "reduced-motion must clear the hover translate on elevated buttons"
+
+    dist = (_DIST / "brickwork.css").read_text()
+    assert "var(--bw-component-button-elevation)" in dist
+    assert "var(--bw-component-button-elevation-hover)" in dist
+    assert "var(--bw-component-button-hover-translate)" in dist

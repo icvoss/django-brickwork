@@ -82,6 +82,14 @@ floor modal elevation already move on the L3 minimum set. Soft ambient shadow
 layers beside elevation tokens are kit craft (beat / beautiful-defaults), not
 theme dials; they stack with elevation and do not replace it.
 
+**Button elevation recipes (optional L3):** when a brand wants button shadows
+or a hover lift distinct from cards and panels, author
+`--bw-component-button-elevation`, `--bw-component-button-elevation-hover`,
+and optionally `--bw-component-button-hover-translate` (defaults keep package
+chrome byte-identical; see DESIGN.md and icvoss/django-brickwork#649). These
+are not part of the L3 minimum checklist; the shared `--bw-elevation-*`
+ramp still moves default button chrome.
+
 ### L4 requirements
 
 All L3 requirements for the claimed material axes, plus **either**:
