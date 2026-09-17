@@ -6121,6 +6121,10 @@ a.bw-chip {
 }
 
 .bw-article-meta__author {
+  display: inline-flex;
+  align-items: center;
+  /* WCAG 2.5.8 AA target size (#208): navigational byline link, not prose. */
+  min-block-size: 1.5rem;
   color: var(--bw-color-fg);
   font-weight: var(--bw-font-weight-medium);
   text-decoration: none;
@@ -6155,6 +6159,10 @@ a.bw-article-meta__author:focus-visible {
 
 .bw-article-meta__tag-link,
 .bw-article-meta__tag-label {
+  display: inline-flex;
+  align-items: center;
+  /* WCAG 2.5.8 AA target size (#208): tag links are controls, not prose. */
+  min-block-size: 1.5rem;
   font-size: var(--bw-font-size-xs);
   color: var(--bw-color-fg-muted);
   text-decoration: none;
