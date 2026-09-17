@@ -495,6 +495,7 @@ def test_marketing_section_intros_read_heading_section_not_heading_xl() -> None:
     dist = (_DIST / "brickwork.css").read_text()
     assert "--bw-text-heading-section-size" in dist
 
+
 # --- #642: label role exposes family + tracking for button theming --------
 
 
@@ -536,4 +537,3 @@ def test_bw_btn_reads_label_family_and_tracking() -> None:
         "letter-spacing:var(--bw-text-label-tracking)" in dist
         or "letter-spacing: var(--bw-text-label-tracking)" in dist
     )
-
