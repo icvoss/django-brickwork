@@ -1999,7 +1999,7 @@ def test_every_section_class_it_emits_is_actually_styled(name: str) -> None:
         # descendants. bw-pricing-table-section is the shipped component's own
         # root, in the same position as bw-feature-grid-section above.
         "bw-pricing-table-section",
-        "bw-pricing-comparison",
+        "bw-comparison-table",
         "bw-single-plan",
         "bw-faq-columns",
         "bw-testimonial-grid-section",

@@ -1,78 +1,17 @@
-{% load brickwork_icons %}
 {% comment %}
-Pricing comparison (Beat Phase C, icvoss/django-brickwork#543): a plan-by-
-capability table. Structural sibling of _pricing_table.html (tier cards),
-not a layout option on it: real tabular data belongs in a <table>.
+Pricing comparison (compat wrapper, icvoss/django-brickwork#626): thin
+include of the first-class brickwork/components/_comparison_table.html.
 
-Required context: none.
-Optional:
-  heading (str), lede (str), note (str), caption (str).
-  heading_id (str, default "bw-pricing-comparison-heading"): stable id for
-      aria-labelledby on the scroll region; change it when composing two
-      comparisons on one page.
-  plans (list of str): column headers after the capability column.
-  rows (list of dicts): {label, cells}. Each cell is either a plain string
-      or a dict {included: bool} (renders tick/dash plus visually-hidden
-      "Included" / "Not included" text). List-shaped: supply from context.
+Existing call sites that `{% include "brickwork_marketing/components/_pricing_comparison.html" %}`
+keep working. Prefer the core path for new work. heading_id still defaults
+to bw-pricing-comparison-heading here so multi-comparison pages that already
+target that id do not break.
 
-An empty plans or rows list renders the intro alone (or nothing if that
-too is empty), never a fabricated table.
+Contract: see brickwork/components/_comparison_table.html (plans, rows,
+highlighted, highlighted_label, heading, lede, note, caption, heading_id).
 
-States: none.
-Accessibility: real <table> with caption, scope=col/row, scroll region
-  keyboard-reachable (tabindex=0 + aria-labelledby). Covered via
-  sections-*.html after the example collapses to this include.
-Responsive: table scrolls inside its own box (contain: paint); never
-  reflows to one column.
+States: see brickwork/components/_comparison_table.html.
+Accessibility: see brickwork/components/_comparison_table.html.
+Responsive: see brickwork/components/_comparison_table.html.
 {% endcomment %}
-{% if heading or lede or plans and rows %}
-{% with hid=heading_id|default:"bw-pricing-comparison-heading" %}
-<section class="bw-pricing-comparison">
-  {% if heading %}<h2 class="bw-pricing-comparison__heading" id="{{ hid }}">{{ heading }}</h2>{% endif %}
-  {% if lede %}<p class="bw-pricing-comparison__lede">{{ lede }}</p>{% endif %}
-  {% if plans and rows %}
-    <div
-      class="bw-pricing-comparison__scroll"
-      role="region"
-      {% if heading %}aria-labelledby="{{ hid }}"{% else %}aria-label="Plan comparison"{% endif %}
-      tabindex="0"
-    >
-      <table class="bw-pricing-comparison__table">
-        <caption class="bw-pricing-comparison__caption">
-          {% firstof caption "Plan comparison. Scroll sideways to see every plan." %}
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col" class="bw-pricing-comparison__row-header">Capability</th>
-            {% for plan in plans %}
-              <th scope="col">{{ plan }}</th>
-            {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in rows %}
-            <tr>
-              <th scope="row" class="bw-pricing-comparison__row-header">{{ row.label }}</th>
-              {% for cell in row.cells %}
-                <td>
-                  {% if cell.included is True %}
-                    {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
-                    <span class="bw-visually-hidden">Included</span>
-                  {% elif cell.included is False %}
-                    {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
-                    <span class="bw-visually-hidden">Not included</span>
-                  {% else %}
-                    {{ cell }}
-                  {% endif %}
-                </td>
-              {% endfor %}
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% endif %}
-  {% if note %}<p class="bw-pricing-comparison__note">{{ note }}</p>{% endif %}
-</section>
-{% endwith %}
-{% endif %}
+{% include "brickwork/components/_comparison_table.html" with heading_id=heading_id|default:"bw-pricing-comparison-heading" %}

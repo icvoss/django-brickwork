@@ -17,19 +17,19 @@ a MARKETING pricing table: it sits under a pricing page's tier cards and
 answers "what does the cheaper plan give up", a tick-or-dash reference the
 reader consults once they have already decided between two products you are
 selling. Its cells are inclusion/exclusion facts, not measurements, and it
-owns bespoke bw-pricing-comparison__* CSS built for exactly that job: a
-scrollable, capability-by-plan grid.
+owns the first-class bw-comparison-table* surface (#626) built for exactly
+that job: a scrollable, capability-by-plan grid.
 
 This page is different in kind, not just in content. It compares two MEASURED
 ENTITIES (here, two quarters) on QUANTITATIVE metrics, where the reader's job
 is analysis, not purchase: which one is bigger, by how much, and in which
-direction. Reuse the pricing section's bw-pricing-comparison__* classes here
-would be wrong even if the markup looked similar, because that CSS is that
-section's own private surface (the design bar's bespoke-CSS rule cuts the
+direction. Reusing the marketing comparison table's bw-comparison-table*
+classes here would be wrong even if the markup looked similar, because that
+CSS is that component's own surface (the design bar's bespoke-CSS rule cuts the
 other way too: do not repurpose one component's private classes as if they
 were a second, general-purpose component). This page reaches its layout
 through ordinary tables, bw-prose and _trend_indicator.html instead, nothing
-that belongs to another section.
+that belongs to another component.
 
 Use this page for: two accounting periods, two regions, two cohorts, two
 suppliers, anywhere the comparison is numbers with a direction. Use the

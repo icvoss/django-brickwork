@@ -14,8 +14,9 @@ a capability grid is copy you edit as words, not a queryset you loop.
 This page answers the reader who has already narrowed it to two plans and
 wants to know precisely what the cheaper one gives up. Lead with a short hero,
 put the matrix in the middle, and close with FAQ plus CTA the same way
-marketing/pricing.html does. Do not invent a component for the matrix: a real
-comparison is tabular data, and tabular data belongs in a <table>.
+marketing/pricing.html does. The matrix is the first-class _comparison_table.html include (#626);
+this archetype stays hand-authored so the recommended column can carry
+a visible badge and per-plan CTAs the include does not model.
 
 States: the auth-aware header actions branch on request.user.is_authenticated;
   the FAQ's single_open=True makes its answers a single native exclusive-open
@@ -74,30 +75,30 @@ Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
   Exactly one column is recommended. Mark it with a badge whose LABEL carries
   the meaning ("Recommended"); do not rely on a tinted column alone.
   {% endcomment %}
-  <section class="bw-pricing-comparison">
-    <h2 class="bw-pricing-comparison__heading" id="bw-plan-comparison-heading">
+  <section class="bw-comparison-table">
+    <h2 class="bw-comparison-table__heading" id="bw-plan-comparison-heading">
       What each plan includes
     </h2>
-    <p class="bw-pricing-comparison__lede">
+    <p class="bw-comparison-table__lede">
       Everything below is per account, not per invoice. Prices exclude VAT.
       Annual billing saves two months.
     </p>
 
     <div
-      class="bw-pricing-comparison__scroll"
+      class="bw-comparison-table__scroll"
       role="region"
       aria-labelledby="bw-plan-comparison-heading"
       tabindex="0"
     >
-      <table class="bw-pricing-comparison__table">
-        <caption class="bw-pricing-comparison__caption">
+      <table class="bw-comparison-table__table">
+        <caption class="bw-comparison-table__caption">
           Northwind plan comparison. Scroll sideways to see every plan. Team is the recommended plan.
         </caption>
         <thead>
           <tr>
-            <th scope="col" class="bw-pricing-comparison__row-header">Capability</th>
+            <th scope="col" class="bw-comparison-table__row-header">Capability</th>
             <th scope="col">Solo, £9 a month</th>
-            <th scope="col">
+            <th scope="col" class="bw-comparison-table__col--highlighted">
               Team, £29 a month
               {% bw_badge "Recommended" variant="info" %}
             </th>
@@ -106,115 +107,115 @@ Responsive: no breakpoint switch of its own; inherits shell/marketing.html's
         </thead>
         <tbody>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">Invoices a month</th>
+            <th scope="row" class="bw-comparison-table__row-header">Invoices a month</th>
             <td>Unlimited</td>
             <td>Unlimited</td>
             <td>Unlimited</td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">People with a login</th>
+            <th scope="row" class="bw-comparison-table__row-header">People with a login</th>
             <td>1</td>
             <td>Up to 10</td>
             <td>Unlimited</td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">Automatic reminders</th>
+            <th scope="row" class="bw-comparison-table__row-header">Automatic reminders</th>
             <td>
-              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-comparison-table__yes" %}
               <span class="bw-visually-hidden">Included</span>
             </td>
             <td>
-              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-comparison-table__yes" %}
               <span class="bw-visually-hidden">Included</span>
             </td>
             <td>
-              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-comparison-table__yes" %}
               <span class="bw-visually-hidden">Included</span>
             </td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">Late-payment prediction</th>
+            <th scope="row" class="bw-comparison-table__row-header">Late-payment prediction</th>
             <td>
-              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-comparison-table__no" %}
               <span class="bw-visually-hidden">Not included</span>
             </td>
             <td>
-              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-comparison-table__yes" %}
               <span class="bw-visually-hidden">Included</span>
             </td>
             <td>
-              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-comparison-table__yes" %}
               <span class="bw-visually-hidden">Included</span>
             </td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">Shared chasing inbox</th>
+            <th scope="row" class="bw-comparison-table__row-header">Shared chasing inbox</th>
             <td>
-              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-comparison-table__no" %}
               <span class="bw-visually-hidden">Not included</span>
             </td>
             <td>
-              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-comparison-table__yes" %}
               <span class="bw-visually-hidden">Included</span>
             </td>
             <td>
-              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-comparison-table__yes" %}
               <span class="bw-visually-hidden">Included</span>
             </td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">Currencies</th>
+            <th scope="row" class="bw-comparison-table__row-header">Currencies</th>
             <td>Sterling only</td>
             <td>Sterling and euro</td>
             <td>Any, with daily rates</td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">Legal entities</th>
+            <th scope="row" class="bw-comparison-table__row-header">Legal entities</th>
             <td>1</td>
             <td>1</td>
             <td>Unlimited</td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">SAML sign-in</th>
+            <th scope="row" class="bw-comparison-table__row-header">SAML sign-in</th>
             <td>
-              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-comparison-table__no" %}
               <span class="bw-visually-hidden">Not included</span>
             </td>
             <td>
-              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-comparison-table__no" %}
               <span class="bw-visually-hidden">Not included</span>
             </td>
             <td>
-              {% bw_icon "check" size="sm" decorative=True css_class="bw-pricing-comparison__yes" %}
+              {% bw_icon "check" size="sm" decorative=True css_class="bw-comparison-table__yes" %}
               <span class="bw-visually-hidden">Included</span>
             </td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">Audit trail export</th>
+            <th scope="row" class="bw-comparison-table__row-header">Audit trail export</th>
             <td>
-              {% bw_icon "minus" size="sm" decorative=True css_class="bw-pricing-comparison__no" %}
+              {% bw_icon "minus" size="sm" decorative=True css_class="bw-comparison-table__no" %}
               <span class="bw-visually-hidden">Not included</span>
             </td>
             <td>90 days</td>
             <td>7 years</td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header">Support</th>
+            <th scope="row" class="bw-comparison-table__row-header">Support</th>
             <td>Email, next working day</td>
             <td>Email, same working day</td>
             <td>Email and phone, one hour</td>
           </tr>
           <tr>
-            <th scope="row" class="bw-pricing-comparison__row-header"></th>
+            <th scope="row" class="bw-comparison-table__row-header"></th>
             <td>{% bw_button "Start free trial" variant="secondary" href="/accounts/signup/?plan=solo" %}</td>
-            <td>{% bw_button "Start free trial" variant="primary" href="/accounts/signup/?plan=team" %}</td>
+            <td class="bw-comparison-table__col--highlighted">{% bw_button "Start free trial" variant="primary" href="/accounts/signup/?plan=team" %}</td>
             <td>{% bw_button "Talk to sales" variant="secondary" href="/contact/" %}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <p class="bw-pricing-comparison__note">
+    <p class="bw-comparison-table__note">
       Changing plan takes effect on the next invoice, and we credit the unused
       part of the current one.
     </p>

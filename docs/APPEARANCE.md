@@ -125,7 +125,7 @@ or first-class include does **not** count.
 | Hero | `_hero.html` `media_placement="below"` (default), `"behind"`, `"beside"`, `"above"` |
 | Features | `_feature_grid.html` (icon grid); `_feature_rows.html` (alternating); `_feature_list.html` (checklist) |
 | CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` |
-| Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_pricing_comparison.html` |
+| Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_comparison_table.html` (marketing `_pricing_comparison.html` wrapper) |
 | Person | `_portrait.html` (`align="start"` default / `"end"`, constrained 3:4 image + CTAs); `_bio.html` (compact strip, optional profile link). Not `_testimonial.html` and not the Editorial author archetype |
 | Empty state | `variant="no_data"` framed (default); `variant="no_results"`; `surface="plain"` (unframed page scale). Nested: `size="sm"` |
 | Page header | plain default; `surface="tint"`; breadcrumbs + actions via the public `breadcrumb` / `actions` blocks |
@@ -176,6 +176,7 @@ Status values:
 | chip | Adopted | `variant`, `size` |
 | code | N/A (defaults) | Muted/raised panel authored; line numbers stay Could |
 | combobox | N/A (defaults) | Listbox panel matches dropdown craft |
+| comparison_table | Adopted | `highlighted` (0-based index or plan name); emits `__col--highlighted` |
 | cta | Adopted | `band`, `width` (ADR-057) |
 | cta_bleed | N/A (local) | First-class Phase C composition (inverse bleed) |
 | cta_split | N/A (local) | First-class Phase C composition |
@@ -202,7 +203,7 @@ Status values:
 | pagination | N/A (defaults) | Hit targets/spacing authored |
 | portrait | N/A (local) | Phase C person composition; `align` |
 | preview_frame | N/A (keep lean) | Surface-guarded specimen; fill locked to `--bw-color-surface` |
-| pricing_comparison | N/A (local) | Phase C comparison composition |
+| pricing_comparison | N/A (compose) | Thin include of `_comparison_table.html` (#626) |
 | pricing_table | N/A (local) | Tier count is data; highlighted recipe on tier |
 | pricing_tier | N/A (local) | `highlighted` raises elevation; shared `surface`/`elevation` refused |
 | progress | N/A (keep lean) | Single authored track; consumer drives `--bw-progress-value` |
@@ -255,7 +256,7 @@ named consumer).
 | saved_views | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
 | input_group | In demand | Forms prefix/suffix addons |
 | date_picker_chrome | In demand | Chrome/panel only; engine stays consumer |
-| comparison_table | In demand | Promote from marketing pricing comparison |
+| comparison_table | Adopted | See catalogue row; ships this release |
 | toc | In demand | First-class docs control |
 | article_meta | Adopted | See catalogue row; ships this release |
 

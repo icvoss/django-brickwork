@@ -1,0 +1,111 @@
+{% load brickwork_components brickwork_icons %}
+{% comment %}
+Comparison table (icvoss/django-brickwork#626): a column-by-capability
+matrix. Structural sibling of marketing _pricing_table.html (tier cards),
+not a layout option on it: real tabular data belongs in a <table>.
+
+Promoted from brickwork_marketing/components/_pricing_comparison.html so
+core and marketing call sites share one implementation. The marketing
+path remains a thin wrapper include of this template.
+
+Required context: none.
+Optional:
+  heading (str), lede (str), note (str), caption (str).
+  heading_id (str, default "bw-comparison-table-heading"): stable id for
+      aria-labelledby on the scroll region; change it when composing two
+      comparisons on one page.
+  plans (list of str): column headers after the capability column.
+  rows (list of dicts): {label, cells}. Each cell is either a plain string
+      or a dict {included: bool} (renders tick/dash plus visually-hidden
+      "Included" / "Not included" text). List-shaped: supply from context.
+  highlighted (int | str): which plan column gets the highlight treatment.
+      Closed grammar: omit for no highlight; otherwise pass a 0-based
+      column index into `plans` (int or digit string) or the exact plan
+      name string. Exactly one column may match; a non-matching value is
+      silent (no column highlighted). Colour is reinforcement only: the
+      highlighted header also carries visually-hidden text from
+      highlighted_label so meaning does not ride on tint alone (WCAG 1.4.1).
+  highlighted_label (str, default "Recommended"): accessible name appended
+      (visually hidden) on the highlighted column header when highlighted
+      matches. Ignored when no column is highlighted.
+
+An empty plans or rows list renders the intro alone (or nothing if that
+too is empty), never a fabricated table.
+
+States: none.
+Accessibility: real <table> with caption, scope=col/row, scroll region
+  keyboard-reachable (tabindex=0 + aria-labelledby). Highlighted column
+  announces via visually-hidden label, never colour alone. Covered via
+  sections-*.html after the pricing comparison section collapses to this
+  include (and via the marketing wrapper's own include chain).
+Responsive: table scrolls inside its own box (contain: paint); never
+  reflows to one column.
+
+Appearance (icvoss/django-brickwork#626):
+  highlighted (omit | 0-based index | plan name): CSS-only column treatment
+      via .bw-comparison-table__col--highlighted. Not a shared surface /
+      elevation axis: the value is caller data (which column), not a closed
+      chrome vocabulary. The emitted modifier class is the closed half.
+{% endcomment %}
+{% if heading or lede or plans and rows %}
+{% with hid=heading_id|default:"bw-comparison-table-heading" hl_label=highlighted_label|default:"Recommended" %}
+<section class="bw-comparison-table">
+  {% if heading %}<h2 class="bw-comparison-table__heading" id="{{ hid }}">{{ heading }}</h2>{% endif %}
+  {% if lede %}<p class="bw-comparison-table__lede">{{ lede }}</p>{% endif %}
+  {% if plans and rows %}
+    <div
+      class="bw-comparison-table__scroll"
+      role="region"
+      {% if heading %}aria-labelledby="{{ hid }}"{% else %}aria-label="Plan comparison"{% endif %}
+      tabindex="0"
+    >
+      <table class="bw-comparison-table__table">
+        <caption class="bw-comparison-table__caption">
+          {% firstof caption "Plan comparison. Scroll sideways to see every plan." %}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="bw-comparison-table__row-header">Capability</th>
+            {% for plan in plans %}
+              {% with idx=forloop.counter0 idx_s=forloop.counter0|stringformat:"d" %}
+              <th
+                scope="col"
+                {% if highlighted == idx or highlighted == idx_s or highlighted == plan %}class="bw-comparison-table__col--highlighted"{% endif %}
+              >
+                {{ plan }}{% if highlighted == idx or highlighted == idx_s or highlighted == plan %}<span class="bw-visually-hidden"> ({{ hl_label }})</span>{% endif %}
+              </th>
+              {% endwith %}
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <th scope="row" class="bw-comparison-table__row-header">{{ row.label }}</th>
+              {% for cell in row.cells %}
+                {% with idx=forloop.counter0 idx_s=forloop.counter0|stringformat:"d" %}
+                <td
+                  {% if highlighted == idx or highlighted == idx_s or highlighted == plans|list_item:idx %}class="bw-comparison-table__col--highlighted"{% endif %}
+                >
+                  {% if cell.included is True %}
+                    {% bw_icon "check" size="sm" decorative=True css_class="bw-comparison-table__yes" %}
+                    <span class="bw-visually-hidden">Included</span>
+                  {% elif cell.included is False %}
+                    {% bw_icon "minus" size="sm" decorative=True css_class="bw-comparison-table__no" %}
+                    <span class="bw-visually-hidden">Not included</span>
+                  {% else %}
+                    {{ cell }}
+                  {% endif %}
+                </td>
+                {% endwith %}
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+  {% if note %}<p class="bw-comparison-table__note">{{ note }}</p>{% endif %}
+</section>
+{% endwith %}
+{% endif %}

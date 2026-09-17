@@ -1205,6 +1205,17 @@
       "usedBySkeleton": []
     },
     {
+      "name": "component/comparison_table",
+      "kind": "component",
+      "family": null,
+      "templatePath": "brickwork/components/_comparison_table.html",
+      "docSource": "brickwork/components/_comparison_table.html",
+      "consumption": "include",
+      "usedByArchetypes": [],
+      "usedBySections": [],
+      "usedBySkeleton": []
+    },
+    {
       "name": "component/cta",
       "kind": "component",
       "family": null,
