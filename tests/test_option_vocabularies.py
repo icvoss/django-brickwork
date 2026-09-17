@@ -47,6 +47,7 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     # no CSS rule to pin, only the byte-identity test in test_marketing.py.
     ("_hero", "media_placement", "behind", "bw-hero--media-behind"),
     ("_hero", "media_placement", "beside", "bw-hero--media-beside"),
+    ("_hero", "media_placement", "above", "bw-hero--media-above"),
     # --- width (ADR-057 section 1a, ADR-077 section 3a) ---------------------
     # "contained" is the honestly-named default (the pre-existing shell-capped
     # layout) and emits no modifier class at all, so it has no entry here:

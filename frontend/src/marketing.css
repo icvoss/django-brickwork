@@ -855,6 +855,12 @@
  * so media follows the copy in normal flow), so an omitted or unrecognised
  * value renders byte-identically to before this option existed. */
 
+/* "above": media stacks visually above the copy. Document / tab order stay
+ * copy-then-media (CSS-only axis; ADR-057 section 1a binding rule). */
+.bw-hero--media-above {
+  flex-direction: column-reverse;
+}
+
 /* "behind": media and copy share one grid area, copy on top. */
 .bw-hero--media-behind {
   display: grid;
