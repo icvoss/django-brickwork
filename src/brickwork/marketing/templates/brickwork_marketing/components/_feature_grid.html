@@ -9,8 +9,9 @@ Required context: none.
 Optional context:
   heading  (str): the section intro heading.
   lede     (str): the section intro body.
-  items    (list of dicts): {icon?, heading, body, url?, aria_label?}. icon
-           is a registry name rendered via {% bw_icon %} decorative=True
+  items    (list of dicts): {icon?, heading, body, url?, aria_label?,
+           eyebrow?, meta?, badge?, cta_label?, pending?}. icon is a
+           registry name rendered via {% bw_icon %} decorative=True
            (the icon reinforces the heading/body text, which already
            carries the meaning). An empty (or omitted) items list renders
            the section intro alone (or nothing at all if that too is
@@ -18,7 +19,8 @@ Optional context:
            has no flat-kwarg spelling (#98): a Django template cannot
            build a list inline, so supply items from context (the view, or
            a wrapper template's own data); the scalar intro context
-           (heading, lede, columns) is flat and template-authorable as-is.
+           (heading, lede, columns, variant) is flat and template-
+           authorable as-is.
   item.url (str, optional, #99): when present the whole card renders as an
            anchor (bw-feature-card--link) so a feature card can navigate
            to its subject, taking the marketing kit's link hover
@@ -31,13 +33,35 @@ Optional context:
   item.aria_label (str, optional, #99): overrides a linked card's
            accessible name; omitted, the name is the card's own text
            content. Ignored without item.url.
+  item.eyebrow (str, optional, #641): a small overline above the heading.
+           Absent means omitted: byte-identical to cards without it.
+  item.meta (str, optional, #641): secondary line under the body (a host,
+           a date, a quiet caption). Absent means omitted.
+  item.badge (str, optional, #641): a short status/flag label near the top
+           of the card. Absent means omitted.
+  item.cta_label (str, optional, #641): visible footer CTA text when the
+           card also has item.url (the whole card remains the link; the
+           label is visible reinforcement, not a second tab stop). Ignored
+           without item.url.
+  item.pending (truthy, optional, #641): reduced-emphasis treatment
+           (bw-feature-card--pending). Without item.url the card stays
+           non-interactive; with item.url it remains a link at reduced
+           emphasis. Absent means omitted.
   columns  (2|3|4, default 3): responsive down to one column on narrow
            viewports (bw-feature-grid--<n> selects the CSS grid template).
+  variant  ("cards" default | "bordered", #646): grid chrome. Omitted (or
+           the honestly-named "cards") keeps the gapped raised cards and
+           emits no modifier class, byte-identical to before #646.
+           "bordered" is the shared-rule marketing grid: 1px gap over the
+           border colour, a strong outer border, cells on surface with no
+           per-card radius or shadow (bw-feature-grid--bordered). Any other
+           value falls back to the default (same as omitted).
 
 States: none: a static grid of cards, no open/closed or hover-only reveal.
   A linked card (item.url) takes the standard link hover ink shift and the
   global :focus-visible ring; an unlinked card has no interactive state at
-  all.
+  all. A pending card is visually de-emphasised; without a url it is not
+  interactive.
 Accessibility: each card's heading is an <h3> (one level under the
   section's own <h2>), so a page composing several feature grids keeps a
   correct outline; the card icon is decorative. A linked card renders as a
@@ -61,12 +85,16 @@ Responsive: grid-template-columns switches at two named breakpoints: 1
     </div>
   {% endif %}
   {% if items %}
-    <div class="bw-feature-grid bw-feature-grid--{% if columns == 2 or columns == '2' %}2{% elif columns == 4 or columns == '4' %}4{% else %}3{% endif %}">
+    <div class="bw-feature-grid bw-feature-grid--{% if columns == 2 or columns == '2' %}2{% elif columns == 4 or columns == '4' %}4{% else %}3{% endif %}{% if variant == 'bordered' %} bw-feature-grid--bordered{% endif %}">
       {% for item in items %}
-        {% if item.url %}<a class="bw-feature-card bw-feature-card--link" href="{{ item.url }}"{% if item.aria_label %} aria-label="{{ item.aria_label }}"{% endif %}>{% else %}<div class="bw-feature-card">{% endif %}
+        {% if item.url %}<a class="bw-feature-card bw-feature-card--link{% if item.pending %} bw-feature-card--pending{% endif %}" href="{{ item.url }}"{% if item.aria_label %} aria-label="{{ item.aria_label }}"{% endif %}>{% else %}<div class="bw-feature-card{% if item.pending %} bw-feature-card--pending{% endif %}">{% endif %}
+          {% if item.badge %}<span class="bw-feature-card__badge">{{ item.badge }}</span>{% endif %}
+          {% if item.eyebrow %}<p class="bw-feature-card__eyebrow">{{ item.eyebrow }}</p>{% endif %}
           {% if item.icon %}{% bw_icon item.icon size="lg" decorative=True css_class="bw-feature-card__icon" %}{% endif %}
           <h3 class="bw-feature-card__heading">{{ item.heading }}</h3>
           <p class="bw-feature-card__body">{{ item.body }}</p>
+          {% if item.meta %}<span class="bw-feature-card__meta">{{ item.meta }}</span>{% endif %}
+          {% if item.url and item.cta_label %}<span class="bw-feature-card__cta">{{ item.cta_label }}</span>{% endif %}
         {% if item.url %}</a>{% else %}</div>{% endif %}
       {% endfor %}
     </div>

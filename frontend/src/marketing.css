@@ -975,6 +975,15 @@
   gap: var(--bw-space-6);
 }
 
+/* Bordered gap-less variant (#646): cells share one rule (1px gap over the
+ * border colour, strong outer border, no per-card radius or shadow). The
+ * default gapped cards stay byte-identical when variant is omitted. */
+.bw-feature-grid--bordered {
+  gap: var(--bw-size-border-hairline);
+  background: var(--bw-color-border);
+  border: var(--bw-size-border-thick) solid var(--bw-color-border-strong);
+}
+
 @media (width >= --theme(--breakpoint-sm)) {
   .bw-feature-grid--2 {
     grid-template-columns: repeat(2, 1fr);
@@ -1025,10 +1034,51 @@
     0 8px 20px -6px oklch(0 0 0 / 0.12);
 }
 
+/* Bordered cells sit on surface and drop per-card chrome so the shared
+ * rule reads as one grid, not a stack of cards. Hover shifts surface
+ * rather than raising elevation. */
+.bw-feature-grid--bordered > .bw-feature-card {
+  background: var(--bw-color-surface);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-feature-grid--bordered > .bw-feature-card--link:hover,
+.bw-feature-grid--bordered > .bw-feature-card--link:focus-visible {
+  background: var(--bw-color-surface-sunken);
+  box-shadow: none;
+}
+
 .bw-feature-card {
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-3);
+}
+
+.bw-feature-card__badge {
+  align-self: flex-start;
+  font-family: var(--bw-text-overline-family);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  line-height: var(--bw-text-overline-line-height);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
+  color: var(--bw-color-accent);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-accent);
+  padding: var(--bw-space-1) var(--bw-space-2);
+}
+
+.bw-feature-card__eyebrow {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-family: var(--bw-text-overline-family);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  line-height: var(--bw-text-overline-line-height);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
 }
 
 .bw-feature-card__icon {
@@ -1048,6 +1098,45 @@
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-body-md-size);
   line-height: var(--bw-text-body-md-line-height);
+}
+
+/* Meta and CTA sit on a shared baseline at the foot of the card when the
+ * body lengths differ across a row (#641). When both are present, meta
+ * takes the auto push and CTA follows under the card gap. */
+.bw-feature-card__meta,
+.bw-feature-card__cta {
+  margin-block-start: auto;
+}
+
+.bw-feature-card__meta + .bw-feature-card__cta {
+  margin-block-start: 0;
+}
+
+.bw-feature-card__meta {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
+
+.bw-feature-card__cta {
+  color: var(--bw-color-accent);
+  font-family: var(--bw-text-overline-family);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  line-height: var(--bw-text-overline-line-height);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
+}
+
+/* Pending (#641): reduced emphasis via the muted opacity token. Without a
+ * url the card is already non-interactive; with a url it stays a link. */
+.bw-feature-card--pending {
+  opacity: var(--bw-opacity-muted);
+}
+
+.bw-feature-grid--bordered > .bw-feature-card--pending:hover,
+.bw-feature-grid--bordered > .bw-feature-card--pending:focus-visible {
+  background: var(--bw-color-surface);
 }
 
 /* Linked feature card (#99): the whole card is an anchor (a.bw-card's
@@ -2281,6 +2370,12 @@
 [data-theme="dark"] .bw-feature-grid > .bw-feature-card--link:hover,
 [data-theme="dark"] .bw-feature-grid > .bw-feature-card--link:focus-visible {
   box-shadow: var(--bw-elevation-2);
+}
+/* Bordered cells deliberately carry no elevation; keep that on dark too. */
+[data-theme="dark"] .bw-feature-grid--bordered > .bw-feature-card,
+[data-theme="dark"] .bw-feature-grid--bordered > .bw-feature-card--link:hover,
+[data-theme="dark"] .bw-feature-grid--bordered > .bw-feature-card--link:focus-visible {
+  box-shadow: none;
 }
 [data-theme="dark"] .bw-pricing-tier--highlighted {
   box-shadow: var(--bw-elevation-3);

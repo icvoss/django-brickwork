@@ -813,6 +813,137 @@ def test_feature_grid_mixes_linked_and_plain_items() -> None:
     assert '<div class="bw-feature-card">' in html
 
 
+# --- components/_feature_grid.html: item slots (#641) -----------------------
+
+
+def test_feature_grid_item_eyebrow_meta_badge_and_cta_render() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[
+            {
+                "eyebrow": "django-hostmap",
+                "heading": "Cross-host routing",
+                "body": "Every link between hosts is a real reverse.",
+                "meta": "hostmap.icvoss.com",
+                "badge": "Substrate",
+                "url": "/demos/hostmap/",
+                "cta_label": "Open the demo",
+            }
+        ],
+    )
+    assert 'class="bw-feature-card__eyebrow"' in html
+    assert "django-hostmap" in html
+    assert 'class="bw-feature-card__meta"' in html
+    assert "hostmap.icvoss.com" in html
+    assert 'class="bw-feature-card__badge"' in html
+    assert "Substrate" in html
+    assert 'class="bw-feature-card__cta"' in html
+    assert "Open the demo" in html
+    assert 'href="/demos/hostmap/"' in html
+
+
+def test_feature_grid_cta_label_without_url_is_ignored() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "Fast", "body": "Really fast.", "cta_label": "Open"}],
+    )
+    assert "bw-feature-card__cta" not in html
+    assert "Open" not in html
+
+
+def test_feature_grid_omitting_new_slots_is_byte_identical_to_base_card() -> None:
+    # Absent-means-omitted: a classic {heading, body} item must not grow new
+    # empty chrome when the #641 keys are simply not supplied.
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "Simple", "body": "No fuss."}],
+    )
+    assert "bw-feature-card__eyebrow" not in html
+    assert "bw-feature-card__meta" not in html
+    assert "bw-feature-card__badge" not in html
+    assert "bw-feature-card__cta" not in html
+    assert "bw-feature-card--pending" not in html
+    assert '<div class="bw-feature-card">' in html
+    assert '<p class="bw-feature-card__body">No fuss.</p>' in html
+
+
+def test_feature_grid_pending_item_is_de_emphasised_and_not_a_link_without_url() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[
+            {
+                "eyebrow": "django-icv-ads",
+                "heading": "More demos to come",
+                "body": "Coming soon.",
+                "pending": True,
+            }
+        ],
+    )
+    assert 'class="bw-feature-card bw-feature-card--pending"' in html
+    assert "<a" not in html
+    assert "bw-feature-card--link" not in html
+
+
+def test_feature_grid_pending_with_url_stays_a_link() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[
+            {
+                "heading": "Preview",
+                "body": "Soft-launched.",
+                "url": "/preview/",
+                "pending": True,
+            }
+        ],
+    )
+    assert 'class="bw-feature-card bw-feature-card--link bw-feature-card--pending"' in html
+    assert 'href="/preview/"' in html
+
+
+# --- components/_feature_grid.html: bordered variant (#646) ----------------
+
+
+def test_feature_grid_variant_bordered_emits_the_modifier_class() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "One", "body": "Body"}],
+        variant="bordered",
+    )
+    assert "bw-feature-grid--bordered" in html
+    assert "bw-feature-grid--3" in html
+
+
+def test_feature_grid_variant_omitted_emits_no_bordered_modifier() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "One", "body": "Body"}],
+    )
+    assert "bw-feature-grid--bordered" not in html
+
+
+def test_feature_grid_variant_cards_is_explicitly_the_same_as_omitted() -> None:
+    omitted = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "One", "body": "Body"}],
+    )
+    explicit = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "One", "body": "Body"}],
+        variant="cards",
+    )
+    assert omitted == explicit
+
+
+def test_feature_grid_invalid_variant_falls_back_to_default() -> None:
+    html = _include(
+        "brickwork_marketing/components/_feature_grid.html",
+        items=[{"heading": "One", "body": "Body"}],
+        variant="mosaic",
+    )
+    assert "bw-feature-grid--bordered" not in html
+    assert "bw-feature-grid--mosaic" not in html
+
+
 # --- components/_pricing_tier.html -----------------------------------------
 
 

@@ -7,16 +7,21 @@ needs context: a Django template cannot build a list of dicts inline. Pass
     features = [
         {"icon": "bell", "heading": "Automatic reminders",
          "body": "Chase on your schedule, not when you remember.",
-         "url": "/features/reminders/"},
+         "url": "/features/reminders/",
+         "cta_label": "Learn more"},
         {"icon": "calendar", "heading": "Late-payment prediction",
-         "body": "Know which accounts slip before they do."},
+         "body": "Know which accounts slip before they do.",
+         "eyebrow": "Coming soon", "pending": True},
         {"icon": "check", "heading": "Reconciliation",
-         "body": "Payments matched to invoices automatically."},
+         "body": "Payments matched to invoices automatically.",
+         "badge": "Popular", "meta": "Included on every plan"},
     ]
 
 `url` is optional per item. Give an item a url and the whole card becomes a
 link; leave it off and the card stays a plain block rather than something that
-looks clickable and goes nowhere.
+looks clickable and goes nowhere. Optional slots (absent means omitted):
+`eyebrow`, `meta`, `badge`, `cta_label` (visible footer text when `url` is
+set), and `pending` (reduced emphasis).
 
 `icon` must name an icon brickwork ships, or the render raises (deliberately:
 a silently missing icon is worse than a loud failure).
@@ -24,9 +29,12 @@ a silently missing icon is worse than a loud failure).
 columns takes 2, 3 or 4. The grid is mobile-first regardless: one column on
 small screens, widening at the breakpoints the component owns.
 
+variant takes "cards" (default, omitted) or "bordered" for the shared-rule
+gap-less marketing grid. This example keeps the default.
+
 States: see _feature_grid.html's own header for the full states contract
   (none of its own: a static grid, a linked card takes the standard link
-  hover ink shift).
+  hover ink shift; pending cards are de-emphasised).
 Accessibility: see _feature_grid.html; covered by axe.spec.mjs against
   sections-*.html, which renders this exact file with a real features
   list, both themes.
