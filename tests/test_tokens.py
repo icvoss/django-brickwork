@@ -537,3 +537,65 @@ def test_bw_btn_reads_label_family_and_tracking() -> None:
         "letter-spacing:var(--bw-text-label-tracking)" in dist
         or "letter-spacing: var(--bw-text-label-tracking)" in dist
     )
+
+
+# --- #640: hero measure tokens for heading vs lede ------------------------
+
+
+def test_hero_measure_tokens_ship_with_byte_identical_defaults() -> None:
+    """Hero copy/heading/lede measures are component tokens, not prose hard-binds.
+
+    Copy defaults to the prose measure; heading and lede default to 100% so
+    they fill the copy column. Package-default layout stays byte-identical;
+    a brand widens the heading by raising the copy (and optionally heading)
+    token and tightening the lede (icvoss/django-brickwork#640).
+    """
+    tokens_css = (_DIST / "tokens.css").read_text()
+    assert re.search(
+        r"--bw-component-hero-copy-max-width:\s*var\(--bw-size-max-width-prose\)\s*;",
+        tokens_css,
+    ), "expected hero copy measure to default to the prose measure"
+    assert re.search(
+        r"--bw-component-hero-heading-max-width:\s*100%\s*;",
+        tokens_css,
+    ), "expected hero heading measure to default to 100%"
+    assert re.search(
+        r"--bw-component-hero-lede-max-width:\s*100%\s*;",
+        tokens_css,
+    ), "expected hero lede measure to default to 100%"
+
+    manifest = json.loads((_DIST / "token-manifest.json").read_text())
+    overridable = set(manifest["overridable"])
+    assert "--bw-component-hero-copy-max-width" in overridable
+    assert "--bw-component-hero-heading-max-width" in overridable
+    assert "--bw-component-hero-lede-max-width" in overridable
+
+
+def test_hero_css_consumes_hero_measure_tokens() -> None:
+    """`.bw-hero__copy` / `__heading` / `__lede` read the component measure tokens."""
+    marketing = (_FRONTEND_SRC / "marketing.css").read_text()
+
+    copy_match = re.search(r"\.bw-hero__copy\s*\{([^}]+)\}", marketing)
+    assert copy_match, "missing .bw-hero__copy rule in marketing.css"
+    assert "var(--bw-component-hero-copy-max-width)" in copy_match.group(1)
+    assert "var(--bw-size-max-width-prose)" not in copy_match.group(1)
+
+    heading_match = re.search(r"\.bw-hero__heading\s*\{([^}]+)\}", marketing)
+    assert heading_match, "missing .bw-hero__heading rule in marketing.css"
+    assert "var(--bw-component-hero-heading-max-width)" in heading_match.group(1)
+
+    lede_match = re.search(r"\.bw-hero__lede\s*\{([^}]+)\}", marketing)
+    assert lede_match, "missing .bw-hero__lede rule in marketing.css"
+    assert "var(--bw-component-hero-lede-max-width)" in lede_match.group(1)
+
+    behind_match = re.search(
+        r"\.bw-hero--media-behind\s+\.bw-hero__copy\s*\{([^}]+)\}",
+        marketing,
+    )
+    assert behind_match, "missing media-behind copy rule in marketing.css"
+    assert "var(--bw-component-hero-copy-max-width)" in behind_match.group(1)
+
+    dist = (_DIST / "brickwork.css").read_text()
+    assert "--bw-component-hero-copy-max-width" in dist
+    assert "--bw-component-hero-heading-max-width" in dist
+    assert "--bw-component-hero-lede-max-width" in dist
