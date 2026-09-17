@@ -606,3 +606,72 @@ def test_bundle_carries_the_pre_init_class_name() -> None:
     # absence of that call anywhere in the whole file).
     bundle = _DIST_JS.read_text()
     assert "bw-theme-switch--pre-init" in bundle
+
+
+# --- consumer passthrough (icvoss/django-brickwork#253, ADR-083) -------------
+
+
+def test_data_mapping_emits_escaped_consumer_owned_attributes_on_the_root() -> None:
+    html = _render(
+        "{% bw_theme_switch axes='theme' data=data %}",
+        data={"data-testid": "header-theme", "data-label": 'A "quoted" hook'},
+    )
+    start = html.index("<div")
+    root_tag = html[start : html.index(">", start)]
+    assert 'data-testid="header-theme"' in root_tag
+    assert 'data-label="A &quot;quoted&quot; hook"' in root_tag
+    # Package-owned hooks stay on the root unchanged alongside consumer data.
+    assert "data-bw-theme-switch" in root_tag
+
+
+def test_data_omitted_keeps_the_existing_opening_tag_shape() -> None:
+    # Empty attrs_html must not perturb the inline fingerprint that
+    # test_inline_render_is_identical_to_the_pre_235_template pins.
+    import re
+
+    id_re = re.compile(r"bw-theme-switch-[0-9a-f]{10}")
+    html = id_re.sub("ID", _render("{% bw_theme_switch axes='theme' %}"))
+    assert '<div class="bw-theme-switch bw-theme-switch--pre-init"\n     id="ID"\n     role="group"' in html
+    assert 'data-testid="' not in html
+
+
+@pytest.mark.parametrize("data", [{"aria-label": "Theme"}, {"data-bw-theme-switch": ""}])
+def test_data_mapping_rejects_non_consumer_data_attribute_names(data: object) -> None:
+    with pytest.raises(TemplateSyntaxError, match="contains an invalid data-\\* attribute name"):
+        _render("{% bw_theme_switch axes='theme' data=data %}", data=data)
+
+
+def test_data_rejects_a_non_mapping_with_its_own_message() -> None:
+    with pytest.raises(TemplateSyntaxError, match="must be a mapping"):
+        _render("{% bw_theme_switch axes='theme' data=data %}", data=["data-testid"])
+
+
+def test_stable_id_replaces_the_auto_generated_instance_id() -> None:
+    html = _render('{% bw_theme_switch axes="theme" id="site-theme-switch" %}')
+    start = html.index("<div")
+    root_tag = html[start : html.index(">", start)]
+    assert 'id="site-theme-switch"' in root_tag
+    assert 'name="site-theme-switch-theme"' in html
+    assert 'id="site-theme-switch-values"' in html
+    assert 'data-bw-theme-switch-values="site-theme-switch-values"' in root_tag
+
+
+def test_stable_id_rejects_an_unsafe_token() -> None:
+    with pytest.raises(TemplateSyntaxError, match="id-safe token"):
+        _render('{% bw_theme_switch axes="theme" id="bad id!" %}')
+
+
+def test_stable_id_rejects_a_digit_led_token() -> None:
+    with pytest.raises(TemplateSyntaxError, match="id-safe token"):
+        _render('{% bw_theme_switch axes="theme" id="1theme" %}')
+
+
+def test_data_and_stable_id_compose_on_the_same_root() -> None:
+    html = _render(
+        '{% bw_theme_switch axes="theme" id="drawer-theme" data=data %}',
+        data={"data-testid": "drawer-theme-switch"},
+    )
+    start = html.index("<div")
+    root_tag = html[start : html.index(">", start)]
+    assert 'id="drawer-theme"' in root_tag
+    assert 'data-testid="drawer-theme-switch"' in root_tag
