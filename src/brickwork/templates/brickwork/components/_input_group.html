@@ -1,0 +1,56 @@
+{% load brickwork_components brickwork_icons %}
+{% comment %}
+Input group (icvoss/django-brickwork#624): prefix and/or suffix addons around
+a form-field control slot. Structural include. Keeps lean: no closed
+appearance axes (addons are content, not surface/size grammar).
+
+Required:
+  At least one addon: prefix, suffix, prefix_icon, or suffix_icon (or a filled
+  prefix/suffix block). The field control via {% block field %} when extending,
+  or a pre-rendered SafeString in context variable ``field`` when including
+  (typically the output of {% bw_field_widget some_bound_field as field %}).
+
+Optional context:
+  prefix / suffix (str): visible addon text (currency, unit, scheme).
+  prefix_icon / suffix_icon (str): registry icon names; rendered decorative
+      inside the addon (the field label carries meaning).
+  aria_label (str): accessible name for role="group" when the surrounding
+      field label does not already name the composed control.
+
+Named blocks (empty by default):
+  field:   the control slot (input/select/textarea markup).
+  prefix:  whole leading addon; default renders prefix_icon + prefix.
+  suffix:  whole trailing addon; default renders suffix + suffix_icon.
+
+States: inherits focus and invalid from the slotted .bw-input (focus-within
+  and :has([aria-invalid="true"]) / .bw-field--invalid raise the group edge).
+Accessibility: role="group" on the root; addon chrome is aria-hidden so the
+  field label (and any help/error describedby on the control) remain the
+  accessible name and description. Icons use decorative=True. Covered by
+  axe.spec.mjs against inputs-*.html.
+Responsive: no breakpoint switch; the group is inline-size 100% of the
+  field control and shrinks with min-inline-size: 0 on the field slot.
+{% endcomment %}
+<div class="bw-input-group"
+     role="group"
+     {% if aria_label %}{% bw_attr "aria-label" aria_label %}{% endif %}>
+  {% block prefix %}
+  {% if prefix or prefix_icon %}
+  <span class="bw-input-group__addon bw-input-group__addon--prefix" aria-hidden="true">
+    {% if prefix_icon %}{% bw_icon prefix_icon size="sm" decorative=True css_class="bw-input-group__icon" %}{% endif %}
+    {% if prefix %}<span class="bw-input-group__text">{{ prefix }}</span>{% endif %}
+  </span>
+  {% endif %}
+  {% endblock %}
+  <div class="bw-input-group__field">
+    {% block field %}{% if field %}{{ field }}{% endif %}{% endblock %}
+  </div>
+  {% block suffix %}
+  {% if suffix or suffix_icon %}
+  <span class="bw-input-group__addon bw-input-group__addon--suffix" aria-hidden="true">
+    {% if suffix %}<span class="bw-input-group__text">{{ suffix }}</span>{% endif %}
+    {% if suffix_icon %}{% bw_icon suffix_icon size="sm" decorative=True css_class="bw-input-group__icon" %}{% endif %}
+  </span>
+  {% endif %}
+  {% endblock %}
+</div>

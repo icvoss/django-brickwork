@@ -157,8 +157,10 @@
       "requiresContext": true,
       "composesItems": [
         "brickwork/components/_button.html",
+        "brickwork/components/_input_group.html",
         "brickwork/components/_page_header.html",
-        "brickwork/forms/_form.html",
+        "brickwork/forms/_field.html",
+        "brickwork/forms/_form_errors.html",
         "brickwork/nav/_nav.html",
         "brickwork/shell/app.html"
       ]
@@ -1492,6 +1494,19 @@
         "sections/hero/minimal.html",
         "sections/hero/split-media.html"
       ],
+      "usedBySkeleton": []
+    },
+    {
+      "name": "component/input_group",
+      "kind": "component",
+      "family": null,
+      "templatePath": "brickwork/components/_input_group.html",
+      "docSource": "brickwork/components/_input_group.html",
+      "consumption": "include",
+      "usedByArchetypes": [
+        "app/form.html"
+      ],
+      "usedBySections": [],
       "usedBySkeleton": []
     },
     {

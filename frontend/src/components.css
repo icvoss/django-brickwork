@@ -6237,3 +6237,80 @@ a.bw-article-meta__tag-link:focus-visible {
 [data-theme="dark"] .bw-pricing-comparison__col--highlighted {
   background-color: color-mix(in oklch, var(--bw-color-accent) 14%, transparent);
 }
+
+/* --- Input group (prefix/suffix addons, #624) ------------------------------ */
+
+.bw-input-group {
+  display: flex;
+  align-items: stretch;
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.bw-input-group__field {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  position: relative;
+  z-index: 0;
+}
+
+.bw-input-group__field .bw-input {
+  inline-size: 100%;
+}
+
+.bw-input-group__addon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--bw-space-1);
+  padding-inline: var(--bw-density-control-padding-inline);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  background: var(--bw-color-surface-sunken);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+  white-space: nowrap;
+  position: relative;
+  z-index: 0;
+}
+
+.bw-input-group__text {
+  font-variant-numeric: tabular-nums;
+}
+
+.bw-input-group__icon {
+  color: var(--bw-color-fg-muted);
+}
+
+/* Attached geometry: shared border, collapsed adjacent edges, end radii. */
+.bw-input-group__addon--prefix {
+  border-start-start-radius: var(--bw-radius-md);
+  border-end-start-radius: var(--bw-radius-md);
+  border-inline-end-width: 0;
+}
+
+.bw-input-group__addon--suffix {
+  border-start-end-radius: var(--bw-radius-md);
+  border-end-end-radius: var(--bw-radius-md);
+  border-inline-start-width: 0;
+}
+
+.bw-input-group:has(.bw-input-group__addon--prefix) .bw-input-group__field .bw-input {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.bw-input-group:has(.bw-input-group__addon--suffix) .bw-input-group__field .bw-input {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+/* Focus and invalid ride the slotted control; raise its edge above addons. */
+.bw-input-group__field:focus-within {
+  z-index: 1;
+}
+
+.bw-field--invalid .bw-input-group__addon,
+.bw-input-group:has(.bw-input[aria-invalid="true"]) .bw-input-group__addon {
+  border-color: var(--bw-color-danger);
+}

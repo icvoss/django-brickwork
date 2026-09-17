@@ -576,6 +576,21 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         variant="segmented",
         aria_label="View",
     ),
+    "_input_group (prefix and suffix)": lambda: _include(
+        "brickwork/components/_input_group.html",
+        prefix="£",
+        suffix="GBP",
+        field=mark_safe(  # noqa: S308 (test-authored trusted markup)
+            '<input class="bw-input" type="text" name="amount" id="id_amount">'
+        ),
+    ),
+    "_input_group (prefix icon)": lambda: _include(
+        "brickwork/components/_input_group.html",
+        prefix_icon="search",
+        field=mark_safe(  # noqa: S308 (test-authored trusted markup)
+            '<input class="bw-input" type="search" name="q" id="id_q">'
+        ),
+    ),
     "_callout (note)": lambda: _include(
         "brickwork/components/_callout.html",
         title="Note",

@@ -193,6 +193,7 @@ Status values:
 | filter_bar | N/A (defaults) | Raised surface + field rhythm authored Phase A |
 | gauge | N/A (defaults) | Track/rail contrast authored |
 | hero | N/A (local) | `align`, `media_placement`; optional `band` refused (behind already inverse) |
+| input_group | Adopted | Lean; prefix/suffix text and icons; no closed appearance axes |
 | list_item | Adopted | `density` |
 | logo_cloud | N/A (defaults) | Quieter spacing authored Phase A |
 | marketing_footer_groups | N/A (local) | P0 shipped; groups/columns are data, not shared surface |
@@ -255,7 +256,7 @@ named consumer).
 |---|---|---|
 | timeline | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
 | saved_views | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
-| input_group | In demand | Forms prefix/suffix addons |
+| input_group | Adopted | See catalogue row; ships this release |
 | date_picker_chrome | In demand | Chrome/panel only; engine stays consumer |
 | comparison_table | Adopted | See catalogue row; ships this release |
 | toc | Adopted | See catalogue row; ships this release |
