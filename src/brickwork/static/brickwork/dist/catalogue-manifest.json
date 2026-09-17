@@ -425,6 +425,7 @@
         "brickwork/components/_empty_state.html",
         "brickwork/components/_pager.html",
         "brickwork/components/_search.html",
+        "brickwork/components/_toc.html",
         "brickwork/nav/_nav.html",
         "brickwork/shell/docs.html"
       ]
@@ -442,6 +443,7 @@
         "brickwork/components/_code.html",
         "brickwork/components/_pager.html",
         "brickwork/components/_search.html",
+        "brickwork/components/_toc.html",
         "brickwork/nav/_nav.html",
         "brickwork/shell/docs.html"
       ]
@@ -558,6 +560,7 @@
         "brickwork/components/_empty_state.html",
         "brickwork/components/_pager.html",
         "brickwork/components/_search.html",
+        "brickwork/components/_toc.html",
         "brickwork/shell/docs.html"
       ]
     },
@@ -606,6 +609,7 @@
         "brickwork/components/_empty_state.html",
         "brickwork/components/_progress.html",
         "brickwork/components/_search.html",
+        "brickwork/components/_toc.html",
         "brickwork/shell/docs.html"
       ]
     },
@@ -1966,6 +1970,22 @@
       "usedBySkeleton": [
         "base.html"
       ]
+    },
+    {
+      "name": "component/toc",
+      "kind": "component",
+      "family": null,
+      "templatePath": "brickwork/components/_toc.html",
+      "docSource": "brickwork/components/_toc.html",
+      "consumption": "tag",
+      "usedByArchetypes": [
+        "docs/api-reference.html",
+        "docs/article.html",
+        "editorial/article.html",
+        "editorial/reading-progress.html"
+      ],
+      "usedBySections": [],
+      "usedBySkeleton": []
     },
     {
       "name": "component/toggle",

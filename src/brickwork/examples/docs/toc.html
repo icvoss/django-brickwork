@@ -24,19 +24,17 @@ within one document) and from the docs home (which ranks three doors across
 the whole site). The outline IS the content. Hierarchy, not chrome, carries
 the page.
 
-PRIMITIVE DECISION (the question #413 deferred to this archetype): no new
-TOC component ships here. Nested ordered lists inside .bw-prose already style
-a hierarchical outline, and the article already ships .bw-docs-toc for the
-compact on-this-page landmark. Building this page did not invent a third
-treatment, so the wave rule ("a component earns inclusion only when it
-eliminates repeated design work across at least one archetype") does not
-fire. ADR-091 decision 2's declined TOC *region* still stands: the package
-still does not generate heading trees. This page is consumer-authored
-outline markup, exactly as the article's on-this-page nav is.
+PRIMITIVE DECISION: a first-class docs on-this-page toc control now ships
+(icvoss/django-brickwork#627) for the compact landmark that reuses
+``.bw-docs-toc``. This *section contents* page still does not use that
+control: nested ordered lists inside ``.bw-prose`` style a hierarchical
+outline of the section, and wrapping that outline in the compact raised
+panel would demote the thing the page exists to show. ADR-091 decision 2's
+declined TOC *region* still stands: the package still does not generate
+heading trees. This page is consumer-authored outline markup.
 
-ON THIS PAGE vs SECTION CONTENTS: this page does not carry a .bw-docs-toc
-box. The outline below is the page body; wrapping it in the compact raised
-panel would demote the thing the page exists to show. Use .bw-docs-toc on
+ON THIS PAGE vs SECTION CONTENTS: this page does not carry a ``.bw-docs-toc``
+box. The outline below is the page body. Use the on-this-page toc control on
 articles (see examples/docs/article.html); use a prose outline on a contents
 page.
 

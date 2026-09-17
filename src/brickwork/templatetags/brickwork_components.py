@@ -766,6 +766,102 @@ def bw_version_switch(
     }
 
 
+@dataclass(frozen=True)
+class RenderedTocItem:
+    """One entry in ``{% bw_toc %}`` after validation (children already shaped)."""
+
+    label: str
+    href: str
+    is_active: bool
+    children: tuple[RenderedTocItem, ...] = ()
+
+
+def _toc_active_matches(href: str, active: str) -> bool:
+    """True when ``active`` is the item href, or the bare id of an ``#id`` href."""
+    if not active:
+        return False
+    if href == active:
+        return True
+    if href.startswith("#") and href[1:] == active:
+        return True
+    return active.startswith("#") and href == active[1:]
+
+
+def _shape_toc_item(raw: object, *, active: str, allow_children: bool) -> RenderedTocItem:
+    if not isinstance(raw, Mapping):
+        raise TemplateSyntaxError(f"bw_toc items must be mappings, got {raw!r}")
+    label = normalise_accessible_name(raw.get("label", ""))
+    href = str(raw.get("href", "") or "").strip()
+    if not label or not href:
+        raise TemplateSyntaxError(f'bw_toc items require non-empty "label" and "href", got {dict(raw)!r}')
+    children_raw = raw.get("children") or ()
+    if children_raw and not allow_children:
+        raise TemplateSyntaxError("bw_toc supports only one level of children (no grandchildren)")
+    if children_raw and not isinstance(children_raw, list | tuple):
+        raise TemplateSyntaxError(f"bw_toc item children must be a list/tuple, got {children_raw!r}")
+    children = tuple(_shape_toc_item(child, active=active, allow_children=False) for child in children_raw)
+    return RenderedTocItem(
+        label=label,
+        href=href,
+        is_active=_toc_active_matches(href, active),
+        children=children,
+    )
+
+
+@register.inclusion_tag("brickwork/components/_toc.html")
+def bw_toc(
+    items: object,
+    *,
+    active: str = "",
+    heading: str = "",
+    heading_id: str = "",
+) -> dict:
+    """A documentation on-this-page table of contents (icvoss/django-brickwork#627).
+
+    Reuses the existing ``.bw-docs-toc`` chrome: a labelled ``<nav>`` of
+    consumer-authored heading links. ADR-091 still declines a package-owned
+    TOC *region* (heading trees are a content-pipeline concern); this is the
+    control a page fills once it knows its own anchors.
+
+    ``items`` is a sequence of ``{label, href}`` mappings; optional
+    ``children`` is one level of the same shape (rendered as
+    ``.bw-docs-toc__sub`` siblings). Empty ``items`` renders nothing.
+    ``active`` is an href or bare id matching at most one link
+    (``aria-current="location"``). ``heading`` defaults to the translated
+    "On this page"; ``heading_id`` defaults to ``bw-toc-heading``.
+
+    Prefer this tag over a bare include when you want validation; the
+    template also accepts the same context keys via ``{% include %}``.
+    """
+    if items is None:
+        items = ()
+    if not isinstance(items, list | tuple):
+        raise TemplateSyntaxError("bw_toc requires items=, a list/tuple of toc dicts")
+    active_value = str(active or "").strip()
+    shaped = [_shape_toc_item(raw, active=active_value, allow_children=True) for raw in items]
+    active_hits = sum(
+        (1 if item.is_active else 0) + sum(1 for child in item.children if child.is_active) for item in shaped
+    )
+    if active_value and active_hits == 0:
+        raise TemplateSyntaxError(
+            f"bw_toc active={active_value!r} matched no item href or id among "
+            f"{[item.href for item in shaped] + [c.href for item in shaped for c in item.children]}"
+        )
+    if active_hits > 1:
+        raise TemplateSyntaxError(f"bw_toc active={active_value!r} matched {active_hits} items; expected at most one")
+
+    return {
+        "items": shaped,
+        # Clear so the include-path ``active == item.href`` branch cannot
+        # double-mark when the tag already set ``is_active``.
+        "active": "",
+        "heading": normalise_accessible_name(heading) if heading else "",
+        # Attribute position: escape unconditionally (#349), including when
+        # the caller passed mark_safe.
+        "heading_id": escape_attribute_value(str(heading_id or "").strip()) if heading_id else "",
+    }
+
+
 @register.inclusion_tag("brickwork/components/_toggle.html")
 def bw_toggle(
     label: str,

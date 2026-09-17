@@ -20,8 +20,8 @@ What your view must supply:
     category_label           category badge text (full category page is #417)
     category_href            category listing URL
     article_state            "ready" | "empty" | "error"
-The heading text, prose, callouts, figure and on-this-page links below are
-typed into the template.
+    toc_items                on-this-page outline for bw_toc: [{label, href}, ...]
+The heading text, prose, callouts and figure below are typed into the template.
 
 WHY THIS PAGE EXTENDS THE DOCS SHELL, NOT A NEW EDITORIAL SHELL:
 
@@ -104,16 +104,10 @@ Responsive: inherits the docs shell; bw-prose holds the 65ch measure; the
   On this page lives outside bw-prose (same craft as docs/article.html) so the
   TOC list is not restyled by the prose floor. It is NOT placed in docs_nav:
   that block is already wrapped in a <nav> by the shell, and nesting another
-  landmark would split the accessibility tree.
+  landmark would split the accessibility tree. {% bw_toc %} (#627) owns the
+  landmark; the view supplies toc_items.
   {% endcomment %}
-  <nav class="bw-docs-toc" aria-labelledby="bw-editorial-toc-heading">
-    <p class="bw-docs-toc__title" id="bw-editorial-toc-heading">{% translate "On this page" %}</p>
-    <ol class="bw-docs-toc__list">
-      <li><a href="#what-changed">{% translate "What changed" %}</a></li>
-      <li><a href="#the-evidence">{% translate "The evidence" %}</a></li>
-      <li><a href="#what-we-kept">{% translate "What we kept" %}</a></li>
-    </ol>
-  </nav>
+  {% bw_toc items=toc_items heading_id="bw-editorial-toc-heading" %}
 
   <div class="bw-prose">
     <p class="bw-prose__lede">

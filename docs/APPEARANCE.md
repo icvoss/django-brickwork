@@ -225,6 +225,7 @@ Status values:
 | theme_switch | N/A (keep lean) | |
 | toast | N/A (defaults) | Elevation/edge authored Phase A; optional `surface` refused |
 | toast_region | N/A (local) | `placement` only |
+| toc | Adopted | `{% bw_toc %}` / `_toc.html`; reuses `.bw-docs-toc` chrome; `items`, `active`, `heading` |
 | toggle | N/A (keep lean) | |
 | token_specimen | N/A (keep lean) | Theme specimen; not kit chrome variation |
 | tooltip | N/A (keep lean) | |
@@ -239,7 +240,7 @@ Status values:
 | app | N/A (defaults) | Sidebar selected/hover + topbar elevation Phase A |
 | auth | N/A (defaults) | Panel elevation/radius Phase A |
 | centred | N/A (defaults) | Same panel craft as auth |
-| docs | N/A (defaults) | Rail active + article measure Phase A; TOC stays P1 deferred |
+| docs | N/A (defaults) | Rail active + article measure Phase A; on-this-page via `{% bw_toc %}` (#627) |
 | marketing | N/A (defaults) | Header/footer craft; footer groups component shipped |
 
 ### Phase 4 P1
@@ -257,7 +258,7 @@ named consumer).
 | input_group | In demand | Forms prefix/suffix addons |
 | date_picker_chrome | In demand | Chrome/panel only; engine stays consumer |
 | comparison_table | Adopted | See catalogue row; ships this release |
-| toc | In demand | First-class docs control |
+| toc | Adopted | See catalogue row; ships this release |
 | article_meta | Adopted | See catalogue row; ships this release |
 
 ### Phase 6 P2 (deferred; explicit N/A)
