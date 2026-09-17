@@ -683,8 +683,15 @@
    *
    * Found at 375px by the plan's Phase 6 gate 3 while stacking two heroes in
    * one fixture; the shipped marketing pages never tripped it because their
-   * ledes happen to be shorter. */
-  max-inline-size: min(var(--bw-size-max-width-prose), 100%);
+   * ledes happen to be shorter.
+   *
+   * The measure itself is --bw-component-hero-copy-max-width (defaults to the
+   * prose measure). Heading and lede have their own max-width tokens so a
+   * brand can widen the display heading without also widening the lede
+   * (icvoss/django-brickwork#640): raise the copy (and optionally heading)
+   * token, then set --bw-component-hero-lede-max-width to the prose measure
+   * or 62ch. */
+  max-inline-size: min(var(--bw-component-hero-copy-max-width), 100%);
 }
 
 .bw-hero--center .bw-hero__copy {
@@ -724,6 +731,9 @@
    * long compound) still has no wrap opportunity even at the small end. */
   overflow-wrap: break-word;
   text-wrap: balance;
+  /* Fills the copy column at default (100%). Override with the copy column
+   * widened when the brand wants a wider heading than the lede (#640). */
+  max-inline-size: min(var(--bw-component-hero-heading-max-width), 100%);
 }
 
 .bw-hero__lede {
@@ -732,6 +742,10 @@
   font-size: var(--bw-text-body-lg-size);
   line-height: var(--bw-text-body-lg-line-height);
   text-wrap: pretty;
+  /* Fills the copy column at default (100%). When the copy column is widened
+   * for the heading, set --bw-component-hero-lede-max-width to the prose
+   * measure or 62ch (#640). */
+  max-inline-size: min(var(--bw-component-hero-lede-max-width), 100%);
 }
 
 .bw-hero__actions {
@@ -879,7 +893,7 @@
 
 .bw-hero--media-behind .bw-hero__copy {
   z-index: 1;
-  max-inline-size: min(var(--bw-size-max-width-prose), 100%);
+  max-inline-size: min(var(--bw-component-hero-copy-max-width), 100%);
 }
 
 /* The copy inherits the inverse foreground. The eyebrow keeps its accent role
