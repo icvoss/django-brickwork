@@ -59,8 +59,10 @@ All L1 required, plus:
 - `--bw-font-family-display`
 - `--bw-font-family-mono`
 
-Optional: `--bw-text-<role>-*` size/weight/line-height/tracking where the brand
-changes defaults. Prefer roles over raw `--bw-font-size-*` ladders.
+Optional: `--bw-text-<role>-*` family/size/weight/line-height/tracking where the
+brand changes defaults. Prefer roles over raw `--bw-font-size-*` ladders. The
+`label` role carries `--bw-text-label-family` and `--bw-text-label-tracking`
+(consumed by `.bw-btn`) so button type can be set once on the ladder.
 
 ### L3 requirements
 
