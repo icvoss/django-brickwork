@@ -1297,6 +1297,17 @@
       "usedBySkeleton": []
     },
     {
+      "name": "component/date_picker_chrome",
+      "kind": "component",
+      "family": null,
+      "templatePath": "brickwork/components/_date_picker_chrome.html",
+      "docSource": "brickwork/components/_date_picker_chrome.html",
+      "consumption": "include",
+      "usedByArchetypes": [],
+      "usedBySections": [],
+      "usedBySkeleton": []
+    },
+    {
       "name": "component/disclosure",
       "kind": "component",
       "family": null,

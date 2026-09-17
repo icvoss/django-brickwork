@@ -136,22 +136,27 @@ block. Every value in it is an existing `--bw-*` token (no new colour
 invented), it is scoped under `.bw-drp` so it cannot leak into a host page,
 it carries a comment stating this CSS must never be added to the shipped
 stylesheet, and it exists specifically because brickwork ships no date picker
-COMPONENT (BR-BW-INPUT-004 is a Fixed rule: no package-maintained
-`bw_date_picker` tag, template or Alpine behaviour exists and none ever will;
-`src/brickwork/examples/app/date-range-picker.html:5-11`). Three further
-inline styles exist in that same file, all `display:none` /
+*engine* (BR-BW-INPUT-004 is a Fixed rule: no package-maintained
+`bw_date_picker` tag or Alpine calendar behaviour exists and none ever will;
+`src/brickwork/examples/app/date-range-picker.html:5-11`). The substrate does
+ship `_date_picker_chrome.html` (field shell, optional range layout, trigger
+and panel chrome only) so consumers are not left inventing that wrapper;
+the example's calendar script and grid remain consumer-owned copy-paste.
+Three further inline styles exist in that same file, all `display:none` /
 `visibility:hidden`, structural rather than cosmetic
 (`src/brickwork/examples/app/date-range-picker.html:632,697,817`).
 
-**Say "no date picker component", never "no date picker".** A developer who
-copies that example has a working date range picker: a calendar popover with
-weekday and month grids, locale-aware via Django's own `django.utils.dates`,
-single-date mode included, over a native `<input type="date">` no-JS floor
-that stays the submitted control at all times. What brickwork declines to
-ship is the maintained JS calendar component, not the capability. This is the
+**Say "no date picker engine" / "no `bw_date_picker` Alpine component", never
+"no date picker".** A developer who copies that example has a working date
+range picker: a calendar popover with weekday and month grids, locale-aware
+via Django's own `django.utils.dates`, single-date mode included, over a
+native `<input type="date">` no-JS floor that stays the submitted control at
+all times. What brickwork declines to ship is the maintained JS calendar
+engine, not the capability, and not the field/panel chrome. This is the
 delivery model in miniature and the clearest illustration of the lead claim:
-the substrate plus an example gets a consumer a real date picker they own
-outright, with no component contract for brickwork to maintain or break.
+the substrate (including date picker chrome) plus an example gets a consumer
+a real date picker they own outright, with no engine contract for brickwork
+to maintain or break.
 
 **Why the examples are safe to give away.** ADR-056 (referenced at
 `src/brickwork/examples/README.md:7`, `CHANGELOG.md:616-620`): examples are
@@ -388,9 +393,11 @@ are as reported there, not from the raw dataset.
 9. **Never state a delivery-model boundary as an absence of capability.**
    brickwork declines to ship certain things as maintained components; that is
    not the same as not providing them. "No date picker" is false and a
-   developer disproves it by opening one example; "no date picker component"
-   is true and explains the model. Check every "we do not ship X" claim for
-   this confusion before publishing it.
+   developer disproves it by opening one example; "no date picker engine"
+   (and "no `bw_date_picker` Alpine component") is true and explains the
+   model. Field and panel chrome (`_date_picker_chrome.html`) is substrate,
+   not an engine. Check every "we do not ship X" claim for this confusion
+   before publishing it.
 
 ## 10. Anti-pattern: no house aesthetic (what killed the previous copy)
 

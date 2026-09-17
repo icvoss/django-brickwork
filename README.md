@@ -282,13 +282,15 @@ Useful starting pages (not exhaustive): `app/list`, `detail`, `dashboard`,
 per-file view contracts live in
 [src/brickwork/examples/README.md](src/brickwork/examples/README.md).
 
-Looking for a date picker: Brickwork does not currently ship a maintained
-`bw_date_picker` component, but it does ship a complete copyable date-range
-picker. `app/date-range-picker.html` provides a calendar popover with weekday
-and month grids, locale-aware via Django's own `django.utils.dates`, including
-single-date mode, over a native `<input type="date">` no-JavaScript floor that
-stays the submitted control. Copy it and adapt it. Brickwork owns the
-date-entry interface pattern, while the copied page remains yours outright.
+Looking for a date picker: Brickwork does not ship a maintained
+`bw_date_picker` Alpine calendar engine (BR-BW-INPUT-004), but it does ship
+field and panel chrome (`_date_picker_chrome.html`) and a complete copyable
+date-range picker. `app/date-range-picker.html` provides a calendar popover
+with weekday and month grids, locale-aware via Django's own
+`django.utils.dates`, including single-date mode, over a native
+`<input type="date">` no-JavaScript floor that stays the submitted control.
+Copy it and adapt it. Brickwork owns the date-entry chrome and the interface
+pattern; the copied page's engine remains yours outright.
 
 They cannot be extended, by construction: the directory is package data, not
 an app `templates/` folder, so Django's `APP_DIRS` loader cannot see it and

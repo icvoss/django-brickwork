@@ -353,6 +353,15 @@
       ]
     },
     {
+      "name": "fields",
+      "declaredIn": [
+        "brickwork/components/_date_picker_chrome.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "footer",
       "declaredIn": [
         "brickwork/components/_card.html",
@@ -645,6 +654,15 @@
       "name": "page_title",
       "declaredIn": [
         "brickwork/shell/base.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "panel",
+      "declaredIn": [
+        "brickwork/components/_date_picker_chrome.html"
       ],
       "consumption": [
         "include"

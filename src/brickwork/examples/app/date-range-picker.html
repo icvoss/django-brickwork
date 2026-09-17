@@ -4,10 +4,11 @@ A date RANGE picker, and the single-date variant of the same file.
 
 COPY THIS FILE into your project and edit it. It is not on the template loader
 path, so you cannot extend it (ADR-056). A package-maintained
-{% templatetag openblock %} bw_date_picker {% templatetag closeblock %} tag is
-not currently shipped. This example gives you a complete, accessible date-entry
-pattern now: the wrapper chrome uses Brickwork tokens and the copied popover is
-yours to adapt.
+{% templatetag openblock %} bw_date_picker {% templatetag closeblock %} Alpine
+calendar engine is not shipped (BR-BW-INPUT-004). Field and panel chrome lives
+in {% templatetag openblock %} include "brickwork/components/_date_picker_chrome.html"
+{% templatetag closeblock %}; this example keeps its own engine script and
+`.bw-drp*` markup so the calendar behaviour stays yours to adapt.
 
 WHAT YOUR VIEW MUST SUPPLY, and this is deliberately small:
     nav_items / nav_active     as in list.html

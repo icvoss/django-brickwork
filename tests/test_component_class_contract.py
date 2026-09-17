@@ -621,6 +621,41 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         reading_time="8 min read",
         tags=[{"label": "Operations", "href": "/journal/operations/"}],
     ),
+    "_date_picker_chrome (single, closed panel)": lambda: _include(
+        "brickwork/components/_date_picker_chrome.html",
+        label="Date raised",
+        id="bw-dpc-class-contract",
+        fields=mark_safe(
+            '<div class="bw-date-picker-chrome__field">'
+            '<input type="date" class="bw-input" id="id_class_contract_date" name="raised" '
+            'aria-labelledby="bw-dpc-class-contract-label">'
+            '<button type="button" class="bw-date-picker-chrome__trigger" '
+            'aria-label="Choose date">Open</button>'
+            "</div>"
+        ),
+        panel=mark_safe("<p>Calendar slot</p>"),
+    ),
+    "_date_picker_chrome (range, open panel)": lambda: _include(
+        "brickwork/components/_date_picker_chrome.html",
+        label="Date raised",
+        range=True,
+        panel_open=True,
+        panel_label="Choose dates",
+        fields=mark_safe(
+            '<div class="bw-date-picker-chrome__field">'
+            '<input type="date" class="bw-input" aria-label="Start">'
+            '<button type="button" class="bw-date-picker-chrome__trigger" '
+            'aria-label="Choose start date">Open</button>'
+            "</div>"
+            '<span class="bw-date-picker-chrome__separator" aria-hidden="true">-</span>'
+            '<div class="bw-date-picker-chrome__field">'
+            '<input type="date" class="bw-input" aria-label="End">'
+            '<button type="button" class="bw-date-picker-chrome__trigger" '
+            'aria-label="Choose end date">Open</button>'
+            "</div>"
+        ),
+        panel=mark_safe("<p>Range calendar slot</p>"),
+    ),
     "_pagination (mid-list)": lambda: _render_pagination(),
     "_pager (two-link)": lambda: _include(
         "brickwork/components/_pager.html",
