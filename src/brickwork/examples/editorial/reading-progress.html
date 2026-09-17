@@ -12,6 +12,7 @@ What your view must supply:
     docs_nav_label           rail / jump label (this page uses "On this page")
     docs_search_action       the URL bw_search in the site header submits to
     progress_state           "ready" | "empty" | "error"
+    toc_items                on-this-page outline for bw_toc: [{label, href}, ...]
 The article copy and the scroll-glue script below are typed into the template.
 
 WHY THIS IS NOT A NEW COMPONENT:
@@ -94,14 +95,7 @@ Responsive: sticky bar spans the reading column; inherits docs shell.
     {% include "brickwork/components/_progress.html" with label="Reading progress" value=0 %}
   </div>
 
-  <nav class="bw-docs-toc" aria-labelledby="bw-reading-progress-toc-heading">
-    <p class="bw-docs-toc__title" id="bw-reading-progress-toc-heading">{% translate "On this page" %}</p>
-    <ol class="bw-docs-toc__list">
-      <li><a href="#what-changed">{% translate "What changed" %}</a></li>
-      <li><a href="#the-evidence">{% translate "The evidence" %}</a></li>
-      <li><a href="#what-we-kept">{% translate "What we kept" %}</a></li>
-    </ol>
-  </nav>
+  {% bw_toc items=toc_items heading_id="bw-reading-progress-toc-heading" %}
 
   <div class="bw-prose" data-bw-reading-progress-article>
     <p class="bw-prose__lede">

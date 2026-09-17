@@ -128,7 +128,7 @@ is also linked from there.
 | `app/list.html` | Index page: filters, table, pagination (list + filter journey) |
 | `app/detail.html` | One record: facts, related sections, danger zone |
 | `app/dashboard.html` | Stat row, content grid, recent activity |
-| `app/date-range-picker.html` | Native date inputs plus a copy-in popover shell (BR-BW-INPUT-004: no component) |
+| `app/date-range-picker.html` | Native date inputs plus a copy-in popover engine (BR-BW-INPUT-004: no package calendar engine; substrate chrome is `_date_picker_chrome.html`) |
 | `app/form.html` | Single create/edit form (form validate journey: partialdef + 422) |
 | `app/toast.html` | Toast delivery form + OOB partialdef (toast journey) |
 | `sections/modal/confirm.html` | Modal consumer partial for `#bw-modal-root` (modal journey; fragment) |

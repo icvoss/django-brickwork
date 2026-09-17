@@ -965,6 +965,17 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             "    invoice = make_invoice(days_overdue=2)\n"
             "    assert next_reminder(invoice) is Stage.DUE\n"
         ),
+        "toc_items": [
+            {
+                "label": "Escalation order",
+                "href": "#escalation-order",
+                "children": [
+                    {"label": "Changing the thresholds", "href": "#changing-the-thresholds"},
+                ],
+            },
+            {"label": "Testing a schedule change", "href": "#testing-a-schedule"},
+            {"label": "Recovery by stage", "href": "#recovery-by-stage"},
+        ],
     },
     "docs/api-reference.html": {
         "crumbs": [
@@ -1005,6 +1016,13 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
             "  ]\n"
             "}\n"
         ),
+        "toc_items": [
+            {"label": "Signature", "href": "#signature"},
+            {"label": "Parameters", "href": "#parameters"},
+            {"label": "Request", "href": "#request"},
+            {"label": "Response", "href": "#response"},
+            {"label": "Status codes", "href": "#status-codes"},
+        ],
     },
     "docs/toc.html": {
         "crumbs": [
@@ -1108,10 +1126,16 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "author_href": "/journal/authors/amira-okonkwo/",
         "author_initials": "AO",
         "published_on": "12 August 2026",
+        "published_iso": "2026-08-12",
         "reading_time": "8 min read",
         "category_label": "Operations",
         "category_href": "/journal/operations/",
         "article_state": "ready",
+        "toc_items": [
+            {"label": "What changed", "href": "#what-changed"},
+            {"label": "The evidence", "href": "#the-evidence"},
+            {"label": "What we kept", "href": "#what-we-kept"},
+        ],
     },
     "editorial/author.html": {
         "crumbs": [
@@ -1423,6 +1447,11 @@ _EXAMPLE_CONTEXTS: dict[str, dict[str, object]] = {
         "docs_nav_label": "On this page",
         "docs_search_action": "/journal/search/",
         "progress_state": "ready",
+        "toc_items": [
+            {"label": "What changed", "href": "#what-changed"},
+            {"label": "The evidence", "href": "#the-evidence"},
+            {"label": "What we kept", "href": "#what-we-kept"},
+        ],
     },
     "marketing/landing.html": {
         "logos": _MARKETING_LOGOS,
@@ -1998,7 +2027,7 @@ def test_every_section_class_it_emits_is_actually_styled(name: str) -> None:
         # descendants. bw-pricing-table-section is the shipped component's own
         # root, in the same position as bw-feature-grid-section above.
         "bw-pricing-table-section",
-        "bw-pricing-comparison",
+        "bw-comparison-table",
         "bw-single-plan",
         "bw-faq-columns",
         "bw-testimonial-grid-section",
@@ -2593,6 +2622,7 @@ def test_the_editorial_article_empty_and_error_states_replace_the_body() -> None
     error = template.render(Context({**base, "article_state": "error"}))
 
     assert "Why we moved reminder thresholds" in ready
+    assert "bw-article-meta" in ready
     assert "bw-avatar" in ready
     assert "bw-prose" in ready
     assert "bw-docs-toc" in ready

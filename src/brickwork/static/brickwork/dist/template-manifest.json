@@ -344,6 +344,24 @@
       ]
     },
     {
+      "name": "field",
+      "declaredIn": [
+        "brickwork/components/_input_group.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "fields",
+      "declaredIn": [
+        "brickwork/components/_date_picker_chrome.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "footer",
       "declaredIn": [
         "brickwork/components/_card.html",
@@ -642,6 +660,24 @@
       ]
     },
     {
+      "name": "panel",
+      "declaredIn": [
+        "brickwork/components/_date_picker_chrome.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "prefix",
+      "declaredIn": [
+        "brickwork/components/_input_group.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "preview",
       "declaredIn": [
         "brickwork/components/_preview_frame.html"
@@ -791,6 +827,15 @@
       "name": "subnav_region",
       "declaredIn": [
         "brickwork/shell/app.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "suffix",
+      "declaredIn": [
+        "brickwork/components/_input_group.html"
       ],
       "consumption": [
         "include"

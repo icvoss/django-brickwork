@@ -874,10 +874,11 @@
   margin-block-start: var(--bw-space-1);
 }
 
-/* In-page TOC composition (Beat S7 craft): ADR-091 declines a package-owned
- * TOC region because heading trees are a content-pipeline concern. This is
- * the consumer-authored equivalent an article example can type by hand once
- * its heading ids are known: a labelled nav landmark, not a generator. */
+/* In-page TOC composition (Beat S7 craft, first-class since #627): ADR-091
+ * declines a package-owned TOC region because heading trees are a
+ * content-pipeline concern. {% bw_toc %} / _toc.html is the consumer-authored
+ * control once heading ids are known: a labelled nav landmark, not a
+ * generator. */
 .bw-docs-toc {
   margin: 0;
   margin-block-end: var(--bw-space-6);
@@ -908,6 +909,10 @@
 }
 
 .bw-docs-toc__list a {
+  display: inline-flex;
+  align-items: center;
+  /* WCAG 2.5.8 AA target size (#208): TOC entries are navigational controls. */
+  min-block-size: 1.5rem;
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);

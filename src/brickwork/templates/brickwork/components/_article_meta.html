@@ -1,0 +1,70 @@
+{% load brickwork_components %}
+{% comment %}
+Article meta / editorial byline (icvoss/django-brickwork#625): author, date,
+reading time, and optional tags in one row. Structural include. Family-
+neutral (.bw-article-meta*), so it is legal on docs and marketing surfaces
+as well as editorial archetypes. Not a bio strip (_bio.html) and not a
+list-item meta caption (_list_item.html).
+
+Required: author_name.
+Optional:
+  author_href: when set, the author name is a link (profile / author page).
+  author_initials / author_src / author_alt: avatar via _avatar.html at
+      size="sm". Initials use author_name as aria-label; when author_src is
+      set, author_alt defaults to author_name.
+  published_on: visible date string. When set, rendered in a <time>.
+  published_iso: machine datetime for the <time datetime> attribute
+      (e.g. "2026-08-12"). Prefer ISO date or datetime.
+  reading_time: visible reading-time string (e.g. "8 min read").
+  tags: list of {label, href?} for topic chips after the byline facts.
+      href is optional; label is required per item.
+
+No shared appearance axis (keep lean): avatar size is fixed at sm for the
+byline scale. Closed options are not registered.
+
+States: none (static facts). Author linked/unlinked and avatar present/
+absent are content shapes.
+Accessibility: author text names the person (avatar aria-label / alt
+  matches author_name); date is a real <time> with datetime; separators are
+  aria-hidden so the reading order is "Author Date Reading time". Tags are
+  a list of real links or text, never colour alone. Covered by axe.spec.mjs
+  against primitives-*.html.
+Responsive: inline flex that wraps; no breakpoint-gated layout switch.
+{% endcomment %}{% bw_require author_name=author_name %}
+<p class="bw-article-meta">
+  {% if author_src or author_initials %}
+  <span class="bw-article-meta__avatar">
+    {% if author_src %}
+      {% include "brickwork/components/_avatar.html" with src=author_src alt=author_alt|default:author_name size="sm" %}
+    {% else %}
+      {% include "brickwork/components/_avatar.html" with initials=author_initials aria_label=author_name size="sm" %}
+    {% endif %}
+  </span>
+  {% endif %}
+  {% if author_href %}
+  <a class="bw-article-meta__author" {% bw_attr "href" author_href %}>{{ author_name }}</a>
+  {% else %}
+  <span class="bw-article-meta__author">{{ author_name }}</span>
+  {% endif %}
+  {% if published_on %}
+  <span class="bw-article-meta__sep" aria-hidden="true">·</span>
+  <time class="bw-article-meta__date"{% if published_iso %} {% bw_attr "datetime" published_iso %}{% endif %}>{{ published_on }}</time>
+  {% endif %}
+  {% if reading_time %}
+  <span class="bw-article-meta__sep" aria-hidden="true">·</span>
+  <span class="bw-article-meta__reading-time">{{ reading_time }}</span>
+  {% endif %}
+  {% if tags %}
+  <ul class="bw-article-meta__tags">
+    {% for tag in tags %}
+    <li>
+      {% if tag.href %}
+      <a class="bw-article-meta__tag-link" {% bw_attr "href" tag.href %}>{{ tag.label }}</a>
+      {% else %}
+      <span class="bw-article-meta__tag-label">{{ tag.label }}</span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</p>

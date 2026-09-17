@@ -275,9 +275,11 @@ as well as product applications.
   annotations use `{% bw_badge %}`; the out-of-date banner is `{% bw_alert %}`
   composition.
   icvoss/django-brickwork#412 uses `{% bw_nav orientation="horizontal" %}`
-  for the section switcher (since 3.31.0 / #430). #413 records that no TOC
-  component was needed: nested prose lists plus the existing `.bw-docs-toc`
-  on-this-page treatment cover the jobs. #411 uses family-neutral result
+  for the section switcher (since 3.31.0 / #430). A first-class
+  `{% bw_toc %}` / `_toc.html` now ships for on-this-page nav
+  (icvoss/django-brickwork#627), reusing the existing `.bw-docs-toc` chrome;
+  #413's section-contents archetype still uses nested prose lists for the
+  outline that *is* the page body. #411 uses family-neutral result
   cards rather than marketing `.bw-listing-list__item`. The editorial article
   reuses the docs shell (same article-then-rail seams; no parallel editorial
   shell) and maps family from the `editorial/` examples directory. The

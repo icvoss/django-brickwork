@@ -820,7 +820,10 @@ def render_feedback(theme: str, *, inject_js: bool = False, tooltip_open: bool =
 
 
 # Beat Phase B primitives (#542): divider, avatar(+group), chip, button_group,
-# callout, list_item. marketing_footer_groups is covered by landing-*.html.
+# callout, list_item. article_meta (#625) and date picker chrome (#628)
+# enrolled on the same page (chrome only; owned engine stays on
+# date-range-picker-*.html).
+# marketing_footer_groups is covered by landing-*.html.
 
 _PRIMITIVES_PAGE = """<!doctype html>
 <html lang="en" data-theme="__THEME__">
@@ -861,6 +864,15 @@ __CSS__
     <h2 id="list-item-heading">List item</h2>
     __LIST_ITEM__
   </section>
+  <section aria-labelledby="article-meta-heading">
+    <h2 id="article-meta-heading">Article meta</h2>
+    __ARTICLE_META__
+  </section>
+  <section aria-labelledby="date-picker-chrome-heading">
+    <h2 id="date-picker-chrome-heading">Date picker chrome</h2>
+    __DATE_PICKER_CHROME__
+    __DATE_PICKER_CHROME_RANGE__
+  </section>
 </main>
 </body>
 </html>
@@ -868,6 +880,8 @@ __CSS__
 
 
 def render_primitives(theme: str) -> str:
+    from django.utils.safestring import mark_safe
+
     css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
     from django.template import Context, Template
 
@@ -926,6 +940,61 @@ def render_primitives(theme: str) -> str:
             "meta": "14 July 2026",
         },
     )
+    article_meta = render_to_string(
+        "brickwork/components/_article_meta.html",
+        {
+            "author_name": "Amira Okonkwo",
+            "author_href": "/journal/authors/amira-okonkwo/",
+            "author_initials": "AO",
+            "published_on": "12 August 2026",
+            "published_iso": "2026-08-12",
+            "reading_time": "8 min read",
+            "tags": [
+                {"label": "Operations", "href": "/journal/operations/"},
+                {"label": "Reminders"},
+            ],
+        },
+    )
+    date_picker_chrome = render_to_string(
+        "brickwork/components/_date_picker_chrome.html",
+        {
+            "label": "Date raised",
+            "id": "bw-dpc-a11y",
+            "fields": mark_safe(
+                '<div class="bw-date-picker-chrome__field">'
+                '<input type="date" class="bw-input" id="id_a11y_raised" name="raised" '
+                'aria-labelledby="bw-dpc-a11y-label">'
+                '<button type="button" class="bw-date-picker-chrome__trigger" '
+                'aria-label="Choose date">Open</button>'
+                "</div>"
+            ),
+            "panel": mark_safe("<p>Calendar engine slot</p>"),
+        },
+    )
+    date_picker_chrome_range = render_to_string(
+        "brickwork/components/_date_picker_chrome.html",
+        {
+            "label": "Date range",
+            "id": "bw-dpc-a11y-range",
+            "range": True,
+            "panel_open": True,
+            "panel_label": "Choose dates",
+            "fields": mark_safe(
+                '<div class="bw-date-picker-chrome__field">'
+                '<input type="date" class="bw-input" aria-label="Start date">'
+                '<button type="button" class="bw-date-picker-chrome__trigger" '
+                'aria-label="Choose start date">Open</button>'
+                "</div>"
+                '<span class="bw-date-picker-chrome__separator" aria-hidden="true">-</span>'
+                '<div class="bw-date-picker-chrome__field">'
+                '<input type="date" class="bw-input" aria-label="End date">'
+                '<button type="button" class="bw-date-picker-chrome__trigger" '
+                'aria-label="Choose end date">Open</button>'
+                "</div>"
+            ),
+            "panel": mark_safe("<p>Range calendar engine slot</p>"),
+        },
+    )
     return (
         _PRIMITIVES_PAGE.replace("__THEME__", theme)
         .replace("__CSS__", f"<style>{css}</style>")
@@ -939,6 +1008,9 @@ def render_primitives(theme: str) -> str:
         .replace("__BUTTON_GROUP_SEGMENTED__", button_group_seg)
         .replace("__CALLOUT__", callout)
         .replace("__LIST_ITEM__", list_item)
+        .replace("__ARTICLE_META__", article_meta)
+        .replace("__DATE_PICKER_CHROME__", date_picker_chrome)
+        .replace("__DATE_PICKER_CHROME_RANGE__", date_picker_chrome_range)
     )
 
 
@@ -994,6 +1066,11 @@ __CSS__
     <h2 id="date-heading">Date field</h2>
     __DATE_FIELD__
   </section>
+
+  <section aria-labelledby="input-group-heading">
+    <h2 id="input-group-heading">Input group</h2>
+    __INPUT_GROUP__
+  </section>
 </main>
 </body>
 </html>
@@ -1035,6 +1112,40 @@ def _render_date_field_fixture() -> str:
     return f'<div class="bw-field">{label}<div class="bw-field__control">{widget}</div></div>'
 
 
+def _render_input_group_fixture() -> str:
+    """Currency prefix + search-icon prefix around real bw-input controls (#624)."""
+    from django import forms
+    from django.template import Context, Template
+    from django.utils.safestring import mark_safe
+
+    class _AmountForm(forms.Form):
+        amount = forms.DecimalField(label="Amount", max_digits=10, decimal_places=2)
+
+    field = _AmountForm()["amount"]
+    amount = Template(
+        "{% load brickwork_forms %}"
+        '<div class="bw-field">'
+        '<label class="bw-field__label" for="{{ field.id_for_label }}">{{ field.label }}</label>'
+        '<div class="bw-field__control">'
+        "{% bw_field_widget field as amount_widget %}"
+        '{% include "brickwork/components/_input_group.html" with prefix="£" field=amount_widget %}'
+        "</div></div>"
+    ).render(Context({"field": field}))
+    domain_control = mark_safe(  # noqa: S308 (fixture-authored trusted markup)
+        '<input class="bw-input" type="text" id="id_domain" name="domain" value="acme">'
+    )
+    domain = render_to_string(
+        "brickwork/components/_input_group.html",
+        {"prefix_icon": "search", "suffix": ".example", "field": domain_control},
+    )
+    return (
+        f"{amount}"
+        f'<div class="bw-field" style="margin-block-start:1rem">'
+        f'<label class="bw-field__label" for="id_domain">Domain</label>'
+        f'<div class="bw-field__control">{domain}</div></div>'
+    )
+
+
 def render_inputs(theme: str) -> str:
     css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
     return (
@@ -1044,6 +1155,7 @@ def render_inputs(theme: str) -> str:
         .replace("__TAG_INPUT__", _render_tag_input_fixture())
         .replace("__DROPZONE__", _render_dropzone_fixture())
         .replace("__DATE_FIELD__", _render_date_field_fixture())
+        .replace("__INPUT_GROUP__", _render_input_group_fixture())
     )
 
 
@@ -1076,6 +1188,11 @@ __CSS__
     __RANKED_LIST_POPULATED__
   </section>
 
+  <section aria-labelledby="ranked-list-secondary-heading">
+    <h2 id="ranked-list-secondary-heading">With secondary column and caption</h2>
+    __RANKED_LIST_SECONDARY__
+  </section>
+
   <section aria-labelledby="ranked-list-empty-heading">
     <h2 id="ranked-list-empty-heading">Empty</h2>
     __RANKED_LIST_EMPTY__
@@ -1096,6 +1213,30 @@ _RANKED_LIST_ROWS = [
     {"label": "Initech", "amount": 1000, "value": "£1,000", "href": "/accounts/initech/"},
 ]
 
+_RANKED_LIST_SECONDARY_ROWS = [
+    {
+        "label": "Organic",
+        "amount": 4000,
+        "value": "4,000",
+        "secondary": "50%",
+        "secondary_text": "Revenue: £12.50",
+        "href": "/channels/organic/",
+    },
+    {
+        "label": "Paid search",
+        "amount": 3000,
+        "value": "3,000",
+        "secondary": "37.5%",
+        "secondary_text": "Revenue: £8.00",
+    },
+    {
+        "label": "Email",
+        "amount": 1000,
+        "value": "1,000",
+        "secondary": "12.5%",
+    },
+]
+
 
 def _render_ranked_list_fixture(**ctx: object) -> str:
     from django.template import Context, Template
@@ -1104,7 +1245,8 @@ def _render_ranked_list_fixture(**ctx: object) -> str:
         "{% load brickwork_components %}"
         "{% bw_ranked_list rows=rows basis=basis label=label loading=loading "
         "empty_heading=empty_heading empty_body=empty_body "
-        "empty_action_href=empty_action_href empty_action_label=empty_action_label %}"
+        "empty_action_href=empty_action_href empty_action_label=empty_action_label "
+        "caption=caption secondary_caption=secondary_caption %}"
     ).render(
         Context(
             {
@@ -1116,6 +1258,8 @@ def _render_ranked_list_fixture(**ctx: object) -> str:
                 "empty_body": "",
                 "empty_action_href": "",
                 "empty_action_label": "",
+                "caption": "",
+                "secondary_caption": "",
                 **ctx,
             }
         )
@@ -1130,6 +1274,16 @@ def render_ranked_list(theme: str) -> str:
         .replace(
             "__RANKED_LIST_POPULATED__",
             _render_ranked_list_fixture(rows=_RANKED_LIST_ROWS, label="Top accounts"),
+        )
+        .replace(
+            "__RANKED_LIST_SECONDARY__",
+            _render_ranked_list_fixture(
+                rows=_RANKED_LIST_SECONDARY_ROWS,
+                basis="total",
+                label="Revenue by channel",
+                caption="Showing the top 3",
+                secondary_caption="Share of total",
+            ),
         )
         .replace(
             "__RANKED_LIST_EMPTY__",
@@ -4352,6 +4506,67 @@ def render_version_switch(theme: str) -> str:
     )
 
 
+# --- docs on-this-page toc (icvoss/django-brickwork#627) --------------------
+#
+# toc-<theme>.html is a standalone page mirroring render_version_switch:
+# {% bw_toc %} reuses .bw-docs-toc chrome with nested __sub entries and an
+# active aria-current="location" marker.
+
+_TOC_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Table of contents (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Table of contents</h1>
+  <section aria-labelledby="toc-fixture-heading">
+    <h2 id="toc-fixture-heading">On this page control</h2>
+    __TOC__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_toc_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template(
+        "{% load brickwork_components %}{% bw_toc items=items active=active heading_id='bw-docs-toc-heading' %}"
+    ).render(
+        Context(
+            {
+                "items": [
+                    {
+                        "label": "Escalation order",
+                        "href": "#escalation-order",
+                        "children": [
+                            {"label": "Changing the thresholds", "href": "#changing-the-thresholds"},
+                        ],
+                    },
+                    {"label": "Testing a schedule change", "href": "#testing-a-schedule"},
+                    {"label": "Recovery by stage", "href": "#recovery-by-stage"},
+                ],
+                "active": "#changing-the-thresholds",
+            }
+        )
+    )
+
+
+def render_toc(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _TOC_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__TOC__", _render_toc_fixture())
+    )
+
+
 # --- the code display content primitive (icvoss/django-brickwork#259) -------
 #
 # code-display-<theme>.html is a standalone (non-shell) page, mirroring
@@ -4868,6 +5083,8 @@ def main() -> None:
         _emit(OUT / f"search-{theme}.html", render_search(theme), written)
         # version switcher (#414): bw_version_switch current-version disclosure
         _emit(OUT / f"version-switch-{theme}.html", render_version_switch(theme), written)
+        # docs on-this-page toc (#627): bw_toc nested entries + aria-current
+        _emit(OUT / f"toc-{theme}.html", render_toc(theme), written)
         # the docs shell (ADR-091, #439): a populated two-column docs page
         # (real article content in .bw-prose, a real {% bw_nav %} rail),
         # never rendered by any other fixture before this shell existed

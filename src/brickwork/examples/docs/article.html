@@ -14,8 +14,9 @@ What your view must supply:
     docs_search_action       the URL bw_search in docs_site_header submits to (GET)
     reminder_schedule_code   the multi-line Python snippet in "Escalation order"
     reminder_test_code       the multi-line test snippet in "Testing a schedule"
-The heading text, prose, callouts, on-this-page links and table below are typed
-into the template, which is where you change them.
+    toc_items                on-this-page outline for bw_toc: [{label, href, children?}, ...]
+The heading text, prose, callouts and table below are typed into the template,
+which is where you change them.
 
 WHY THIS PAGE IS SHAPED THIS WAY, since it is the part worth copying:
 
@@ -194,19 +195,12 @@ Responsive: no breakpoint of its own inside the article; bw-prose holds a
 
 {% block content %}
   {% comment %}
-  On this page: consumer-authored TOC over the heading ids below. Lives
-  OUTSIDE .bw-prose so the TOC list is not restyled by the prose floor, and
-  ahead of the article body so a scanner can jump before reading.
+  On this page: {% bw_toc %} over the heading ids below (icvoss/django-brickwork#627).
+  Lives OUTSIDE .bw-prose so the TOC list is not restyled by the prose floor, and
+  ahead of the article body so a scanner can jump before reading. The package
+  still does not generate heading trees (ADR-091); the view supplies toc_items.
   {% endcomment %}
-  <nav class="bw-docs-toc" aria-labelledby="bw-docs-toc-heading">
-    <p class="bw-docs-toc__title" id="bw-docs-toc-heading">{% translate "On this page" %}</p>
-    <ol class="bw-docs-toc__list">
-      <li><a href="#escalation-order">{% translate "Escalation order" %}</a></li>
-      <li class="bw-docs-toc__sub"><a href="#changing-the-thresholds">{% translate "Changing the thresholds" %}</a></li>
-      <li><a href="#testing-a-schedule">{% translate "Testing a schedule change" %}</a></li>
-      <li><a href="#recovery-by-stage">{% translate "Recovery by stage" %}</a></li>
-    </ol>
-  </nav>
+  {% bw_toc items=toc_items heading_id="bw-docs-toc-heading" %}
 
   {% comment %}
   The article body: one bw-prose wrapper, authored FLAT. bw-prose's flow

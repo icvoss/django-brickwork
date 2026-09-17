@@ -15,6 +15,7 @@ What your view must supply:
     request_curl_code        multi-line curl snippet for the request example
     request_python_code      multi-line Python snippet for the request example
     response_success_code    multi-line JSON (or other) success response body
+    toc_items                on-this-page outline for bw_toc: [{label, href}, ...]
 The headings, parameter tables, status codes and copy below are typed into the
 template, which is where you change them.
 
@@ -127,18 +128,10 @@ Responsive: no breakpoint of its own; inherits shell/docs.html's
   {% else %}
   {% comment %}
   READY: the full operation reference. On this page sits outside .bw-prose so
-  the TOC list is not restyled by the prose floor.
+  the TOC list is not restyled by the prose floor. {% bw_toc %} (#627) owns the
+  landmark; the view supplies toc_items.
   {% endcomment %}
-  <nav class="bw-docs-toc" aria-labelledby="bw-docs-toc-heading">
-    <p class="bw-docs-toc__title" id="bw-docs-toc-heading">{% translate "On this page" %}</p>
-    <ol class="bw-docs-toc__list">
-      <li><a href="#signature">{% translate "Signature" %}</a></li>
-      <li><a href="#parameters">{% translate "Parameters" %}</a></li>
-      <li><a href="#request">{% translate "Request" %}</a></li>
-      <li><a href="#response">{% translate "Response" %}</a></li>
-      <li><a href="#status-codes">{% translate "Status codes" %}</a></li>
-    </ol>
-  </nav>
+  {% bw_toc items=toc_items heading_id="bw-docs-toc-heading" %}
 
   <div class="bw-prose">
     <p class="bw-prose__lede">

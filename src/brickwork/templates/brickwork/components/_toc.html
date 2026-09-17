@@ -1,0 +1,51 @@
+{% load i18n brickwork_components %}
+{% comment %}
+Docs table of contents (icvoss/django-brickwork#627): the labelled
+"On this page" landmark over a consumer-authored heading outline. Reuses the
+existing .bw-docs-toc / __title / __list / __sub chrome in shell.css; this
+file is the first-class composition, not a parallel treatment.
+
+Preferred call: {% bw_toc items=... active=... %} (validates shape, matches
+active by href or bare id). Also {% include %}able with the same context
+keys when the caller already trusts its items list.
+
+Required context:
+  items: sequence of {label, href} mappings; optional children=[{label, href}]
+         one level deep (rendered as .bw-docs-toc__sub siblings, matching the
+         article archetype's flat outline). Empty or absent items render
+         nothing (no empty landmark).
+Optional:
+  active: href or bare id of the current location; matching link gets
+        aria-current="location". Omit for no current marker.
+  heading: title text (default translated "On this page").
+  heading_id: id pairing the title with aria-labelledby (default
+        "bw-toc-heading").
+
+States: with items (normal) and empty (renders nothing). Active is a marker
+  on one link, not a visual state of the nav.
+Accessibility: a single <nav> landmark labelled by the visible title;
+  aria-current="location" on the active link (in-page location, not a new
+  page). Covered by axe against toc-<theme>.html and by tests/test_toc.py.
+Responsive: no breakpoint of its own; inherits .bw-docs-toc's prose max
+  measure from shell.css.
+{% endcomment %}
+{% if items %}
+{% translate "On this page" as bw_toc_default_heading %}
+{% with toc_heading=heading|default:bw_toc_default_heading toc_heading_id=heading_id|default:"bw-toc-heading" %}
+<nav class="bw-docs-toc" aria-labelledby="{{ toc_heading_id }}">
+  <p class="bw-docs-toc__title" id="{{ toc_heading_id }}">{{ toc_heading }}</p>
+  <ol class="bw-docs-toc__list">
+    {% for item in items %}
+      <li>
+        <a {% bw_attr "href" item.href %}{% if item.is_active or active and active == item.href %} aria-current="location"{% endif %}>{{ item.label }}</a>
+      </li>
+      {% for child in item.children %}
+      <li class="bw-docs-toc__sub">
+        <a {% bw_attr "href" child.href %}{% if child.is_active or active and active == child.href %} aria-current="location"{% endif %}>{{ child.label }}</a>
+      </li>
+      {% endfor %}
+    {% endfor %}
+  </ol>
+</nav>
+{% endwith %}
+{% endif %}

@@ -219,6 +219,20 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             {"label": "3.28.0", "href": "/docs/3.28.0/", "status": "deprecated"},
         ],
     ),
+    "_toc (bw_toc: nested + active)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_toc items=items active='changing-the-thresholds' heading_id='bw-docs-toc-heading' %}",
+        items=[
+            {
+                "label": "Escalation order",
+                "href": "#escalation-order",
+                "children": [
+                    {"label": "Changing the thresholds", "href": "#changing-the-thresholds"},
+                ],
+            },
+            {"label": "Testing a schedule", "href": "#testing-a-schedule"},
+        ],
+    ),
     "_card (extended, all regions, interactive+bordered)": lambda: _extend(
         "brickwork/components/_card.html",
         '{% block card_header %}<div class="bw-card__header"><h2 class="bw-card__title">Members</h2>'
@@ -562,6 +576,21 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         variant="segmented",
         aria_label="View",
     ),
+    "_input_group (prefix and suffix)": lambda: _include(
+        "brickwork/components/_input_group.html",
+        prefix="£",
+        suffix="GBP",
+        field=mark_safe(  # noqa: S308 (test-authored trusted markup)
+            '<input class="bw-input" type="text" name="amount" id="id_amount">'
+        ),
+    ),
+    "_input_group (prefix icon)": lambda: _include(
+        "brickwork/components/_input_group.html",
+        prefix_icon="search",
+        field=mark_safe(  # noqa: S308 (test-authored trusted markup)
+            '<input class="bw-input" type="search" name="q" id="id_q">'
+        ),
+    ),
     "_callout (note)": lambda: _include(
         "brickwork/components/_callout.html",
         title="Note",
@@ -581,6 +610,51 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         meta="14 July 2026",
         media_src="/static/blog/chasing.jpg",
         media_alt="Invoice on a desk",
+    ),
+    "_article_meta (byline with avatar and tags)": lambda: _include(
+        "brickwork/components/_article_meta.html",
+        author_name="Amira Okonkwo",
+        author_href="/journal/authors/amira-okonkwo/",
+        author_initials="AO",
+        published_on="12 August 2026",
+        published_iso="2026-08-12",
+        reading_time="8 min read",
+        tags=[{"label": "Operations", "href": "/journal/operations/"}],
+    ),
+    "_date_picker_chrome (single, closed panel)": lambda: _include(
+        "brickwork/components/_date_picker_chrome.html",
+        label="Date raised",
+        id="bw-dpc-class-contract",
+        fields=mark_safe(
+            '<div class="bw-date-picker-chrome__field">'
+            '<input type="date" class="bw-input" id="id_class_contract_date" name="raised" '
+            'aria-labelledby="bw-dpc-class-contract-label">'
+            '<button type="button" class="bw-date-picker-chrome__trigger" '
+            'aria-label="Choose date">Open</button>'
+            "</div>"
+        ),
+        panel=mark_safe("<p>Calendar slot</p>"),
+    ),
+    "_date_picker_chrome (range, open panel)": lambda: _include(
+        "brickwork/components/_date_picker_chrome.html",
+        label="Date raised",
+        range=True,
+        panel_open=True,
+        panel_label="Choose dates",
+        fields=mark_safe(
+            '<div class="bw-date-picker-chrome__field">'
+            '<input type="date" class="bw-input" aria-label="Start">'
+            '<button type="button" class="bw-date-picker-chrome__trigger" '
+            'aria-label="Choose start date">Open</button>'
+            "</div>"
+            '<span class="bw-date-picker-chrome__separator" aria-hidden="true">-</span>'
+            '<div class="bw-date-picker-chrome__field">'
+            '<input type="date" class="bw-input" aria-label="End">'
+            '<button type="button" class="bw-date-picker-chrome__trigger" '
+            'aria-label="Choose end date">Open</button>'
+            "</div>"
+        ),
+        panel=mark_safe("<p>Range calendar slot</p>"),
     ),
     "_pagination (mid-list)": lambda: _render_pagination(),
     "_pager (two-link)": lambda: _include(
@@ -821,7 +895,19 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         ],
         note="Prices exclude VAT.",
     ),
-    "_pricing_comparison (marketing: plans and yes/no cells)": lambda: _include(
+    "_comparison_table (plans, yes/no cells, highlighted by index)": lambda: _include(
+        "brickwork/components/_comparison_table.html",
+        heading="Compare the plans",
+        lede="Per account.",
+        plans=["Solo", "Team"],
+        rows=[
+            {"label": "Users", "cells": ["1", "10"]},
+            {"label": "Reminders", "cells": [{"included": True}, {"included": False}]},
+        ],
+        highlighted=1,
+        note="Prices exclude VAT.",
+    ),
+    "_pricing_comparison (marketing wrapper: plans and yes/no cells)": lambda: _include(
         "brickwork_marketing/components/_pricing_comparison.html",
         heading="Compare the plans",
         lede="Per account.",

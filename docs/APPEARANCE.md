@@ -125,7 +125,7 @@ or first-class include does **not** count.
 | Hero | `_hero.html` `media_placement="below"` (default), `"behind"`, `"beside"`, `"above"` |
 | Features | `_feature_grid.html` (icon grid); `_feature_rows.html` (alternating); `_feature_list.html` (checklist) |
 | CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` |
-| Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_pricing_comparison.html` |
+| Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_comparison_table.html` (marketing `_pricing_comparison.html` wrapper) |
 | Person | `_portrait.html` (`align="start"` default / `"end"`, constrained 3:4 image + CTAs); `_bio.html` (compact strip, optional profile link). Not `_testimonial.html` and not the Editorial author archetype |
 | Empty state | `variant="no_data"` framed (default); `variant="no_results"`; `surface="plain"` (unframed page scale). Nested: `size="sm"` |
 | Page header | plain default; `surface="tint"`; breadcrumbs + actions via the public `breadcrumb` / `actions` blocks |
@@ -160,6 +160,7 @@ Status values:
 |---|---|---|
 | account_menu | N/A (defaults) | Panel elevation/radius authored with dropdown in Phase A |
 | alert | N/A (local) | `variant` already tints; denser padding authored Phase A; shared `surface` refused |
+| article_meta | Adopted | First-class editorial byline composition; no shared axis (keep lean) |
 | avatar | Adopted | `size`, `shape` via `{% bw_options %}` |
 | avatar_group | N/A (local) | `size` / overlap craft; no extra shared axis |
 | badge | N/A (local) | Intent via `variant`; soft/outline `tone` stays Could |
@@ -175,10 +176,12 @@ Status values:
 | chip | Adopted | `variant`, `size` |
 | code | N/A (defaults) | Muted/raised panel authored; line numbers stay Could |
 | combobox | N/A (defaults) | Listbox panel matches dropdown craft |
+| comparison_table | Adopted | `highlighted` (0-based index or plan name); emits `__col--highlighted` |
 | cta | Adopted | `band`, `width` (ADR-057) |
 | cta_bleed | N/A (local) | First-class Phase C composition (inverse bleed) |
 | cta_split | N/A (local) | First-class Phase C composition |
 | data_table | Adopted | `density`; muted header + row hover authored Phase A/C |
+| date_picker_chrome | Adopted | Field/panel chrome only; no date engine (BR-BW-INPUT-004) |
 | disclosure | N/A (local) | `variant` bordered/divided; card framing refused |
 | divider | Adopted | `tone`, `spacing` |
 | dropdown | N/A (defaults) | Panel elevation/radius authored Phase A |
@@ -191,6 +194,7 @@ Status values:
 | filter_bar | N/A (defaults) | Raised surface + field rhythm authored Phase A |
 | gauge | N/A (defaults) | Track/rail contrast authored |
 | hero | N/A (local) | `align`, `media_placement`; optional `band` refused (behind already inverse) |
+| input_group | Adopted | Lean; prefix/suffix text and icons; no closed appearance axes |
 | list_item | Adopted | `density` |
 | logo_cloud | N/A (defaults) | Quieter spacing authored Phase A |
 | marketing_footer_groups | N/A (local) | P0 shipped; groups/columns are data, not shared surface |
@@ -201,7 +205,7 @@ Status values:
 | pagination | N/A (defaults) | Hit targets/spacing authored |
 | portrait | N/A (local) | Phase C person composition; `align` |
 | preview_frame | N/A (keep lean) | Surface-guarded specimen; fill locked to `--bw-color-surface` |
-| pricing_comparison | N/A (local) | Phase C comparison composition |
+| pricing_comparison | N/A (compose) | Thin include of `_comparison_table.html` (#626) |
 | pricing_table | N/A (local) | Tier count is data; highlighted recipe on tier |
 | pricing_tier | N/A (local) | `highlighted` raises elevation; shared `surface`/`elevation` refused |
 | progress | N/A (keep lean) | Single authored track; consumer drives `--bw-progress-value` |
@@ -223,6 +227,7 @@ Status values:
 | theme_switch | N/A (keep lean) | |
 | toast | N/A (defaults) | Elevation/edge authored Phase A; optional `surface` refused |
 | toast_region | N/A (local) | `placement` only |
+| toc | Adopted | `{% bw_toc %}` / `_toc.html`; reuses `.bw-docs-toc` chrome; `items`, `active`, `heading` |
 | toggle | N/A (keep lean) | |
 | token_specimen | N/A (keep lean) | Theme specimen; not kit chrome variation |
 | tooltip | N/A (keep lean) | |
@@ -237,26 +242,26 @@ Status values:
 | app | N/A (defaults) | Sidebar selected/hover + topbar elevation Phase A |
 | auth | N/A (defaults) | Panel elevation/radius Phase A |
 | centred | N/A (defaults) | Same panel craft as auth |
-| docs | N/A (defaults) | Rail active + article measure Phase A; TOC stays P1 deferred |
+| docs | N/A (defaults) | Rail active + article measure Phase A; on-this-page via `{% bw_toc %}` (#627) |
 | marketing | N/A (defaults) | Header/footer craft; footer groups component shipped |
 
 ### Phase 4 P1
 
 Owner demand ruling 2026-09-17: former "demand-gated" scheduling language is
 stale for the viable-primitives cut. `timeline` and `saved_views` stay
-deferred under ADR-092; the other P1 rows are **in demand** for the next
-minor and ship as Adopted when their PRs land (do not park for lack of a
-named consumer).
+deferred under ADR-092. The other P1 rows shipped as Adopted in the
+viable-primitives integration (`input_group`, `date_picker_chrome`,
+`comparison_table`, `toc`, `article_meta`).
 
 | Missing | Status | Notes |
 |---|---|---|
 | timeline | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
 | saved_views | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
-| input_group | In demand | Forms prefix/suffix addons |
-| date_picker_chrome | In demand | Chrome/panel only; engine stays consumer |
-| comparison_table | In demand | Promote from marketing pricing comparison |
-| toc | In demand | First-class docs control |
-| article_meta | In demand | Editorial byline/meta |
+| input_group | Adopted | See catalogue row; ships this release |
+| date_picker_chrome | Adopted | Chrome/panel only; engine stays consumer |
+| comparison_table | Adopted | See catalogue row; ships this release |
+| toc | Adopted | See catalogue row; ships this release |
+| article_meta | Adopted | See catalogue row; ships this release |
 
 ### Phase 6 P2 (deferred; explicit N/A)
 
