@@ -306,7 +306,7 @@ sight, and are refreshed by hand at the next audit.
 
 | Fact | Value | Note |
 |---|---|---|
-| Components | 71 | 52 core, 19 marketing. **Gated** against `catalogue-manifest.json` |
+| Components | 75 | 56 core, 19 marketing. **Gated** against `catalogue-manifest.json` |
 | Shells | 6 | base, app, auth, centred, docs, marketing. **Gated** against `catalogue-manifest.json` |
 | Sections | 32 | **Gated** against `catalogue-manifest.json` |
 | Archetypes | 52 | **Gated** against `catalogue-manifest.json`. `examples/base.html` moved out of this count into its own `skeleton` kind (icvoss/django-brickwork#464): it is a raw document skeleton a consumer copies, not a complete page, and was the only archetype ever carrying `family: null` |
@@ -332,7 +332,7 @@ sight, and are refreshed by hand at the next audit.
 | Design ownership | brickwork owns reusable interface design, including content, data and workflow patterns. Consumers own domain data, permissions, business rules and integrations. |
 | Data visualisation | Brickwork owns the visual, layout, state and interaction contract. Consumers may supply a charting engine or specialist renderer that fits that contract. |
 | Domain-specific rendering | A consumer owns product-unique semantics and business logic. Brickwork owns a reusable interface pattern whenever one exists. |
-| Date entry | A package-maintained JavaScript calendar component is not currently shipped. A full date-range-picker example is available to copy and own. Brickwork owns the date-entry interface contract and may evolve its delivery model when a reusable component is warranted. |
+| Date entry | Field and panel chrome (`_date_picker_chrome.html`) ships. A package-maintained JavaScript calendar engine / `bw_date_picker` Alpine component does not (BR-BW-INPUT-004). A full date-range-picker example is available to copy and own. Brickwork owns the date-entry interface contract and may evolve its delivery model when a reusable engine is warranted. |
 | Utility layer | No general Tailwind utility layer; brickwork ships no `.grid`, `.gap-4`, `.px-3`. |
 | Page builder / CMS | Not a page builder, not a CMS. No tenant-arbitrary content or CSS/JS. |
 | Sanitisation | Styles markup; does not sanitise it. |

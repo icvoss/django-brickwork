@@ -4537,8 +4537,7 @@ def _render_toc_fixture() -> str:
     from django.template import Context, Template
 
     return Template(
-        "{% load brickwork_components %}"
-        "{% bw_toc items=items active=active heading_id='bw-docs-toc-heading' %}"
+        "{% load brickwork_components %}{% bw_toc items=items active=active heading_id='bw-docs-toc-heading' %}"
     ).render(
         Context(
             {

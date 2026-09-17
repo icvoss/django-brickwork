@@ -249,9 +249,9 @@ Status values:
 
 Owner demand ruling 2026-09-17: former "demand-gated" scheduling language is
 stale for the viable-primitives cut. `timeline` and `saved_views` stay
-deferred under ADR-092; the other P1 rows are **in demand** for the next
-minor and ship as Adopted when their PRs land (do not park for lack of a
-named consumer).
+deferred under ADR-092. The other P1 rows shipped as Adopted in the
+viable-primitives integration (`input_group`, `date_picker_chrome`,
+`comparison_table`, `toc`, `article_meta`).
 
 | Missing | Status | Notes |
 |---|---|---|
