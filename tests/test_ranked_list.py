@@ -293,6 +293,180 @@ def test_loading_shows_a_skeleton_and_ignores_rows() -> None:
     assert "bw-empty-state" not in out
 
 
+# --- caption / secondary column / secondary text (icvoss/django-brickwork#604/#605/#606)
+
+
+def test_caption_renders_below_the_list() -> None:
+    out = _render('{% bw_ranked_list rows=rows caption="Showing the top 10" %}')
+    assert re.search(r'<p class="bw-ranked-list__caption">Showing the top 10</p>', out)
+    # Caption is a sibling after the <ol>, never an <li> that would steal a
+    # rank announcement from the real rows.
+    assert out.index("</ol>") < out.index("bw-ranked-list__caption")
+
+
+def test_caption_omitted_renders_nothing() -> None:
+    out = _render()
+    assert "bw-ranked-list__caption" not in out
+
+
+def test_whitespace_only_caption_renders_nothing() -> None:
+    out = _render("{% bw_ranked_list rows=rows caption=caption %}", caption="   ")
+    assert "bw-ranked-list__caption" not in out
+
+
+def test_secondary_column_requires_secondary_caption() -> None:
+    with pytest.raises(TemplateSyntaxError, match="secondary_caption"):
+        _render(
+            rows=[{"label": "Acme", "amount": 100, "secondary": "12%"}],
+        )
+
+
+def test_secondary_value_alias_also_requires_secondary_caption() -> None:
+    with pytest.raises(TemplateSyntaxError, match="secondary_caption"):
+        _render(
+            rows=[{"label": "Acme", "amount": 100, "secondary_value": "12%"}],
+        )
+
+
+def test_whitespace_only_secondary_does_not_require_caption() -> None:
+    # Blank secondary is treated as omitted: do not force a caption for a
+    # figure that will not render.
+    out = _render(rows=[{"label": "Acme", "amount": 100, "secondary": "  "}])
+    assert "bw-ranked-list__secondary" not in out
+    assert "bw-ranked-list__head" not in out
+
+
+def test_secondary_column_renders_with_caption_and_visually_hidden_label() -> None:
+    out = _render(
+        '{% bw_ranked_list rows=rows secondary_caption="Share of total" %}',
+        rows=[
+            {"label": "Acme", "amount": 80, "value": "80", "secondary": "40%"},
+            {"label": "Globex", "amount": 20, "value": "20", "secondary": "10%"},
+        ],
+    )
+    assert 'class="bw-ranked-list bw-ranked-list--with-secondary"' in out
+    assert re.search(r'class="bw-ranked-list__head"[^>]*aria-hidden="true"', out)
+    assert re.search(r'class="bw-ranked-list__secondary">Share of total</span>', out)
+    assert re.search(
+        r'class="bw-ranked-list__secondary"><span class="bw-visually-hidden">Share of total: </span>40%',
+        out,
+    )
+    assert "10%" in out
+
+
+def test_secondary_value_alias_renders_the_secondary_column() -> None:
+    out = _render(
+        '{% bw_ranked_list rows=rows secondary_caption="Bounce rate" %}',
+        rows=[{"label": "Landing", "amount": 100, "secondary_value": "52%"}],
+    )
+    assert "52%" in out
+    assert "bw-visually-hidden" in out
+
+
+def test_secondary_display_is_independent_of_bar_geometry() -> None:
+    # amount drives the bar; secondary is a different figure (funnel
+    # rate-of-previous vs share-of-total, or bounce with a zero bar).
+    out = _render(
+        '{% bw_ranked_list rows=rows basis="max" secondary_caption="Rate of previous" %}',
+        rows=[
+            {"label": "Viewed", "amount": 100, "value": "100", "secondary": "n/a"},
+            {"label": "Added", "amount": 40, "value": "40", "secondary": "40%"},
+            {"label": "Paid", "amount": 0, "value": "0", "secondary": "0%"},
+        ],
+    )
+    assert "--bw-ranked-list-value: 100" in out
+    assert "--bw-ranked-list-value: 40" in out
+    assert "--bw-ranked-list-value: 0" in out
+    assert "40%" in out
+    assert "0%" in out
+    assert "n/a" in out
+
+
+def test_secondary_caption_alone_without_secondary_rows_is_ignored() -> None:
+    out = _render(
+        '{% bw_ranked_list rows=rows secondary_caption="Share of total" %}',
+        rows=[{"label": "Acme", "amount": 100}],
+    )
+    assert "bw-ranked-list__head" not in out
+    assert "bw-ranked-list--with-secondary" not in out
+    assert "Share of total" not in out
+
+
+def test_mixed_rows_one_with_secondary_still_requires_caption_and_opens_column() -> None:
+    out = _render(
+        '{% bw_ranked_list rows=rows secondary_caption="Share of total" %}',
+        rows=[
+            {"label": "Acme", "amount": 80, "secondary": "80%"},
+            {"label": "Globex", "amount": 20},
+        ],
+    )
+    assert out.count("bw-ranked-list__secondary") == 3  # head + two row cells
+    assert "80%" in out
+
+
+def test_secondary_text_renders_under_the_label() -> None:
+    out = _render(
+        rows=[{"label": "Organic", "amount": 100, "secondary_text": "Revenue: £12.50"}],
+    )
+    assert re.search(
+        r'class="bw-ranked-list__label">Organic</span>\s*'
+        r'<span class="bw-ranked-list__secondary-text">Revenue: £12\.50</span>',
+        out,
+    )
+
+
+def test_description_alias_renders_as_secondary_text() -> None:
+    out = _render(
+        rows=[{"label": "Paid", "amount": 50, "description": "Revenue: £4.00"}],
+    )
+    assert 'class="bw-ranked-list__secondary-text">Revenue: £4.00</span>' in out
+
+
+def test_secondary_text_omitted_renders_no_secondary_text_span() -> None:
+    out = _render(rows=[{"label": "Acme", "amount": 100}])
+    assert "bw-ranked-list__secondary-text" not in out
+
+
+def test_secondary_text_and_secondary_column_compose_together() -> None:
+    out = _render(
+        '{% bw_ranked_list rows=rows caption="Showing the top 5" secondary_caption="Share of total" %}',
+        rows=[
+            {
+                "label": "Organic",
+                "amount": 80,
+                "value": "80",
+                "secondary": "40%",
+                "secondary_text": "Revenue: £12.50",
+            }
+        ],
+    )
+    assert "Revenue: £12.50" in out
+    assert "40%" in out
+    assert "Showing the top 5" in out
+    assert "Share of total" in out
+
+
+def test_secondary_and_secondary_text_are_escaped() -> None:
+    out = _render(
+        "{% bw_ranked_list rows=rows secondary_caption=secondary_caption %}",
+        rows=[
+            {
+                "label": "Acme",
+                "amount": 1,
+                "secondary": "<b>12%</b>",
+                "secondary_text": "<i>note</i>",
+            }
+        ],
+        secondary_caption="<Share>",
+    )
+    assert "<b>12%</b>" not in out
+    assert "&lt;b&gt;12%&lt;/b&gt;" in out
+    assert "<i>note</i>" not in out
+    assert "&lt;i&gt;note&lt;/i&gt;" in out
+    assert "&lt;Share&gt;" in out
+    assert "<Share>" not in out
+
+
 # --- encoding contract (ADR-081): shared with every viz family member ------
 
 

@@ -847,13 +847,31 @@ def bw_skeleton(
 class RankedListRow:
     """One ranked-list row prepared for template rendering: label/value
     resolved to display strings, the bar's 0-100 geometry computed here (the
-    template only ever consumes the finished number), href/data pre-shaped."""
+    template only ever consumes the finished number), href/data pre-shaped.
+    Optional ``secondary`` / ``secondary_text`` are already-formatted display
+    strings (empty when the caller omitted them)."""
 
     label: str
     value: str
     percent: int
     href: str
     attrs_html: SafeString  # "" or a leading-space run of escaped data-* attributes
+    secondary: str  # "" or the secondary numeric column's display string
+    secondary_text: str  # "" or plain text under the row label
+
+
+def _ranked_list_optional_text(raw: Mapping, primary: str, alias: str) -> str:
+    """Return the first non-blank optional display string for ``primary`` or
+    ``alias``. Whitespace-only is treated as omitted (same honesty rule as a
+    missing key): the caller either supplies a real figure/caption or nothing.
+    """
+    for key in (primary, alias):
+        if key not in raw or raw[key] is None:
+            continue
+        text = str(raw[key])
+        if text.strip():
+            return text
+    return ""
 
 
 def _ranked_list_denominator(amounts: list[Decimal], basis: str) -> Decimal:
@@ -949,6 +967,13 @@ def _shape_ranked_list_row(raw: Mapping, *, amount: Decimal, denominator: Decima
         percent=int(percent),
         href=str(raw.get("href", "") or ""),
         attrs_html=bw_data_attrs(raw.get("data"), "ranked list row"),
+        # secondary / secondary_value: already-formatted secondary numeric
+        # column (icvoss/django-brickwork#605). Independent of amount: bar
+        # geometry stays on amount; this string is display only.
+        secondary=_ranked_list_optional_text(raw, "secondary", "secondary_value"),
+        # secondary_text / description: plain text under the label
+        # (icvoss/django-brickwork#606).
+        secondary_text=_ranked_list_optional_text(raw, "secondary_text", "description"),
     )
 
 
@@ -2034,6 +2059,8 @@ def bw_ranked_list(
     empty_action_href: str = "",
     empty_action_label: str = "",
     data: object = None,
+    caption: str = "",
+    secondary_caption: str = "",
 ) -> dict:
     """A ranked bar list (icvoss/django-brickwork#183): an ordered ``<ol>`` of
     label/value rows, each paired with a proportional decorative bar. The
@@ -2048,6 +2075,18 @@ def bw_ranked_list(
             value: a pre-formatted display string. The package never formats
                 numbers (VIZ-020: locale, currency and precision are consumer
                 decisions); omitted renders the raw amount as text.
+            secondary / secondary_value: a pre-formatted secondary numeric
+                column (icvoss/django-brickwork#605). ``secondary`` is the
+                canonical key; ``secondary_value`` is accepted as an alias.
+                Independent of ``amount``: bar geometry stays on amount, so a
+                funnel rate-of-previous (or bounce rate) can differ from the
+                share that sizes the bar. When ANY row supplies a non-blank
+                secondary, ``secondary_caption`` on the tag is required
+                (TemplateSyntaxError otherwise): an unlabelled rate is
+                ambiguous across panels.
+            secondary_text / description: plain already-formatted text under
+                the row label (icvoss/django-brickwork#606). ``secondary_text``
+                is canonical; ``description`` is accepted as an alias.
             href: the row becomes an anchor (VIZ-024). Omitted renders a
                 plain, never clickable-looking, row.
             data: a mapping of consumer-owned data-* attributes for the row
@@ -2077,6 +2116,16 @@ def bw_ranked_list(
       label: the accessible name for the list (aria-label on the <ol>).
           Omitted renders no aria-label; give one when the list's heading is
           not already an adjacent, associated heading.
+      caption: optional top-N / truncation note below the list
+          (icvoss/django-brickwork#604). Already-formatted plain text (e.g.
+          "Showing the top 10"). Empty / omitted renders nothing.
+      secondary_caption: column caption for the secondary numeric column
+          (icvoss/django-brickwork#605). Required (non-blank) whenever any
+          row supplies secondary / secondary_value; ignored when no row
+          does. Rendered once as a visual column header (aria-hidden; each
+          secondary cell also carries a visually-hidden copy of the caption
+          so assistive tech still hears what the figure means) and never as
+          a substitute for the per-row figure itself.
       loading (bool, default False): renders a skeleton row set (STA-004)
           instead of rows; rows is ignored while loading. basis is validated
           regardless of loading (a contract violation, such as a typo'd
@@ -2131,6 +2180,7 @@ def bw_ranked_list(
         # violation.
         raise TemplateSyntaxError(f"bw_ranked_list rows must be a list/tuple of mappings, got {rows!r}")
     rendered_rows: list[RankedListRow] = []
+    has_secondary = False
     if not loading and rows:
         # The isinstance check above already narrowed the only two shapes
         # that can reach here (a non-empty list or tuple), but that
@@ -2145,6 +2195,17 @@ def bw_ranked_list(
         # bare empty-iterable failure instead of this validator's own
         # TemplateSyntaxError.
         amounts = [_validate_ranked_list_row(raw, basis=basis) for raw in rows]
+        # Secondary column honesty (icvoss/django-brickwork#605): any
+        # non-blank secondary figure requires an explicit column caption.
+        # Checked before shaping so a missing caption never ships a
+        # partially rendered list.
+        has_secondary = any(_ranked_list_optional_text(raw, "secondary", "secondary_value") for raw in rows)
+        if has_secondary and not str(secondary_caption).strip():
+            raise TemplateSyntaxError(
+                "bw_ranked_list requires secondary_caption= when any row supplies "
+                '"secondary" (or "secondary_value"): an unlabelled secondary figure '
+                "is ambiguous"
+            )
         denominator = _ranked_list_denominator(amounts, basis)
         rendered_rows = [
             _shape_ranked_list_row(raw, amount=amount, denominator=denominator)
@@ -2164,6 +2225,11 @@ def bw_ranked_list(
     # Stripped, not merely truthy, so a whitespace-only label renders no
     # aria-label at all, matching bw_chart_mount's own aria_label precedent.
     label = escape_attribute_value(label)
+    # caption / secondary_caption land in TEXT position; strip decides
+    # presence, the original string is what renders (so a mark_safe value is
+    # not silently re-escaped by stripping into a plain str).
+    caption_text = caption if str(caption).strip() else ""
+    secondary_caption_text = secondary_caption if has_secondary and str(secondary_caption).strip() else ""
     return {
         "rows": rendered_rows,
         "label": label,
@@ -2173,6 +2239,9 @@ def bw_ranked_list(
         "empty_action_href": empty_action_href,
         "empty_action_label": empty_action_label,
         "attrs_html": bw_data_attrs(data, "ranked list"),
+        "caption": caption_text,
+        "secondary_caption": secondary_caption_text,
+        "has_secondary": has_secondary,
     }
 
 

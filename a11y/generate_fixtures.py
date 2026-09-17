@@ -1076,6 +1076,11 @@ __CSS__
     __RANKED_LIST_POPULATED__
   </section>
 
+  <section aria-labelledby="ranked-list-secondary-heading">
+    <h2 id="ranked-list-secondary-heading">With secondary column and caption</h2>
+    __RANKED_LIST_SECONDARY__
+  </section>
+
   <section aria-labelledby="ranked-list-empty-heading">
     <h2 id="ranked-list-empty-heading">Empty</h2>
     __RANKED_LIST_EMPTY__
@@ -1096,6 +1101,30 @@ _RANKED_LIST_ROWS = [
     {"label": "Initech", "amount": 1000, "value": "£1,000", "href": "/accounts/initech/"},
 ]
 
+_RANKED_LIST_SECONDARY_ROWS = [
+    {
+        "label": "Organic",
+        "amount": 4000,
+        "value": "4,000",
+        "secondary": "50%",
+        "secondary_text": "Revenue: £12.50",
+        "href": "/channels/organic/",
+    },
+    {
+        "label": "Paid search",
+        "amount": 3000,
+        "value": "3,000",
+        "secondary": "37.5%",
+        "secondary_text": "Revenue: £8.00",
+    },
+    {
+        "label": "Email",
+        "amount": 1000,
+        "value": "1,000",
+        "secondary": "12.5%",
+    },
+]
+
 
 def _render_ranked_list_fixture(**ctx: object) -> str:
     from django.template import Context, Template
@@ -1104,7 +1133,8 @@ def _render_ranked_list_fixture(**ctx: object) -> str:
         "{% load brickwork_components %}"
         "{% bw_ranked_list rows=rows basis=basis label=label loading=loading "
         "empty_heading=empty_heading empty_body=empty_body "
-        "empty_action_href=empty_action_href empty_action_label=empty_action_label %}"
+        "empty_action_href=empty_action_href empty_action_label=empty_action_label "
+        "caption=caption secondary_caption=secondary_caption %}"
     ).render(
         Context(
             {
@@ -1116,6 +1146,8 @@ def _render_ranked_list_fixture(**ctx: object) -> str:
                 "empty_body": "",
                 "empty_action_href": "",
                 "empty_action_label": "",
+                "caption": "",
+                "secondary_caption": "",
                 **ctx,
             }
         )
@@ -1130,6 +1162,16 @@ def render_ranked_list(theme: str) -> str:
         .replace(
             "__RANKED_LIST_POPULATED__",
             _render_ranked_list_fixture(rows=_RANKED_LIST_ROWS, label="Top accounts"),
+        )
+        .replace(
+            "__RANKED_LIST_SECONDARY__",
+            _render_ranked_list_fixture(
+                rows=_RANKED_LIST_SECONDARY_ROWS,
+                basis="total",
+                label="Revenue by channel",
+                caption="Showing the top 3",
+                secondary_caption="Share of total",
+            ),
         )
         .replace(
             "__RANKED_LIST_EMPTY__",
