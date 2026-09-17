@@ -9,6 +9,8 @@ forced via the setting).
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
 from types import SimpleNamespace
 
 from django.template import Context, Template
@@ -262,3 +264,71 @@ def test_orientation_default_and_invalid_stay_vertical() -> None:
     )
     assert "bw-nav__list--horizontal" not in invalid_html
     assert 'class="bw-nav__list"' in invalid_html
+
+
+# --- label ellipsis width constraint (icvoss/django-brickwork#623) -------------
+
+_ROOT = Path(__file__).resolve().parent.parent
+_NAV_CSS = _ROOT / "frontend" / "src" / "nav.css"
+_DIST_CSS = _ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist" / "brickwork.css"
+
+
+def _css_rules(css: str) -> list[tuple[str, str]]:
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    return [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
+
+
+def _rule_body(rules: list[tuple[str, str]], selector: str) -> str:
+    matches = [body for sel, body in rules if sel.strip() == selector]
+    assert matches, f"missing {selector} rule"
+    return matches[0]
+
+
+def test_vertical_nav_link_constrains_width_so_label_ellipsis_can_fire() -> None:
+    # .bw-nav__label already declares text-overflow: ellipsis; without a width
+    # constraint on the flex link the label never overflows its own box and the
+    # ellipsis stays inert (docs rail long titles, #623).
+    rules = _css_rules(_NAV_CSS.read_text(encoding="utf-8"))
+    body = _rule_body(rules, ".bw-nav__link")
+    compact = body.replace(" ", "").replace("\n", "")
+    assert "inline-size:100%" in compact
+    assert "min-inline-size:0" in compact
+
+    label = _rule_body(rules, ".bw-nav__label")
+    label_compact = label.replace(" ", "").replace("\n", "")
+    assert "text-overflow:ellipsis" in label_compact
+    assert "overflow:hidden" in label_compact
+    assert "white-space:nowrap" in label_compact
+
+
+def test_horizontal_nav_link_resets_to_content_sized_inline_size() -> None:
+    # Vertical gets inline-size: 100%; a wrapping topbar / orientation=horizontal
+    # band must stay content-sized chips, not stretch each link across the row.
+    rules = _css_rules(_NAV_CSS.read_text(encoding="utf-8"))
+    bodies = [
+        body for sel, body in rules if "bw-nav__list--horizontal" in sel and ".bw-nav__link" in sel and "topbar" in sel
+    ]
+    assert bodies, "expected the shared topbar/horizontal .bw-nav__link rule"
+    compact = bodies[0].replace(" ", "").replace("\n", "")
+    assert "inline-size:auto" in compact
+
+
+def test_dist_css_ships_nav_ellipsis_width_constraint() -> None:
+    # Consumers load dist/brickwork.css; a source-only fix is invisible until
+    # npm run build. Assert the compiled bundle carries both halves.
+    compact = _DIST_CSS.read_text(encoding="utf-8").replace(" ", "")
+    assert ".bw-nav__link{" in compact
+    # Minified: properties may sit anywhere in the rule; require the pair that
+    # unlocks ellipsis, and the horizontal reset so header nav is not stretched.
+    link_match = re.search(r"\.bw-nav__link\{([^}]*)\}", compact)
+    assert link_match is not None
+    link_body = link_match.group(1)
+    assert "inline-size:100%" in link_body
+    assert "min-inline-size:0" in link_body
+
+    assert "text-overflow:ellipsis" in compact
+    # Horizontal reset lands in a multi-selector rule that includes the list modifier.
+    assert re.search(
+        r"\.bw-nav__list--horizontal\s*\.bw-nav__link\{[^}]*inline-size:auto",
+        compact,
+    )
