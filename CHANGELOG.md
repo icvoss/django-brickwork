@@ -8,22 +8,163 @@ versioning contract).
 
 ## Unreleased
 
-Fragments under `changelog.d/` hold the archetype-burn entries already on
-`main` (400 to 407, 422 to 427, 614) plus any later additive work. The release
-PR assembles them; do not hand-duplicate those bullets here.
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [3.34.0] - 2026-09-17
+
+Minor: **viable primitives and cheap options** land on a complete required
+INTERFACE-SYSTEM archetype matrix. Additive only: new components and options,
+plus the archetype-burn examples that completed Docs/Editorial/Data-heavy/
+Marketing/Transactional 7/7 and Product 15. No breaking change intended for
+existing consumers. Explicitly deferred: `timeline` / `saved_views` (ADR-092),
+Wave 5 command surfaces (`command_palette`, `notification_list`, `popover`,
+`newsletter_band`), and the date picker *engine* (BR-BW-INPUT-004; chrome
+ships).
+
+### Added
+
+- **Hero `media_placement="above"`** (icvoss/django-brickwork#201). Completes
+  the ADR-057 §1a closed set (`beside` | `behind` | `above` | `below`). Emits
+  `bw-hero--media-above` and stacks media visually above the copy; document
+  and tab order stay copy-then-media (CSS-only). Default remains `below`, so
+  existing callers are byte-identical.
+- **`{% bw_theme_switch %}` consumer `data=` passthrough**
+  (icvoss/django-brickwork#253). The tag accepts an optional `data=` mapping
+  of consumer-owned `data-*` attributes and emits them on the control root
+  via the same `bw_data_attrs` seam `bw_ranked_list` / `bw_stat` / `bw_gauge`
+  already use (ADR-083). Package `data-bw-*` names stay reserved and raise.
+  An optional stable `id=` (id-safe token, letter-led) replaces the
+  uuid-derived instance id when supplied, so consumer tests and composition
+  CSS can address a specific instance without depending on package-internal
+  classes alone. Open `class=` passthrough remains undecided package-wide
+  (#280) and is deliberately not offered here. Compact drawer composition
+  (sibling-not-descendant fieldsets so options can be shown directly inside
+  an already-open container) is deferred; the compact layout still nests
+  options inside `<details>`.
+- **Marketing campaign archetype** (icvoss/django-brickwork#400).
+  `examples/marketing/campaign.html` is a time-bound offer landing on the
+  marketing shell: deadline eyebrow, inclusion checklist, urgency stats, FAQ
+  and closing bleed CTA. Distinct from the evergreen `marketing/landing.html`
+  stack (no logo cloud, no alternating feature rows).
+- **Marketing contact archetype** (icvoss/django-brickwork#402).
+  `examples/marketing/contact.html` is a public enquiry page with
+  `{% bw_form %}` and explicit `contact_state` branches: ready (empty form),
+  invalid, loading, error, success and temporarily closed empty.
+- **Marketing conversion-flow archetype** (icvoss/django-brickwork#403).
+  `examples/marketing/conversion.html` is a public multi-step lead-capture
+  journey (demo request) on the marketing shell: stepper, step form via
+  `{% bw_form %}`, and confirmation status. Completes Marketing and public
+  web at 7 of 7 required INTERFACE-SYSTEM archetypes alongside campaign and
+  contact.
+- Product search archetype (`examples/app/search.html`, closes #404): app-shell
+  search page with topbar `{% bw_search %}`, family-neutral result cards, and
+  ready / empty_query / empty_results / error / loading `results_state`
+  branches. Distinct from `docs/search-results.html`.
+- Product activity archetype (`examples/app/activity.html`, closes #405): feed
+  of product events composed from `{% bw_badge %}`, `_list_item.html`,
+  `_empty_state.html` and `{% bw_alert %}`, with ready / empty / error /
+  loading `activity_state` branches. Distinct from `ops/audit-trail.html` and
+  from the dashboard's recent-activity band.
+- **Data-heavy operations data-empty/error archetype**
+  (`examples/ops/data-empty-error.html`, icvoss/django-brickwork#407). Completes
+  the family at 7 of 7: ready, empty, error and loading branches for an export
+  jobs ledger on the app shell, composing `_empty_state.html`, `bw_alert` and
+  the data-table loading skeleton without inventing markup.
+- Transactional enrolment archetype (`examples/auth/enrolment.html`, closes
+  #422): multi-step guided signup with stepper, form, and ready / empty /
+  error `enrolment_state` branches. Distinct from `signup.html`. Uses the
+  centred shell; family stays `auth/`.
+- Transactional checkout archetype (`examples/auth/checkout.html`, closes
+  #423): basket / delivery / pay stepper, order-summary definition table,
+  delivery form, and ready / empty / error `checkout_state` branches. Uses
+  the centred shell; family stays `auth/`.
+- Transactional review archetype (`examples/auth/review.html`, closes #424):
+  review-before-submit with definition-table facts, submit POST, and ready /
+  empty / error `review_state` branches. Distinct from `app/confirm.html`.
+  Uses the centred shell; family stays `auth/`.
+- Transactional confirmation archetype (`examples/auth/confirmation.html`,
+  closes #425): post-submit success with reference facts and ready / empty /
+  error `confirmation_state` branches. Distinct from `app/confirm.html`
+  (destructive pre-action) and from `auth/receipt.html`. Uses the centred
+  shell; family stays `auth/`.
+- Transactional receipt archetype (`examples/auth/receipt.html`, closes
+  #426): durable payment and line-item definition table with ready / empty /
+  error `receipt_state` branches. Uses the centred shell; family stays
+  `auth/`.
+- Transactional status-tracking archetype
+  (`examples/auth/status-tracking.html`, closes #427): order/request status
+  with stepper, current-step facts, timeline, and ready / empty / error
+  `tracking_state` branches. Distinct from `app/status-tracker.html` (visit
+  flow). Uses the centred shell; family stays `auth/`.
+- **`bw_ranked_list` optional truncation caption** (icvoss/django-brickwork#604).
+  Pass `caption=` for a top-N / truncation note below the list (for example
+  "Showing the top 10"). Empty or omitted renders nothing.
+- **`bw_ranked_list` optional secondary numeric column** (icvoss/django-brickwork#605).
+  Each row may supply `secondary` (or alias `secondary_value`), an
+  already-formatted figure independent of bar `amount` geometry. When any
+  row supplies it, `secondary_caption=` is required: an unlabelled secondary
+  figure is a render-time `TemplateSyntaxError`.
+- **`bw_ranked_list` optional secondary text under the label**
+  (icvoss/django-brickwork#606). Each row may supply `secondary_text` (or
+  alias `description`), plain already-formatted text rendered under the row
+  label. Omitted keeps the single-line label.
+- `input_group` (`components/_input_group.html`, closes #624): prefix and/or
+  suffix addons (text or registry icon) around a form-field control slot.
+  Include with a pre-rendered `field` SafeString, or extend and fill
+  `{% block field %}`. No closed appearance axes; addons are content.
+  Wired into `examples/app/form.html` on the amount field (£ prefix).
+- `article_meta` editorial byline / meta row
+  (`brickwork/components/_article_meta.html`, closes #625): author name with
+  optional profile link, optional avatar (initials or image), publication
+  `<time>` plus reading time, and optional topic tags. Lean include with no
+  shared appearance axis; avatar is fixed at `size="sm"` for byline scale.
+  The editorial article archetype now composes it.
+- First-class `comparison_table` component
+  (`brickwork/components/_comparison_table.html`, closes #626): plan-by-
+  capability matrix promoted from the marketing pricing comparison, with an
+  optional `highlighted` column (0-based index or plan name) that emits
+  `.bw-comparison-table__col--highlighted` plus visually-hidden label text.
+  Marketing `_pricing_comparison.html` remains a thin compat wrapper; CSS
+  moves to `.bw-comparison-table*` with `.bw-pricing-comparison*` aliases.
+- Docs on-this-page table of contents
+  (`{% bw_toc %}` / `_toc.html`, closes #627): labelled `.bw-docs-toc`
+  landmark over a consumer-authored `items` list (optional one-level
+  `children` as `__sub` entries), optional `active` href or id with
+  `aria-current="location"`, optional `heading` / `heading_id`. Prefer the
+  tag for validation; the template also accepts a bare include. ADR-091's
+  declined TOC *region* still stands (the package does not generate heading
+  trees). Nested prose lists remain the section-contents archetype's body
+  outline; articles and editorial pages adopt the component.
+- Date picker chrome (`_date_picker_chrome.html`, closes #628): labelled
+  field shell, optional range pair layout, trigger button chrome, and a
+  popover panel shell with named `fields` / `panel` blocks for consumer
+  engine content. No calendar engine and no `bw_date_picker` Alpine
+  behaviour (BR-BW-INPUT-004 still holds for the engine). POSITIONING now
+  distinguishes the declined engine from the shipped substrate chrome.
 
 ### Changed
 
 - **Beautiful-defaults Phase 5 / beat E long-tail closed.** `docs/APPEARANCE.md`
   now lists every catalogue component and shell with an Adopted or explicit
   N/A disposition (defaults authored, keep lean, compose, local, or deferred
-  P1/P2). Beat programme closed (icvoss/django-brickwork#540); Phase 4 P1
-  leftovers other than ADR-092-scoped `timeline` / `saved_views` are in demand
-  for the next minor (owner ruling 2026-09-17). Phase 6 P2 command surfaces
+  P1/P2). Beat programme closed (icvoss/django-brickwork#540). Phase 4 P1
+  leftovers other than ADR-092-scoped `timeline` / `saved_views` shipped in
+  this minor under the 2026-09-17 demand ruling. Phase 6 P2 command surfaces
   stay deferred. Regression: `tests/test_appearance_phase5.py`.
-- **INTERFACE-SYSTEM current state.** Required archetype matrix complete at
-  tip (Docs/Editorial/Data-heavy/Marketing/Transactional 7/7; Product 15).
-  Next work is the viable primitives pack, not further archetype breadth.
+- **INTERFACE-SYSTEM current state.** Required archetype matrix complete
+  (Docs/Editorial/Data-heavy/Marketing/Transactional 7/7; Product 15). This
+  minor lands the viable primitives pack on that foundation.
+- Public lead claim is now **One interface system for the Django surfaces you
+  ship.** (greenfield review, #614). Prior leads "Beautiful interfaces for
+  anything" and "Building blocks for beautiful apps and websites" are retired
+  as public H1s. POSITIONING, README and QUICKSTART updated; INTERFACE-SYSTEM
+  current-state shipping matrix corrected for Documentation and Editorial 7/7.
 
 ## [3.33.0] - 2026-09-15
 
