@@ -120,6 +120,10 @@ Required context (built by the tag; never author this list by hand):
   placement: "start" | "end" (default "end"), only meaningful with
       layout="compact"; anchors the compact panel to the trigger's start or
       end edge, the same vocabulary bw_dropdown/_account_menu already use.
+  attrs_html: pre-rendered consumer data-* attributes for the control root
+      (bw_data_attrs, mirroring _ranked_list.html / _stat.html / _gauge.html;
+      icvoss/django-brickwork#253). Empty when the caller omitted data=.
+      Open class= passthrough is deliberately absent (#280 undecided).
 
 Compact is an APG Disclosure, deliberately with NO ARIA menu roles anywhere
 (the _account_menu.html doctrine run forwards, BR-BW-HTMX-006): a native
@@ -202,7 +206,7 @@ Responsive: no breakpoint switch; layout is a consumer-chosen option, not a
      data-bw-theme-switch
      data-bw-theme-switch-values="{{ values_element_id }}"
      x-data="bwThemeSwitch()"
-     aria-label="{{ label }}">
+     aria-label="{{ label }}"{{ attrs_html }}>
   {{ valid_values|json_script:values_element_id }}
   {% if layout == 'compact' %}
     <details class="bw-theme-switch__disclosure">

@@ -74,6 +74,7 @@ silently widen or narrow what the client accepts.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from uuid import uuid4
 
@@ -83,8 +84,14 @@ from django.utils.translation import gettext
 
 from brickwork.services.token_manifest import is_overridable, load_bearing
 from brickwork.services.tokens import BRAND_SLUG_RE
+from brickwork.templatetags.brickwork_components import bw_data_attrs
 
 register = template.Library()
+
+# Same id-safe token rule bw_tabs / bw_toast enforce (letters, digits, hyphen,
+# underscore; letter-led). Used only when the caller passes a stable id=;
+# auto-generated instance ids already satisfy it by construction.
+_ID_TOKEN_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
 
 _TOKEN_SPECIMEN_THEMES = ("light", "dark")
 
@@ -198,6 +205,8 @@ def bw_theme_switch(
     locked_axes: str | None = None,
     layout: str = "inline",
     placement: str | None = None,
+    data: object = None,
+    id: str = "",
 ) -> dict:
     """The live root-level axis switch (icvoss/django-brickwork#117).
 
@@ -238,6 +247,23 @@ def bw_theme_switch(
     passing it with ``layout="inline"`` raises, since inline has no panel to
     anchor and there is no established precedent in this package for a
     silently-ignored, inapplicable option.
+
+    ``data`` (icvoss/django-brickwork#253, ADR-083): a mapping of
+    consumer-owned ``data-*`` attributes for the control root, via the same
+    ``bw_data_attrs`` seam ``bw_ranked_list`` / ``bw_stat`` / ``bw_gauge``
+    already use. Package ``data-bw-*`` names stay reserved and raise. A str
+    value (an unset context variable under ``string_if_invalid``) is treated
+    as "not supplied", never an error. This is identification and test /
+    composition hooks only: open ``class=`` passthrough remains undecided
+    package-wide (#280) and is deliberately not offered here.
+
+    ``id``: optional stable DOM id for this instance. Must be an id-safe
+    token (letters, digits, hyphen, underscore; letter-led), the same rule
+    ``bw_tabs`` / ``bw_toast`` enforce. When supplied it becomes the root
+    ``id`` and the namespace for radio ``name=`` / values-script ids, so
+    consumer tests and composition CSS can address a specific instance
+    without depending on the uuid-derived default. Omitted (the default)
+    keeps the auto-generated ``bw-theme-switch-<hex>`` instance id.
     """
     if layout not in _LAYOUTS:
         raise TemplateSyntaxError(f"bw_theme_switch layout= must be one of {sorted(_LAYOUTS)}, got {layout!r}")
@@ -277,7 +303,15 @@ def bw_theme_switch(
     if unknown_locked:
         raise TemplateSyntaxError(f"bw_theme_switch locked_axes= names an unknown axis: {sorted(unknown_locked)}")
 
-    instance_id = f"bw-theme-switch-{uuid4().hex[:10]}"
+    if id:
+        if not isinstance(id, str) or not _ID_TOKEN_RE.match(id):
+            raise TemplateSyntaxError(
+                f"bw_theme_switch id {id!r} must be an id-safe token (letters, digits, hyphen, "
+                "underscore): it is the DOM id and the radio/values-script namespace for this instance."
+            )
+        instance_id = id
+    else:
+        instance_id = f"bw-theme-switch-{uuid4().hex[:10]}"
 
     groups = []
     # The server-emitted closed set per axis (icvoss/django-brickwork#117
@@ -324,6 +358,7 @@ def bw_theme_switch(
         "valid_values": valid_values,
         "layout": layout,
         "placement": resolved_placement,
+        "attrs_html": bw_data_attrs(data, "theme switch"),
     }
 
 
