@@ -4549,6 +4549,72 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 /* Firefox draws its own affordance INSIDE the field box; the field's own
  * padding-inline-end already gives it breathing room, no extra rule needed. */
 
+/* --- Date picker chrome (icvoss/django-brickwork#628) ----------------------- */
+
+/* Field binding and popover panel shell ONLY. No calendar engine, no
+ * bw_date_picker Alpine behaviour (BR-BW-INPUT-004). The consumer fills
+ * fields/panel; this file styles the labelled shell, range row, trigger
+ * button and panel surface. Positioning context lives on the root so the
+ * panel can sit under the field without the consumer inventing a wrapping
+ * relative box. */
+.bw-date-picker-chrome {
+  position: relative;
+  display: block;
+}
+.bw-date-picker-chrome__fields,
+.bw-date-picker-chrome__range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-3);
+}
+.bw-date-picker-chrome__field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  position: relative;
+}
+.bw-date-picker-chrome__separator {
+  color: var(--bw-color-fg-muted);
+  user-select: none;
+}
+.bw-date-picker-chrome__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--bw-size-touch-target-min);
+  block-size: var(--bw-size-touch-target-min);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-md);
+  background: var(--bw-color-surface);
+  color: var(--bw-color-fg-muted);
+  cursor: pointer;
+  flex: none;
+}
+.bw-date-picker-chrome__trigger:hover {
+  background: var(--bw-state-hover-overlay);
+}
+.bw-date-picker-chrome__trigger:focus-visible {
+  outline: var(--bw-focus-ring-width) var(--bw-focus-ring-style) var(--bw-color-focus-ring);
+  outline-offset: var(--bw-focus-ring-offset);
+}
+.bw-date-picker-chrome__panel {
+  position: absolute;
+  z-index: var(--bw-z-dropdown);
+  inset-block-start: calc(100% + var(--bw-space-2));
+  inset-inline-start: 0;
+  background: var(--bw-color-surface-raised);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-lg);
+  box-shadow: var(--bw-elevation-3);
+  padding: var(--bw-space-4);
+  inline-size: max-content;
+  max-inline-size: calc(100vw - var(--bw-space-8));
+}
+.bw-date-picker-chrome__panel[hidden] {
+  display: none;
+}
+
 /* --- Sortable list (icvoss/django-brickwork#214) ----------------------------- */
 
 /* Opt-in presentational hooks for bwSortable's two DOM-state attributes

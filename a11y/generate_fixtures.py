@@ -820,7 +820,9 @@ def render_feedback(theme: str, *, inject_js: bool = False, tooltip_open: bool =
 
 
 # Beat Phase B primitives (#542): divider, avatar(+group), chip, button_group,
-# callout, list_item. marketing_footer_groups is covered by landing-*.html.
+# callout, list_item. Date picker chrome (#628) is enrolled here too (chrome
+# only; the owned engine stays on date-range-picker-*.html).
+# marketing_footer_groups is covered by landing-*.html.
 
 _PRIMITIVES_PAGE = """<!doctype html>
 <html lang="en" data-theme="__THEME__">
@@ -861,6 +863,11 @@ __CSS__
     <h2 id="list-item-heading">List item</h2>
     __LIST_ITEM__
   </section>
+  <section aria-labelledby="date-picker-chrome-heading">
+    <h2 id="date-picker-chrome-heading">Date picker chrome</h2>
+    __DATE_PICKER_CHROME__
+    __DATE_PICKER_CHROME_RANGE__
+  </section>
 </main>
 </body>
 </html>
@@ -868,6 +875,8 @@ __CSS__
 
 
 def render_primitives(theme: str) -> str:
+    from django.utils.safestring import mark_safe
+
     css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
     from django.template import Context, Template
 
@@ -926,6 +935,46 @@ def render_primitives(theme: str) -> str:
             "meta": "14 July 2026",
         },
     )
+    date_picker_chrome = render_to_string(
+        "brickwork/components/_date_picker_chrome.html",
+        {
+            "label": "Date raised",
+            "id": "bw-dpc-a11y",
+            "fields": mark_safe(
+                '<div class="bw-date-picker-chrome__field">'
+                '<input type="date" class="bw-input" id="id_a11y_raised" name="raised" '
+                'aria-labelledby="bw-dpc-a11y-label">'
+                '<button type="button" class="bw-date-picker-chrome__trigger" '
+                'aria-label="Choose date">Open</button>'
+                "</div>"
+            ),
+            "panel": mark_safe("<p>Calendar engine slot</p>"),
+        },
+    )
+    date_picker_chrome_range = render_to_string(
+        "brickwork/components/_date_picker_chrome.html",
+        {
+            "label": "Date range",
+            "id": "bw-dpc-a11y-range",
+            "range": True,
+            "panel_open": True,
+            "panel_label": "Choose dates",
+            "fields": mark_safe(
+                '<div class="bw-date-picker-chrome__field">'
+                '<input type="date" class="bw-input" aria-label="Start date">'
+                '<button type="button" class="bw-date-picker-chrome__trigger" '
+                'aria-label="Choose start date">Open</button>'
+                "</div>"
+                '<span class="bw-date-picker-chrome__separator" aria-hidden="true">-</span>'
+                '<div class="bw-date-picker-chrome__field">'
+                '<input type="date" class="bw-input" aria-label="End date">'
+                '<button type="button" class="bw-date-picker-chrome__trigger" '
+                'aria-label="Choose end date">Open</button>'
+                "</div>"
+            ),
+            "panel": mark_safe("<p>Range calendar engine slot</p>"),
+        },
+    )
     return (
         _PRIMITIVES_PAGE.replace("__THEME__", theme)
         .replace("__CSS__", f"<style>{css}</style>")
@@ -939,6 +988,8 @@ def render_primitives(theme: str) -> str:
         .replace("__BUTTON_GROUP_SEGMENTED__", button_group_seg)
         .replace("__CALLOUT__", callout)
         .replace("__LIST_ITEM__", list_item)
+        .replace("__DATE_PICKER_CHROME__", date_picker_chrome)
+        .replace("__DATE_PICKER_CHROME_RANGE__", date_picker_chrome_range)
     )
 
 

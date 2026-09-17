@@ -1,0 +1,78 @@
+{% load brickwork_components i18n %}
+{% comment %}
+Date picker chrome (icvoss/django-brickwork#628): labelled field shell, optional
+range pair layout, trigger button chrome, and a popover panel shell. Structure
+ONLY. No calendar engine, no {% templatetag openblock %} bw_date_picker
+{% templatetag closeblock %} Alpine behaviour, and no package-owned date
+math (BR-BW-INPUT-004 still holds for the engine). Consumers own the date
+logic; this ships the substrate chrome the copy-paste example already proved
+out under `.bw-drp*` classes.
+
+Consumed via {% include %} with context, or {% extends %} filling named
+blocks. Matching _chart_card.html / _list_item.html: blocks are the primary
+seam; SafeString context variables of the same name are the include path.
+
+Named blocks (semver-public, BR-BW-TPL-001):
+  fields: the native input(s) and trigger control(s). Empty by default.
+      Prefer wrapping each input+trigger pair in
+      <div class="bw-date-picker-chrome__field">...</div> so the shipped
+      trigger and field chrome apply. For a range, put both fields (and an
+      optional <span class="bw-date-picker-chrome__separator">) inside the
+      fields block; the root's range flag wraps them in the range row.
+  panel: the popover/dialog body for the consumer's calendar engine.
+      Empty by default. The panel WRAPPER is always emitted (role="dialog",
+      aria-modal="true"); fill this block with engine markup only. When
+      panel_open is falsy the wrapper carries hidden so a closed panel
+      stays out of the accessibility tree until the consumer's own script
+      removes it.
+
+Required: label (accessible name for the field group; rendered as the
+  .bw-field__label and referenced by the panel when panel_label is omitted).
+Optional:
+  range (bool, default False): when True, wraps the fields block in
+      .bw-date-picker-chrome__range (flex wrap row for start/end pairs)
+      instead of .bw-date-picker-chrome__fields.
+  help_text: rendered under the control when set.
+  id: root element id; also seeds the label id as "<id>-label".
+  panel_label: aria-label on the panel; defaults to label when omitted.
+  panel_open (bool, default False): omit hidden on the panel wrapper.
+  fields / panel: SafeString content for the include path (same names as
+      the blocks).
+
+No closed appearance axes: layout is the range flag above, not a shared
+surface/elevation vocabulary. Revisit with {% bw_options %} only if a
+second layout axis appears.
+
+States: closed panel (hidden, default) vs open panel (panel_open=True, or
+  the consumer's script clearing hidden); single vs range field layout.
+Accessibility: the group label is a real .bw-field__label with a stable id;
+  the panel is role="dialog" aria-modal="true" with an accessible name
+  (panel_label or label). Trigger buttons are consumer-authored and MUST
+  carry their own aria-label (ICO-008). Covered by axe.spec.mjs against
+  primitives-*.html (chrome only; the owned engine stays on
+  date-range-picker-*.html).
+Responsive: the range row wraps rather than shrinking native date inputs
+  below a usable size (same doctrine as the archetype's .bw-drp-range-row).
+  No named breakpoint switch on the panel itself.
+{% endcomment %}{% bw_require label=label %}{% firstof id "bw-date-picker-chrome" as bw_dpc_id %}
+{% with label_id=bw_dpc_id|add:"-label" %}
+<div class="bw-date-picker-chrome"
+     id="{{ bw_dpc_id }}">
+  <div class="bw-field">
+    <span class="bw-field__label" id="{{ label_id }}">{{ label }}</span>
+    <div class="bw-field__control">
+      <div class="{% if range %}bw-date-picker-chrome__range{% else %}bw-date-picker-chrome__fields{% endif %}">
+        {% block fields %}{{ fields }}{% endblock %}
+      </div>
+    </div>
+    {% if help_text %}<p class="bw-field__help">{{ help_text }}</p>{% endif %}
+  </div>
+  <div class="bw-date-picker-chrome__panel"
+       role="dialog"
+       aria-modal="true"
+       {% if panel_label %}{% bw_attr "aria-label" panel_label %}{% else %}{% bw_attr "aria-label" label %}{% endif %}
+       {% if not panel_open %}hidden{% endif %}>
+    {% block panel %}{{ panel }}{% endblock %}
+  </div>
+</div>
+{% endwith %}

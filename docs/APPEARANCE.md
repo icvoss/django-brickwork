@@ -179,6 +179,7 @@ Status values:
 | cta_bleed | N/A (local) | First-class Phase C composition (inverse bleed) |
 | cta_split | N/A (local) | First-class Phase C composition |
 | data_table | Adopted | `density`; muted header + row hover authored Phase A/C |
+| date_picker_chrome | Adopted | Field/panel chrome only; no date engine (BR-BW-INPUT-004) |
 | disclosure | N/A (local) | `variant` bordered/divided; card framing refused |
 | divider | Adopted | `tone`, `spacing` |
 | dropdown | N/A (defaults) | Panel elevation/radius authored Phase A |
@@ -250,7 +251,6 @@ do **not** block suite Phase 5 or beat programme close.
 | timeline | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
 | saved_views | N/A (deferred) | ADR-092 / INTERFACE-SYSTEM |
 | input_group | N/A (deferred) | Forms demand |
-| date_picker_chrome | N/A (deferred) | Archetype chrome only; engine stays consumer |
 | comparison_table | N/A (deferred) | Marketing section exists; component promote on demand |
 | toc | N/A (deferred) | Docs family |
 | article_meta | N/A (deferred) | Editorial family |
