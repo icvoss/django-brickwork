@@ -1136,8 +1136,8 @@ for _component, _option, _value, _css_class in _VOCABULARIES:
         # columns and variant share no value spellings today, but pass the
         # real option name so a future overlap cannot mis-bind the way the
         # old columns=value-only lambda would for variant="bordered".
-        _COMPONENT_RENDERS[f"{_component} {_option}={_value!r} (vocabulary)"] = (
-            lambda option=_option, value=_value: _include(
+        _COMPONENT_RENDERS[f"{_component} {_option}={_value!r} (vocabulary)"] = lambda option=_option, value=_value: (
+            _include(
                 "brickwork_marketing/components/_feature_grid.html",
                 items=[{"heading": "Feature", "body": "Body"}],
                 **{option: value},
