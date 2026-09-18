@@ -503,9 +503,10 @@ The rules:
 
 For any page that mounts a chart, a rich editor, or other app-owned JavaScript,
 Brickwork owns the surrounding interface contract: layout, tokens, states,
-controls and accessibility. Your project may supply the specialist renderer
-until Brickwork ships the needed primitive. Mount that renderer inside the
-content block against a plain element you control:
+controls and accessibility. Your project supplies the charting engine (or other
+specialist renderer); Brickwork supplies the chrome, tokens and adapter recipe.
+Mount the engine inside the content block against a plain element you control
+(prefer `{% bw_chart_mount %}` inside `_chart_card.html`):
 
 ```django
 {% extends "brickwork/shell/app.html" %}
@@ -527,6 +528,76 @@ never touches your pipeline and does not expect to be inside it. Load your
 bundle from the shell's `body_js` block (or `head_extra` for stylesheets) and the two
 coexist. This works but is not obvious, so: expect it to work, and do not try to
 route brickwork's static through your bundler.
+
+### 5a. Chart adapter recipe (CHT-006, icvoss/django-brickwork#301)
+
+Brickwork does not bundle Chart.js, ApexCharts or any other engine (CHT-011;
+ADR-082 Decision 9 forbids an engine-named Python extra). It does ship a
+tested adapter module that reads the chart token vocabulary and returns an
+engine-shaped options fragment with the tooltip series swatch suppressed.
+
+**Why suppression is mandatory.** Engines paint a series-colour swatch inside
+the tooltip by default. Several series fail WCAG 1.4.11 against
+`--bw-color-chart-tooltip-bg`. A conforming adapter turns the swatch off
+(`displayColors: false` / `tooltip.marker.show: false`) rather than retinting
+the palette. See `docs/DESIGN.md` section 4.8.
+
+**Adopt the recipe:**
+
+1. Load the module from the package static tree (ESM, no build step required):
+
+```django
+{% load static %}
+<script type="module">
+  import {
+    brickworkChartTheme,
+    brickworkChartTokens,
+  } from "{% static 'brickwork/js/chart-theme.js' %}";
+  // Your engine import stays yours (CDN, npm bundle, …).
+</script>
+```
+
+2. Call once per page (or after a theme switch) against `document.documentElement`
+   or the chart card root, then merge into the engine:
+
+```js
+// Chart.js
+const theme = brickworkChartTheme("chartjs");
+new Chart(canvas, {
+  type: "line",
+  data: {
+    labels,
+    datasets: series.map((s, i) => ({
+      ...s,
+      borderColor: theme.color[i],
+      backgroundColor: theme.color[i],
+    })),
+  },
+  options: {
+    ...theme,
+    // your scales/plugins overrides; do not set displayColors back to true
+  },
+});
+
+// ApexCharts
+const theme = brickworkChartTheme("apexcharts");
+new ApexCharts(el, {
+  ...theme,
+  series,
+  chart: { type: "line", ...(theme.chart || {}) },
+}).render();
+// Style .apexcharts-tooltip from --bw-color-chart-tooltip-* (Apex has no
+// first-class tooltip bg/text/border options comparable to Chart.js).
+```
+
+3. Prefer `brickworkChartTokens(el)` when you only need the resolved colours
+   (maps, network graphs, custom renderers). Re-read after a theme switch;
+   `getComputedStyle` follows live token values.
+
+**Supported engines in the shipped module:** `chartjs` and `apexcharts`.
+Other engines follow the same recipe (read tokens, map chrome, suppress the
+swatch). An engine that cannot suppress its tooltip swatch is not a supported
+adapter target until that pairing is solved.
 
 If you run Alpine yourself (host-owned `Alpine.start()`), brickwork's interaction
 components register against your Alpine instance; do not start Alpine twice.

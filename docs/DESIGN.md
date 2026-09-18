@@ -531,12 +531,19 @@ floor; the grid is not, and that is a decision rather than an oversight.
 
 **Tooltip series swatches are suppressed by a conforming adapter, not solved
 in the palette.** Series against `--bw-color-chart-tooltip-bg` is an ADR-082
-pairing resolved by suppression (`displayColors: false` for Chart.js,
-`tooltip.marker.show: false` for ApexCharts, or a custom formatter that omits
-the marker for ECharts), not by re-solving the series colours. Recorded against
-icvoss/django-brickwork#301 and umbrella ADR-082. No first-party chart adapter
-module ships yet; when one does, suppression is part of its specified output
-and must carry a test.
+pairing resolved by suppression, not by re-solving the series colours.
+Recorded against icvoss/django-brickwork#301 and umbrella ADR-082.
+
+The shipped CHT-006 adapter is
+`static/brickwork/js/chart-theme.js`. `brickworkChartTokens(el)` is the
+engine-agnostic token read; `brickworkChartTheme("chartjs"|"apexcharts", …)`
+returns an engine-shaped options fragment with suppression baked in
+(`plugins.tooltip.displayColors: false` for Chart.js;
+`tooltip.marker.show: false` for ApexCharts). No charting engine is bundled
+(CHT-011). An engine that cannot suppress its tooltip swatch is not a
+supported adapter target until the pairing is solved for it. Adoption recipe:
+[INTEGRATION.md](INTEGRATION.md) section 5a. Regression:
+`tests/test_chart_theme_adapter.py`.
 
 ## 5. Elevation
 
