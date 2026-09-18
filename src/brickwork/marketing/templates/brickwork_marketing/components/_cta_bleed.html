@@ -20,8 +20,13 @@ Accessibility: heading is an <h2>; secondary link is underlined (not
   colour-only). Covered via sections-*.html after the example collapses to
   this include.
 Responsive: full-bleed escape at every width; actions wrap.
+
+Layout: root carries .bw-section.bw-section--bleed so the ADR-057 §1a
+  width axis is the shared section shell escape (#667), not a CTA-only
+  hack. .bw-cta-bleed__inner stays the prose measure inside that band
+  (narrower than .bw-section__inner's marketing rail). See `_section.html`.
 {% endcomment %}{% if heading %}
-<section class="bw-cta-bleed">
+<section class="bw-section bw-section--bleed bw-cta-bleed">
   <div class="bw-cta-bleed__inner">
     <h2 class="bw-cta-bleed__heading">{{ heading }}</h2>
     {% if body %}<p class="bw-cta-bleed__body">{{ body }}</p>{% endif %}

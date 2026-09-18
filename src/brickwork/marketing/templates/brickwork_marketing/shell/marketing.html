@@ -37,7 +37,13 @@ Named blocks (semver-public, BR-BW-TPL-001), all empty-graceful:
                        {% bw_nav %}).
   marketing_actions    header-end CTA cluster (e.g. "Sign in" + "Get started");
                        see the auth-aware pattern below (#85).
-  content              the page body; the one region a page fills.
+  content              the page body; the one region a page fills. Direct
+                       children still receive the legacy marketing measure
+                       via `.bw-marketing__content > *`. New custom bands
+                       should use `.bw-section` / `.bw-section__inner`
+                       (ADR-057 Phase A / #667; see `_section.html` and
+                       INTEGRATION section 13) so atmosphere can run edge to
+                       edge without a site-owned inner rail.
   marketing_footer     empty consumer-owned footer-content slot. The shell
                        supplies its footer landmark and inner container, but
                        never link groups, columns, or site-map copy.

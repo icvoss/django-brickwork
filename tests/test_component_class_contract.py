@@ -877,6 +877,11 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         secondary_cta_label="See pricing",
         secondary_cta_href="/pricing/",
     ),
+    "_section (marketing: shell/inner layout default)": lambda: _include(
+        "brickwork_marketing/components/_section.html",
+        width="bleed",
+        band="tint",
+    ),
     "_logo_cloud (marketing: greyscale)": lambda: _include(
         "brickwork_marketing/components/_logo_cloud.html",
         heading="Trusted by teams at",

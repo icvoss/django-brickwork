@@ -767,6 +767,8 @@ def test_feature_grid_with_items_renders_every_item() -> None:
     assert "Fast" in html and "Really fast." in html
     assert "Simple" in html and "No fuss." in html
     assert "bw-feature-grid--2" in html
+    assert "bw-section" in html
+    assert "bw-section__inner" in html
 
 
 def test_feature_grid_empty_items_renders_intro_alone() -> None:
@@ -1252,6 +1254,54 @@ def test_cta_width_is_css_only_and_adds_no_markup() -> None:
 def test_cta_width_unrecognised_value_falls_back_to_default() -> None:
     html = _include("brickwork_marketing/components/_cta.html", heading="Ready?", width="nonsense")
     assert "bw-cta--bleed" not in html
+
+
+# --- components/_section.html (ADR-057 Phase A, #667) -----------------------
+
+
+def test_section_shell_default_is_contained_plain() -> None:
+    html = _render("brickwork_marketing/components/_section.html")
+    assert 'class="bw-section"' in html
+    assert "bw-section__inner" in html
+    assert "bw-section--bleed" not in html
+    assert "bw-section--tint" not in html
+
+
+def test_section_shell_width_bleed_and_band_tint() -> None:
+    html = _include(
+        "brickwork_marketing/components/_section.html",
+        width="bleed",
+        band="tint",
+    )
+    assert "bw-section--bleed" in html
+    assert "bw-section--tint" in html
+
+
+def test_section_shell_extends_fills_section_content() -> None:
+    html = Template(
+        "{% extends 'brickwork_marketing/components/_section.html' %}"
+        "{% block section_content %}<p class='probe'>Band copy</p>{% endblock %}"
+    ).render(Context())
+    assert "bw-section__inner" in html
+    assert "Band copy" in html
+
+
+def test_section_shell_css_owns_inner_rail_and_bleed_escape() -> None:
+    css = (_DIST / "brickwork.css").read_text().replace(" ", "")
+    assert ".bw-section__inner{" in css
+    assert "--bw-component-content-max-width-marketing" in css
+    assert ".bw-marketing__content>.bw-section{" in css
+    # Shared bleed escape includes the section axis and the CTA spellings.
+    bleed = re.search(
+        r"([^{}]*\.bw-section--bleed[^{}]*)\{([^}]*)\}",
+        css,
+    )
+    assert bleed is not None, "expected .bw-section--bleed in dist/brickwork.css"
+    body = bleed.group(2)
+    assert "inline-size:100vw" in body
+    assert "max-inline-size:100vw" in body
+    assert "margin-inline:calc(50%-50vw)" in body
+    assert ".bw-cta--bleed" in bleed.group(1) or ".bw-cta-bleed" in bleed.group(1)
 
 
 # --- components/_testimonial.html ------------------------------------------

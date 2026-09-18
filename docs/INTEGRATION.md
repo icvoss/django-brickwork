@@ -1167,6 +1167,50 @@ copy-paste tree stay linked.
 | List + filter | `examples/app/list.html` | `_filter_bar` (with `clear_href`) + `_data_table` (`responsive="stack"`, empty clear action) |
 | Marketing CTA | `examples/sections/cta/centred-band.html` | Dual CTA band; recolour via brand-pack tokens only ([brand-pack examples](examples/brand-pack/README.md)) |
 
+## 13. Marketing section shell and inner rail (ADR-057 Phase A, icvoss/django-brickwork#667)
+
+A marketing band needs two layout facts: the **shell** can run edge to edge
+(tint, inverse, atmosphere), and the **inner** content sits on the marketing
+measure with the page gutter. Do not invent a site `bwui-*-inner` (or fight
+`.bw-marketing__content > *` with per-page overrides) to get that.
+
+**Class contract** (primary API):
+
+```html
+<section class="bw-section">
+  <div class="bw-section__inner">
+    {# your band content #}
+  </div>
+</section>
+
+<section class="bw-section bw-section--bleed bw-section--tint">
+  <div class="bw-section__inner">
+    {# full-bleed atmosphere; content still on the marketing rail #}
+  </div>
+</section>
+```
+
+| Class | Role |
+|---|---|
+| `.bw-section` | Outer band; full-bleed capable. As a direct child of `.bw-marketing__content`, opts out of the legacy per-child measure/gutter. |
+| `.bw-section__inner` | Shared rail: `--bw-component-content-max-width-marketing` + `--bw-density-page-gutter-inline`. |
+| `.bw-section--bleed` | ADR-057 §1a `width=bleed` (same escape as `.bw-cta--bleed` / `.bw-cta-bleed`). |
+| `.bw-section--tint` | ADR-057 §1a `band=tint` (background only). |
+
+Or `{% extends "brickwork_marketing/components/_section.html" %}` and fill
+`section_content` (optional context `width` / `band`). Django `{% include %}`
+cannot wrap caller markup, so author the classes directly when composing
+inline.
+
+**Migration.** Existing marketing component roots that are not yet on
+`.bw-section` keep the legacy rail from `.bw-marketing__content > *`
+(byte-identical). When a root opts into `.bw-section`, put content in
+`.bw-section__inner` and stop relying on the legacy child rule for that band.
+Section rhythm (`.bw-marketing__content > * + *`) still applies to
+`.bw-section` roots. Proving migrations in the package: `_feature_grid.html`
+(contained) and `_cta_bleed.html` (bleed). Other roots can adopt the wrap when
+they next need atmosphere past the legacy rail.
+
 ## Contribute back
 
 If a seam here was thin for your integration, or you hit a paper-cut this guide

@@ -715,6 +715,15 @@
       ]
     },
     {
+      "name": "section_content",
+      "declaredIn": [
+        "brickwork_marketing/components/_section.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "shell",
       "declaredIn": [
         "brickwork/shell/app.html",

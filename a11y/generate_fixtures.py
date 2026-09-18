@@ -4079,6 +4079,11 @@ _CTA_WIDTH_BLEED_TINT = (
     ' secondary_cta_label="Talk to us" secondary_cta_href="#contact" band="tint" width="bleed" %}'
 )
 
+_CTA_WIDTH_SECTION_SHELL = (
+    '{% include "brickwork_marketing/components/_section.html" with'
+    ' width="bleed" band="tint" %}'
+)
+
 _CTA_WIDTH_SOURCE = (
     '{% extends "brickwork_marketing/shell/marketing.html" %}'
     + _MARKETING_CHROME
@@ -4087,6 +4092,7 @@ _CTA_WIDTH_SOURCE = (
     + _CTA_WIDTH_CONTAINED_TINT
     + _CTA_WIDTH_BLEED_PLAIN
     + _CTA_WIDTH_BLEED_TINT
+    + _CTA_WIDTH_SECTION_SHELL
     + "{% endblock %}"
 )
 

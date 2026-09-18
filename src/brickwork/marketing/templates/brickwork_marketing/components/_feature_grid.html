@@ -75,9 +75,15 @@ Responsive: grid-template-columns switches at two named breakpoints: 1
   --bw-breakpoint-lg (64rem) regardless of the columns value (2/3/4 all
   render 2 columns in this band), then the requested column count (2, 3 or
   4) from lg upward.
+
+Layout: root carries .bw-section; content sits in .bw-section__inner
+  (ADR-057 Phase A / #667). Measure and page gutter come from the section
+  shell, not from `.bw-marketing__content > *` alone. See
+  `_section.html` for the class contract and migration notes.
 {% endcomment %}
 {% if heading or lede or items %}
-<section class="bw-feature-grid-section">
+<section class="bw-section bw-feature-grid-section">
+  <div class="bw-section__inner">
   {% if heading or lede %}
     <div class="bw-feature-grid-section__intro">
       {% if heading %}<h2 class="bw-feature-grid-section__heading">{{ heading }}</h2>{% endif %}
@@ -99,5 +105,6 @@ Responsive: grid-template-columns switches at two named breakpoints: 1
       {% endfor %}
     </div>
   {% endif %}
+  </div>
 </section>
 {% endif %}
