@@ -144,6 +144,55 @@ def test_attrs_seam_does_not_double_escape_an_ordinary_value() -> None:
     assert "&amp;quot;" not in html
 
 
+# --- bw_data_attrs value channel: the same escape() fix as _rendered_attrs,
+# --- proven at the filter itself so reverting that site alone goes red (#310)
+
+
+def test_bw_data_attrs_escapes_a_safestring_quote_close_injection() -> None:
+    # Parallel to test_attrs_seam_escapes_a_safestring_value_it_did_not_produce,
+    # but through bw_data_attrs directly: that filter's four call sites had no
+    # SafeString coverage, so reverting escape() there alone left the suite
+    # green (icvoss/django-brickwork#310).
+    from brickwork.templatetags.brickwork_components import bw_data_attrs
+
+    out = bw_data_attrs({"data-x": mark_safe('" role="progressbar')})
+    assert 'data-x="&quot; role=&quot;progressbar"' in out
+    assert '" role="progressbar' not in out
+
+
+def test_bw_data_attrs_escapes_an_object_whose_html_dunder_would_break_out() -> None:
+    # format_html / conditional_escape honour __html__; escape(str(...)) does
+    # not. An object that defines both is the other half of the value-channel
+    # hole the #308 fix closed at both validators: without escape(), the
+    # __html__ path injects; with it, str() is escaped unconditionally.
+    from brickwork.templatetags.brickwork_components import bw_data_attrs
+
+    class _HtmlBreakout:
+        def __html__(self) -> str:
+            return '" role="progressbar'
+
+        def __str__(self) -> str:
+            return '" role="progressbar'
+
+    out = bw_data_attrs({"data-x": _HtmlBreakout()})
+    assert 'data-x="&quot; role=&quot;progressbar"' in out
+    assert '" role="progressbar' not in out
+
+
+def test_bw_data_attrs_coerces_non_string_and_lazy_values_then_escapes() -> None:
+    # The #308 fix claimed non-string and lazy-translation values still render
+    # through escape(str(...)); pin both so a regression that only handles
+    # plain str stays red.
+    from django.utils.translation import gettext_lazy
+
+    from brickwork.templatetags.brickwork_components import bw_data_attrs
+
+    assert 'data-n="42"' in bw_data_attrs({"data-n": 42})
+    out = bw_data_attrs({"data-label": gettext_lazy('a"b')})
+    assert 'data-label="a&quot;b"' in out
+    assert "&amp;quot;" not in out
+
+
 def test_attrs_seam_rejects_the_reserved_data_bw_namespace() -> None:
     # Pinned to the attrs-seam rejection message specifically (not just
     # "attrs", which the "attrs must be a mapping" precondition message
@@ -492,23 +541,55 @@ def test_only_one_module_defines_the_seam_grammar() -> None:
     # that happen to overlap. Nothing enforced it, so "one rule" was a
     # convention held by a comment.
     #
-    # Asserted as SOURCE TEXT, not object identity. An identity check
-    # (`a is b`) cannot fail here: re caches compiled patterns, so two
-    # separate re.compile calls with the same source return the SAME object.
-    # It would only start failing once a copy had already diverged, which is
-    # exactly when it is too late to be useful. Verified: re-duplicating the
-    # pattern in brickwork_interactions left an identity assertion green.
+    # Asserted by AST, not a literal substring and not object identity. An
+    # identity check (`a is b`) cannot fail here: re caches compiled patterns,
+    # so two separate re.compile calls with the same source return the SAME
+    # object. A verbatim grep for `_DATA_ATTRIBUTE_NAME_RE = re.compile`
+    # misses a rename, a parenthesised compile, an inline re.match, and a
+    # copy outside templatetags, and false-fails on the same text in a
+    # comment (icvoss/django-brickwork#310).
     #
     # What must stay true is that the pattern is WRITTEN once. A second
-    # compile site is the thing that lets the two drift, whatever it
+    # compile/match site is the thing that lets the two drift, whatever it
     # currently compiles to.
+    import ast
     import pathlib
 
     import brickwork
 
-    tags = pathlib.Path(brickwork.__file__).parent / "templatetags"
-    defining = sorted(f.name for f in tags.glob("*.py") if "_DATA_ATTRIBUTE_NAME_RE = re.compile" in f.read_text())
-    assert defining == ["brickwork_components.py"], (
-        f"the seam grammar must be compiled in exactly one module, found it in {defining}; "
+    re_ops = frozenset({"compile", "match", "fullmatch", "search"})
+    seam_marker = "data-[a-z]"
+
+    def _pattern_literal(call: ast.Call) -> str | None:
+        if not call.args:
+            return None
+        arg = call.args[0]
+        if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+            return arg.value
+        return None
+
+    def _is_re_op(call: ast.Call) -> bool:
+        func = call.func
+        return (
+            isinstance(func, ast.Attribute)
+            and isinstance(func.value, ast.Name)
+            and func.value.id == "re"
+            and func.attr in re_ops
+        )
+
+    pkg = pathlib.Path(brickwork.__file__).parent
+    sites: list[str] = []
+    for path in sorted(pkg.rglob("*.py")):
+        if "__pycache__" in path.parts:
+            continue
+        tree = ast.parse(path.read_text(), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and _is_re_op(node):
+                pattern = _pattern_literal(node)
+                if pattern is not None and seam_marker in pattern:
+                    sites.append(f"{path.relative_to(pkg)}:{node.lineno}")
+
+    assert len(sites) == 1 and sites[0].startswith("templatetags/brickwork_components.py:"), (
+        f"the seam grammar must be defined at exactly one site in brickwork_components.py, found {sites}; "
         "a second definition is how bw_dropdown's validator drifted from bw_data_attrs' in the first place"
     )
