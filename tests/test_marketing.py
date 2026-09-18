@@ -1599,12 +1599,12 @@ def test_stat_band_align_omitted_output_is_byte_identical_to_pre_align_axis() ->
     )
     assert "bw-stat-band-section--align-start" not in html
     assert html == (
-        "\n\n<section class=\"bw-stat-band-section\">\n"
-        "  <h2 class=\"bw-stat-band-section__heading\">By the numbers</h2>\n"
-        "  \n    <div class=\"bw-stat-band\">\n      \n        "
-        "\n\n<div class=\"bw-stat bw-stat--lg\">\n  \n    \n    "
-        "<span class=\"bw-stat__label\">Uptime</span>\n    "
-        "<span class=\"bw-stat__value\">99.9%</span>\n    \n\n\n\n    \n  \n"
+        '\n\n<section class="bw-stat-band-section">\n'
+        '  <h2 class="bw-stat-band-section__heading">By the numbers</h2>\n'
+        '  \n    <div class="bw-stat-band">\n      \n        '
+        '\n\n<div class="bw-stat bw-stat--lg">\n  \n    \n    '
+        '<span class="bw-stat__label">Uptime</span>\n    '
+        '<span class="bw-stat__value">99.9%</span>\n    \n\n\n\n    \n  \n'
         "</div>\n\n      \n    </div>\n  \n</section>\n\n"
     )
 
