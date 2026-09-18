@@ -370,20 +370,19 @@ def test_reregistering_a_seed_name_overrides_and_keeps_the_directional_flag() ->
 
 
 def test_registered_icon_markup_is_trusted_by_contract_not_vetted() -> None:
-    # Documents the corrected bw_icon noqa justification (icvoss/django-brickwork
-    # #330): register_icons() is a public, documented API (ICO-002/ICO-012) that
-    # merges its mapping into the registry with no validation. This is NOT a bug
-    # to fix here (that is a separate, deliberately out-of-scope design
-    # decision): it is the same trust boundary as any other mark_safe call, and
-    # this test exists so the "inner is vetted" claim never silently regresses
-    # back into the noqa comment without a test noticing the registry has no
-    # gate. A consumer registering unsanitised markup gets it rendered raw.
+    # Contract pin for the documented trust boundary (icvoss/django-brickwork
+    # #350, option 1): register_icons() (ICO-002/ICO-012) merges its mapping
+    # with no validation, and bw_icon renders registry artwork verbatim. That
+    # is the intentional mark_safe-shaped boundary, not a defect to patch with
+    # an SVG allow-list. This test pins the contract so a future "vetted
+    # registry" claim cannot land without noticing that registered markup
+    # still reaches output raw.
     try:
-        register_icons({"pwn-330": '"><script>alert(1)</script>'})
-        out = bw_icon("pwn-330", decorative=True)
+        register_icons({"pwn-350": '"><script>alert(1)</script>'})
+        out = bw_icon("pwn-350", decorative=True)
         assert "<script>alert(1)</script>" in out
     finally:
-        icons._registry._ICONS.pop("pwn-330", None)
+        icons._registry._ICONS.pop("pwn-350", None)
 
 
 # --- the chrome-internal name list is documented and cannot rot (#77) ------

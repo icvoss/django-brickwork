@@ -6,11 +6,12 @@ is the versioned public contract (BR-BW-VER-001 applies to icon names exactly as
 it does to token and template-block names); the vendored Lucide artwork behind
 each name is a pinned, swappable implementation detail (ICO-001/002).
 
-Consumers only ever reference an icon by name via ``{% bw_icon "name" %}``; they
-never author raw inline SVG and no request/DB string ever reaches ``|safe``
-(ICO-003, injection-safe by construction). A team may swap the whole set by
+Consumers reference an icon by name via ``{% bw_icon "name" %}`` (ICO-003: the
+tag never takes raw SVG from the template). A team may swap the whole set by
 supplying their own registry keyed to the same names (ICO-002), or merge a
 namespaced project icon in (ICO-012), without changing a single call site.
+``register_icons`` stores artwork verbatim and callers own what they register
+(icvoss/django-brickwork#350); do not merge untrusted markup.
 
 Public surface:
 

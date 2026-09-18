@@ -1,4 +1,4 @@
-"""The ``{% bw_icon %}`` template tag: name-referenced, injection-safe, a11y-enforced.
+"""The ``{% bw_icon %}`` template tag: name-referenced, a11y-enforced.
 
 Usage::
 
@@ -7,12 +7,16 @@ Usage::
     {% bw_icon "chevron-down" decorative=True %}   {# decorative icon #}
     {% bw_icon "search" size="lg" label="Search" %}
 
-Auto-escaping / safety (ICO-003): the tag resolves ``name`` against the vetted
-brickwork registry and emits the registry's pinned inner SVG markup. It NEVER
-passes a request- or database-supplied string through ``|safe``; the only markup
-marked safe is the registry's own vendored artwork plus attribute values that are
-either from a fixed allow-list (``size``) or HTML-escaped (``label``). An unknown
-name raises (ICO-013), so a template typo fails loudly, never as a blank icon.
+Auto-escaping / safety (ICO-003): the tag resolves ``name`` against the icon
+registry and emits that name's inner SVG markup. Template call sites never pass
+raw SVG through the tag; ``label`` and ``css_class`` are HTML-escaped, and
+``size`` is a fixed allow-list. An unknown name raises (ICO-013), so a template
+typo fails loudly, never as a blank icon.
+
+The registry itself is a trust boundary, not a scanned one
+(icvoss/django-brickwork#350): seed artwork is pinned vendored Lucide; anything
+merged via ``register_icons`` is rendered verbatim. Callers of ``register_icons``
+own what they register (same shape as ``mark_safe``).
 
 Accessibility (ICO-007, enforced): every icon is EITHER decorative
 (``decorative=True`` -> ``aria-hidden="true"``) OR meaningful (``label="..."`` ->
@@ -67,8 +71,9 @@ def bw_icon(
             exclusive with ``decorative``).
         css_class: extra CSS classes appended after the base ``bw-icon`` class.
 
-    Returns a SafeString. The inner paint markup comes from the vetted registry,
-    never from caller-supplied strings; ``label`` and ``css_class`` are escaped.
+    Returns a SafeString. The inner paint markup comes from the registry
+    (trusted by contract; see ``register_icons``); ``label`` and ``css_class``
+    are escaped.
     """
     if size not in _SIZE_TOKENS:
         raise TemplateSyntaxError(f"{{% bw_icon %}}: size must be one of {sorted(_SIZE_TOKENS)}, got {size!r}.")
