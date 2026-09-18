@@ -322,7 +322,7 @@ sight, and are refreshed by hand at the next audit.
 | Version | 3.34.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py`. **Gated** |
 | Hard runtime dependency | Django only | |
 | Theme axes | 4 verified working | brand, theme, density, direction |
-| Contract manifests | 2 | token, template; generated from source, CI drift-gated. Token manifest carries `minContrast: 4.5` on `fg-on-accent` |
+| Contract manifests | 3 | token, template, interaction; generated from source, CI drift-gated. Token manifest carries `minContrast: 4.5` on `fg-on-accent`. Interaction manifest covers Alpine.data names, `bw:` events and package-owned HTMX target IDs (icvoss/django-brickwork#229). **Gated** |
 
 ## 6. Design boundaries
 

@@ -314,10 +314,13 @@ page outright from day one.
 brickwork's public API is five versioned contracts: **token**, **template**,
 **navigation**, **interaction (HTMX)**, and **JavaScript (Alpine)**. Template
 block names, HTMX target IDs, Alpine component names, event names and token
-names are semver-governed. [docs/DESIGN.md](docs/DESIGN.md) enumerates the
-token contract, [docs/INTEGRATION.md](docs/INTEGRATION.md) walks the template,
-navigation and interaction seams, and [CHANGELOG.md](CHANGELOG.md) records
-every contract change release by release.
+names are semver-governed. Machine-readable coverage ships as three generated
+siblings under `static/brickwork/dist/`: `token-manifest.json`,
+`template-manifest.json`, and `interaction-manifest.json` (Alpine names,
+events, HTMX targets; icvoss/django-brickwork#229). [docs/DESIGN.md](docs/DESIGN.md)
+enumerates the token contract, [docs/INTEGRATION.md](docs/INTEGRATION.md)
+walks the template, navigation and interaction seams, and
+[CHANGELOG.md](CHANGELOG.md) records every contract change release by release.
 
 ## Usage
 

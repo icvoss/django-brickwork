@@ -46,6 +46,9 @@ from pathlib import Path
 
 import brickwork
 from brickwork.services._catalogue_manifest import manifest as catalogue_manifest
+from brickwork.services.interaction_manifest import alpine_names as interaction_alpine_names
+from brickwork.services.interaction_manifest import event_names as interaction_event_names
+from brickwork.services.interaction_manifest import htmx_target_ids as interaction_htmx_target_ids
 from brickwork.services.token_manifest import manifest as token_manifest_data
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -152,6 +155,7 @@ _GATED_ROW_LABELS = (
     "Examples",
     "A11y gate",
     "Version",
+    "Contract manifests",
 )
 
 
@@ -335,7 +339,10 @@ def test_tokens_row_overridable_count_matches_the_shipped_token_manifest() -> No
 
 # ---------------------------------------------------------------------------
 # Gated row: Alpine.data() registrations, parsed from the single registration
-# point (frontend/src/js/index.js's own module docstring names it as such).
+# point (frontend/src/js/index.js's own module docstring names it as such),
+# and cross-checked against the shipped interaction-manifest.json so the
+# POSITIONING count cannot disagree with the BR-BW-VER-001 sibling
+# (icvoss/django-brickwork#229).
 # ---------------------------------------------------------------------------
 
 _ALPINE_DATA_CALL_RE = re.compile(r'Alpine\.data\(\s*"(\w+)"')
@@ -345,11 +352,43 @@ def test_alpine_components_row_matches_the_registration_point() -> None:
     index_js = (_REPO_ROOT / "frontend" / "src" / "js" / "index.js").read_text(encoding="utf-8")
     registered = _ALPINE_DATA_CALL_RE.findall(index_js)
     assert registered, "found zero Alpine.data(...) calls in frontend/src/js/index.js; has it moved?"
+    assert frozenset(registered) == interaction_alpine_names(), (
+        "frontend/src/js/index.js Alpine.data registrations disagree with "
+        "the shipped interaction-manifest.json; regenerate with "
+        "python scripts/generate_interaction_manifest.py"
+    )
 
     value, note = _table_rows()["Alpine components"]
     assert _leading_int(value) == len(registered)
     for name in registered:
         assert name in note, f"{name} is registered in index.js but not named in the Alpine components row note"
+
+
+# ---------------------------------------------------------------------------
+# Gated row: contract manifests (token, template, interaction).
+# ---------------------------------------------------------------------------
+
+
+def test_contract_manifests_row_matches_the_three_shipped_siblings() -> None:
+    """BR-BW-VER-001 surfaces live in three generated siblings (#229 Option C).
+
+    Catalogue-manifest.json is deliberately NOT counted here: it is descriptive
+    taxonomy (plan decision D8), not a versioned contract surface.
+    """
+    dist = _REPO_ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist"
+    expected = ("token-manifest.json", "template-manifest.json", "interaction-manifest.json")
+    for name in expected:
+        assert (dist / name).is_file(), f"missing shipped contract manifest {name}"
+
+    value, note = _table_rows()["Contract manifests"]
+    assert _leading_int(value) == len(expected)
+    assert "token" in note
+    assert "template" in note
+    assert "interaction" in note
+    # Sanity: the interaction sibling is non-empty on all three surfaces.
+    assert interaction_alpine_names()
+    assert interaction_event_names()
+    assert interaction_htmx_target_ids()
 
 
 # ---------------------------------------------------------------------------
