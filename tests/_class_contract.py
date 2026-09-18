@@ -68,8 +68,6 @@ UNSTYLED_BY_DESIGN: set[str] = {
     "bw-dropzone__label",  # text leaf inside the styled dropzone surface.
     "bw-chip__label",  # text leaf inside the styled chip surface (#542).
     "bw-avatar--initials",  # content-shape marker; .bw-avatar__initials carries the glyph.
-    "bw-empty-state--no_data",  # variant carries no visual distinction (STA-002).
-    "bw-empty-state--no_results",  # ditto: the icon/copy alone differ, by design.
     "bw-tag-input",  # enhanced-state root; the .bw-input classes carry the look.
     "bw-tag-input__floor",  # ditto: the floor control borrows .bw-input's rules.
     # --- icvoss/django-brickwork#137 triage: 29 further structural hooks -----
@@ -98,14 +96,13 @@ UNSTYLED_BY_DESIGN: set[str] = {
     # (investigated for icvoss/django-brickwork#137: page-header root and
     # __titles now carry layout craft under #541; they are no longer bare.)
     "bw-stepper__marker-number",  # plain digit glyph; .bw-stepper__marker carries the circle.
-    "bw-stepper__step--upcoming",  # variant carries no visual distinction, matching
-    # bw-empty-state's --no_data/--no_results doctrine above: only --complete/
-    # --current change the marker glyph.
+    "bw-stepper__step--upcoming",  # variant carries no visual distinction: only
+    # --complete/--current change the marker glyph.
     "bw-progress--indeterminate",  # state marker on the root; .bw-progress__fill--indeterminate
     # (a different, styled class) carries the actual animation.
     # (iv) a JS/consumer hook where a styled child carries the affordance
-    # (bw-empty-state's --no_data/--no_results, bw-dropzone__label and
-    # bw-tag-input/__floor above are also this category; not repeated here):
+    # (bw-dropzone__label and bw-tag-input/__floor above are also this
+    # category; not repeated here):
     "bw-data-table__row--linked",  # marker only; .bw-data-table__row-link inside carries the look.
     "bw-data-table__th--sortable",  # marker only; .bw-data-table__sort inside carries the look.
     "bw-combobox__floor",  # enhanced-state root; the .bw-input classes carry the look,

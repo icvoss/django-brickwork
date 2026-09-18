@@ -1,9 +1,15 @@
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 Full-width banner alert (STA-008/009). role="alert" so it is announced. The
 status icon is decorative (the variant + text carry the meaning; the icon is
 reinforcement, not the sole signal). This is the loud surface for page-level
 errors and status, distinct from a field's inline error (forms/_field.html).
+
+variant ("info" | "success" | "warning" | "danger", default "info"): the
+tag path validates via TemplateSyntaxError; the include path emits the
+whole class attribute through {% bw_attr ... allow= prefix= %} (ADR-097).
+An absent value defaults to "info"; an unrecognised include-path value
+omits class entirely (no silent fallback modifier).
 
 Dismissible (04-interfaces 4b Dismissible section, 0.9.0, CMP-010): with the
 tag's dismissible=True the root gains x-data="bwDismissible()" (semver-public,
@@ -70,7 +76,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-alert* selector. The banner is full-width within its container at
   every viewport size.
 {% endcomment %}
-{% if variant == "success" %}{% firstof icon "success" as bw_alert_icon %}{% elif variant == "warning" %}{% firstof icon "alert-triangle" as bw_alert_icon %}{% elif variant == "danger" %}{% firstof icon "alert-circle" as bw_alert_icon %}{% else %}{% firstof icon "info" as bw_alert_icon %}{% endif %}<div class="bw-alert bw-alert--{% if variant == "success" %}success{% elif variant == "warning" %}warning{% elif variant == "danger" %}danger{% else %}info{% endif %}" role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
+{% firstof variant "info" as bw_alert_variant %}{% if bw_alert_variant == "success" %}{% firstof icon "success" as bw_alert_icon %}{% elif bw_alert_variant == "warning" %}{% firstof icon "alert-triangle" as bw_alert_icon %}{% elif bw_alert_variant == "danger" %}{% firstof icon "alert-circle" as bw_alert_icon %}{% else %}{% firstof icon "info" as bw_alert_icon %}{% endif %}<div {% bw_attr "class" bw_alert_variant allow="info success warning danger" prefix="bw-alert bw-alert--" %} role="alert"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
   {% bw_icon bw_alert_icon size="md" decorative=True css_class="bw-alert__icon" %}
   <div class="bw-alert__body">
     {% if title %}<p class="bw-alert__title">{{ title }}</p>{% endif %}

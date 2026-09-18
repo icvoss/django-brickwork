@@ -36,7 +36,8 @@ def test_include_only_heading_and_body_render_unchanged() -> None:
     out = _render()
     assert "No invoices yet" in out
     assert "Create your first invoice to get started." in out
-    assert "bw-empty-state bw-empty-state--no_data" in out
+    assert 'data-variant="no_data"' in out
+    assert "bw-empty-state" in out
 
 
 def test_include_only_output_is_byte_identical_to_pre_slot_blocks() -> None:
@@ -44,7 +45,7 @@ def test_include_only_output_is_byte_identical_to_pre_slot_blocks() -> None:
     # whitespace-only regression from a stray {% if %} inside a new block.
     out = _render(heading="No invoices yet", body="Create your first invoice.")
     assert out == (
-        '\n\n<div class="bw-empty-state bw-empty-state--no_data">\n  \n  \n    '
+        '\n\n<div data-variant="no_data" class="bw-empty-state">\n  \n  \n    '
         '<svg class="bw-icon bw-empty-state__icon" style="--bw-icon-size: var(--bw-component-icon-size-xl)" '
         'viewBox="0 0 24 24" fill="none" stroke="currentColor" '
         'stroke-width="var(--bw-component-icon-stroke-width, 2)" stroke-linecap="round" stroke-linejoin="round" '
@@ -62,7 +63,7 @@ def test_include_only_action_href_and_label_still_render_the_anchor() -> None:
 
 def test_no_results_variant_shows_the_search_icon_by_default() -> None:
     out = _render(variant="no_results")
-    assert "bw-empty-state--no_results" in out
+    assert 'data-variant="no_results"' in out
     assert "bw-empty-state__icon" in out
 
 
@@ -219,9 +220,7 @@ def test_size_md_action_still_renders_the_primary_button() -> None:
     assert "bw-empty-state__action-link" not in out
 
 
-# --- icvoss/django-brickwork#391: variant must be constrained the same way
-# --- size already is on the same line, not interpolated into attribute
-# --- position -----------------------------------------------------------------
+# --- icvoss/django-brickwork#391 / ADR-097: variant goes through bw_attr allow=
 
 
 def _on_star_attrs(html: str) -> list[tuple[str, str]]:
@@ -251,7 +250,9 @@ def _on_star_attrs(html: str) -> list[tuple[str, str]]:
 
 def test_variant_mark_safed_payload_cannot_break_out_of_the_class_attribute() -> None:
     # The exact repro from icvoss/django-brickwork#391: a mark_safe'd variant
-    # closing the class attribute's quote and landing a live handler.
+    # closing an attribute quote and landing a live handler. Now routed through
+    # bw_attr allow=, which omits the attribute when the value is outside the
+    # closed vocabulary.
     from django.utils.safestring import mark_safe
 
     attack = mark_safe('a" onclick="alert(1)')
@@ -262,23 +263,22 @@ def test_variant_mark_safed_payload_cannot_break_out_of_the_class_attribute() ->
     # free, proving nothing. The payload's marker text must actually be
     # checked for presence, and the control test below proves the same
     # payload DOES reach an unconstrained interpolation, so "not reached"
-    # here is evidence the fix's match/literal branch is doing the work,
-    # not evidence the probe itself is inert.
+    # here is evidence allow= rejected the value, not that the probe is inert.
     reached = "alert(1)" in out
     assert not reached, (
         "the payload's own text landed in the rendered output, which means "
         "variant reached attribute position unconstrained; _empty_state.html "
-        "must match variant against its closed vocabulary the same way it "
-        "already matches size"
+        "must route variant through {% bw_attr ... allow= %}"
     )
     assert _on_star_attrs(out) == []
+    assert "data-variant" not in out
 
 
 def test_variant_control_known_bad_inline_payload_is_detected_by_the_parser() -> None:
     # Teeth check: prove _on_star_attrs actually fires on a genuinely
     # unconstrained interpolation, using the same payload rendered directly
     # into attribute position via an ordinary include-only template, with no
-    # constrain logic in the way. If this control did not detect a live
+    # allow= seam in the way. If this control did not detect a live
     # handler, the assertions above would be trivially true for the wrong
     # reason (a parser that never finds anything, not a template that is
     # actually safe).
@@ -291,22 +291,20 @@ def test_variant_control_known_bad_inline_payload_is_detected_by_the_parser() ->
     assert _on_star_attrs(control_html) == [("div", "onclick")]
 
 
-def test_variant_unrecognised_value_falls_back_to_the_no_data_literal() -> None:
-    # The constrain pattern's other half: an unrecognised value is not just
-    # blocked from attribute position, it resolves to the documented
-    # default literal, matching size's existing fallback behaviour on the
-    # same line.
+def test_variant_unrecognised_value_omits_data_variant() -> None:
+    # ADR-097 allow= semantics: an unrecognised value omits the attribute
+    # entirely rather than falling back to a guessed default.
     out = _render(variant="not-a-real-variant")
-    assert "bw-empty-state--no_data" in out
-    assert "bw-empty-state--not-a-real-variant" not in out
+    assert "data-variant" not in out
+    assert "not-a-real-variant" not in out
 
 
 def test_variant_no_results_still_emits_its_own_literal_unchanged() -> None:
     # Regression guard alongside the fix: the documented second value must
-    # keep resolving to its own literal, not collapse into the fallback.
+    # keep resolving to its own literal, not collapse into the default.
     out = _render(variant="no_results")
-    assert "bw-empty-state--no_results" in out
-    assert "bw-empty-state--no_data" not in out
+    assert 'data-variant="no_results"' in out
+    assert 'data-variant="no_data"' not in out
 
 
 def test_beautiful_default_empty_state_has_surface_edge_and_ambient() -> None:

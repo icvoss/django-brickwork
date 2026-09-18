@@ -38,7 +38,7 @@ def test_neither_block_filled_emits_no_extra_markup() -> None:
     assert "Something happened." in out
 
 
-# --- icvoss/django-brickwork#476: include-path variant constrain ---------------
+# --- icvoss/django-brickwork#476 / ADR-097: include-path variant allow= --------
 
 
 def _on_star_attrs(html: str) -> list[tuple[str, str]]:
@@ -70,13 +70,15 @@ def test_include_path_variant_mark_safed_payload_cannot_break_out() -> None:
     out = _include_alert(variant=attack, title="t", message="m")
     assert "alert(1)" not in out
     assert _on_star_attrs(out) == []
-    assert "bw-alert--info" in out
+    # allow= omits the whole class attribute for an out-of-vocab value
+    assert "bw-alert--" not in out
 
 
-def test_include_path_unrecognised_variant_falls_back_to_info() -> None:
+def test_include_path_unrecognised_variant_omits_class() -> None:
     out = _include_alert(variant="not-real", title="t", message="m")
-    assert "bw-alert--info" in out
     assert "bw-alert--not-real" not in out
+    assert "not-real" not in out
+    assert "bw-alert--" not in out
 
 
 def test_include_path_success_variant_still_emits_its_literal() -> None:

@@ -106,7 +106,7 @@ _COMPONENT_CASES = [
     (
         "brickwork/components/_empty_state.html",
         {"heading": "Nothing here", "body": "Add one."},
-        "bw-empty-state--no_data",
+        'data-variant="no_data"',
     ),
     (
         "brickwork/components/_stepper.html",
