@@ -1788,6 +1788,85 @@ def test_stat_band_trend_with_trend_label_renders_the_visible_text() -> None:
     assert "12% up on last month" in html
 
 
+# --- components/_stat_band.html: align (icvoss/django-brickwork#673) -------
+
+
+def test_stat_band_align_omitted_output_is_byte_identical_to_pre_align_axis() -> None:
+    # Full-string equality, matching test_cta_width_omitted_output_is_byte_
+    # identical_to_pre_width_axis: proves align's addition is additive for
+    # every existing caller, not merely "no start class seen".
+    html = _render(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+    )
+    assert "bw-stat-band-section--align-start" not in html
+    assert html == (
+        '\n\n<section class="bw-stat-band-section">\n'
+        '  <h2 class="bw-stat-band-section__heading">By the numbers</h2>\n'
+        '  \n    <div class="bw-stat-band">\n      \n        '
+        '\n\n<div class="bw-stat bw-stat--lg">\n  \n    \n    '
+        '<span class="bw-stat__label">Uptime</span>\n    '
+        '<span class="bw-stat__value">99.9%</span>\n    \n\n\n\n    \n  \n'
+        "</div>\n\n      \n    </div>\n  \n</section>\n\n"
+    )
+
+
+def test_stat_band_align_center_is_explicitly_the_same_as_omitted() -> None:
+    omitted = _render(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+    )
+    explicit = _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+        align="center",
+    )
+    assert omitted == explicit
+
+
+def test_stat_band_align_start_emits_its_modifier_class() -> None:
+    html = _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+        align="start",
+    )
+    assert "bw-stat-band-section--align-start" in html
+
+
+def test_stat_band_align_is_css_only_and_adds_no_markup() -> None:
+    centered = _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+    )
+    start = _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+        align="start",
+    )
+    assert start.replace(" bw-stat-band-section--align-start", "") == centered
+
+
+def test_stat_band_align_unrecognised_value_falls_back_to_default() -> None:
+    html = _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+        align="nonsense",
+    )
+    assert "bw-stat-band-section--align-start" not in html
+
+
+def test_stat_band_align_start_has_a_css_rule() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    assert re.search(r"\.bw-stat-band-section--align-start[\s,.:\[{]", css)
+
+
 # --- components/_faq.html: composes _disclosure.html (BR-BW-MKT-004) ------
 
 

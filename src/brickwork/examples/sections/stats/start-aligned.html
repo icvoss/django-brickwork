@@ -1,0 +1,34 @@
+{% comment %}
+STATS / start-aligned: the same display-scale band, reading as evidence in
+the flow rather than a centred KPI dashboard.
+
+WHEN TO USE THIS INSTEAD OF THE INLINE BAND. Personal and consulting
+presence pages treat figures as a record in the reading flow: large numbers
+with captions under, left-aligned with the surrounding prose. The default
+inline band centres every tile (KPI-dashboard posture). Pass align="start"
+when the band should sit against the same start edge as the copy above it.
+
+The shipped _stat_band.html already is this shape with align="start", so the
+example is the include.
+
+WHAT YOUR VIEW MUST SUPPLY. Same list-of-dicts contract as
+stats/inline-band.html: `stats` cannot be built inline in a Django template.
+
+    stats = [
+        {"value": "21 days", "label": "Average time to pay",
+         "trend": "down", "trend_label": "17 days faster than before"},
+        {"value": "£1.4m", "label": "Chased and collected this quarter",
+         "trend": "up", "trend_label": "up 12% on last quarter"},
+        {"value": "94%", "label": "Invoices paid without a phone call"},
+    ]
+
+A TREND WITHOUT A trend_label IS A DEFECT. See inline-band.html and
+_stat.html's own header.
+
+States: see _stat_band.html/_stat.html's own headers.
+Accessibility: see _stat.html's own header for the trend accessibility
+  contract. Covered by axe.spec.mjs against sections-*.html, both themes.
+Responsive: see _stat_band.html's own header (the fluid auto-fit grid;
+  align="start" only changes justify-items / text-align, not the floor).
+{% endcomment %}
+{% include "brickwork_marketing/components/_stat_band.html" with heading="What the work has produced" stats=stats align="start" %}

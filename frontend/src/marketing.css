@@ -1737,6 +1737,12 @@
     0 4px 14px -4px oklch(0 0 0 / 0.1);
 }
 
+/* align="start" (#673): airy proof-band layout. The default (omitted /
+ * "center") emits no modifier and stays the centred KPI layout above. */
+.bw-stat-band-section--align-start {
+  text-align: start;
+}
+
 .bw-stat-band-section__heading {
   margin: 0 0 var(--bw-space-6);
   font-family: var(--bw-text-heading-section-family);
@@ -1756,6 +1762,10 @@
   justify-items: center;
 }
 
+.bw-stat-band-section--align-start .bw-stat-band {
+  justify-items: start;
+}
+
 /* Tile craft is scoped to the marketing band only; global .bw-stat is
  * unchanged in this pass (Phase A.3). */
 .bw-stat-band .bw-stat {
@@ -1768,6 +1778,11 @@
   box-shadow:
     var(--bw-elevation-1),
     0 4px 14px -4px oklch(0 0 0 / 0.1);
+}
+
+.bw-stat-band-section--align-start .bw-stat-band .bw-stat {
+  text-align: start;
+  align-items: flex-start;
 }
 
 /* --- FAQ ------------------------------------------------------------------------------ */
