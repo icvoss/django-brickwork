@@ -40,7 +40,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
     <span class="bw-visually-hidden">{{ search_label }}</span>
     <input class="bw-input bw-search__input" type="search" {% bw_attr "name" name %} {% bw_attr "placeholder" placeholder %} {% bw_attr "value" value %}>
   </label>
-  <button class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only" type="submit" aria-label="{{ search_label }}">
+  <button class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only" type="submit" {% bw_attr "aria-label" search_label %}>
     {% bw_icon "search" size="sm" decorative=True %}
   </button>
 </form>

@@ -22,7 +22,7 @@ Responsive: no breakpoint switch.
 {% endcomment %}
 {% translate "Avatar group" as bw_avatar_group_label %}
 {% firstof size 'md' as bw_size %}{% firstof shape 'circle' as bw_shape %}
-<div class="bw-avatar-group" role="group" aria-label="{{ bw_avatar_group_label }}">
+<div class="bw-avatar-group" role="group" {% bw_attr "aria-label" bw_avatar_group_label %}>
   {% for person in visible %}
     {% include "brickwork/components/_avatar.html" with src=person.src alt=person.alt initials=person.initials aria_label=person.aria_label size=person.size|default:bw_size shape=person.shape|default:bw_shape %}
   {% endfor %}

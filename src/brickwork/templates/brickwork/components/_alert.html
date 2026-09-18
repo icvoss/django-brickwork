@@ -87,7 +87,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
 {% if dismissible %}{% translate "Dismiss" as bw_alert_close_label %}  <button class="bw-alert__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
           type="button"
           hidden
-          aria-label="{{ bw_alert_close_label }}"
+          {% bw_attr "aria-label" bw_alert_close_label %}
           data-bw-dismiss>
     {% bw_icon "close" size="sm" decorative=True %}
   </button>

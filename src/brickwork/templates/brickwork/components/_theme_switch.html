@@ -1,4 +1,4 @@
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 The live root-level axis switch (icvoss/django-brickwork#117). Private
 render target of the {% bw_theme_switch %} tag
@@ -206,7 +206,7 @@ Responsive: no breakpoint switch; layout is a consumer-chosen option, not a
      data-bw-theme-switch
      data-bw-theme-switch-values="{{ values_element_id }}"
      x-data="bwThemeSwitch()"
-     aria-label="{{ label }}"{{ attrs_html }}>
+     {% bw_attr "aria-label" label %}{{ attrs_html }}>
   {{ valid_values|json_script:values_element_id }}
   {% if layout == 'compact' %}
     <details class="bw-theme-switch__disclosure">

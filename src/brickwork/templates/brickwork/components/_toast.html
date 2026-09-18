@@ -1,4 +1,4 @@
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 Toast (04-interfaces section 4b, 0.9.0). PRIVATE render target of the
 {% bw_toast %} tag (templatetags/brickwork_interactions.py): never
@@ -70,7 +70,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-toast*
   {% translate "Dismiss" as bw_toast_close_label %}
   <button class="bw-toast__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
           type="button"
-          aria-label="{{ bw_toast_close_label }}"
+          {% bw_attr "aria-label" bw_toast_close_label %}
           data-bw-toast-close>
     {% bw_icon "close" size="sm" decorative=True %}
   </button>

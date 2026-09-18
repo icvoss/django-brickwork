@@ -1,4 +1,4 @@
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 Documentation version switcher (icvoss/django-brickwork#414). PRIVATE render
 target of {% bw_version_switch %}: never {% include %} this file directly; the
@@ -33,11 +33,11 @@ Responsive: no breakpoint switch; the panel uses the same menu min-width
 {% endcomment %}
 <details class="bw-version-switch{% if placement == 'end' %} bw-version-switch--end{% endif %}">
   <summary class="bw-version-switch__trigger bw-btn bw-btn--secondary bw-btn--sm"
-           aria-label="{{ summary_aria_label }}">
+           {% bw_attr "aria-label" summary_aria_label %}>
     <span class="bw-version-switch__label">{{ current_label }}</span>
     {% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-version-switch__caret" %}
   </summary>
-  <nav class="bw-version-switch__panel" aria-label="{{ landmark_label_attr }}">
+  <nav class="bw-version-switch__panel" {% bw_attr "aria-label" landmark_label_attr %}>
     {% for version in versions %}
     <a class="bw-version-switch__item{% if version.is_current %} bw-version-switch__item--current{% endif %}"
        href="{{ version.href }}"

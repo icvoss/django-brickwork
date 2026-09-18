@@ -1,5 +1,5 @@
 {% extends "brickwork/shell/base.html" %}
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 The app shell: sidebar + topbar + workspace (SHL-001/006/011). Named blocks are
 the versioned public contract (BR-BW-TPL-001). A consuming page extends this and
@@ -97,7 +97,7 @@ falls back to "sidebar" as documented.
                 class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only bw-sidebar__toggle"
                 aria-expanded="true"
                 aria-controls="bw-sidebar"
-                aria-label="{{ bw_sidebar_collapse_label }}"
+                {% bw_attr "aria-label" bw_sidebar_collapse_label %}
                 data-bw-sidebar-collapse-label="{{ bw_sidebar_collapse_label }}"
                 data-bw-sidebar-expand-label="{{ bw_sidebar_expand_label }}"
                 data-bw-sidebar-toggle>

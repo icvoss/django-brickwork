@@ -142,7 +142,7 @@ Responsive: no breakpoint switch; the panel's own horizontal scroll
         {% blocktranslate asvar bw_code_copy_error %}Copy failed{% endblocktranslate %}
         <button class="bw-code__copy bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
                 type="button"
-                aria-label="{{ bw_code_copy_label }}"
+                {% bw_attr "aria-label" bw_code_copy_label %}
                 hidden
                 data-bw-code-copy>
           {% bw_icon "copy" size="sm" decorative=True %}

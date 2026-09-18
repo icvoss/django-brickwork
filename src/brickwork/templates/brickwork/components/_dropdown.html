@@ -1,4 +1,4 @@
-{% load i18n brickwork_icons %}
+{% load i18n brickwork_icons brickwork_components %}
 {% comment %}
 Dropdown menu (04-interfaces section 4b, 0.8.0). PRIVATE render target of the
 {% bw_dropdown %} tag (templatetags/brickwork_interactions.py): never
@@ -56,13 +56,13 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
 <details class="bw-dropdown{% if placement == 'end' %} bw-dropdown--end{% endif %}"
          x-data="bwDropdown({ triggerMode: '{{ trigger_mode }}', closeOnSelect: {{ close_on_select|yesno:'true,false' }} })">
   <summary class="bw-dropdown__trigger bw-btn bw-btn--{{ trigger_variant }} bw-btn--md{% if icon_only %} bw-btn--icon-only{% endif %}"
-           {% if icon_only %}aria-label="{{ aria_label }}"{% endif %}
+           {% if icon_only %}{% bw_attr "aria-label" aria_label %}{% endif %}
            data-bw-dropdown-trigger>
     {% if trigger_icon %}{% bw_icon trigger_icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}
     {% if not icon_only %}<span class="bw-btn__label">{{ trigger_label }}</span>{% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-dropdown__caret" %}{% endif %}
   </summary>
   <nav class="bw-dropdown__panel"
-       aria-label="{% if icon_only %}{{ aria_label }}{% else %}{{ trigger_label_attr }}{% endif %}"
+       {% if icon_only %}{% bw_attr "aria-label" aria_label %}{% else %}{% bw_attr "aria-label" trigger_label_attr %}{% endif %}
        data-bw-dropdown-panel>
     {% for item in items %}
       {% if item.is_divider %}
