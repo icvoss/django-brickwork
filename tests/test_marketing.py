@@ -717,6 +717,77 @@ def test_hero_decoration_composes_with_media_placement_beside() -> None:
     assert "bw-hero__media" in html
 
 
+# --- components/_hero.html: eyebrow_marker (#659) ---------------------------
+
+
+def test_hero_eyebrow_marker_omitted_is_byte_identical_to_none() -> None:
+    # "none" is the honestly-named default and must not change markup versus
+    # a caller that never heard of the option (byte-identical acceptance).
+    with_eyebrow = _include(
+        "brickwork_marketing/components/_hero.html",
+        eyebrow="Invoicing",
+        heading="Ship faster",
+    )
+    explicit_none = _include(
+        "brickwork_marketing/components/_hero.html",
+        eyebrow="Invoicing",
+        heading="Ship faster",
+        eyebrow_marker="none",
+    )
+    assert with_eyebrow == explicit_none
+    assert "bw-hero__eyebrow--rule" not in with_eyebrow
+    assert 'class="bw-hero__eyebrow"' in with_eyebrow
+
+
+def test_hero_eyebrow_marker_rule_emits_modifier_on_the_eyebrow() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        eyebrow="Invoicing",
+        heading="Ship faster",
+        eyebrow_marker="rule",
+    )
+    assert 'class="bw-hero__eyebrow bw-hero__eyebrow--rule"' in html
+
+
+def test_hero_eyebrow_marker_rule_without_eyebrow_emits_nothing() -> None:
+    # The modifier lives on the eyebrow element; no eyebrow means no mark.
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        eyebrow_marker="rule",
+    )
+    assert "bw-hero__eyebrow" not in html
+    assert "bw-hero__eyebrow--rule" not in html
+
+
+def test_hero_eyebrow_marker_unrecognised_value_falls_back_to_default() -> None:
+    # Include-consumed: unrecognised values cannot raise (BR-BW-OPT-002).
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        eyebrow="Invoicing",
+        heading="Ship faster",
+        eyebrow_marker="dot",
+    )
+    assert "bw-hero__eyebrow--rule" not in html
+    assert 'class="bw-hero__eyebrow"' in html
+
+
+def test_hero_eyebrow_marker_composes_with_media_placement_and_decoration() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        eyebrow="Invoicing",
+        heading="Side by side",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        decoration=mark_safe("<svg viewBox='0 0 1 1'></svg>"),
+        media_placement="beside",
+        eyebrow_marker="rule",
+    )
+    assert "bw-hero--media-beside" in html
+    assert 'class="bw-hero__eyebrow bw-hero__eyebrow--rule"' in html
+    assert 'class="bw-hero__decoration" aria-hidden="true"' in html
+    assert "bw-hero__media" in html
+
+
 def test_hero_decoration_block_override_wins_over_the_decoration_context() -> None:
     html = _extend_hero(
         "{% block decoration %}<div class='bw-hero__decoration' aria-hidden='true'>"

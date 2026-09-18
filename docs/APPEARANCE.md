@@ -215,6 +215,7 @@ Status values:
 | ranked_list | N/A (compose) | Empty path uses `_empty_state`; list itself stays unframed |
 | scorecard | N/A (defaults) | Gap/padding tokens authored; `columns` stays consumer grid |
 | search | N/A (defaults) | Field chrome in topbar authored |
+| section | Adopted | Shared marketing shell/inner; `width` contained/bleed, `band` plain/tint (ADR-057 §1a, #667) |
 | skeleton | N/A (local) | `variant` text/title/row/block is the preset set |
 | slide_over | Adopted | Same recipes as modal (Beat Phase E) |
 | sparkline | N/A (keep lean) | |

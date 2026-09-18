@@ -1083,8 +1083,15 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
     "_hero": lambda value: _include(
         "brickwork_marketing/components/_hero.html",
         heading="Headline",
+        eyebrow="Overline",
         media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
-        **({"align": value} if value in {"start", "center", "end"} else {"media_placement": value}),
+        **(
+            {"align": value}
+            if value in {"start", "center", "end"}
+            else {"eyebrow_marker": value}
+            if value in {"rule", "none"}
+            else {"media_placement": value}
+        ),
     ),
     "_alert": lambda value: _tag("brickwork_components", f'{{% bw_alert "Message" variant="{value}" %}}'),
     "_account_menu": lambda value: _include(

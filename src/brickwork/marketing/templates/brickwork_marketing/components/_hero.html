@@ -40,6 +40,16 @@ Optional context:
                 is never content. Prefer this context or the decoration
                 named block; do not use media_placement="behind" for a
                 faded brand mark.
+  eyebrow_marker ("none" default | "rule", #659): optional leading accent
+                rule before the overline text. "none" (also omitted) is
+                byte-identical to before this option existed. "rule" adds
+                bw-hero__eyebrow--rule on the eyebrow <p>; the mark is
+                drawn by the component's ::before and tuned by
+                --bw-component-hero-eyebrow-marker-{inline-size,block-size,
+                color}. The colour token is independent of the eyebrow
+                text colour (which stays --bw-color-accent) so a brand
+                can paint the mark differently. Composes with
+                media_placement and with the decoration slot.
   align         ("start" | "center" | "end", default "start").
   media_placement ("below" default | "behind" | "beside" | "above",
                 ADR-057 section 1a): where the media slot sits relative to
@@ -66,11 +76,14 @@ Optional context:
                 copied this include still only edits one class to change
                 arrangement (ADR-057 section 1a's binding rule on CSS-only
                 axes). Decoration composes with every placement; it does
-                not require "behind".
+                not require "behind". eyebrow_marker likewise composes
+                with every placement and with decoration.
 
 Uses the display type role (--bw-text-heading-display-*) and the marketing
 section-rhythm token for its own block spacing. Decoration opacity and
-inset/size use --bw-component-hero-decoration-* (see DESIGN.md).
+inset/size use --bw-component-hero-decoration-* (see DESIGN.md). Eyebrow
+marker size and colour use --bw-component-hero-eyebrow-marker-* when
+eyebrow_marker="rule".
 
 Named blocks (semver-public, BR-BW-TPL-001), all empty by default, in
 document order: eyebrow, heading, lede, actions, decoration, media. Each
@@ -85,9 +98,10 @@ cannot carry, rather than adding yet another *_html kwarg per field.
 decoration follows the same safe-HTML convention as media.
 
 States: none of its own beyond the primary/secondary bw_button CTAs'
-  own states; three align states (start default, center, end) and four
-  media_placement states (below default, behind, beside, above), each a
-  CSS-only modifier class change.
+  own states; three align states (start default, center, end), four
+  media_placement states (below default, behind, beside, above), and
+  two eyebrow_marker states (none default, rule), each a CSS-only
+  modifier class change.
 Accessibility: the heading renders as the page's own <h1> (a page
   composing this include owns exactly one hero per page); with
   media_placement="behind" the copy takes the inverse foreground colour
@@ -113,7 +127,7 @@ Responsive: media_placement="below" (the default), "behind" and "above"
 {% endcomment %}
 <section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% elif media_placement == 'above' %} bw-hero--media-above{% endif %}">
   <div class="bw-hero__copy">
-    {% block eyebrow %}{% if eyebrow %}<p class="bw-hero__eyebrow">{{ eyebrow }}</p>{% endif %}{% endblock %}
+    {% block eyebrow %}{% if eyebrow %}<p class="bw-hero__eyebrow{% if eyebrow_marker == 'rule' %} bw-hero__eyebrow--rule{% endif %}">{{ eyebrow }}</p>{% endif %}{% endblock %}
     {% block heading %}{% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}{% endblock %}
     {% block lede %}{% if lede %}<p class="bw-hero__lede">{{ lede }}</p>{% endif %}{% endblock %}
     {% block actions %}
