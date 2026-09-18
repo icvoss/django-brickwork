@@ -1,0 +1,72 @@
+{% comment %}
+Case / result list (icvoss/django-brickwork#674): a ruled list of checkable
+work records (figure | name + note). Structural sibling of _feature_grid.html
+and _directory.html: hairline rows, not cards. Consumed via {% include %}
+(BR-BW-MKT structural-include doctrine).
+
+Required context: none.
+
+Optional context:
+  heading (str): the section intro heading.
+  items   (list of dicts): {result?, heading, body?, url?, aria_label?}.
+          List-shaped, so supply from context (#98): a Django template cannot
+          build a list inline. An empty (or omitted) items list renders the
+          heading alone (or nothing at all if that too is empty), never a
+          fabricated placeholder row. Absent optional fields are omitted
+          from the markup.
+  item.result (str, optional): the leading figure (a metric, year, short
+          proof value). Tabular-nums; absent means the row is heading+body
+          only.
+  item.heading (str): the entry name.
+  item.body (str, optional): the quiet note under the heading.
+  item.url (str, optional): when present the whole row renders as an
+          anchor (bw-case-list__row--link) so a case can navigate to its
+          subject, taking the marketing kit's link hover affordance (the
+          heading ink moves to accent on hover; the focus ring comes from
+          the global :focus-visible rule). Absent, the row stays a plain
+          non-interactive div, never a clickable-looking row with no
+          destination (same contract as _feature_grid.html item.url and
+          _stat.html's href).
+  item.aria_label (str, optional): overrides a linked row's accessible
+          name; omitted, the name is the row's own text content. Ignored
+          without item.url.
+
+States: none. A linked row takes the standard link hover ink shift and the
+  global :focus-visible ring; an unlinked row has no interactive state.
+Accessibility: section h2, each entry h3; a real <ul> (default markers
+  suppressed). A linked row is a real <a> wrapping the whole row, never a
+  div with a click handler. Covered by axe.spec.mjs against
+  sections-*.html after the example collapses to this include, both themes.
+Responsive: result | main columns from the first breakpoint; stacks to
+  one column below --bw-breakpoint-sm when a result is present.
+
+Layout: root carries .bw-section; content sits in .bw-section__inner
+  (ADR-057 Phase A / #667). Measure and page gutter come from the section
+  shell. See `_section.html` for the class contract and migration notes.
+{% endcomment %}
+{% if heading or items %}
+<section class="bw-section bw-case-list-section">
+  <div class="bw-section__inner">
+  {% if heading %}
+    <div class="bw-case-list-section__intro">
+      <h2 class="bw-case-list-section__heading">{{ heading }}</h2>
+    </div>
+  {% endif %}
+  {% if items %}
+    <ul class="bw-case-list">
+      {% for item in items %}
+        <li class="bw-case-list__item{% if item.result %} bw-case-list__item--result{% endif %}">
+          {% if item.url %}<a class="bw-case-list__row bw-case-list__row--link" href="{{ item.url }}"{% if item.aria_label %} aria-label="{{ item.aria_label }}"{% endif %}>{% else %}<div class="bw-case-list__row">{% endif %}
+            {% if item.result %}<span class="bw-case-list__result">{{ item.result }}</span>{% endif %}
+            <div class="bw-case-list__main">
+              {% if item.heading %}<h3 class="bw-case-list__heading">{{ item.heading }}</h3>{% endif %}
+              {% if item.body %}<p class="bw-case-list__body">{{ item.body }}</p>{% endif %}
+            </div>
+          {% if item.url %}</a>{% else %}</div>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  </div>
+</section>
+{% endif %}

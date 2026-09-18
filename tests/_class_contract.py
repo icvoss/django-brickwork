@@ -114,6 +114,7 @@ UNSTYLED_BY_DESIGN: set[str] = {
     # test_examples.py precedent for *-section wrappers, same reasoning
     # applied to the marketing sub-app's own section roots).
     "bw-feature-grid-section",
+    "bw-case-list-section",
     "bw-pricing-table-section",
     "bw-stat-band-section",
     "bw-faq-section",

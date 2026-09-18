@@ -861,6 +861,23 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             {"heading": "django-icv-core", "body": "Shared helpers."},
         ],
     ),
+    "_case_list (marketing: ruled result rows)": lambda: _include(
+        "brickwork_marketing/components/_case_list.html",
+        heading="Selected work",
+        items=[
+            {
+                "result": "3.2x",
+                "heading": "Receivables cycle",
+                "body": "Median days-to-cash after the chase sequence shipped.",
+                "url": "/work/receivables/",
+                "aria_label": "Read the receivables case study",
+            },
+            {
+                "heading": "Bank feed adoption",
+                "body": "Share of active accounts with a live connection.",
+            },
+        ],
+    ),
     "_methods (marketing: quiet columns)": lambda: _include(
         "brickwork_marketing/components/_methods.html",
         heading="Methods",

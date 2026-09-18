@@ -1689,6 +1689,24 @@ _SECTION_FEATURE_LIST_ITEMS = [
     "VAT returns prepared and filed",
     "Export to CSV, or the API if you would rather",
 ]
+_SECTION_CASE_LIST_ITEMS = [
+    {
+        "result": "3.2x",
+        "heading": "Receivables cycle",
+        "body": "Median days-to-cash after the chase sequence shipped.",
+        "url": "/work/receivables/",
+    },
+    {
+        "result": "14 days",
+        "heading": "Onboarding",
+        "body": "Time from signup to first reconciled month.",
+    },
+    {
+        "heading": "Bank feed adoption",
+        "body": "Share of active accounts with a live Open Banking connection.",
+        "url": "/work/bank-feeds/",
+    },
+]
 _SECTION_DIRECTORY_ITEMS = [
     {
         "number": "01",
@@ -1853,6 +1871,7 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/features/alternating-rows.html": {"feature_rows": _SECTION_FEATURE_ROWS},
     "sections/features/icon-grid.html": {"features": _SECTION_FEATURES},
     "sections/features/simple-list.html": {"feature_list_items": _SECTION_FEATURE_LIST_ITEMS},
+    "sections/case-list/ruled.html": {"case_list_items": _SECTION_CASE_LIST_ITEMS},
     "sections/directory/numbered.html": {"directory_items": _SECTION_DIRECTORY_ITEMS},
     "sections/methods/quiet-columns.html": {"method_items": _SECTION_METHOD_ITEMS},
     "sections/hero/centred.html": {},
@@ -2066,6 +2085,7 @@ def test_every_section_class_it_emits_is_actually_styled(name: str) -> None:
         "bw-btn__label",
         "bw-feature-grid-section",
         "bw-feature-list-section",
+        "bw-case-list-section",
         "bw-content-section",
         # Shared by all three listing variants, which have no layout in common:
         # every rule lives on __intro/__heading/__lede and the per-variant roots.

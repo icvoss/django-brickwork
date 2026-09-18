@@ -124,6 +124,7 @@ or first-class include does **not** count.
 |---|---|
 | Hero | `_hero.html` `media_placement="below"` (default), `"behind"`, `"beside"`, `"above"`; `eyebrow_tone` accent/sentence; `media_shape` default/circle (#672) |
 | Features | `_feature_grid.html` (icon grid); `_feature_rows.html` (alternating); `_feature_list.html` (checklist) |
+| Case / result list | `_case_list.html` (ruled figure | name + note rows; optional whole-row link) |
 | Methods | `_methods.html` (quiet columns; underline text link, no card chrome) |
 | Directory | `_directory.html` (numbered index with optional mark, linked title, description and meta column) |
 | CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` |
@@ -173,6 +174,7 @@ Status values:
 | button_group | Adopted | `variant` segmented/attached; `size` |
 | callout | Adopted | `variant` closed set |
 | card | Adopted | Full grammar (Phase 1 pilot); locked |
+| case_list | N/A (local) | Ruled figure / name / note rows (#674); optional whole-row link; not a feature-grid variant |
 | chart_card | N/A (compose) | Extends `_card.html`; appearance axes stay on card |
 | chart_data_table | N/A (defaults) | Header chrome shares data_table tokens |
 | chip | Adopted | `variant`, `size` |
