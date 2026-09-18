@@ -16,6 +16,13 @@ Optional context:
           trend_label is a template-authoring defect in the same class as
           bw_button's icon-only/aria_label pairing (_stat.html enforces
           this at its own render, not duplicated here).
+  align   ("center" default | "start", #673): band alignment. Omitted (or
+          "center") keeps the centred KPI-dashboard layout and is
+          byte-identical to the pre-axis output. "start" is the airy
+          proof-band layout: heading and tiles align to the inline start
+          (bw-stat-band-section--align-start). Any other value falls back
+          to the default. CSS-only: only the section root class list
+          changes.
 
 An empty (or omitted) stats list renders the heading alone (or nothing, if
 that too is empty).
@@ -35,15 +42,17 @@ Accessibility: the section heading is an <h2>; each tile's own trend
   accessibility (decorative glyph plus visually-hidden direction text)
   passes through unchanged from _stat.html. Covered by axe.spec.mjs
   against landing-*.html and about-*.html (both compose it) and
-  sections-*.html (stats/inline-band.html), both themes.
+  sections-*.html (stats/inline-band.html, stats/start-aligned.html),
+  both themes.
 Responsive: no named breakpoint. grid-template-columns is
   repeat(auto-fit, minmax(min(16rem, 100%), 1fr)): the tile count per row
   grows and shrinks continuously with the container width rather than
-  stepping at fixed breakpoints, centred (justify-items: center) and
-  capped at 20rem per tile.
+  stepping at fixed breakpoints. Default align="center" centres tiles
+  (justify-items: center) and caps each at 20rem; align="start" pins
+  them to the inline start instead.
 {% endcomment %}
 {% if heading or stats %}
-<section class="bw-stat-band-section">
+<section class="bw-stat-band-section{% if align == 'start' %} bw-stat-band-section--align-start{% endif %}">
   {% if heading %}<h2 class="bw-stat-band-section__heading">{{ heading }}</h2>{% endif %}
   {% if stats %}
     <div class="bw-stat-band">
