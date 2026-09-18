@@ -1,4 +1,4 @@
-{% load brickwork_icons %}{% spaceless %}
+{% load brickwork_icons brickwork_components %}{% spaceless %}
 {% comment %}
 Button or link-button. icon_only renders the icon alone with the aria_label as
 its accessible name (enforced non-empty by bw_button, ICO-008). loading mounts
@@ -55,21 +55,21 @@ navigated. The span carries the identical classes so the visual appearance is
 unchanged, and aria-disabled keeps the state announced.
 {% endcomment %}
 <span class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %} bw-btn--disabled"
-      {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+      {% bw_attr "aria-label" aria_label %}
       aria-disabled="true">
   {% partial btn_inner %}
 </span>
 {% else %}
 <a class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}"
    href="{{ href }}"
-   {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+   {% bw_attr "aria-label" aria_label %}>
   {% partial btn_inner %}
 </a>
 {% endif %}
 {% else %}
 <button class="bw-btn bw-btn--{{ variant }} bw-btn--{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}"
         type="{{ type }}"{% if name %} name="{{ name }}"{% endif %}{% if value %} value="{{ value }}"{% endif %}
-        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+        {% bw_attr "aria-label" aria_label %}
         {% if disabled %}disabled{% endif %}
         {% if loading %}aria-busy="true" disabled{% endif %}>
   {% partial btn_inner %}

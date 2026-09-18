@@ -33,7 +33,6 @@ from django.utils.translation import gettext
 
 from brickwork.templatetags.brickwork_components import (
     _DATA_ATTRIBUTE_NAME_RE,
-    escape_attribute_value,
     normalise_accessible_name,
 )
 
@@ -229,37 +228,21 @@ def bw_dropdown(
         raise TemplateSyntaxError(
             f"bw_dropdown trigger_mode must be one of {sorted(_TRIGGER_MODES)}, got {trigger_mode!r}"
         )
-    # aria_label is rendered ONLY into attribute position by _dropdown.html
-    # (the <summary> trigger's aria-label when icon_only, and the <nav>
-    # panel landmark's aria-label otherwise), never into text, so it takes
-    # escape_attribute_value (unconditional escape), not
-    # normalise_accessible_name (conditional_escape, which honours a
-    # SafeString's __html__ marker and is correct only for text position).
+    # aria_label is attribute-only in _dropdown.html (summary when icon_only,
+    # and the <nav> landmark otherwise). trigger_label is DUAL-position:
+    # visible <span> text AND, when not icon_only, the <nav> landmark
+    # aria-label. One escaping discipline cannot serve both, so the tag
+    # ships trigger_label (normalise_accessible_name, for text) and a
+    # separate attribute-only copy built from the RAW parameter. Escaping
+    # for attribute position is ``{% bw_attr %}`` in the template (ADR-097
+    # / #390), not escape_attribute_value here: pre-escaping would
+    # double-encode once the seam also escapes (icvoss/django-brickwork#349).
     #
-    # trigger_label is DUAL-position: _dropdown.html renders the same
-    # consumer value into the visible trigger <span class="bw-btn__label">
-    # (text) AND, on the <nav> panel landmark's aria-label, into an
-    # attribute: that landmark's aria-label falls back to trigger_label
-    # specifically because it has no aria_label of its own to use when the
-    # trigger is not icon_only, which is the entire reason trigger_label
-    # reaches attribute position at all. One escaping discipline cannot
-    # serve both positions, so the tag ships trigger_label (conditionally
-    # escaped, for text) and a second, attribute-only variable escaped
-    # separately for the <nav> site, rather than re-escaping trigger_label
-    # at the template boundary: a template-level {% filter force_escape %}
-    # would need to know, at the call site, which context variable is
-    # attribute-bound, which is exactly the kind of position-blind mistake
-    # #349 was (icvoss/django-brickwork#349).
-    #
-    # Computed from the RAW trigger_label parameter, before
-    # normalise_accessible_name runs on it below: normalise_accessible_name
-    # already conditionally escapes and re-wraps its result in mark_safe, so
-    # feeding THAT result into escape_attribute_value's unconditional
-    # escape() would escape an already-escaped entity a second time (the
-    # same double-escape trap normalise_accessible_name's own docstring
-    # describes, hit here from the opposite direction).
-    aria_label_attr = escape_attribute_value(aria_label)
-    trigger_label_attr = escape_attribute_value(trigger_label)
+    # Attribute copies are computed from the RAW parameters before
+    # normalise_accessible_name runs: that helper conditionally escapes and
+    # mark_safes, so feeding its result into bw_attr would escape again.
+    aria_label_attr = "" if aria_label is None else str(aria_label).strip()
+    trigger_label_attr = "" if trigger_label is None else str(trigger_label).strip()
 
     # Stripped before testing, not merely truthiness-tested: a whitespace-only
     # accessible name is truthy in Python and is not a name to any screen
@@ -269,11 +252,6 @@ def bw_dropdown(
     # value and preserves an already-safe one without double-escaping it
     # (icvoss/django-brickwork#330).
     trigger_label = normalise_accessible_name(trigger_label)
-    # aria_label_attr, not a fresh normalise_accessible_name(aria_label)
-    # call, decides blankness here: escape_attribute_value strips exactly as
-    # normalise_accessible_name does (escape() never touches whitespace), so
-    # the value already computed above is a faithful blankness check without
-    # invoking a second, differently-escaping helper on the same input.
     if icon_only and not aria_label_attr:
         raise TemplateSyntaxError(
             "bw_dropdown icon_only=True requires aria_label= (an icon-only trigger "

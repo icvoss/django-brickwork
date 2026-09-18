@@ -1,3 +1,4 @@
+{% load brickwork_components %}
 {% comment %}
 Ranked list (icvoss/django-brickwork#183): an ordered <ol> of label/value
 rows, each paired with a proportional decorative bar (a leaderboard or a
@@ -54,7 +55,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   <span class="bw-ranked-list__secondary">{{ secondary_caption }}</span>
 </div>
 {% endif %}
-<ol class="bw-ranked-list{% if has_secondary %} bw-ranked-list--with-secondary{% endif %}"{% if label %} aria-label="{{ label }}"{% endif %}{{ attrs_html }}>
+<ol class="bw-ranked-list{% if has_secondary %} bw-ranked-list--with-secondary{% endif %}"{% if label %} {% bw_attr "aria-label" label %}{% endif %}{{ attrs_html }}>
   {% if loading %}
     {% for _ in "xxx" %}
       <li class="bw-ranked-list__row" aria-hidden="true">

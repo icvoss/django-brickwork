@@ -260,7 +260,7 @@ def test_button_plain_special_characters_in_aria_label_are_escaped_exactly_once_
 def test_button_whitespace_only_aria_label_on_non_icon_only_path_omits_attribute() -> None:
     # #330 "ALSO" behaviour change: aria_label is optional (not hard-required)
     # when icon_only is not set, so a whitespace-only value strips to "" and
-    # _button.html's {% if aria_label %} then omits the attribute entirely,
+    # {% bw_attr "aria-label" aria_label %} omits the attribute entirely,
     # rather than raising or emitting the stale unstripped value. The button
     # still carries its own visible label, so it is not left unnamed.
     out = _render('{% bw_button "Save" aria_label="   " %}')

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n brickwork_components %}
 {% comment %}
 Gauge (VIZ-007 to VIZ-010): a circular progress ring reading one quantity
 against a fixed min/max. Consumed via the {% bw_gauge %} tag, never a plain
@@ -85,7 +85,7 @@ Responsive: no breakpoint switch; size is the fixed sm/md/lg token scale
   size modifier) changes.
 {% endcomment %}
 <div class="bw-gauge bw-gauge--{{ size }}"{{ attrs_html }}>
-  <svg class="bw-gauge__svg" viewBox="0 0 100 100" role="img"{% if label %} aria-label="{{ label }}"{% endif %}>
+  <svg class="bw-gauge__svg" viewBox="0 0 100 100" role="img"{% if label %} {% bw_attr "aria-label" label %}{% endif %}>
     <circle class="bw-gauge__track" cx="50" cy="50" r="{{ radius }}" aria-hidden="true"></circle>
     <circle
       class="bw-gauge__arc bw-gauge__arc--{{ threshold_token }}"

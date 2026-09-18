@@ -502,15 +502,14 @@ def bw_button(
     # screen reader (the same accepted cost bw_chart_mount's own aria_label
     # documents in this file, under icvoss/django-brickwork#351).
     #
-    # escape_attribute_value, not normalise_accessible_name: aria_label is
-    # rendered ONLY into an aria-label ATTRIBUTE by _button.html (three
-    # sites), never into text position, so it must be unconditionally
-    # escaped rather than conditionally escaped. normalise_accessible_name's
-    # conditional_escape honours a SafeString's __html__ marker, which is
-    # correct for text position and is exactly how a mark_safe'd aria_label
-    # closed the attribute and landed a live event handler
-    # (icvoss/django-brickwork#349).
-    aria_label = escape_attribute_value(aria_label)
+    # Strip only here; ``_button.html`` routes the value through
+    # ``{% bw_attr "aria-label" aria_label %}`` (ADR-097), which escapes
+    # unconditionally for attribute position. Do not pre-escape: a second
+    # escape in the tag would double-encode entities (icvoss/django-brickwork#349
+    # / #390). Never ``normalise_accessible_name``: its conditional_escape
+    # honours ``__html__``, which is correct for text position and is how a
+    # mark_safe'd aria_label closed the attribute before the seam.
+    aria_label = "" if aria_label is None else str(aria_label).strip()
     if icon_only and not aria_label:
         raise TemplateSyntaxError(
             "bw_button icon_only=True requires aria_label= (an icon-only button "
@@ -751,16 +750,19 @@ def bw_version_switch(
         )
 
     landmark = normalise_accessible_name(label) or gettext("Documentation version")
-    # Summary aria-label is attribute-only and combines landmark + current
-    # label; escape the finished string once for attribute position rather
-    # than concatenating a pre-escaped landmark with a text-escaped current
-    # in the template (the dual-position trap #349 documents for dropdown).
-    summary_aria = escape_attribute_value(f"{force_str(landmark)}: {force_str(current_label)}")
+    # Attribute-position landmark and summary are built from the RAW label
+    # (or the same gettext default), then escaped once by
+    # ``{% bw_attr %}`` in ``_version_switch.html`` (ADR-097). Do not escape
+    # here, and do not reuse the text-normalised ``landmark``: that value
+    # may already be conditionally escaped, and a second escape would
+    # double-encode (the dual-position trap #349 documents for dropdown).
+    landmark_attr = ("" if label is None else str(label).strip()) or gettext("Documentation version")
+    summary_aria = f"{landmark_attr}: {force_str(current_label)}"
     return {
         "versions": shaped,
         "current_label": current_label,
         "landmark_label": landmark,
-        "landmark_label_attr": escape_attribute_value(landmark),
+        "landmark_label_attr": landmark_attr,
         "summary_aria_label": summary_aria,
         "placement": placement,
     }
@@ -1619,21 +1621,12 @@ def bw_gauge(
     percent_float = float(percent)
     dash_offset = _GAUGE_CIRCUMFERENCE * (1 - percent_float / 100)
 
-    # ATTRIBUTE position (icvoss/django-brickwork#339): _gauge.html renders
-    # this INSIDE the quotes, as aria-label="{{ label }}", with no template
-    # filter, so a mark_safe'd label reached that attribute unescaped and
-    # closed the quote (the #349 defect class this file's escape_attribute_
-    # value already exists for). This is computed from the RAW label
-    # parameter, never from a conditional_escape/normalise_accessible_name
-    # result, because feeding an already-escaped SafeString into a second
-    # unconditional escape() would double-escape it. escape_attribute_value,
-    # not normalise_accessible_name: that helper's conditional_escape
-    # honours a SafeString's __html__ marker, which is correct for TEXT
-    # position (_toggle.html's own `{{ label }}`) but is exactly how a
-    # mark_safe'd label closed this attribute in the first place. Stripped,
-    # not merely truthy, so a whitespace-only label renders no aria-label at
-    # all, matching bw_chart_mount's own aria_label precedent.
-    label = escape_attribute_value(label)
+    # ATTRIBUTE position (icvoss/django-brickwork#339 / ADR-097): strip for
+    # blankness here; ``_gauge.html`` emits via ``{% bw_attr "aria-label" label %}``,
+    # which escapes unconditionally. Do not pre-escape (double-encode) and do
+    # not use normalise_accessible_name (honours __html__). Whitespace-only
+    # becomes "", so bw_attr omits the attribute.
+    label = "" if label is None else str(label).strip()
 
     return {
         "label": label,
@@ -2307,20 +2300,11 @@ def bw_ranked_list(
             _shape_ranked_list_row(raw, amount=amount, denominator=denominator)
             for raw, amount in zip(rows, amounts, strict=True)
         ]
-    # ATTRIBUTE position (icvoss/django-brickwork#339): _ranked_list.html
-    # renders this INSIDE the quotes, as aria-label="{{ label }}", with no
-    # template filter, so a mark_safe'd label reached that attribute
-    # unescaped and closed the quote (the #349 defect class this file's
-    # escape_attribute_value already exists for). Computed from the RAW
-    # label parameter, never from a conditional_escape/normalise_accessible_
-    # name result, which would double-escape. Unlike row.label below (TEXT
-    # position inside the <ol>, correctly left raw for the template's own
-    # auto-escaping to handle), this list-level label is an accessible name
-    # rendered only into an attribute, so it takes escape_attribute_value's
-    # unconditional escape() rather than the row values' ordinary escaping.
-    # Stripped, not merely truthy, so a whitespace-only label renders no
-    # aria-label at all, matching bw_chart_mount's own aria_label precedent.
-    label = escape_attribute_value(label)
+    # ATTRIBUTE position (icvoss/django-brickwork#339 / ADR-097): strip for
+    # blankness here; ``_ranked_list.html`` emits via
+    # ``{% bw_attr "aria-label" label %}``. Unlike row.label (TEXT inside the
+    # <ol>), the list-level label is attribute-only. Do not pre-escape.
+    label = "" if label is None else str(label).strip()
     # caption / secondary_caption land in TEXT position; strip decides
     # presence, the original string is what renders (so a mark_safe value is
     # not silently re-escaped by stripping into a plain str).

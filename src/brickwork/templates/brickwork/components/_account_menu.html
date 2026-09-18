@@ -58,7 +58,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
     <span class="bw-account-menu__trigger-label">{{ bw_account_menu_label }}</span>
     {% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-account-menu__caret" %}
   </summary>
-  <nav class="bw-account-menu__panel" aria-label="{{ bw_account_menu_label }}">
+  <nav class="bw-account-menu__panel" {% bw_attr "aria-label" bw_account_menu_label %}>
     {% for item in items %}
       {% if item.method == "post" %}
         <form method="post" {% bw_attr "action" item.url %} class="bw-account-menu__item-form">

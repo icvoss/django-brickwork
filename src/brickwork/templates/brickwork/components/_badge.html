@@ -1,4 +1,4 @@
-{% load i18n brickwork_icons %}{% spaceless %}
+{% load i18n brickwork_icons brickwork_components %}{% spaceless %}
 {% comment %}
 A small status/label badge (neutral information only, never error comms, STA-008).
 An optional leading icon is decorative by default (ICO-009): the badge text
@@ -37,6 +37,6 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
 <span class="bw-badge bw-badge--{{ variant }}"{% if dismissible %} x-data="bwDismissible()"{% endif %}>
   {% if icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-badge__icon" %}{% endif %}
   {{ label }}
-{% if dismissible %}{% translate "Dismiss" as bw_badge_close_label %}  <button class="bw-badge__close" type="button" hidden aria-label="{{ bw_badge_close_label }}" data-bw-dismiss>{% bw_icon "close" size="sm" decorative=True %}</button>
+{% if dismissible %}{% translate "Dismiss" as bw_badge_close_label %}  <button class="bw-badge__close" type="button" hidden {% bw_attr "aria-label" bw_badge_close_label %} data-bw-dismiss>{% bw_icon "close" size="sm" decorative=True %}</button>
 {% endif %}</span>
 {% endspaceless %}
