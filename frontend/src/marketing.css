@@ -2940,3 +2940,103 @@
     text-align: end;
   }
 }
+
+/* --- Case / result list (#674): ruled work records, not cards -------------
+ * Figure | name + note, hairline rows. Sibling of directory (ruled index)
+ * and feature grid (cards): this is the checkable case list personal and
+ * consulting presence pages need under a figures band.
+ */
+
+.bw-case-list-section__intro {
+  max-inline-size: var(--bw-size-max-width-prose);
+  margin-block-end: var(--bw-space-6);
+}
+
+.bw-case-list-section__heading {
+  margin: 0;
+  font-family: var(--bw-text-heading-section-family);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
+}
+
+.bw-case-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bw-case-list__item {
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+.bw-case-list__item:first-child {
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+/* The row is the interactive unit when linked: one tab stop, content keeps
+ * its own ink, focus ring from the global :focus-visible rule. */
+.bw-case-list__row {
+  display: grid;
+  gap: var(--bw-space-2);
+  align-items: start;
+  padding-block: var(--bw-space-5);
+  color: inherit;
+  text-decoration: none;
+}
+
+.bw-case-list__item--result > .bw-case-list__row {
+  gap: var(--bw-space-4);
+}
+
+@media (width >= --theme(--breakpoint-sm)) {
+  .bw-case-list__item--result > .bw-case-list__row {
+    grid-template-columns: minmax(4.5rem, 7rem) 1fr;
+    column-gap: var(--bw-space-6);
+    align-items: baseline;
+  }
+}
+
+.bw-case-list__result {
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+  font-variant-numeric: tabular-nums;
+  color: var(--bw-color-fg);
+}
+
+.bw-case-list__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
+  min-inline-size: 0;
+}
+
+.bw-case-list__heading {
+  margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+
+.bw-case-list__row--link .bw-case-list__heading {
+  transition: var(--bw-transition-colors);
+}
+
+.bw-case-list__row--link:hover .bw-case-list__heading,
+.bw-case-list__row--link:focus-visible .bw-case-list__heading {
+  color: var(--bw-color-accent);
+}
+
+.bw-case-list__body {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+  text-wrap: pretty;
+}

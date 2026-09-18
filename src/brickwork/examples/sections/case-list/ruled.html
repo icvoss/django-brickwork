@@ -1,0 +1,30 @@
+{% comment %}
+CASE LIST / ruled: a checkable work record (figure | name + note),
+hairline rows, not feature cards.
+
+WHEN TO USE THIS INSTEAD OF FEATURE GRID OR DIRECTORY. Feature grid is
+SaaS feature tiles. Directory is a numbered package / docs index with a
+meta column. This is selected-work proof under a figures band: short
+results with a name and a quiet note, optionally linked as a whole row.
+
+WHAT YOUR VIEW MUST SUPPLY. Pass case_list_items as items (list of dicts):
+
+    case_list_items = [
+        {
+            "result": "3.2x",
+            "heading": "Receivables cycle",
+            "body": "Median days-to-cash after the chase sequence shipped.",
+            "url": "/work/receivables/",
+        },
+        ...
+    ]
+
+`result`, `body`, `url` and `aria_label` are each optional per item. Omit
+a field and it does not render. Without `url` the row stays non-interactive.
+
+States: see _case_list.html.
+Accessibility: see _case_list.html; covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: see _case_list.html.
+{% endcomment %}
+{% include "brickwork_marketing/components/_case_list.html" with heading="Selected work" items=case_list_items %}

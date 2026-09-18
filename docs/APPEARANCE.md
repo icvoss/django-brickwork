@@ -124,6 +124,7 @@ or first-class include does **not** count.
 |---|---|
 | Hero | `_hero.html` `media_placement="below"` (default), `"behind"`, `"beside"`, `"above"` |
 | Features | `_feature_grid.html` (icon grid); `_feature_rows.html` (alternating); `_feature_list.html` (checklist) |
+| Case / result list | `_case_list.html` (ruled figure | name + note rows; optional whole-row link) |
 | Directory | `_directory.html` (numbered index with optional mark, linked title, description and meta column) |
 | CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` |
 | Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_comparison_table.html` (marketing `_pricing_comparison.html` wrapper) |
