@@ -136,6 +136,12 @@ Still explicitly deferred (do not silent-ship):
 - Beat residuals #570 / #571 (soft-stage / product-shot)
 - #493 / #494 (DRF theme API / DB nav)
 
+The versioned interaction surfaces (Alpine.data names, `bw:` events, and
+package-owned HTMX target IDs) are declared in the generated
+`interaction-manifest.json` sibling beside `token-manifest.json` and
+`template-manifest.json` (icvoss/django-brickwork#229). Catalogue taxonomy
+remains a separate descriptive manifest, not a BR-BW-VER-001 surface.
+
 This document is the source of truth for the intended coverage. The current
 component inventory and examples remain the source of truth for what ships in
 any released version. [ROADMAP.md](ROADMAP.md) is the active delivery plan.
