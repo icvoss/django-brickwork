@@ -557,8 +557,8 @@ def test_only_one_module_defines_the_seam_grammar() -> None:
 
     import brickwork
 
-    _RE_OPS = frozenset({"compile", "match", "fullmatch", "search"})
-    _SEAM_MARKER = "data-[a-z]"
+    re_ops = frozenset({"compile", "match", "fullmatch", "search"})
+    seam_marker = "data-[a-z]"
 
     def _pattern_literal(call: ast.Call) -> str | None:
         if not call.args:
@@ -574,7 +574,7 @@ def test_only_one_module_defines_the_seam_grammar() -> None:
             isinstance(func, ast.Attribute)
             and isinstance(func.value, ast.Name)
             and func.value.id == "re"
-            and func.attr in _RE_OPS
+            and func.attr in re_ops
         )
 
     pkg = pathlib.Path(brickwork.__file__).parent
@@ -586,7 +586,7 @@ def test_only_one_module_defines_the_seam_grammar() -> None:
         for node in ast.walk(tree):
             if isinstance(node, ast.Call) and _is_re_op(node):
                 pattern = _pattern_literal(node)
-                if pattern is not None and _SEAM_MARKER in pattern:
+                if pattern is not None and seam_marker in pattern:
                     sites.append(f"{path.relative_to(pkg)}:{node.lineno}")
 
     assert len(sites) == 1 and sites[0].startswith("templatetags/brickwork_components.py:"), (
