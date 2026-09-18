@@ -1090,6 +1090,10 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
             if value in {"start", "center", "end"}
             else {"eyebrow_marker": value}
             if value in {"rule", "none"}
+            else {"eyebrow_tone": value}
+            if value in {"accent", "sentence"}
+            else {"media_shape": value}
+            if value in {"default", "circle"}
             else {"media_placement": value}
         ),
     ),

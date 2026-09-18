@@ -12,6 +12,9 @@ Optional context:
   eyebrow       (str): a small overline above the heading.
   heading       (str): the display headline. Rendered as the page's h1: a
                 page composing this include owns exactly one hero per page.
+  subheading    (str, #672): optional positioning line between heading and
+                lede. Visually stronger than the lede (fg ink, heading-lg
+                role). Omitted is byte-identical to before this slot existed.
   lede          (str): the subhead paragraph.
   primary_cta   ({label, url}): rendered via {% bw_button %} primary.
   primary_cta_label / primary_cta_href (str, #98): the same primary CTA as
@@ -27,6 +30,15 @@ Optional context:
   secondary_cta ({label, url}): rendered via {% bw_button %} secondary.
   secondary_cta_label / secondary_cta_href (str, #98): the flat form of
                 secondary_cta, same precedence.
+  meta          (str or safe HTML, #672): quiet status / year line under the
+                actions row. Omitted (and no meta_items) renders nothing and
+                is byte-identical to before this slot existed. The caller
+                owns escaping when passing HTML (mark it safe at the call
+                site), matching media/decoration. When both meta and
+                meta_items are supplied, meta wins outright.
+  meta_items    (list of str, #672): structured meta facts rendered with a
+                middle-dot separator (article_meta convention). Used only
+                when meta is absent. Empty list / omitted renders nothing.
   media         (safe string): pre-rendered HTML for an image/illustration
                 slot. Omitted renders a text-only hero, never a broken image
                 box. The caller owns escaping (mark it safe at the call
@@ -47,10 +59,20 @@ Optional context:
                 drawn by the component's ::before and tuned by
                 --bw-component-hero-eyebrow-marker-{inline-size,block-size,
                 color}. The colour token is independent of the eyebrow
-                text colour (which stays --bw-color-accent) so a brand
-                can paint the mark differently. Composes with
-                media_placement and with the decoration slot.
+                text colour (which stays --bw-color-accent under the
+                default tone) so a brand can paint the mark differently.
+                Composes with media_placement, decoration, and eyebrow_tone.
+  eyebrow_tone  ("accent" default | "sentence", #672): overline voice.
+                "accent" (also omitted) is the shipped uppercase accent
+                overline and is byte-identical for existing callers.
+                "sentence" emits bw-hero__eyebrow--sentence: muted ink,
+                sentence case (no text-transform), for personal-presence
+                kickers. Explicit option only; never inferred from copy.
+                Composes with eyebrow_marker.
   align         ("start" | "center" | "end", default "start").
+                align="start" left-aligns .bw-hero__actions;
+                align="end" right-aligns them; align="center" centres
+                them (#672).
   media_placement ("below" default | "behind" | "beside" | "above",
                 ADR-057 section 1a): where the media slot sits relative to
                 the copy. "below" is the shipped 2.0.0 layout (a column
@@ -76,32 +98,44 @@ Optional context:
                 copied this include still only edits one class to change
                 arrangement (ADR-057 section 1a's binding rule on CSS-only
                 axes). Decoration composes with every placement; it does
-                not require "behind". eyebrow_marker likewise composes
-                with every placement and with decoration.
+                not require "behind". eyebrow_marker / eyebrow_tone /
+                media_shape likewise compose with every placement and with
+                decoration.
+  media_shape   ("default" default | "circle", #672): framing of media
+                images. "default" (also omitted) keeps the shipped radius
+                and is byte-identical. "circle" emits bw-hero--media-circle:
+                square crop, full radius, object-fit cover, sized by
+                --bw-component-hero-media-circle-size, so a circular
+                portrait works under media_placement="beside" without a
+                consumer override. Applies to img only (same SVG carve-out
+                as the default media radius).
 
 Uses the display type role (--bw-text-heading-display-*) and the marketing
 section-rhythm token for its own block spacing. Decoration opacity and
 inset/size use --bw-component-hero-decoration-* (see DESIGN.md). Eyebrow
 marker size and colour use --bw-component-hero-eyebrow-marker-* when
-eyebrow_marker="rule".
+eyebrow_marker="rule". Circle media size uses
+--bw-component-hero-media-circle-size when media_shape="circle".
 
 Named blocks (semver-public, BR-BW-TPL-001), all empty by default, in
-document order: eyebrow, heading, lede, actions, decoration, media. Each
-wraps the existing conditional rendering above, so a call site supplying
-only the flat context variables (the pre-existing path) renders
-byte-identical output to before these blocks existed. These blocks exist
-because BR-BW-OPT-004 forbids a proliferating set of prose kwargs with no
-data object behind them: eyebrow/heading/lede are exactly that shape, so
-the slot is the escape hatch for a caller with structured copy (a
-translated mark, a rich lede with an inline link) that a flat string
+document order: eyebrow, heading, subheading, lede, actions, meta,
+decoration, media. Each wraps the existing conditional rendering above,
+so a call site supplying only the flat context variables (the
+pre-existing path) renders byte-identical output to before these blocks
+existed (new optional slots omitted). These blocks exist because
+BR-BW-OPT-004 forbids a proliferating set of prose kwargs with no data
+object behind them: eyebrow/heading/subheading/lede are exactly that
+shape, so the slot is the escape hatch for a caller with structured copy
+(a translated mark, a rich lede with an inline link) that a flat string
 cannot carry, rather than adding yet another *_html kwarg per field.
-decoration follows the same safe-HTML convention as media.
+decoration and meta follow the same safe-HTML convention as media.
 
 States: none of its own beyond the primary/secondary bw_button CTAs'
   own states; three align states (start default, center, end), four
-  media_placement states (below default, behind, beside, above), and
-  two eyebrow_marker states (none default, rule), each a CSS-only
-  modifier class change.
+  media_placement states (below default, behind, beside, above), two
+  eyebrow_marker states (none default, rule), two eyebrow_tone states
+  (accent default, sentence), and two media_shape states (default,
+  circle), each a CSS-only modifier class change where applicable.
 Accessibility: the heading renders as the page's own <h1> (a page
   composing this include owns exactly one hero per page); with
   media_placement="behind" the copy takes the inverse foreground colour
@@ -111,8 +145,9 @@ Accessibility: the heading renders as the page's own <h1> (a page
   inline above the CSS). Reading and tab order stay copy-then-media for
   every placement, including "above", because the axis is CSS-only.
   decoration is aria-hidden="true" and pointer-events:none so it never
-  enters the accessibility tree or steals hits. Covered by axe.spec.mjs
-  against landing-*.html/pricing-*.html/about-*.html (the
+  enters the accessibility tree or steals hits. Meta separators are
+  aria-hidden. Covered by axe.spec.mjs against
+  landing-*.html/pricing-*.html/about-*.html (the
   align="start"/"center" shapes) and directly by hero-placement-*.html,
   which exercises every media_placement value including a dedicated
   WCAG 1.4.3 composited-contrast measurement over both pale and dark
@@ -125,10 +160,11 @@ Responsive: media_placement="below" (the default), "behind" and "above"
   upward it becomes a true two-column grid (1fr 1fr), media vertically
   centred against the copy.
 {% endcomment %}
-<section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% elif media_placement == 'above' %} bw-hero--media-above{% endif %}">
+<section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% elif media_placement == 'above' %} bw-hero--media-above{% endif %}{% if media_shape == 'circle' %} bw-hero--media-circle{% endif %}">
   <div class="bw-hero__copy">
-    {% block eyebrow %}{% if eyebrow %}<p class="bw-hero__eyebrow{% if eyebrow_marker == 'rule' %} bw-hero__eyebrow--rule{% endif %}">{{ eyebrow }}</p>{% endif %}{% endblock %}
+    {% block eyebrow %}{% if eyebrow %}<p class="bw-hero__eyebrow{% if eyebrow_marker == 'rule' %} bw-hero__eyebrow--rule{% endif %}{% if eyebrow_tone == 'sentence' %} bw-hero__eyebrow--sentence{% endif %}">{{ eyebrow }}</p>{% endif %}{% endblock %}
     {% block heading %}{% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}{% endblock %}
+    {% block subheading %}{% if subheading %}<p class="bw-hero__subheading">{{ subheading }}</p>{% endif %}{% endblock %}
     {% block lede %}{% if lede %}<p class="bw-hero__lede">{{ lede }}</p>{% endif %}{% endblock %}
     {% block actions %}
     {% if primary_cta or secondary_cta or primary_cta_label or secondary_cta_label %}
@@ -136,6 +172,18 @@ Responsive: media_placement="below" (the default), "behind" and "above"
         {% if primary_cta %}{% bw_button primary_cta.label variant="primary" size="lg" href=primary_cta.url %}{% elif primary_cta_label %}{% bw_button primary_cta_label variant="primary" size="lg" href=primary_cta_href %}{% endif %}
         {% if secondary_cta %}{% bw_button secondary_cta.label variant="secondary" size="lg" href=secondary_cta.url %}{% elif secondary_cta_label %}{% bw_button secondary_cta_label variant="secondary" size="lg" href=secondary_cta_href %}{% endif %}
       </div>
+    {% endif %}
+    {% endblock %}
+    {% block meta %}
+    {% if meta %}
+      <div class="bw-hero__meta">{{ meta }}</div>
+    {% elif meta_items %}
+      <p class="bw-hero__meta">
+        {% for item in meta_items %}
+          {% if not forloop.first %}<span class="bw-hero__meta-sep" aria-hidden="true">·</span>{% endif %}
+          <span class="bw-hero__meta-item">{{ item }}</span>
+        {% endfor %}
+      </p>
     {% endif %}
     {% endblock %}
   </div>

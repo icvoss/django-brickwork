@@ -790,6 +790,31 @@ Tune with:
 }
 ```
 
+## Hero presence: line, meta, kicker tone, circular media (brickwork#672)
+
+Personal-presence heroes need a positioning line distinct from the lede, quiet
+year/status meta under the CTAs, a sentence-case kicker, start-aligned
+actions, and a circular portrait beside the copy. `_hero.html` exposes these
+as package slots so consumers do not reach into `bw-hero*` classes.
+
+- `subheading` (string or named block): between heading and lede; stronger
+  than the muted lede.
+- `meta` (string or safe HTML) or `meta_items` (list of strings with
+  middle-dot separators): under the actions row. `meta` wins when both are
+  supplied. Empty-graceful.
+- `eyebrow_tone="sentence"`: muted sentence-case overline. Default
+  `"accent"` (also omitted) stays the uppercase accent overline.
+- `align="start"` left-aligns `.bw-hero__actions`; `"end"` right-aligns;
+  `"center"` centres.
+- `media_shape="circle"`: circular portrait under any `media_placement`,
+  sized by `--bw-component-hero-media-circle-size` (default 14rem).
+
+```css
+:root {
+  --bw-component-hero-media-circle-size: 14rem;
+}
+```
+
 ## Where the values live
 
 Author your overrides in your own stylesheet or, if you run a build, in a DTCG
