@@ -597,6 +597,187 @@
   z-index: var(--bw-z-drawer);
 }
 
+/* --- Shared site chrome (ADR-113 / BR-BW-TPL-008) --------------------------
+ * Family-neutral header/footer band and measure. Canonical classes are
+ * .bw-site-*. The marketing shell emits dual class (these plus
+ * .bw-marketing-header* / .bw-marketing-footer*); marketing.css keeps the
+ * marketing-named rules so Prefer≥4 sites selecting on those names still
+ * receive package styles during the compatibility window. Docs and other
+ * non-marketing surfaces include _site_header.html / _site_footer.html and
+ * wear .bw-site-* only (ADR-090). Overlay (ADR-105) stays in marketing.css.
+ * App / auth / centred shells do not compose this chrome by default.
+ */
+
+.bw-site-header {
+  background: var(--bw-color-surface);
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  box-shadow:
+    var(--bw-elevation-1),
+    0 4px 14px -4px oklch(0 0 0 / 0.1);
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--bw-z-sticky);
+}
+
+.bw-site-header__inner {
+  max-inline-size: var(--bw-component-content-max-width-marketing);
+  margin-inline: auto;
+  padding-inline: var(--bw-density-page-gutter-inline);
+  padding-block: var(--bw-space-3);
+}
+
+.bw-site-header__brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-2) var(--bw-space-6);
+  position: relative;
+}
+
+.bw-site-header__brand-mark,
+.bw-site-header__brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.bw-site-header__brand-mark:empty,
+.bw-site-header__brand-wordmark:empty {
+  display: none;
+}
+
+.bw-site-header__brand-mark :where(img, svg),
+.bw-site-header__brand-wordmark :where(img, svg) {
+  block-size: var(--bw-component-logo-height);
+  inline-size: auto;
+}
+
+.bw-site-header__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-4);
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.bw-site-header__nav:empty {
+  display: none;
+}
+
+.bw-site-header__nav :where(a):not(.bw-btn) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-site-header__nav :where(a:hover):not(.bw-btn) {
+  color: var(--bw-color-fg);
+}
+
+@media (pointer: coarse) {
+  .bw-site-header__nav :where(a):not(.bw-btn) {
+    min-block-size: var(--bw-size-touch-target-min);
+  }
+}
+
+.bw-site-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--bw-space-2);
+}
+
+.bw-site-header__actions:empty {
+  display: none;
+}
+
+.bw-site-header__actions > :where(a):not(.bw-btn) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-label-size);
+  font-weight: var(--bw-text-label-weight);
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-site-header__actions > :where(a:hover):not(.bw-btn) {
+  color: var(--bw-color-fg);
+}
+
+@media (pointer: coarse) {
+  .bw-site-header__actions > :where(a):not(.bw-btn) {
+    min-block-size: var(--bw-size-touch-target-min);
+  }
+}
+
+@media (width >= --theme(--breakpoint-lg)) {
+  .bw-site-header__brand {
+    flex-wrap: nowrap;
+  }
+}
+
+.bw-site-footer {
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  background: var(--bw-color-surface-sunken);
+  margin-block-start: auto;
+}
+
+.bw-site-footer__inner {
+  max-inline-size: var(--bw-component-content-max-width-marketing);
+  margin-inline: auto;
+  padding-inline: var(--bw-density-page-gutter-inline);
+  padding-block: var(--bw-space-8) var(--bw-space-4);
+}
+
+.bw-site-footer__inner :where(a):not(.bw-btn) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  color: var(--bw-color-fg-muted);
+  text-decoration: none;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-site-footer__inner :where(a:hover):not(.bw-btn) {
+  color: var(--bw-color-fg);
+}
+
+@media (pointer: coarse) {
+  .bw-site-footer__inner :where(a):not(.bw-btn) {
+    min-block-size: var(--bw-size-touch-target-min);
+  }
+}
+
+.bw-site-footer__legal {
+  margin-block-start: var(--bw-space-6);
+  padding-block-start: var(--bw-space-4);
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
+
+.bw-site-footer__legal:empty {
+  display: none;
+}
+
+.bw-site-footer:has(.bw-site-footer__legal:only-child:empty) {
+  display: none;
+}
+
+[data-theme="dark"] .bw-site-header {
+  box-shadow: var(--bw-elevation-1);
+}
+
 /* --- Docs shell: [article | rail] two-column layout (ADR-091, #439) ------- */
 
 /* Site-chrome column (icvoss/django-brickwork#448 item 1): .bw-docs-shell

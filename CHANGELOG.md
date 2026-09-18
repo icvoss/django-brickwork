@@ -10,7 +10,29 @@ versioning contract).
 
 ### Added
 
+- **Shared site chrome** (ADR-113 / BR-BW-TPL-008). New family-neutral
+  includes `brickwork/components/_site_header.html` and `_site_footer.html`
+  with canonical `.bw-site-*` classes (header: `__inner`, `__brand`,
+  `__brand-mark`, `__brand-wordmark`, `__nav`, `__actions`; footer:
+  `__inner`, `__legal`). Styles live in `frontend/src/shell.css`. Docs
+  `docs_site_*` seams should consume these includes (override the `*_region`
+  blocks to avoid nesting landmarks). App, auth and centred shells do not
+  gain this chrome by default. Footer link-groups stay marketing-owned
+  (`_marketing_footer_groups.html`). Overlay (ADR-105) stays
+  marketing-shell-only; `bw-site-header--overlay` is accepted as a dual-class
+  alias beside `bw-marketing-header--overlay`.
+
 ### Changed
+
+- **Marketing shell dual-class window.** Default marketing header and footer
+  landmarks now emit both `.bw-site-*` and `.bw-marketing-header` /
+  `.bw-marketing-footer` (and matching BEM children) so Prefer≥4 sites
+  selecting on marketing names keep working for one minor while docs adopts
+  `.bw-site-*` only. Existing block seams (`brand_logo`, `marketing_nav`,
+  `marketing_actions`, `marketing_footer`, `footer_legal`, `*_region`) are
+  unchanged. Consumer note: Prefer≥4 sites inventing `bwui-*-inner` for docs
+  chrome can delete those bridges after upgrading and including the package
+  templates; stop requiring `.bw-marketing-*` as the supported docs skin.
 
 ### Fixed
 

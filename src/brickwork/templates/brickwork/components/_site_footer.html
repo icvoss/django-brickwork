@@ -1,0 +1,31 @@
+{% comment %}
+Shared site footer (ADR-113 / BR-BW-TPL-008): family-neutral public footer
+landmark with measure, content slot and legal slot. Canonical classes are
+.bw-site-footer, __inner and __legal. Docs outer seams consume this include
+with .bw-site-* only.
+
+The marketing shell ships the dual-class embodiment (bw-site-* plus
+bw-marketing-footer*) for one minor. Footer link-group composition
+(_marketing_footer_groups.html) stays marketing-owned and fills the content
+slot when the consumer chooses; it is not part of this shared include.
+
+Django {% include %} cannot expose named blocks to a parent that extends
+a shell. The marketing shell keeps marketing_footer, footer_legal and
+marketing_footer_region in brickwork_marketing/shell/marketing.html.
+Docs typically override docs_site_footer_region with this include so the
+landmark is not nested inside .bw-docs-site-footer.
+
+Named blocks (semver-public when {% extends %}d, BR-BW-TPL-001):
+  site_footer   consumer-owned footer-content slot (link groups, site map)
+  footer_legal  fine-print slot; its wrapper collapses when empty
+
+When both slots are empty the landmark collapses via CSS
+(.bw-site-footer:has(.bw-site-footer__legal:only-child:empty)).
+
+States: none.
+Accessibility: <footer> landmark; consumer owns link text and grouping.
+Responsive: measure + gutter from shell.css; no breakpoint switch of its own.
+{% endcomment %}
+<footer class="bw-site-footer">
+  <div class="bw-site-footer__inner">{% block site_footer %}{% endblock %}<div class="bw-site-footer__legal">{% block footer_legal %}{% endblock %}</div></div>
+</footer>
