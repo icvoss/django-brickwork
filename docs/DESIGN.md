@@ -689,6 +689,7 @@ max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
 | `--bw-component-hero-eyebrow-marker-inline-size` **[NEW, #659]** | `2.4rem` | Inline size of the leading accent rule on `.bw-hero__eyebrow--rule` (`::before`). Applied only when `eyebrow_marker="rule"` |
 | `--bw-component-hero-eyebrow-marker-block-size` **[NEW, #659]** | `2px` | Block size of the leading accent rule on `.bw-hero__eyebrow--rule` |
 | `--bw-component-hero-eyebrow-marker-color` **[NEW, #659]** | `var(--bw-color-accent)` | Paint colour for the eyebrow marker rule. Own token so a brand can colour the mark differently from the eyebrow text (which stays `--bw-color-accent`); must not use `currentColor`. Default matches accent so package-default rule heroes stay coherent |
+| `--bw-component-hero-media-circle-size` **[NEW, #672]** | `14rem` | Max inline size of `.bw-hero__media` when `media_shape="circle"`. Caps a circular portrait so it cannot stretch to the full media column under `media_placement="beside"` |
 | `--bw-component-topbar-position` | `sticky` | shipped, previously undocumented; a consumer sets `static` to unstick the topbar; was `--bw-topbar-position` through 0.10.0, kept as a courtesy alias |
 
 The `--bw-size-icon-*` / `--bw-icon-size-*` duplication (0.3.0 added `2xl`

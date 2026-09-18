@@ -92,6 +92,7 @@ export const tokens = Object.freeze({
   "component_hero_eyebrow_marker_inline_size": "var(--bw-component-hero-eyebrow-marker-inline-size)",
   "component_hero_heading_max_width": "var(--bw-component-hero-heading-max-width)",
   "component_hero_lede_max_width": "var(--bw-component-hero-lede-max-width)",
+  "component_hero_media_circle_size": "var(--bw-component-hero-media-circle-size)",
   "component_htmx_indicator_opacity": "var(--bw-component-htmx-indicator-opacity)",
   "component_icon_size_2xl": "var(--bw-component-icon-size-2xl)",
   "component_icon_size_lg": "var(--bw-component-icon-size-lg)",

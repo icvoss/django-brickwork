@@ -197,6 +197,7 @@
     "--bw-component-hero-eyebrow-marker-inline-size",
     "--bw-component-hero-heading-max-width",
     "--bw-component-hero-lede-max-width",
+    "--bw-component-hero-media-circle-size",
     "--bw-component-htmx-indicator-opacity",
     "--bw-component-icon-size-2xl",
     "--bw-component-icon-size-lg",

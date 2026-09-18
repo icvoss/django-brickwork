@@ -754,6 +754,16 @@
   text-transform: uppercase;
 }
 
+/* Eyebrow tone (#672): sentence-case muted kicker. Opt-in via
+ * eyebrow_tone="sentence"; omitted/"accent" keeps the accent uppercase
+ * overline byte-identical. Size and weight stay on the overline role so
+ * hierarchy is unchanged; only colour and case shift. */
+.bw-hero__eyebrow--sentence {
+  color: var(--bw-color-fg-muted);
+  letter-spacing: var(--bw-font-tracking-normal);
+  text-transform: none;
+}
+
 /* Eyebrow marker (#659): leading accent rule before the overline. Opt-in
  * via eyebrow_marker="rule"; omitted/"none" is byte-identical. Flex + gap
  * only when the modifier is present so default eyebrows keep their
@@ -809,6 +819,20 @@
   max-inline-size: min(var(--bw-component-hero-heading-max-width), 100%);
 }
 
+/* Subheading / positioning line (#672): between heading and lede, stronger
+ * than the muted lede. Absent slot is byte-identical. */
+.bw-hero__subheading {
+  margin: 0;
+  color: var(--bw-color-fg);
+  font-family: var(--bw-text-heading-lg-family);
+  font-size: var(--bw-text-heading-lg-size);
+  font-weight: var(--bw-text-heading-lg-weight);
+  line-height: var(--bw-text-heading-lg-line-height);
+  letter-spacing: var(--bw-text-heading-lg-tracking);
+  text-wrap: pretty;
+  max-inline-size: min(var(--bw-component-hero-lede-max-width), 100%);
+}
+
 .bw-hero__lede {
   margin: 0;
   color: var(--bw-color-fg-muted);
@@ -828,8 +852,32 @@
   gap: var(--bw-space-3);
 }
 
+/* Actions follow align (#672). --start is the documented default and must
+ * left-align the row explicitly (flex default alone left the end case
+ * ambiguous and matched a consumer report that start never moved CTAs). */
+.bw-hero--start .bw-hero__actions {
+  justify-content: flex-start;
+}
+
 .bw-hero--center .bw-hero__actions {
   justify-content: center;
+}
+
+.bw-hero--end .bw-hero__actions {
+  justify-content: flex-end;
+}
+
+/* Quiet meta under the actions (#672). Caption muted; middle-dot seps
+ * match article_meta. Absent slot is byte-identical. */
+.bw-hero__meta {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-caption-size);
+  line-height: var(--bw-text-caption-line-height);
+}
+
+.bw-hero__meta-sep {
+  margin-inline: var(--bw-space-2);
 }
 
 .bw-hero__media {
@@ -1007,7 +1055,15 @@
  * takes the inverse foreground here too. */
 .bw-hero--media-behind .bw-hero__eyebrow,
 .bw-hero--media-behind .bw-hero__heading,
-.bw-hero--media-behind .bw-hero__lede {
+.bw-hero--media-behind .bw-hero__subheading,
+.bw-hero--media-behind .bw-hero__lede,
+.bw-hero--media-behind .bw-hero__meta {
+  color: var(--bw-color-fg-on-inverse);
+}
+
+/* Sentence-tone eyebrow on inverse still needs on-inverse ink (#672);
+ * the base sentence rule would otherwise reintroduce muted fg. */
+.bw-hero--media-behind .bw-hero__eyebrow--sentence {
   color: var(--bw-color-fg-on-inverse);
 }
 
@@ -1065,6 +1121,27 @@
   .bw-hero--media-beside .bw-hero__media {
     align-self: center;
   }
+}
+
+/* Media shape (#672): circular portrait. Opt-in via media_shape="circle";
+ * omitted/"default" is byte-identical. Caps the media column so a 100%
+ * width circle cannot dominate the band; square crop + full radius so
+ * the portrait survives under media_placement="beside" without a
+ * consumer override fighting the default img radius. SVG carve-out
+ * matches the default media radius rule (img only). */
+.bw-hero--media-circle .bw-hero__media {
+  max-inline-size: var(--bw-component-hero-media-circle-size);
+}
+
+.bw-hero--media-circle .bw-hero__media img {
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--bw-radius-full);
+}
+
+.bw-hero--media-behind.bw-hero--media-circle .bw-hero__media img {
+  /* Circle must win over the behind placement's border-radius: 0. */
+  border-radius: var(--bw-radius-full);
 }
 
 /* --- Feature grid ------------------------------------------------------------ */

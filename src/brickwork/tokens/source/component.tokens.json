@@ -182,7 +182,7 @@
     "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens), raised from 4rem in the Phase 3 visual-bar craft wave (icvoss/django-brickwork#510): the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA and so on), larger than the app's --bw-density-section-gap (2rem comfortable) since marketing pages read as fewer, more generous blocks rather than a dense workspace. Named distinctly from the density-scoped section-gap (not itself density-varying: marketing pages are not scoped by the density axis)."
   },
   "hero": {
-    "$description": "Hero component tokens. Copy-column measures (#640), decoration watermark (#645), and eyebrow marker (#659). Measure defaults keep package-default layout byte-identical; decoration tokens apply only when the decoration region has content; marker tokens apply only when eyebrow_marker=\"rule\".",
+    "$description": "Hero component tokens. Copy-column measures (#640), decoration watermark (#645), eyebrow marker (#659), and circle media size (#672). Measure defaults keep package-default layout byte-identical; decoration tokens apply only when the decoration region has content; marker tokens apply only when eyebrow_marker=\"rule\"; circle size applies only when media_shape=\"circle\".",
     "copy-max-width": {
       "$type": "dimension",
       "$value": "{size.max-width.prose}",
@@ -241,6 +241,11 @@
         },
         "$description": "Paint colour for the eyebrow marker rule. Own token so a brand can colour the mark differently from the eyebrow text (which reads --bw-color-accent); must not use currentColor. Default matches accent so package-default rule heroes stay coherent; override when the mark needs a distinct emphasis colour (#659)."
       }
+    },
+    "media-circle-size": {
+      "$type": "dimension",
+      "$value": "14rem",
+      "$description": "Max inline size of .bw-hero__media when media_shape=\"circle\" (#672). Caps a circular portrait so it cannot stretch to the full media column under media_placement=\"beside\". Override to enlarge or shrink the portrait."
     }
   },
   "logo": {
