@@ -121,7 +121,11 @@ space, which a package not owning the engine cannot own), and export is
 answered by CHT-022's existing `chart_toolbar` slot, following TBL-019.
 
 *Chart components: shipped engine-free, as ADR-081 requires.* Bundling an
-engine remains forbidden; the mount is the consumer's seam.
+engine remains forbidden; the mount is the consumer's seam. **CHT-006 adapter
+recipe shipped** as `static/brickwork/js/chart-theme.js` with Chart.js and
+ApexCharts engine-shaped helpers and tooltip-swatch suppression tests
+(icvoss/django-brickwork#301; ADR-082 Decision 9 split). No engine-named
+Python extra.
 
 *Archetypes: the Data-heavy operations family is complete at seven of the seven
 the contract requires.* All seven ship on `main`:

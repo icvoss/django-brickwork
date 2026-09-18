@@ -10,6 +10,16 @@ versioning contract).
 
 ### Added
 
+- **Chart adapter recipe with tooltip-swatch suppression**
+  (icvoss/django-brickwork#301, CHT-006). Ships
+  `static/brickwork/js/chart-theme.js`: `brickworkChartTokens(el)` reads the
+  ADR-082 chart vocabulary via `getComputedStyle`; `brickworkChartTheme(
+  "chartjs"|"apexcharts", …)` returns an engine-shaped options fragment with
+  the tooltip series swatch suppressed (`displayColors: false` /
+  `tooltip.marker.show: false`). No charting engine is bundled or named as a
+  Python extra (ADR-082 Decision 9). Consumer recipe in `docs/INTEGRATION.md`
+  section 5a; regression in `tests/test_chart_theme_adapter.py`.
+
 ### Changed
 
 ### Fixed
