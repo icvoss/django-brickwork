@@ -53,6 +53,16 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     # modifier class at all, so it has no entry here: there is no CSS rule
     # to pin, only the byte-identity test in test_marketing.py.
     ("_hero", "eyebrow_marker", "rule", "bw-hero__eyebrow--rule"),
+    # --- eyebrow_tone (icvoss/django-brickwork#672) -------------------------
+    # "accent" is the honestly-named default (uppercase accent overline) and
+    # emits no modifier class at all, so it has no entry here: there is no
+    # CSS rule to pin, only the byte-identity test in test_marketing.py.
+    ("_hero", "eyebrow_tone", "sentence", "bw-hero__eyebrow--sentence"),
+    # --- media_shape (icvoss/django-brickwork#672) --------------------------
+    # "default" is the honestly-named default (shipped img radius) and emits
+    # no modifier class at all, so it has no entry here: there is no CSS
+    # rule to pin, only the byte-identity test in test_marketing.py.
+    ("_hero", "media_shape", "circle", "bw-hero--media-circle"),
     # --- width (ADR-057 section 1a, ADR-077 section 3a) ---------------------
     # "contained" is the honestly-named default (the pre-existing shell-capped
     # layout) and emits no modifier class at all, so it has no entry here:

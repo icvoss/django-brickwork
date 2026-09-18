@@ -78,6 +78,7 @@ const RENAMES = new Map([
   ["bw-hero-eyebrow-marker-inline-size", "bw-component-hero-eyebrow-marker-inline-size"],
   ["bw-hero-eyebrow-marker-block-size", "bw-component-hero-eyebrow-marker-block-size"],
   ["bw-hero-eyebrow-marker-color", "bw-component-hero-eyebrow-marker-color"],
+  ["bw-hero-media-circle-size", "bw-component-hero-media-circle-size"],
   ["bw-topbar-position", "bw-component-topbar-position"],
   ["bw-disabled-opacity", "bw-component-disabled-opacity"],
   ["bw-menu-min-width", "bw-component-menu-min-width"],

@@ -569,6 +569,15 @@
       ]
     },
     {
+      "name": "meta",
+      "declaredIn": [
+        "brickwork_marketing/components/_hero.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "mobile_nav",
       "declaredIn": [
         "brickwork/shell/app.html"
@@ -830,6 +839,15 @@
       ],
       "consumption": [
         "extend"
+      ]
+    },
+    {
+      "name": "subheading",
+      "declaredIn": [
+        "brickwork_marketing/components/_hero.html"
+      ],
+      "consumption": [
+        "include"
       ]
     },
     {

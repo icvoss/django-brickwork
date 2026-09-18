@@ -4002,6 +4002,17 @@ _HERO_PLACEMENT_EYEBROW_MARKER = (
     ' primary_cta=primary_cta media=beside_media media_placement="beside"'
     ' decoration=decoration_mark eyebrow_marker="rule" %}'
 )
+# Presence hero (#672): sentence-tone eyebrow, subheading, meta_items,
+# start-aligned actions, circular portrait beside the copy.
+_HERO_PLACEMENT_PRESENCE = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Independent consultant" eyebrow_tone="sentence"'
+    ' heading="Nigel Copley"'
+    ' subheading="Strategy and delivery for product teams."'
+    ' lede="A quieter supporting paragraph under the positioning line."'
+    ' primary_cta=primary_cta media=beside_media media_placement="beside"'
+    ' media_shape="circle" meta_items=meta_items align="start" %}'
+)
 
 _HERO_PLACEMENT_SOURCE = (
     '{% extends "brickwork_marketing/shell/marketing.html" %}'
@@ -4013,6 +4024,7 @@ _HERO_PLACEMENT_SOURCE = (
     + _HERO_PLACEMENT_BESIDE
     + _HERO_PLACEMENT_ABOVE
     + _HERO_PLACEMENT_EYEBROW_MARKER
+    + _HERO_PLACEMENT_PRESENCE
     + "{% endblock %}"
 )
 
@@ -4056,6 +4068,7 @@ def render_hero_media_placement(theme: str) -> str:
         "dark_media": dark_media,
         "beside_media": beside_media,
         "decoration_mark": decoration_mark,
+        "meta_items": ["Est. 2019", "Available for projects"],
     }
     html = engines["django"].from_string(_HERO_PLACEMENT_SOURCE).render(ctx, request=request)
     return _inline_css(html)

@@ -415,7 +415,8 @@ def test_hero_heading_only_output_is_byte_identical_to_pre_slot_blocks() -> None
     html = _render("brickwork_marketing/components/_hero.html", heading="Ship faster")
     assert html == (
         '\n\n<section class="bw-hero bw-hero--start">\n  <div class="bw-hero__copy">\n    \n    '
-        '<h1 class="bw-hero__heading">Ship faster</h1>\n    \n    \n    \n    \n  </div>\n  \n</section>\n'
+        '<h1 class="bw-hero__heading">Ship faster</h1>\n    \n    \n    \n    \n    \n    '
+        "\n    \n    \n  </div>\n  \n</section>\n"
     )
 
 
@@ -803,20 +804,222 @@ def test_hero_blocks_render_in_document_order() -> None:
     html = _extend_hero(
         "{% block eyebrow %}EYEBROW-SENTINEL{% endblock %}"
         "{% block heading %}HEADING-SENTINEL{% endblock %}"
+        "{% block subheading %}SUBHEADING-SENTINEL{% endblock %}"
         "{% block lede %}LEDE-SENTINEL{% endblock %}"
         "{% block actions %}ACTIONS-SENTINEL{% endblock %}"
+        "{% block meta %}META-SENTINEL{% endblock %}"
         "{% block decoration %}DECORATION-SENTINEL{% endblock %}"
         "{% block media %}MEDIA-SENTINEL{% endblock %}"
     )
     positions = [
         html.index("EYEBROW-SENTINEL"),
         html.index("HEADING-SENTINEL"),
+        html.index("SUBHEADING-SENTINEL"),
         html.index("LEDE-SENTINEL"),
         html.index("ACTIONS-SENTINEL"),
+        html.index("META-SENTINEL"),
         html.index("DECORATION-SENTINEL"),
         html.index("MEDIA-SENTINEL"),
     ]
     assert positions == sorted(positions), f"hero blocks out of document order: {positions}"
+
+
+# --- components/_hero.html: presence slots (#672) ---------------------------
+
+
+def test_hero_subheading_renders_between_heading_and_lede() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Nigel Copley",
+        subheading="Strategy and delivery for product teams.",
+        lede="A quieter supporting paragraph.",
+    )
+    assert 'class="bw-hero__subheading"' in html
+    assert "Strategy and delivery for product teams." in html
+    assert html.index("bw-hero__heading") < html.index("bw-hero__subheading") < html.index("bw-hero__lede")
+
+
+def test_hero_subheading_omitted_emits_no_region() -> None:
+    html = _render("brickwork_marketing/components/_hero.html", heading="Ship faster")
+    assert "bw-hero__subheading" not in html
+
+
+def test_hero_subheading_block_override_wins_over_the_subheading_context() -> None:
+    html = _extend_hero(
+        "{% block subheading %}<p class='bw-hero__subheading'>BLOCK-LINE</p>{% endblock %}",
+        heading="Ship faster",
+        subheading="Context line",
+    )
+    assert "BLOCK-LINE" in html
+    assert "Context line" not in html
+
+
+def test_hero_meta_string_renders_under_actions() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        primary_cta_label="Get started",
+        primary_cta_href="/start/",
+        meta="Est. 2019",
+    )
+    assert 'class="bw-hero__meta"' in html
+    assert "Est. 2019" in html
+    assert html.index("bw-hero__actions") < html.index("bw-hero__meta")
+
+
+def test_hero_meta_items_render_with_separators() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        meta_items=["Est. 2019", "Available for projects"],
+    )
+    assert 'class="bw-hero__meta"' in html
+    assert "Est. 2019" in html
+    assert "Available for projects" in html
+    assert 'aria-hidden="true"' in html
+    assert "·" in html
+
+
+def test_hero_meta_wins_over_meta_items_when_both_are_supplied() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        meta="Flat meta",
+        meta_items=["Ignored", "Also ignored"],
+    )
+    assert "Flat meta" in html
+    assert "Ignored" not in html
+
+
+def test_hero_meta_omitted_emits_no_region() -> None:
+    html = _render("brickwork_marketing/components/_hero.html", heading="Ship faster")
+    assert "bw-hero__meta" not in html
+
+
+def test_hero_meta_block_override_wins_over_the_meta_context() -> None:
+    html = _extend_hero(
+        "{% block meta %}<div class='bw-hero__meta'>BLOCK-META</div>{% endblock %}",
+        heading="Ship faster",
+        meta="Context meta",
+    )
+    assert "BLOCK-META" in html
+    assert "Context meta" not in html
+
+
+def test_hero_eyebrow_tone_omitted_is_byte_identical_to_accent() -> None:
+    with_eyebrow = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        eyebrow="New",
+    )
+    with_accent = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        eyebrow="New",
+        eyebrow_tone="accent",
+    )
+    assert with_eyebrow == with_accent
+    assert "bw-hero__eyebrow--sentence" not in with_eyebrow
+    assert 'class="bw-hero__eyebrow"' in with_eyebrow
+
+
+def test_hero_eyebrow_tone_sentence_emits_modifier() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        eyebrow="Independent consultant",
+        eyebrow_tone="sentence",
+    )
+    assert 'class="bw-hero__eyebrow bw-hero__eyebrow--sentence"' in html
+
+
+def test_hero_eyebrow_tone_sentence_composes_with_eyebrow_marker_rule() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        eyebrow="Independent consultant",
+        eyebrow_tone="sentence",
+        eyebrow_marker="rule",
+    )
+    assert "bw-hero__eyebrow--rule" in html
+    assert "bw-hero__eyebrow--sentence" in html
+
+
+def test_hero_eyebrow_tone_unrecognised_value_falls_back_to_default() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        eyebrow="New",
+        eyebrow_tone="loud",
+    )
+    assert "bw-hero__eyebrow--sentence" not in html
+    assert 'class="bw-hero__eyebrow"' in html
+
+
+def test_hero_media_shape_omitted_emits_no_modifier_class() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert "bw-hero--media-circle" not in html
+
+
+def test_hero_media_shape_circle_emits_modifier_class() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="beside",
+        media_shape="circle",
+    )
+    assert "bw-hero--media-circle" in html
+    assert "bw-hero--media-beside" in html
+
+
+def test_hero_media_shape_default_is_byte_identical_to_omitted() -> None:
+    omitted = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    explicit = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_shape="default",
+    )
+    assert omitted == explicit
+    assert "bw-hero--media-circle" not in explicit
+
+
+def test_hero_media_shape_unrecognised_value_falls_back_to_default() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_shape="square",
+    )
+    assert "bw-hero--media-circle" not in html
+
+
+def test_hero_align_start_actions_have_a_css_rule() -> None:
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "marketing.css").read_text(encoding="utf-8")
+    assert ".bw-hero--start .bw-hero__actions" in css
+    assert "justify-content: flex-start" in css
+
+
+def test_hero_align_end_actions_have_a_css_rule() -> None:
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "marketing.css").read_text(encoding="utf-8")
+    assert ".bw-hero--end .bw-hero__actions" in css
+    assert "justify-content: flex-end" in css
+
+
+def test_hero_media_circle_css_and_token_are_emitted() -> None:
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "marketing.css").read_text(encoding="utf-8")
+    assert ".bw-hero--media-circle .bw-hero__media" in css
+    assert "var(--bw-component-hero-media-circle-size)" in css
+    assert "border-radius: var(--bw-radius-full)" in css
 
 
 # --- components/_feature_grid.html -----------------------------------------
@@ -1837,6 +2040,12 @@ def test_hero_decoration_tokens_are_emitted_with_their_defaults() -> None:
     assert "--bw-component-hero-decoration-opacity: 0.16;" in tokens
     assert "--bw-component-hero-decoration-inset: 2rem;" in tokens
     assert "--bw-component-hero-decoration-size: 14rem;" in tokens
+
+
+def test_hero_media_circle_token_is_emitted_with_its_default() -> None:
+    # #672: circle media size caps the portrait under media_shape="circle".
+    tokens = (_DIST / "tokens.css").read_text()
+    assert "--bw-component-hero-media-circle-size: 14rem;" in tokens
 
 
 def test_hero_decoration_css_gates_on_presence_and_uses_the_tokens() -> None:
