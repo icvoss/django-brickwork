@@ -182,7 +182,7 @@
     "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens), raised from 4rem in the Phase 3 visual-bar craft wave (icvoss/django-brickwork#510): the vertical rhythm between stacked marketing sections (hero, feature grid, pricing, CTA and so on), larger than the app's --bw-density-section-gap (2rem comfortable) since marketing pages read as fewer, more generous blocks rather than a dense workspace. Named distinctly from the density-scoped section-gap (not itself density-varying: marketing pages are not scoped by the density axis)."
   },
   "hero": {
-    "$description": "Hero component tokens. Copy-column measures (#640) and decoration watermark (#645). Measure defaults keep package-default layout byte-identical; decoration tokens apply only when the decoration region has content.",
+    "$description": "Hero component tokens. Copy-column measures (#640), decoration watermark (#645), and eyebrow marker (#659). Measure defaults keep package-default layout byte-identical; decoration tokens apply only when the decoration region has content; marker tokens apply only when eyebrow_marker=\"rule\".",
     "copy-max-width": {
       "$type": "dimension",
       "$value": "{size.max-width.prose}",
@@ -218,6 +218,28 @@
         "$type": "dimension",
         "$value": "14rem",
         "$description": "Default inline size of the decoration mark, capped further at 50% of the hero in CSS so a large SVG cannot dominate the band."
+      }
+    },
+    "eyebrow-marker": {
+      "inline-size": {
+        "$type": "dimension",
+        "$value": "2.4rem",
+        "$description": "Inline size of the leading accent rule on .bw-hero__eyebrow--rule (::before). Evidence: icvoss.com 2.4rem mark (#659)."
+      },
+      "block-size": {
+        "$type": "dimension",
+        "$value": "2px",
+        "$description": "Block size of the leading accent rule on .bw-hero__eyebrow--rule (::before)."
+      },
+      "color": {
+        "$type": "other",
+        "$value": "var(--bw-color-accent)",
+        "$extensions": {
+          "bw": {
+            "derived": "var(--bw-color-accent)"
+          }
+        },
+        "$description": "Paint colour for the eyebrow marker rule. Own token so a brand can colour the mark differently from the eyebrow text (which reads --bw-color-accent); must not use currentColor. Default matches accent so package-default rule heroes stay coherent; override when the mark needs a distinct emphasis colour (#659)."
       }
     }
   },

@@ -3992,6 +3992,16 @@ _HERO_PLACEMENT_ABOVE = (
     ' lede="Visual order only: document and tab order stay copy then media."'
     ' primary_cta=primary_cta media=beside_media media_placement="above" %}'
 )
+# eyebrow_marker="rule" (#659): leading accent dash before the overline.
+# Stacked last so existing nth() selectors against --media-behind stay stable.
+# Composes with decoration (#645) and media_placement="beside".
+_HERO_PLACEMENT_EYEBROW_MARKER = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="With marker" heading="Accent rule before the overline"'
+    ' lede="eyebrow_marker rule draws via component ::before; decoration still hangs behind."'
+    ' primary_cta=primary_cta media=beside_media media_placement="beside"'
+    ' decoration=decoration_mark eyebrow_marker="rule" %}'
+)
 
 _HERO_PLACEMENT_SOURCE = (
     '{% extends "brickwork_marketing/shell/marketing.html" %}'
@@ -4002,6 +4012,7 @@ _HERO_PLACEMENT_SOURCE = (
     + _HERO_PLACEMENT_BEHIND_DARK_MEDIA
     + _HERO_PLACEMENT_BESIDE
     + _HERO_PLACEMENT_ABOVE
+    + _HERO_PLACEMENT_EYEBROW_MARKER
     + "{% endblock %}"
 )
 
@@ -4027,6 +4038,11 @@ def render_hero_media_placement(theme: str) -> str:
         "</svg>"
     )
     beside_media = mark_safe('<img src="/static/demo/acme.svg" alt="" width="480" height="320">')  # noqa: S308
+    decoration_mark = mark_safe(  # noqa: S308 - our own fixture markup
+        '<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">'
+        '<circle cx="32" cy="32" r="28" fill="currentColor"/>'
+        "</svg>"
+    )
     ctx = {
         "request": request,
         "bw_theme": theme,
@@ -4039,6 +4055,7 @@ def render_hero_media_placement(theme: str) -> str:
         "light_media": light_media,
         "dark_media": dark_media,
         "beside_media": beside_media,
+        "decoration_mark": decoration_mark,
     }
     html = engines["django"].from_string(_HERO_PLACEMENT_SOURCE).render(ctx, request=request)
     return _inline_css(html)
