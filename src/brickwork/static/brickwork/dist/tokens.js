@@ -77,6 +77,7 @@ export const tokens = Object.freeze({
   "component_content_max_width": "var(--bw-component-content-max-width)",
   "component_content_max_width_marketing": "var(--bw-component-content-max-width-marketing)",
   "component_disabled_opacity": "var(--bw-component-disabled-opacity)",
+  "component_docs_nav_inline_size": "var(--bw-component-docs-nav-inline-size)",
   "component_drawer_width": "var(--bw-component-drawer-width)",
   "component_gauge_diameter_lg": "var(--bw-component-gauge-diameter-lg)",
   "component_gauge_diameter_md": "var(--bw-component-gauge-diameter-md)",

@@ -180,7 +180,11 @@ No docs nav component ships here (ADR-091 context section 2): the mechanism
 is the package's own {% bw_nav %}, the same component the app shell's sidebar
 uses. A consumer supplies its own nav items, already visibility-filtered and
 active-resolved, the same responsibility model as the app shell's nav
-(ADR-025).
+(ADR-025). Docs rails should pass labels="wrap" so long document titles wrap
+rather than ellipsis (icvoss/django-brickwork#671); the app sidebar keeps the
+truncate default. At the lg breakpoint the sticky rail scrolls within the
+viewport (max-block-size + overflow-y) and its column width is the
+--bw-component-docs-nav-inline-size token (default 16rem).
 
 States: none of its own; the rail's open/closed state is the native <details>
   element's own [open] attribute, with no default set here (a consumer's page

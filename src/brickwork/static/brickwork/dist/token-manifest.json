@@ -182,6 +182,7 @@
     "--bw-component-content-max-width",
     "--bw-component-content-max-width-marketing",
     "--bw-component-disabled-opacity",
+    "--bw-component-docs-nav-inline-size",
     "--bw-component-drawer-width",
     "--bw-component-gauge-diameter-lg",
     "--bw-component-gauge-diameter-md",
