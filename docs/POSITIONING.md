@@ -1,10 +1,11 @@
 # brickwork positioning
 
-**Status:** canonical positioning source. Updated 2026-09-16 from the
-greenfield capability review (`docs/plans/positioning-greenfield-3.33.md`,
-icvoss/django-brickwork#614): public lead G1; prior public leads retired.
-ADR-108 ownership line (2026-09-15) and 2026-09-11 visual-bar honesty rules
-remain.
+**Status:** canonical positioning source. Updated 2026-09-18 by owner
+direction: public lead is **Beautiful by default** with the customer
+outcome line below; G1 ("One interface system…") retired as the public
+lead. ADR-108 ownership line (2026-09-15), visual-bar honesty rules
+(2026-09-11), and the greenfield review (`docs/plans/positioning-greenfield-3.33.md`,
+icvoss/django-brickwork#614) remain as supporting history.
 **Scope:** every brickwork-facing copy surface (README.md, brickworkui.com,
 PyPI description, any future landing page or pitch) derives its claims from
 this document and must not diverge from it. Where a surface currently
@@ -81,17 +82,27 @@ a Django-admin skin, a page builder, a CMS, or a general Tailwind utility layer
 
 ## 3. The lead claim
 
-**One interface system for the Django surfaces you ship.**
+**Beautiful by default.** Frontend your Django site fast, confident it
+delivers an excellent experience across devices.
 
 **Support (subordinate, not competing leads):** Pin the foundation. Own the
-pages. Theme with `--bw-*` profiles (L1 to L4).
+pages. Theme with `--bw-*` profiles (L1 to L4). One interface system for the
+Django surfaces you ship.
 
-**Retired as public leads (2026-09-16):** "Beautiful interfaces for anything."
-and "Brickwork. Building blocks for beautiful apps and websites." Both may
-appear in historical artefacts; new copy uses the lead above. "Beautiful" remains
-an aim judged by [VISUAL-BAR.md](VISUAL-BAR.md) and cited audits, never a
-certified consumer outcome. "Anything" overclaims partial marketing and
-transactional coverage and must not return as an H1 hedge.
+**Retired as public leads (2026-09-18):** G1 "One interface system for the
+Django surfaces you ship" (demoted to support). Earlier retired leads
+(2026-09-16): "Beautiful interfaces for anything." and "Brickwork. Building
+blocks for beautiful apps and websites." Those may appear in historical
+artefacts; new copy uses the lead above. "Anything" overclaims partial
+marketing and transactional coverage and must not return as an H1 hedge.
+
+**Honesty on "beautiful".** The lead is the customer promise for package
+defaults: finished craft out of the box, judged against
+[VISUAL-BAR.md](VISUAL-BAR.md) and the cited audits below. It is not a
+warranty that every consumer page is beautiful. Composition choices,
+content and hierarchy on copied pages remain the consumer's; evidence for
+the package aim is the meet-bar and beat scorecards, not inventory counts
+or axe alone.
 
 Package defaults aim at finished interfaces that can stand next to leading
 Tailwind UI kits on the jobs in [VISUAL-BAR.md](VISUAL-BAR.md). That aim is
@@ -434,8 +445,9 @@ match it:
 | `README.md` | Was stale on package version and the a11y fixture/document count | RESOLVED 2026-08-26: version updated to 3.10.0 and the a11y line restated in the current two-gate, 138-document framing (106 hand-maintained plus 32 archetype), consistent with section 5's A11y gate row |
 | `pyproject.toml:8` | Was "Accessible by construction" (a design claim), read against `README.md:11-12`'s "a *tested* guarantee... not a claim" (a verification claim positioned explicitly against design claims) | RESOLVED: `pyproject.toml:8` now reads "WCAG 2.2 AA tested in CI", which is a verification claim and aligns with README.md's framing; no reconciliation remains outstanding |
 | `PILOT-ADOPTION-BRIEF.md` | Was pinned to 0.3.0 and the private index, and dropped "professional" from the definition | RESOLVED 2026-08-24: rewritten as a routing quickstart and renamed `docs/QUICKSTART.md` |
-| Four documents each currently state brickwork's singular value differently: `README.md:10-13` ("its value is the professional baseline"), `docs/BRANDING.md:3-4` ("brickwork's whole point is that you rebrand it by overriding tokens"), `docs/DESIGN.md:15-18` (the beautiful-defaults founding statement), `pyproject.toml:8` (the category definition) | Four different leads for one product | RESOLVED 2026-09-16: section 3 lead is G1 "One interface system for the Django surfaces you ship." Token-first rebranding (4.3) and tested accessibility (4.2) remain supporting claims. DESIGN.md may keep "beautiful defaults" as engineering intent; it must not compete as the public lead |
-| brickworkui.com homepage H1 and site copy-platform still lead with "Beautiful interfaces for anything." | Diverges from package POSITIONING at the installed pin | OPEN: site remaster icvoss/brickworkui.com#233 must align H1/meta to G1 |
+| Four documents each currently state brickwork's singular value differently: `README.md:10-13` ("its value is the professional baseline"), `docs/BRANDING.md:3-4` ("brickwork's whole point is that you rebrand it by overriding tokens"), `docs/DESIGN.md:15-18` (the beautiful-defaults founding statement), `pyproject.toml:8` (the category definition) | Four different leads for one product | RESOLVED 2026-09-18: section 3 lead is "Beautiful by default" plus the customer outcome line. G1 demoted to support. Token-first rebranding (4.3) and tested accessibility (4.2) remain supporting claims. DESIGN.md "beautiful defaults" engineering language now aligns with the public lead |
+| brickworkui.com homepage H1 and site copy-platform still lead with "Beautiful interfaces for anything." or G1 | Diverges from package POSITIONING at the installed pin | OPEN: site remaster icvoss/brickworkui.com#233 must align H1/meta to "Beautiful by default" and the customer outcome line |
+| Umbrella `docs/marketing/brickwork/` messaging and fold concepts still quote prior leads | Marketing strategy canon lags package POSITIONING | OPEN: follow-up on icvoss/icv-oss-umbrella (file with this PR) |
 
 ---
 

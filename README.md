@@ -1,6 +1,7 @@
 # brickwork
 
-**One interface system for the Django surfaces you ship.** Brickwork is the
+**Beautiful by default.** Frontend your Django site fast, confident it
+delivers an excellent experience across devices. Brickwork is the
 server-rendered Django interface foundation: reusable tokens, shells,
 components, Theme profiles and copyable pages you own. Package defaults aim at
 finished interfaces on the jobs in [docs/VISUAL-BAR.md](docs/VISUAL-BAR.md),

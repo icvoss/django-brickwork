@@ -9,7 +9,8 @@ themselves.
 
 ## What brickwork is
 
-**One interface system for the Django surfaces you ship.** brickwork is the
+**Beautiful by default.** Frontend your Django site fast, confident it
+delivers an excellent experience across devices. brickwork is the
 server-rendered Django interface foundation: brand-agnostic tokens, shells,
 components, Theme profiles and copyable pages you own, on Tailwind 4
 (CSS-first), Alpine 3 and HTMX 2. Django is its only hard runtime dependency.
