@@ -524,6 +524,15 @@ decoration that must recede behind the data, not a graphical object conveying
 information. The axis line, the axis label and the series are all held to a
 floor; the grid is not, and that is a decision rather than an oversight.
 
+**Tooltip series swatches are suppressed by a conforming adapter, not solved
+in the palette.** Series against `--bw-color-chart-tooltip-bg` is an ADR-082
+pairing resolved by suppression (`displayColors: false` for Chart.js,
+`tooltip.marker.show: false` for ApexCharts, or a custom formatter that omits
+the marker for ECharts), not by re-solving the series colours. Recorded against
+icvoss/django-brickwork#301 and umbrella ADR-082. No first-party chart adapter
+module ships yet; when one does, suppression is part of its specified output
+and must carry a test.
+
 ## 5. Elevation
 
 Six levels, values adopted from Tailwind 4's `--shadow-*` ramp (industry
