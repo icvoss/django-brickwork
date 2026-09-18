@@ -173,6 +173,7 @@ Status values:
 | button_group | Adopted | `variant` segmented/attached; `size` |
 | callout | Adopted | `variant` closed set |
 | card | Adopted | Full grammar (Phase 1 pilot); locked |
+| case_list | N/A (local) | Ruled figure / name / note rows (#674); optional whole-row link; not a feature-grid variant |
 | chart_card | N/A (compose) | Extends `_card.html`; appearance axes stay on card |
 | chart_data_table | N/A (defaults) | Header chrome shares data_table tokens |
 | chip | Adopted | `variant`, `size` |
