@@ -48,6 +48,11 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     ("_hero", "media_placement", "behind", "bw-hero--media-behind"),
     ("_hero", "media_placement", "beside", "bw-hero--media-beside"),
     ("_hero", "media_placement", "above", "bw-hero--media-above"),
+    # --- eyebrow_marker (icvoss/django-brickwork#659) -----------------------
+    # "none" is the honestly-named default (no leading rule) and emits no
+    # modifier class at all, so it has no entry here: there is no CSS rule
+    # to pin, only the byte-identity test in test_marketing.py.
+    ("_hero", "eyebrow_marker", "rule", "bw-hero__eyebrow--rule"),
     # --- width (ADR-057 section 1a, ADR-077 section 3a) ---------------------
     # "contained" is the honestly-named default (the pre-existing shell-capped
     # layout) and emits no modifier class at all, so it has no entry here:

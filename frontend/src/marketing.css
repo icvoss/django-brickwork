@@ -709,6 +709,34 @@
   text-transform: uppercase;
 }
 
+/* Eyebrow marker (#659): leading accent rule before the overline. Opt-in
+ * via eyebrow_marker="rule"; omitted/"none" is byte-identical. Flex + gap
+ * only when the modifier is present so default eyebrows keep their
+ * previous block layout. The mark colour is its own token (not
+ * currentColor) so a brand can paint the rule differently from the
+ * eyebrow text. */
+.bw-hero__eyebrow--rule {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-3);
+}
+
+.bw-hero--center .bw-hero__eyebrow--rule {
+  justify-content: center;
+}
+
+.bw-hero--end .bw-hero__eyebrow--rule {
+  justify-content: flex-end;
+}
+
+.bw-hero__eyebrow--rule::before {
+  content: "";
+  flex: none;
+  inline-size: var(--bw-component-hero-eyebrow-marker-inline-size);
+  block-size: var(--bw-component-hero-eyebrow-marker-block-size);
+  background-color: var(--bw-component-hero-eyebrow-marker-color);
+}
+
 .bw-hero__heading {
   margin: 0;
   font-family: var(--bw-text-heading-display-family);
