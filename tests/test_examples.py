@@ -1718,6 +1718,22 @@ _SECTION_DIRECTORY_ITEMS = [
         "status": "Beta",
     },
 ]
+_SECTION_METHOD_ITEMS = [
+    {
+        "heading": "RECE",
+        "stages": "Reach · Engage · Convert · Expand",
+        "body": "The growth method: stages with measurable movement between them.",
+        "url": "/rece/",
+        "link_label": "Read RECE",
+    },
+    {
+        "heading": "PRIME",
+        "stages": "Prime · Run · Inspect · Merge · Evolve",
+        "body": "The delivery method: a loop your whole engineering practice can run on.",
+        "url": "/prime/",
+        "link_label": "Read PRIME",
+    },
+]
 _SECTION_COMPARISON_PLANS = [
     "Solo, £9 a month",
     "Team, £29 a month",
@@ -1838,6 +1854,7 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/features/icon-grid.html": {"features": _SECTION_FEATURES},
     "sections/features/simple-list.html": {"feature_list_items": _SECTION_FEATURE_LIST_ITEMS},
     "sections/directory/numbered.html": {"directory_items": _SECTION_DIRECTORY_ITEMS},
+    "sections/methods/quiet-columns.html": {"method_items": _SECTION_METHOD_ITEMS},
     "sections/hero/centred.html": {},
     "sections/hero/media-behind.html": {},
     "sections/hero/minimal.html": {},

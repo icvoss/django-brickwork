@@ -1,0 +1,58 @@
+{% comment %}
+Methods band (icvoss/django-brickwork#675): quiet two-column method
+columns (name, optional stages line, short body, underline text link).
+Structural sibling of _feature_grid.html and _directory.html, not a
+variant of either: default chrome is deliberately not a card (no raised
+surface, no whole-card hit target). Consumed via {% include %}
+(BR-BW-MKT §4d structural-include doctrine).
+
+Required context: none.
+
+Optional context:
+  heading (str): the section intro heading.
+  items   (list of dicts): {
+            heading,      # method name
+            stages?,      # secondary line (stage gloss, role, etc.)
+            body?,        # short description
+            url?,         # when present WITH link_label, an underline
+                          # text link (never a whole-column anchor)
+            link_label?,  # visible link text; ignored without url
+          }. List-shaped, so supply from context (#98). An empty (or
+          omitted) items list renders the heading alone (or nothing if
+          that too is empty), never a fabricated placeholder column.
+          Absent optional fields are omitted from the markup.
+
+States: none. A text link takes the standard link hover affordance and
+  the global :focus-visible ring; an unlinked column has no interactive
+  state.
+Accessibility: section h2, each column h3. The link is a real <a> with
+  its own visible label, never a div with a click handler and never a
+  whole-column hit target. Covered via sections-*.html after the example
+  collapses to this include.
+Responsive: one column below --bw-breakpoint-sm; two columns from sm up.
+
+Layout: root carries .bw-section; content sits in .bw-section__inner
+  (ADR-057 Phase A / #667). Measure and page gutter come from the section
+  shell. See `_section.html` for the class contract and migration notes.
+{% endcomment %}
+{% if heading or items %}
+<section class="bw-section bw-methods-section">
+  <div class="bw-section__inner">
+  {% if heading %}<h2 class="bw-methods-section__heading">{{ heading }}</h2>{% endif %}
+  {% if items %}
+    <div class="bw-methods">
+      {% for item in items %}
+        <article class="bw-methods__item">
+          {% if item.heading %}<h3 class="bw-methods__name">{{ item.heading }}</h3>{% endif %}
+          {% if item.stages %}<p class="bw-methods__stages">{{ item.stages }}</p>{% endif %}
+          {% if item.body %}<p class="bw-methods__body">{{ item.body }}</p>{% endif %}
+          {% if item.url and item.link_label %}
+            <a class="bw-methods__link" href="{{ item.url }}">{{ item.link_label }}</a>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+  </div>
+</section>
+{% endif %}

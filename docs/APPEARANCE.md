@@ -124,6 +124,7 @@ or first-class include does **not** count.
 |---|---|
 | Hero | `_hero.html` `media_placement="below"` (default), `"behind"`, `"beside"`, `"above"` |
 | Features | `_feature_grid.html` (icon grid); `_feature_rows.html` (alternating); `_feature_list.html` (checklist) |
+| Methods | `_methods.html` (quiet columns; underline text link, no card chrome) |
 | Directory | `_directory.html` (numbered index with optional mark, linked title, description and meta column) |
 | CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` |
 | Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_comparison_table.html` (marketing `_pricing_comparison.html` wrapper) |
@@ -200,6 +201,7 @@ Status values:
 | list_item | Adopted | `density` |
 | logo_cloud | N/A (defaults) | Quieter spacing authored Phase A |
 | marketing_footer_groups | N/A (local) | P0 shipped; groups/columns are data, not shared surface |
+| methods | N/A (local) | Quiet columns band (#675); not a feature-grid variant; no shared surface |
 | mobile_nav_toggle | N/A (keep lean) | Shell seam only |
 | modal | Adopted | `size`, `header_recipe`, `footer_recipe` |
 | page_header | Adopted | `surface` default/tint |
