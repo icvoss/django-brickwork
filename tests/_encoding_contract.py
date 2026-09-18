@@ -172,6 +172,14 @@ recognised hiding mechanisms removed every label and value from the
 accessibility tree while every prior check, scoped to the element's own
 tag and descendants, stayed green.
 
+Deliberately outside this module: a class-selector stylesheet rule such as
+``.bw-gauge__label{display:none}``. Resolving that needs a real CSS cascade
+and layout engine, not string analysis over server-rendered HTML. That
+blind spot is closed by ``a11y/encoding_visibility.spec.mjs`` under
+Playwright (icvoss/django-brickwork#342), stated once and applied across
+the colour-encoded family members whose a11y fixtures carry redeeming
+labels. Do not paper over it here with a ``display:none`` substring grep.
+
 Rung 5 is closed in two different ways, and the difference is deliberate
 rather than an oversight. An element's own
 ``aria-label`` REPLACES its text content as the accessible name, so text

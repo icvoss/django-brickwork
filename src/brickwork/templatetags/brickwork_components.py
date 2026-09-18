@@ -1449,8 +1449,8 @@ def _gauge_label_has_visible_text(gauge_label: object) -> bool:
     CSS rule hiding the label via an external stylesheet selector
     (``<style>.bw-gauge__label{display:none}</style>``) is genuinely outside
     what parsing markup can resolve, since that needs a real CSS cascade,
-    and is not attempted here (see the encoding-contract test coverage table
-    in the test suite for what closes that gap instead).
+    and is not attempted here: ``a11y/encoding_visibility.spec.mjs`` closes
+    that gap under Playwright (icvoss/django-brickwork#342).
 
     After extracting the visible text (the SafeString branch) or unescaping
     entities (the plain-string branch), a string is still treated as empty
