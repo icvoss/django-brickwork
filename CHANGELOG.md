@@ -12,6 +12,14 @@ versioning contract).
 
 ### Changed
 
+- **Public lead is "Beautiful by default"** (owner direction 2026-09-18).
+  Customer outcome: frontend your Django site fast, confident it delivers an
+  excellent experience across devices. G1 ("One interface system for the
+  Django surfaces you ship") moves to support. `docs/POSITIONING.md`,
+  README, QUICKSTART and the PyPI description updated in the same pass.
+  Honesty clause kept: the lead is the package-default promise, evidenced by
+  VISUAL-BAR and cited audits, not a warranty on every consumer page.
+
 ### Fixed
 
 ### Removed
