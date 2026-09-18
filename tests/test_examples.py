@@ -1874,6 +1874,7 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/pricing/three-tier.html": {"tiers": _SECTION_TIERS},
     "sections/stats/card-row.html": {},
     "sections/stats/inline-band.html": {"stats": _SECTION_STATS},
+    "sections/stats/start-aligned.html": {"stats": _SECTION_STATS},
     "sections/testimonial/logo-and-quote.html": {},
     "sections/testimonial/quote-grid.html": {},
     "sections/testimonial/single-quote.html": {},

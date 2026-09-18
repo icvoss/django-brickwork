@@ -1026,6 +1026,12 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             {"value": "94%", "label": "Invoices paid without a call"},
         ],
     ),
+    "_stat_band (marketing: align=start)": lambda: _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="Proof",
+        stats=[{"value": "12", "label": "Shipped"}],
+        align="start",
+    ),
     "_testimonial (marketing: avatar, logo)": lambda: _include(
         "brickwork_marketing/components/_testimonial.html",
         quote="Northwind paid for itself in the first month.",

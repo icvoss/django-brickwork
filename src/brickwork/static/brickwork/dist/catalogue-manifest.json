@@ -5,7 +5,7 @@
   "counts": {
     "shells": 6,
     "components": 78,
-    "sections": 34,
+    "sections": 35,
     "archetypes": 52,
     "skeletons": 1
   },
@@ -1919,7 +1919,8 @@
         "marketing/landing.html"
       ],
       "usedBySections": [
-        "sections/stats/inline-band.html"
+        "sections/stats/inline-band.html",
+        "sections/stats/start-aligned.html"
       ],
       "usedBySkeleton": []
     },
@@ -2434,6 +2435,17 @@
       "family": null,
       "templatePath": "examples/sections/stats/inline-band.html",
       "docSource": "examples/sections/stats/inline-band.html",
+      "requiresContext": true,
+      "composesItems": [
+        "brickwork_marketing/components/_stat_band.html"
+      ]
+    },
+    {
+      "name": "examples/sections/stats/start-aligned.html",
+      "kind": "section",
+      "family": null,
+      "templatePath": "examples/sections/stats/start-aligned.html",
+      "docSource": "examples/sections/stats/start-aligned.html",
       "requiresContext": true,
       "composesItems": [
         "brickwork_marketing/components/_stat_band.html"
