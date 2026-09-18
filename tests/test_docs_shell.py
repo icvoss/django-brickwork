@@ -404,6 +404,35 @@ def _rule_body(rules: list[tuple[str, str]], selector: str) -> str:
     return matches[0]
 
 
+def test_docs_site_chrome_package_includes_use_site_classes_only() -> None:
+    # AC-BW-104 / BR-BW-TPL-008: docs fills the outer seams with the package
+    # shared includes and wears .bw-site-* only (no marketing-family skin).
+    html = _extend(
+        _DOCS_SHELL,
+        "{% block docs_site_header_region %}"
+        '{% include "brickwork/components/_site_header.html" %}'
+        "{% endblock %}"
+        "{% block content %}CONTENT-SENTINEL{% endblock %}"
+        "{% block docs_site_footer_region %}"
+        '{% include "brickwork/components/_site_footer.html" %}'
+        "{% endblock %}",
+    )
+    assert "bw-site-header" in html
+    assert "bw-site-header__inner" in html
+    assert "bw-site-footer" in html
+    assert "bw-site-footer__inner" in html
+    assert "bw-marketing-header" not in html
+    assert "bw-marketing-footer" not in html
+    # Replacing the region avoids nesting a second landmark inside
+    # .bw-docs-site-header / .bw-docs-site-footer.
+    assert "bw-docs-site-header" not in html
+    assert "bw-docs-site-footer" not in html
+    assert "CONTENT-SENTINEL" in html
+    css = _DIST_CSS.read_text(encoding="utf-8")
+    assert ".bw-site-header__inner" in css
+    assert ".bw-site-footer__inner" in css
+
+
 def test_bw_docs_stretches_to_full_inline_size_under_column_flex() -> None:
     # Without inline-size: 100%, auto margin-inline on a flex item in a column
     # container sizes fit-content, so pages with different longest lines jump

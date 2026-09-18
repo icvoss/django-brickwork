@@ -1073,6 +1073,8 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             },
         ],
     ),
+    "_site_header (shared site chrome)": lambda: _include("brickwork/components/_site_header.html"),
+    "_site_footer (shared site chrome)": lambda: _include("brickwork/components/_site_footer.html"),
 }
 
 

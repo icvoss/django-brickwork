@@ -1032,13 +1032,16 @@ shell's own internal markup just to hang site chrome around a docs page:
 `docs_site_header` / `docs_site_footer` blocks) are the seam this was
 missing: **site-wide** chrome, sited OUTSIDE `<main>` entirely, above and
 below the two-column layout respectively. Overriding `{% block shell %}` for
-this purpose is no longer necessary:
+this purpose is no longer necessary. Prefer the package shared site-chrome
+includes (ADR-113 / BR-BW-TPL-008) rather than inventing a site `__inner`:
 
 ```django
 {% extends "brickwork/shell/docs.html" %}
 
-{% block docs_site_header %}
-  {% include "_site_header.html" %}
+{# Replace the empty docs wrapper landmarks with the shared composition
+   so you do not nest a second <header>/<footer>. #}
+{% block docs_site_header_region %}
+  {% include "brickwork/components/_site_header.html" %}
 {% endblock %}
 
 {% block docs_header %}
@@ -1053,10 +1056,24 @@ this purpose is no longer necessary:
   {% bw_nav items=docs_nav_items active=docs_nav_active labels="wrap" %}
 {% endblock %}
 
-{% block docs_site_footer %}
-  {% include "_site_footer.html" %}
+{% block docs_site_footer_region %}
+  {% include "brickwork/components/_site_footer.html" %}
 {% endblock %}
 ```
+
+Fill brand, nav and actions by extending the includes, or by putting markup
+inside a thin wrapper template that `{% extends %}`
+`brickwork/components/_site_header.html` and overrides `brand_logo`,
+`brand_wordmark`, `site_nav` and `site_actions`. Menu-driven horizontal nav
+in the site header should use `{% bw_nav_header %}`. The marketing shell's
+default chrome is the dual-class embodiment of the same includes
+(`.bw-site-*` plus `.bw-marketing-header` / `.bw-marketing-footer` for one
+minor); docs must wear `.bw-site-*` only.
+
+The older empty-region recipe (fill only `docs_site_header` /
+`docs_site_footer` with ad-hoc markup) still works for thin chrome; when you
+want marketing-grade band and measure, use the package includes via the
+`*_region` overrides above.
 
 `docs_site_header` and `docs_site_footer` render inside a `<div
 class="bw-docs-shell">` flex column the shell now wraps everything in, which

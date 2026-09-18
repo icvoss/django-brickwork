@@ -38,13 +38,18 @@
 }
 
 /* --- Overlay mode (ADR-105, icvoss/django-brickwork#565) --------------------
- * Opt-in via .bw-marketing-header--overlay. Default sticky solid header above
+ * Opt-in via .bw-marketing-header--overlay (preferred on the marketing
+ * shell) or .bw-site-header--overlay (dual-class alias, ADR-113). Marketing-
+ * shell-only: docs must not use overlay. Default sticky solid header above
  * is unchanged. Overlay is fixed so the first content band can paint under
  * the chrome; package-owned clearance padding (below) keeps copy readable.
  * No-JS floor: opaque surface + theme ink. Transparency / context ink only
  * after data-bw-overlay-ready (marketing-overlay.js).
+ * Child combinators list both marketing and site BEM names so dual-class
+ * markup and a site-only modifier alias keep working.
  */
-.bw-marketing-header--overlay {
+.bw-marketing-header--overlay,
+.bw-site-header--overlay {
   position: fixed;
   inset-inline: 0;
   inset-block-start: 0;
@@ -56,13 +61,15 @@
  * inner block padding so copy clears the fixed chrome. Local cascade vars
  * always carry a fallback so they are not mistaken for tokens.css emits
  * (test_frontend_css_only_references_emitted_token_names). */
-.bw-marketing:has(> .bw-marketing-header--overlay) {
+.bw-marketing:has(> .bw-marketing-header--overlay),
+.bw-marketing:has(> .bw-site-header--overlay) {
   --bw-marketing-header-clearance: calc(
     var(--bw-component-logo-height) + (var(--bw-space-3) * 2) + var(--bw-space-2)
   );
 }
 
-.bw-marketing:has(> .bw-marketing-header--overlay) .bw-marketing__content > .bw-hero:first-child {
+.bw-marketing:has(> .bw-marketing-header--overlay) .bw-marketing__content > .bw-hero:first-child,
+.bw-marketing:has(> .bw-site-header--overlay) .bw-marketing__content > .bw-hero:first-child {
   padding-block-start: calc(
     var(
         --bw-marketing-header-clearance,
@@ -72,6 +79,9 @@
 }
 
 .bw-marketing:has(> .bw-marketing-header--overlay)
+  .bw-marketing__content
+  > *:first-child:not(.bw-hero),
+.bw-marketing:has(> .bw-site-header--overlay)
   .bw-marketing__content
   > *:first-child:not(.bw-hero) {
   /* Clearance replaces #111's margin for overlay: the header is out of flow,
@@ -87,27 +97,31 @@
 }
 
 /* Enhanced: transparent until scrolled; ink follows panel context. */
-.bw-marketing-header--overlay[data-bw-overlay-ready]:not([data-bw-scrolled="true"]) {
+.bw-marketing-header--overlay[data-bw-overlay-ready]:not([data-bw-scrolled="true"]),
+.bw-site-header--overlay[data-bw-overlay-ready]:not([data-bw-scrolled="true"]) {
   background: transparent;
   border-block-end-color: transparent;
   box-shadow: none;
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-nav-context="dark"] {
+.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-nav-context="dark"],
+.bw-site-header--overlay[data-bw-overlay-ready][data-bw-nav-context="dark"] {
   --bw-overlay-ink: oklch(0.98 0.002 265);
   --bw-overlay-ink-muted: color-mix(in oklab, oklch(0.98 0.002 265) 72%, transparent);
   --bw-overlay-frost: color-mix(in oklab, oklch(0.16 0.02 265) 78%, transparent);
   --bw-overlay-line: oklch(1 0 0 / 0.14);
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-nav-context="light"] {
+.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-nav-context="light"],
+.bw-site-header--overlay[data-bw-overlay-ready][data-bw-nav-context="light"] {
   --bw-overlay-ink: oklch(0.205 0.005 265);
   --bw-overlay-ink-muted: color-mix(in oklab, oklch(0.205 0.005 265) 68%, transparent);
   --bw-overlay-frost: color-mix(in oklab, oklch(1 0 0) 82%, transparent);
   --bw-overlay-line: oklch(0.205 0.005 265 / 0.14);
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
+.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"],
+.bw-site-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
   background: var(--bw-overlay-frost, color-mix(in oklab, oklch(1 0 0) 82%, transparent));
   border-block-end-color: var(--bw-overlay-line, oklch(0.205 0.005 265 / 0.14));
   box-shadow: var(--bw-elevation-1);
@@ -116,16 +130,19 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bw-marketing-header--overlay[data-bw-overlay-ready] {
+  .bw-marketing-header--overlay[data-bw-overlay-ready],
+  .bw-site-header--overlay[data-bw-overlay-ready] {
     transition: none;
   }
-  .bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
+  .bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"],
+  .bw-site-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready] {
+.bw-marketing-header--overlay[data-bw-overlay-ready],
+.bw-site-header--overlay[data-bw-overlay-ready] {
   color: var(--bw-overlay-ink, oklch(0.205 0.005 265));
   transition:
     background var(--bw-duration-normal) var(--bw-ease-standard),
@@ -135,11 +152,32 @@
 }
 
 .bw-marketing-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark,
+.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark,
+.bw-site-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark,
+.bw-site-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark,
 .bw-marketing-header--overlay[data-bw-overlay-ready]
   .bw-marketing-header__nav
   :where(a):not(.bw-btn),
 .bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-site-header__nav
+  :where(a):not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-marketing-header__nav
+  :where(a):not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-site-header__nav
+  :where(a):not(.bw-btn),
+.bw-marketing-header--overlay[data-bw-overlay-ready]
   .bw-marketing-header__actions
+  > :where(a):not(.bw-btn),
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-site-header__actions
+  > :where(a):not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-marketing-header__actions
+  > :where(a):not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-site-header__actions
   > :where(a):not(.bw-btn) {
   color: var(
     --bw-overlay-ink-muted,
@@ -151,9 +189,30 @@
   .bw-marketing-header__nav
   :where(a:hover):not(.bw-btn),
 .bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-site-header__nav
+  :where(a:hover):not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-marketing-header__nav
+  :where(a:hover):not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-site-header__nav
+  :where(a:hover):not(.bw-btn),
+.bw-marketing-header--overlay[data-bw-overlay-ready]
   .bw-marketing-header__actions
   > :where(a:hover):not(.bw-btn),
-.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark:hover {
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-site-header__actions
+  > :where(a:hover):not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-marketing-header__actions
+  > :where(a:hover):not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-site-header__actions
+  > :where(a:hover):not(.bw-btn),
+.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark:hover,
+.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark:hover,
+.bw-site-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark:hover,
+.bw-site-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark:hover {
   color: var(--bw-overlay-ink, oklch(0.205 0.005 265));
 }
 
@@ -163,7 +222,25 @@
   ~ .bw-marketing-header__nav,
 .bw-marketing-header--overlay[data-bw-overlay-ready]
   .bw-mobile-nav-toggle[open]
-  ~ .bw-marketing-header__actions {
+  ~ .bw-site-header__nav,
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-marketing-header__nav,
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-site-header__nav,
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-marketing-header__actions,
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-site-header__actions,
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-marketing-header__actions,
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-site-header__actions {
   background: var(--bw-color-surface);
   color: var(--bw-color-fg);
 }
@@ -174,7 +251,31 @@
   a,
 .bw-marketing-header--overlay[data-bw-overlay-ready]
   .bw-mobile-nav-toggle[open]
+  ~ .bw-site-header__nav
+  a,
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-marketing-header__nav
+  a,
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-site-header__nav
+  a,
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
   ~ .bw-marketing-header__actions
+  > a:not(.bw-btn),
+.bw-marketing-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-site-header__actions
+  > a:not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-marketing-header__actions
+  > a:not(.bw-btn),
+.bw-site-header--overlay[data-bw-overlay-ready]
+  .bw-mobile-nav-toggle[open]
+  ~ .bw-site-header__actions
   > a:not(.bw-btn) {
   color: var(--bw-color-fg);
 }

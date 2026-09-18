@@ -4779,29 +4779,18 @@ _DOCS_SOURCE = (
 )
 
 
-_DOCS_SITE_CHROME_HEADER = (
-    '<div class="fx-docs-site-header-inner">'
-    '<a href="/">Widgetco docs</a>'
-    '<nav aria-label="Site">'
-    '<a href="/">Product</a>'
-    '<a href="/docs/">Docs</a>'
-    '<a href="/pricing/">Pricing</a>'
-    "</nav>"
-    "</div>"
-)
+_DOCS_SITE_CHROME_HEADER_INCLUDE = '{% include "brickwork/components/_site_header.html" %}'
 
-_DOCS_SITE_CHROME_FOOTER = (
-    '<div class="fx-docs-site-footer-inner"><p>&copy; 2026 Widgetco</p><a href="/legal/">Legal</a></div>'
-)
+_DOCS_SITE_CHROME_FOOTER_INCLUDE = '{% include "brickwork/components/_site_footer.html" %}'
 
 
 def render_docs_with_site_chrome(theme: str) -> str:
-    """The docs shell WITH docs_site_header/docs_site_footer filled
-    (icvoss/django-brickwork#448 item 1): the site-wide chrome seam outside
-    <main>, as distinct from docs_header/docs_footer's page-local content
-    already covered by render_docs above. Shares the same populated article/
-    rail body as render_docs so the only variable under test is the new site
-    chrome, not the pre-existing content shape."""
+    """The docs shell WITH package shared site chrome (ADR-113 / #448).
+
+    Overrides docs_site_*_region so the package includes supply the landmark
+    (no nested .bw-docs-site-header). Shares the same populated article/rail
+    body as render_docs so the only variable under test is the site chrome.
+    """
     from django.urls import resolve
 
     from brickwork.models import NavContext, NavItem
@@ -4827,13 +4816,13 @@ def render_docs_with_site_chrome(theme: str) -> str:
         '{% extends "brickwork/shell/docs.html" %}'
         "{% load brickwork_components brickwork_nav %}"
         "{% block page_title %}Configuring widget filters{% endblock %}"
-        "{% block docs_site_header %}" + _DOCS_SITE_CHROME_HEADER + "{% endblock %}"
+        "{% block docs_site_header_region %}" + _DOCS_SITE_CHROME_HEADER_INCLUDE + "{% endblock %}"
         "{% block docs_header %}<h1>Configuring widget filters</h1>{% endblock %}"
         '{% block content %}<div class="bw-prose"><p>Every list page ships a'
         " filter bar backed by a plain Django form.</p></div>{% endblock %}"
         '{% block docs_footer %}<p><a href="/widgets/">&larr; Back to widgets</a></p>{% endblock %}'
         "{% block docs_nav %}{% bw_nav items=docs_nav_items active=docs_nav_active labels='wrap' %}{% endblock %}"
-        "{% block docs_site_footer %}" + _DOCS_SITE_CHROME_FOOTER + "{% endblock %}"
+        "{% block docs_site_footer_region %}" + _DOCS_SITE_CHROME_FOOTER_INCLUDE + "{% endblock %}"
     )
     ctx = {
         "request": request,

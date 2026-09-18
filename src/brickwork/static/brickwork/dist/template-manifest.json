@@ -76,6 +76,7 @@
     {
       "name": "brand_logo",
       "declaredIn": [
+        "brickwork/components/_site_header.html",
         "brickwork/shell/app.html",
         "brickwork/shell/auth.html",
         "brickwork_marketing/shell/marketing.html"
@@ -87,6 +88,7 @@
     {
       "name": "brand_wordmark",
       "declaredIn": [
+        "brickwork/components/_site_header.html",
         "brickwork/shell/app.html",
         "brickwork/shell/auth.html",
         "brickwork_marketing/shell/marketing.html"
@@ -387,6 +389,7 @@
     {
       "name": "footer_legal",
       "declaredIn": [
+        "brickwork/components/_site_footer.html",
         "brickwork_marketing/shell/marketing.html"
       ],
       "consumption": [
@@ -800,6 +803,51 @@
       "name": "sidebar_toggle",
       "declaredIn": [
         "brickwork/shell/app.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "site_actions",
+      "declaredIn": [
+        "brickwork/components/_site_header.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "site_actions_region",
+      "declaredIn": [
+        "brickwork/components/_site_header.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "site_footer",
+      "declaredIn": [
+        "brickwork/components/_site_footer.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "site_nav",
+      "declaredIn": [
+        "brickwork/components/_site_header.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "site_nav_region",
+      "declaredIn": [
+        "brickwork/components/_site_header.html"
       ],
       "consumption": [
         "include"
