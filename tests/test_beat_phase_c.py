@@ -73,6 +73,8 @@ def test_cta_bleed_inverse_band() -> None:
         secondary_cta_href="/pricing/",
     )
     assert "bw-cta-bleed" in out
+    assert "bw-section" in out
+    assert "bw-section--bleed" in out
     assert "bw-cta-bleed__link" in out
     assert 'href="/pricing/"' in out
 

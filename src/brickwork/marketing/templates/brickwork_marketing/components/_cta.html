@@ -44,13 +44,11 @@ Optional context:
                 the band wraps at the marketing shell's content measure
                 (unchanged, no modifier class) or escapes it to run edge to
                 edge. Orthogonal to band, so a tinted full-bleed band is
-                expressible. "bleed" is a CSS-only option (adds no markup):
-                it undoes the shell's per-child max-width and page gutter the
-                same way examples/sections/cta/full-bleed.html's standalone
-                .bw-cta-bleed class always has, and re-applies its own inline
-                gutter so the copy does not touch the viewport edge on a
-                phone (icvoss/django-brickwork#98/#118 pattern, ADR-077
-                section 3a).
+                expressible. "bleed" emits .bw-cta--bleed, which shares the
+                section-shell escape with .bw-section--bleed (#667 /
+                `_section.html`): not a CTA-only layout path. CTA then
+                re-applies its own inline gutter because its __inner is the
+                prose measure, not the marketing rail.
 
 States: none: a static band, no open/closed or hover-driven state of its
   own (the bw_button CTAs inside carry their own button states).

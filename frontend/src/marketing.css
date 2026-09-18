@@ -607,10 +607,11 @@
   display: none;
 }
 
-/* Every marketing section wraps at the marketing measure, stacked at the
- * marketing section rhythm. Applied to the direct section-level components
- * a page composes (hero, feature grid, pricing, cta, testimonial and so on),
- * each of which owns this class on its own root element. */
+/* Legacy rail: every direct child without the section shell still wraps at
+ * the marketing measure. Kept so existing component roots (hero, pricing,
+ * cta, …) stay byte-identical. New custom bands use .bw-section /
+ * .bw-section__inner below instead of inventing a site *-inner class
+ * (icvoss/django-brickwork#667, ADR-057 Phase A). */
 .bw-marketing__content > * {
   max-inline-size: var(--bw-component-content-max-width-marketing);
   margin-inline: auto;
@@ -619,6 +620,50 @@
 
 .bw-marketing__content > * + * {
   margin-block-start: var(--bw-component-section-gap-marketing);
+}
+
+/* --- Section shell (ADR-057 Phase A, #667) ----------------------------------
+ * Outer .bw-section is full-bleed capable (atmosphere, tint, inverse).
+ * Inner .bw-section__inner is the shared marketing rail (measure + gutter).
+ * Rhythm above still applies to .bw-section roots as direct children. */
+
+.bw-section {
+  display: block;
+}
+
+/* Opt out of the legacy per-child rail so the band can run edge to edge
+ * of <main>; content measure moves to .bw-section__inner. */
+.bw-marketing__content > .bw-section {
+  max-inline-size: none;
+  inline-size: 100%;
+  padding-inline: 0;
+}
+
+.bw-section__inner {
+  max-inline-size: var(--bw-component-content-max-width-marketing);
+  margin-inline: auto;
+  padding-inline: var(--bw-density-page-gutter-inline);
+}
+
+/* width="bleed" (ADR-057 §1a): shared escape, also used by .bw-cta--bleed
+ * and .bw-cta-bleed so the axis is not CTA-only. Specificity matches the
+ * shell child rules when composed under .bw-marketing__content. */
+.bw-section--bleed,
+.bw-marketing__content > .bw-section--bleed,
+.bw-cta--bleed,
+.bw-cta-bleed {
+  inline-size: 100vw;
+  max-inline-size: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+.bw-marketing__content > .bw-section--bleed {
+  padding-inline: 0;
+}
+
+/* band="tint" (ADR-057 §1a): background only; measure stays on __inner. */
+.bw-section--tint {
+  background: var(--bw-color-surface-marketing-tint);
 }
 
 /* The FIRST section needs its own block-start spacing (#111). The rule above
@@ -1411,23 +1456,13 @@
   padding-inline: var(--bw-space-8);
 }
 
-/* width="bleed" (ADR-057 section 1a). The same escape as the standalone
- * .bw-cta-bleed example (examples/sections/cta/full-bleed.html): the
- * marketing shell caps every direct child at the marketing max-width and
- * adds a page gutter, so a band that wants the full viewport width undoes
- * both. Declared AFTER .bw-cta--tint so a tinted, full-bleed band (both
- * classes present) takes THIS rule's own inline gutter rather than tint's
- * --bw-space-8, the specificity-tie case the ordering rule in ADR-057
- * section 1a exists to settle: same specificity, source order decides, and
- * the bleed escape's gutter is the one that actually matters once the band
- * has left the shell's own gutter behind.
- *
- * max-inline-size: 100vw rather than none, so the band cannot itself become
- * a source of horizontal page scroll. */
+/* width="bleed" CTA extras on top of the shared .bw-section--bleed /
+ * .bw-cta--bleed escape (#667). Declared AFTER .bw-cta--tint so a tinted
+ * full-bleed band takes THIS rule's inline gutter rather than tint's
+ * --bw-space-8 (specificity-tie / source-order, ADR-057 §1a). CTA keeps
+ * gutter on the outer because its __inner is the prose measure, not the
+ * marketing rail; custom bands using .bw-section put gutter on __inner. */
 .bw-cta--bleed {
-  inline-size: 100vw;
-  max-inline-size: 100vw;
-  margin-inline: calc(50% - 50vw);
   padding-inline: var(--bw-density-page-gutter-inline);
   border-radius: 0;
 }
@@ -1859,17 +1894,10 @@
 
 /* CTA / full-bleed --------------------------------------------------------- */
 
-/* The escape. The marketing shell caps every direct child at the marketing
- * max-width and adds a page gutter; this undoes both so the band spans the
- * viewport. The 50vw/50% pair is the standard full-bleed idiom: push the edges
- * out to half the viewport beyond the container's own half-width.
- *
- * max-inline-size: 100vw rather than none, so the band cannot itself become a
- * source of horizontal page scroll. */
+/* Escape size/margin come from the shared .bw-section--bleed / .bw-cta-bleed
+ * rule (#667). This block keeps the inverse band treatment and its own
+ * gutter (prose __inner, same shape as .bw-cta--bleed). */
 .bw-cta-bleed {
-  inline-size: 100vw;
-  max-inline-size: 100vw;
-  margin-inline: calc(50% - 50vw);
   padding-block: var(--bw-space-16);
   /* Its own gutter: having escaped the shell's, the copy would otherwise touch
    * the viewport edge on a phone. */
