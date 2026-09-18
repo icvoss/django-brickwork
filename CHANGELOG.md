@@ -12,6 +12,30 @@ versioning contract).
 
 ### Changed
 
+### Fixed
+
+### Removed
+
+## [3.37.0] - 2026-09-18
+
+Minor: **shared site chrome** (ADR-113) plus the public lead **"Beautiful by
+default"**. Family-neutral `_site_header` / `_site_footer` land for docs and
+any Prefer≥4 site that wants one chrome vocabulary; marketing dual-classes
+for one minor so existing selectors keep working. No breaking change intended
+for existing consumers on omitted seams. Consumer action after upgrade:
+Prefer≥4 sites inventing `bwui-*-inner` docs chrome bridges can delete them
+and include the package templates (brickworkui.com#244).
+
+### Added
+
+- **Shared site chrome** (ADR-113 / BR-BW-TPL-008). New family-neutral
+  includes `brickwork/components/_site_header.html` and `_site_footer.html`
+  with canonical `.bw-site-*` classes. Styles live in `frontend/src/shell.css`.
+  Docs `docs_site_*` seams consume these includes. App, auth and centred do
+  not gain this chrome by default. Overlay stays marketing-shell-only.
+
+### Changed
+
 - **Public lead is "Beautiful by default"** (owner direction 2026-09-18).
   Customer outcome: frontend your Django site fast, confident it delivers an
   excellent experience across devices. G1 ("One interface system for the
@@ -20,10 +44,12 @@ versioning contract).
   Honesty clause kept: the lead is the package-default promise, evidenced by
   VISUAL-BAR and cited audits, not a warranty on every consumer page.
 
-### Fixed
-
-### Removed
-
+- **Marketing shell dual-class window** (ADR-113). Default marketing header
+  and footer landmarks emit both `.bw-site-*` and `.bw-marketing-*` for one
+  minor so Prefer≥4 sites selecting on marketing names keep working while
+  docs adopts `.bw-site-*` only. Existing block seams are unchanged.
+  Consumer note: Prefer≥4 sites inventing `bwui-*-inner` for docs chrome can
+  delete those bridges after upgrading and including the package templates.
 ## [3.36.0] - 2026-09-18
 
 Minor: **Wave F personal-presence marketing** plus the ADR-097 whole-value
