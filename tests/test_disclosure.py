@@ -147,7 +147,7 @@ def test_a_group_of_three_shares_one_name() -> None:
     assert html.count("<details") == 3
 
 
-# --- icvoss/django-brickwork#476: variant constrain ---------------------------
+# --- icvoss/django-brickwork#476 / ADR-097: variant through bw_attr allow= ----
 
 
 def _on_star_attrs(html: str) -> list[tuple[str, str]]:
@@ -171,10 +171,13 @@ def test_variant_mark_safed_payload_cannot_break_out_of_the_class_attribute() ->
     out = _render(variant=attack)
     assert "alert(1)" not in out
     assert _on_star_attrs(out) == []
-    assert "bw-disclosure--divided" in out
+    # allow= omits the whole class attribute for an out-of-vocab value
+    assert "bw-disclosure--" not in out
+    assert 'class="' not in _details_tag(out)
 
 
-def test_variant_unrecognised_value_falls_back_to_divided() -> None:
+def test_variant_unrecognised_value_omits_class() -> None:
     out = _render(variant="not-a-real-variant")
-    assert "bw-disclosure--divided" in out
     assert "bw-disclosure--not-a-real-variant" not in out
+    assert "not-a-real-variant" not in out
+    assert 'class="' not in _details_tag(out)

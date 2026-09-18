@@ -13,11 +13,12 @@ URLs must validate them first. DEBUG: `{% bw_require body=body %}` always, and
 `{% bw_require heading=heading %}` when size is not "sm"
 (icvoss/django-brickwork#482); production emits nothing. Optional: variant ("no_data" default or "no_results"),
 icon (registry name), action_href, action_label.
-  variant ("no_data" | "no_results", default "no_data"): matched against an
-        author-written literal for the bw-empty-state--{variant} modifier
-        class, never interpolated (#391). An unrecognised value silently
-        falls back to the "no_data" literal rather than reaching attribute
-        position, the same constrain pattern size already uses below.
+  variant ("no_data" | "no_results", default "no_data"): emitted as
+        data-variant through {% bw_attr ... allow= %} (ADR-097). An absent
+        value defaults to "no_data"; an unrecognised value omits the
+        attribute entirely (no silent fallback class token). Size and
+        surface stay on the class attribute via author-literal if/elif
+        (the closed-vocab class-composition pattern).
   size ("sm" | "md", default "md"): emitted as bw-empty-state--size-sm only
         when "sm" is supplied (ADR-060, STA-019, #218); "lg" is not an earned
         value. "sm" is the in-panel scale, for an empty state nested inside a
@@ -109,8 +110,8 @@ Appearance (Beat Phase C, icvoss/django-brickwork#543):
       card treatment (edge + ambient). plain strips the frame for embedding
       in an already-framed region without nesting chrome. size="sm" always
       unframes (nested panel scale), regardless of surface.
-{% endcomment %}{% firstof surface '' as surface %}{% bw_options component="brickwork/components/_empty_state.html" surface=surface %}{% bw_require body=body %}{% if size != "sm" %}{% bw_require heading=heading %}{% endif %}
-<div class="bw-empty-state bw-empty-state--{% if variant == "no_results" %}no_results{% else %}no_data{% endif %}{% if size == "sm" %} bw-empty-state--size-sm{% endif %}{% if surface == "plain" and size != "sm" %} bw-empty-state--surface-plain{% endif %}">
+{% endcomment %}{% firstof surface '' as surface %}{% firstof variant "no_data" as bw_empty_variant %}{% bw_options component="brickwork/components/_empty_state.html" surface=surface %}{% bw_require body=body %}{% if size != "sm" %}{% bw_require heading=heading %}{% endif %}
+<div {% bw_attr "data-variant" bw_empty_variant allow="no_data no_results" %} class="bw-empty-state{% if size == "sm" %} bw-empty-state--size-sm{% endif %}{% if surface == "plain" and size != "sm" %} bw-empty-state--surface-plain{% endif %}">
   {% block icon %}
   {% if icon %}
     {% bw_icon icon size="xl" decorative=True css_class="bw-empty-state__icon" %}
