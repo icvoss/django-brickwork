@@ -955,8 +955,9 @@ mechanical migration:
    own `order: -1` comment) is redundant once the shell ships it.
 3. **Move your rail markup into `docs_nav_region`** (or just fill the inner
    `docs_nav` block if you were not overriding the wrapper element itself).
-   Your `{% bw_nav items=... active=... %}` composition over your own nav
-   items is unchanged; only the surrounding `<details>`/`<nav>` markup moves
+   Your `{% bw_nav items=... active=... labels="wrap" %}` composition over your own nav
+   items is unchanged apart from preferring `labels="wrap"` for document titles
+   (icvoss/django-brickwork#671; the app sidebar keeps the truncate default); only the surrounding `<details>`/`<nav>` markup moves
    from your own partial into the shell.
 4. **Move any page header markup into `docs_header`** (or `docs_header_region`
    if you need to replace its wrapper `<div>`), and any footer/feedback
@@ -973,7 +974,12 @@ None of these has a driving consumer yet (ADR-091 decision 2), so none ships
 as an empty seam with nothing behind it. Build a table of contents, a version
 switcher, or a feedback control into `docs_nav_region`, `docs_header_region`
 or `docs_footer_region` respectively, as your own site-owned markup, exactly
-as you already build `{% bw_nav %}` composition into the nav rail today.
+as you already build `{% bw_nav labels="wrap" %}` composition into the nav rail today.
+
+At the lg breakpoint the sticky rail scrolls inside the viewport
+(`max-block-size: calc(100dvh - 2 * var(--bw-space-6))` with `overflow-y: auto`)
+and its column width is `--bw-component-docs-nav-inline-size` (default `16rem`).
+Override that token when titles need a wider rail; do not rewrite the grid.
 
 ### Related items / "see also" blocks (icvoss/django-brickwork#456)
 
@@ -1044,7 +1050,7 @@ this purpose is no longer necessary:
 {% endblock %}
 
 {% block docs_nav %}
-  {% bw_nav items=docs_nav_items active=docs_nav_active %}
+  {% bw_nav items=docs_nav_items active=docs_nav_active labels="wrap" %}
 {% endblock %}
 
 {% block docs_site_footer %}

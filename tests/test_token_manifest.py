@@ -102,6 +102,13 @@ def test_overridable_names_includes_the_marketing_logo_height_token() -> None:
     assert "--bw-component-logo-height" in names
 
 
+def test_overridable_names_includes_the_docs_nav_inline_size_token() -> None:
+    # #671: docs shell rail column width must be overridable under its
+    # canonical --bw-component-* name.
+    names = overridable_names()
+    assert "--bw-component-docs-nav-inline-size" in names
+
+
 def test_is_overridable_true_for_accent_false_for_primitive() -> None:
     assert is_overridable("--bw-color-accent") is True
     assert is_overridable("--bw-primitive-gray-0") is False

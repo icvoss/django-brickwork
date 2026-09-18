@@ -4741,7 +4741,7 @@ _DOCS_SOURCE = (
     '<p><a href="/widgets/">&larr; Back to widgets</a></p>'
     "{% endblock %}"
     "{% block docs_nav %}"
-    "{% bw_nav items=docs_nav_items active=docs_nav_active %}"
+    "{% bw_nav items=docs_nav_items active=docs_nav_active labels='wrap' %}"
     "{% endblock %}"
 )
 
@@ -4799,7 +4799,7 @@ def render_docs_with_site_chrome(theme: str) -> str:
         '{% block content %}<div class="bw-prose"><p>Every list page ships a'
         " filter bar backed by a plain Django form.</p></div>{% endblock %}"
         '{% block docs_footer %}<p><a href="/widgets/">&larr; Back to widgets</a></p>{% endblock %}'
-        "{% block docs_nav %}{% bw_nav items=docs_nav_items active=docs_nav_active %}{% endblock %}"
+        "{% block docs_nav %}{% bw_nav items=docs_nav_items active=docs_nav_active labels='wrap' %}{% endblock %}"
         "{% block docs_site_footer %}" + _DOCS_SITE_CHROME_FOOTER + "{% endblock %}"
     )
     ctx = {

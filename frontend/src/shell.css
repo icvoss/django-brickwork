@@ -697,10 +697,17 @@
  * column claiming it independently (carried from the consumer's own
  * main.css:930-933, ADR-091 decision 4). flex: 1 1 auto makes it the
  * .bw-docs-shell column's one growing member (icvoss/django-brickwork#448
- * item 1), the same role .bw-marketing__content plays inside .bw-marketing. */
+ * item 1), the same role .bw-marketing__content plays inside .bw-marketing.
+ *
+ * inline-size: 100% is load-bearing under the column flex parent
+ * (icvoss/django-brickwork#668): without it, auto margin-inline on a flex
+ * item sizes the item fit-content, so pages with different longest lines
+ * render .bw-docs at different widths and the rail/article jump sideways
+ * when navigating. The auto margins then only centre within the measure. */
 .bw-docs {
   display: block;
   flex: 1 1 auto;
+  inline-size: 100%;
   max-inline-size: var(--bw-component-content-max-width-marketing);
   margin-inline: auto;
   padding-inline: var(--bw-density-page-gutter-inline);
@@ -791,7 +798,7 @@
  * (ADR-091 decision 3). */
 @media (width >= --theme(--breakpoint-lg)) {
   .bw-docs-layout {
-    grid-template-columns: 16rem minmax(0, 1fr);
+    grid-template-columns: var(--bw-component-docs-nav-inline-size) minmax(0, 1fr);
     gap: var(--bw-space-10);
     align-items: start;
   }
@@ -800,10 +807,17 @@
     display: none;
   }
 
+  /* Sticky rail scroll (icvoss/django-brickwork#671): without a max block
+   * size the rail sticks with its tail below the fold when it has more
+   * links than fit the viewport. scrollbar-gutter keeps the column width
+   * stable when the overflow scrollbar appears. */
   .bw-docs-layout__nav {
     order: -1;
     position: sticky;
     inset-block-start: var(--bw-space-6);
+    max-block-size: calc(100dvh - 2 * var(--bw-space-6));
+    overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 
   .bw-docs-layout__nav-summary {

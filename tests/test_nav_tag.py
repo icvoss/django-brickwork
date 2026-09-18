@@ -13,6 +13,7 @@ import re
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 from django.template import Context, Template
 from django.test import override_settings
 
@@ -332,3 +333,44 @@ def test_dist_css_ships_nav_ellipsis_width_constraint() -> None:
         r"\.bw-nav__list--horizontal\s*\.bw-nav__link\{[^}]*inline-size:auto",
         compact,
     )
+
+
+# --- labels wrap option (icvoss/django-brickwork#671) --------------------------
+
+
+def test_labels_wrap_marks_the_root_list() -> None:
+    items = (NavItem(key="home", label="Home", external_url="https://example.com/"),)
+    html = Template("{% load brickwork_nav %}{% bw_nav items=items labels='wrap' %}").render(Context({"items": items}))
+    assert 'class="bw-nav__list bw-nav__list--labels-wrap"' in html
+
+
+def test_labels_default_stays_truncate_without_modifier() -> None:
+    items = (NavItem(key="home", label="Home", external_url="https://example.com/"),)
+    html = _render_tree(items)
+    assert "bw-nav__list--labels-wrap" not in html
+    assert 'class="bw-nav__list"' in html
+
+
+def test_labels_invalid_raises() -> None:
+    from django.template import TemplateSyntaxError
+
+    items = (NavItem(key="home", label="Home", external_url="https://example.com/"),)
+    with pytest.raises(TemplateSyntaxError, match="bw_nav labels must be one of"):
+        Template("{% load brickwork_nav %}{% bw_nav items=items labels='clip' %}").render(Context({"items": items}))
+
+
+def test_labels_wrap_clears_ellipsis_on_nav_label() -> None:
+    rules = _css_rules(_NAV_CSS.read_text(encoding="utf-8"))
+    body = _rule_body(rules, ".bw-nav__list--labels-wrap .bw-nav__label")
+    compact = body.replace(" ", "").replace("\n", "")
+    assert "white-space:normal" in compact
+    assert "overflow:visible" in compact
+    assert "text-overflow:unset" in compact
+
+    dist = _DIST_CSS.read_text(encoding="utf-8").replace(" ", "")
+    assert ".bw-nav__list--labels-wrap.bw-nav__label{" in dist or ".bw-nav__list--labels-wrap .bw-nav__label{" in dist
+    wrap_match = re.search(r"\.bw-nav__list--labels-wrap\s*\.bw-nav__label\{([^}]*)\}", dist)
+    assert wrap_match is not None
+    wrap_body = wrap_match.group(1)
+    assert "white-space:normal" in wrap_body
+    assert "overflow:visible" in wrap_body
