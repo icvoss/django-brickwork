@@ -141,8 +141,8 @@ def test_items_covers_every_shell_component_section_and_archetype() -> None:
 
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 6
-    assert len(items_by_kind("component")) == 78
-    assert len(items_by_kind("section")) == 34
+    assert len(items_by_kind("component")) == 79
+    assert len(items_by_kind("section")) == 36
     assert len(items_by_kind("archetype")) == 52
     assert len(items_by_kind("skeleton")) == 1
 
@@ -219,11 +219,13 @@ def test_sections_requiring_context_match_the_documented_shape() -> None:
         "sections/features/icon-grid.html",
         "sections/features/alternating-rows.html",
         "sections/features/simple-list.html",
+        "sections/methods/quiet-columns.html",
         "sections/portrait/end.html",
         "sections/portrait/start.html",
         "sections/pricing/three-tier.html",
         "sections/pricing/comparison-table.html",
         "sections/stats/inline-band.html",
+        "sections/stats/start-aligned.html",
         "sections/listing/card-grid.html",
         "sections/listing/compact-table.html",
         "sections/listing/media-list.html",
@@ -233,7 +235,7 @@ def test_sections_requiring_context_match_the_documented_shape() -> None:
 def test_most_sections_render_from_empty_context() -> None:
     section_items = items_by_kind("section")
     empty_context = [entry for entry in section_items if not entry["requiresContext"]]
-    assert len(empty_context) == 20  # 34 sections total, 14 need context
+    assert len(empty_context) == 20  # 36 sections total, 16 need context
 
 
 def test_archetypes_are_scoped_to_their_shipped_family() -> None:

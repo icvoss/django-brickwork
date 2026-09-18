@@ -878,6 +878,26 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             },
         ],
     ),
+    "_methods (marketing: quiet columns)": lambda: _include(
+        "brickwork_marketing/components/_methods.html",
+        heading="Methods",
+        items=[
+            {
+                "heading": "RECE",
+                "stages": "Reach · Engage · Convert · Expand",
+                "body": "The growth method.",
+                "url": "/rece/",
+                "link_label": "Read RECE",
+            },
+            {
+                "heading": "PRIME",
+                "stages": "Prime · Run · Inspect · Merge · Evolve",
+                "body": "The delivery method.",
+                "url": "/prime/",
+                "link_label": "Read PRIME",
+            },
+        ],
+    ),
     "_cta_split (marketing: mid-page split)": lambda: _include(
         "brickwork_marketing/components/_cta_split.html",
         heading="Try it on last month's invoices",
@@ -1022,6 +1042,12 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             {"value": "21 days", "label": "Average time to pay", "trend": "down", "trend_label": "17 days faster"},
             {"value": "94%", "label": "Invoices paid without a call"},
         ],
+    ),
+    "_stat_band (marketing: align=start)": lambda: _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="Proof",
+        stats=[{"value": "12", "label": "Shipped"}],
+        align="start",
     ),
     "_testimonial (marketing: avatar, logo)": lambda: _include(
         "brickwork_marketing/components/_testimonial.html",

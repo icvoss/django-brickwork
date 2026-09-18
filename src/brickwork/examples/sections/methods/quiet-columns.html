@@ -1,0 +1,40 @@
+{% comment %}
+METHODS / quiet columns: a light two-column reading band for named
+methods (or any quiet paired columns), not product-feature tiles.
+
+WHEN TO USE THIS INSTEAD OF FEATURE GRID OR DIRECTORY. Feature grid is
+the card-shaped product landing band (raised tiles, optional whole-card
+links). Directory is a numbered index with a meta column. This is the
+quiet columns layout: name, optional stages line, short body, underline
+text link. Prefer it for method pages and similar reading bands where
+card chrome would oversell.
+
+WHAT YOUR VIEW MUST SUPPLY. Pass method_items as items (list of dicts):
+
+    method_items = [
+        {
+            "heading": "RECE",
+            "stages": "Reach · Engage · Convert · Expand",
+            "body": "The growth method: stages with measurable movement between them.",
+            "url": "/rece/",
+            "link_label": "Read RECE",
+        },
+        {
+            "heading": "PRIME",
+            "stages": "Prime · Run · Inspect · Merge · Evolve",
+            "body": "The delivery method: a loop your whole engineering practice can run on.",
+            "url": "/prime/",
+            "link_label": "Read PRIME",
+        },
+    ]
+
+`stages`, `body`, `url` and `link_label` are each optional per item. The
+link renders only when both `url` and `link_label` are present. Omit a
+field and it does not render.
+
+States: see _methods.html.
+Accessibility: see _methods.html; covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: see _methods.html.
+{% endcomment %}
+{% include "brickwork_marketing/components/_methods.html" with heading="Methods" items=method_items %}

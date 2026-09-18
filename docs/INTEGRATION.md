@@ -1208,8 +1208,9 @@ inline.
 `.bw-section__inner` and stop relying on the legacy child rule for that band.
 Section rhythm (`.bw-marketing__content > * + *`) still applies to
 `.bw-section` roots. Proving migrations in the package: `_feature_grid.html`
-(contained) and `_cta_bleed.html` (bleed). Other roots can adopt the wrap when
-they next need atmosphere past the legacy rail.
+(contained), `_methods.html` (contained, #675), and `_cta_bleed.html` (bleed).
+Other roots can adopt the wrap when they next need atmosphere past the
+legacy rail.
 
 ## Contribute back
 
