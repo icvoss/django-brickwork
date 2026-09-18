@@ -2955,3 +2955,89 @@
     text-align: end;
   }
 }
+
+/* Methods / quiet columns (#675) -------------------------------------------
+ * Reading layout for method pages: no card surface, no whole-column hit
+ * target. Underline text link only. Sibling of feature-grid (product tiles)
+ * and directory (numbered index), not a variant of either. */
+
+.bw-methods-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.bw-methods-section__heading {
+  margin: 0 0 var(--bw-space-8);
+  font-family: var(--bw-text-heading-section-family);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
+}
+
+.bw-methods {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--bw-space-8) var(--bw-space-12);
+}
+
+@media (width >= --theme(--breakpoint-sm)) {
+  .bw-methods {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.bw-methods__item {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+}
+
+.bw-methods__name {
+  margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+
+.bw-methods__stages {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+
+.bw-methods__body {
+  margin: 0;
+  max-inline-size: 32ch;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+  text-wrap: pretty;
+}
+
+/* Underline text link (not a whole-column anchor). min-block-size meets the
+ * WCAG 2.5.8 24px floor, same pattern as .bw-bio__profile-link. */
+.bw-methods__link {
+  display: inline-block;
+  align-self: flex-start;
+  margin-block-start: var(--bw-space-3);
+  min-block-size: 1.5rem;
+  font-weight: var(--bw-font-weight-semibold);
+  color: var(--bw-color-fg);
+  text-decoration: none;
+  border-block-end: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 55%, transparent);
+  transition: var(--bw-transition-colors);
+}
+
+.bw-methods__link:hover,
+.bw-methods__link:focus-visible {
+  border-block-end-color: var(--bw-color-fg);
+}

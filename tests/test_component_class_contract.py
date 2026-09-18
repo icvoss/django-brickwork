@@ -861,6 +861,26 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             {"heading": "django-icv-core", "body": "Shared helpers."},
         ],
     ),
+    "_methods (marketing: quiet columns)": lambda: _include(
+        "brickwork_marketing/components/_methods.html",
+        heading="Methods",
+        items=[
+            {
+                "heading": "RECE",
+                "stages": "Reach · Engage · Convert · Expand",
+                "body": "The growth method.",
+                "url": "/rece/",
+                "link_label": "Read RECE",
+            },
+            {
+                "heading": "PRIME",
+                "stages": "Prime · Run · Inspect · Merge · Evolve",
+                "body": "The delivery method.",
+                "url": "/prime/",
+                "link_label": "Read PRIME",
+            },
+        ],
+    ),
     "_cta_split (marketing: mid-page split)": lambda: _include(
         "brickwork_marketing/components/_cta_split.html",
         heading="Try it on last month's invoices",
