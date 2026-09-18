@@ -188,12 +188,14 @@ past it.
 **It is a sibling of `template-manifest.json`, never merged into it**
 (plan decision D8). `template-manifest.json` is the versioned
 BR-BW-VER-001 contract for block/partial names: renaming or removing one
-requires the parallel-support cycle and a major bump. Catalogue taxonomy
-is a different consumer (a site building a catalogue browsing surface, not
-a template author checking a block name is stable) and a different
-stability promise: it is descriptive, generated from the shipped tree at
-release time, and may evolve in minors as the catalogue itself grows
-across waves.
+requires the parallel-support cycle and a major bump. The other two
+versioned-contract siblings are `token-manifest.json` and
+`interaction-manifest.json` (Alpine names, `bw:` events, HTMX target IDs;
+icvoss/django-brickwork#229). Catalogue taxonomy is a different consumer
+(a site building a catalogue browsing surface, not a template author
+checking a block name is stable) and a different stability promise: it is
+descriptive, generated from the shipped tree at release time, and may
+evolve in minors as the catalogue itself grows across waves.
 
 **The JSON is the public contract, not a Python API.** A consumer reads
 `catalogue-manifest.json` directly off the installed package, the same
@@ -451,5 +453,6 @@ DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:. \
 Run after any change to a shipped shell, component, or example. CI's
 `test` job re-runs this generator and fails the build on any diff
 (`tests/test_catalogue_manifest.py`), the same drift discipline
-`template-manifest.json` and `token-manifest.json` already carry. Do not
+`template-manifest.json`, `token-manifest.json` and
+`interaction-manifest.json` already carry. Do not
 hand-edit the committed `catalogue-manifest.json`.

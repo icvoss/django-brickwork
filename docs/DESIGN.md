@@ -79,7 +79,12 @@ accessor is `services/token_manifest.py`: `load_bearing()`,
 `overridable_names()`, and `is_overridable()`. This file remains the
 narrative reference; the manifest is the machine-checkable source of truth
 for tooling (validation, the brand-CSS emitter in section 3a, brand
-scaffolding).
+scaffolding). The other two versioned-contract siblings live beside it in
+the same dist directory: `template-manifest.json` (named `{% block %}` /
+`{% partialdef %}` names) and `interaction-manifest.json` (Alpine.data
+names, `bw:` events, and package-owned HTMX target IDs;
+icvoss/django-brickwork#229). Catalogue taxonomy is a fourth generated
+file (`catalogue-manifest.json`) and is not a BR-BW-VER-001 surface.
 
 ## 3. Derivation mechanism
 

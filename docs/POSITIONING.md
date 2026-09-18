@@ -313,7 +313,7 @@ sight, and are refreshed by hand at the next audit.
 | Template tag registrations | 32 total | 21 `inclusion_tag`, 10 `simple_tag`, 1 `filter`. Write "21 component tags" or state the 32 total; never a bare "21 template tags". **Gated** by importing the templatetags libraries and counting `register.tags`/`register.filters` |
 
 | Tokens | 358 unique `--bw-*` | 305 overridable; 10 load-bearing, 8 unconditional. **Overridable count gated** against `token-manifest.json`; the 358 total (all custom properties in compiled `tokens.css`) is **dated** at 3.12.0 |
-| Alpine components | 16 | bwDropdown, bwTabs, bwModal, bwToastRegion, bwToast, bwCombobox, bwDismissible, bwTooltip, bwTagInput, bwDropzone, bwSidebarCollapse, bwSlideOver, bwTableSelection, bwSortable, bwThemeSwitch, bwCodeCopy. **Gated** by parsing the `Alpine.data(...)` calls in `frontend/src/js/index.js`'s single registration point |
+| Alpine components | 16 | bwDropdown, bwTabs, bwModal, bwToastRegion, bwToast, bwCombobox, bwDismissible, bwTooltip, bwTagInput, bwDropzone, bwSidebarCollapse, bwSlideOver, bwTableSelection, bwSortable, bwThemeSwitch, bwCodeCopy. **Gated** by parsing the `Alpine.data(...)` calls in `frontend/src/js/index.js`'s single registration point (and cross-checked against `interaction-manifest.json`) |
 | Examples | 85 | 52 archetype pages, 33 sections. **Gated** against `catalogue-manifest.json` |
 | Icons | 50 vendored Lucide SVG files | exposed as 53 callable names (3 aliases). State precisely; never a bare "50" or bare "53". **Dated** at 3.10.0 |
 | Tests | 1023 test functions | across 58 files containing at least one `def test_` (90 Python files exist under `tests/` in total; most are fixtures, conftest or helpers with no test functions of their own). **Dated** at 3.10.0 (counted via `git grep -hE '^def test_' -- tests \| wc -l` for the function count, `git grep -lE '^def test_' -- tests \| wc -l` for the file count); not gated, this count moves with every PR |
@@ -322,7 +322,7 @@ sight, and are refreshed by hand at the next audit.
 | Version | 3.34.0 | consistent in `pyproject.toml` and `src/brickwork/__init__.py`. **Gated** |
 | Hard runtime dependency | Django only | |
 | Theme axes | 4 verified working | brand, theme, density, direction |
-| Contract manifests | 2 | token, template; generated from source, CI drift-gated. Token manifest carries `minContrast: 4.5` on `fg-on-accent` |
+| Contract manifests | 3 | token, template, interaction; generated from source, CI drift-gated. Token manifest carries `minContrast: 4.5` on `fg-on-accent`. Interaction manifest covers Alpine.data names, `bw:` events and package-owned HTMX target IDs (icvoss/django-brickwork#229). **Gated** |
 
 ## 6. Design boundaries
 
