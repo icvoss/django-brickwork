@@ -14,6 +14,9 @@ Optional context from the tag:
   orientation ("vertical"|"horizontal", default "vertical"). Horizontal adds
   bw-nav__list--horizontal on the root list (NAV-024 / #430) so a topbar-shaped
   band does not require styling package-private BEM from the consumer.
+  labels ("truncate"|"wrap", default "truncate"). Wrap adds
+  bw-nav__list--labels-wrap so long labels break rather than ellipsis (#671);
+  docs rails should pass labels="wrap", app sidebars keep the default.
 {% endcomment %}
 
 {% partialdef nav_item %}
@@ -55,6 +58,6 @@ Optional context from the tag:
   {% endif %}
 {% endpartialdef %}
 
-<ul class="bw-nav__list{% if orientation == 'horizontal' %} bw-nav__list--horizontal{% endif %}" role="list">
+<ul class="bw-nav__list{% if orientation == 'horizontal' %} bw-nav__list--horizontal{% endif %}{% if labels == 'wrap' %} bw-nav__list--labels-wrap{% endif %}" role="list">
   {% for item in bw_nav_tree %}{% partial nav_item %}{% endfor %}
 </ul>

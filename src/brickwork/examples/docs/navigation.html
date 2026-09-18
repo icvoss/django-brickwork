@@ -143,6 +143,6 @@ Responsive: horizontal nav wraps inside the site header; rail collapses to
 
 {% block docs_nav %}
   {% if navigation_state == "ready" %}
-  {% bw_nav items=docs_nav_items active=docs_nav_active %}
+  {% bw_nav items=docs_nav_items active=docs_nav_active labels="wrap" %}
   {% endif %}
 {% endblock %}

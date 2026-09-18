@@ -114,6 +114,15 @@
   white-space: nowrap;
 }
 
+/* labels="wrap" on {% bw_nav %} (icvoss/django-brickwork#671): clear the
+ * truncate defaults so long document titles remain readable in a docs rail.
+ * App sidebars keep the truncate default by omitting the option. */
+.bw-nav__list--labels-wrap .bw-nav__label {
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
+}
+
 .bw-nav__badge {
   flex-shrink: 0;
   min-inline-size: var(--bw-space-5);

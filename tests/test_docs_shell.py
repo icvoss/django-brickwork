@@ -20,10 +20,16 @@ outside <main>, page-local regions stay inside it.
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 from django.template import Context, Template
 from django.template.loader import render_to_string
 
 _DOCS_SHELL = "brickwork/shell/docs.html"
+_ROOT = Path(__file__).resolve().parent.parent
+_SHELL_CSS = _ROOT / "frontend" / "src" / "shell.css"
+_DIST_CSS = _ROOT / "src" / "brickwork" / "static" / "brickwork" / "dist" / "brickwork.css"
 
 
 def _render(template: str, **ctx: object) -> str:
@@ -382,3 +388,49 @@ def test_docs_nav_label_default_remains_documentation() -> None:
     assert 'aria-label="Documentation"' in html
     assert 'class="bw-docs-nav-jump"' in html
     assert ">Documentation</a>" in html
+
+
+# --- icvoss/django-brickwork#668 / #671: docs shell CSS contracts ------------
+
+
+def _css_rules(css: str) -> list[tuple[str, str]]:
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    return [(sel.strip(), body) for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css)]
+
+
+def _rule_body(rules: list[tuple[str, str]], selector: str) -> str:
+    matches = [body for sel, body in rules if sel.strip() == selector]
+    assert matches, f"missing {selector} rule"
+    return matches[0]
+
+
+def test_bw_docs_stretches_to_full_inline_size_under_column_flex() -> None:
+    # Without inline-size: 100%, auto margin-inline on a flex item in a column
+    # container sizes fit-content, so pages with different longest lines jump
+    # sideways (#668).
+    rules = _css_rules(_SHELL_CSS.read_text(encoding="utf-8"))
+    body = _rule_body(rules, ".bw-docs")
+    compact = body.replace(" ", "").replace("\n", "")
+    assert "inline-size:100%" in compact
+    assert "margin-inline:auto" in compact
+    assert "max-inline-size:var(--bw-component-content-max-width-marketing)" in compact
+
+    dist = _DIST_CSS.read_text(encoding="utf-8").replace(" ", "")
+    docs_match = re.search(r"\.bw-docs\{([^}]*)\}", dist)
+    assert docs_match is not None
+    assert "inline-size:100%" in docs_match.group(1)
+
+
+def test_docs_rail_sticky_scrolls_and_uses_nav_inline_size_token() -> None:
+    # #671: sticky rail needs a viewport-relative max block size + overflow,
+    # and the grid column must read the docs-nav-inline-size token.
+    source = _SHELL_CSS.read_text(encoding="utf-8")
+    assert "var(--bw-component-docs-nav-inline-size)" in source
+    assert "max-block-size: calc(100dvh - 2 * var(--bw-space-6))" in source
+    assert "overflow-y: auto" in source
+    assert "scrollbar-gutter: stable" in source
+
+    dist = _DIST_CSS.read_text(encoding="utf-8").replace(" ", "")
+    assert "var(--bw-component-docs-nav-inline-size)" in dist
+    assert "max-block-size:calc(100dvh-2*var(--bw-space-6))" in dist
+    assert "scrollbar-gutter:stable" in dist

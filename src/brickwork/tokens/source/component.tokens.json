@@ -169,6 +169,13 @@
       "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens): a wider content cap than the app shell's content.max-width (72rem), since a marketing canvas wants a wider column than a console. Used by shell/marketing.html's content wrapper."
     }
   },
+  "docs": {
+    "nav-inline-size": {
+      "$type": "dimension",
+      "$value": "16rem",
+      "$description": "Docs shell rail column width at the lg breakpoint (icvoss/django-brickwork#671). Consumed by .bw-docs-layout's grid-template-columns; override when document titles need a wider rail than the 16rem default."
+    }
+  },
   "section-gap-marketing": {
     "$type": "dimension",
     "$value": "6rem",

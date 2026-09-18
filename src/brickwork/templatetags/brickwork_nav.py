@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from django import template
+from django.template import TemplateSyntaxError
 from django.utils.functional import Promise
 
 from brickwork.conf import get_setting
@@ -209,6 +210,9 @@ def _prepare_tree(
     )
 
 
+_NAV_LABELS = frozenset({"truncate", "wrap"})
+
+
 @register.inclusion_tag("brickwork/nav/_nav.html", takes_context=True)
 def bw_nav(
     context,
@@ -216,6 +220,7 @@ def bw_nav(
     active: NavItem | None = None,
     resolver_match=None,
     orientation: str = "vertical",
+    labels: str = "truncate",
 ) -> dict:
     """Render the nav tree. ``items`` should already be visibility-filtered
     (via visible_items in a context processor); ``active`` from resolve_active_item.
@@ -231,11 +236,18 @@ def bw_nav(
     sidebar renderer (icvoss/django-brickwork#430, NAV-024); marketing header
     rows stay on ``{% bw_nav_header %}``. The topbar shell layout still forces
     a horizontal band via its own layout CSS when ``data-layout="topbar"``.
+
+    ``labels`` is ``"truncate"`` (default: ellipsis on overflow, right for an
+    app sidebar) or ``"wrap"`` (multi-line labels, right for a docs rail of
+    document titles). Closed vocabulary (icvoss/django-brickwork#671).
     """
     resolved = orientation if orientation == "horizontal" else "vertical"
+    if labels not in _NAV_LABELS:
+        raise TemplateSyntaxError(f"bw_nav labels must be one of {sorted(_NAV_LABELS)}, got {labels!r}")
     return {
         "bw_nav_tree": _prepare_tree(context, items, active, resolver_match),
         "orientation": resolved,
+        "labels": labels,
     }
 
 

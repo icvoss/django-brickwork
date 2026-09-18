@@ -76,6 +76,7 @@
   --bw-component-disabled-opacity: 0.5;
   --bw-component-content-max-width: 72rem;
   --bw-component-content-max-width-marketing: 80rem;
+  --bw-component-docs-nav-inline-size: 16rem;
   --bw-component-section-gap-marketing: 6rem;
   --bw-component-hero-copy-max-width: var(--bw-size-max-width-prose);
   --bw-component-hero-heading-max-width: 100%;
@@ -546,6 +547,7 @@
   --bw-content-max-width: var(--bw-component-content-max-width);
   --bw-content-max-width-marketing: var(--bw-component-content-max-width-marketing);
   --bw-disabled-opacity: var(--bw-component-disabled-opacity);
+  --bw-docs-nav-inline-size: var(--bw-component-docs-nav-inline-size);
   --bw-drawer-width: var(--bw-component-drawer-width);
   --bw-gauge-diameter-lg: var(--bw-component-gauge-diameter-lg);
   --bw-gauge-diameter-md: var(--bw-component-gauge-diameter-md);
