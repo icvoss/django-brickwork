@@ -1,6 +1,13 @@
 // Playwright config for the brickwork accessibility + no-JS gate.
 // Tests load pre-rendered fixtures (file://), so no web server is needed.
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
 import { defineConfig } from "@playwright/test";
+
+import { assertLocalNodeModules } from "./a11y/assert_node_modules.mjs";
+
+const repoRoot = dirname(fileURLToPath(import.meta.url));
+assertLocalNodeModules(repoRoot);
 
 // The json reporter always runs alongside the human-readable one, writing to
 // a fixed path (gitignored, see .gitignore): icvoss/django-brickwork#382's
