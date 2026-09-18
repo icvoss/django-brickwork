@@ -1004,25 +1004,19 @@ def test_hero_media_shape_unrecognised_value_falls_back_to_default() -> None:
 
 
 def test_hero_align_start_actions_have_a_css_rule() -> None:
-    css = (
-        Path(__file__).resolve().parent.parent / "frontend" / "src" / "marketing.css"
-    ).read_text(encoding="utf-8")
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "marketing.css").read_text(encoding="utf-8")
     assert ".bw-hero--start .bw-hero__actions" in css
     assert "justify-content: flex-start" in css
 
 
 def test_hero_align_end_actions_have_a_css_rule() -> None:
-    css = (
-        Path(__file__).resolve().parent.parent / "frontend" / "src" / "marketing.css"
-    ).read_text(encoding="utf-8")
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "marketing.css").read_text(encoding="utf-8")
     assert ".bw-hero--end .bw-hero__actions" in css
     assert "justify-content: flex-end" in css
 
 
 def test_hero_media_circle_css_and_token_are_emitted() -> None:
-    css = (
-        Path(__file__).resolve().parent.parent / "frontend" / "src" / "marketing.css"
-    ).read_text(encoding="utf-8")
+    css = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "marketing.css").read_text(encoding="utf-8")
     assert ".bw-hero--media-circle .bw-hero__media" in css
     assert "var(--bw-component-hero-media-circle-size)" in css
     assert "border-radius: var(--bw-radius-full)" in css
