@@ -589,13 +589,13 @@ def test_dichromatic_separation_is_no_worse_than_documented(theme, kind):
 # lightness-aware, which a distance floor already is.
 _CHROME_SEPARATION_FLOOR = 0.08
 
-# Chrome a series is measured against. tooltip-bg and tooltip-border are
-# EXEMPT, and the reason is compositing rather than colour: a tooltip is an
-# opaque overlay, so a series behind it is occluded, not confused. That holds
-# whatever the values are. Whether a series swatch is ever drawn INSIDE a
-# tooltip is engine-determined (CHT-014 places the swatch in the legend, which
-# sits on the card surface and is covered by the surface-contrast test), so if
-# an adapter ever renders one there, this exemption needs revisiting.
+# Chrome a series is measured against. tooltip-bg and tooltip-border are not
+# in this list: series-against-tooltip-bg is resolved by adapter suppression
+# of the engine's default tooltip swatch (icvoss/django-brickwork#301,
+# ADR-082 sixth amendment), not by an oklab floor here. The two pairings
+# once listed as undecided (tooltip-border, tooltip-text) are moot; engines
+# paint the swatch on tooltip-bg. CHT-014's legend swatch sits on the card
+# surface and is covered by the surface-contrast test.
 _CHROME_TOKENS = ("chart-axis", "chart-axis-label", "chart-grid")
 
 
