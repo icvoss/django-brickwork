@@ -150,7 +150,19 @@ test("teeth: stylesheet display:none on gauge labels fails the cascade-visibilit
   expect(after.every((r) => r.display === "none")).toBe(true);
   expect(after.every((r) => !r.cascadeVisible)).toBe(true);
 
-  await expect(
-    assertRedeemingLabelsVisible(page, ".bw-gauge__label"),
-  ).rejects.toThrow(/cascade-visible/);
+  // Await the helper directly: playwright/no-restricted-matchers bans
+  // toThrow (including rejects.toThrow) because a sync matcher wrapping an
+  // async callback cannot fail (#276).
+  let rejected = false;
+  try {
+    await assertRedeemingLabelsVisible(page, ".bw-gauge__label");
+  } catch (err) {
+    rejected = true;
+    expect(String(err), "helper must name the cascade-visible property").toMatch(
+      /cascade-visible/,
+    );
+  }
+  expect(rejected, "stylesheet display:none must fail the cascade-visibility helper").toBe(
+    true,
+  );
 });
