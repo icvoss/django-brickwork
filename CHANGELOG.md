@@ -16,6 +16,207 @@ versioning contract).
 
 ### Removed
 
+## [3.35.0] - 2026-09-18
+
+Minor: **Wave B marketing pack, Wave C hygiene, Wave D seam/classifier work, and Wave E consumer docs/layout** land together. Additive and gate-hardening: new marketing options and tokens, docs-shell fixes, the interaction contract manifest, and ADR-057 Phase A section shell. No breaking change intended for existing consumers. Explicitly deferred: chart adapter with tooltip-swatch suppression (#301), ADR-097 flatatt / `{% extends %}` residue (#390), umbrella wall amendments for CHT-014/CHT-017 (icvoss/icv-oss-umbrella#838), and demand-gated `#156` command palette.
+
+### Added
+
+- **Interaction contract manifest** (icvoss/django-brickwork#229). Third
+  generated sibling beside `token-manifest.json` and
+  `template-manifest.json`: `interaction-manifest.json` declares Alpine.data
+  component names, dispatched `bw:` event names, and package-owned HTMX
+  target IDs (`bw-modal-root`, `bw-slide-over-root`, `bw-toast-region`),
+  extracted from source and CI drift-gated. Closes the BR-BW-VER-001 gap
+  that left three of five versioned surfaces undeclarable (including
+  `bwThemeSwitch` / `bw:theme-switch:change` from #228).
+
+- **Derived attribute-position classifier gate** (icvoss/django-brickwork#390,
+  ADR-097). A test-time scan re-derives every `attr="{{ ... }}"` under
+  `src/brickwork/templates/brickwork/`, classifies each hit as composed,
+  extends-unreachable, or known-exempt, and pins the residue to a checked-in
+  inventory that cannot grow or shrink silently. Seam-covered `bw_attr` /
+  `bw_data_attrs` sites and author-literal if/elif class modifiers are
+  validated by absence. Does not migrate residual sites; #390 stays open.
+
+- **Hero measure tokens for heading vs lede**
+  (icvoss/django-brickwork#640). `.bw-hero__copy` reads
+  `--bw-component-hero-copy-max-width` (default the prose measure).
+  `.bw-hero__heading` and `.bw-hero__lede` read
+  `--bw-component-hero-heading-max-width` and
+  `--bw-component-hero-lede-max-width` (both default `100%`), so a brand can
+  widen the display heading without also widening the lede, without scoping
+  a rule to `.bw-hero__*`. Package-default layout stays byte-identical.
+
+- **Feature grid item slots** (icvoss/django-brickwork#641). Each
+  `_feature_grid.html` item may now carry optional `eyebrow`, `meta`,
+  `badge`, `cta_label` and `pending` keys (absent means omitted). With
+  `url` and `cta_label` together the card keeps its whole-card link and
+  shows visible footer CTA text; `pending` applies reduced emphasis via
+  `--bw-opacity-muted` and stays non-interactive without a `url`.
+  Omitting the new keys leaves existing cards byte-identical.
+
+- **Label role exposes family and tracking** (icvoss/django-brickwork#642).
+  `--bw-text-label-family` (default the sans family) and
+  `--bw-text-label-tracking` (default `0em` via `--bw-font-tracking-normal`)
+  ship on the type ladder, and `.bw-btn` reads both, so a brand can set button
+  type once without scoping to a variant class. Package defaults stay
+  byte-identical.
+
+- **`heading-section` type role for marketing section intros**
+  (icvoss/django-brickwork#643). Marketing section intro headings
+  (feature-grid, pricing table, CTA, FAQ, feature list/rows, single-plan,
+  FAQ columns, testimonial grid, stat band/cards, listing, and comparison
+  table) now read `--bw-text-heading-section-*`. The page-header title stays
+  on `heading-xl`. Defaults duplicate `heading-xl`'s scale references, so
+  package-default renders stay visually identical while a brand can size
+  section intros and page titles independently.
+
+- **Hero decoration slot** (icvoss/django-brickwork#645). `_hero.html`
+  gains a semver-public `decoration` named block and optional safe-HTML
+  `decoration` context for a watermark or stamp behind the copy on the
+  ordinary surface (`aria-hidden`, pointer-events none). Absent content
+  stays byte-identical. Tunable via `--bw-component-hero-decoration-opacity`
+  (default 0.16), `--bw-component-hero-decoration-inset`, and
+  `--bw-component-hero-decoration-size`. Composes with every
+  `media_placement`; does not require media-behind and is not product-shot
+  chrome (#571).
+
+- **Feature grid bordered variant** (icvoss/django-brickwork#646).
+  `_feature_grid.html` accepts `variant="bordered"` for the shared-rule
+  marketing grid: 1px gap over the border colour, a strong outer border,
+  cells on surface with no per-card radius or shadow. The default
+  (omitted, or the honestly-named `cards`) stays the gapped raised cards
+  and is byte-identical to before this option existed.
+
+- **Marketing directory section** (icvoss/django-brickwork#647). New
+  `_directory.html` structural include: an ordered index of entries with an
+  optional numeral, icon or logo, linked title, description, and meta column
+  (version, status, install command). Empty items render the intro alone, or
+  nothing when that too is empty. Copy-paste example:
+  `examples/sections/directory/numbered.html`.
+
+- **Button elevation and hover-lift seams** (icvoss/django-brickwork#649).
+  `--bw-component-button-elevation` (default `var(--bw-elevation-1)`),
+  `--bw-component-button-elevation-hover` (default the resting button
+  elevation), and `--bw-component-button-hover-translate` (default `0`) let
+  a brand set button shadow and optional hover lift once on the ladder
+  without moving card or panel elevation. Primary, secondary, and danger
+  non-disabled states read the tokens; package defaults stay
+  byte-identical. Hover translate is suppressed under
+  `prefers-reduced-motion: reduce`.
+
+- **Hero eyebrow marker** (icvoss/django-brickwork#659). `_hero.html`
+  gains `eyebrow_marker` (`none` default | `rule`). `rule` emits
+  `bw-hero__eyebrow--rule` and draws a leading accent dash via `::before`,
+  tuned by `--bw-component-hero-eyebrow-marker-inline-size` (2.4rem),
+  `--bw-component-hero-eyebrow-marker-block-size` (2px), and
+  `--bw-component-hero-eyebrow-marker-color` (own token, default accent,
+  not `currentColor`). Omitted/`none` stays byte-identical. Composes with
+  `media_placement` and the decoration slot (#645).
+
+- **Marketing section shell / inner rail**
+  (icvoss/django-brickwork#667, ADR-057 Phase A). Package default for a
+  marketing band: `.bw-section` (full-bleed capable outer) and
+  `.bw-section__inner` (marketing measure + page gutter), with
+  `.bw-section--bleed` / `.bw-section--tint` for ADR-057 §1a `width` /
+  `band`. Bleed escape is shared with `.bw-cta--bleed` and `.bw-cta-bleed`
+  so the axis is not CTA-only. Legacy `.bw-marketing__content > *` rail
+  remains for unmigrated roots; section rhythm is unchanged. Proving
+  migrations: `_feature_grid.html`, `_cta_bleed.html`. See
+  `brickwork_marketing/components/_section.html` and INTEGRATION §13.
+
+### Changed
+
+- **Teeth-checking must cover matched-the-wrong-thing, not only matched-nothing**
+  (icvoss/django-brickwork#286). `CONTRIBUTING.md` records the rule: a guard
+  must assert it matched the element whose property is asserted, and a
+  teeth-check must keep the locator matching while violating the property.
+  `tests/_encoding_contract.py` is the worked example; do not reimplement it.
+
+- **Chart tooltip swatch suppression documented** (icvoss/django-brickwork#301).
+  A conforming chart adapter suppresses the engine tooltip series swatch
+  (`displayColors: false` / `tooltip.marker.show: false` / custom formatter
+  omitting the marker); series-against-tooltip-bg is resolved by that
+  suppression per umbrella ADR-082, not by re-solving the palette. Stated in
+  `docs/DESIGN.md`. No adapter module ships in this change.
+
+- **Icon registry trust boundary documented** (icvoss/django-brickwork#350).
+  `register_icons` stores artwork verbatim and callers own what they register
+  (same shape as `mark_safe`); the package does not validate SVG. Stated in
+  the `register_icons` docstring, `docs/INTEGRATION.md`, and the icon module
+  surface so the boundary is a ruling rather than an undocumented comment.
+
+- **Constrain-pattern sites fold into `{% bw_attr ... allow= %}`**
+  (icvoss/django-brickwork#390, ADR-097). `_empty_state` emits `data-variant`
+  through the seam (the ADR's own example); `_disclosure` and include-path
+  `_alert` emit their closed-vocab class modifiers via `allow=` with an
+  author-literal `prefix=`. Unrecognised values omit the attribute rather
+  than falling back to a guessed default. Partial-value class modifiers that
+  share one `class` attribute with other axes (`_stat`/`_stat_comparison`
+  size, `_scorecard` span, `_chart_card` legend_position, `_empty_state`
+  size/surface, and similar) stay on the shipped author-literal if/elif
+  class-composition pattern. #390 stays open for the derived classifier gate,
+  flatatt, style-context, and the `{% extends %}` group.
+
+### Fixed
+
+- **POSITIONING.md overridable-token prose is gated with the Tokens table**
+  (icvoss/django-brickwork#295). The Brickwork Theme sentence and the section 6
+  Tokens note both assert the same count from `token-manifest.json`, so the
+  two statements can no longer disagree unnoticed.
+
+- **Seam grammar gate is AST-based, and `bw_data_attrs` value escaping is
+  pinned** (icvoss/django-brickwork#310). The single-definition check walks
+  package Python for `re.compile` / `re.match` / `re.fullmatch` / `re.search`
+  whose pattern literal carries the `data-[a-z]` seam grammar, so a rename,
+  parenthesised compile, inline match, or copy outside templatetags fails the
+  suite, while the same text in a comment does not. `bw_data_attrs` now has
+  the same value-channel escape coverage as `_rendered_attrs` (quote-close
+  SafeString, `__html__` breakout, non-string and lazy translation).
+
+- **Playwright fails immediately when this worktree has no `node_modules`**
+  (icvoss/django-brickwork#336). Config asserts `node_modules/alpinejs` exists
+  and tells you to run `npm ci` here, instead of 100+ uniform 30s Alpine
+  timeouts after `npx` resolved a parent checkout's runner. `CONTRIBUTING.md`
+  documents `npm ci` beside the Python editable install for worktree setup.
+
+- **Colour-encoded redeeming labels are gated under a real CSS cascade**
+  (icvoss/django-brickwork#342). Playwright now asserts gauge, ranked-list,
+  sparkline and progress (`show_value`) labels are displayed and visible in
+  the shipped a11y fixtures, closing the stylesheet `display:none` blind
+  spot the Python encoding-contract helpers cannot see.
+
+- **Document per-worktree virtualenvs and confirm `brickwork.__file__`**
+  (icvoss/django-brickwork#354). A shared primary-checkout `.venv` can point an
+  editable install at another worktree, so local probes silently test the wrong
+  branch. `CONTRIBUTING.md` records the convention and the import-path check;
+  a suite guard fails when an editable import resolves outside this tree and
+  skips for installed-wheel (publish-gate) runs.
+
+- **Vertical `bw_nav` labels ellipsis again** (icvoss/django-brickwork#623).
+  `.bw-nav__link` now sets `inline-size: 100%` and `min-inline-size: 0` so
+  `.bw-nav__label`'s existing `text-overflow: ellipsis` can engage in a narrow
+  rail (docs shell long titles). Horizontal topbar and
+  `orientation="horizontal"` bands reset to content-sized `inline-size: auto`.
+
+- **Docs shell page width no longer jumps between pages**
+  (icvoss/django-brickwork#668). `.bw-docs` now sets `inline-size: 100%`
+  beside its existing measure and `margin-inline: auto` rules, so under the
+  column flex parent it stretches to the content measure instead of sizing
+  fit-content from the longest line. Navigating between a short package page
+  and a long docs article keeps the rail and article at the same offset.
+
+- **Docs shell rail scrolls, is token-width, and can wrap labels**
+  (icvoss/django-brickwork#671). At the lg breakpoint the sticky
+  `.bw-docs-layout__nav` caps at `calc(100dvh - 2 * var(--bw-space-6))` with
+  `overflow-y: auto` and `scrollbar-gutter: stable`, so a long rail stays
+  reachable while stuck. The rail column reads
+  `--bw-component-docs-nav-inline-size` (default `16rem`) instead of a
+  literal. `{% bw_nav %}` gains a closed `labels` option (`truncate` default,
+  `wrap` for multi-line titles); docs examples and fixtures use `wrap`, the
+  app sidebar stays truncated by default.
+
 ## [3.34.0] - 2026-09-17
 
 Minor: **viable primitives and cheap options** land on a complete required
