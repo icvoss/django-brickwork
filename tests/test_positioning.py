@@ -57,6 +57,8 @@ _POSITIONING = _REPO_ROOT / "docs" / "POSITIONING.md"
 
 _SECTION_5_HEADING_RE = re.compile(r"(?m)^## \d+\. The full verified numbers")
 _NEXT_HEADING_RE = re.compile(r"(?m)^## \d+\. ")
+_BRICKWORK_THEME_HEADING_RE = re.compile(r"(?m)^### \d+\.\d+ Brickwork Theme")
+_NEXT_SUBHEADING_RE = re.compile(r"(?m)^### \d+")
 _TABLE_ROW_RE = re.compile(r"^\|\s*(?P<label>[^|]+?)\s*\|\s*(?P<value>[^|]+?)\s*\|\s*(?P<note>.*?)\s*\|$")
 
 
@@ -73,6 +75,23 @@ def _section_5_text() -> str:
     )
     end = _NEXT_HEADING_RE.search(text, start.end())
     assert end is not None, "docs/POSITIONING.md has no heading after the full verified numbers section"
+    return text[start.end() : end.start()]
+
+
+def _brickwork_theme_section_text() -> str:
+    """The Brickwork Theme subsection prose (section 4.3 today), found by title
+    rather than by number so renumbering alone cannot break the gate
+    (icvoss/django-brickwork#295).
+    """
+    text = _POSITIONING.read_text(encoding="utf-8")
+    start = _BRICKWORK_THEME_HEADING_RE.search(text)
+    assert start is not None, (
+        "docs/POSITIONING.md has no '### <n>.<m> Brickwork Theme' heading; has the section been renamed?"
+    )
+    end = _NEXT_SUBHEADING_RE.search(text, start.end())
+    if end is None:
+        end = _NEXT_HEADING_RE.search(text, start.end())
+    assert end is not None, "docs/POSITIONING.md has no heading after the Brickwork Theme section"
     return text[start.end() : end.start()]
 
 
@@ -287,13 +306,24 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
 
 
 def test_tokens_row_overridable_count_matches_the_shipped_token_manifest() -> None:
+    """The overridable count is stated twice: Tokens table note and Brickwork
+    Theme prose. Both must match the shipped manifest (icvoss/django-brickwork#295).
+    """
     manifest = token_manifest_data()
     overridable_count = len(manifest["overridable"])
+    overridable_phrase = f"{overridable_count} overridable"
 
     value, note = _table_rows()["Tokens"]
-    assert f"{overridable_count} overridable" in note, (
+    assert overridable_phrase in note, (
         f"the shipped token-manifest.json carries {overridable_count} overridable names; "
-        "docs/POSITIONING.md section 5's Tokens row note is stale"
+        "docs/POSITIONING.md Tokens row note is stale"
+    )
+    # Same derived figure in the Brickwork Theme prose: historically only the
+    # table was gated, so the prose drifted freely (269 vs 271).
+    theme_prose = _brickwork_theme_section_text()
+    assert overridable_phrase in theme_prose, (
+        f"the shipped token-manifest.json carries {overridable_count} overridable names; "
+        "docs/POSITIONING.md Brickwork Theme prose is stale"
     )
     # The load-bearing set and its unconditional subset are equally cheap to
     # check against the same shipped manifest.
