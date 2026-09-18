@@ -70,6 +70,7 @@ _COMPOSED: dict[str, int] = {
     "components/_gauge.html|style|circumference|dash_offset": 1,
     "components/_ranked_list.html|style|row.percent": 1,
     "components/_skeleton.html|class|variant": 1,
+    "components/_site_header.html|class|site_header_modifiers": 1,
     "components/_sparkline.html|class|tone|direction": 1,
     "components/_sparkline.html|viewBox|width|height": 1,
     "components/_tabs.html|aria-labelledby|tabs_id|key": 1,
