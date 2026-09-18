@@ -10,6 +10,23 @@ versioning contract).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [3.38.0] - 2026-09-18
+
+Minor: **CHT-006 chart adapter** with tooltip series swatch suppression
+(#301). Ships a tested `chart-theme.js` module; no charting engine is
+bundled. No breaking change intended for existing consumers (additive
+static artefact and docs). Consumer action after upgrade: import
+`{% static 'brickwork/js/chart-theme.js' %}` when mounting Chart.js or
+ApexCharts so tooltip swatches stay suppressed.
+
+### Added
+
 - **Chart adapter recipe with tooltip-swatch suppression**
   (icvoss/django-brickwork#301, CHT-006). Ships
   `static/brickwork/js/chart-theme.js`: `brickworkChartTokens(el)` reads the
@@ -19,12 +36,6 @@ versioning contract).
   `tooltip.marker.show: false`). No charting engine is bundled or named as a
   Python extra (ADR-082 Decision 9). Consumer recipe in `docs/INTEGRATION.md`
   section 5a; regression in `tests/test_chart_theme_adapter.py`.
-
-### Changed
-
-### Fixed
-
-### Removed
 
 ## [3.37.0] - 2026-09-18
 
