@@ -10,8 +10,9 @@ Practical guide for contributors working on this package.
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 - Django 6.0 or later (installed as part of the dev setup)
 - No database server is required: the test suite uses SQLite
-- Node (npm) only if you rebuild the shipped static assets; see
-  `frontend/README.md`
+- Node (npm) when you rebuild shipped static assets (`frontend/README.md`)
+  **or** run the Playwright a11y gate (`npm ci` at the repo / worktree root;
+  see Local Development Setup)
 
 ---
 
@@ -21,12 +22,15 @@ Practical guide for contributors working on this package.
 git clone https://github.com/icvoss/django-brickwork.git
 cd django-brickwork
 
-# Create a virtual environment
+# Create a virtual environment local to this checkout
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
 # Install in editable mode with dev dependencies
 pip install -e ".[dev]"
+
+# Required for the a11y / interactive Playwright suite (Alpine + htmx fixtures)
+npm ci
 ```
 
 Or with uv:
@@ -34,7 +38,31 @@ Or with uv:
 ```bash
 uv venv && source .venv/bin/activate
 uv pip install -e ".[dev]"
+npm ci
 ```
+
+### Git worktrees
+
+A fresh worktree needs **both** the Python editable install and `npm ci` in
+that worktree. `npx playwright` can resolve up into a parent checkout, so a
+missing local `node_modules` still starts the runner and then burns minutes on
+uniform Alpine timeouts instead of saying the install is missing
+(icvoss/django-brickwork#336). Playwright config asserts
+`node_modules/alpinejs` exists and fails immediately with a clear message.
+
+**Use a per-worktree virtualenv.** Do not share the primary checkout's
+`.venv` across worktrees. An editable install writes a `.pth` that hard-codes
+whichever tree last ran `pip install -e .`, so a shared venv can make
+`import brickwork` resolve to another branch's `src/` with no error and no
+marker (icvoss/django-brickwork#354). Before trusting any local result:
+
+```bash
+python -c "import brickwork; print(brickwork.__file__)"
+```
+
+Confirm the printed path sits under the tree you intend to test. The suite
+also carries a lightweight guard that fails when an editable import resolves
+outside this tree; installed-wheel runs (publish gate) skip that check.
 
 ---
 
@@ -46,6 +74,12 @@ pytest tests/ -v --tb=short
 
 Test configuration lives in `[tool.pytest.ini_options]` in `pyproject.toml`,
 so no environment variables are needed.
+
+Accessibility / interactive browser specs (after `npm ci`):
+
+```bash
+npm run a11y
+```
 
 ---
 
@@ -112,6 +146,27 @@ unreturned `.then()` chain carrying an `expect()`. See icvoss/django-brickwork#2
 
 CI runs this as its own step in the `a11y-gate` job. Run it locally before
 pushing if you touch a spec file.
+
+### Teeth-checking assertion helpers
+
+A guard that locates a subject and then asserts a property on it must cover
+**two** failure directions, not only "matched nothing"
+(icvoss/django-brickwork#286):
+
+1. **Match the right element.** Assert you matched *the* element whose
+   property you are about to check, not merely that the pattern matched
+   something somewhere in the document.
+2. **Keep the pattern, break the property.** A teeth-check must include a
+   mutation that still satisfies the locator while violating the property.
+   A mutation that makes the pattern match nothing only proves the
+   matched-nothing countermeasure; it cannot see matched-the-wrong-thing.
+
+The worked example is `tests/_encoding_contract.py` (and its regression
+coverage in `tests/test_encoding_contract_helpers.py`): helpers locate named
+elements first, then assert properties on those elements alone, with
+both-direction teeth-checks. Do not reimplement that module; follow its
+shape for any new gate or assertion helper with a find step and an assert
+step (selectors, regex-over-HTML, JSON paths, log greps, query filters).
 
 ### Figures and claims about the codebase
 
