@@ -214,6 +214,14 @@ def register_icons(mapping: dict[str, str], *, directional: tuple[str, ...] = ()
     seed stores). A project typically namespaces its own names (``"myapp-widget"``)
     to avoid colliding with the seed vocabulary. Names in ``directional`` flip
     under RTL. Re-registering an existing name overrides it (an intentional swap).
+
+    Trust boundary (icvoss/django-brickwork#350): artwork is stored and rendered
+    verbatim. Icon paint content is inherently markup (``<path>``, ``<circle>``),
+    so escaping it would break the feature; the package does not validate or
+    allow-list registered SVG. Callers own what they register: untrusted markup
+    (request bodies, CMS fields, third-party feeds) registered here is an
+    injection, the same shape as ``django.utils.safestring.mark_safe``. Register
+    only project-authored or otherwise trusted glyphs.
     """
     _ICONS.update(mapping)
     _DIRECTIONAL_NAMES.update(directional)

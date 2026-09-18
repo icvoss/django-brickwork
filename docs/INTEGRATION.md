@@ -688,6 +688,16 @@ dict and merges it into the registry; `directional` lists names that should flip
 under RTL. Registering once at `ready()` makes every name available to
 `{% bw_icon %}` across your templates.
 
+### Icon registry trust boundary (ICO-002 / ICO-012, icvoss/django-brickwork#350)
+
+Artwork is trusted verbatim. Icon paint content is inherently markup
+(`<path>`, `<circle>`), so the package does not escape or allow-list what
+`register_icons` stores: escaping would break the feature, and validation is
+deliberately not the contract. Callers of `register_icons` own what they
+register, the same shape as `django.utils.safestring.mark_safe`. Registering
+untrusted markup (request bodies, CMS fields, third-party feeds) is an
+injection. Register only project-authored or otherwise trusted glyphs.
+
 Registry values are the paint content only (`<path>` / `<circle>` elements),
 never a full `<svg>` document: the tag re-wraps every glyph in brickwork's own
 `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ...>` wrapper,
