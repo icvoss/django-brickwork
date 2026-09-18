@@ -16,6 +16,64 @@ versioning contract).
 
 ### Removed
 
+## [3.36.0] - 2026-09-18
+
+Minor: **Wave F personal-presence marketing** plus the ADR-097 whole-value
+`aria-label` migration slice. Additive marketing sections and hero presence
+options for personal/portfolio-shaped pages; nineteen include-only and
+tag-backed labels now emit through `{% bw_attr %}`. No breaking change
+intended for existing consumers (omitted new options stay byte-identical).
+Explicitly deferred: chart adapter with tooltip-swatch suppression (#301),
+ADR-097 extends-group / URL-scheme residue after this `aria-label` slice,
+and demand-gated `#156` command palette.
+
+### Added
+
+- **Hero presence slots** (icvoss/django-brickwork#672). `_hero.html`
+  gains an optional `subheading` string/block (between heading and lede,
+  stronger than the lede), an optional `meta` safe-HTML/string or
+  `meta_items` list under the actions row, `eyebrow_tone`
+  (`accent` default | `sentence`), and `media_shape`
+  (`default` | `circle`). `align="start"` / `"end"` now left- / right-align
+  `.bw-hero__actions`. Circle media is sized by
+  `--bw-component-hero-media-circle-size` (14rem). Omitted defaults stay
+  byte-identical. Composes with `media_placement`, decoration (#645), and
+  `eyebrow_marker` (#659).
+
+- **Stat band start alignment** (icvoss/django-brickwork#673).
+  `_stat_band.html` gains `align` (`center` default | `start`). `start`
+  emits `bw-stat-band-section--align-start` for an airy left-aligned proof
+  band (heading and tiles pin to the inline start). Omitted / `center`
+  stays byte-identical to the centred KPI layout. Exercised by
+  `examples/sections/stats/start-aligned.html`.
+
+- **Marketing case / result list section** (icvoss/django-brickwork#674). New
+  `_case_list.html` structural include: ruled rows of `{result, heading, body,
+  url?}` (figure | name + note), not feature cards. Optional section heading;
+  empty items render the heading alone, or nothing when that too is empty.
+  Whole-row link when `url` is present. Copy-paste example:
+  `examples/sections/case-list/ruled.html`.
+
+- **Quiet methods / columns band** (icvoss/django-brickwork#675). New
+  `{% include "brickwork_marketing/components/_methods.html" %}` for light
+  two-column reading layouts (name, optional stages line, short body,
+  underline text link). Default chrome is not a card: no raised surface and
+  no whole-column hit target. Optional section `heading`; empty-graceful.
+  Does not replace `_feature_grid.html` for product landings. Example:
+  `examples/sections/methods/quiet-columns.html`.
+
+### Changed
+
+- **Whole-value `aria-label` sites route through `{% bw_attr %}`**
+  (icvoss/django-brickwork#390, ADR-097). Nineteen include-only / tag-backed
+  `aria-label="{{ … }}"` interpolations across account menu, alert, avatar
+  group, badge, button, chip, code, dropdown, gauge, ranked list, search,
+  theme switch, toast, version switch, and the app shell sidebar toggle now
+  emit via the seam. Tag-path `escape_attribute_value` for those labels
+  folds into strip-then-`bw_attr` so entities escape once. The derived
+  classifier inventory shrinks by the same nineteen `known_exempt` hits.
+  Extends-group templates and URL-scheme validation are unchanged.
+
 ## [3.35.0] - 2026-09-18
 
 Minor: **Wave B marketing pack, Wave C hygiene, Wave D seam/classifier work, and Wave E consumer docs/layout** land together. Additive and gate-hardening: new marketing options and tokens, docs-shell fixes, the interaction contract manifest, and ADR-057 Phase A section shell. No breaking change intended for existing consumers. Explicitly deferred: chart adapter with tooltip-swatch suppression (#301), ADR-097 flatatt / `{% extends %}` residue (#390), umbrella wall amendments for CHT-014/CHT-017 (icvoss/icv-oss-umbrella#838), and demand-gated `#156` command palette.
