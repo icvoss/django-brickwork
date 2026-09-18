@@ -221,7 +221,7 @@ Status values:
 | sparkline | N/A (keep lean) | |
 | spinner | N/A (compose) | Size follows host control icon token; not standalone |
 | stat | N/A (local) | `size` ships; raised KPI tiles compose via card |
-| stat_band | N/A (defaults) | Tint band + tile elevation authored Phase A |
+| stat_band | N/A (defaults) | Tint band + tile elevation authored Phase A; `align` center (default) / start (#673) |
 | stat_comparison | N/A (local) | Same size ladder as stat |
 | stepper | N/A (defaults) | Current/complete states authored |
 | tabs | N/A (local) | `variant` underline/pill; soft panel Could |
