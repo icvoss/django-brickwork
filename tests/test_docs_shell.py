@@ -421,8 +421,8 @@ def test_docs_site_chrome_package_includes_use_site_classes_only() -> None:
     assert "bw-site-header__inner" in html
     assert "bw-site-footer" in html
     assert "bw-site-footer__inner" in html
-    assert "bw-marketing-header" not in html
-    assert "bw-marketing-footer" not in html
+    assert "bw-site-header" not in html
+    assert "bw-site-footer" not in html
     # Replacing the region avoids nesting a second landmark inside
     # .bw-docs-site-header / .bw-docs-site-footer.
     assert "bw-docs-site-header" not in html

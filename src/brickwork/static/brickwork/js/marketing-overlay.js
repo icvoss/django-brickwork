@@ -3,8 +3,7 @@
  * icvoss/django-brickwork#565).
  *
  * Vanilla IIFE: no Alpine, no htmx. The marketing shell loads this on every
- * marketing page; it no-ops unless a .bw-marketing-header--overlay (or the
- * ADR-113 dual-class alias .bw-site-header--overlay) is present.
+ * marketing page; it no-ops unless a .bw-site-header--overlay is present.
  *
  * Public attributes stamped on the overlay header:
  *   data-bw-overlay-ready   present once enhancement has run
@@ -72,9 +71,7 @@
   }
 
   function boot() {
-    var headers = document.querySelectorAll(
-      ".bw-marketing-header--overlay, .bw-site-header--overlay",
-    );
+    var headers = document.querySelectorAll(".bw-site-header--overlay");
     for (var i = 0; i < headers.length; i++) {
       enhance(headers[i]);
     }

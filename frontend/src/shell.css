@@ -599,13 +599,11 @@
 
 /* --- Shared site chrome (ADR-113 / BR-BW-TPL-008) --------------------------
  * Family-neutral header/footer band and measure. Canonical classes are
- * .bw-site-*. The marketing shell emits dual class (these plus
- * .bw-marketing-header* / .bw-marketing-footer*); marketing.css keeps the
- * marketing-named rules so Prefer≥4 sites selecting on those names still
- * receive package styles during the compatibility window. Docs and other
- * non-marketing surfaces include _site_header.html / _site_footer.html and
- * wear .bw-site-* only (ADR-090). Overlay (ADR-105) stays in marketing.css.
- * App / auth / centred shells do not compose this chrome by default.
+ * .bw-site-*. The marketing shell emits these names only (4.0.0 closed the
+ * dual-class marketing alias window). Docs and other non-marketing surfaces
+ * include _site_header.html / _site_footer.html and wear .bw-site-* only
+ * (ADR-090). Overlay (ADR-105) stays in marketing.css. App / auth / centred
+ * shells do not compose this chrome by default.
  */
 
 .bw-site-header {
