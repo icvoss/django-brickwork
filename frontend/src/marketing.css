@@ -223,9 +223,8 @@ which takes no space (no
   flex: 0 0 auto;
 }
 
-.bw-site-header__brand-mark :where(img,
-svg),
-.bw-site-header__brand-wordmark :where(img {
+.bw-site-header__brand-mark :where(img, svg),
+.bw-site-header__brand-wordmark :where(img, svg) {
   block-size: var(--bw-component-logo-height);
   inline-size: auto;
 }

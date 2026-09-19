@@ -105,10 +105,7 @@ def test_empty_marketing_footer_collapses_the_footer_landmark() -> None:
     # the header brand wrappers, test_brand_wrappers_do_not_grow_or_shrink...).
     html = _extend(_MARKETING_SHELL, "{% block content %}CONTENT-SENTINEL{% endblock %}")
     compact = re.sub(r"\s+", "", html)
-    assert (
-        '<divclass="bw-site-footer__inner">'
-        '<divclass="bw-site-footer__legal"></div></div>'
-    ) in compact
+    assert ('<divclass="bw-site-footer__inner"><divclass="bw-site-footer__legal"></div></div>') in compact
     css = (_DIST / "brickwork.css").read_text()
     site_collapsed = re.search(
         r"\.bw-site-footer:has\(\.bw-site-footer__legal:only-child:empty\)\{([^}]*)\}",

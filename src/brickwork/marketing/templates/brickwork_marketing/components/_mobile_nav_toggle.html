@@ -3,8 +3,8 @@
 Marketing mobile-nav toggle (icvoss/django-brickwork#263).
 
 Package-owned companion to marketing_nav_region: a native <details>/<summary>
-disclosure that, as a SIBLING of .bw-marketing-header__nav and
-.bw-marketing-header__actions, collapses those regions on narrow viewports
+disclosure that, as a SIBLING of .bw-site-header__nav and
+.bw-site-header__actions, collapses those regions on narrow viewports
 and reveals them when open. marketing.css owns the collapse rules; this
 partial owns only the trigger markup.
 
@@ -13,7 +13,7 @@ marketing_header and reproduce the shell):
 
   {% block marketing_nav_region %}
     {% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}
-    <nav class="bw-marketing-header__nav" aria-label="{% translate 'Primary' %}">
+    <nav class="bw-site-header__nav" aria-label="{% translate 'Primary' %}">
       {% block marketing_nav %}...{% endblock %}
     </nav>
   {% endblock %}

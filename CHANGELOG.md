@@ -60,6 +60,20 @@ codemod ships as `scripts/codemod_4_0_blocks.py` (dry-run by default).
 - Preferred migration helper: `python scripts/codemod_4_0_blocks.py <path>`
   (add `--write` to apply).
 
+### Fixed
+
+- **Marketing CSS build truncate** during the dual-class rename: a broken
+  `:where(img, svg)` selector on `.bw-site-header__brand-wordmark` made
+  Lightning CSS stop mid-file, so the shipped `brickwork.css` dropped
+  marketing component rules (hero, section shell, testimonials, and the
+  rest). Restored the closed `:where` and rebuilt the asset.
+- **Marketing archetype examples** still emitted `.bw-marketing-header__nav`
+  after the dual-class window closed, so dark-theme nav links fell back to
+  the UA blue and failed axe contrast. Renamed to `.bw-site-header__nav`.
+- **Docs shell dual-class assertion** incorrectly required
+  `.bw-site-header` to be both present and absent after a mechanical rename;
+  restored the negative check against the removed marketing alias names.
+
 ## [3.38.0] - 2026-09-18
 
 Minor: **CHT-006 chart adapter** with tooltip series swatch suppression
