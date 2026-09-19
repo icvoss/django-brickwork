@@ -6,9 +6,9 @@ content via the include-a-template-that-extends-the-card composition shape
 elements, using the bw-card__* styling hooks). panel_title / panel_body come
 from the include's with arguments.
 {% endcomment %}
-{% block card_header %}
+{% block header %}
   <div class="bw-card__header">
     <h2 class="bw-card__title">{{ panel_title }}</h2>
   </div>
 {% endblock %}
-{% block card_body %}<p>{{ panel_body }}</p>{% endblock %}
+{% block body %}<p>{{ panel_body }}</p>{% endblock %}

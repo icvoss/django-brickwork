@@ -7,7 +7,7 @@ block/partial name as typed Python. These tests cover four things, each
 independent of the others:
 
 1. **Manifest shape**: the typed reader's accessors match the raw JSON, and
-   the deprecated ``empty_state_action`` entry is represented correctly.
+   removed 4.0.0 block names stay out of the live set.
 2. **Manifest-vs-reality drift**: regenerating the manifest from the current
    template tree produces byte-identical output to the committed file. This
    is the same drift discipline ``test_tokens.py`` applies to the compiled
@@ -21,9 +21,9 @@ independent of the others:
    change ``AC-BW-010`` only checked that a block was documented, never that
    its name was stable.
 4. **What the gate deliberately allows**: adding a new name is never a
-   violation (additive is MINOR), and a name that is both still present and
-   listed under ``deprecated`` in the current manifest is never a violation
-   (that is the BR-BW-VER-001 parallel-support shape working as intended).
+   violation (additive is MINOR). Parallel-support deprecation entries are
+   empty after the 4.0.0 clean break; the gate still requires a baseline
+   update when a name is dropped at a major.
 """
 
 from __future__ import annotations
@@ -78,7 +78,8 @@ check_contract_stability = _generator.check_contract_stability
 def test_block_names_includes_a_shell_block_and_a_component_block() -> None:
     names = block_names()
     assert "content" in names  # declared independently by every shell
-    assert "card_header" in names  # declared by _card.html
+    assert "header" in names  # declared by _card.html
+    assert "card_header" not in names  # removed in 4.0.0
 
 
 def test_partial_names_includes_a_tag_consumed_and_an_include_consumed_partial() -> None:
@@ -105,20 +106,11 @@ def test_declared_in_returns_empty_list_for_an_unknown_name() -> None:
     assert declared_in("not_a_real_block_or_partial") == []
 
 
-def test_empty_state_action_is_deprecated_and_superseded_by_action() -> None:
-    assert is_deprecated("empty_state_action") is True
-    entry = deprecation("empty_state_action")
-    assert entry is not None
-    assert entry["declaredIn"] == "brickwork/components/_empty_state.html"
-    assert entry["supersededBy"] == "action"
-    assert entry["removedAt"] == "4.0.0"
-
-
-def test_empty_state_action_still_ships_alongside_its_replacement() -> None:
-    # Deprecated is not the same as removed: BR-BW-VER-001 parallel support
-    # means both the old and new block are still in the live block set.
+def test_empty_state_action_was_removed_at_4_0() -> None:
+    assert is_deprecated("empty_state_action") is False
+    assert deprecation("empty_state_action") is None
     names = block_names()
-    assert "empty_state_action" in names
+    assert "empty_state_action" not in names
     assert "action" in names
 
 
@@ -225,9 +217,8 @@ def test_renaming_a_block_fails_the_same_way_as_removing_it(baseline: dict, curr
     # A rename is a removal of the old name plus an addition of a new one;
     # the gate only needs to catch the removal half, since the addition half
     # is never a violation on its own (checked below).
-    # Uses trigger_meta, a live non-deprecated block. A name already in the
-    # deprecation cycle (modal_title and friends, ADR-077 SS4) is deliberately
-    # exempt, so it would prove nothing here.
+    # Uses trigger_meta, a live block. Removed 4.0.0 names are already gone
+    # from the live set, so they would prove nothing here.
     current["blocks"] = [entry for entry in current["blocks"] if entry["name"] != "trigger_meta"]
     current["blocks"].append(
         {
@@ -274,29 +265,35 @@ def test_adding_a_new_partial_is_never_a_violation(baseline: dict, current: dict
     assert check_contract_stability(baseline, current) == []
 
 
-def test_a_name_still_present_and_marked_deprecated_is_never_a_violation(baseline: dict, current: dict) -> None:
-    # This is the steady-state shape for empty_state_action right now: present
-    # in both blocks and deprecated, in both the baseline and the current
-    # manifest. Confirms the gate does not flag ordinary parallel support.
-    assert "empty_state_action" in baseline["deprecated"]
-    assert any(entry["name"] == "empty_state_action" for entry in current["deprecated"])
-    assert any(entry["name"] == "empty_state_action" for entry in current["blocks"])
-
+def test_a_name_present_and_marked_deprecated_is_never_a_violation(baseline: dict, current: dict) -> None:
+    # Synthetic parallel-support shape: a name still in blocks and listed under
+    # deprecated is not a violation. After 4.0.0 the live deprecated list is
+    # empty, so this injects one for the gate unit test.
+    current = json.loads(json.dumps(current))
+    baseline = json.loads(json.dumps(baseline))
+    current["deprecated"].append(
+        {
+            "kind": "block",
+            "name": "trigger_meta",
+            "declaredIn": "brickwork/components/_disclosure.html",
+            "supersededBy": "disclosure_meta",
+            "removedAt": "5.0.0",
+            "note": "synthetic",
+        }
+    )
+    baseline["deprecated"].append("trigger_meta")
     assert check_contract_stability(baseline, current) == []
 
 
-def test_dropping_a_deprecated_name_at_a_major_still_requires_a_baseline_update(baseline: dict, current: dict) -> None:
-    # Simulates the 4.0.0 removal BR-BW-TPL-001's own deprecation note
-    # promises: empty_state_action drops out of the LIVE manifest entirely
-    # (both blocks and deprecated). The gate still fires, because the
-    # baseline was not updated in this simulated change: a major-version
-    # removal is a deliberate, acknowledged act (update the baseline in the
-    # same PR as the bump), never a change that passes just because a prior
-    # deprecation entry existed.
-    current["blocks"] = [entry for entry in current["blocks"] if entry["name"] != "empty_state_action"]
-    current["deprecated"] = [entry for entry in current["deprecated"] if entry["name"] != "empty_state_action"]
+def test_dropping_a_name_at_a_major_still_requires_a_baseline_update(baseline: dict, current: dict) -> None:
+    # A major removal still fails the gate until the baseline is updated in
+    # the same PR as the bump. Simulate dropping trigger_meta from the live
+    # manifest while leaving it in the baseline.
+    current = json.loads(json.dumps(current))
+    current["blocks"] = [entry for entry in current["blocks"] if entry["name"] != "trigger_meta"]
+    current["deprecated"] = [entry for entry in current["deprecated"] if entry["name"] != "trigger_meta"]
 
     violations = check_contract_stability(baseline, current)
 
     assert len(violations) == 1
-    assert "empty_state_action" in violations[0]
+    assert "trigger_meta" in violations[0]

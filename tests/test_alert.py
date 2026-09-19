@@ -1,8 +1,7 @@
 """Direct render tests for _alert.html's block naming (STA-008/009, ADR-077 SS4).
 
-Covers the deprecated `alert_body` block dual-shipped alongside its concise
-successor `body` (BR-BW-VER-001 parallel support): both must render, and an
-unfilled body block emits no extra markup.
+Covers the concise `body` block (prefixed alert_body removed in 4.0.0): a
+filled body renders, and an unfilled body block emits no extra markup.
 """
 
 from __future__ import annotations
@@ -20,16 +19,15 @@ def test_body_block_renders() -> None:
     assert "BODY-SENTINEL" in out
 
 
-def test_deprecated_alert_body_block_still_renders_alone() -> None:
+def test_deprecated_alert_body_block_no_longer_renders() -> None:
     out = _extend("{% block alert_body %}LEGACY-SENTINEL{% endblock %}")
-    assert "LEGACY-SENTINEL" in out
+    assert "LEGACY-SENTINEL" not in out
 
 
-def test_body_and_alert_body_both_render_when_both_are_filled() -> None:
+def test_legacy_alert_body_fill_is_discarded_when_body_is_filled() -> None:
     out = _extend("{% block body %}BODY-SENTINEL{% endblock %}{% block alert_body %}LEGACY-SENTINEL{% endblock %}")
     assert "BODY-SENTINEL" in out
-    assert "LEGACY-SENTINEL" in out
-    assert out.index("BODY-SENTINEL") < out.index("LEGACY-SENTINEL")
+    assert "LEGACY-SENTINEL" not in out
 
 
 def test_neither_block_filled_emits_no_extra_markup() -> None:

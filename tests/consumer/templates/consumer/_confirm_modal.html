@@ -4,7 +4,7 @@ The consumer's modal partial (brickwork#61 "exercise the shipped surface"):
 extends the shipped chrome, filled by TicketConfirmView.
 {% endcomment %}
 
-{% block modal_body %}
+{% block body %}
   <p>This permanently removes every demo ticket. Type <strong>CLEAR</strong> to confirm.</p>
   <form id="confirm-clear-form" method="post" action="{% url 'consumer:surface-confirm' %}">
     {% csrf_token %}
@@ -13,7 +13,7 @@ extends the shipped chrome, filled by TicketConfirmView.
   </form>
 {% endblock %}
 
-{% block modal_footer %}
+{% block footer %}
   <footer class="bw-modal__footer">
     <button class="bw-btn bw-btn--danger bw-btn--md" type="submit" form="confirm-clear-form">Clear tickets</button>
   </footer>

@@ -89,7 +89,7 @@ def test_skeleton_omitted_width_height_renders_no_style_attribute() -> None:
 
 _TOOLTIP_CONSUMER = (
     '{% extends "brickwork/components/_tooltip.html" %}'
-    "{% block tooltip_trigger %}"
+    "{% block trigger %}"
     '<button type="button">Info</button>'
     "{% endblock %}"
 )

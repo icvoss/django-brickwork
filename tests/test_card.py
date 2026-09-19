@@ -58,11 +58,11 @@ def _css_rules(css: str) -> list[tuple[str, str]]:
 
 def test_all_five_regions_render_in_document_order() -> None:
     out = _extend(
-        "{% block card_header %}HEADER-SENTINEL{% endblock %}"
-        "{% block card_title %}TITLE-SENTINEL{% endblock %}"
-        "{% block card_actions %}ACTIONS-SENTINEL{% endblock %}"
-        "{% block card_body %}BODY-SENTINEL{% endblock %}"
-        "{% block card_footer %}FOOTER-SENTINEL{% endblock %}"
+        "{% block header %}HEADER-SENTINEL{% endblock %}"
+        "{% block title %}TITLE-SENTINEL{% endblock %}"
+        "{% block actions %}ACTIONS-SENTINEL{% endblock %}"
+        "{% block body %}BODY-SENTINEL{% endblock %}"
+        "{% block footer %}FOOTER-SENTINEL{% endblock %}"
     )
     positions = [
         out.index("HEADER-SENTINEL"),
@@ -85,7 +85,7 @@ def test_bare_card_is_an_elevated_surface_with_no_empty_child_markup() -> None:
 
 
 def test_filling_one_region_emits_no_markup_for_the_others() -> None:
-    out = _extend("{% block card_body %}BODY-SENTINEL{% endblock %}")
+    out = _extend("{% block body %}BODY-SENTINEL{% endblock %}")
     assert "BODY-SENTINEL" in out
     for cls in ("bw-card__header", "bw-card__title", "bw-card__actions", "bw-card__footer"):
         assert cls not in out, f"unfilled region emitted markup: {cls}"
@@ -174,8 +174,7 @@ def test_size_argument_maps_to_modifier_classes() -> None:
     assert "bw-card--size-" not in _render()
 
 
-# --- ADR-077 SS4: concise block names alongside their deprecated prefixed ---
-# --- counterparts (BR-BW-VER-001 parallel support) --------------------------
+# --- 4.0.0: prefixed card_* block names removed ---------------------------
 
 
 def test_concise_region_names_render() -> None:
@@ -196,7 +195,7 @@ def test_concise_region_names_render() -> None:
         assert sentinel in out
 
 
-def test_deprecated_prefixed_region_names_still_render_alone() -> None:
+def test_deprecated_prefixed_region_names_no_longer_render() -> None:
     out = _extend(
         "{% block card_header %}HEADER-SENTINEL{% endblock %}"
         "{% block card_title %}TITLE-SENTINEL{% endblock %}"
@@ -211,14 +210,13 @@ def test_deprecated_prefixed_region_names_still_render_alone() -> None:
         "BODY-SENTINEL",
         "FOOTER-SENTINEL",
     ):
-        assert sentinel in out
+        assert sentinel not in out
 
 
-def test_concise_and_deprecated_region_names_both_render_when_both_filled() -> None:
+def test_legacy_prefixed_fill_is_discarded_when_concise_is_filled() -> None:
     out = _extend("{% block body %}BODY-SENTINEL{% endblock %}{% block card_body %}LEGACY-SENTINEL{% endblock %}")
     assert "BODY-SENTINEL" in out
-    assert "LEGACY-SENTINEL" in out
-    assert out.index("BODY-SENTINEL") < out.index("LEGACY-SENTINEL")
+    assert "LEGACY-SENTINEL" not in out
 
 
 # --- icvoss/django-brickwork#398: title accepted as a context variable, -----
@@ -259,10 +257,9 @@ def test_block_title_wins_over_the_title_context_when_both_are_supplied() -> Non
     assert "Context Should Lose" not in out
 
 
-def test_card_title_deprecated_block_does_not_gain_a_context_passthrough() -> None:
-    # The retiring card_title block deliberately gets no new reason to be
-    # used: passing card_title as a context variable stays silently
-    # discarded, exactly as it was before this fix.
+def test_unknown_card_title_context_stays_discarded() -> None:
+    # Prefixed card_title was removed as a block; a context variable of the
+    # same name remains silently discarded (never a passthrough).
     out = _render(card_title="Should not appear")
     assert "Should not appear" not in out
 

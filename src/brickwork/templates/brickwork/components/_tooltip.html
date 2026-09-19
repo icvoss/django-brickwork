@@ -14,24 +14,12 @@ trigger block, e.g.
     {% endblock %}
 
 Named blocks (semver-public, BR-BW-TPL-001):
-  trigger:         present SINCE 3.4.0, the concise successor to the
-                    deprecated tooltip_trigger block below (ADR-077 SS4).
-                    Empty by default.
-  tooltip_trigger: present since before 3.4.0 (unchanged back to at least
-                    3.2.1). DEPRECATED, removed at 4.0 (ADR-077 SS4,
-                    BR-BW-TPL-001/BR-BW-VER-001). Kept as an additional
-                    empty extension point for backwards compatibility: a
-                    shipped block name cannot be renamed silently. Both
-                    trigger and tooltip_trigger render when both are
-                    filled; a caller migrating to the concise name fills
-                    trigger only.
+  trigger:         Empty by default. Prefixed tooltip_trigger was removed
+                    in 4.0.0.
 
 A block name this file does not define is SILENTLY DISCARDED by Django:
-no error, no warning, DEBUG=True does not catch it. A consumer pinned
-below 3.4.0 who fills "trigger" from a newer checkout gets a
-structurally valid, entirely empty trigger span that still passes
-template loading; check this header against your pinned version before
-relying on a name.
+no error, no warning, DEBUG=True does not catch it. Filling the removed
+tooltip_trigger name produces an empty trigger span for that fill.
 
 trigger stays markup-only by design (icvoss/django-brickwork#398 sweep):
 the worked example above fills it with a whole interactive element (a
@@ -93,7 +81,6 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
       x-data="bwTooltip({ id: '{{ id|escapejs }}' })">
   <span data-bw-tooltip-trigger aria-describedby="{{ id }}" {% bw_attr "title" text %}>
     {% block trigger %}{% endblock %}
-    {% block tooltip_trigger %}{% endblock %}
   </span>
   <span class="bw-tooltip__bubble"
         id="{{ id }}"
