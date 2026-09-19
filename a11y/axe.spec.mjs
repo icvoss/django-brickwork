@@ -145,13 +145,13 @@ test.describe("no-JS floor", () => {
     test(`landing page renders the marketing shell with JS disabled (${theme})`, async ({ page }) => {
       await page.goto(pathToFileURL(join(FIXTURES, `landing-${theme}.html`)).href);
       await expect(page.locator("#bw-main")).toBeVisible();
-      await expect(page.locator("header.bw-marketing-header")).toBeVisible();
-      await expect(page.locator("footer.bw-marketing-footer")).toBeVisible();
+      await expect(page.locator("header.bw-site-header")).toBeVisible();
+      await expect(page.locator("footer.bw-site-footer")).toBeVisible();
       // exactly one h1, in the hero
       await expect(page.locator("h1")).toHaveCount(1);
       // the nav and header actions are real anchors
-      await expect(page.locator(".bw-marketing-header__nav a").first()).toBeVisible();
-      await expect(page.locator(".bw-marketing-header__actions a").first()).toBeVisible();
+      await expect(page.locator(".bw-site-header__nav a").first()).toBeVisible();
+      await expect(page.locator(".bw-site-header__actions a").first()).toBeVisible();
     });
 
     // The nav renderers (#102/#82): both sibling renderers are real-anchor
@@ -299,7 +299,7 @@ for (const theme of THEMES) {
 //   - a <pre>'s <code> child painted outside its own scroll container.
 //   - a one-word hero heading ("Documentation") at the fixed 60px display size
 //     measured 406px and had no wrap opportunity.
-//   - .bw-marketing-header__actions/.bw-marketing-header__nav overflowing at
+//   - .bw-site-header__actions/.bw-site-header__nav overflowing at
 //     320px (#125).
 //   - .bw-topbar__account (a long account label with nowhere to shrink to)
 //     and .bw-auth__panel (an implicit grid track with no minmax(0, 1fr)
@@ -352,7 +352,7 @@ for (const width of MOBILE_WIDTHS) {
 // all, which is why the axe gate stayed green while .bw-data-table__sort
 // measured 74x16, .bw-data-table__row-link and .bw-checkbox sat under the
 // floor, and a consumer following the package's own documented
-// ".bw-marketing-header__actions > a:not(.bw-btn)" composition got a 40x21
+// ".bw-site-header__actions > a:not(.bw-btn)" composition got a 40x21
 // target. The same "incomplete, not violation" gap the CHANGELOG already
 // records for the 3.4.0 hero scrim (composited contrast, measured directly
 // below in this file rather than trusted to axe). Measured explicitly here
@@ -395,7 +395,7 @@ for (const width of MOBILE_WIDTHS) {
 //     not this package's call to make" (this file's own comment on
 //     TAP_TARGET_EXEMPT_SELECTORS, added for #212). #242 reverses that
 //     position:
-//     .bw-marketing-footer__inner :where(a) already matches on tag, not
+//     .bw-site-footer__inner :where(a) already matches on tag, not
 //     class, so it always reached these links for colour/decoration
 //     (BR-BW-MKT-002) regardless of the consumer's own markup, which is the
 //     same claim of ownership a sizing floor makes; #242 sizes them too
@@ -484,19 +484,19 @@ test.describe("tap targets", () => {
 const COARSE_TARGETS = [
   {
     fixture: "landing-light.html",
-    selector: ".bw-marketing-header__nav a:not(.bw-btn)",
+    selector: ".bw-site-header__nav a:not(.bw-btn)",
     label: "marketing header nav link",
     expectedFinePx: 24,
   },
   {
     fixture: "landing-light.html",
-    selector: ".bw-marketing-header__actions > a:not(.bw-btn)",
+    selector: ".bw-site-header__actions > a:not(.bw-btn)",
     label: "marketing header actions link",
     expectedFinePx: 24,
   },
   {
     fixture: "landing-light.html",
-    selector: ".bw-marketing-footer__inner a:not(.bw-btn)",
+    selector: ".bw-site-footer__inner a:not(.bw-btn)",
     label: "marketing footer link",
     expectedFinePx: 24,
   },
@@ -612,7 +612,7 @@ for (const theme of THEMES) {
 
 // icvoss/django-brickwork#125 regression: the marketing header specifically,
 // on the landing-*.html fixtures the issue itself reproduced against (326px
-// scrollWidth at a 320px viewport, from .bw-marketing-header__actions and its
+// scrollWidth at a 320px viewport, from .bw-site-header__actions and its
 // bw_button both sitting at right edge 326). Asserted directly against the
 // header element, not just the document, so a future regression here fails
 // on this test rather than only on the broader sweep above.
@@ -624,19 +624,19 @@ for (const theme of THEMES) {
     const result = await page.evaluate(() => ({
       documentWidth: document.documentElement.scrollWidth,
       viewportWidth: window.innerWidth,
-      headerRight: document.querySelector(".bw-marketing-header")?.getBoundingClientRect().right ?? 0,
-      actionsRight: document.querySelector(".bw-marketing-header__actions")?.getBoundingClientRect().right ?? 0,
+      headerRight: document.querySelector(".bw-site-header")?.getBoundingClientRect().right ?? 0,
+      actionsRight: document.querySelector(".bw-site-header__actions")?.getBoundingClientRect().right ?? 0,
     }));
 
     expect(result.documentWidth, "marketing header scrolls the page sideways at 320px").toBeLessThanOrEqual(
       result.viewportWidth + 1,
     );
-    expect(result.headerRight, ".bw-marketing-header overflows the 320px viewport").toBeLessThanOrEqual(
+    expect(result.headerRight, ".bw-site-header overflows the 320px viewport").toBeLessThanOrEqual(
       result.viewportWidth + 1,
     );
     expect(
       result.actionsRight,
-      ".bw-marketing-header__actions overflows the 320px viewport",
+      ".bw-site-header__actions overflows the 320px viewport",
     ).toBeLessThanOrEqual(result.viewportWidth + 1);
   });
 }

@@ -25,30 +25,14 @@
   min-height: 100vh;
 }
 
-.bw-marketing-header {
-  background: var(--bw-color-surface);
-  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  /* Light elev-1 + soft ambient so sticky marketing chrome reads on white. */
-  box-shadow:
-    var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
-  position: sticky;
-  inset-block-start: 0;
-  z-index: var(--bw-z-sticky);
-}
-
 /* --- Overlay mode (ADR-105, icvoss/django-brickwork#565) --------------------
- * Opt-in via .bw-marketing-header--overlay (preferred on the marketing
- * shell) or .bw-site-header--overlay (dual-class alias, ADR-113). Marketing-
+ * Opt-in via .bw-site-header--overlay on the marketing shell. Marketing-
  * shell-only: docs must not use overlay. Default sticky solid header above
  * is unchanged. Overlay is fixed so the first content band can paint under
  * the chrome; package-owned clearance padding (below) keeps copy readable.
  * No-JS floor: opaque surface + theme ink. Transparency / context ink only
  * after data-bw-overlay-ready (marketing-overlay.js).
- * Child combinators list both marketing and site BEM names so dual-class
- * markup and a site-only modifier alias keep working.
  */
-.bw-marketing-header--overlay,
 .bw-site-header--overlay {
   position: fixed;
   inset-inline: 0;
@@ -61,14 +45,12 @@
  * inner block padding so copy clears the fixed chrome. Local cascade vars
  * always carry a fallback so they are not mistaken for tokens.css emits
  * (test_frontend_css_only_references_emitted_token_names). */
-.bw-marketing:has(> .bw-marketing-header--overlay),
 .bw-marketing:has(> .bw-site-header--overlay) {
   --bw-marketing-header-clearance: calc(
     var(--bw-component-logo-height) + (var(--bw-space-3) * 2) + var(--bw-space-2)
   );
 }
 
-.bw-marketing:has(> .bw-marketing-header--overlay) .bw-marketing__content > .bw-hero:first-child,
 .bw-marketing:has(> .bw-site-header--overlay) .bw-marketing__content > .bw-hero:first-child {
   padding-block-start: calc(
     var(
@@ -78,9 +60,6 @@
   );
 }
 
-.bw-marketing:has(> .bw-marketing-header--overlay)
-  .bw-marketing__content
-  > *:first-child:not(.bw-hero),
 .bw-marketing:has(> .bw-site-header--overlay)
   .bw-marketing__content
   > *:first-child:not(.bw-hero) {
@@ -97,14 +76,12 @@
 }
 
 /* Enhanced: transparent until scrolled; ink follows panel context. */
-.bw-marketing-header--overlay[data-bw-overlay-ready]:not([data-bw-scrolled="true"]),
 .bw-site-header--overlay[data-bw-overlay-ready]:not([data-bw-scrolled="true"]) {
   background: transparent;
   border-block-end-color: transparent;
   box-shadow: none;
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-nav-context="dark"],
 .bw-site-header--overlay[data-bw-overlay-ready][data-bw-nav-context="dark"] {
   --bw-overlay-ink: oklch(0.98 0.002 265);
   --bw-overlay-ink-muted: color-mix(in oklab, oklch(0.98 0.002 265) 72%, transparent);
@@ -112,7 +89,6 @@
   --bw-overlay-line: oklch(1 0 0 / 0.14);
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-nav-context="light"],
 .bw-site-header--overlay[data-bw-overlay-ready][data-bw-nav-context="light"] {
   --bw-overlay-ink: oklch(0.205 0.005 265);
   --bw-overlay-ink-muted: color-mix(in oklab, oklch(0.205 0.005 265) 68%, transparent);
@@ -120,7 +96,6 @@
   --bw-overlay-line: oklch(0.205 0.005 265 / 0.14);
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"],
 .bw-site-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
   background: var(--bw-overlay-frost, color-mix(in oklab, oklch(1 0 0) 82%, transparent));
   border-block-end-color: var(--bw-overlay-line, oklch(0.205 0.005 265 / 0.14));
@@ -130,18 +105,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bw-marketing-header--overlay[data-bw-overlay-ready],
   .bw-site-header--overlay[data-bw-overlay-ready] {
     transition: none;
   }
-  .bw-marketing-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"],
   .bw-site-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready],
 .bw-site-header--overlay[data-bw-overlay-ready] {
   color: var(--bw-overlay-ink, oklch(0.205 0.005 265));
   transition:
@@ -151,31 +123,10 @@
     color var(--bw-duration-normal) var(--bw-ease-standard);
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark,
-.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark,
-.bw-site-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark,
 .bw-site-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark,
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-marketing-header__nav
-  :where(a):not(.bw-btn),
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-site-header__nav
-  :where(a):not(.bw-btn),
-.bw-site-header--overlay[data-bw-overlay-ready]
-  .bw-marketing-header__nav
-  :where(a):not(.bw-btn),
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-site-header__nav
   :where(a):not(.bw-btn),
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-marketing-header__actions
-  > :where(a):not(.bw-btn),
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-site-header__actions
-  > :where(a):not(.bw-btn),
-.bw-site-header--overlay[data-bw-overlay-ready]
-  .bw-marketing-header__actions
-  > :where(a):not(.bw-btn),
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-site-header__actions
   > :where(a):not(.bw-btn) {
@@ -185,59 +136,23 @@
   );
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-marketing-header__nav
-  :where(a:hover):not(.bw-btn),
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-site-header__nav
-  :where(a:hover):not(.bw-btn),
-.bw-site-header--overlay[data-bw-overlay-ready]
-  .bw-marketing-header__nav
-  :where(a:hover):not(.bw-btn),
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-site-header__nav
   :where(a:hover):not(.bw-btn),
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-marketing-header__actions
-  > :where(a:hover):not(.bw-btn),
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-site-header__actions
-  > :where(a:hover):not(.bw-btn),
-.bw-site-header--overlay[data-bw-overlay-ready]
-  .bw-marketing-header__actions
-  > :where(a:hover):not(.bw-btn),
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-site-header__actions
   > :where(a:hover):not(.bw-btn),
-.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark:hover,
-.bw-marketing-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark:hover,
-.bw-site-header--overlay[data-bw-overlay-ready] .bw-marketing-header__brand-wordmark:hover,
 .bw-site-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark:hover {
   color: var(--bw-overlay-ink, oklch(0.205 0.005 265));
 }
 
 /* Open mobile disclosure under overlay: keep opaque panel readable. */
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-marketing-header__nav,
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-site-header__nav,
-.bw-site-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-marketing-header__nav,
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-mobile-nav-toggle[open]
   ~ .bw-site-header__nav,
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-marketing-header__actions,
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-site-header__actions,
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-mobile-nav-toggle[open]
-  ~ .bw-marketing-header__actions,
+  ~ .bw-site-header__nav,
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-mobile-nav-toggle[open]
   ~ .bw-site-header__actions {
@@ -245,34 +160,10 @@
   color: var(--bw-color-fg);
 }
 
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-marketing-header__nav
-  a,
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-site-header__nav
-  a,
-.bw-site-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-marketing-header__nav
-  a,
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-mobile-nav-toggle[open]
   ~ .bw-site-header__nav
   a,
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-marketing-header__actions
-  > a:not(.bw-btn),
-.bw-marketing-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-site-header__actions
-  > a:not(.bw-btn),
-.bw-site-header--overlay[data-bw-overlay-ready]
-  .bw-mobile-nav-toggle[open]
-  ~ .bw-marketing-header__actions
-  > a:not(.bw-btn),
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-mobile-nav-toggle[open]
   ~ .bw-site-header__actions
@@ -280,26 +171,28 @@
   color: var(--bw-color-fg);
 }
 
-.bw-marketing-header__inner {
-  max-inline-size: var(--bw-component-content-max-width-marketing);
-  margin-inline: auto;
-  padding-inline: var(--bw-density-page-gutter-inline);
-  padding-block: var(--bw-space-3);
-}
-
 /* Wraps below the brand row at narrow widths (icvoss/django-brickwork#125):
- * at 320px the brand mark/wordmark, nav and actions cluster together are
- * wider than the content box the gutter leaves, and with no flex-wrap the
- * row simply overflows the viewport, scrolling the whole PAGE sideways
- * (measured 326px scrollWidth against a 320px viewport, actions/button right
+ * at 320px the brand mark/wordmark,
+nav and actions cluster together are
+ * wider than the content box the gutter leaves,
+and with no flex-wrap the
+ * row simply overflows the viewport,
+scrolling the whole PAGE sideways
+ * (measured 326px scrollWidth against a 320px viewport,
+actions/button right
  * edge both at 326). flex-wrap alone is not the whole fix: see the
- * min-inline-size: 0 note on __nav and __actions below, the same
+ * min-inline-size: 0 note on __nav and __actions below,
+the same
  * "flex child refuses to shrink" hazard contain: paint solves for the
- * pricing-comparison table, but here the fix is letting the row itself wrap
- * rather than clipping paint, since this is real inline content, not a wide
+ * pricing-comparison table,
+but here the fix is letting the row itself wrap
+ * rather than clipping paint,
+since this is real inline content,
+not a wide
  * table. Verify at 320px in both themes before calling this closed: a JS
- * test can assert the layout rule, not the rendered result. */
-.bw-marketing-header__brand {
+ * test can assert the layout rule,
+not the rendered result. */
+.bw-site-header__brand {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -307,69 +200,66 @@
   position: relative;
 }
 
-/* Brand slot default sizing (#83, ADR-054 beautiful-by-default): brand_logo
+/* Brand slot default sizing (#83,
+ADR-054 beautiful-by-default): brand_logo
  * and brand_wordmark are wrapped in brickwork-owned elements (the app
- * shell's brickwork#93 precedent), so a mark/lockup dropped into either slot
+ * shell's brickwork#93 precedent),
+so a mark/lockup dropped into either slot
  * is constrained WITHOUT knowing the consumer's own inner markup or classes.
  * Any img/svg inside a wrapper caps at --bw-component-logo-height with width
- * following the intrinsic ratio, so an unconstrained SVG can never render as
+ * following the intrinsic ratio,
+so an unconstrained SVG can never render as
  * a banner and push the nav off-screen; the wrappers stay flex: 0 0 auto so
  * the nav and actions clusters keep the remaining width. The img/svg leg is
- * zero-specificity (:where), so a one-class consumer rule overrides the cap.
- * An unfilled block leaves an :empty wrapper, which takes no space (no
+ * zero-specificity (:where),
+so a one-class consumer rule overrides the cap.
+ * An unfilled block leaves an :empty wrapper,
+which takes no space (no
  * phantom header gap). */
-.bw-marketing-header__brand-mark,
-.bw-marketing-header__brand-wordmark {
+.bw-site-header__brand-mark,
+.bw-site-header__brand-wordmark {
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
 }
 
-.bw-marketing-header__brand-mark:empty,
-.bw-marketing-header__brand-wordmark:empty {
-  display: none;
-}
-
-.bw-marketing-header__brand-mark :where(img, svg),
-.bw-marketing-header__brand-wordmark :where(img, svg) {
+.bw-site-header__brand-mark :where(img, svg),
+.bw-site-header__brand-wordmark :where(img, svg) {
   block-size: var(--bw-component-logo-height);
   inline-size: auto;
 }
 
-.bw-marketing-header__nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--bw-space-4);
-  flex: 1 1 auto;
-  /* A flex item's default min-inline-size is auto (its content's intrinsic
-   * width), not 0: without this a long unbroken nav-links row refuses to
-   * shrink below its content width and forces the row wide instead of
-   * wrapping (icvoss/django-brickwork#125). */
-  min-inline-size: 0;
-}
-
-.bw-marketing-header__nav:empty {
-  display: none;
-}
-
-/* Two-tier target size (icvoss/django-brickwork#208, then #242): the primary
- * nav row's links carried no minimum, sized to their label's line-height
- * alone (16-18px at 375px). A nav link is a navigational control, not
- * inline prose, so WCAG 2.5.8's text-run exception does not apply; the AA
- * floor here is min-block-size: 1.5rem (24px), unconditional, grown via
- * min-block-size rather than padding, so display: inline-flex +
+/* Two-tier target size (icvoss/django-brickwork#208,
+then #242): the primary
+ * nav row's links carried no minimum,
+sized to their label's line-height
+ * alone (16-18px at 375px). A nav link is a navigational control,
+not
+ * inline prose,
+so WCAG 2.5.8's text-run exception does not apply; the AA
+ * floor here is min-block-size: 1.5rem (24px),
+unconditional,
+grown via
+ * min-block-size rather than padding,
+so display: inline-flex +
  * align-items keeps the label centred on the larger box. #242 adds a
- * second, coarse-pointer-only tier below: WCAG 2.5.5/platform-HIG's 44px
- * bar, above what the package's AA claim requires, applied only where the
+ * second,
+coarse-pointer-only tier below: WCAG 2.5.5/platform-HIG's 44px
+ * bar,
+above what the package's AA claim requires,
+applied only where the
  * primary input is imprecise (a fine-pointer desktop click never sees the
- * larger target, so the row's rendered layout does not shift there).
+ * larger target,
+so the row's rendered layout does not shift there).
  * :not(.bw-btn) excludes a bw_button a consumer composes into this slot
- * (buttons are #212's own tier, sized by .bw-btn's own rule), matching the
+ * (buttons are #212's own tier,
+sized by .bw-btn's own rule),
+matching the
  * header actions rule below exactly: marketing_nav is documented as "a
- * plain list of links", but the exclusion is defensive against a consumer
+ * plain list of links",
+but the exclusion is defensive against a consumer
  * dropping a button in here anyway. */
-.bw-marketing-header__nav :where(a):not(.bw-btn) {
+.bw-site-header__nav :where(a):not(.bw-btn) {
   display: inline-flex;
   align-items: center;
   min-block-size: 1.5rem;
@@ -380,32 +270,16 @@
   transition: var(--bw-transition-colors);
 }
 
-.bw-marketing-header__nav :where(a:hover):not(.bw-btn) {
-  color: var(--bw-color-fg);
-}
-
 @media (pointer: coarse) {
-  .bw-marketing-header__nav :where(a):not(.bw-btn) {
+  .bw-site-header__nav :where(a):not(.bw-btn) {
     min-block-size: var(--bw-size-touch-target-min);
   }
-}
-
-.bw-marketing-header__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--bw-space-2);
-}
-
-.bw-marketing-header__actions:empty {
-  display: none;
 }
 
 /* --- Mobile nav toggle (#263) ----------------------------------------------
  * Package-owned collapse for the marketing header. Place
  * .bw-mobile-nav-toggle (see _mobile_nav_toggle.html) as a sibling of
- * .bw-marketing-header__nav / .bw-marketing-header__actions via
+ * .bw-site-header__nav / .bw-site-header__actions via
  * marketing_nav_region. Rules sit AFTER the base __nav/__actions display
  * declarations so sibling combinators win the cascade. Mobile-first; the
  * --breakpoint-lg query (64rem) restores the inline desktop bar and hides
@@ -452,7 +326,8 @@
 
 /* Two-class / compound selectors beat the single-class .bw-icon
  * {display:inline-block} base (icvoss/django-brickwork#519): without the
- * extra specificity, the later icon rule restored the close glyph in the
+ * extra specificity,
+the later icon rule restored the close glyph in the
  * closed state so the trigger painted hamburger and cross together. */
 .bw-mobile-nav-toggle:not([open]) .bw-mobile-nav-toggle__icon--close {
   display: none;
@@ -466,33 +341,33 @@
   display: block;
 }
 
-.bw-mobile-nav-toggle ~ .bw-marketing-header__nav,
-.bw-mobile-nav-toggle ~ .bw-marketing-header__actions {
+.bw-mobile-nav-toggle ~ .bw-site-header__nav,
+.bw-mobile-nav-toggle ~ .bw-site-header__actions {
   display: none;
   order: 2;
   inline-size: 100%;
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav,
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__nav,
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: var(--bw-space-1);
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__nav {
   padding-block-start: var(--bw-space-4);
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
   margin-block-start: var(--bw-space-3);
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions {
   padding-block-end: var(--bw-space-2);
   flex-direction: column;
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav a {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__nav a {
   display: flex;
   align-items: center;
   min-block-size: var(--bw-size-touch-target-min);
@@ -504,29 +379,29 @@
   text-decoration: none;
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav a:hover {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__nav a:hover {
   background: var(--bw-color-surface-raised);
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__nav a:focus-visible,
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions a:focus-visible,
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions button:focus-visible {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__nav a:focus-visible,
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions a:focus-visible,
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions button:focus-visible {
   outline: 2px solid var(--bw-color-accent);
   outline-offset: 2px;
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions > a,
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions .bw-btn,
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions .bw-marketing-header__logout-form {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions > a,
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions .bw-btn,
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions .bw-site-header__logout-form {
   inline-size: 100%;
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions .bw-btn {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions .bw-btn {
   justify-content: center;
   min-block-size: var(--bw-size-touch-target-min);
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions > a:not(.bw-btn) {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions > a:not(.bw-btn) {
   display: flex;
   align-items: center;
   min-block-size: var(--bw-size-touch-target-min);
@@ -538,12 +413,12 @@
   text-decoration: none;
 }
 
-.bw-mobile-nav-toggle[open] ~ .bw-marketing-header__actions > a:not(.bw-btn):hover {
+.bw-mobile-nav-toggle[open] ~ .bw-site-header__actions > a:not(.bw-btn):hover {
   background: var(--bw-color-surface-raised);
 }
 
 @media (width >= --theme(--breakpoint-lg)) {
-  .bw-marketing-header__brand {
+  .bw-site-header__brand {
     flex-wrap: nowrap;
   }
 
@@ -551,8 +426,8 @@
     display: none;
   }
 
-  .bw-mobile-nav-toggle ~ .bw-marketing-header__nav,
-  .bw-mobile-nav-toggle ~ .bw-marketing-header__actions {
+  .bw-mobile-nav-toggle ~ .bw-site-header__nav,
+  .bw-mobile-nav-toggle ~ .bw-site-header__actions {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -566,19 +441,28 @@
 
 /* A plain link (e.g. "Sign in") alongside a bw_button in this slot
  * (04-interfaces.md 4d documents exactly this shape): styled the same as the
- * nav link colour, never the UA default blue, so it clears WCAG AA contrast
+ * nav link colour,
+never the UA default blue,
+so it clears WCAG AA contrast
  * in both themes (BR-BW-MKT-002). :not(.bw-btn) excludes bw_button's own
- * markup: buttons are #212's own tier, sized by .bw-btn's own rule; this
+ * markup: buttons are #212's own tier,
+sized by .bw-btn's own rule; this
  * rule targets only a bare <a> the consumer places here.
- * Two-tier target size (icvoss/django-brickwork#208, then #242): a consumer
+ * Two-tier target size (icvoss/django-brickwork#208,
+then #242): a consumer
  * following this exact documented composition got a sub-floor target
  * (measured 40x21 at 375px) because nothing here set a minimum; the AA
- * floor is min-block-size: 1.5rem (24px), unconditional, grown via
- * min-block-size rather than padding, so inline-flex + centred content
+ * floor is min-block-size: 1.5rem (24px),
+unconditional,
+grown via
+ * min-block-size rather than padding,
+so inline-flex + centred content
  * keeps the label centred on the larger box. #242 adds a coarse-pointer-only
- * 44px tier below, the WCAG 2.5.5/platform-HIG bar; a fine-pointer desktop
- * click never sees it, so the slot's layout does not shift there. */
-.bw-marketing-header__actions > :where(a):not(.bw-btn) {
+ * 44px tier below,
+the WCAG 2.5.5/platform-HIG bar; a fine-pointer desktop
+ * click never sees it,
+so the slot's layout does not shift there. */
+.bw-site-header__actions > :where(a):not(.bw-btn) {
   display: inline-flex;
   align-items: center;
   min-block-size: 1.5rem;
@@ -589,12 +473,8 @@
   transition: var(--bw-transition-colors);
 }
 
-.bw-marketing-header__actions > :where(a:hover):not(.bw-btn) {
-  color: var(--bw-color-fg);
-}
-
 @media (pointer: coarse) {
-  .bw-marketing-header__actions > :where(a):not(.bw-btn) {
+  .bw-site-header__actions > :where(a):not(.bw-btn) {
     min-block-size: var(--bw-size-touch-target-min);
   }
 }
@@ -602,19 +482,6 @@
 .bw-marketing__content {
   flex: 1 1 auto;
   outline: none; /* the skip-link target; focus ring handled by :focus-visible */
-}
-
-.bw-marketing-footer {
-  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  background: var(--bw-color-surface-sunken);
-  margin-block-start: auto;
-}
-
-.bw-marketing-footer__inner {
-  max-inline-size: var(--bw-component-content-max-width-marketing);
-  margin-inline: auto;
-  padding-inline: var(--bw-density-page-gutter-inline);
-  padding-block: var(--bw-space-8) var(--bw-space-4);
 }
 
 /* Footer link groups (#500): responsive columns without elevated card chrome.
@@ -650,26 +517,36 @@
 }
 
 /* A consumer's marketing_footer block content is arbitrary markup. The shell
- * supplies no default link groups or column arrangement, but any plain <a>
+ * supplies no default link groups or column arrangement,
+but any plain <a>
  * a consumer authors in the slot is styled like a header-nav link rather than
  * left to the UA default blue (BR-BW-MKT-002).
- * Two-tier target size (icvoss/django-brickwork#208, then #242) REVERSES
+ * Two-tier target size (icvoss/django-brickwork#208,
+then #242) REVERSES
  * #208's own exemption: #208 explicitly declined to size these links,
- * reasoning that "brickwork does not own the group's layout, so a sizing
+* reasoning that "brickwork does not own the group's layout,
+so a sizing
  * floor is not this package's call to make" (its comment on
  * TAP_TARGET_EXEMPT_SELECTORS in axe.spec.mjs). That rationale no longer
  * holds: this rule already styles colour/decoration for any <a> descendant
- * here regardless of the consumer's own markup, which is the same claim of
- * ownership a sizing floor makes, so #242 sizes them too rather than
+ * here regardless of the consumer's own markup,
+which is the same claim of
+ * ownership a sizing floor makes,
+so #242 sizes them too rather than
  * leaving the inconsistency in place. min-block-size: 1.5rem (24px,
- * unconditional) grows the box, not padding; inline-flex + align-items
+* unconditional) grows the box,
+not padding; inline-flex + align-items
  * keeps the label centred on the larger box. #242 adds a coarse-pointer-only
- * 44px tier below, the WCAG 2.5.5/platform-HIG bar; a fine-pointer desktop
- * click never sees it, so the footer's layout does not shift there.
+ * 44px tier below,
+the WCAG 2.5.5/platform-HIG bar; a fine-pointer desktop
+ * click never sees it,
+so the footer's layout does not shift there.
  * :not(.bw-btn) excludes a bw_button a consumer composes into this slot
- * (buttons are #212's own tier, sized by .bw-btn's own rule), matching the
+ * (buttons are #212's own tier,
+sized by .bw-btn's own rule),
+matching the
  * header actions rule above. */
-.bw-marketing-footer__inner :where(a):not(.bw-btn) {
+.bw-site-footer__inner :where(a):not(.bw-btn) {
   display: inline-flex;
   align-items: center;
   min-block-size: 1.5rem;
@@ -678,41 +555,27 @@
   transition: var(--bw-transition-colors);
 }
 
-.bw-marketing-footer__inner :where(a:hover):not(.bw-btn) {
-  color: var(--bw-color-fg);
-}
-
 @media (pointer: coarse) {
-  .bw-marketing-footer__inner :where(a):not(.bw-btn) {
+  .bw-site-footer__inner :where(a):not(.bw-btn) {
     min-block-size: var(--bw-size-touch-target-min);
   }
-}
-
-.bw-marketing-footer__legal {
-  margin-block-start: var(--bw-space-6);
-  padding-block-start: var(--bw-space-4);
-  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  color: var(--bw-color-fg-muted);
-  font-size: var(--bw-text-caption-size);
-  line-height: var(--bw-text-caption-line-height);
-}
-
-.bw-marketing-footer__legal:empty {
-  display: none;
 }
 
 /* icvoss/django-brickwork#267: collapse the footer landmark when both content
  * slots are empty. The inner markup keeps block output flush so an unfilled
  * marketing_footer leaves the legal wrapper as the sole (empty) child. */
-.bw-marketing-footer:has(.bw-marketing-footer__legal:only-child:empty) {
+.bw-site-footer:has(.bw-site-footer__legal:only-child:empty) {
   display: none;
 }
 
 /* Legacy rail: every direct child without the section shell still wraps at
- * the marketing measure. Kept so existing component roots (hero, pricing,
- * cta, …) stay byte-identical. New custom bands use .bw-section /
+ * the marketing measure. Kept so existing component roots (hero,
+pricing,
+* cta,
+…) stay byte-identical. New custom bands use .bw-section /
  * .bw-section__inner below instead of inventing a site *-inner class
- * (icvoss/django-brickwork#667, ADR-057 Phase A). */
+ * (icvoss/django-brickwork#667,
+ADR-057 Phase A). */
 .bw-marketing__content > * {
   max-inline-size: var(--bw-component-content-max-width-marketing);
   margin-inline: auto;
@@ -723,8 +586,11 @@
   margin-block-start: var(--bw-component-section-gap-marketing);
 }
 
-/* --- Section shell (ADR-057 Phase A, #667) ----------------------------------
- * Outer .bw-section is full-bleed capable (atmosphere, tint, inverse).
+/* --- Section shell (ADR-057 Phase A,
+#667) ----------------------------------
+ * Outer .bw-section is full-bleed capable (atmosphere,
+tint,
+inverse).
  * Inner .bw-section__inner is the shared marketing rail (measure + gutter).
  * Rhythm above still applies to .bw-section roots as direct children. */
 
@@ -746,7 +612,8 @@
   padding-inline: var(--bw-density-page-gutter-inline);
 }
 
-/* width="bleed" (ADR-057 §1a): shared escape, also used by .bw-cta--bleed
+/* width="bleed" (ADR-057 §1a): shared escape,
+also used by .bw-cta--bleed
  * and .bw-cta-bleed so the axis is not CTA-only. Specificity matches the
  * shell child rules when composed under .bw-marketing__content. */
 .bw-section--bleed,
@@ -768,15 +635,21 @@
 }
 
 /* The FIRST section needs its own block-start spacing (#111). The rule above
- * only spaces BETWEEN children, so a page whose opening section is not a hero
- * (a page header, a feature grid, a docs index) rendered flush against the
- * header's hairline, and consumers were wrapping their first child in a
+ * only spaces BETWEEN children,
+so a page whose opening section is not a hero
+ * (a page header,
+a feature grid,
+a docs index) rendered flush against the
+ * header's hairline,
+and consumers were wrapping their first child in a
  * padding div to compensate. The app shell has no equivalent problem because
- * it owns a page-header slot; the marketing shell has no such slot, so the
+ * it owns a page-header slot; the marketing shell has no such slot,
+so the
  * spacing has to come from the content region itself.
  *
  * The hero opts out: it already owns its vertical rhythm via its own
- * padding-block, so applying this to it as well would double the space on the
+ * padding-block,
+so applying this to it as well would double the space on the
  * canonical landing page. Landed in 2.0.0 because it changes a visual default
  * for any consumer already compensating with their own top padding. */
 .bw-marketing__content > *:first-child:not(.bw-hero) {
@@ -797,8 +670,9 @@
 }
 
 /* --start is the DOCUMENTED DEFAULT and the template emits it unconditionally
- * via {% firstof align 'start' %}, so it needs a real rule (#120 defect class).
- * It restates the .bw-hero base alignment explicitly, which also gives
+ * via {% firstof align 'start' %}so it needs a real rule (#120 defect class).
+ * It restates the .bw-hero base alignment explicitly,
+which also gives
  * align="end" below something symmetrical to sit against. */
 .bw-hero--start {
   align-items: flex-start;
@@ -920,7 +794,8 @@
   max-inline-size: min(var(--bw-component-hero-heading-max-width), 100%);
 }
 
-/* Subheading / positioning line (#672): between heading and lede, stronger
+/* Subheading / positioning line (#672): between heading and lede,
+stronger
  * than the muted lede. Absent slot is byte-identical. */
 .bw-hero__subheading {
   margin: 0;
@@ -985,17 +860,20 @@
   max-inline-size: 100%;
 }
 
-.bw-hero__media :where(img, svg) {
+.bw-hero__media :where(img, svg){
   display: block;
   inline-size: 100%;
   block-size: auto;
 }
 
-/* Radius on img only, never svg (icvoss/django-brickwork#118). A photograph
- * wants a frame; a diagram or logotype has no frame to round, and clipping its
+/* Radius on img only,
+never svg (icvoss/django-brickwork#118). A photograph
+ * wants a frame; a diagram or logotype has no frame to round,
+and clipping its
  * corners damages artwork the caller drew deliberately. Scoping here rather
  * than shipping a --bare opt-out modifier fixes every existing SVG caller with
- * no action on their part, instead of making each one discover an override for
+ * no action on their part,
+instead of making each one discover an override for
  * a .bw-* internal (the-wall EXT-013 discourages exactly that). */
 .bw-hero__media img {
   border-radius: var(--bw-radius-lg);
@@ -1008,7 +886,8 @@
 
 /* Decoration (#645): a watermark/stamp behind the copy on the ordinary
  * surface. Present only when the decoration slot has content; absent is
- * byte-identical. Not media-behind: no inverse panel, no scrim. */
+ * byte-identical. Not media-behind: no inverse panel,
+no scrim. */
 .bw-hero:has(> .bw-hero__decoration) {
   position: relative;
   /* Clip a mark that hangs past the trailing edge via a negative inset. */
@@ -1033,7 +912,7 @@
   pointer-events: none;
 }
 
-.bw-hero__decoration :where(img, svg) {
+.bw-hero__decoration :where(img, svg){
   display: block;
   inline-size: 100%;
   block-size: auto;
@@ -1117,11 +996,13 @@
   max-inline-size: 100%;
 }
 
-/* --- Hero media placement (ADR-057 section 1a, #118) ------------------------- */
+/* --- Hero media placement (ADR-057 section 1a,
+#118) ------------------------- */
 
 /* The media_placement axis. "below" is the default and deliberately has NO
  * modifier class: it is the shipped 2.0.0 layout (.bw-hero is a column flex,
- * so media follows the copy in normal flow), so an omitted or unrecognised
+* so media follows the copy in normal flow),
+so an omitted or unrecognised
  * value renders byte-identically to before this option existed. */
 
 /* "above": media stacks visually above the copy. Document / tab order stay
@@ -1130,7 +1011,8 @@
   flex-direction: column-reverse;
 }
 
-/* "behind": media and copy share one grid area, copy on top. */
+/* "behind": media and copy share one grid area,
+copy on top. */
 .bw-hero--media-behind {
   display: grid;
   position: relative;
@@ -1152,7 +1034,9 @@
 }
 
 /* The copy inherits the inverse foreground. The eyebrow keeps its accent role
- * elsewhere, but accent on an inverse surface is not contrast-checked, so it
+ * elsewhere,
+but accent on an inverse surface is not contrast-checked,
+so it
  * takes the inverse foreground here too. */
 .bw-hero--media-behind .bw-hero__eyebrow,
 .bw-hero--media-behind .bw-hero__heading,
@@ -1174,28 +1058,40 @@
   block-size: 100%;
 }
 
-.bw-hero--media-behind .bw-hero__media :where(img, svg) {
+.bw-hero--media-behind .bw-hero__media :where(img, svg){
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
   border-radius: 0;
 }
 
-/* The scrim, between the media and the copy.
+/* The scrim,
+between the media and the copy.
  *
- * UNIFORM, not a gradient. A gradient makes the contrast ratio depend on WHERE
- * a line of text happens to sit, so the guarantee changes with copy length:
- * measured against a pale illustration, a 45%-at-the-top gradient put the lede
- * at 4.25:1, under the 4.5:1 floor of WCAG 1.4.3, while the heading lower down
- * passed. A flat scrim makes the floor unconditional, which is the only way
+ * UNIFORM,
+not a gradient. A gradient makes the contrast ratio depend on WHERE
+ * a line of text happens to sit,
+so the guarantee changes with copy length:
+ * measured against a pale illustration,
+a 45%-at-the-top gradient put the lede
+ * at 4.25:1,
+under the 4.5:1 floor of WCAG 1.4.3,
+while the heading lower down
+ * passed. A flat scrim makes the floor unconditional,
+which is the only way
  * this band can promise contrast without knowing what media the caller passed.
  *
- * 75% is chosen with headroom, not to the millimetre. Against pure white media
- * (the worst case) the arithmetic minimum that clears 4.5:1 is 60%, but
- * surface-inverse resolves to var(--bw-color-fg), which a tenant rebrands: a
- * lighter brand foreground needs a denser scrim to reach the same ratio, and
+ * 75% is chosen with headroom,
+not to the millimetre. Against pure white media
+ * (the worst case) the arithmetic minimum that clears 4.5:1 is 60%,
+but
+ * surface-inverse resolves to var(--bw-color-fg),
+which a tenant rebrands: a
+ * lighter brand foreground needs a denser scrim to reach the same ratio,
+and
  * 75% keeps the promise across plausible rebrands rather than only the shipped
- * palette. A uniform scrim also needs no [dir="rtl"] mirroring, which a
+ * palette. A uniform scrim also needs no [dir="rtl"] mirroring,
+which a
  * directional gradient would. */
 .bw-hero--media-behind .bw-hero__media::after {
   content: "";
@@ -1204,8 +1100,10 @@
   background: color-mix(in oklab, var(--bw-color-surface-inverse) 75%, transparent);
 }
 
-/* "beside": a true side-by-side row from 48rem up, single column below it.
- * Mobile-first, so the narrow case needs no rule (ADR-057 section 1: a section
+/* "beside": a true side-by-side row from 48rem up,
+single column below it.
+ * Mobile-first,
+so the narrow case needs no rule (ADR-057 section 1: a section
  * that only works at desktop width is not a shipped section). */
 @media (width >= --theme(--breakpoint-md)) {
   .bw-hero--media-beside {
@@ -1274,7 +1172,9 @@
 }
 
 /* Bordered gap-less variant (#646): cells share one rule (1px gap over the
- * border colour, strong outer border, no per-card radius or shadow). The
+ * border colour,
+strong outer border,
+no per-card radius or shadow). The
  * default gapped cards stay byte-identical when variant is omitted. */
 .bw-feature-grid--bordered {
   gap: var(--bw-size-border-hairline);
@@ -1304,7 +1204,8 @@
 }
 
 /* Feature cards inside a feature grid carry a quiet surface role
- * (icvoss/django-brickwork#510): hairline + elevation-1, not bare
+ * (icvoss/django-brickwork#510): hairline + elevation-1,
+not bare
  * icon-plus-copy. Scoped to the grid so footer link groups that reuse
  * .bw-feature-card for stacking do not pick up card chrome. Edge and
  * ambient mirror the zero-kwargs .bw-card craft so tiles read on white. */
@@ -1323,7 +1224,8 @@
   transition: var(--bw-transition-shadow);
 }
 
-/* Linked feature-grid cards raise one elevation step on hover/focus, with
+/* Linked feature-grid cards raise one elevation step on hover/focus,
+with
  * the same ambient stack as .bw-card--interactive. */
 .bw-feature-grid > .bw-feature-card--link:hover,
 .bw-feature-grid > .bw-feature-card--link:focus-visible {
@@ -1333,7 +1235,8 @@
 }
 
 /* Bordered cells sit on surface and drop per-card chrome so the shared
- * rule reads as one grid, not a stack of cards. Hover shifts surface
+ * rule reads as one grid,
+not a stack of cards. Hover shifts surface
  * rather than raising elevation. */
 .bw-feature-grid--bordered > .bw-feature-card {
   background: var(--bw-color-surface);
@@ -1399,7 +1302,8 @@
 }
 
 /* Meta and CTA sit on a shared baseline at the foot of the card when the
- * body lengths differ across a row (#641). When both are present, meta
+ * body lengths differ across a row (#641). When both are present,
+meta
  * takes the auto push and CTA follows under the card gap. */
 .bw-feature-card__meta,
 .bw-feature-card__cta {
@@ -1438,7 +1342,8 @@
 }
 
 /* Linked feature card (#99): the whole card is an anchor (a.bw-card's
- * contract: content keeps its own ink, no underline smears across the card;
+ * contract: content keeps its own ink,
+no underline smears across the card;
  * the focus ring comes from the global :focus-visible rule). Inside a feature
  * grid the card also carries the quiet surface chrome above; the hover
  * affordance remains the marketing kit's link ink treatment on the heading
@@ -1531,7 +1436,8 @@
 }
 
 /* The recommended tier (04-interfaces.md 4d): raised elevation plus an
- * accent border, never colour alone to signal "recommended" (the badge
+ * accent border,
+never colour alone to signal "recommended" (the badge
  * text itself carries that meaning; the border/elevation are reinforcement). */
 .bw-pricing-tier--highlighted {
   border-color: var(--bw-color-accent);
@@ -1621,7 +1527,8 @@
   text-align: center;
 }
 
-/* Tinted band background: the subtle marketing surface token, contrast-checked
+/* Tinted band background: the subtle marketing surface token,
+contrast-checked
  * in both themes (BR-BW-MKT-002). Edge and ambient so the tint reads on white
  * without relying on fill alone; bleed keeps radius 0 via .bw-cta--bleed. */
 .bw-cta--tint {
@@ -1637,8 +1544,10 @@
 /* width="bleed" CTA extras on top of the shared .bw-section--bleed /
  * .bw-cta--bleed escape (#667). Declared AFTER .bw-cta--tint so a tinted
  * full-bleed band takes THIS rule's inline gutter rather than tint's
- * --bw-space-8 (specificity-tie / source-order, ADR-057 §1a). CTA keeps
- * gutter on the outer because its __inner is the prose measure, not the
+ * --bw-space-8 (specificity-tie / source-order,
+ADR-057 §1a). CTA keeps
+ * gutter on the outer because its __inner is the prose measure,
+not the
  * marketing rail; custom bands using .bw-section put gutter on __inner. */
 .bw-cta--bleed {
   padding-inline: var(--bw-density-page-gutter-inline);
@@ -1681,12 +1590,17 @@
 /* --- Testimonial ---------------------------------------------------------------- */
 
 /* No blanket `margin: 0` on the root (#86): that reset ties with the shell's
- * `.bw-marketing__content > * + *` section-gap rule on specificity and, being
- * later in source order, wins the tie, permanently zeroing the section gap
+ * `.bw-marketing__content > * + *` section-gap rule on specificity and,
+being
+ * later in source order,
+wins the tie,
+permanently zeroing the section gap
  * above any composed testimonial (the stat-band/testimonial collision). The
- * UA <figure> block margins are neutralised at ZERO specificity instead, so
+ * UA <figure> block margins are neutralised at ZERO specificity instead,
+so
  * the shell's section rhythm always wins when the testimonial is composed as
- * a marketing section, and a one-class consumer override still wins here. */
+ * a marketing section,
+and a one-class consumer override still wins here. */
 :where(.bw-testimonial) {
   margin-block: 0;
 }
@@ -1761,7 +1675,7 @@
   margin-inline-start: auto;
 }
 
-.bw-testimonial__logo :where(img, svg) {
+.bw-testimonial__logo :where(img, svg){
   block-size: var(--bw-space-6);
   inline-size: auto;
 }
@@ -1800,7 +1714,8 @@
   object-fit: contain;
 }
 
-/* Purely decorative (never the sole signal of anything); colour-on-hover, so
+/* Purely decorative (never the sole signal of anything); colour-on-hover,
+so
  * a greyscale logo is still perfectly legible without the effect. */
 .bw-logo-cloud--greyscale .bw-logo-cloud__logo {
   filter: grayscale(100%);
@@ -1822,7 +1737,8 @@
 /* --- Stat band --------------------------------------------------------------------- */
 
 /* Soft band surface so stats read as a distinct act between features and
- * testimonial (icvoss/django-brickwork#510), using the marketing tint token
+ * testimonial (icvoss/django-brickwork#510),
+using the marketing tint token
  * already contrast-checked for CTA bands. Edge and a light ambient keep the
  * band from dissolving into a white page. */
 .bw-stat-band-section {
@@ -1852,10 +1768,14 @@
   line-height: var(--bw-text-heading-section-line-height);
 }
 
-/* Display-scale band, distinct from patterns/dashboard.html's dense KPI grid
- * (bw-stat-grid): fewer, larger tiles read as a marketing statement, so the
+/* Display-scale band,
+distinct from patterns/dashboard.html's dense KPI grid
+ * (bw-stat-grid): fewer,
+larger tiles read as a marketing statement,
+so the
  * band uses a wider auto-fit floor and centres its tiles (composes
- * _stat.html's own tile shape unchanged, BR-BW-MKT-004). */
+ * _stat.html's own tile shape unchanged,
+BR-BW-MKT-004). */
 .bw-stat-band {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
@@ -2010,7 +1930,7 @@
   overflow: auto;
 }
 
-.bw-feature-row__media :where(img, svg) {
+.bw-feature-row__media :where(img, svg){
   display: block;
   inline-size: 100%;
   block-size: auto;
@@ -2089,7 +2009,8 @@
 
 /* Escape size/margin come from the shared .bw-section--bleed / .bw-cta-bleed
  * rule (#667). This block keeps the inverse band treatment and its own
- * gutter (prose __inner, same shape as .bw-cta--bleed). */
+ * gutter (prose __inner,
+same shape as .bw-cta--bleed). */
 .bw-cta-bleed {
   padding-block: var(--bw-space-16);
   /* Its own gutter: having escaped the shell's, the copy would otherwise touch
@@ -2140,7 +2061,8 @@
 
 /* The quiet second action. A plain link rather than a secondary button: the
  * secondary button's border colour is tuned for the page surface and reads as
- * a smudge on the inverse band. Underlined, so it is not colour-only. */
+ * a smudge on the inverse band. Underlined,
+so it is not colour-only. */
 .bw-cta-bleed__link {
   color: var(--bw-color-fg-on-inverse);
   text-decoration: underline;
@@ -2164,7 +2086,7 @@
   gap: var(--bw-space-2);
 }
 
-.bw-media-text__figure :where(img, svg) {
+.bw-media-text__figure :where(img, svg){
   display: block;
   inline-size: 100%;
   block-size: auto;
@@ -2192,7 +2114,8 @@
 
 /* --- Pricing / single plan ---------------------------------------------------- */
 
-/* The one-plan shape: no table, because there is nothing to compare. The card
+/* The one-plan shape: no table,
+because there is nothing to compare. The card
  * is capped at prose width and centred so it does not stretch into a banner on
  * a wide viewport. */
 .bw-single-plan__intro {
@@ -2221,7 +2144,8 @@
   margin-inline: auto;
 }
 
-/* The "what is included" list sits under the card rather than inside it, so the
+/* The "what is included" list sits under the card rather than inside it,
+so the
  * card stays a price and an action while the list can run two-up on a wide
  * screen (the base .bw-feature-list already does that at 48rem). */
 .bw-single-plan__includes {
@@ -2238,7 +2162,8 @@
 }
 
 /* Pricing / comparison table CSS lives in components.css as
- * .bw-comparison-table* (icvoss/django-brickwork#626), with
+ * .bw-comparison-table* (icvoss/django-brickwork#626),
+with
  * .bw-pricing-comparison* kept as aliases for hand-authored markup.
  */
 
@@ -2252,8 +2177,10 @@
   letter-spacing: var(--bw-text-heading-section-tracking);
 }
 
-/* One column on a phone, two from 48rem. Each column is its own exclusive
- * <details> group in the markup, so opening a question on the right cannot
+/* One column on a phone,
+two from 48rem. Each column is its own exclusive
+ * <details> group in the markup,
+so opening a question on the right cannot
  * close one off-screen on the left. */
 .bw-faq-columns__grid {
   display: grid;
@@ -2291,7 +2218,8 @@
   align-items: start;
 }
 
-/* .bw-testimonial caps itself at prose width and centres, which is right for a
+/* .bw-testimonial caps itself at prose width and centres,
+which is right for a
  * lone quote and wrong inside a grid track: it would leave gaps between the
  * cards. The track is the constraint here. */
 .bw-testimonial-grid .bw-testimonial {
@@ -2309,8 +2237,10 @@
   gap: var(--bw-space-6);
 }
 
-/* The mark carries a viewBox and no intrinsic width, so the cap lives here.
- * currentColor in the SVG resolves through this rule's inherited ink, which is
+/* The mark carries a viewBox and no intrinsic width,
+so the cap lives here.
+ * currentColor in the SVG resolves through this rule's inherited ink,
+which is
  * what lets one file work in both themes. */
 .bw-testimonial-logo__mark {
   color: var(--bw-color-fg-muted);
@@ -2340,7 +2270,8 @@
 }
 
 /* The card treatment the bare .bw-stat-band deliberately does not carry: this
- * variant exists for pages with no other card content, where a naked number
+ * variant exists for pages with no other card content,
+where a naked number
  * band reads as unfinished. */
 .bw-stat-card {
   display: flex;
@@ -2380,9 +2311,13 @@
 
 /* --- Listing ------------------------------------------------------------------ */
 
-/* The three listing variants (card grid, media list, compact table) share this
+/* The three listing variants (card grid,
+media list,
+compact table) share this
  * section wrapper and NOTHING else: the shared thing between them turned out
- * to be the entry contract, not the layout, which is why no grid component was
+ * to be the entry contract,
+not the layout,
+which is why no grid component was
  * promoted out of them. See the comment in examples/sections/listing/
  * media-list.html for that reasoning in full. */
 .bw-listing-section__intro {
@@ -2405,22 +2340,29 @@
 
 /* Listing / card grid ------------------------------------------------------ */
 
-/* The same auto-fit idiom as .bw-stat-grid and .bw-stat-band, with a wider
+/* The same auto-fit idiom as .bw-stat-grid and .bw-stat-band,
+with a wider
  * floor: a card carrying a title and a summary paragraph stops reading as a
  * card below about 18rem. min() keeps a single column on viewports narrower
- * than one card, which is what makes this mobile-first with no breakpoint. */
+ * than one card,
+which is what makes this mobile-first with no breakpoint. */
 .bw-listing-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
   gap: var(--bw-space-6);
 }
 
-/* The whole card is an anchor, so it follows a.bw-card's contract exactly as
- * .bw-feature-card--link does: content keeps its own ink, no underline smears
- * across the card, and the focus ring comes from the global :focus-visible
- * rule. Unlike the chrome-less feature card this one has a surface, so the
- * hover affordance is the elevation raise (shadow only, never a transform,
- * per MOT-010). */
+/* The whole card is an anchor,
+so it follows a.bw-card's contract exactly as
+ * .bw-feature-card--link does: content keeps its own ink,
+no underline smears
+ * across the card,
+and the focus ring comes from the global :focus-visible
+ * rule. Unlike the chrome-less feature card this one has a surface,
+so the
+ * hover affordance is the elevation raise (shadow only,
+never a transform,
+* per MOT-010). */
 .bw-listing-card {
   display: flex;
   flex-direction: column;
@@ -2491,7 +2433,9 @@
   list-style: none;
 }
 
-/* Stacked on a phone (image first, matching the reading order), a media row
+/* Stacked on a phone (image first,
+matching the reading order),
+a media row
  * from 40rem up. The image column is fixed rather than fractional so a short
  * entry and a long one present the same thumbnail size. */
 .bw-listing-list__item {
@@ -2500,7 +2444,9 @@
   align-items: start;
 }
 
-/* 12rem, not wider: at a 3:2 ratio the thumbnail sets the row height, and a
+/* 12rem,
+not wider: at a 3:2 ratio the thumbnail sets the row height,
+and a
  * wider column leaves a two-line summary floating in dead space beside it. */
 @media (width >= --theme(--breakpoint-sm)) {
   .bw-listing-list__item {
@@ -2509,8 +2455,10 @@
   }
 }
 
-/* Sized for either shape: the shipped placeholder is an inline <svg>, and the
- * documented swap is an <img>. object-fit only bites on the img, and the
+/* Sized for either shape: the shipped placeholder is an inline <svg>,
+and the
+ * documented swap is an <img>. object-fit only bites on the img,
+and the
  * aspect-ratio keeps the row height stable across both so swapping one for the
  * other does not reflow the list. */
 .bw-listing-list__media {
@@ -2536,13 +2484,18 @@
   line-height: var(--bw-text-heading-sm-line-height);
 }
 
-/* Only the title is the link here, not the whole row: the row is wide enough
+/* Only the title is the link here,
+not the whole row: the row is wide enough
  * that a full-row target would swallow the surrounding whitespace.
  * min-block-size (icvoss/django-brickwork#316): the heading-sm line-height
- * alone renders at 17px, 7px under the WCAG 2.5.8 24px floor, since this is
- * a text-run link (line-height), not a fixed-shape control. display: block
+ * alone renders at 17px,
+7px under the WCAG 2.5.8 24px floor,
+since this is
+ * a text-run link (line-height),
+not a fixed-shape control. display: block
  * is safe because the link is the sole content of its own <h3> in the
- * shipped markup (media-list.html), so there is no sibling inline content
+ * shipped markup (media-list.html),
+so there is no sibling inline content
  * on the same line to disturb; the same min-block-size: 1.5rem pattern as
  * .bw-data-table__row-link (#208). */
 .bw-listing-list__link {
@@ -2572,11 +2525,13 @@
 
 /* Listing / compact table -------------------------------------------------- */
 
-/* A table cannot reflow into one column without ceasing to be a table, so it
+/* A table cannot reflow into one column without ceasing to be a table,
+so it
  * scrolls inside its own container rather than pushing the page sideways on a
  * phone. The container is focusable in the markup (tabindex="0") because a
  * scroll region reachable only by mouse or touch is unusable by keyboard; the
- * focus ring comes free from the global :focus-visible rule, whose selector
+ * focus ring comes free from the global :focus-visible rule,
+whose selector
  * already includes [tabindex]. */
 .bw-listing-table__scroll {
   overflow-x: auto;
@@ -2596,7 +2551,8 @@
   font-size: var(--bw-text-body-md-size);
 }
 
-/* Visible on purpose: the caption names the table for everyone, not only for
+/* Visible on purpose: the caption names the table for everyone,
+not only for
  * a screen reader. */
 .bw-listing-table__caption {
   padding: var(--bw-space-4) var(--bw-space-4) 0;
@@ -2621,7 +2577,8 @@
   white-space: nowrap;
 }
 
-/* The row header carries the entry title, so it stays at body weight rather
+/* The row header carries the entry title,
+so it stays at body weight rather
  * than inheriting the thead treatment. */
 .bw-listing-table tbody th {
   font-weight: var(--bw-text-body-md-weight);
@@ -2646,7 +2603,8 @@
 
 /* Soft ambient under elevation-* is a LIGHT-theme treatment so marketing
  * surfaces read on white canvas; dark elevation tokens already carry their
- * own depth, so dark surfaces return to the plain elevation ramp here.
+ * own depth,
+so dark surfaces return to the plain elevation ramp here.
  * Mirrors the card ambient reset at the end of components.css. */
 [data-theme="dark"] .bw-feature-grid > .bw-feature-card,
 [data-theme="dark"] .bw-pricing-tier,
@@ -2657,7 +2615,7 @@
 [data-theme="dark"] .bw-hero__media img,
 [data-theme="dark"] .bw-portrait__image img,
 [data-theme="dark"] .bw-product-chrome,
-[data-theme="dark"] .bw-marketing-header {
+[data-theme="dark"] .bw-site-header {
   box-shadow: var(--bw-elevation-1);
 }
 [data-theme="dark"] .bw-product-chrome--rear {
@@ -2734,7 +2692,7 @@
   max-inline-size: 22rem;
 }
 
-.bw-portrait__image :where(img, svg) {
+.bw-portrait__image :where(img, svg){
   display: block;
   inline-size: 100%;
   block-size: auto;
@@ -2807,7 +2765,7 @@
   inline-size: var(--bw-space-16);
 }
 
-.bw-bio__image :where(img, svg) {
+.bw-bio__image :where(img, svg){
   display: block;
   inline-size: 100%;
   block-size: auto;
@@ -2876,7 +2834,8 @@
   color: var(--bw-color-accent-hover);
 }
 
-/* --- Proof collage (#572, ADR-108 reusable marketing proof primitive) ------
+/* --- Proof collage (#572,
+ADR-108 reusable marketing proof primitive) ------
  * Kit collage or page-as-proof stage. Tiles compose _preview_frame.html for
  * the surface guard. Not gallery chrome and not product-chrome.
  */
@@ -3035,7 +2994,7 @@
   flex-shrink: 0;
 }
 
-.bw-directory__mark :where(img, svg) {
+.bw-directory__mark :where(img, svg){
   display: block;
   max-inline-size: 100%;
   max-block-size: 100%;
@@ -3134,8 +3093,10 @@
   }
 }
 
-/* --- Case / result list (#674): ruled work records, not cards -------------
- * Figure | name + note, hairline rows. Sibling of directory (ruled index)
+/* --- Case / result list (#674): ruled work records,
+not cards -------------
+ * Figure | name + note,
+hairline rows. Sibling of directory (ruled index)
  * and feature grid (cards): this is the checkable case list personal and
  * consulting presence pages need under a figures band.
  */
@@ -3170,8 +3131,10 @@
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
 }
 
-/* The row is the interactive unit when linked: one tab stop, content keeps
- * its own ink, focus ring from the global :focus-visible rule. */
+/* The row is the interactive unit when linked: one tab stop,
+content keeps
+ * its own ink,
+focus ring from the global :focus-visible rule. */
 .bw-case-list__row {
   display: grid;
   gap: var(--bw-space-2);
@@ -3235,9 +3198,11 @@
 }
 
 /* Methods / quiet columns (#675) -------------------------------------------
- * Reading layout for method pages: no card surface, no whole-column hit
+ * Reading layout for method pages: no card surface,
+no whole-column hit
  * target. Underline text link only. Sibling of feature-grid (product tiles)
- * and directory (numbered index), not a variant of either. */
+ * and directory (numbered index),
+not a variant of either. */
 
 .bw-methods-section {
   display: flex;
@@ -3301,7 +3266,8 @@
 }
 
 /* Underline text link (not a whole-column anchor). min-block-size meets the
- * WCAG 2.5.8 24px floor, same pattern as .bw-bio__profile-link. */
+ * WCAG 2.5.8 24px floor,
+same pattern as .bw-bio__profile-link. */
 .bw-methods__link {
   display: inline-block;
   align-self: flex-start;

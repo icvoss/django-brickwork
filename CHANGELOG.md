@@ -16,6 +16,64 @@ versioning contract).
 
 ### Removed
 
+## [4.0.0] - 2026-09-19
+
+Major: **clean-break removal** of already-deprecated template block names,
+`--bw-font-size-3xs`, and the marketing dual-class chrome window. No new
+features. Owned consumers must rename in the same upgrade wave; a helper
+codemod ships as `scripts/codemod_4_0_blocks.py` (dry-run by default).
+
+### Removed
+
+- **Deprecated template blocks** (ADR-077 SS4 / CHANGELOG 3.4.0,
+  `removedAt: 4.0.0`). Old fills are silently discarded by Django. Upgrade:
+
+  | Old | New |
+  |---|---|
+  | `card_header` / `card_title` / `card_actions` / `card_body` / `card_footer` | `header` / `title` / `actions` / `body` / `footer` |
+  | `modal_title` / `modal_body` / `modal_footer` | `title` / `body` / `footer` |
+  | `slide_over_title` / `slide_over_body` / `slide_over_footer` | `title` / `body` / `footer` |
+  | `alert_body` | `body` |
+  | `tooltip_trigger` | `trigger` |
+  | `empty_state_action` | `action` |
+  | `_empty_state` `title` / `description` | `heading` / `body` |
+
+  Trap: on `_empty_state.html`, `title` was the deprecated predecessor of
+  `heading`. On `_modal.html`, `_slide_over.html` and `_card.html`, `title`
+  is the current name. Check the file you extend.
+
+- **`--bw-font-size-3xs`** (TYP-022 / icvoss/django-brickwork#281). Floor
+  remains `2xs` (chrome) / `xs` (content). Override or delete any consumer
+  rule that referenced the removed custom property.
+
+- **Marketing dual-class chrome aliases** (ADR-113 one-minor window closed).
+  Shared marketing/site chrome emits `.bw-site-*` only. Selectors and
+  hand-rolled markup that keyed off `.bw-marketing-header*` /
+  `.bw-marketing-footer` (landmark / BEM chrome, not composition classes
+  such as `bw-marketing-footer__groups`) must move to `.bw-site-*`. Overlay
+  opt-in is `bw-site-header--overlay` (was `bw-marketing-header--overlay`).
+
+### Changed
+
+- Template contract baseline and `template-manifest.json` no longer list the
+  removed block names or a non-empty `deprecated` array for this lot.
+- Preferred migration helper: `python scripts/codemod_4_0_blocks.py <path>`
+  (add `--write` to apply).
+
+### Fixed
+
+- **Marketing CSS build truncate** during the dual-class rename: a broken
+  `:where(img, svg)` selector on `.bw-site-header__brand-wordmark` made
+  Lightning CSS stop mid-file, so the shipped `brickwork.css` dropped
+  marketing component rules (hero, section shell, testimonials, and the
+  rest). Restored the closed `:where` and rebuilt the asset.
+- **Marketing archetype examples** still emitted `.bw-marketing-header__nav`
+  after the dual-class window closed, so dark-theme nav links fell back to
+  the UA blue and failed axe contrast. Renamed to `.bw-site-header__nav`.
+- **Docs shell dual-class assertion** incorrectly required
+  `.bw-site-header` to be both present and absent after a mechanical rename;
+  restored the negative check against the removed marketing alias names.
+
 ## [3.38.0] - 2026-09-18
 
 Minor: **CHT-006 chart adapter** with tooltip series swatch suppression

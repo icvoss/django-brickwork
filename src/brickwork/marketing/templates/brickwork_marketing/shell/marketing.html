@@ -10,38 +10,31 @@ page {% extends %} this shell and is itself {% extends %}d by a consuming
 page (BR-BW-PAGE-001 at marketing scope), never {% include %}d.
 
 Shared site chrome (ADR-113 / BR-BW-TPL-008): the default header and footer
-are the dual-class embodiment of brickwork/components/_site_header.html and
-_site_footer.html. Canonical classes are .bw-site-*; for one minor the
-landmarks also carry .bw-marketing-header / .bw-marketing-footer (and their
-BEM children) so Prefer≥4 sites selecting on marketing names keep working.
+mirror brickwork/components/_site_header.html and _site_footer.html and emit
+.bw-site-* only (the 3.37 dual-class marketing aliases closed in 4.0.0).
 Docs must use the shared includes with .bw-site-* only. Django {% include %}
 cannot expose named blocks to pages that extend this shell, so the block
 seams below stay here while the markup mirrors the shared includes.
 
 Named blocks (semver-public, BR-BW-TPL-001), all empty-graceful:
   marketing_header_modifiers
-                       empty by default. Set to bw-marketing-header--overlay
+                       empty by default. Set to bw-site-header--overlay
                        to opt into overlay mode (ADR-105 / BR-BW-MKT-006).
-                       bw-site-header--overlay is accepted as a dual-class
-                       alias for the same mode during the compatibility
-                       window; prefer the marketing name on this shell.
   marketing_header_attrs
                        empty by default. Extra attributes on <header> (include
                        a leading space), e.g. data-bw-nav-context="dark".
   marketing_header    default: a header row with brand_logo/brand_wordmark at
                        the inline start and marketing_nav at the end.
-  brand_logo           wrapped in the brickwork-owned dual-class
-                       .bw-site-header__brand-mark.bw-marketing-header__brand-mark
-                       element (#83, the app shell's brickwork#93 wrapper
-                       precedent): an img/svg dropped in is capped at
-                       --bw-component-logo-height (2rem) with width following
-                       the intrinsic ratio, and the wrapper stays
-                       flex: 0 0 auto so the nav/actions keep the remaining
-                       width. Override the token (or the zero-specificity
-                       rule) to resize; an unfilled block leaves an :empty
-                       wrapper that collapses to nothing.
-  brand_wordmark       wrapped in .bw-site-header__brand-wordmark and
-                       .bw-marketing-header__brand-wordmark, the same
+  brand_logo           wrapped in the brickwork-owned
+                       .bw-site-header__brand-mark element (#83, the app
+                       shell's brickwork#93 wrapper precedent): an img/svg
+                       dropped in is capped at --bw-component-logo-height
+                       (2rem) with width following the intrinsic ratio, and
+                       the wrapper stays flex: 0 0 auto so the nav/actions
+                       keep the remaining width. Override the token (or the
+                       zero-specificity rule) to resize; an unfilled block
+                       leaves an :empty wrapper that collapses to nothing.
+  brand_wordmark       wrapped in .bw-site-header__brand-wordmark, the same
                        treatment as brand_logo (a text wordmark is
                        unaffected: the height cap targets only img/svg).
   marketing_nav        the primary public nav: a plain list of links, no
@@ -83,12 +76,9 @@ insert the toggle alongside the existing <nav>/<div> element, rather than
 filling the outer marketing_header block and reproducing brand_logo,
 brand_wordmark, marketing_nav and marketing_actions verbatim to reach the
 same seam.
-  marketing_nav_region      wraps <nav> with dual class
-                             bw-site-header__nav bw-marketing-header__nav.
-  marketing_actions_region  wraps <div> with dual class
-                             bw-site-header__actions bw-marketing-header__actions.
-  marketing_footer_region   wraps the whole <footer> with dual class
-                             bw-site-footer bw-marketing-footer
+  marketing_nav_region      wraps <nav class="bw-site-header__nav">.
+  marketing_actions_region  wraps <div class="bw-site-header__actions">.
+  marketing_footer_region   wraps the whole <footer class="bw-site-footer">
                              (mirroring the app shell's footer_region,
                              which also wraps its outer <footer>).
 Overriding marketing_nav_region or marketing_footer_region EMPTY removes a
@@ -180,7 +170,7 @@ Responsive: with `_mobile_nav_toggle.html` included, marketing.css collapses
   width.
 
 Overlay mode (ADR-105, icvoss/django-brickwork#565, BR-BW-MKT-006): opt in
-  with marketing_header_modifiers = "bw-marketing-header--overlay". Default
+  with marketing_header_modifiers = "bw-site-header--overlay". Default
   sticky solid header is unchanged. Overlay fixes the header over the first
   content band; package CSS clears the first child so copy is not under the
   chrome. Optional marketing_header_attrs may set an initial
@@ -193,20 +183,20 @@ Overlay mode (ADR-105, icvoss/django-brickwork#565, BR-BW-MKT-006): opt in
 
 {% block shell %}
 <div class="bw-marketing">
-  {# Dual-class site chrome (ADR-113): mirrors brickwork/components/_site_header.html #}
-  <header class="bw-site-header bw-marketing-header {% block marketing_header_modifiers %}{% endblock %}"{% block marketing_header_attrs %}{% endblock %}>
-    <div class="bw-site-header__inner bw-marketing-header__inner">
-      <div class="bw-site-header__brand bw-marketing-header__brand">
+  {# Site chrome (ADR-113): mirrors brickwork/components/_site_header.html #}
+  <header class="bw-site-header {% block marketing_header_modifiers %}{% endblock %}"{% block marketing_header_attrs %}{% endblock %}>
+    <div class="bw-site-header__inner">
+      <div class="bw-site-header__brand">
         {% block marketing_header %}
-          <span class="bw-site-header__brand-mark bw-marketing-header__brand-mark">{% block brand_logo %}{% endblock %}</span>
-          <span class="bw-site-header__brand-wordmark bw-marketing-header__brand-wordmark">{% block brand_wordmark %}{% endblock %}</span>
+          <span class="bw-site-header__brand-mark">{% block brand_logo %}{% endblock %}</span>
+          <span class="bw-site-header__brand-wordmark">{% block brand_wordmark %}{% endblock %}</span>
           {% block marketing_nav_region %}
-          <nav class="bw-site-header__nav bw-marketing-header__nav" aria-label="{% translate 'Primary' %}">
+          <nav class="bw-site-header__nav" aria-label="{% translate 'Primary' %}">
             {% block marketing_nav %}{% endblock %}
           </nav>
           {% endblock %}
           {% block marketing_actions_region %}
-          <div class="bw-site-header__actions bw-marketing-header__actions">
+          <div class="bw-site-header__actions">
             {% block marketing_actions %}{% endblock %}
           </div>
           {% endblock %}
@@ -220,9 +210,9 @@ Overlay mode (ADR-105, icvoss/django-brickwork#565, BR-BW-MKT-006): opt in
   </main>
 
   {% block marketing_footer_region %}
-  {# Dual-class site chrome (ADR-113): mirrors brickwork/components/_site_footer.html #}
-  <footer class="bw-site-footer bw-marketing-footer">
-    <div class="bw-site-footer__inner bw-marketing-footer__inner">{% block marketing_footer %}{% endblock %}<div class="bw-site-footer__legal bw-marketing-footer__legal">{% block footer_legal %}{% endblock %}</div></div>
+  {# Site chrome (ADR-113): mirrors brickwork/components/_site_footer.html #}
+  <footer class="bw-site-footer">
+    <div class="bw-site-footer__inner">{% block marketing_footer %}{% endblock %}<div class="bw-site-footer__legal">{% block footer_legal %}{% endblock %}</div></div>
   </footer>
   {% endblock %}
 </div>

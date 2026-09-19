@@ -21,7 +21,7 @@ for (const theme of ["light", "dark"]) {
       pathToFileURL(join(FIXTURES, `marketing-overlay-js-${theme}.html`)).href,
     );
 
-    const header = page.locator(".bw-marketing-header--overlay");
+    const header = page.locator(".bw-site-header--overlay");
     await expect(header).toHaveAttribute("data-bw-overlay-ready", "");
     await expect(header).toHaveAttribute("data-bw-scrolled", "false");
     await expect(header).toHaveAttribute("data-bw-nav-context", "dark");

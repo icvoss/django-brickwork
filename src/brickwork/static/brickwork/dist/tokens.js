@@ -177,7 +177,6 @@ export const tokens = Object.freeze({
   "font_size_2xl": "var(--bw-font-size-2xl)",
   "font_size_2xs": "var(--bw-font-size-2xs)",
   "font_size_3xl": "var(--bw-font-size-3xl)",
-  "font_size_3xs": "var(--bw-font-size-3xs)",
   "font_size_4xl": "var(--bw-font-size-4xl)",
   "font_size_5xl": "var(--bw-font-size-5xl)",
   "font_size_lg": "var(--bw-font-size-lg)",

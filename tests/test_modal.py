@@ -3,7 +3,7 @@
 _modal.html is consumed by EXTENDING (unlike most components, which are
 {% include %}d): a consumer partial
 opens with {% extends "brickwork/components/_modal.html" %} and fills the
-named blocks (modal_title, modal_body, modal_footer, all semver-public per
+named blocks (title, body, footer, all semver-public per
 BR-BW-TPL-001). These tests render inline consumer partials through the
 template engine, exactly as a consuming project would.
 
@@ -26,15 +26,13 @@ _DIST_JS = Path(__file__).resolve().parent.parent / "src/brickwork/static/brickw
 
 _CONSUMER = (
     '{% extends "brickwork/components/_modal.html" %}'
-    "{% block modal_body %}<p>Body copy.</p>"
+    "{% block body %}<p>Body copy.</p>"
     '<form id="demo-form"><input id="demo-input" data-bw-autofocus></form>{% endblock %}'
-    '{% block modal_footer %}<footer class="bw-modal__footer">'
+    '{% block footer %}<footer class="bw-modal__footer">'
     '<button type="submit" form="demo-form">Go</button></footer>{% endblock %}'
 )
 
-_NO_FOOTER_CONSUMER = (
-    '{% extends "brickwork/components/_modal.html" %}{% block modal_body %}<p>Body only.</p>{% endblock %}'
-)
+_NO_FOOTER_CONSUMER = '{% extends "brickwork/components/_modal.html" %}{% block body %}<p>Body only.</p>{% endblock %}'
 
 
 def _render(source: str = _CONSUMER, **ctx: object) -> str:
@@ -122,11 +120,11 @@ def test_unfilled_footer_renders_nothing() -> None:
     assert "bw-modal__footer" not in html
 
 
-def test_modal_title_block_override_wins_over_the_title_context() -> None:
+def test_title_block_override_wins_over_the_title_context() -> None:
     source = (
         '{% extends "brickwork/components/_modal.html" %}'
-        "{% block modal_title %}Custom heading{% endblock %}"
-        "{% block modal_body %}<p>Body.</p>{% endblock %}"
+        "{% block title %}Custom heading{% endblock %}"
+        "{% block body %}<p>Body.</p>{% endblock %}"
     )
     html = _render(source, title="Ignored title")
     assert "Custom heading" in html
@@ -139,8 +137,7 @@ def test_title_context_is_escaped() -> None:
     assert "&lt;b&gt;bold&lt;/b&gt;" in html
 
 
-# --- ADR-077 SS4: concise block names alongside their deprecated prefixed ---
-# --- counterparts (BR-BW-VER-001 parallel support) --------------------------
+# --- 4.0.0: prefixed modal_* block names removed ---------------------------
 
 
 def test_concise_title_body_footer_blocks_render() -> None:
@@ -156,13 +153,18 @@ def test_concise_title_body_footer_blocks_render() -> None:
     assert "FOOTER-SENTINEL" in html
 
 
-def test_deprecated_modal_prefixed_blocks_still_render_alone() -> None:
-    html = _render()  # _CONSUMER fills modal_body and modal_footer only
-    assert "Body copy." in html
-    assert '<footer class="bw-modal__footer">' in html
+def test_deprecated_modal_prefixed_blocks_no_longer_render() -> None:
+    source = (
+        '{% extends "brickwork/components/_modal.html" %}'
+        "{% block modal_body %}<p>LEGACY-BODY</p>{% endblock %}"
+        '{% block modal_footer %}<footer class="bw-modal__footer">LEGACY-FOOTER</footer>{% endblock %}'
+    )
+    html = _render(source)
+    assert "LEGACY-BODY" not in html
+    assert "LEGACY-FOOTER" not in html
 
 
-def test_body_and_modal_body_both_render_when_both_are_filled() -> None:
+def test_legacy_modal_body_fill_is_discarded_when_body_is_filled() -> None:
     source = (
         '{% extends "brickwork/components/_modal.html" %}'
         "{% block body %}BODY-SENTINEL{% endblock %}"
@@ -170,8 +172,7 @@ def test_body_and_modal_body_both_render_when_both_are_filled() -> None:
     )
     html = _render(source)
     assert "BODY-SENTINEL" in html
-    assert "LEGACY-SENTINEL" in html
-    assert html.index("BODY-SENTINEL") < html.index("LEGACY-SENTINEL")
+    assert "LEGACY-SENTINEL" not in html
 
 
 def test_bundle_registers_bwmodal_with_the_documented_events_and_reasons() -> None:
@@ -184,29 +185,17 @@ def test_bundle_registers_bwmodal_with_the_documented_events_and_reasons() -> No
         assert reason in bundle
 
 
-def test_modal_title_successor_replaces_rather_than_appends() -> None:
-    # ADR-077 SS4 parallel support must not change what the OLD name DID.
-    # "modal_title" wrapped the title and replaced it, so nesting it inside the
-    # concise "title" block (rather than placing it after) is what keeps a
-    # consumer from getting "DefaultCustom" concatenated into one heading.
-    both = _render(
-        '{% extends "brickwork/components/_modal.html" %}'
-        "{% block title %}NEW-SENTINEL{% endblock %}"
-        "{% block modal_title %}OLD-SENTINEL{% endblock %}"
-        "{% block modal_body %}<p>Body.</p>{% endblock %}",
-        title="Ignored title",
-    )
-    assert "NEW-SENTINEL" in both
-    assert "OLD-SENTINEL" not in both
-
+def test_removed_modal_title_no_longer_overrides_title_context() -> None:
+    # Prefixed modal_title is gone: filling it is discarded, so the title
+    # context (or the concise title block) wins alone.
     old_only = _render(
         '{% extends "brickwork/components/_modal.html" %}'
         "{% block modal_title %}OLD-SENTINEL{% endblock %}"
-        "{% block modal_body %}<p>Body.</p>{% endblock %}",
-        title="Ignored title",
+        "{% block body %}<p>Body.</p>{% endblock %}",
+        title="Context title",
     )
-    assert "OLD-SENTINEL" in old_only
-    assert "Ignored title" not in old_only
+    assert "OLD-SENTINEL" not in old_only
+    assert "Context title" in old_only
 
 
 def test_beautiful_default_modal_panel_has_fg_mix_edge_and_open_ambient() -> None:

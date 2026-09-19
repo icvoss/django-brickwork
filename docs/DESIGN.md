@@ -690,7 +690,7 @@ max-width, htmx indicator opacity) move to the `--bw-component-*` grammar in
 | `--bw-component-hero-copy-max-width` **[NEW, #640]** | `var(--bw-size-max-width-prose)` | Hero copy-column measure (`.bw-hero__copy`, including media-behind). Defaults to the prose measure so package-default layout matches the pre-token binding. Raise this (and keep or raise heading) when a display heading needs a wider column than body copy |
 | `--bw-component-hero-heading-max-width` **[NEW, #640]** | `100%` | Hero heading measure (`.bw-hero__heading`). Defaults to 100% so the heading fills the copy column at package default. Override after widening the copy column when the heading should sit at a specific width inside it |
 | `--bw-component-hero-lede-max-width` **[NEW, #640]** | `100%` | Hero lede measure (`.bw-hero__lede`). Defaults to 100% (fills the copy column). When the copy column is widened for the heading, set this to `var(--bw-size-max-width-prose)` or `62ch` so the lede stays at a readable measure without scoping a rule to `.bw-hero__*` |
-| `--bw-component-logo-height` **[NEW, unreleased]** | `2rem` | brickwork#83 (ADR-054 beautiful-by-default): the default cap the marketing shell applies to an `img`/`svg` dropped into `brand_logo` or `brand_wordmark` (block-size capped, width follows the intrinsic ratio), so an unconstrained mark/lockup renders at a sensible header size out of the box instead of a full-height banner. 2rem is the 32px end of the conventional 28-32px header-logo range. Applied through the brickwork-owned `.bw-marketing-header__brand-mark` / `__brand-wordmark` wrappers at zero specificity (`:where`), so a one-class consumer rule overrides it; or override the token itself to resize. Raw `--bw-logo-height` ships as a build alias of the canonical name |
+| `--bw-component-logo-height` **[NEW, unreleased]** | `2rem` | brickwork#83 (ADR-054 beautiful-by-default): the default cap the marketing shell applies to an `img`/`svg` dropped into `brand_logo` or `brand_wordmark` (block-size capped, width follows the intrinsic ratio), so an unconstrained mark/lockup renders at a sensible header size out of the box instead of a full-height banner. 2rem is the 32px end of the conventional 28-32px header-logo range. Applied through the brickwork-owned `.bw-site-header__brand-mark` / `__brand-wordmark` wrappers at zero specificity (`:where`), so a one-class consumer rule overrides it; or override the token itself to resize. Raw `--bw-logo-height` ships as a build alias of the canonical name |
 | `--bw-component-hero-decoration-inset` **[NEW, #645]** | `2rem` | Block-start offset for `_hero.html`'s decoration watermark; CSS flips the sign for `inset-inline-end` so the mark hangs slightly past the trailing edge by the same magnitude. Applied only when the decoration slot has content |
 | `--bw-component-hero-decoration-size` **[NEW, #645]** | `14rem` | Default inline size of the hero decoration mark, further capped at 50% of the hero in CSS |
 | `--bw-component-hero-eyebrow-marker-inline-size` **[NEW, #659]** | `2.4rem` | Inline size of the leading accent rule on `.bw-hero__eyebrow--rule` (`::before`). Applied only when `eyebrow_marker="rule"` |
@@ -972,7 +972,6 @@ northline brand-pack example.
 
 | Token | rem | px | Use |
 |---|---|---|---|
-| `3xs` **[DEPRECATED]** | 0.625 | 10 | bottom rung, no direct consumer; deprecated (icvoss/django-brickwork#281), removal at next major |
 | `2xs` | 0.6875 | 11 | chrome text only (overlines, micro-labels); never sentences. Package policy floor for chrome; content floor is `xs` (TYP-022) |
 | `xs` | 0.75 | 12 | captions, help, errors, timestamps; content / legibility floor |
 | `sm` | 0.875 | 14 | dense UI text, table cells |
@@ -1115,8 +1114,7 @@ apply `--text-overline` or `--bw-font-size-2xs` to body or prose, interactive
 control labels, form help or error text, or table cell content. The package's
 own sites (nav section labels, stat labels) are the load-bearing chrome
 exceptions; the Tailwind `--text-overline` utility is the consumer-facing
-bypass and carries the same restriction. `3xs` is deprecated with no package
-consumer.
+bypass and carries the same restriction. `3xs` was removed in 4.0.0 (icvoss/django-brickwork#281 / TYP-022). The size floor remains `2xs` for chrome and `xs` for content.
 
 **Component map:** page-header title heading-xl (description body-md +
 fg-muted); empty-state heading heading-lg, body body-md + fg-muted +

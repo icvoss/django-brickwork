@@ -33,62 +33,38 @@ icon (registry name), action_href, action_label.
 
 Named blocks (semver-public, BR-BW-TPL-001), all empty by default:
 
-  icon:        present SINCE 3.4.0, with no deprecated predecessor: this is
-                NEW capability, not a rename. Wraps the existing
-                icon-resolution branch (CMP-032); an override replaces the
-                whole icon markup.
-  heading:     present SINCE 3.4.0, the concise, correct successor to the
-                deprecated title block below (ADR-077 SS4). Wraps the
-                existing {{ heading }} rendering, matching both the context
-                variable it wraps and the bw-empty-state__heading class it
-                sits inside; "title" named neither correctly and is
-                deprecated in the same cycle.
-  body:        present SINCE 3.4.0, the concise, correct successor to the
-                deprecated description block below (ADR-077 SS4). Wraps
-                the existing {{ body }} rendering, matching both the
+  icon:        Wraps the existing icon-resolution branch (CMP-032); an
+                override replaces the whole icon markup.
+  heading:     Wraps the existing {{ heading }} rendering, matching both
+                the context variable it wraps and the bw-empty-state__heading
+                class it sits inside.
+  body:        Wraps the existing {{ body }} rendering, matching both the
                 context variable it wraps and the bw-empty-state__body
-                class it sits inside; "description" named neither
-                correctly and is deprecated in the same cycle.
-  action:      present SINCE 3.4.0, the concise successor to the
-                deprecated empty_state_action block below (CMP-032).
-                Default content is the existing action_href/action_label
+                class it sits inside.
+  action:      Default content is the existing action_href/action_label
                 anchor rendering, so a call site filling only those two
-                context variables renders exactly what it always did.
-  title, description, empty_state_action: present since before 3.4.0
-                (unchanged back to at least 3.2.1). DEPRECATED, removed at
-                4.0 (ADR-077 SS4, BR-BW-TPL-001/BR-BW-VER-001). Kept as
-                additional empty extension points for backwards
-                compatibility: a shipped block name cannot be renamed
-                silently. Each deprecated block renders alongside its
-                concise successor when both are filled; a caller migrating
-                to the concise names fills heading/body/action only.
+                context variables renders the package CTA. Prefixed
+                empty_state_action, and the old title/description names,
+                were removed in 4.0.0.
 
-TRAP: "title" is the deprecated name HERE, superseded by "heading", but
-"title" is simultaneously the concise, CURRENT block name in _modal.html,
-_slide_over.html and _card.html. The same word means opposite version
-states depending on which file it is copied between; check the file you
-are actually extending, not a name remembered from another component.
+TRAP: "title" is a CURRENT block name in _modal.html, _slide_over.html
+and _card.html, but is NOT a block on this template (use heading). Check
+the file you are actually extending.
 
 A call site that supplies only heading/body/variant/icon/action_href/
-action_label (the pre-existing context-variable path) renders byte-identical
-output to before these blocks existed.
+action_label (the context-variable path) renders the default regions.
 
 A block name this file does not define is SILENTLY DISCARDED by Django:
-no error, no warning, DEBUG=True does not catch it. If you extend this
-template using a name read from a newer checkout than the version you
-have pinned, check that name against your pinned version's own header
-before relying on it, or the region renders nothing.
+no error, no warning, DEBUG=True does not catch it. Filling a removed
+name (title, description, empty_state_action) produces nothing for that
+fill.
 
 action stays markup-only by design (icvoss/django-brickwork#398 sweep):
 its default content is conditional on the action_href/action_label PAIR
 and picks between a bw-btn and a plain link depending on size, so there
 is no single action= string a context variable could stand in for; the
 pair of existing context variables is already the content seam. heading
-and body already accept context variables (see Required context above);
-title and description are their deprecated predecessors and deliberately
-do NOT gain a passthrough of their own, since both are superseded names
-being retired (ADR-077 SS4) and giving either a new working path would
-undo that retirement.
+and body already accept context variables (see Required context above).
 
 States: two content variants (no_data default, no_results, each pairing a
   different default icon and a different suggested action), and two scales
@@ -122,8 +98,8 @@ Appearance (Beat Phase C, icvoss/django-brickwork#543):
     {% bw_icon "folder" size="xl" decorative=True css_class="bw-empty-state__icon" %}
   {% endif %}
   {% endblock %}
-  {% if size != "sm" or heading %}<{% if size == "sm" %}p{% else %}h2{% endif %} class="bw-empty-state__heading">{% block heading %}{% block title %}{{ heading }}{% endblock %}{% endblock %}</{% if size == "sm" %}p{% else %}h2{% endif %}>{% endif %}
-  <p class="bw-empty-state__body">{% block body %}{% block description %}{{ body }}{% endblock %}{% endblock %}</p>
+  {% if size != "sm" or heading %}<{% if size == "sm" %}p{% else %}h2{% endif %} class="bw-empty-state__heading">{% block heading %}{{ heading }}{% endblock %}</{% if size == "sm" %}p{% else %}h2{% endif %}>{% endif %}
+  <p class="bw-empty-state__body">{% block body %}{{ body }}{% endblock %}</p>
   {% block action %}
   {% if action_href and action_label %}
     {% if size == "sm" %}
@@ -133,5 +109,4 @@ Appearance (Beat Phase C, icvoss/django-brickwork#543):
     {% endif %}
   {% endif %}
   {% endblock %}
-  {% block empty_state_action %}{% endblock %}
 </div>

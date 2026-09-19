@@ -235,10 +235,10 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     ),
     "_card (extended, all regions, interactive+bordered)": lambda: _extend(
         "brickwork/components/_card.html",
-        '{% block card_header %}<div class="bw-card__header"><h2 class="bw-card__title">Members</h2>'
+        '{% block header %}<div class="bw-card__header"><h2 class="bw-card__title">Members</h2>'
         '<div class="bw-card__actions">{% bw_button label="Add" variant="secondary" size="sm" %}</div></div>{% endblock %}'
-        "{% block card_body %}<p>Body copy.</p>{% endblock %}"
-        '{% block card_footer %}<footer class="bw-card__footer">Updated today</footer>{% endblock %}',
+        "{% block body %}<p>Body copy.</p>{% endblock %}"
+        '{% block footer %}<footer class="bw-card__footer">Updated today</footer>{% endblock %}',
         interactive=True,
         bordered=True,
         size="lg",
@@ -483,8 +483,8 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     ),
     "_modal (extended, full chrome)": lambda: _extend(
         "brickwork/components/_modal.html",
-        "{% block modal_body %}<p>Body copy.</p>{% endblock %}"
-        '{% block modal_footer %}<footer class="bw-modal__footer">'
+        "{% block body %}<p>Body copy.</p>{% endblock %}"
+        '{% block footer %}<footer class="bw-modal__footer">'
         '<button type="submit">Go</button></footer>{% endblock %}',
         title="Confirm deletion",
         size="lg",
@@ -493,8 +493,8 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     ),
     "_slide_over (extended, full chrome)": lambda: _extend(
         "brickwork/components/_slide_over.html",
-        "{% block slide_over_body %}<p>Body copy.</p>{% endblock %}"
-        '{% block slide_over_footer %}<footer class="bw-slide-over__footer">'
+        "{% block body %}<p>Body copy.</p>{% endblock %}"
+        '{% block footer %}<footer class="bw-slide-over__footer">'
         '<button type="submit">Save</button></footer>{% endblock %}',
         title="Edit invoice",
         size="lg",
@@ -510,7 +510,7 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     ),
     "_tooltip (extended)": lambda: _extend(
         "brickwork/components/_tooltip.html",
-        '{% block tooltip_trigger %}<button type="button" class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only" '
+        '{% block trigger %}<button type="button" class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only" '
         'aria-label="More info">i</button>{% endblock %}',
         id="rate-tooltip",
         text="Applied after your first invoice.",
@@ -1121,7 +1121,7 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
     ),
     "_slide_over": lambda value: _extend(
         "brickwork/components/_slide_over.html",
-        "{% block slide_over_body %}<p>Body.</p>{% endblock %}",
+        "{% block body %}<p>Body.</p>{% endblock %}",
         title="Panel",
         **({"size": value} if value in {"sm", "md", "lg"} else {"placement": value}),
     ),
@@ -1157,14 +1157,14 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
     ),
     "_modal": lambda value: _extend(
         "brickwork/components/_modal.html",
-        "{% block modal_body %}<p>Body.</p>{% endblock %}",
+        "{% block body %}<p>Body.</p>{% endblock %}",
         title="Dialog",
         size=value,
     ),
     "_stepper": lambda value: _include("brickwork/components/_stepper.html", steps=_STEPPER_STEPS, orientation=value),
     "_tooltip": lambda value: _extend(
         "brickwork/components/_tooltip.html",
-        '{% block tooltip_trigger %}<button type="button">i</button>{% endblock %}',
+        '{% block trigger %}<button type="button">i</button>{% endblock %}',
         id="vocab-tooltip",
         text="Hint",
         placement=value,
@@ -1229,10 +1229,10 @@ for _component, _option, _value, _css_class in _VOCABULARIES:
         # as placement= (the old lambda) emits bw-slide-over--muted etc with
         # no CSS rule. Pass the real option name; footer recipes need a
         # consumer footer so the region selector also has something to style.
-        _slide_blocks = "{% block slide_over_body %}<p>Body.</p>{% endblock %}"
+        _slide_blocks = "{% block body %}<p>Body.</p>{% endblock %}"
         if _option == "footer_recipe":
             _slide_blocks += (
-                '{% block slide_over_footer %}<footer class="bw-slide-over__footer">'
+                '{% block footer %}<footer class="bw-slide-over__footer">'
                 "<button type='button'>Save</button></footer>{% endblock %}"
             )
         _COMPONENT_RENDERS[f"{_component} {_option}={_value!r} (vocabulary)"] = (

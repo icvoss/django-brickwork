@@ -421,6 +421,8 @@ def test_docs_site_chrome_package_includes_use_site_classes_only() -> None:
     assert "bw-site-header__inner" in html
     assert "bw-site-footer" in html
     assert "bw-site-footer__inner" in html
+    # 4.0.0 closed the dual-class window: marketing alias names must not
+    # appear on docs chrome that uses the shared site includes.
     assert "bw-marketing-header" not in html
     assert "bw-marketing-footer" not in html
     # Replacing the region avoids nesting a second landmark inside

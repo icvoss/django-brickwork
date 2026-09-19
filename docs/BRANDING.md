@@ -752,8 +752,8 @@ have changed `<html>` before a locked one's own script runs).
 ## The marketing brand slot: logo sizing out of the box (brickwork#83)
 
 The marketing shell's `brand_logo` / `brand_wordmark` blocks are wrapped in
-brickwork-owned elements (`.bw-marketing-header__brand-mark` /
-`.bw-marketing-header__brand-wordmark`), and any `img`/`svg` dropped into
+brickwork-owned elements (`.bw-site-header__brand-mark` /
+`.bw-site-header__brand-wordmark`), and any `img`/`svg` dropped into
 either slot is capped at `--bw-component-logo-height` (default `2rem`) with
 width following the intrinsic ratio. Drop your mark or lockup straight into the
 block and it renders at a sensible header size; an unconstrained SVG can no

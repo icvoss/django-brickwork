@@ -766,7 +766,7 @@ __JS_BOOT__
 
 _FEEDBACK_TOOLTIP_SOURCE = (
     '{% extends "brickwork/components/_tooltip.html" %}'
-    "{% block tooltip_trigger %}"
+    "{% block trigger %}"
     '<button type="button" class="bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only" aria-label="More info">'
     "?"
     "</button>"
@@ -2839,11 +2839,11 @@ def render_sidebar_collapsed(theme: str) -> str:
 
 _SLIDE_OVER_OPEN_SOURCE = (
     '{% extends "brickwork/components/_slide_over.html" %}'
-    "{% block slide_over_body %}"
+    "{% block body %}"
     '<form id="fx-slide-over-form"><label for="fx-slide-over-input">Widget name'
     '<input id="fx-slide-over-input" name="name" data-bw-autofocus></label></form>'
     "{% endblock %}"
-    '{% block slide_over_footer %}<footer class="bw-slide-over__footer">'
+    '{% block footer %}<footer class="bw-slide-over__footer">'
     '<button type="submit" form="fx-slide-over-form">Save</button></footer>{% endblock %}'
 )
 
@@ -3821,7 +3821,7 @@ _MOBILE_NAV_TOGGLE_SOURCE = (
     "{% load brickwork_components i18n %}"
     "{% block marketing_nav_region %}"
     '{% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}'
-    '<nav class="bw-marketing-header__nav" aria-label="{% translate \'Primary\' %}">'
+    '<nav class="bw-site-header__nav" aria-label="{% translate \'Primary\' %}">'
     "{% block marketing_nav %}"
     '<a href="#features">Features</a>'
     '<a href="#pricing">Pricing</a>'
@@ -3886,7 +3886,7 @@ def _overlay_shell_source(
     return (
         '{% extends "brickwork_marketing/shell/marketing.html" %}'
         "{% load brickwork_components i18n %}"
-        "{% block marketing_header_modifiers %}bw-marketing-header--overlay{% endblock %}"
+        "{% block marketing_header_modifiers %}bw-site-header--overlay{% endblock %}"
         f"{{% block marketing_header_attrs %}}{attrs}{{% endblock %}}"
         "{% block brand_wordmark %}Acme{% endblock %}"
         "{% block marketing_nav %}"
@@ -4304,7 +4304,7 @@ def render_date_range_picker_js(theme: str) -> str:
 #                              self-contained shape) composing BOTH sibling
 #                              renderers over one NavItem tree: the
 #                              marketing-header row ({% bw_nav_header %})
-#                              inside the real .bw-marketing-header strip, and
+#                              inside the real .bw-site-header strip, and
 #                              the two-tier pairing ({% bw_nav_rail %} beside
 #                              a contextual {% bw_nav %} in the
 #                              .bw-nav-two-tier wrapper). The request is a
@@ -4318,10 +4318,10 @@ def render_date_range_picker_js(theme: str) -> str:
 
 _NAV_RENDERERS_SOURCE = (
     "{% load brickwork_nav %}"
-    '<header class="bw-marketing-header">'
-    '<div class="bw-marketing-header__inner">'
-    '<div class="bw-marketing-header__brand">'
-    '<nav class="bw-marketing-header__nav" aria-label="Primary">'
+    '<header class="bw-site-header">'
+    '<div class="bw-site-header__inner">'
+    '<div class="bw-site-header__brand">'
+    '<nav class="bw-site-header__nav" aria-label="Primary">'
     "{% bw_nav_header items=items active=active %}"
     "</nav>"
     "</div>"

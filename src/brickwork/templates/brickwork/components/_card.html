@@ -9,8 +9,8 @@ appearance axes are planned for _card.html.
 Named blocks (semver-public, BR-BW-TPL-001), in document order:
   media, header, title, actions, body, footer: concise names (ADR-077).
       `media` is new with the appearance suite; the rest since 3.4.0.
-  card_header, card_title, card_actions, card_body, card_footer: DEPRECATED,
-      removed at 4.0 (ADR-077 SS4). Kept as empty extension points.
+  Prefixed names (card_header, card_title, card_actions, card_body,
+      card_footer) were removed in 4.0.0.
 
 DUAL CONSUMPTION on `title` (icvoss/django-brickwork#398): the `title`
 block also renders a `title` context variable in <h2 class="bw-card__title">.
@@ -54,13 +54,8 @@ Responsive: no breakpoint switch; sizing is the fixed size token scale.
 {% if href %}<a class="bw-card bw-card--interactive{% if bordered %} bw-card--bordered{% endif %}{% if size == "sm" %} bw-card--size-sm{% elif size == "md" %} bw-card--size-md{% elif size == "lg" %} bw-card--size-lg{% endif %}{% if radius and radius != "default" and radius != "lg" %} bw-card--radius-{{ radius }}{% endif %}{% if surface and surface != "default" %} bw-card--surface-{{ surface }}{% endif %}{% if elevation and elevation != "1" %} bw-card--elevation-{{ elevation }}{% endif %}{% if header_recipe and header_recipe != "none" and header_recipe != "plain" %} bw-card--header-{{ header_recipe }}{% endif %}{% if footer_recipe and footer_recipe != "none" and footer_recipe != "plain" %} bw-card--footer-{{ footer_recipe }}{% endif %}{% if media_recipe and media_recipe != "none" %} bw-card--media-{{ media_recipe }}{% endif %}" {% bw_attr "href" href %}>{% else %}<div class="bw-card{% if interactive %} bw-card--interactive{% endif %}{% if bordered %} bw-card--bordered{% endif %}{% if size == "sm" %} bw-card--size-sm{% elif size == "md" %} bw-card--size-md{% elif size == "lg" %} bw-card--size-lg{% endif %}{% if radius and radius != "default" and radius != "lg" %} bw-card--radius-{{ radius }}{% endif %}{% if surface and surface != "default" %} bw-card--surface-{{ surface }}{% endif %}{% if elevation and elevation != "1" %} bw-card--elevation-{{ elevation }}{% endif %}{% if header_recipe and header_recipe != "none" and header_recipe != "plain" %} bw-card--header-{{ header_recipe }}{% endif %}{% if footer_recipe and footer_recipe != "none" and footer_recipe != "plain" %} bw-card--footer-{{ footer_recipe }}{% endif %}{% if media_recipe and media_recipe != "none" %} bw-card--media-{{ media_recipe }}{% endif %}">{% endif %}
 {% block media %}{% if media_recipe and media_recipe != "none" %}{% if media_recipe == "icon" and media_icon %}<div class="bw-card__media bw-card__media--icon">{% bw_icon media_icon size="lg" decorative=True %}</div>{% elif media_src %}<div class="bw-card__media bw-card__media--{{ media_recipe }}"><img src="{{ media_src }}" alt="{{ media_alt }}"></div>{% endif %}{% endif %}{% endblock %}
 {% block header %}{% if title %}{% if header_recipe and header_recipe != "none" %}<div class="bw-card__header{% if header_recipe != "plain" %} bw-card__header--{{ header_recipe }}{% endif %}"><h2 class="bw-card__title">{{ title }}</h2>{% if action_label and not href %}<div class="bw-card__actions">{% if action_href %}{% bw_button action_label href=action_href size="sm" variant="ghost" %}{% else %}{% bw_button action_label size="sm" variant="ghost" %}{% endif %}</div>{% endif %}</div>{% elif action_label and not href %}<div class="bw-card__header"><h2 class="bw-card__title">{{ title }}</h2><div class="bw-card__actions">{% if action_href %}{% bw_button action_label href=action_href size="sm" variant="ghost" %}{% else %}{% bw_button action_label size="sm" variant="ghost" %}{% endif %}</div></div>{% endif %}{% endif %}{% endblock %}
-{% block card_header %}{% endblock %}
 {% block title %}{% if title %}{% if not header_recipe or header_recipe == "none" %}{% if not action_label or href %}<h2 class="bw-card__title">{{ title }}</h2>{% endif %}{% endif %}{% endif %}{% endblock %}
-{% block card_title %}{% endblock %}
 {% block actions %}{% endblock %}
-{% block card_actions %}{% endblock %}
 {% block body %}{% if body %}<p class="bw-card__body">{{ body }}</p>{% endif %}{% endblock %}
-{% block card_body %}{% endblock %}
 {% block footer %}{% if footer_recipe and footer_recipe != "none" and caption %}<div class="bw-card__footer{% if footer_recipe != "plain" %} bw-card__footer--{{ footer_recipe }}{% endif %}">{{ caption }}</div>{% endif %}{% endblock %}
-{% block card_footer %}{% endblock %}
 {% if href %}</a>{% else %}</div>{% endif %}

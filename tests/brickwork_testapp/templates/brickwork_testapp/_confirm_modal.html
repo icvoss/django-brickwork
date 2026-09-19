@@ -8,7 +8,7 @@ working page with a real POST form and a real close anchor (close_href).
 The view supplies title, modal_id, close_href, and backdrop_dismiss.
 {% endcomment %}
 
-{% block modal_body %}
+{% block body %}
   <p>This permanently removes every demo widget. Type <strong>RESET</strong> to confirm.</p>
   <form id="confirm-reset-form" method="post" action="{% url 'testapp:interaction-confirm' %}">
     {% csrf_token %}
@@ -17,7 +17,7 @@ The view supplies title, modal_id, close_href, and backdrop_dismiss.
   </form>
 {% endblock %}
 
-{% block modal_footer %}
+{% block footer %}
   <footer class="bw-modal__footer">
     <button class="bw-btn bw-btn--danger bw-btn--md" type="submit" form="confirm-reset-form">Reset data</button>
   </footer>

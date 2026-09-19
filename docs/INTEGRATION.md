@@ -672,7 +672,7 @@ actions markup. Include the package toggle and keep your nav content:
 ```django
 {% block marketing_nav_region %}
   {% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}
-  <nav class="bw-marketing-header__nav" aria-label="{% translate 'Primary' %}">
+  <nav class="bw-site-header__nav" aria-label="{% translate 'Primary' %}">
     {% block marketing_nav %}
       <a href="{% url 'features' %}">Features</a>
       <a href="{% url 'pricing' %}">Pricing</a>
@@ -693,7 +693,7 @@ Opt in on any page that extends the marketing shell. Default sticky solid
 header is unchanged.
 
 ```django
-{% block marketing_header_modifiers %}bw-marketing-header--overlay{% endblock %}
+{% block marketing_header_modifiers %}bw-site-header--overlay{% endblock %}
 {% block marketing_header_attrs %} data-bw-nav-context="dark"{% endblock %}
 
 {% block content %}
@@ -1082,16 +1082,16 @@ shell's own internal markup just to hang site chrome around a docs page:
 {# Do not do this any more: reproducing another shell's markup #}
 {% block shell %}
 <div class="bw-marketing">
-  <header class="bw-marketing-header">
-    <div class="bw-marketing-header__inner">
+  <header class="bw-site-header">
+    <div class="bw-site-header__inner">
       {% include "_site_header.html" %}
     </div>
   </header>
 
   {{ block.super }}
 
-  <footer class="bw-marketing-footer">
-    <div class="bw-marketing-footer__inner">
+  <footer class="bw-site-footer">
+    <div class="bw-site-footer__inner">
       {% include "_site_footer.html" %}
     </div>
   </footer>
@@ -1137,9 +1137,9 @@ inside a thin wrapper template that `{% extends %}`
 `brickwork/components/_site_header.html` and overrides `brand_logo`,
 `brand_wordmark`, `site_nav` and `site_actions`. Menu-driven horizontal nav
 in the site header should use `{% bw_nav_header %}`. The marketing shell's
-default chrome is the dual-class embodiment of the same includes
-(`.bw-site-*` plus `.bw-marketing-header` / `.bw-marketing-footer` for one
-minor); docs must wear `.bw-site-*` only.
+default chrome is the same shared includes with `.bw-site-*` only
+(4.0.0 closed the dual-class marketing alias window); docs must wear
+`.bw-site-*` only.
 
 The older empty-region recipe (fill only `docs_site_header` /
 `docs_site_footer` with ad-hoc markup) still works for thin chrome; when you

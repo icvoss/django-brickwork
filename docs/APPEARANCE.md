@@ -220,8 +220,8 @@ Status values:
 | scorecard | N/A (defaults) | Gap/padding tokens authored; `columns` stays consumer grid |
 | search | N/A (defaults) | Field chrome in topbar authored |
 | section | Adopted | Shared marketing shell/inner; `width` contained/bleed, `band` plain/tint (ADR-057 §1a, #667) |
-| site_footer | Adopted | Shared site chrome (ADR-113); measure/band via `.bw-site-footer*`; dual-class with marketing footer for one minor |
-| site_header | Adopted | Shared site chrome (ADR-113); measure/band via `.bw-site-header*`; dual-class with marketing header for one minor; overlay stays marketing-only |
+| site_footer | Adopted | Shared site chrome (ADR-113); measure/band via `.bw-site-footer*` |
+| site_header | Adopted | Shared site chrome (ADR-113); measure/band via `.bw-site-header*`; overlay stays marketing-shell-only |
 | skeleton | N/A (local) | `variant` text/title/row/block is the preset set |
 | slide_over | Adopted | Same recipes as modal (Beat Phase E) |
 | sparkline | N/A (keep lean) | |

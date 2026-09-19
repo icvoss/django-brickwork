@@ -2190,8 +2190,8 @@ def test_marketing_footers_use_shared_link_group_vocabulary(name: str) -> None:
     assert '<nav class="bw-marketing-footer__group" aria-labelledby="footer-company-heading">' in html
     assert 'id="footer-product-heading">Product</h2>' in html
     assert 'id="footer-company-heading">Company</h2>' in html
-    assert "bw-feature-grid" not in html.split("bw-marketing-footer")[-1]
-    assert "bw-feature-card" not in html.split("bw-marketing-footer")[-1]
+    assert "bw-feature-grid" not in html.split("bw-site-footer")[-1]
+    assert "bw-feature-card" not in html.split("bw-site-footer")[-1]
     assert html.index("footer-product-heading") < html.index("footer-company-heading")
 
 
@@ -3099,8 +3099,8 @@ def test_the_marketing_contact_states_cover_form_empty_invalid_loading_error_suc
     assert "Contact closed until Monday" in empty
 
     for html, label in ((ready, "ready"), (success, "success"), (empty, "empty")):
-        assert "bw-marketing-header" in html, f"the {label} branch dropped marketing chrome"
-        assert "bw-marketing-footer" in html, f"the {label} branch dropped the footer"
+        assert "bw-site-header" in html, f"the {label} branch dropped marketing chrome"
+        assert "bw-site-footer" in html, f"the {label} branch dropped the footer"
 
 
 def test_the_marketing_conversion_states_cover_lead_capture_and_confirmation() -> None:
@@ -3147,8 +3147,8 @@ def test_the_marketing_conversion_states_cover_lead_capture_and_confirmation() -
     assert "bw-stepper" in success
 
     for html, label in ((ready, "ready"), (success, "success")):
-        assert "bw-marketing-header" in html, f"the {label} branch dropped marketing chrome"
-        assert "bw-marketing-footer" in html, f"the {label} branch dropped the footer"
+        assert "bw-site-header" in html, f"the {label} branch dropped marketing chrome"
+        assert "bw-site-footer" in html, f"the {label} branch dropped the footer"
 
 
 def test_the_auth_checkout_empty_and_error_states_replace_the_body() -> None:

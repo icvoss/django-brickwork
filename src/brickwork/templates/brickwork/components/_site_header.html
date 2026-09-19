@@ -6,23 +6,22 @@ for brand, primary nav and header actions. Canonical classes are
 surface that needs the same band and measure consume this include with
 .bw-site-* only (no .bw-marketing-* skin; ADR-090).
 
-The marketing shell ships the dual-class embodiment of this contract
-(bw-site-* plus bw-marketing-header*) so Prefer≥4 sites selecting on
-marketing names keep working for one minor. Overlay (ADR-105 /
-BR-BW-MKT-006) stays on the marketing shell path only.
+The marketing shell ships the same .bw-site-* classes (4.0.0 closed the
+dual-class marketing alias window). Overlay (ADR-105 / BR-BW-MKT-006) stays
+on the marketing shell path only.
 
 Django {% include %} cannot expose named blocks to a parent that extends
 a shell. The marketing shell therefore keeps brand_logo, brand_wordmark,
 marketing_nav, marketing_actions and the *_region seams in
-brickwork_marketing/shell/marketing.html (dual-class markup mirroring
-this file). Docs and other consumers include this file (typically by
-overriding docs_site_header_region so the landmark is not nested inside
+brickwork_marketing/shell/marketing.html (markup mirroring this file).
+Docs and other consumers include this file (typically by overriding
+docs_site_header_region so the landmark is not nested inside
 .bw-docs-site-header), or author the same .bw-site-* class pair by hand.
 
 Optional context when including:
   site_header_modifiers  extra classes on <header> (e.g. a consumer-owned
                          sticky variant). Empty by default. Do not put
-                         bw-marketing-header--overlay here on a docs page;
+                         bw-site-header--overlay here on a docs page;
                          overlay is marketing-shell-only.
   site_header_attrs      extra attributes on <header> (include a leading
                          space), e.g. data attributes.
@@ -44,8 +43,7 @@ extend this template.
 States: none of its own. Pair with
   brickwork_marketing/components/_mobile_nav_toggle.html on a marketing
   surface (sibling of __nav / __actions) when a mobile collapse is needed;
-  that toggle's CSS still keys off marketing dual-class names during the
-  compatibility window.
+  that toggle's CSS keys off .bw-site-header__nav / __actions.
 Accessibility: <header> landmark; primary nav is
   <nav aria-label="Primary"> unless site_nav_region is overridden empty.
 Responsive: flex-wrap brand row; package CSS in shell.css.

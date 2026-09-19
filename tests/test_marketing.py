@@ -85,17 +85,17 @@ def test_the_marketing_shell_with_no_blocks_filled_renders_a_complete_document()
 def test_the_marketing_shell_carries_the_public_chrome_not_the_app_shell_s() -> None:
     html = _extend(_MARKETING_SHELL, "{% block marketing_footer %}<a href='/about/'>About</a>{% endblock %}")
     assert "bw-marketing" in html
-    assert "bw-marketing-header" in html
-    assert "bw-marketing-footer" in html
-    # ADR-113 / BR-BW-TPL-008: dual-class window (canonical .bw-site-* plus marketing aliases)
     assert "bw-site-header" in html
     assert "bw-site-footer" in html
+    # ADR-113 / BR-BW-TPL-008: site chrome only (4.0.0 closed marketing dual-class)
+    assert "bw-marketing-header" not in html
+    assert 'class="bw-marketing-footer"' not in html
     # never the app shell's chrome
     assert "bw-sidebar" not in html
     assert "bw-topbar" not in html
     assert "bw-app" not in html
     # default is not overlay (BR-BW-MKT-006 / ADR-105)
-    assert "bw-marketing-header--overlay" not in html
+    assert "bw-site-header--overlay" not in html
     assert "marketing-overlay.js" in html
 
 
@@ -105,23 +105,15 @@ def test_empty_marketing_footer_collapses_the_footer_landmark() -> None:
     # the header brand wrappers, test_brand_wrappers_do_not_grow_or_shrink...).
     html = _extend(_MARKETING_SHELL, "{% block content %}CONTENT-SENTINEL{% endblock %}")
     compact = re.sub(r"\s+", "", html)
-    assert (
-        '<divclass="bw-site-footer__innerbw-marketing-footer__inner">'
-        '<divclass="bw-site-footer__legalbw-marketing-footer__legal"></div></div>'
-    ) in compact
+    assert ('<divclass="bw-site-footer__inner"><divclass="bw-site-footer__legal"></div></div>') in compact
     css = (_DIST / "brickwork.css").read_text()
-    collapsed = re.search(
-        r"\.bw-marketing-footer:has\(\.bw-marketing-footer__legal:only-child:empty\)\{([^}]*)\}",
-        css.replace(" ", ""),
-    )
-    assert collapsed is not None
-    assert "display:none" in collapsed.group(1)
     site_collapsed = re.search(
         r"\.bw-site-footer:has\(\.bw-site-footer__legal:only-child:empty\)\{([^}]*)\}",
         css.replace(" ", ""),
     )
     assert site_collapsed is not None
     assert "display:none" in site_collapsed.group(1)
+    assert ".bw-marketing-footer:has(.bw-site-footer__legal" not in css.replace(" ", "")
 
 
 def test_marketing_shell_overlay_modifier_and_attrs_are_opt_in() -> None:
@@ -129,32 +121,29 @@ def test_marketing_shell_overlay_modifier_and_attrs_are_opt_in() -> None:
     # initial context may be authored via marketing_header_attrs.
     html = _extend(
         _MARKETING_SHELL,
-        "{% block marketing_header_modifiers %}bw-marketing-header--overlay{% endblock %}"
+        "{% block marketing_header_modifiers %}bw-site-header--overlay{% endblock %}"
         '{% block marketing_header_attrs %} data-bw-nav-context="dark"{% endblock %}'
         "{% block content %}"
         '<section class="bw-hero" data-bw-nav-context="dark">Hero</section>'
         "{% endblock %}",
     )
-    assert 'class="bw-site-header bw-marketing-header bw-marketing-header--overlay"' in html
+    assert 'class="bw-site-header bw-site-header--overlay"' in html
     assert 'data-bw-nav-context="dark"' in html
     assert "marketing-overlay.js" in html
 
 
-def test_shared_site_chrome_dual_class_and_overlay_css_aliases() -> None:
-    # AC-BW-104 / BR-BW-TPL-008: marketing default landmarks carry dual class;
-    # overlay CSS dual-selects the site alias; compiled CSS defines site inners.
+def test_shared_site_chrome_is_site_only_with_overlay_on_site_modifier() -> None:
+    # AC-BW-104 / BR-BW-TPL-008: marketing default landmarks emit .bw-site-* only.
     html = _extend(_MARKETING_SHELL, "")
-    assert 'class="bw-site-header bw-marketing-header "' in html or re.search(
-        r'class="bw-site-header bw-marketing-header\s*"',
-        html,
-    )
-    assert "bw-site-header__inner" in html and "bw-marketing-header__inner" in html
-    assert re.search(r'class="[^"]*bw-site-footer[^"]*bw-marketing-footer', html)
+    assert re.search(r'class="bw-site-header\s*"', html)
+    assert "bw-site-header__inner" in html
+    assert re.search(r'class="bw-site-footer"', html)
+    assert "bw-marketing-header" not in html
     css = (_DIST / "brickwork.css").read_text(encoding="utf-8")
     assert ".bw-site-header__inner" in css
     assert ".bw-site-footer__inner" in css
     assert ".bw-site-header--overlay" in css
-    assert ".bw-marketing-header--overlay" in css
+    assert ".bw-marketing-header--overlay" not in css
     overlay_js = (
         Path(__file__).resolve().parent.parent
         / "src"
@@ -166,11 +155,12 @@ def test_shared_site_chrome_dual_class_and_overlay_css_aliases() -> None:
     )
     body = overlay_js.read_text(encoding="utf-8")
     assert "bw-site-header--overlay" in body
+    assert "bw-marketing-header--overlay" not in body
 
 
 def test_overlay_css_ships_fixed_header_and_clearance_rules() -> None:
     css = (_DIST / "brickwork.css").read_text(encoding="utf-8")
-    assert ".bw-marketing-header--overlay" in css
+    assert ".bw-site-header--overlay" in css
     assert "position:fixed" in css or "position: fixed" in css
     assert "--bw-marketing-header-clearance" in css
     assert "data-bw-overlay-ready" in css
@@ -213,7 +203,7 @@ def test_the_marketing_shell_content_block_lands_inside_the_main_region() -> Non
     # link's target), not in the header or footer chrome.
     html = _extend(_MARKETING_SHELL, "{% block content %}CONTENT-SENTINEL{% endblock %}")
     main_start = html.index('id="bw-main"')
-    footer_start = html.index("bw-marketing-footer")
+    footer_start = html.index("bw-site-footer")
     assert main_start < html.index("CONTENT-SENTINEL") < footer_start
 
 
@@ -241,14 +231,14 @@ def test_filling_only_the_inner_block_is_unaffected_by_the_new_region_wrappers()
         "{% block marketing_actions %}<a href='/signup/'>Get started</a>{% endblock %}"
         "{% block marketing_footer %}<a href='/about/'>About</a>{% endblock %}",
     )
-    assert '<nav class="bw-site-header__nav bw-marketing-header__nav" aria-label="Primary">' in html
-    assert '<div class="bw-site-header__actions bw-marketing-header__actions">' in html
-    assert '<footer class="bw-site-footer bw-marketing-footer">' in html
-    nav_start = html.index("bw-marketing-header__nav")
+    assert '<nav class="bw-site-header__nav" aria-label="Primary">' in html
+    assert '<div class="bw-site-header__actions">' in html
+    assert '<footer class="bw-site-footer">' in html
+    nav_start = html.index("bw-site-header__nav")
     pricing_start = html.index("<a href='/pricing/'>Pricing</a>")
-    actions_start = html.index("bw-marketing-header__actions")
+    actions_start = html.index("bw-site-header__actions")
     get_started_start = html.index("<a href='/signup/'>Get started</a>")
-    footer_start = html.index('class="bw-site-footer bw-marketing-footer"')
+    footer_start = html.index('class="bw-site-footer"')
     about_start = html.index("<a href='/about/'>About</a>")
     assert nav_start < pricing_start < actions_start < get_started_start < footer_start < about_start
 
@@ -267,7 +257,7 @@ def test_overriding_marketing_nav_region_replaces_the_nav_wrapper() -> None:
         "{% endblock %}",
     )
     assert '<div id="nav-region-replacement">' in html
-    assert "bw-marketing-header__nav" not in html
+    assert "bw-site-header__nav" not in html
     assert "<a href='/pricing/'>Pricing</a>" in html
 
 
@@ -280,7 +270,7 @@ def test_mobile_nav_toggle_include_renders_as_sibling_of_nav() -> None:
         "{% load i18n %}"
         "{% block marketing_nav_region %}"
         '{% include "brickwork_marketing/components/_mobile_nav_toggle.html" %}'
-        '<nav class="bw-marketing-header__nav" aria-label="Primary">'
+        '<nav class="bw-site-header__nav" aria-label="Primary">'
         "{% block marketing_nav %}"
         "<a href='/pricing/'>Pricing</a>"
         "{% endblock %}"
@@ -290,9 +280,9 @@ def test_mobile_nav_toggle_include_renders_as_sibling_of_nav() -> None:
     assert 'class="bw-mobile-nav-toggle"' in html
     assert "bw-mobile-nav-toggle__trigger" in html
     assert 'aria-label="Menu"' in html
-    assert "bw-marketing-header__nav" in html
+    assert "bw-site-header__nav" in html
     toggle_at = html.index('class="bw-mobile-nav-toggle"')
-    nav_at = html.index("bw-marketing-header__nav")
+    nav_at = html.index("bw-site-header__nav")
     assert toggle_at < nav_at
     assert "bw-mobile-nav-toggle" in (_DIST / "brickwork.css").read_text(encoding="utf-8")
 
@@ -307,7 +297,7 @@ def test_overriding_marketing_actions_region_replaces_the_actions_wrapper() -> N
         "{% endblock %}",
     )
     assert '<div id="actions-region-replacement">' in html
-    assert "bw-marketing-header__actions" not in html
+    assert "bw-site-header__actions" not in html
     assert "<a href='/signup/'>Get started</a>" in html
 
 
@@ -317,7 +307,7 @@ def test_overriding_marketing_footer_region_replaces_the_footer_wrapper() -> Non
         "{% block marketing_footer_region %}<div id='footer-region-replacement'>Replacement footer</div>{% endblock %}",
     )
     assert "<div id='footer-region-replacement'>Replacement footer</div>" in html
-    assert "bw-marketing-footer" not in html
+    assert "bw-site-footer" not in html
 
 
 def test_overriding_marketing_nav_region_empty_removes_the_nav_and_its_chrome() -> None:
@@ -329,9 +319,9 @@ def test_overriding_marketing_nav_region_empty_removes_the_nav_and_its_chrome() 
         "{% block marketing_nav_region %}{% endblock %}"
         "{% block marketing_actions %}<a href='/signup/'>Get started</a>{% endblock %}",
     )
-    assert "bw-marketing-header__nav" not in html
+    assert "bw-site-header__nav" not in html
     assert "<nav" not in html
-    assert "bw-marketing-header__actions" in html
+    assert "bw-site-header__actions" in html
     assert "<a href='/signup/'>Get started</a>" in html
 
 
@@ -341,8 +331,8 @@ def test_overriding_marketing_actions_region_empty_removes_the_actions_and_its_c
         "{% block marketing_nav %}<a href='/pricing/'>Pricing</a>{% endblock %}"
         "{% block marketing_actions_region %}{% endblock %}",
     )
-    assert "bw-marketing-header__actions" not in html
-    assert "bw-marketing-header__nav" in html
+    assert "bw-site-header__actions" not in html
+    assert "bw-site-header__nav" in html
     assert "<a href='/pricing/'>Pricing</a>" in html
 
 
@@ -351,7 +341,7 @@ def test_overriding_marketing_footer_region_empty_removes_the_footer_and_its_chr
         _MARKETING_SHELL,
         "{% block content %}CONTENT-SENTINEL{% endblock %}{% block marketing_footer_region %}{% endblock %}",
     )
-    assert "bw-marketing-footer" not in html
+    assert "bw-site-footer" not in html
     assert "<footer" not in html
     # the rest of the document is untouched
     assert "CONTENT-SENTINEL" in html
@@ -2056,16 +2046,16 @@ def test_marketing_shell_wraps_brand_blocks_in_brickwork_owned_elements() -> Non
         "{% block brand_logo %}<svg viewBox='0 0 400 400'></svg>{% endblock %}"
         "{% block brand_wordmark %}Acme{% endblock %}",
     )
-    assert '<span class="bw-site-header__brand-mark bw-marketing-header__brand-mark"><svg' in html
-    assert '<span class="bw-site-header__brand-wordmark bw-marketing-header__brand-wordmark">Acme</span>' in html
+    assert '<span class="bw-site-header__brand-mark"><svg' in html
+    assert '<span class="bw-site-header__brand-wordmark">Acme</span>' in html
 
 
 def test_marketing_shell_unfilled_brand_blocks_leave_empty_wrappers() -> None:
     # An unfilled block leaves an :empty wrapper (collapsed by the CSS), so
     # the header's gap never renders a phantom slot.
     html = _extend("brickwork_marketing/shell/marketing.html", "")
-    assert '<span class="bw-site-header__brand-mark bw-marketing-header__brand-mark"></span>' in html
-    assert '<span class="bw-site-header__brand-wordmark bw-marketing-header__brand-wordmark"></span>' in html
+    assert '<span class="bw-site-header__brand-mark"></span>' in html
+    assert '<span class="bw-site-header__brand-wordmark"></span>' in html
 
 
 def test_logo_height_token_is_emitted_with_its_default() -> None:
@@ -2103,8 +2093,8 @@ def test_brand_slot_caps_a_dropped_in_logo_via_the_token_at_zero_specificity() -
     # rule overrides the default cap.
     css = (_DIST / "brickwork.css").read_text()
     rule = re.search(
-        r"\.bw-marketing-header__brand-mark :where\(img,\s*svg\),\s*"
-        r"\.bw-marketing-header__brand-wordmark :where\(img,\s*svg\)\{([^}]*)\}",
+        r"\.bw-site-header__brand-mark :where\(img,\s*svg\),\s*"
+        r"\.bw-site-header__brand-wordmark :where\(img,\s*svg\)\{([^}]*)\}",
         css,
     )
     assert rule is not None, "expected the brand-slot logo cap rule in dist/brickwork.css (#83)"
@@ -2116,13 +2106,13 @@ def test_brand_slot_caps_a_dropped_in_logo_via_the_token_at_zero_specificity() -
 def test_brand_wrappers_do_not_grow_or_shrink_and_collapse_when_empty() -> None:
     css = (_DIST / "brickwork.css").read_text()
     wrappers = re.search(
-        r"\.bw-marketing-header__brand-mark,\s*\.bw-marketing-header__brand-wordmark\{([^}]*)\}",
+        r"\.bw-site-header__brand-mark,\s*\.bw-site-header__brand-wordmark\{([^}]*)\}",
         css,
     )
     assert wrappers is not None
     assert "flex:none" in wrappers.group(1).replace(" ", "")
     empties = re.search(
-        r"\.bw-marketing-header__brand-mark:empty,\s*\.bw-marketing-header__brand-wordmark:empty\{([^}]*)\}",
+        r"\.bw-site-header__brand-mark:empty,\s*\.bw-site-header__brand-wordmark:empty\{([^}]*)\}",
         css,
     )
     assert empties is not None
