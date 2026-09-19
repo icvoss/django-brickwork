@@ -676,3 +676,13 @@ def test_bw_btn_variants_read_button_elevation_and_hover_translate() -> None:
     assert "var(--bw-component-button-elevation)" in dist
     assert "var(--bw-component-button-elevation-hover)" in dist
     assert "var(--bw-component-button-hover-translate)" in dist
+
+
+def test_font_size_3xs_was_removed_at_4_0() -> None:
+    """TYP-022 / 4.0.0: --bw-font-size-3xs is gone from source and artefacts."""
+    source = (_SOURCE / "component.tokens.json").read_text(encoding="utf-8")
+    assert '"3xs"' not in source
+    manifest = json.loads((_DIST / "token-manifest.json").read_text(encoding="utf-8"))
+    assert "--bw-font-size-3xs" not in manifest["overridable"]
+    tokens_css = (_DIST / "tokens.css").read_text(encoding="utf-8")
+    assert "--bw-font-size-3xs" not in tokens_css

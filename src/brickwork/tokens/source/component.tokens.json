@@ -353,10 +353,6 @@
     },
     "size": {
       "$type": "dimension",
-      "3xs": {
-        "$value": "0.625rem",
-        "$description": "DEPRECATED (icvoss/django-brickwork#281 / TYP-022). No package consumer; below the chrome floor (2xs). Remains published so the overridable manifest count stays stable; removal at the next major moves the gated POSITIONING figure in the same pass."
-      },
       "2xs": {
         "$value": "0.6875rem",
         "$description": "Chrome-text floor (TYP-022): overlines and micro-labels only; never body, interactive labels, form help/error, or table cell content. Scales with rem / browser zoom."
