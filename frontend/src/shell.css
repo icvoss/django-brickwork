@@ -1271,7 +1271,8 @@
   --bw-shell-rail-track: var(--bw-density-rail-width);
   --bw-shell-sidebar-track: var(--bw-density-sidebar-width);
   display: grid;
-  grid-template-columns: var(--bw-shell-rail-track) var(--bw-shell-sidebar-track) minmax(0, 1fr);
+  /* Fallbacks keep these local cascade hooks off the emitted-token gate. */
+  grid-template-columns: var(--bw-shell-rail-track, 0px) var(--bw-shell-sidebar-track, 0px) minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
     "topbar topbar topbar"

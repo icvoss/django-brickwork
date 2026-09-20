@@ -51,6 +51,10 @@ _PER_INSTANCE_VAR_HOOKS = frozenset(
         "--bw-overlay-frost",
         "--bw-overlay-line",
         "--bw-overlay-ink",
+        # Local track widths for [data-layout="regions"] empty-suppression
+        # (brickwork#700 / #703); set on .bw-app, not emitted as design tokens.
+        "--bw-shell-rail-track",
+        "--bw-shell-sidebar-track",
     }
 )
 

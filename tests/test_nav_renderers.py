@@ -228,9 +228,9 @@ def test_rail_icons_density_adds_modifier_class() -> None:
     # brickwork#701: density="icons" is opt-in; labelled remains the default
     labelled = _render("bw_nav_rail", (NavItem(key="h", label="Home", href="/", icon="home"),))
     assert "bw-nav-rail__list--icons" not in labelled
-    icons = Template(
-        "{% load brickwork_nav %}{% bw_nav_rail items=items density='icons' %}"
-    ).render(Context({"items": (NavItem(key="h", label="Home", href="/", icon="home"),)}))
+    icons = Template("{% load brickwork_nav %}{% bw_nav_rail items=items density='icons' %}").render(
+        Context({"items": (NavItem(key="h", label="Home", href="/", icon="home"),)})
+    )
     assert "bw-nav-rail__list--icons" in icons
     assert "bw-nav-rail__label" in icons  # label stays in the tree for a11y
     assert "Home" in icons
