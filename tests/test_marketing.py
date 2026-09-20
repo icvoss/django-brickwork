@@ -1566,10 +1566,10 @@ def test_cta_width_unrecognised_value_falls_back_to_default() -> None:
 def test_cta_align_omitted_output_is_byte_identical_to_pre_align_axis() -> None:
     html = _render("brickwork_marketing/components/_cta.html", heading="Ready?")
     assert "bw-cta--align-start" not in html
-    assert (
+    assert html == (
         '\n\n\n<section class="bw-cta bw-cta--tint">\n  <div class="bw-cta__inner">\n'
         '    <h2 class="bw-cta__heading">Ready?</h2>\n    \n    \n  </div>\n</section>\n\n'
-    ) == html
+    )
 
 
 def test_cta_align_center_is_explicitly_the_same_as_omitted() -> None:
