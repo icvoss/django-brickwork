@@ -291,9 +291,27 @@ def test_regions_empty_rail_and_sidebar_blocks_leave_empty_nav_slots() -> None:
     # rail markup (hidden by CSS) with an empty nav.
     html = _render("brickwork/shell/app.html", layout="regions")
     assert 'class="bw-rail__nav" aria-label="' in html or 'class="bw-rail__nav"' in html
-    # nav containers present and empty (no child content between tags)
-    assert re.search(r'<nav class="bw-rail__nav"[^>]*>\s*</nav>', html)
-    assert re.search(r'<nav class="bw-sidebar__nav"[^>]*>\s*</nav>', html)
+    # CSS :empty does not ignore whitespace. The template must therefore emit
+    # literal adjacent tags, not a newline or indentation inside either nav.
+    assert re.search(r'<nav class="bw-rail__nav"[^>]*></nav>', html)
+    assert re.search(r'<nav class="bw-sidebar__nav"[^>]*></nav>', html)
+
+
+@pytest.mark.parametrize(
+    ("region_block", "absent_aside"),
+    [
+        ("rail_region", "bw-rail"),
+        ("sidebar_region", "bw-sidebar"),
+    ],
+)
+def test_regions_outer_block_override_omits_its_aside(region_block: str, absent_aside: str) -> None:
+    # Prove the template extension seam; the browser suite checks width reclaim.
+    from django.template import Context, Template
+
+    html = Template(f"{{% extends 'brickwork/shell/app.html' %}}{{% block {region_block} %}}{{% endblock %}}").render(
+        Context({"layout": "regions"})
+    )
+    assert f'<aside class="{absent_aside}"' not in html
 
 
 def test_layout_defaults_to_sidebar_when_unset() -> None:  # SHL-001
@@ -301,7 +319,7 @@ def test_layout_defaults_to_sidebar_when_unset() -> None:  # SHL-001
     assert 'data-layout="sidebar"' in html
     # rail region exists but stays empty for the default layout
     assert 'class="bw-rail"' in html
-    assert re.search(r'<nav class="bw-rail__nav"[^>]*>\s*</nav>', html)
+    assert re.search(r'<nav class="bw-rail__nav"[^>]*></nav>', html)
 
 
 def test_layout_context_renders_through_an_extending_page() -> None:  # SHL-001

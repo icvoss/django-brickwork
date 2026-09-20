@@ -1264,8 +1264,9 @@
 /* Full-width topbar above sibling rail + contextual sidebar + workspace.
  * .bw-app__main dissolves (display: contents) so the topbar and .bw-app__body
  * become grid items; the body is a real flex column in the workspace area.
- * Track widths are CSS variables so an empty rail or sidebar collapses to 0
- * and the workspace reclaims the space (brickwork#703). */
+ * Track widths are CSS variables so an empty or omitted rail or sidebar
+ * collapses to 0 and the workspace reclaims the space (brickwork#703). The
+ * rail tokens name the complete grid track, including its chrome. */
 
 .bw-app[data-layout="regions"] {
   --bw-shell-rail-track: var(--bw-density-rail-width);
@@ -1282,8 +1283,14 @@
 .bw-app[data-layout="regions"] .bw-rail {
   display: flex;
   grid-area: rail;
-  inline-size: auto; /* track owns the width; grow with hover-expand rail */
+  inline-size: auto; /* track owns the width, including rail chrome */
   min-inline-size: 0;
+  /* Icon links carry their own inline target padding. Keeping this outer
+   * chrome at zero lets the density token remain the complete rail track. */
+  padding-inline: 0;
+  /* The icon list owns clipping in its resting state. This parent must not
+   * clip its expanded child at the track edge. */
+  overflow: visible;
 }
 
 .bw-app[data-layout="regions"] .bw-sidebar {
@@ -1308,8 +1315,9 @@
 }
 
 /* Empty-suppression / width reclaim (brickwork#703): unfilled rail or
- * sidebar blocks leave :empty nav containers; collapse the matching track
- * and hide the aside so no empty strip remains. */
+ * sidebar blocks leave truly :empty nav containers; an overridden region can
+ * omit its aside altogether. Both cases collapse the matching track, so no
+ * empty strip remains. */
 .bw-app[data-layout="regions"]:has(.bw-rail__nav:empty) {
   --bw-shell-rail-track: 0px;
 }
@@ -1321,6 +1329,20 @@
 }
 .bw-app[data-layout="regions"]:has(.bw-sidebar__nav:empty) .bw-sidebar {
   display: none;
+}
+.bw-app[data-layout="regions"]:not(:has(.bw-rail)) {
+  --bw-shell-rail-track: 0px;
+}
+.bw-app[data-layout="regions"]:not(:has(.bw-sidebar)) {
+  --bw-shell-sidebar-track: 0px;
+}
+
+/* The icon rail's renderer grows on hover and focus-within. Grow this grid
+ * track to the documented expanded rail token too; the list owns its own
+ * resting-state clipping, while the parent remains visible at the edge. */
+.bw-app[data-layout="regions"]:has(.bw-nav-rail__list--icons:hover),
+.bw-app[data-layout="regions"]:has(.bw-nav-rail__list--icons:focus-within) {
+  --bw-shell-rail-track: var(--bw-density-rail-width-expanded);
 }
 
 /* Collapsed contextual sidebar still narrows its track in regions mode. */
@@ -1412,7 +1434,9 @@
       "main";
   }
   .bw-sidebar,
-  .bw-rail {
+  .bw-rail,
+  .bw-app[data-layout="regions"] .bw-sidebar,
+  .bw-app[data-layout="regions"] .bw-rail {
     /* Covers sidebar, topbar-band, and regions columns: desktop nav hides
        below md and the single drawer takes over in every shape. One drawer
        tree (never two): fill mobile_nav with the full reachable nav. */

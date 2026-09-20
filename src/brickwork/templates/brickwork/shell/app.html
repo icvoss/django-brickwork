@@ -47,11 +47,11 @@ Logical CSS properties throughout (BR-BW-TOK-005), so RTL is handled by the
 Three-region contract (brickwork#700 / #703):
   Blocks       rail_region / rail, sidebar_region / sidebar (plus the existing
                sidebar header/footer/switcher blocks), topbar / workspace.
-  Empty        An unfilled {% block rail %} leaves .bw-rail__nav :empty; the
-               regions grid collapses --bw-shell-rail-track to 0 and hides the
-               aside. An unfilled {% block sidebar %} likewise collapses the
-               contextual sidebar track. Override rail_region or
-               sidebar_region to omit the markup entirely.
+  Empty        An unfilled {% block rail %} leaves .bw-rail__nav truly empty;
+               the regions grid collapses --bw-shell-rail-track to 0 and hides
+               the aside. An unfilled {% block sidebar %} likewise collapses
+               the contextual sidebar track. Omitting rail_region or
+               sidebar_region also collapses its corresponding grid track.
   Mobile       One drawer tree below --bw-breakpoint-md: both desktop columns
                hide; fill {% block mobile_nav %} with the full reachable tree
                (typically {% bw_nav %} over the same items). Never two drawers.
@@ -101,9 +101,7 @@ falls back to "sidebar" as documented.
   {# --- Capability rail (regions layout sibling; hidden in sidebar/topbar) --- #}
   {% block rail_region %}
   <aside class="bw-rail" id="bw-rail" aria-label="{% translate 'Capabilities' %}">
-    <nav class="bw-rail__nav" aria-label="{% translate 'Capabilities' %}">
-      {% block rail %}{% endblock %}
-    </nav>
+    <nav class="bw-rail__nav" aria-label="{% translate 'Capabilities' %}">{% block rail %}{% endblock %}</nav>
   </aside>
   {% endblock %}
 
@@ -143,9 +141,7 @@ falls back to "sidebar" as documented.
       {% endblock %}
     </div>
     <div class="bw-sidebar__switcher">{% block sidebar_switcher %}{% endblock %}</div>
-    <nav class="bw-sidebar__nav" aria-label="{% translate 'Main navigation' %}">
-      {% block sidebar %}{% endblock %}
-    </nav>
+    <nav class="bw-sidebar__nav" aria-label="{% translate 'Main navigation' %}">{% block sidebar %}{% endblock %}</nav>
     <div class="bw-sidebar__footer">{% block sidebar_footer %}{% endblock %}</div>
   </aside>
   {% endblock %}

@@ -198,6 +198,83 @@ test.describe("no-JS floor", () => {
       await expect(page.locator('.bw-drawer__panel a[href="/email/"]')).toHaveCount(1);
     });
 
+    test(`regions shell reclaims independent empty or omitted columns and hides both desktop columns on mobile (${theme})`, async ({
+      page,
+    }) => {
+      const fixture = pathToFileURL(join(FIXTURES, `app-regions-${theme}.html`)).href;
+      const gridTracks = () =>
+        page.locator('.bw-app[data-layout="regions"]').evaluate((app) => getComputedStyle(app).gridTemplateColumns);
+
+      await page.goto(fixture);
+      await page.locator(".bw-rail__nav").evaluate((nav) => nav.replaceChildren());
+      await expect(page.locator("#bw-rail")).toBeHidden();
+      expect(await gridTracks()).toMatch(/^0px\s/);
+
+      await page.goto(fixture);
+      await page.locator(".bw-sidebar__nav").evaluate((nav) => nav.replaceChildren());
+      await expect(page.locator("#bw-sidebar")).toBeHidden();
+      expect(await gridTracks()).toMatch(/^\S+\s+0px\s/);
+
+      await page.goto(fixture);
+      await page.locator("#bw-rail").evaluate((rail) => rail.remove());
+      expect(await gridTracks()).toMatch(/^0px\s/);
+
+      await page.goto(fixture);
+      await page.locator("#bw-sidebar").evaluate((sidebar) => sidebar.remove());
+      expect(await gridTracks()).toMatch(/^\S+\s+0px\s/);
+
+      await page.setViewportSize({ width: 375, height: 900 });
+      await page.goto(fixture);
+      await expect(page.locator("#bw-rail")).toBeHidden();
+      await expect(page.locator("#bw-sidebar")).toBeHidden();
+      await expect(page.locator(".bw-drawer__trigger")).toBeVisible();
+    });
+
+    test(`regions icon rail expands its track and keeps labels visible on hover and focus (${theme})`, async ({ page }) => {
+      await page.setViewportSize({ width: 1280, height: 900 });
+      await page.goto(pathToFileURL(join(FIXTURES, `app-regions-${theme}.html`)).href);
+
+      const rail = page.locator("#bw-rail");
+      const list = rail.locator(".bw-nav-rail__list--icons");
+      const expanded = async () =>
+        page.locator('.bw-app[data-layout="regions"]').evaluate((app) => {
+          const rail = app.querySelector("#bw-rail");
+          const label = rail?.querySelector(".bw-nav-rail__label");
+          if (!rail || !label) throw new Error("regions rail fixture is incomplete");
+          const railRect = rail.getBoundingClientRect();
+          const labelRect = label.getBoundingClientRect();
+          const tokenProbe = document.createElement("div");
+          tokenProbe.style.inlineSize = "var(--bw-density-rail-width-expanded)";
+          tokenProbe.style.position = "absolute";
+          tokenProbe.style.visibility = "hidden";
+          document.body.append(tokenProbe);
+          const expandedTrackWidth = tokenProbe.getBoundingClientRect().width;
+          tokenProbe.remove();
+          return {
+            railWidth: railRect.width,
+            expandedTrackWidth,
+            labelWidth: labelRect.width,
+            labelRight: labelRect.right,
+            railRight: railRect.right,
+            clipPath: getComputedStyle(label).clipPath,
+          };
+        });
+      const expectExpanded = async () => {
+        await expect.poll(async () => (await expanded()).labelWidth).toBeGreaterThan(1);
+        const geometry = await expanded();
+        expect(geometry.railWidth).toBeCloseTo(geometry.expandedTrackWidth, 0);
+        expect(geometry.labelRight).toBeLessThanOrEqual(geometry.railRight + 1);
+        expect(geometry.clipPath).toBe("none");
+      };
+
+      await list.hover();
+      await expectExpanded();
+
+      await page.locator("h1").hover();
+      await list.locator("a").first().focus();
+      await expectExpanded();
+    });
+
     test(`pricing page's FAQ accordion works with JS disabled (${theme})`, async ({ page }) => {
       await page.goto(pathToFileURL(join(FIXTURES, `pricing-${theme}.html`)).href);
       // the pricing table rendered its tiers server-side

@@ -318,8 +318,10 @@ inside a labelled `<nav>` landmark (the shells already provide one per slot).
   above a capability rail, contextual sidebar, and workspace as siblings.
   Put the rail and contextual nav in their own blocks (do not use
   `.bw-nav-two-tier` here). An unfilled `{% block rail %}` or
-  `{% block sidebar %}` collapses that column and reclaims the width
-  (brickwork#703):
+  `{% block sidebar %}` collapses that column and reclaims the width, as does
+  overriding `rail_region` or `sidebar_region` to omit the corresponding
+  markup (brickwork#703). With `density="icons"`, the rail expands its grid
+  column on hover or keyboard focus so its labels remain visible:
 
   ```django
   {# context: layout="regions" #}
