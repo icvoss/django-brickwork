@@ -23,6 +23,7 @@ _CHROME_2XS_SELECTORS = frozenset(
         ".bw-stat-comparison__label",
         ".bw-nav__section-label",
         ".bw-hero__eyebrow",
+        ".bw-section__overline",
         ".bw-listing-card__tag",
         ".bw-feature-card__badge",
         ".bw-feature-card__eyebrow",
