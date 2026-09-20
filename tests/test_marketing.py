@@ -1560,6 +1560,56 @@ def test_cta_width_unrecognised_value_falls_back_to_default() -> None:
     assert "bw-cta--bleed" not in html
 
 
+# --- components/_cta.html: align (icvoss/django-brickwork#697) ---------------
+
+
+def test_cta_align_omitted_output_is_byte_identical_to_pre_align_axis() -> None:
+    html = _render("brickwork_marketing/components/_cta.html", heading="Ready?")
+    assert "bw-cta--align-start" not in html
+    assert html == (
+        '\n\n\n<section class="bw-cta bw-cta--tint">\n  <div class="bw-cta__inner">\n'
+        '    <h2 class="bw-cta__heading">Ready?</h2>\n    \n    \n  </div>\n</section>\n\n'
+    )
+
+
+def test_cta_align_center_is_explicitly_the_same_as_omitted() -> None:
+    omitted = _render("brickwork_marketing/components/_cta.html", heading="Ready?")
+    explicit = _include("brickwork_marketing/components/_cta.html", heading="Ready?", align="center")
+    assert explicit == omitted
+
+
+def test_cta_align_start_emits_its_modifier_class() -> None:
+    html = _include("brickwork_marketing/components/_cta.html", heading="Ready?", align="start")
+    assert "bw-cta--align-start" in html
+
+
+def test_cta_align_start_composes_with_plain_band() -> None:
+    html = _include(
+        "brickwork_marketing/components/_cta.html",
+        heading="Shall we talk?",
+        band="plain",
+        align="start",
+    )
+    assert "bw-cta--tint" not in html
+    assert "bw-cta--align-start" in html
+
+
+def test_cta_align_is_css_only_and_adds_no_markup() -> None:
+    contained = _include("brickwork_marketing/components/_cta.html", heading="Ready?")
+    start = _include("brickwork_marketing/components/_cta.html", heading="Ready?", align="start")
+    assert start.replace(" bw-cta--align-start", "") == contained
+
+
+def test_cta_align_unrecognised_value_falls_back_to_default() -> None:
+    html = _include("brickwork_marketing/components/_cta.html", heading="Ready?", align="nonsense")
+    assert "bw-cta--align-start" not in html
+
+
+def test_cta_align_start_has_a_css_rule() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    assert re.search(r"\.bw-cta--align-start[\s,.:\[{]", css)
+
+
 # --- components/_section.html (ADR-057 Phase A, #667) -----------------------
 
 
@@ -1606,6 +1656,55 @@ def test_section_shell_css_owns_inner_rail_and_bleed_escape() -> None:
     assert "max-inline-size:100vw" in body
     assert "margin-inline:calc(50%-50vw)" in body
     assert ".bw-cta--bleed" in bleed.group(1) or ".bw-cta-bleed" in bleed.group(1)
+
+
+# --- section intro (#695) ---------------------------------------------------
+
+
+def test_section_intro_classes_have_css_rules() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    assert re.search(r"\.bw-section__intro[\s,.:\[{]", css)
+    assert re.search(r"\.bw-section__overline[\s,.:\[{]", css)
+    assert re.search(r"\.bw-section__heading[\s,.:\[{]", css)
+    assert re.search(r"\.bw-section__lede[\s,.:\[{]", css)
+
+
+def test_section_intro_helper_emits_the_class_contract() -> None:
+    html = _include(
+        "brickwork_marketing/components/_section_intro.html",
+        overline="How the work lands",
+        heading="Evidence before claims",
+        lede="A short lede.",
+    )
+    assert 'class="bw-section__intro"' in html
+    assert 'class="bw-section__overline"' in html
+    assert "How the work lands" in html
+    assert 'class="bw-section__heading"' in html
+    assert "Evidence before claims" in html
+    assert 'class="bw-section__lede"' in html
+    assert "A short lede." in html
+
+
+def test_section_intro_helper_omits_absent_optional_fields() -> None:
+    html = _include(
+        "brickwork_marketing/components/_section_intro.html",
+        heading="Just a heading",
+    )
+    assert "bw-section__heading" in html
+    assert "bw-section__overline" not in html
+    assert "bw-section__lede" not in html
+
+
+def test_section_intro_helper_fully_empty_renders_nothing() -> None:
+    html = _render("brickwork_marketing/components/_section_intro.html")
+    assert html.strip() == ""
+
+
+def test_section_intro_type_roles_are_wired() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    assert "--bw-text-overline-family" in css
+    assert "--bw-text-heading-section-family" in css
+    assert "--bw-text-body-lg-size" in css
 
 
 # --- components/_testimonial.html ------------------------------------------
@@ -1895,6 +1994,68 @@ def test_stat_band_align_unrecognised_value_falls_back_to_default() -> None:
 def test_stat_band_align_start_has_a_css_rule() -> None:
     css = (_DIST / "brickwork.css").read_text()
     assert re.search(r"\.bw-stat-band-section--align-start[\s,.:\[{]", css)
+
+
+# --- components/_stat_band.html / _stat.html: chrome (icvoss/django-brickwork#694)
+
+
+def test_stat_chrome_omitted_output_is_byte_identical_to_pre_chrome_axis() -> None:
+    html = _render("brickwork/components/_stat.html", label="Uptime", value="99.9%")
+    assert "bw-stat--chrome-plain" not in html
+    assert html == _include("brickwork/components/_stat.html", label="Uptime", value="99.9%", chrome="card")
+
+
+def test_stat_chrome_plain_emits_its_modifier_class() -> None:
+    html = _include("brickwork/components/_stat.html", label="Uptime", value="99.9%", chrome="plain")
+    assert "bw-stat--chrome-plain" in html
+
+
+def test_stat_chrome_unrecognised_value_falls_back_to_default() -> None:
+    html = _include("brickwork/components/_stat.html", label="Uptime", value="99.9%", chrome="nonsense")
+    assert "bw-stat--chrome-plain" not in html
+
+
+def test_stat_chrome_plain_has_a_css_rule() -> None:
+    css = (_DIST / "brickwork.css").read_text()
+    assert re.search(r"\.bw-stat--chrome-plain[\s,.:\[{]", css)
+
+
+def test_stat_band_chrome_omitted_keeps_card_tiles() -> None:
+    html = _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+        align="start",
+    )
+    assert "bw-stat-band-section--align-start" in html
+    assert "bw-stat--chrome-plain" not in html
+
+
+def test_stat_band_chrome_plain_forwards_to_tiles() -> None:
+    html = _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+        align="start",
+        chrome="plain",
+    )
+    assert "bw-stat--chrome-plain" in html
+    assert "bw-stat-band-section--align-start" in html
+
+
+def test_stat_band_chrome_card_is_explicitly_the_same_as_omitted() -> None:
+    omitted = _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+    )
+    explicit = _include(
+        "brickwork_marketing/components/_stat_band.html",
+        heading="By the numbers",
+        stats=[{"value": "99.9%", "label": "Uptime"}],
+        chrome="card",
+    )
+    assert explicit == omitted
 
 
 # --- components/_faq.html: composes _disclosure.html (BR-BW-MKT-004) ------

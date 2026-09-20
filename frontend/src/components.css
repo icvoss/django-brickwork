@@ -2381,6 +2381,25 @@ a.bw-stat:hover {
   --bw-component-stat-tile-value-size: var(--bw-font-size-4xl);
   padding: var(--bw-space-6);
 }
+/* chrome="plain" (#694): proof figures without card chrome. Default remains
+   the KPI card (border, elevation, card padding). Size modifiers' padding is
+   zeroed so sm/lg do not reintroduce card padding on a plain tile. */
+.bw-stat--chrome-plain {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+.bw-stat--chrome-plain.bw-stat--sm,
+.bw-stat--chrome-plain.bw-stat--lg,
+.bw-stat--chrome-plain.bw-stat--md {
+  padding: 0;
+}
+a.bw-stat--chrome-plain:hover {
+  box-shadow: none;
+  background: transparent;
+}
 /* Consumer sparkline slot (0.12.0, #60): a constrained-height row below the
  * value/trend, so a caller's own SVG/canvas sparkline never overruns the
  * tile. The caller's markup fills this box; brickwork ships no chart
@@ -5826,6 +5845,9 @@ a.bw-chip {
 [data-theme="dark"] .bw-empty-state {
   box-shadow: var(--bw-elevation-1);
 }
+[data-theme="dark"] .bw-stat--chrome-plain {
+  box-shadow: none;
+}
 [data-theme="dark"] .bw-empty-state--size-sm {
   box-shadow: none;
 }
@@ -5843,6 +5865,9 @@ a.bw-chip {
 [data-theme="dark"] .bw-card--interactive:focus-within,
 [data-theme="dark"] a.bw-stat:hover {
   box-shadow: var(--bw-elevation-2);
+}
+[data-theme="dark"] a.bw-stat--chrome-plain:hover {
+  box-shadow: none;
 }
 [data-theme="dark"] .bw-account-menu__panel,
 [data-theme="dark"] .bw-dropdown__panel,

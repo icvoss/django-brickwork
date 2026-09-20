@@ -898,6 +898,22 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
             },
         ],
     ),
+    "_outcomes (marketing: quiet outcome columns)": lambda: _include(
+        "brickwork_marketing/components/_outcomes.html",
+        heading="What I do",
+        items=[
+            {"heading": "Positioning", "body": "A clear offer."},
+            {"heading": "Delivery", "body": "Shipped work."},
+        ],
+        url="/services/",
+        link_label="All services",
+    ),
+    "_section_intro (marketing: shared intro helper)": lambda: _include(
+        "brickwork_marketing/components/_section_intro.html",
+        overline="How the work lands",
+        heading="Evidence before claims",
+        lede="A short lede.",
+    ),
     "_cta_split (marketing: mid-page split)": lambda: _include(
         "brickwork_marketing/components/_cta_split.html",
         heading="Try it on last month's invoices",

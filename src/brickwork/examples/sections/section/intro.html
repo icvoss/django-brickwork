@@ -1,0 +1,26 @@
+{% comment %}
+SECTION / intro: the shared section-intro class contract (#695).
+
+WHEN TO USE THIS. Any quiet marketing band composed on `.bw-section` /
+`.bw-section__inner` that needs an optional overline, a section heading
+and an optional lede, without inventing a site heading class. Named
+marketing includes may use the same classes (see `_outcomes.html`) or the
+helper `{% include "brickwork_marketing/components/_section_intro.html" %}`.
+
+Primary API is the class contract (matching `_section.html`). This example
+authors the `.bw-section` shell in markup and fills the intro via the
+helper include so both surfaces are exercised.
+
+Type roles: overline, heading-section, body-lg. Prefer the
+`.bw-section__intro` wrapper when stacking more than one piece.
+
+States: none.
+Accessibility: the heading is an <h2>; overline and lede are <p>.
+Responsive: no breakpoint switch; type roles are fluid via tokens.
+{% endcomment %}
+<section class="bw-section">
+  <div class="bw-section__inner">
+    {% include "brickwork_marketing/components/_section_intro.html" with overline="How the work lands" heading="Evidence before claims" lede="A short lede that sits under the section heading and sets up the band that follows." %}
+    <p>Band body follows the shared intro. Replace this paragraph with your own composition.</p>
+  </div>
+</section>

@@ -25,6 +25,24 @@ Axes (ADR-057 §1a), CSS-only modifiers on the root:
   width  contained (default, no class) | bleed → bw-section--bleed
   band   plain (default, no class) | tint → bw-section--tint
 
+Shared intro (#695): optional overline, heading and lede inside
+`.bw-section__inner`, as a class contract (usable from named marketing
+includes AND from consumers writing plain `.bw-section` markup):
+
+  <div class="bw-section__intro">
+    <p class="bw-section__overline">Optional eyebrow</p>
+    <h2 class="bw-section__heading">Section heading</h2>
+    <p class="bw-section__lede">Optional short lede.</p>
+  </div>
+
+Type roles: overline → `--bw-text-overline-*` (uppercase at the class);
+heading → `--bw-text-heading-section-*`; lede → `--bw-text-body-lg-*`.
+`.bw-section__intro` is an optional wrapper for spacing; each child class
+is valid alone. Helper include:
+`brickwork_marketing/components/_section_intro.html` (overline / heading /
+lede context) emits the same classes. Per-component headings already
+shipping on methods / case list / CTA are unchanged.
+
 Migration: existing marketing component roots that are NOT yet on this
 shell keep working under `.bw-marketing__content > *` (unchanged rail).
 A root that opts into `.bw-section` drops that legacy rail; put content
@@ -33,9 +51,10 @@ in `.bw-section__inner`. Section rhythm
 Do not invent a site `bwui-*-inner` twin of this rail.
 
 Proving migrations in this package: `_feature_grid.html` (contained),
-`_case_list.html` (contained), `_methods.html` (contained, #675), and
-`_cta_bleed.html` (bleed). Other marketing roots can adopt the same wrap
-when they next need atmosphere past the legacy child rail.
+`_case_list.html` (contained), `_methods.html` (contained, #675),
+`_outcomes.html` (contained, #696), and `_cta_bleed.html` (bleed). Other
+marketing roots can adopt the same wrap when they next need atmosphere
+past the legacy child rail.
 
 States: none.
 Accessibility: structural only; the caller owns headings inside the

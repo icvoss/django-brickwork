@@ -1,0 +1,30 @@
+{% comment %}
+Section intro helper (icvoss/django-brickwork#695): emits the shared
+section-intro class contract inside `.bw-section__inner`. Prefer writing
+the classes yourself when composing plain `.bw-section` markup; this
+include is a convenience for named marketing templates that want the
+same overline / heading / lede stack without inventing site classes.
+
+Required context: none.
+
+Optional context:
+  overline (str): eyebrow above the heading (`.bw-section__overline`).
+  heading  (str): section heading (`.bw-section__heading`, typically <h2>).
+  lede     (str): short supporting line (`.bw-section__lede`).
+
+An empty (or omitted) trio renders nothing. Absent optional fields are
+omitted from the markup. Type roles and spacing live on the CSS classes
+documented in `_section.html`; this file only emits those classes.
+
+States: none.
+Accessibility: the heading is an <h2>; overline and lede are <p>. The
+  caller owns outline order relative to surrounding bands.
+Responsive: no breakpoint switch; type roles are fluid via tokens.
+{% endcomment %}
+{% if overline or heading or lede %}
+<div class="bw-section__intro">
+  {% if overline %}<p class="bw-section__overline">{{ overline }}</p>{% endif %}
+  {% if heading %}<h2 class="bw-section__heading">{{ heading }}</h2>{% endif %}
+  {% if lede %}<p class="bw-section__lede">{{ lede }}</p>{% endif %}
+</div>
+{% endif %}

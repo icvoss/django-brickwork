@@ -56,6 +56,14 @@ Optional:
   loading (bool): renders skeleton rows instead of the content (STA-004).
   size ("sm" | "md" | "lg", default "md"): emitted as bw-stat--<value> only
         when supplied (VIZ-027).
+  chrome ("card" default | "plain", #694): tile surface treatment. Omitted
+        (or "card") keeps the KPI card chrome (border, elevation, card
+        padding) and is byte-identical to the pre-axis output. "plain"
+        strips that chrome for airy proof figures (bw-stat--chrome-plain):
+        no border, no elevation, no card padding. Pair with the marketing
+        stat band's align="start" for evidence-in-the-flow layouts; the
+        band forwards chrome explicitly (align=start alone does not change
+        chrome). Any other value falls back to the default.
   data (mapping of data-* name to value): consumer-owned test and lightweight
         JavaScript hooks on the tile root. Names are limited to data attributes
         (not Brickwork's own data-bw-* hooks), and values are escaped.
@@ -98,7 +106,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-stat*
   the surrounding grid (a dashboard's bw-stat-grid or this component's own
   bw-stat-band) owns whatever column-count responsiveness a page shows.
 {% endcomment %}
-{% if href %}<a class="bw-stat{% if size == "sm" %} bw-stat--sm{% elif size == "lg" %} bw-stat--lg{% elif size == "md" %} bw-stat--md{% endif %}" {% bw_attr "href" href %}{% bw_data_attrs data "stat" %}>{% else %}<div class="bw-stat{% if size == "sm" %} bw-stat--sm{% elif size == "lg" %} bw-stat--lg{% elif size == "md" %} bw-stat--md{% endif %}"{% bw_data_attrs data "stat" %}>{% endif %}
+{% if href %}<a class="bw-stat{% if size == "sm" %} bw-stat--sm{% elif size == "lg" %} bw-stat--lg{% elif size == "md" %} bw-stat--md{% endif %}{% if chrome == "plain" %} bw-stat--chrome-plain{% endif %}" {% bw_attr "href" href %}{% bw_data_attrs data "stat" %}>{% else %}<div class="bw-stat{% if size == "sm" %} bw-stat--sm{% elif size == "lg" %} bw-stat--lg{% elif size == "md" %} bw-stat--md{% endif %}{% if chrome == "plain" %} bw-stat--chrome-plain{% endif %}"{% bw_data_attrs data "stat" %}>{% endif %}
   {% if loading %}
     <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
     <div class="bw-skeleton bw-skeleton--title" aria-hidden="true"></div>

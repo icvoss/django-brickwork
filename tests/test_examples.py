@@ -1752,6 +1752,20 @@ _SECTION_METHOD_ITEMS = [
         "link_label": "Read PRIME",
     },
 ]
+_SECTION_OUTCOME_ITEMS = [
+    {
+        "heading": "Positioning",
+        "body": "A clear offer a buyer can recognise in one sitting.",
+    },
+    {
+        "heading": "Site architecture",
+        "body": "Pages and packages that stay maintainable as the site grows.",
+    },
+    {
+        "heading": "Delivery",
+        "body": "Shipped work with a loop your team can run again.",
+    },
+]
 _SECTION_COMPARISON_PLANS = [
     "Solo, £9 a month",
     "Team, £29 a month",
@@ -1867,6 +1881,7 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/cta/centred-band.html": {},
     "sections/cta/full-bleed.html": {},
     "sections/cta/split.html": {},
+    "sections/cta/start-aligned.html": {},
     "sections/bio/article-foot.html": {"bio_image": _SECTION_BIO_IMAGE},
     "sections/features/alternating-rows.html": {"feature_rows": _SECTION_FEATURE_ROWS},
     "sections/features/icon-grid.html": {"features": _SECTION_FEATURES},
@@ -1874,6 +1889,8 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/case-list/ruled.html": {"case_list_items": _SECTION_CASE_LIST_ITEMS},
     "sections/directory/numbered.html": {"directory_items": _SECTION_DIRECTORY_ITEMS},
     "sections/methods/quiet-columns.html": {"method_items": _SECTION_METHOD_ITEMS},
+    "sections/outcomes/quiet-columns.html": {"outcome_items": _SECTION_OUTCOME_ITEMS},
+    "sections/section/intro.html": {},
     "sections/hero/centred.html": {},
     "sections/hero/media-behind.html": {},
     "sections/hero/minimal.html": {},
@@ -1894,6 +1911,7 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/stats/card-row.html": {},
     "sections/stats/inline-band.html": {"stats": _SECTION_STATS},
     "sections/stats/start-aligned.html": {"stats": _SECTION_STATS},
+    "sections/stats/plain-start.html": {"stats": _SECTION_STATS},
     "sections/testimonial/logo-and-quote.html": {},
     "sections/testimonial/quote-grid.html": {},
     "sections/testimonial/single-quote.html": {},
