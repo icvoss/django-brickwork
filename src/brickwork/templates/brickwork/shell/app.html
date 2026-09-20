@@ -26,9 +26,35 @@ user's choice is host-owned (SHL-003: "no brickwork model exists to store
 it"); bwSidebarCollapse persists to localStorage as its own default, itself
 overridable by a consumer template override (BR-BW-TPL-002).
 
-Layout: the `layout` context var ("sidebar" default, or "topbar") selects which
-region is primary (SHL-001). Logical CSS properties throughout (BR-BW-TOK-005),
-so RTL is handled by the `dir` attribute alone.
+Layout: the `layout` context var selects the shell shape (SHL-001):
+
+  - "sidebar" (default): primary aside beside a main column that holds the
+    topbar and workspace. The nested two-tier pairing (rail + contextual
+    {% bw_nav %} inside {% block sidebar %} via .bw-nav-two-tier) remains
+    the supported composition for this shape.
+  - "topbar": same DOM, CSS restyles the aside into a horizontal nav band
+    under the topbar.
+  - "regions" (brickwork#700): full-width topbar spanning the shell; sibling
+    capability rail ({% block rail %} inside {% block rail_region %}), sibling
+    contextual sidebar ({% block sidebar %} inside {% block sidebar_region %}),
+    and workspace under it. Empty rail or sidebar columns collapse and
+    reclaim width (brickwork#703). Do not nest .bw-nav-two-tier here: put
+    {% bw_nav_rail %} in {% block rail %} and {% bw_nav %} in {% block sidebar %}.
+
+Logical CSS properties throughout (BR-BW-TOK-005), so RTL is handled by the
+`dir` attribute alone.
+
+Three-region contract (brickwork#700 / #703):
+  Blocks       rail_region / rail, sidebar_region / sidebar (plus the existing
+               sidebar header/footer/switcher blocks), topbar / workspace.
+  Empty        An unfilled {% block rail %} leaves .bw-rail__nav :empty; the
+               regions grid collapses --bw-shell-rail-track to 0 and hides the
+               aside. An unfilled {% block sidebar %} likewise collapses the
+               contextual sidebar track. Override rail_region or
+               sidebar_region to omit the markup entirely.
+  Mobile       One drawer tree below --bw-breakpoint-md: both desktop columns
+               hide; fill {% block mobile_nav %} with the full reachable tree
+               (typically {% bw_nav %} over the same items). Never two drawers.
 
 Nav slot (0.5.0, brickwork#21, BR-BW-NAV-007): sidebar_switcher and
 mobile_nav_switcher are consumer-owned seams sited above the nav render in
@@ -46,7 +72,8 @@ States: sidebar collapsed/expanded (data-bw-collapsed on .bw-sidebar,
   text swap between the two server-rendered translated labels.
 Accessibility: skip link and the base shell's lang/dir/theme attributes are
   inherited. Own semantics: the sidebar nav region is aria-label="Primary",
-  the mobile drawer nav is aria-label="Navigation", the main workspace is
+  the regions rail is aria-label="Capabilities", the mobile drawer nav is
+  aria-label="Navigation", the main workspace is
   <main id="bw-main" tabindex="-1"> (the skip-link and no-JS-floor target),
   the sidebar_toggle button carries an aria-label and aria-controls pointing
   at #bw-sidebar. Covered by axe.spec.mjs against list-*.html,
@@ -55,10 +82,10 @@ Accessibility: skip link and the base shell's lang/dir/theme attributes are
   which asserts the skip link, the real anchor nav links and the native
   <details> drawer all work with JavaScript disabled.
 Responsive: single breakpoint, at width < --bw-breakpoint-md (48rem) the
-  sidebar (and the topbar-layout nav band) hides and the mobile drawer
-  becomes the primary nav entry point; at md and above the sidebar is the
-  primary nav and the drawer stays hidden. No other width-gated behaviour
-  in this shell.
+  sidebar (and the topbar-layout nav band, and both regions columns) hides
+  and the mobile drawer becomes the primary nav entry point; at md and above
+  the desktop columns are primary and the drawer stays hidden. No other
+  width-gated behaviour in this shell.
 {% endcomment %}
 {% block shell_variant %}app{% endblock %}
 
@@ -71,9 +98,19 @@ falls back to "sidebar" as documented.
 {% endcomment %}
 <div class="bw-app" data-layout="{% firstof layout 'sidebar' %}">
 
-  {# --- Sidebar (primary nav container on desktop) --- #}
+  {# --- Capability rail (regions layout sibling; hidden in sidebar/topbar) --- #}
+  {% block rail_region %}
+  <aside class="bw-rail" id="bw-rail" aria-label="{% translate 'Capabilities' %}">
+    <nav class="bw-rail__nav" aria-label="{% translate 'Capabilities' %}">
+      {% block rail %}{% endblock %}
+    </nav>
+  </aside>
+  {% endblock %}
+
+  {# --- Sidebar (primary nav on desktop for sidebar/topbar; contextual in regions) --- #}
   {# x-data mounts bwSidebarCollapse (optional; a page with no Alpine loaded  #}
   {# just never sees data-bw-collapsed toggle, the no-JS floor per SHL-005). #}
+  {% block sidebar_region %}
   <aside class="bw-sidebar" id="bw-sidebar" aria-label="{% translate 'Primary' %}" x-data="bwSidebarCollapse()">
     <div class="bw-sidebar__header">
       {% comment %}
@@ -111,6 +148,7 @@ falls back to "sidebar" as documented.
     </nav>
     <div class="bw-sidebar__footer">{% block sidebar_footer %}{% endblock %}</div>
   </aside>
+  {% endblock %}
 
   {# --- Main column: topbar + optional subnav/breadcrumbs + workspace --- #}
   <div class="bw-app__main">
@@ -141,6 +179,9 @@ falls back to "sidebar" as documented.
       {% endblock %}
     </header>
 
+    {# Transparent wrapper: display: contents in sidebar/topbar; real column under regions. #}
+    <div class="bw-app__body">
+
     {% block subnav_region %}
     <div class="bw-subnav">{% block subnav %}{% endblock %}</div>
     {% endblock %}
@@ -165,6 +206,8 @@ falls back to "sidebar" as documented.
       <footer class="bw-footer">{% block footer %}{% endblock %}</footer>
       {% endblock %}
     </main>
+
+    </div>
 
   </div>
 </div>

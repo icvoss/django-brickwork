@@ -31,12 +31,14 @@ class NavItem:
     nav configuration is assembled once at startup (or per request for a
     request-scoped ``visibility_policy``), not mutated in place.
 
-    An item is one of three shapes:
+    An item is one of four shapes:
 
     - a normal link: ``url_name`` set (internal Django URL name).
     - an external link: ``external_url`` set instead of ``url_name`` (NAV-018).
     - a section header: ``section_header=True`` with neither URL (NAV-002); a
       non-navigable grouping label, optionally with ``children``.
+    - a menu trigger: ``menu_trigger=True`` with neither URL (brickwork#702);
+      a rail control that opens a consumer-owned menu panel, not a link.
     """
 
     key: str
@@ -170,8 +172,8 @@ class NavItem:
     permission/feature shape. Evaluated last, after permission and feature checks
     pass; returning False hides the item regardless."""
 
-    # Kept LAST deliberately: this field arrived after 0.2.4, and appending it
-    # preserves the shipped positional field order for existing call sites.
+    # Kept LAST deliberately: fields appended after 0.2.4 preserve the shipped
+    # positional field order for existing call sites.
     active_url_names: tuple[str, ...] = ()
     """Additional URL names for which this item is the active section, beyond its
     own ``url_name`` (#20). A real section is "current" for its list view AND its
@@ -181,6 +183,18 @@ class NavItem:
     widens to ``url_name`` plus every name in this tuple. Does not affect
     reversal, only which route lights the item up (BR-BW-NAV-001, still
     resolver_match-based, never path.startswith)."""
+
+    menu_trigger: bool = False
+    """True marks this a menu-trigger control (brickwork#702): rendered by
+    ``{% bw_nav_rail %}`` as a ``<button type="button">`` with
+    ``aria-haspopup="menu"`` and ``aria-expanded="false"``, never as a link.
+    Mutually exclusive with every URL source and with ``section_header``.
+    The flyout panel itself is consumer-owned progressive enhancement
+    (BR-BW-TPL-002); brickwork ships the trigger markup and a11y seam only.
+    In ``{% bw_nav %}`` (sidebar / mobile drawer) a menu-trigger item renders
+    like a section header so its ``children`` stay reachable on the no-JS
+    floor. Ignored by ``{% bw_nav_header %}`` (flattened away like a section
+    header's own label)."""
 
 
 @dataclass(frozen=True)

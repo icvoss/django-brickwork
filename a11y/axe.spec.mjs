@@ -173,6 +173,31 @@ test.describe("no-JS floor", () => {
       await expect(page.locator(".bw-nav-header__external")).toHaveCount(1);
     });
 
+    // Three-region app shell (#700/#701/#702): full-width topbar, sibling
+    // icon rail (links + menu-trigger button seam), contextual sidebar.
+    // Flyout panel is not shipped; the trigger stays a real button with
+    // aria-haspopup. Menu-trigger children remain reachable in mobile_nav.
+    test(`regions shell exposes rail, sidebar and menu-trigger seam with JS disabled (${theme})`, async ({
+      page,
+    }) => {
+      await page.goto(pathToFileURL(join(FIXTURES, `app-regions-${theme}.html`)).href);
+      await expect(page.locator('.bw-app[data-layout="regions"]')).toHaveCount(1);
+      await expect(page.locator(".bw-topbar")).toBeVisible();
+      await expect(page.locator("#bw-rail a.bw-nav-rail__link").first()).toBeVisible();
+      await expect(page.locator("#bw-rail button.bw-nav-rail__trigger")).toHaveAttribute(
+        "aria-haspopup",
+        "menu",
+      );
+      await expect(page.locator("#bw-rail button.bw-nav-rail__trigger")).toHaveAttribute(
+        "aria-expanded",
+        "false",
+      );
+      await expect(page.locator("#bw-sidebar a.bw-nav__link").first()).toBeVisible();
+      await expect(page.locator(".bw-nav-rail__list--icons")).toHaveCount(1);
+      // no-JS floor: drawer carries the trigger's children as real links
+      await expect(page.locator('.bw-drawer__panel a[href="/email/"]')).toHaveCount(1);
+    });
+
     test(`pricing page's FAQ accordion works with JS disabled (${theme})`, async ({ page }) => {
       await page.goto(pathToFileURL(join(FIXTURES, `pricing-${theme}.html`)).href);
       // the pricing table rendered its tiers server-side

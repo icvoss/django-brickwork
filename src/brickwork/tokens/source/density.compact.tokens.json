@@ -23,6 +23,12 @@
     "sidebar-width-collapsed": {
       "$value": "3.5rem"
     },
+    "rail-width": {
+      "$value": "3.25rem"
+    },
+    "rail-width-expanded": {
+      "$value": "12.5rem"
+    },
     "topbar-height": {
       "$value": "3rem"
     },

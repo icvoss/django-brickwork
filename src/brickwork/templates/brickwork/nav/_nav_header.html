@@ -41,7 +41,7 @@ Contract:
 
 {% partialdef nav_header_item %}
   {% comment %} `item` is a RenderedNavItem. {% endcomment %}
-  {% if item.is_section_header %}
+  {% if item.is_section_header or item.is_menu_trigger %}
     {% for item in item.children %}{% partial nav_header_item %}{% endfor %}
   {% else %}
     <li class="bw-nav-header__item">

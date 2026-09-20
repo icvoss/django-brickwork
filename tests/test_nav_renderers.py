@@ -12,6 +12,7 @@ test at the bottom pins that no new class vocabulary leaks into it.
 
 from __future__ import annotations
 
+import pytest
 from django.template import Context, Template
 from django.test import RequestFactory, override_settings
 
@@ -221,6 +222,61 @@ def test_rail_disabled_fallback_renders_aria_disabled_span() -> None:
 def test_rail_bad_url_omitted_under_default_fallback() -> None:
     out = _render("bw_nav_rail", (NavItem(key="bad", label="Bad", url_name="does-not-exist"),))
     assert "Bad" not in out
+
+
+def test_rail_icons_density_adds_modifier_class() -> None:
+    # brickwork#701: density="icons" is opt-in; labelled remains the default
+    labelled = _render("bw_nav_rail", (NavItem(key="h", label="Home", href="/", icon="home"),))
+    assert "bw-nav-rail__list--icons" not in labelled
+    icons = Template(
+        "{% load brickwork_nav %}{% bw_nav_rail items=items density='icons' %}"
+    ).render(Context({"items": (NavItem(key="h", label="Home", href="/", icon="home"),)}))
+    assert "bw-nav-rail__list--icons" in icons
+    assert "bw-nav-rail__label" in icons  # label stays in the tree for a11y
+    assert "Home" in icons
+
+
+def test_rail_icons_density_rejects_unknown_value() -> None:
+    from django.template import TemplateSyntaxError
+
+    with pytest.raises(TemplateSyntaxError, match="density"):
+        Template("{% load brickwork_nav %}{% bw_nav_rail items=items density='wide' %}").render(
+            Context({"items": (NavItem(key="h", label="Home", href="/"),)})
+        )
+
+
+def test_rail_menu_trigger_renders_button_with_aria_haspopup() -> None:
+    # brickwork#702: menu triggers are buttons, not links; panel is consumer-owned
+    out = _render(
+        "bw_nav_rail",
+        (NavItem(key="channels", label="Channels", menu_trigger=True, icon="folder"),),
+    )
+    assert "<button" in out
+    assert 'aria-haspopup="menu"' in out
+    assert 'aria-expanded="false"' in out
+    assert "bw-nav-rail__trigger" in out
+    assert 'data-bw-nav-menu-trigger="channels"' in out
+    assert "<a " not in out
+    assert "Channels" in out
+
+
+def test_rail_menu_trigger_does_not_render_children() -> None:
+    child = NavItem(key="email", label="Email", href="/channels/email/")
+    parent = NavItem(key="channels", label="Channels", menu_trigger=True, children=(child,))
+    out = _render("bw_nav_rail", (parent,))
+    assert "Channels" in out
+    assert "Email" not in out
+
+
+def test_bw_nav_renders_menu_trigger_as_section_for_no_js_floor() -> None:
+    # mobile / sidebar tree: trigger label + reachable children (no button)
+    child = NavItem(key="email", label="Email", href="/channels/email/")
+    parent = NavItem(key="channels", label="Channels", menu_trigger=True, children=(child,))
+    out = _render("bw_nav", (parent,))
+    assert "bw-nav__section-label" in out
+    assert "Channels" in out
+    assert 'href="/channels/email/"' in out
+    assert "<button" not in out
 
 
 # --- byte-compat guard: bw_nav is untouched by the new renderers -----------

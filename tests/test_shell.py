@@ -254,9 +254,54 @@ def test_layout_arg_selects_sidebar_vs_topbar(  # SHL-001
     assert 'data-layout="topbar"' in topbar
 
 
+def test_layout_arg_selects_regions(  # brickwork#700
+) -> None:
+    html = _render("brickwork/shell/app.html", layout="regions")
+    assert 'data-layout="regions"' in html
+    assert 'class="bw-rail"' in html
+    assert 'id="bw-rail"' in html
+    assert 'class="bw-app__body"' in html
+
+
+def test_regions_layout_exposes_rail_and_sidebar_sibling_blocks() -> None:
+    # Sibling regions under a full-width topbar: rail and sidebar are not
+    # nested inside one another (brickwork#700).
+    from django.template import Context, Template
+
+    child = Template(
+        "{% extends 'brickwork/shell/app.html' %}"
+        "{% block rail %}<a id='rail-probe' href='/r/'>Rail</a>{% endblock %}"
+        "{% block sidebar %}<a id='side-probe' href='/s/'>Side</a>{% endblock %}"
+        "{% block content %}<p id='ws-probe'>Workspace</p>{% endblock %}"
+    )
+    html = child.render(Context({"layout": "regions"}))
+    assert html.index('id="bw-rail"') < html.index('id="bw-sidebar"')
+    assert html.index('id="bw-sidebar"') < html.index('class="bw-topbar"')
+    assert "id='rail-probe'" in html
+    assert "id='side-probe'" in html
+    assert html.index("bw-rail__nav") < html.index("id='rail-probe'")
+    assert html.index("bw-sidebar__nav") < html.index("id='side-probe'")
+    # empty-suppression contract: unfilled wrappers stay :empty-capable
+    assert 'class="bw-rail__nav"' in html
+
+
+def test_regions_empty_rail_and_sidebar_blocks_leave_empty_nav_slots() -> None:
+    # brickwork#703: unfilled blocks leave :empty nav containers so CSS can
+    # collapse the matching track. Default sidebar layout still emits the
+    # rail markup (hidden by CSS) with an empty nav.
+    html = _render("brickwork/shell/app.html", layout="regions")
+    assert 'class="bw-rail__nav" aria-label="' in html or 'class="bw-rail__nav"' in html
+    # nav containers present and empty (no child content between tags)
+    assert re.search(r'<nav class="bw-rail__nav"[^>]*>\s*</nav>', html)
+    assert re.search(r'<nav class="bw-sidebar__nav"[^>]*>\s*</nav>', html)
+
+
 def test_layout_defaults_to_sidebar_when_unset() -> None:  # SHL-001
     html = _render("brickwork/shell/app.html")
     assert 'data-layout="sidebar"' in html
+    # rail region exists but stays empty for the default layout
+    assert 'class="bw-rail"' in html
+    assert re.search(r'<nav class="bw-rail__nav"[^>]*>\s*</nav>', html)
 
 
 def test_layout_context_renders_through_an_extending_page() -> None:  # SHL-001

@@ -43,7 +43,7 @@ def validate_nav_config(nav_items: Iterable[NavItem]) -> None:
 
     Called once at import time by the consuming project (BR-BW-NAV-002), so a
     nav-config bug fails loudly on startup, never silently keeps one entry and
-    never surfaces at request time. Three rules:
+    never surfaces at request time. Rules:
 
     - ``key`` must be unique across the WHOLE tree, not just per level, since
       ``key`` is how a consumer's context targets an item (BR-BW-NAV-002).
@@ -52,6 +52,9 @@ def validate_nav_config(nav_items: Iterable[NavItem]) -> None:
       section header) can never match and would otherwise be a silent no-op.
     - at most one URL source (``url_name`` / ``external_url`` / ``href``) per
       item: more than one is ambiguous (NAV-018/019).
+    - ``menu_trigger`` is mutually exclusive with every URL source and with
+      ``section_header`` (brickwork#702): a trigger is not a link and not a
+      grouping label.
     """
     seen: set[str] = set()
     for item in _walk(nav_items):
@@ -79,6 +82,20 @@ def validate_nav_config(nav_items: Iterable[NavItem]) -> None:
                 f"external_url / href. A link item has exactly one URL source "
                 f"(NAV-018/019); pick one."
             )
+        if item.menu_trigger:
+            if item.section_header:
+                raise NavConfigError(
+                    f"Nav item {item.key!r} sets both menu_trigger and "
+                    f"section_header. A menu trigger is a rail control, not a "
+                    f"grouping label (brickwork#702); pick one."
+                )
+            if url_sources:
+                raise NavConfigError(
+                    f"Nav item {item.key!r} sets menu_trigger together with a "
+                    f"URL source (url_name / external_url / href). A menu "
+                    f"trigger opens a panel and must not also navigate "
+                    f"(brickwork#702); drop the URL or drop menu_trigger."
+                )
 
 
 def _item_visible(item: NavItem, context: NavContext) -> bool:
@@ -105,9 +122,11 @@ def visible_items(nav_items: Iterable[NavItem], context: NavContext) -> tuple[Na
 
     Recurses into ``children``, dropping hidden items. A section header is kept
     only if it still has at least one visible child after filtering (never an
-    empty group label). Visibility is a display-layer convenience, NEVER
-    authorisation (BR-BW-NAV-005): the consuming project's own views enforce
-    access independently.
+    empty group label). A menu-trigger item follows the same rule when it has
+    children (its drawer/sidebar fallback is those children); a childless
+    trigger stays visible so the desktop rail seam still renders. Visibility
+    is a display-layer convenience, NEVER authorisation (BR-BW-NAV-005): the
+    consuming project's own views enforce access independently.
     """
     result: list[NavItem] = []
     for item in nav_items:
@@ -116,6 +135,8 @@ def visible_items(nav_items: Iterable[NavItem], context: NavContext) -> tuple[Na
         visible_children = visible_items(item.children, context) if item.children else ()
         if item.section_header and not visible_children:
             continue  # an empty group renders nothing
+        if item.menu_trigger and item.children and not visible_children:
+            continue  # trigger whose only purpose was grouping hidden children
         # rebuild the item with its filtered children (frozen dataclass)
         from dataclasses import replace
 

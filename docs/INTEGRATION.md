@@ -288,11 +288,17 @@ inside a labelled `<nav>` landmark (the shells already provide one per slot).
   rendered) and a link item's own children are not rendered; the item carries
   the active-ancestor treatment when a descendant is the current route.
 - **`{% bw_nav_rail %}`**: the compact icon+label rail, tier one of the
-  capability-rail + contextual-sidebar (two-tier) layout. Every rail entry is
-  a real link; children are never rendered by the rail: they belong to the
-  contextual second tier, an ordinary `{% bw_nav %}` you feed from the same
-  tree (typically the active area's children). Pair the tiers in the sidebar
-  block with the shipped wrapper, and widen the sidebar to seat both:
+  capability-rail + contextual-sidebar (two-tier) layout. Navigable entries
+  are real links; `menu_trigger=True` items render as
+  `<button aria-haspopup="menu" aria-expanded="false">` (brickwork#702) and
+  the flyout panel stays consumer-owned. Children are never rendered by the
+  rail: they belong to the contextual second tier / mobile tree. Density
+  defaults to `"labelled"` (caption labels always visible); pass
+  `density="icons"` for an icon-only resting rail that expands on
+  hover/focus-within (brickwork#701).
+
+  **Nested two-tier** (default `layout="sidebar"`): pair the tiers inside
+  `{% block sidebar %}` and widen the sidebar to seat both:
 
   ```django
   {% block sidebar %}
@@ -308,10 +314,31 @@ inside a labelled `<nav>` landmark (the shells already provide one per slot).
   :root { --bw-density-sidebar-width: 22rem; }
   ```
 
-  In the mobile drawer, render the full tree through a plain `{% bw_nav %}`
-  (`{% block mobile_nav %}`), so every child stays reachable on the no-JS
-  floor. Neither compact renderer ships a flyout: hover/flyout enhancement is
-  consumer-owned progressive enhancement, never a requirement.
+  **Sibling regions** (`layout="regions"`, brickwork#700): full-width topbar
+  above a capability rail, contextual sidebar, and workspace as siblings.
+  Put the rail and contextual nav in their own blocks (do not use
+  `.bw-nav-two-tier` here). An unfilled `{% block rail %}` or
+  `{% block sidebar %}` collapses that column and reclaims the width
+  (brickwork#703):
+
+  ```django
+  {# context: layout="regions" #}
+  {% block rail %}
+    {% bw_nav_rail items=bw_nav_items active=bw_active_nav_item density="icons" %}
+  {% endblock %}
+  {% block sidebar %}
+    {% bw_nav items=contextual_items active=bw_active_nav_item %}
+  {% endblock %}
+  {% block mobile_nav %}
+    {% bw_nav items=bw_nav_items active=bw_active_nav_item %}
+  {% endblock %}
+  ```
+
+  Mobile keeps **one** drawer tree below `--bw-breakpoint-md`: both desktop
+  columns hide; fill `{% block mobile_nav %}` with the full reachable tree
+  (including children of any `menu_trigger` items). Neither compact renderer
+  ships a flyout panel: hover/flyout enhancement is consumer-owned
+  progressive enhancement, never a requirement.
 
 ## 3. The context processor (the sharp edge, brickwork#22)
 

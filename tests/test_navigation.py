@@ -120,6 +120,24 @@ def test_validate_nav_config_accepts_active_url_names_with_url_name() -> None:
     navigation.validate_nav_config(nav)  # must not raise
 
 
+def test_validate_nav_config_accepts_menu_trigger_without_url() -> None:
+    # brickwork#702: a menu trigger is a first-class shape, not a link
+    nav = (NavItem(key="channels", label="Channels", menu_trigger=True, icon="folder"),)
+    navigation.validate_nav_config(nav)  # must not raise
+
+
+def test_validate_nav_config_rejects_menu_trigger_with_url() -> None:
+    nav = (NavItem(key="channels", label="Channels", menu_trigger=True, href="/channels/"),)
+    with pytest.raises(NavConfigError, match="menu_trigger"):
+        navigation.validate_nav_config(nav)
+
+
+def test_validate_nav_config_rejects_menu_trigger_with_section_header() -> None:
+    nav = (NavItem(key="bad", label="Bad", menu_trigger=True, section_header=True),)
+    with pytest.raises(NavConfigError, match="menu_trigger"):
+        navigation.validate_nav_config(nav)
+
+
 # --- BR-BW-NAV-001 / NAV-008: active via resolver_match, tree walk ----------
 
 
