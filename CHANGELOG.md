@@ -10,27 +10,6 @@ versioning contract).
 
 ### Added
 
-- **App shell `layout="regions"`** (icvoss/django-brickwork#700 / #703):
-  full-width topbar above sibling capability rail, contextual sidebar, and
-  workspace. New blocks: `rail_region` / `rail`, `sidebar_region` (wraps the
-  existing sidebar aside). Empty `{% block rail %}` or `{% block sidebar %}`
-  collapses that column (`--bw-shell-*-track` to 0) and reclaims width.
-  Default `layout="sidebar"` and `layout="topbar"` stay supported; nested
-  `.bw-nav-two-tier` inside `{% block sidebar %}` is unchanged. Mobile keeps
-  one drawer tree for both columns.
-- **`{% bw_nav_rail density="icons" %}`** (icvoss/django-brickwork#701):
-  icon-only resting rail at `--bw-density-rail-width`, labels on
-  hover/focus-within expand to `--bw-density-rail-width-expanded`. Default
-  `density="labelled"` keeps caption labels visible.
-- **`NavItem.menu_trigger`** (icvoss/django-brickwork#702): rail entries that
-  open a menu render as `<button aria-haspopup="menu" aria-expanded="false">`.
-  The flyout panel is **not** shipped (consumer-owned seam). Validation
-  rejects trigger + URL or trigger + `section_header`. In `{% bw_nav %}` a
-  trigger renders like a section header so children stay reachable on the
-  no-JS / mobile floor. Link rail entries stay real anchors by default.
-- Density tokens `--bw-density-rail-width` and
-  `--bw-density-rail-width-expanded` (all three density axes).
-
 ### Changed
 
 ### Fixed
