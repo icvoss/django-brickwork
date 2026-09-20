@@ -1,0 +1,19 @@
+{% comment %}
+CTA / start-aligned: a quiet contact-foot stack (plain band, start align).
+
+WHEN TO USE THIS INSTEAD OF THE CENTRED BAND. Product landings close with
+a centred tinted sales band. Personal and consulting presence pages often
+close with a soft left stack: short heading, one line of body, one button,
+sitting on the page surface rather than a tinted band. Pass band="plain"
+and align="start" together for that shape.
+
+The shipped _cta.html already is this, so the example is the include.
+
+A heading is REQUIRED: with no heading the component renders nothing at
+all rather than an empty band. That is deliberate across this kit.
+
+States: see _cta.html.
+Accessibility: see _cta.html.
+Responsive: see _cta.html; band and align are CSS-only axes.
+{% endcomment %}
+{% include "brickwork_marketing/components/_cta.html" with heading="Shall we talk?" body="A short note is enough. I read every one." primary_cta_label="Write to me" primary_cta_href="/contact/" band="plain" align="start" %}

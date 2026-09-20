@@ -612,6 +612,53 @@ inverse).
   padding-inline: var(--bw-density-page-gutter-inline);
 }
 
+/* Shared section intro (#695): overline + heading + lede inside __inner.
+ * Class contract: usable from named includes and plain .bw-section markup.
+ * Type roles: overline / heading-section / body-lg. Prefer the __intro
+ * wrapper when stacking more than one piece; a bare __heading as the first
+ * child of __inner still gets bottom rhythm for named bands that use it. */
+.bw-section__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-3);
+  margin-block-end: var(--bw-space-8);
+}
+
+.bw-section__overline {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-family: var(--bw-text-overline-family);
+  font-size: var(--bw-text-overline-size);
+  font-weight: var(--bw-text-overline-weight);
+  line-height: var(--bw-text-overline-line-height);
+  letter-spacing: var(--bw-text-overline-tracking);
+  text-transform: uppercase;
+}
+
+.bw-section__heading {
+  margin: 0;
+  font-family: var(--bw-text-heading-section-family);
+  font-size: var(--bw-text-heading-section-size);
+  font-weight: var(--bw-text-heading-section-weight);
+  line-height: var(--bw-text-heading-section-line-height);
+  letter-spacing: var(--bw-text-heading-section-tracking);
+  text-wrap: balance;
+}
+
+.bw-section__lede {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-lg-size);
+  font-weight: var(--bw-text-body-lg-weight);
+  line-height: var(--bw-text-body-lg-line-height);
+  text-wrap: pretty;
+  max-inline-size: var(--bw-size-max-width-prose);
+}
+
+.bw-section__inner > .bw-section__heading:first-child {
+  margin-block-end: var(--bw-space-8);
+}
+
 /* width="bleed" (ADR-057 §1a): shared escape,
 also used by .bw-cta--bleed
  * and .bw-cta-bleed so the axis is not CTA-only. Specificity matches the
@@ -1587,6 +1634,21 @@ not the
   gap: var(--bw-space-3);
 }
 
+/* align="start" (#697): quiet contact-foot stack. Centre remains the
+ * default (no modifier). Pair with band="plain" for a soft left close. */
+.bw-cta--align-start {
+  text-align: start;
+}
+
+.bw-cta--align-start .bw-cta__inner {
+  align-items: flex-start;
+  margin-inline: 0;
+}
+
+.bw-cta--align-start .bw-cta__actions {
+  justify-content: flex-start;
+}
+
 /* --- Testimonial ---------------------------------------------------------------- */
 
 /* No blanket `margin: 0` on the root (#86): that reset ties with the shell's
@@ -1804,6 +1866,16 @@ BR-BW-MKT-004). */
 .bw-stat-band-section--align-start .bw-stat-band .bw-stat {
   text-align: start;
   align-items: flex-start;
+}
+
+/* chrome="plain" (#694): strip the marketing band's re-applied card edge
+ * so proof figures stay bare when the tile itself opts out of chrome. */
+.bw-stat-band .bw-stat--chrome-plain {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  max-inline-size: none;
 }
 
 /* --- FAQ ------------------------------------------------------------------------------ */
@@ -2618,6 +2690,9 @@ so dark surfaces return to the plain elevation ramp here.
 [data-theme="dark"] .bw-site-header {
   box-shadow: var(--bw-elevation-1);
 }
+[data-theme="dark"] .bw-stat-band .bw-stat--chrome-plain {
+  box-shadow: none;
+}
 [data-theme="dark"] .bw-product-chrome--rear {
   box-shadow: var(--bw-elevation-1);
 }
@@ -3285,3 +3360,75 @@ same pattern as .bw-bio__profile-link. */
 .bw-methods__link:focus-visible {
   border-block-end-color: var(--bw-color-fg);
 }
+
+/* Outcomes / quiet columns (#696) ------------------------------------------
+ * Equal columns of outcome copy (heading + body), optional section foot
+ * text link. Sibling of methods (#675): no stages, no per-column CTA, no
+ * card chrome. */
+
+.bw-outcomes-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.bw-outcomes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--bw-space-8) var(--bw-space-12);
+}
+
+@media (width >= --theme(--breakpoint-sm)) {
+  .bw-outcomes {
+    grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+  }
+}
+
+.bw-outcomes__item {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-2);
+}
+
+.bw-outcomes__name {
+  margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+
+.bw-outcomes__body {
+  margin: 0;
+  max-inline-size: 32ch;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-md-size);
+  line-height: var(--bw-text-body-md-line-height);
+  text-wrap: pretty;
+}
+
+.bw-outcomes-section__foot {
+  margin: var(--bw-space-8) 0 0;
+}
+
+/* Underline text link at section level (not a button row). */
+.bw-outcomes-section__link {
+  display: inline-block;
+  min-block-size: 1.5rem;
+  font-weight: var(--bw-font-weight-semibold);
+  color: var(--bw-color-fg);
+  text-decoration: none;
+  border-block-end: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 55%, transparent);
+  transition: var(--bw-transition-colors);
+}
+
+.bw-outcomes-section__link:hover,
+.bw-outcomes-section__link:focus-visible {
+  border-block-end-color: var(--bw-color-fg);
+}
+

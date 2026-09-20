@@ -69,12 +69,22 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     # there is no CSS rule to pin, only the byte-identity test in
     # test_marketing.py.
     ("_cta", "width", "bleed", "bw-cta--bleed"),
+    # --- cta align (#697) ---------------------------------------------------
+    # "center" is the honestly-named default (the pre-existing centred
+    # layout) and emits no modifier class at all, so it has no entry here:
+    # there is no CSS rule to pin, only the byte-identity test in
+    # test_marketing.py.
+    ("_cta", "align", "start", "bw-cta--align-start"),
     # --- stat_band align (#673) ---------------------------------------------
     # "center" is the honestly-named default (the pre-existing centred
     # layout) and emits no modifier class at all, so it has no entry here:
     # there is no CSS rule to pin, only the byte-identity test in
     # test_marketing.py.
     ("_stat_band", "align", "start", "bw-stat-band-section--align-start"),
+    # --- stat chrome (#694) -------------------------------------------------
+    # "card" is the honestly-named default (KPI card chrome) and emits no
+    # modifier class at all, so it has no entry here.
+    ("_stat", "chrome", "plain", "bw-stat--chrome-plain"),
     # --- the renamed vocabularies (3.0.0) -----------------------------------
     ("_alert", "variant", "info", "bw-alert--info"),
     ("_alert", "variant", "success", "bw-alert--success"),

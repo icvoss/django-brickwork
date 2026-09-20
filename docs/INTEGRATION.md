@@ -1284,11 +1284,16 @@ measure with the page gutter. Do not invent a site `bwui-*-inner` (or fight
 | `.bw-section__inner` | Shared rail: `--bw-component-content-max-width-marketing` + `--bw-density-page-gutter-inline`. |
 | `.bw-section--bleed` | ADR-057 §1a `width=bleed` (same escape as `.bw-cta--bleed` / `.bw-cta-bleed`). |
 | `.bw-section--tint` | ADR-057 §1a `band=tint` (background only). |
+| `.bw-section__intro` | Optional wrapper for the shared intro stack (#695). |
+| `.bw-section__overline` | Optional eyebrow; overline type role (uppercase at the class). |
+| `.bw-section__heading` | Section heading; `heading-section` type role. |
+| `.bw-section__lede` | Optional short supporting line; `body-lg` type role. |
 
 Or `{% extends "brickwork_marketing/components/_section.html" %}` and fill
 `section_content` (optional context `width` / `band`). Django `{% include %}`
 cannot wrap caller markup, so author the classes directly when composing
-inline.
+inline. For the intro stack alone, prefer the classes above or
+`{% include "brickwork_marketing/components/_section_intro.html" %}`.
 
 **Migration.** Existing marketing component roots that are not yet on
 `.bw-section` keep the legacy rail from `.bw-marketing__content > *`
@@ -1296,7 +1301,8 @@ inline.
 `.bw-section__inner` and stop relying on the legacy child rule for that band.
 Section rhythm (`.bw-marketing__content > * + *`) still applies to
 `.bw-section` roots. Proving migrations in the package: `_feature_grid.html`
-(contained), `_methods.html` (contained, #675), and `_cta_bleed.html` (bleed).
+(contained), `_methods.html` (contained, #675), `_outcomes.html` (contained,
+#696), and `_cta_bleed.html` (bleed).
 Other roots can adopt the wrap when they next need atmosphere past the
 legacy rail.
 

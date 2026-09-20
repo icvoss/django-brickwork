@@ -10,6 +10,29 @@ versioning contract).
 
 ### Added
 
+- **CTA band `align` axis** (icvoss/django-brickwork#697). `_cta.html` accepts
+  `align="center"` (default, byte-identical) or `align="start"`
+  (`bw-cta--align-start`) for quiet contact-foot stacks. Pair with
+  `band="plain"` for a soft left close. Example:
+  `examples/sections/cta/start-aligned.html`.
+- **Stat tile `chrome` axis** (icvoss/django-brickwork#694). `_stat.html`
+  accepts `chrome="card"` (default KPI chrome, byte-identical) or
+  `chrome="plain"` (`bw-stat--chrome-plain`) for proof figures without
+  border, elevation or card padding. `_stat_band.html` forwards `chrome`
+  explicitly; pair `align="start"` with `chrome="plain"` for an airy proof
+  band. Example: `examples/sections/stats/plain-start.html`.
+- **Section shell shared intro** (icvoss/django-brickwork#695). Documented
+  class contract inside `.bw-section__inner`: `.bw-section__overline`,
+  `.bw-section__heading`, `.bw-section__lede` (optional `.bw-section__intro`
+  wrapper), using package type roles. Helper include
+  `_section_intro.html`. Example: `examples/sections/section/intro.html`.
+- **Quiet outcomes / columns band** (icvoss/django-brickwork#696). New
+  `{% include "brickwork_marketing/components/_outcomes.html" %}` for equal
+  columns of `{heading, body}` with an optional section foot text link
+  (`url` + `link_label`). No cards, no stages, no per-column CTA. Sibling
+  of `_methods.html`, not a variant. Example:
+  `examples/sections/outcomes/quiet-columns.html`.
+
 ### Changed
 
 ### Fixed

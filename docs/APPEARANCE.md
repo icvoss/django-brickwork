@@ -126,9 +126,12 @@ or first-class include does **not** count.
 | Features | `_feature_grid.html` (icon grid); `_feature_rows.html` (alternating); `_feature_list.html` (checklist) |
 | Case / result list | `_case_list.html` (ruled figure | name + note rows; optional whole-row link) |
 | Methods | `_methods.html` (quiet columns; underline text link, no card chrome) |
+| Outcomes | `_outcomes.html` (quiet equal columns; optional section foot text link; no cards, no stages) |
 | Directory | `_directory.html` (numbered index with optional mark, linked title, description and meta column) |
-| CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` |
+| CTA | `_cta.html` (centred band); `_cta_split.html` (mid-page split); `_cta_bleed.html` (inverse full-bleed). Orthogonal: `_cta.html` `width="bleed"` / `band` / `align` center (default) / start (#697) |
 | Pricing | `_pricing_table.html` single tier; `_pricing_table.html` multi-tier; `_comparison_table.html` (marketing `_pricing_comparison.html` wrapper) |
+| Stats | `_stat_band.html` `align` center (default) / start (#673); `chrome` card (default) / plain (#694). Pair start + plain for airy proof figures |
+| Section shell | `.bw-section` / `__inner`; shared intro `.bw-section__overline` / `__heading` / `__lede` (#695); helper `_section_intro.html` |
 | Person | `_portrait.html` (`align="start"` default / `"end"`, constrained 3:4 image + CTAs); `_bio.html` (compact strip, optional profile link). Not `_testimonial.html` and not the Editorial author archetype |
 | Empty state | `variant="no_data"` framed (default); `variant="no_results"`; `surface="plain"` (unframed page scale). Nested: `size="sm"` |
 | Page header | plain default; `surface="tint"`; breadcrumbs + actions via the public `breadcrumb` / `actions` blocks |
@@ -181,7 +184,7 @@ Status values:
 | code | N/A (defaults) | Muted/raised panel authored; line numbers stay Could |
 | combobox | N/A (defaults) | Listbox panel matches dropdown craft |
 | comparison_table | Adopted | `highlighted` (0-based index or plan name); emits `__col--highlighted` |
-| cta | Adopted | `band`, `width` (ADR-057) |
+| cta | Adopted | `band`, `width` (ADR-057); `align` center (default) / start (#697) |
 | cta_bleed | N/A (local) | First-class Phase C composition (inverse bleed) |
 | cta_split | N/A (local) | First-class Phase C composition |
 | data_table | Adopted | `density`; muted header + row hover authored Phase A/C |
@@ -204,6 +207,7 @@ Status values:
 | logo_cloud | N/A (defaults) | Quieter spacing authored Phase A |
 | marketing_footer_groups | N/A (local) | P0 shipped; groups/columns are data, not shared surface |
 | methods | N/A (local) | Quiet columns band (#675); not a feature-grid variant; no shared surface |
+| outcomes | N/A (local) | Quiet outcome columns (#696); section foot link; sibling of methods, not a variant |
 | mobile_nav_toggle | N/A (keep lean) | Shell seam only |
 | modal | Adopted | `size`, `header_recipe`, `footer_recipe` |
 | page_header | Adopted | `surface` default/tint |
@@ -219,15 +223,16 @@ Status values:
 | ranked_list | N/A (compose) | Empty path uses `_empty_state`; list itself stays unframed |
 | scorecard | N/A (defaults) | Gap/padding tokens authored; `columns` stays consumer grid |
 | search | N/A (defaults) | Field chrome in topbar authored |
-| section | Adopted | Shared marketing shell/inner; `width` contained/bleed, `band` plain/tint (ADR-057 §1a, #667) |
+| section | Adopted | Shared marketing shell/inner; `width` contained/bleed, `band` plain/tint (ADR-057 §1a, #667); shared intro classes (#695) |
 | site_footer | Adopted | Shared site chrome (ADR-113); measure/band via `.bw-site-footer*` |
 | site_header | Adopted | Shared site chrome (ADR-113); measure/band via `.bw-site-header*`; overlay stays marketing-shell-only |
 | skeleton | N/A (local) | `variant` text/title/row/block is the preset set |
 | slide_over | Adopted | Same recipes as modal (Beat Phase E) |
 | sparkline | N/A (keep lean) | |
 | spinner | N/A (compose) | Size follows host control icon token; not standalone |
-| stat | N/A (local) | `size` ships; raised KPI tiles compose via card |
-| stat_band | N/A (defaults) | Tint band + tile elevation authored Phase A; `align` center (default) / start (#673) |
+| section_intro | N/A (compose) | Helper that emits `.bw-section__*` intro classes (#695) |
+| stat | Adopted | `size`; `chrome` card (default) / plain (#694) |
+| stat_band | N/A (defaults) | Tint band + tile elevation authored Phase A; `align` center (default) / start (#673); forwards `chrome` (#694) |
 | stat_comparison | N/A (local) | Same size ladder as stat |
 | stepper | N/A (defaults) | Current/complete states authored |
 | tabs | N/A (local) | `variant` underline/pill; soft panel Could |
