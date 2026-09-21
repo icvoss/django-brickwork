@@ -1,0 +1,36 @@
+{% comment %}
+OUTCOMES / quiet columns: equal columns of outcome copy plus an optional
+section foot text link.
+
+WHEN TO USE THIS INSTEAD OF METHODS OR FEATURE GRID. Methods (#675) carry
+optional stages and per-column underline links. Feature grid is card
+chrome. This is quiet outcome / offer columns: heading + short body per
+column, one section-level text link ("All services"), no cards, no
+stages, no per-column CTA.
+
+WHAT YOUR VIEW MUST SUPPLY. Pass outcome_items as items (list of dicts):
+
+    outcome_items = [
+        {
+            "heading": "Positioning",
+            "body": "A clear offer a buyer can recognise in one sitting.",
+        },
+        {
+            "heading": "Site architecture",
+            "body": "Pages and packages that stay maintainable as the site grows.",
+        },
+        {
+            "heading": "Delivery",
+            "body": "Shipped work with a loop your team can run again.",
+        },
+    ]
+
+Optional section foot: pass url and link_label on the include (not per
+item). The link renders only when both are present.
+
+States: see _outcomes.html.
+Accessibility: see _outcomes.html; covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: see _outcomes.html.
+{% endcomment %}
+{% include "brickwork_marketing/components/_outcomes.html" with heading="What I do" items=outcome_items url="/services/" link_label="All services" %}

@@ -1,0 +1,60 @@
+{% comment %}
+Outcomes band (icvoss/django-brickwork#696): quiet equal columns of
+outcome copy (heading + short body), with an optional section-level
+foot text link. Structural sibling of `_methods.html` (#675), not a
+variant of it: methods carry optional stages and per-column links;
+this band has neither. Default chrome is deliberately not a card (no
+raised surface, no whole-column hit target). Consumed via {% include %}
+(BR-BW-MKT §4d structural-include doctrine).
+
+Required context: none.
+
+Optional context:
+  heading     (str): the section intro heading (uses the shared
+              `.bw-section__heading` class from #695).
+  items       (list of dicts): {
+                heading,  # column title
+                body?,    # short description
+              }. List-shaped, so supply from context (#98). An empty (or
+              omitted) items list renders the heading / foot alone (or
+              nothing if those too are empty), never a fabricated
+              placeholder column. Absent optional fields are omitted.
+  url         (str): when present WITH link_label, a section foot
+              underline text link (never a button row, never per-column).
+  link_label  (str): visible foot link text; ignored without url.
+
+States: none. A foot link takes the standard link hover affordance and
+  the global :focus-visible ring; an unlinked section has no interactive
+  state.
+Accessibility: section h2, each column h3. The foot link is a real <a>
+  with its own visible label. Covered via sections-*.html after the
+  example collapses to this include.
+Responsive: one column below --bw-breakpoint-sm; equal columns from sm
+  up (auto-fit so three or four items share a row when width allows).
+
+Layout: root carries .bw-section; content sits in .bw-section__inner
+  (ADR-057 Phase A / #667). Measure and page gutter come from the section
+  shell. See `_section.html` for the class contract and migration notes.
+{% endcomment %}
+{% if heading or items or url and link_label %}
+<section class="bw-section bw-outcomes-section">
+  <div class="bw-section__inner">
+  {% if heading %}<h2 class="bw-section__heading">{{ heading }}</h2>{% endif %}
+  {% if items %}
+    <div class="bw-outcomes">
+      {% for item in items %}
+        <article class="bw-outcomes__item">
+          {% if item.heading %}<h3 class="bw-outcomes__name">{{ item.heading }}</h3>{% endif %}
+          {% if item.body %}<p class="bw-outcomes__body">{{ item.body }}</p>{% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% if url and link_label %}
+    <p class="bw-outcomes-section__foot">
+      <a class="bw-outcomes-section__link" href="{{ url }}">{{ link_label }}</a>
+    </p>
+  {% endif %}
+  </div>
+</section>
+{% endif %}

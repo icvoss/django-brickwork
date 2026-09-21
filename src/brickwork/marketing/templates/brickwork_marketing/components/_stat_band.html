@@ -23,6 +23,13 @@ Optional context:
           (bw-stat-band-section--align-start). Any other value falls back
           to the default. CSS-only: only the section root class list
           changes.
+  chrome  ("card" default | "plain", #694): forwarded to every tile via
+          `_stat.html`. Omitted (or "card") keeps KPI card chrome and is
+          byte-identical for existing call sites. "plain" strips border,
+          elevation and card padding on each tile. align and chrome are
+          orthogonal: align="start" alone does not change chrome. For an
+          airy proof band of bare figures, pass both align="start" and
+          chrome="plain" together (see examples/sections/stats/plain-start.html).
 
 An empty (or omitted) stats list renders the heading alone (or nothing, if
 that too is empty).
@@ -57,7 +64,7 @@ Responsive: no named breakpoint. grid-template-columns is
   {% if stats %}
     <div class="bw-stat-band">
       {% for stat in stats %}
-        {% include "brickwork/components/_stat.html" with label=stat.label value=stat.value trend=stat.trend trend_label=stat.trend_label size="lg" %}
+        {% include "brickwork/components/_stat.html" with label=stat.label value=stat.value trend=stat.trend trend_label=stat.trend_label size="lg" chrome=chrome %}
       {% endfor %}
     </div>
   {% endif %}
