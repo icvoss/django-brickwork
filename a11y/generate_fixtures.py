@@ -4409,6 +4409,7 @@ def render_nav_renderers(theme: str) -> str:
 _APP_REGIONS_SOURCE = (
     "{% extends 'brickwork/shell/app.html' %}"
     "{% load brickwork_nav %}"
+    "{% block page_title %}App regions{% endblock %}"
     "{% block rail %}"
     "{% bw_nav_rail items=rail_items active=active density='icons' %}"
     "{% endblock %}"
