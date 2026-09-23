@@ -1164,11 +1164,7 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
     ),
     "_section": lambda value: _include(
         "brickwork_marketing/components/_section.html",
-        **(
-            {"atmosphere": value}
-            if value in {"soft-stage"}
-            else {"reveal": value}
-        ),
+        **({"atmosphere": value} if value in {"soft-stage"} else {"reveal": value}),
     ),
     "_product_shot": lambda value: _include(
         "brickwork_marketing/components/_product_shot.html",

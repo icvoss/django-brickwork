@@ -4154,7 +4154,7 @@ _SOFT_STAGE_OVERLAY_HERO = (
     '{% include "brickwork_marketing/components/_hero.html" with'
     ' eyebrow="Invoicing" heading="Atmosphere under the overlay header"'
     ' lede="Soft-stage is the first-band atmosphere under an overlay header, not a second shell."'
-    ' primary_cta=primary_cta secondary_cta=secondary_cta'
+    " primary_cta=primary_cta secondary_cta=secondary_cta"
     ' align="center" atmosphere="soft-stage" %}'
 )
 
@@ -4183,9 +4183,7 @@ def render_soft_stage_overlay(theme: str) -> str:
         '<a href="#signin">Sign in</a>'
         '{% bw_button "Get started" href="#start" variant="primary" size="sm" %}'
         "{% endblock %}"
-        "{% block content %}"
-        + _SOFT_STAGE_OVERLAY_HERO
-        + "{% endblock %}"
+        "{% block content %}" + _SOFT_STAGE_OVERLAY_HERO + "{% endblock %}"
         "{% block footer_legal %}&copy; 2026 Acme Ltd. All rights reserved.{% endblock %}"
     )
     ctx = {
@@ -4203,7 +4201,7 @@ def render_soft_stage_overlay(theme: str) -> str:
 
 
 _PRODUCT_SHOT_BESIDE_HERO = (
-    "{% extends \"brickwork_marketing/components/_hero.html\" %}"
+    '{% extends "brickwork_marketing/components/_hero.html" %}'
     "{% block media %}"
     '<div class="bw-hero__media">'
     '{% include "brickwork_marketing/components/_product_shot.html" with content=shot_media window="light" %}'
@@ -4211,7 +4209,7 @@ _PRODUCT_SHOT_BESIDE_HERO = (
     "{% endblock %}"
 )
 _PRODUCT_SHOT_BELOW_HERO = (
-    "{% extends \"brickwork_marketing/components/_hero.html\" %}"
+    '{% extends "brickwork_marketing/components/_hero.html" %}'
     "{% block media %}"
     '<div class="bw-hero__media">'
     '{% include "brickwork_marketing/components/_product_shot.html" with content=shot_media %}'
@@ -4234,26 +4232,34 @@ def render_product_shot_placement(theme: str) -> str:
         '<rect x="24" y="60" width="160" height="16" rx="8" fill="var(--bw-color-border)"/>'
         "</svg>"
     )
-    beside = engines["django"].from_string(_PRODUCT_SHOT_BESIDE_HERO).render(
-        {
-            "eyebrow": "Invoicing",
-            "heading": "Beside: a true two-column row",
-            "lede": "The product shot fills the media column from 48rem up.",
-            "primary_cta_label": "Start free trial",
-            "primary_cta_href": "#start",
-            "media_placement": "beside",
-            "shot_media": shot_media,
-        }
+    beside = (
+        engines["django"]
+        .from_string(_PRODUCT_SHOT_BESIDE_HERO)
+        .render(
+            {
+                "eyebrow": "Invoicing",
+                "heading": "Beside: a true two-column row",
+                "lede": "The product shot fills the media column from 48rem up.",
+                "primary_cta_label": "Start free trial",
+                "primary_cta_href": "#start",
+                "media_placement": "beside",
+                "shot_media": shot_media,
+            }
+        )
     )
-    below = engines["django"].from_string(_PRODUCT_SHOT_BELOW_HERO).render(
-        {
-            "eyebrow": "Invoicing",
-            "heading": "Below: the media_placement default",
-            "lede": "Omitting media_placement stacks the shot after the copy, the shipped column-flex layout.",
-            "primary_cta_label": "Start free trial",
-            "primary_cta_href": "#start",
-            "shot_media": shot_media,
-        }
+    below = (
+        engines["django"]
+        .from_string(_PRODUCT_SHOT_BELOW_HERO)
+        .render(
+            {
+                "eyebrow": "Invoicing",
+                "heading": "Below: the media_placement default",
+                "lede": "Omitting media_placement stacks the shot after the copy, the shipped column-flex layout.",
+                "primary_cta_label": "Start free trial",
+                "primary_cta_href": "#start",
+                "shot_media": shot_media,
+            }
+        )
     )
     source = (
         '{% extends "brickwork_marketing/shell/marketing.html" %}'
@@ -4305,9 +4311,7 @@ def render_marketing_reveal(theme: str) -> str:
         },
     ]
     source = (
-        '{% extends "brickwork_marketing/shell/marketing.html" %}'
-        + _MARKETING_CHROME
-        + "{% block content %}"
+        '{% extends "brickwork_marketing/shell/marketing.html" %}' + _MARKETING_CHROME + "{% block content %}"
         '<section class="bw-section bw-section--reveal-enter">'
         '<div class="bw-section__inner">' + _REVEAL_SECTION + "</div>"
         "</section>"
