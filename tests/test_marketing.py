@@ -2639,9 +2639,12 @@ def test_reveal_css_references_only_motion_tokens_for_timing() -> None:
     css = (_FRONTEND / "marketing.css").read_text(encoding="utf-8")
     start = css.find("@keyframes bw-reveal-enter")
     assert start != -1, "no @keyframes bw-reveal-enter block found in frontend/src/marketing.css"
-    # Nothing else lives in marketing.css after the reveal block, so the rest
-    # of the file IS the reveal section (keyframes plus its two @media rules).
-    reveal_source = css[start:]
+    # Bounded at the sentinel comment marketing.css carries immediately after
+    # the reveal block (keyframes plus its two @media rules), so a future
+    # append to the file does not silently widen this scan.
+    end = css.find("/* end of reveal block:", start)
+    assert end != -1, "no end-of-reveal-block sentinel comment found after @keyframes bw-reveal-enter"
+    reveal_source = css[start:end]
 
     assert not re.search(r"\d+(?:\.\d+)?(?:ms|s)\b", reveal_source), (
         f"reveal CSS contains a numeric time literal: {reveal_source!r}"

@@ -3552,3 +3552,6 @@ same pattern as .bw-bio__profile-link. */
   }
 }
 
+/* end of reveal block: test_reveal_css_references_only_motion_tokens_for_timing
+   bounds its scan to this sentinel so a future append does not widen it. */
+
