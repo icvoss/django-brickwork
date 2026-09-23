@@ -484,6 +484,24 @@
         }
       }
     },
+    "stage-wash": {
+      "$value": "oklch(0.546 0.192 262 / 0.08)",
+      "$description": "4.2.0 soft-stage wash (BR-BW-MKT-007 / #570): accent at 8% over transparent, the same low percentage as surface-marketing-tint so text on the band clears WCAG AA (BR-BW-MKT-002). Mixed toward transparent rather than toward surface: the wash is a decorative layer behind the copy, not a background fill, so alpha carries the whole effect.",
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-accent) 8%, transparent)"
+        }
+      }
+    },
+    "stage-grid": {
+      "$value": "oklch(0.928 0.004 265 / 0.6)",
+      "$description": "4.2.0 soft-stage grid line (BR-BW-MKT-007 / #570): border at 60% over transparent, a faint line on the light surface rather than a hard rule.",
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-border) 60%, transparent)"
+        }
+      }
+    },
     "chart-1": {
       "$value": "{primitive.chart.light.1}",
       "$extensions": {

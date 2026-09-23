@@ -66,6 +66,8 @@
   --color-icon-muted: var(--bw-color-icon-muted);
   --color-focus-ring: var(--bw-color-focus-ring);
   --color-surface-marketing-tint: var(--bw-color-surface-marketing-tint);
+  --color-stage-wash: var(--bw-color-stage-wash);
+  --color-stage-grid: var(--bw-color-stage-grid);
   --color-chart-1: var(--bw-color-chart-1);
   --color-chart-2: var(--bw-color-chart-2);
   --color-chart-3: var(--bw-color-chart-3);

@@ -48,6 +48,8 @@ export const tokens = Object.freeze({
   "color_info_strong": "var(--bw-color-info-strong)",
   "color_info_subtle": "var(--bw-color-info-subtle)",
   "color_sparkline_stroke": "var(--bw-color-sparkline-stroke)",
+  "color_stage_grid": "var(--bw-color-stage-grid)",
+  "color_stage_wash": "var(--bw-color-stage-wash)",
   "color_status_fg_ink": "var(--bw-color-status-fg-ink)",
   "color_success": "var(--bw-color-success)",
   "color_success_border": "var(--bw-color-success-border)",

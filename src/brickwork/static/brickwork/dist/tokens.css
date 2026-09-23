@@ -280,6 +280,8 @@
   --bw-component-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black);
   --bw-component-skeleton-shimmer: color-mix(in oklab, var(--bw-component-skeleton-bg) 96%, black);
   --bw-color-surface-marketing-tint: color-mix(in oklab, var(--bw-color-accent) 8%, var(--bw-color-surface));
+  --bw-color-stage-wash: color-mix(in oklab, var(--bw-color-accent) 8%, transparent);
+  --bw-color-stage-grid: color-mix(in oklab, var(--bw-color-border) 60%, transparent);
   --bw-color-chart-1: oklch(0.590 0.151 46);
   --bw-color-chart-2: oklch(0.397 0.065 92);
   --bw-color-chart-3: oklch(0.639 0.151 130);
@@ -380,6 +382,8 @@
   --bw-component-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 96%, black);
   --bw-component-skeleton-shimmer: color-mix(in oklab, var(--bw-component-skeleton-bg) 96%, black);
   --bw-color-surface-marketing-tint: color-mix(in oklab, var(--bw-color-accent) 8%, var(--bw-color-surface));
+  --bw-color-stage-wash: color-mix(in oklab, var(--bw-color-accent) 8%, transparent);
+  --bw-color-stage-grid: color-mix(in oklab, var(--bw-color-border) 60%, transparent);
   --bw-color-chart-1: oklch(0.590 0.151 46);
   --bw-color-chart-2: oklch(0.397 0.065 92);
   --bw-color-chart-3: oklch(0.639 0.151 130);
@@ -463,6 +467,8 @@
   --bw-component-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white);
   --bw-component-skeleton-shimmer: color-mix(in oklab, var(--bw-component-skeleton-bg) 86%, white);
   --bw-color-surface-marketing-tint: color-mix(in oklab, var(--bw-color-accent) 12%, var(--bw-color-surface));
+  --bw-color-stage-wash: color-mix(in oklab, var(--bw-color-accent) 16%, transparent);
+  --bw-color-stage-grid: color-mix(in oklab, var(--bw-color-border) 70%, transparent);
   --bw-color-chart-1: oklch(0.595 0.138 46);
   --bw-color-chart-2: oklch(0.874 0.163 92);
   --bw-color-chart-3: oklch(0.709 0.170 130);

@@ -153,6 +153,8 @@
     "--bw-color-info-strong",
     "--bw-color-info-subtle",
     "--bw-color-sparkline-stroke",
+    "--bw-color-stage-grid",
+    "--bw-color-stage-wash",
     "--bw-color-status-fg-ink",
     "--bw-color-success",
     "--bw-color-success-border",
