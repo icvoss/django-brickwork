@@ -16,6 +16,53 @@ versioning contract).
 
 ### Removed
 
+## [4.2.0] - 2026-09-23
+
+Marketing sustainment: the three package-owned gaps that still forced
+site CSS on a real landing page close here (soft-stage atmosphere,
+product-shot chrome, section enter motion). No behaviour changes for an
+existing consumer on upgrade: every new option defaults to the previous
+output, and omitting it is byte-identical (golden-string tests on the hero
+and section skeletons). Two new tokens, `--bw-color-stage-wash` and
+`--bw-color-stage-grid`, join the overridable set; nothing existing moves.
+With this release the marketing kit is in sustainment: the required
+archetype matrix was already 7/7, and remaining work is demand-gated
+(umbrella `docs/plans/brickwork-marketing-sustainment.md`).
+
+### Added
+
+- **Hero and section `atmosphere` axis: soft-stage** (icvoss/django-brickwork#570).
+  `_hero.html` and `_section.html` accept `atmosphere="none"` (default,
+  byte-identical) or `atmosphere="soft-stage"` (`bw-hero--atmosphere-soft-stage`
+  / `bw-section--atmosphere-soft-stage`) for a decorative, `aria-hidden`
+  wash-and-grid layer behind the band's copy, painted from `--bw-color-stage-wash`
+  and `--bw-color-stage-grid` (derived from the accent/border pair, dark values
+  authored). Composes with `media_placement` (not a synonym for `"behind"`) and
+  with the overlay header (BR-BW-MKT-006): soft-stage is the first-band
+  atmosphere under an overlay, never a second shell. Example:
+  `examples/sections/hero/soft-stage.html`.
+
+- **Product-shot include for hero and feature media slots** (icvoss/django-brickwork#571).
+  New `{% include "brickwork_marketing/components/_product_shot.html" %}`:
+  elevation and optional `window="none"` (default) or `window="light"`
+  (decorative, `aria-hidden` traffic-light dots) chrome around consumer-owned
+  media. Content-only: no named block, no caption, no scroll-inspection
+  region, distinct from `_preview_frame.html`'s live-specimen contract and
+  never emitting `.bw-preview-frame` or `.bw-gallery-preview-frame`. Composes
+  in `_hero.html`'s `media` block under every `media_placement`. Example:
+  `examples/sections/hero/product-shot.html`.
+
+- **Section `reveal` axis: CSS-only enter motion** (BR-BW-MKT-009).
+  `_hero.html` and `_section.html` accept `reveal="none"` (default,
+  byte-identical) or `reveal="enter"` (`bw-hero--reveal-enter` /
+  `bw-section--reveal-enter`) for a one-shot enter timed from
+  `--bw-duration-slow` / `--bw-ease-out`, gated to
+  `prefers-reduced-motion: no-preference`. The no-JS render is the final
+  resting state; under `prefers-reduced-motion: reduce` the animation and
+  transform are forced off (`!important`, MOT-003). Decorative only, never
+  the sole means of revealing content. Example:
+  `examples/sections/section/reveal.html`.
+
 ## [4.1.0] - 2026-09-23
 
 Marketing pages gain quieter proof shapes (plain stat chrome, start-aligned
