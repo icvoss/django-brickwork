@@ -1,0 +1,43 @@
+{% comment %}
+Product shot (BR-BW-MKT-008, icvoss/django-brickwork#571): marketing
+window dressing for sell media in a hero or feature `media` slot.
+
+Structural include. Distinct from `_preview_frame.html` (ILL-026 / #269):
+that frame is for live specimens with a surface-guarded contrast fill and
+optional scroll-inspection semantics. This wrap is elevation and optional
+light window chrome around consumer-owned stills or clips. It must never
+emit `.bw-preview-frame` or `.bw-gallery-preview-frame`.
+
+Required context: none. Empty content renders nothing, never a broken
+image box.
+
+Optional context:
+  content (safe HTML): the media to frame. The caller owns escaping
+            (mark it safe at the call site), matching `_hero.html` media.
+  window  ("none" default | "light"): "none" (also omitted) is elevation
+            only and emits no window modifier. "light" adds decorative
+            traffic-light dots, aria-hidden, never content.
+
+No named blocks (ruled 2026-09-23 at build, BR-BW-MKT-008 rule 1): the
+whole figure is gated on `content`, so a block inside it would be
+unreachable when content is empty. Content-only, matching the media/
+decoration convention.
+
+States: resting only; window is a presentation option.
+Accessibility: figure with no caption (captions are inspection chrome).
+  Window dots are aria-hidden. Covered by product-shot-*.html, both themes.
+Responsive: fluid; the frame is max-inline-size 100% inside hero / feature
+  media slots.
+{% endcomment %}
+{% if content %}
+<figure class="bw-product-shot{% if window == 'light' %} bw-product-shot--window-light{% endif %}">
+  {% if window == 'light' %}
+  <div class="bw-product-shot__window" aria-hidden="true">
+    <span class="bw-product-shot__dot"></span>
+    <span class="bw-product-shot__dot"></span>
+    <span class="bw-product-shot__dot"></span>
+  </div>
+  {% endif %}
+  <div class="bw-product-shot__media">{{ content }}</div>
+</figure>
+{% endif %}

@@ -85,6 +85,24 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     # "card" is the honestly-named default (KPI card chrome) and emits no
     # modifier class at all, so it has no entry here.
     ("_stat", "chrome", "plain", "bw-stat--chrome-plain"),
+    # --- atmosphere (BR-BW-MKT-007, #570) ------------------------------------
+    # "none" is the honestly-named default (no decorative layer) and emits
+    # no modifier class at all, so it has no entry here: there is no CSS
+    # rule to pin, only the byte-identity test in test_marketing.py.
+    ("_hero", "atmosphere", "soft-stage", "bw-hero--atmosphere-soft-stage"),
+    ("_section", "atmosphere", "soft-stage", "bw-section--atmosphere-soft-stage"),
+    # --- reveal (BR-BW-MKT-009) ----------------------------------------------
+    # "none" is the honestly-named default (static, no animation) and emits
+    # no modifier class at all, so it has no entry here: there is no CSS
+    # rule to pin, only the byte-identity test in test_marketing.py.
+    ("_hero", "reveal", "enter", "bw-hero--reveal-enter"),
+    ("_section", "reveal", "enter", "bw-section--reveal-enter"),
+    # --- product_shot window (BR-BW-MKT-008, #571) ---------------------------
+    # "none" is the honestly-named default (elevation only, no window
+    # chrome) and emits no modifier class at all, so it has no entry here:
+    # there is no CSS rule to pin, only the byte-identity test in
+    # test_marketing.py.
+    ("_product_shot", "window", "light", "bw-product-shot--window-light"),
     # --- the renamed vocabularies (3.0.0) -----------------------------------
     ("_alert", "variant", "info", "bw-alert--info"),
     ("_alert", "variant", "success", "bw-alert--success"),

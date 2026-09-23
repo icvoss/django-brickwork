@@ -289,7 +289,11 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     (icvoss/django-brickwork#627) then added a toc fixture pair, moving the
     real count to 78/156.) The three-region app shell work
     (icvoss/django-brickwork#700 to #703) then added an app-regions fixture
-    pair, moving the real count to 79/158.)
+    pair, moving the real count to 79/158.) The marketing sustainment work
+    (BR-BW-MKT-007..009, icvoss/django-brickwork#570/#571) then added four
+    fixture pairs (soft-stage-overlay, soft-stage-media-behind,
+    product-shot-placement, marketing-reveal), moving the real count to
+    83/166.)
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -302,7 +306,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     document_count = manifest["counts"]["archetypes"] + manifest["counts"]["skeletons"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 158 + (document_count * 2)
+    assert _leading_int(value) == 166 + (document_count * 2)
     assert f"{document_count} catalogue documents x light and dark" in note
 
 

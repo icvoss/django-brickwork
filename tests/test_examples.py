@@ -1689,6 +1689,13 @@ _SECTION_FEATURE_LIST_ITEMS = [
     "VAT returns prepared and filed",
     "Export to CSV, or the API if you would rather",
 ]
+_SECTION_PRODUCT_SHOT_MEDIA = mark_safe(
+    '<svg viewBox="0 0 480 320" width="480" height="320" aria-hidden="true" focusable="false">'
+    '<rect width="480" height="320" fill="var(--bw-color-surface-sunken)" />'
+    '<rect x="24" y="24" width="240" height="16" rx="8" fill="var(--bw-color-border)" />'
+    '<rect x="24" y="60" width="160" height="16" rx="8" fill="var(--bw-color-border)" />'
+    "</svg>"
+)
 _SECTION_CASE_LIST_ITEMS = [
     {
         "result": "3.2x",
@@ -1891,9 +1898,20 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/methods/quiet-columns.html": {"method_items": _SECTION_METHOD_ITEMS},
     "sections/outcomes/quiet-columns.html": {"outcome_items": _SECTION_OUTCOME_ITEMS},
     "sections/section/intro.html": {},
+    "sections/section/reveal.html": {"feature_list_items": _SECTION_FEATURE_LIST_ITEMS},
     "sections/hero/centred.html": {},
     "sections/hero/media-behind.html": {},
     "sections/hero/minimal.html": {},
+    "sections/hero/product-shot.html": {
+        "eyebrow": "Invoicing",
+        "heading": "See it before you sign up",
+        "lede": "A real screenshot, framed like product marketing rather than a live specimen.",
+        "primary_cta_label": "Start free trial",
+        "primary_cta_href": "/accounts/signup/",
+        "media_placement": "beside",
+        "shot_content": _SECTION_PRODUCT_SHOT_MEDIA,
+    },
+    "sections/hero/soft-stage.html": {},
     "sections/hero/split-media.html": {},
     "sections/listing/card-grid.html": {"entries": _SECTION_ENTRIES},
     "sections/listing/compact-table.html": {"entries": _SECTION_ENTRIES},

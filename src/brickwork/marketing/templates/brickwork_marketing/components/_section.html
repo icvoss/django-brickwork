@@ -24,6 +24,13 @@ author the classes directly.
 Axes (ADR-057 §1a), CSS-only modifiers on the root:
   width  contained (default, no class) | bleed → bw-section--bleed
   band   plain (default, no class) | tint → bw-section--tint
+  atmosphere  none (default, no class) | soft-stage →
+              bw-section--atmosphere-soft-stage plus an aria-hidden
+              .bw-stage layer (BR-BW-MKT-007 / #570). Omission is
+              byte-identical. Unrecognised values fall back to none.
+  reveal none (default, no class) | enter → bw-section--reveal-enter
+              (BR-BW-MKT-009). CSS-only; no-JS and reduced motion are
+              the resting state. Unrecognised values fall back to none.
 
 Shared intro (#695): optional overline, heading and lede inside
 `.bw-section__inner`, as a class contract (usable from named marketing
@@ -63,8 +70,8 @@ Accessibility: structural only; the caller owns headings inside the
 Responsive: bleed escape is fluid at every width (100vw, capped); inner
   measure + gutter match the marketing shell rail.
 {% endcomment %}
-<section class="bw-section{% if width == 'bleed' %} bw-section--bleed{% endif %}{% if band == 'tint' %} bw-section--tint{% endif %}">
-  <div class="bw-section__inner">
+<section class="bw-section{% if width == 'bleed' %} bw-section--bleed{% endif %}{% if band == 'tint' %} bw-section--tint{% endif %}{% if atmosphere == 'soft-stage' %} bw-section--atmosphere-soft-stage{% endif %}{% if reveal == 'enter' %} bw-section--reveal-enter{% endif %}">
+  {% if atmosphere == 'soft-stage' %}<div class="bw-stage" aria-hidden="true"></div>{% endif %}<div class="bw-section__inner">
     {% block section_content %}{% endblock %}
   </div>
 </section>

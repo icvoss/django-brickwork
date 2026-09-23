@@ -456,6 +456,24 @@
         }
       }
     },
+    "stage-wash": {
+      "$value": "oklch(0.707 0.165 254 / 0.16)",
+      "$description": "4.2.0 soft-stage wash (BR-BW-MKT-007 / #570), AUTHORED for dark: accent at 16% over transparent. Stronger than light so the wash reads on an already-dark surface. Text stays on the band surface, not on this wash.",
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-accent) 16%, transparent)"
+        }
+      }
+    },
+    "stage-grid": {
+      "$value": "oklch(0.269 0.006 265 / 0.7)",
+      "$description": "4.2.0 soft-stage grid line (BR-BW-MKT-007 / #570), AUTHORED for dark: border at 70% over transparent so the grid stays visible on graphite.",
+      "$extensions": {
+        "bw": {
+          "derived": "color-mix(in oklab, var(--bw-color-border) 70%, transparent)"
+        }
+      }
+    },
     "chart-1": {
       "$value": "{primitive.chart.dark.1}",
       "$extensions": {

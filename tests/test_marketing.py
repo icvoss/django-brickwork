@@ -2386,3 +2386,284 @@ def test_beautiful_default_marketing_surfaces_have_fg_mix_edge_and_ambient() -> 
     assert ".bw-feature-grid>.bw-feature-card{" in dist.replace(" ", "")
     assert ".bw-testimonial{" in dist.replace(" ", "")
     assert ".bw-pricing-tier{" in dist.replace(" ", "")
+
+
+# --- AC-BW-105: soft-stage atmosphere (BR-BW-MKT-007) ------------------------
+
+
+def test_hero_atmosphere_omitted_is_byte_identical_to_no_atmosphere() -> None:
+    omitted = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+    )
+    explicit = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        atmosphere="none",
+    )
+    assert omitted == explicit
+    assert "bw-hero--atmosphere-soft-stage" not in explicit
+    assert "bw-stage" not in explicit
+
+
+def test_hero_atmosphere_soft_stage_emits_modifier_and_decorative_layer() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        atmosphere="soft-stage",
+    )
+    assert "bw-hero--atmosphere-soft-stage" in html
+    assert '<div class="bw-stage" aria-hidden="true"></div>' in html
+
+
+def test_hero_atmosphere_unrecognised_value_falls_back_to_default() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        atmosphere="dark-wall",
+    )
+    assert "bw-hero--atmosphere-soft-stage" not in html
+    assert "bw-stage" not in html
+
+
+def test_section_empty_output_is_byte_identical_to_pre_atmosphere_skeleton() -> None:
+    # Full-string equality: substring checks above would pass on a
+    # whitespace-only regression from a stray {% if %} inside the shell,
+    # the same class of bug test_hero_heading_only_output_is_byte_identical_
+    # to_pre_slot_blocks guards against for _hero.html.
+    html = _render("brickwork_marketing/components/_section.html")
+    assert html == ('\n<section class="bw-section">\n  <div class="bw-section__inner">\n    \n  </div>\n</section>\n')
+
+
+def test_section_atmosphere_omitted_is_byte_identical_to_no_atmosphere() -> None:
+    omitted = _render("brickwork_marketing/components/_section.html")
+    explicit = _include("brickwork_marketing/components/_section.html", atmosphere="none")
+    assert omitted == explicit
+    assert "bw-section--atmosphere-soft-stage" not in explicit
+    assert "bw-stage" not in explicit
+
+
+def test_section_atmosphere_soft_stage_emits_modifier_and_decorative_layer() -> None:
+    html = _include("brickwork_marketing/components/_section.html", atmosphere="soft-stage")
+    assert "bw-section--atmosphere-soft-stage" in html
+    assert '<div class="bw-stage" aria-hidden="true"></div>' in html
+
+
+def test_section_atmosphere_unrecognised_value_falls_back_to_default() -> None:
+    html = _include("brickwork_marketing/components/_section.html", atmosphere="photographic")
+    assert "bw-section--atmosphere-soft-stage" not in html
+    assert "bw-stage" not in html
+
+
+def test_hero_soft_stage_composes_with_media_placement_behind() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="behind",
+        atmosphere="soft-stage",
+    )
+    assert "bw-hero--atmosphere-soft-stage" in html
+    assert "bw-hero--media-behind" in html
+    assert '<div class="bw-stage" aria-hidden="true"></div>' in html
+
+
+def test_hero_soft_stage_composes_with_media_placement_beside() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="beside",
+        atmosphere="soft-stage",
+    )
+    assert "bw-hero--atmosphere-soft-stage" in html
+    assert "bw-hero--media-beside" in html
+    assert '<div class="bw-stage" aria-hidden="true"></div>' in html
+
+
+def test_soft_stage_css_references_only_documented_stage_tokens() -> None:
+    rules = _marketing_css_rules()
+    body = _rule_body(rules, ".bw-stage")
+    assert "var(--bw-color-stage-wash)" in body
+    assert "var(--bw-color-stage-grid)" in body
+    assert not re.search(r"#[0-9a-fA-F]{3,8}\b", body), f".bw-stage hardcodes a hex colour: {body!r}"
+
+
+# --- AC-BW-106: product-shot chrome (BR-BW-MKT-008) --------------------------
+
+
+def test_product_shot_empty_content_renders_nothing() -> None:
+    html = _render("brickwork_marketing/components/_product_shot.html")
+    assert html.strip() == ""
+
+
+def test_product_shot_content_is_wrapped_in_media_div() -> None:
+    html = _include(
+        "brickwork_marketing/components/_product_shot.html",
+        content=mark_safe("<img src='/shot.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert '<div class="bw-product-shot__media"><img' in html
+
+
+def test_product_shot_window_light_emits_modifier_and_aria_hidden_dots() -> None:
+    html = _include(
+        "brickwork_marketing/components/_product_shot.html",
+        content=mark_safe("<img src='/shot.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        window="light",
+    )
+    assert "bw-product-shot--window-light" in html
+    assert '<div class="bw-product-shot__window" aria-hidden="true">' in html
+    assert html.count('<span class="bw-product-shot__dot"></span>') == 3
+
+
+def test_product_shot_window_omitted_or_none_emits_no_window_chrome() -> None:
+    omitted = _include(
+        "brickwork_marketing/components/_product_shot.html",
+        content=mark_safe("<img src='/shot.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    explicit_none = _include(
+        "brickwork_marketing/components/_product_shot.html",
+        content=mark_safe("<img src='/shot.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        window="none",
+    )
+    assert omitted == explicit_none
+    for html in (omitted, explicit_none):
+        assert "bw-product-shot--window-light" not in html
+        assert "bw-product-shot__window" not in html
+
+
+def test_product_shot_never_emits_preview_frame_class_names() -> None:
+    html = _include(
+        "brickwork_marketing/components/_product_shot.html",
+        content=mark_safe("<img src='/shot.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        window="light",
+    )
+    assert "bw-preview-frame" not in html
+    assert "bw-gallery-preview-frame" not in html
+
+
+def test_product_shot_renders_inside_hero_media_slot_beside() -> None:
+    shot = _include(
+        "brickwork_marketing/components/_product_shot.html",
+        content=mark_safe("<img src='/shot.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        window="light",
+    )
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe(shot),  # noqa: S308 (test-authored trusted markup)
+        media_placement="beside",
+    )
+    assert "bw-hero--media-beside" in html
+    assert '<div class="bw-hero__media">' in html
+    assert "bw-product-shot" in html
+    assert "bw-product-shot--window-light" in html
+
+
+def test_product_shot_renders_inside_hero_media_slot_below() -> None:
+    shot = _include(
+        "brickwork_marketing/components/_product_shot.html",
+        content=mark_safe("<img src='/shot.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+    )
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe(shot),  # noqa: S308 (test-authored trusted markup)
+    )
+    assert "bw-hero--media-behind" not in html
+    assert "bw-hero--media-beside" not in html
+    assert '<div class="bw-hero__media">' in html
+    assert "bw-product-shot" in html
+
+
+# --- AC-BW-107: section enter motion (BR-BW-MKT-009) -------------------------
+
+
+def test_hero_reveal_omitted_is_byte_identical_to_no_reveal() -> None:
+    omitted = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+    )
+    explicit = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        reveal="none",
+    )
+    assert omitted == explicit
+    assert "bw-hero--reveal-enter" not in explicit
+
+
+def test_hero_reveal_enter_emits_modifier_class() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        reveal="enter",
+    )
+    assert "bw-hero--reveal-enter" in html
+
+
+def test_hero_reveal_unrecognised_value_falls_back_to_default() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        reveal="slide",
+    )
+    assert "bw-hero--reveal-enter" not in html
+
+
+def test_section_reveal_omitted_is_byte_identical_to_no_reveal() -> None:
+    omitted = _render("brickwork_marketing/components/_section.html")
+    explicit = _include("brickwork_marketing/components/_section.html", reveal="none")
+    assert omitted == explicit
+    assert "bw-section--reveal-enter" not in explicit
+
+
+def test_section_reveal_enter_emits_modifier_class() -> None:
+    html = _include("brickwork_marketing/components/_section.html", reveal="enter")
+    assert "bw-section--reveal-enter" in html
+
+
+def test_section_reveal_unrecognised_value_falls_back_to_default() -> None:
+    html = _include("brickwork_marketing/components/_section.html", reveal="fade")
+    assert "bw-section--reveal-enter" not in html
+
+
+def test_reveal_css_references_only_motion_tokens_for_timing() -> None:
+    """BR-BW-MKT-009 rule 1: no hardcoded duration/easing literal.
+
+    Matches numeric time literals (``0.3s``, ``300ms``) and ``cubic-bezier(``
+    anywhere in the reveal keyframes/animation source; the only timing
+    values allowed are ``var(--bw-duration-*)`` / ``var(--bw-ease-*)``
+    references.
+    """
+    css = (_FRONTEND / "marketing.css").read_text(encoding="utf-8")
+    start = css.find("@keyframes bw-reveal-enter")
+    assert start != -1, "no @keyframes bw-reveal-enter block found in frontend/src/marketing.css"
+    # Bounded at the sentinel comment marketing.css carries immediately after
+    # the reveal block (keyframes plus its two @media rules), so a future
+    # append to the file does not silently widen this scan.
+    end = css.find("/* end of reveal block:", start)
+    assert end != -1, "no end-of-reveal-block sentinel comment found after @keyframes bw-reveal-enter"
+    reveal_source = css[start:end]
+
+    assert not re.search(r"\d+(?:\.\d+)?(?:ms|s)\b", reveal_source), (
+        f"reveal CSS contains a numeric time literal: {reveal_source!r}"
+    )
+    assert "cubic-bezier(" not in reveal_source, "reveal CSS contains a raw cubic-bezier() literal"
+    assert "var(--bw-duration-" in reveal_source
+    assert "var(--bw-ease-" in reveal_source
+
+
+def test_reveal_reduced_motion_sets_animation_none_important_on_both_classes() -> None:
+    # _marketing_css_rules() flattens @media wrappers away, so both the
+    # no-preference and the reduce declarations for the same selector pair
+    # come back as two separate entries; pick the one carrying !important.
+    rules = _marketing_css_rules()
+    reveal_selector = ".bw-hero--reveal-enter,\n  .bw-section--reveal-enter"
+    bodies = [body for sel, body in rules if sel.strip() == reveal_selector.strip()]
+    assert bodies, "no .bw-hero--reveal-enter/.bw-section--reveal-enter rule in frontend/src/marketing.css"
+    reduced_bodies = [body for body in bodies if "!important" in body]
+    assert reduced_bodies, f"no reduced-motion (!important) declaration among: {bodies!r}"
+    reduced_body = reduced_bodies[0]
+    assert "animation: none !important" in reduced_body
+    assert "transform: none !important" in reduced_body

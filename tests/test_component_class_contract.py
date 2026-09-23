@@ -1155,8 +1155,21 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
             if value in {"accent", "sentence"}
             else {"media_shape": value}
             if value in {"default", "circle"}
+            else {"atmosphere": value}
+            if value in {"none", "soft-stage"}
+            else {"reveal": value}
+            if value in {"enter"}
             else {"media_placement": value}
         ),
+    ),
+    "_section": lambda value: _include(
+        "brickwork_marketing/components/_section.html",
+        **({"atmosphere": value} if value in {"soft-stage"} else {"reveal": value}),
+    ),
+    "_product_shot": lambda value: _include(
+        "brickwork_marketing/components/_product_shot.html",
+        content=mark_safe("<img src='/shot.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        window=value,
     ),
     "_alert": lambda value: _tag("brickwork_components", f'{{% bw_alert "Message" variant="{value}" %}}'),
     "_account_menu": lambda value: _include(

@@ -1,0 +1,67 @@
+{% extends "brickwork_marketing/components/_hero.html" %}
+{% comment %}
+HERO / product shot: copy and a framed product still side by side.
+
+WHEN TO USE THIS INSTEAD OF SPLIT MEDIA OR MEDIA BEHIND. When the media is
+a still or short clip of the product itself that should read as marketing
+window dressing (elevation, optional light window chrome) rather than a
+plain image or a full-bleed backdrop. Split media (the sibling example)
+supplies a bare image; this one wraps it in _product_shot.html's chrome.
+
+This one composes _hero.html with media_placement="beside" (ADR-077) and
+_product_shot.html (BR-BW-MKT-008, icvoss/django-brickwork#571), window=
+"light" for the decorative traffic-light dots. This is NOT
+_preview_frame.html (ILL-026): that frame is for live specimens with
+surface-guarded contrast and inspection semantics; this is elevation and
+optional window chrome around a consumer-owned still, with no caption and
+no scroll region.
+
+WHY THIS FILE EXTENDS RATHER THAN INCLUDES. A flat `media` kwarg can only
+carry a plain string, and a Django `{% include ... with %}` clause cannot
+itself hold a nested `{% include %}` call. `_hero.html` ships a `media`
+named block for exactly this (BR-BW-OPT-004: the escape hatch for
+structured content a flat kwarg cannot carry), so this example extends
+_hero.html, supplies eyebrow/heading/lede/CTAs/media_placement as
+ordinary flat context (unaffected by the block override), and fills
+`{% block media %}` with a real `{% include %}` of _product_shot.html.
+This keeps the two components genuinely composed rather than one's markup
+hand-copied into the other, so a future _product_shot.html change cannot
+drift silently out of an inlined copy.
+
+WHAT YOUR VIEW MUST SUPPLY. This example needs shot_content (safe HTML,
+an img/video/svg still for the product shot's frame) and the flat hero
+copy vars below; a real page supplies its own product screenshot as
+shot_content (the caller owns escaping, matching _hero.html's own media
+convention):
+
+    context = {
+        "eyebrow": "Invoicing",
+        "heading": "See it before you sign up",
+        "lede": "...",
+        "primary_cta_label": "Start free trial",
+        "primary_cta_href": "/accounts/signup/",
+        "media_placement": "beside",
+        "shot_content": mark_safe("<img src='...' alt=''>"),
+    }
+
+Required context: shot_content, plus the usual flat _hero.html copy vars
+  (eyebrow, heading, lede, primary_cta_label, primary_cta_href,
+  media_placement) this example passes at the call site above.
+
+States: see _hero.html and _product_shot.html for their own states
+  contracts; this example fixes window="light". media_placement is
+  view-supplied context, not fixed by this file (see WHAT YOUR VIEW
+  MUST SUPPLY above); the sample context above passes "beside".
+Accessibility: see _hero.html; the heading renders as the page's own <h1>.
+  The product shot is a <figure> with no caption; its window dots are
+  aria-hidden. Covered by axe.spec.mjs against sections-*.html, both
+  themes.
+Responsive: media_placement="beside" stacks in one column below
+  --bw-breakpoint-md (48rem), a true two-column grid from md upward (see
+  _hero.html's own header).
+{% endcomment %}
+{% block media %}
+<div class="bw-hero__media">
+  {% include "brickwork_marketing/components/_product_shot.html" with content=shot_content window="light" %}
+</div>
+{% endblock %}

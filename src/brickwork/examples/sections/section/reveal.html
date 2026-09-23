@@ -1,0 +1,50 @@
+{% comment %}
+SECTION / reveal: a section that plays a one-shot CSS enter on load.
+
+WHEN TO USE THIS. A band you want to introduce with a small amount of
+motion (a features grid, a proof band) below the fold, where the page
+loads with the band already in its final, fully visible position: motion
+is decorative, never the means of revealing content.
+
+This one authors the _section.html class contract directly (matching
+`sections/section/intro.html`'s own convention) with the reveal="enter"
+modifier (BR-BW-MKT-009) fixed on the root: CSS-only, timed from
+--bw-duration-slow / --bw-ease-out, gated to prefers-reduced-motion:
+no-preference. Under reduced motion, or with no JS at all (this is CSS,
+so there is nothing to boot), the band renders in its resting state:
+fully visible, no movement. A page composing `{% include
+"brickwork_marketing/components/_section.html" %}` instead passes
+reveal="enter" as ordinary context.
+
+WHAT YOUR VIEW MUST SUPPLY. Pass feature_list_items as items (list of str),
+matching `sections/features/simple-list.html`'s own convention (this
+example composes the same `_feature_list.html` include):
+
+    feature_list_items = [
+        "Invoices chased automatically",
+        "Payment reminders on schedule",
+        "Reconciliation without spreadsheets",
+    ]
+
+States: see _section.html's own header for the full axis contract (this
+  example fixes reveal="enter", leaving width and band at their
+  contained/plain defaults).
+Accessibility: structural only; the caller owns headings inside
+  .bw-section__inner. The reveal animation is decorative and gated to
+  prefers-reduced-motion: no-preference, so it is never the sole means of
+  revealing the copy or the grid. Covered by axe.spec.mjs against
+  sections-*.html, both themes; the reduced-motion floor is covered by
+  a11y/marketing_reveal.spec.mjs.
+Responsive: no breakpoint switch; reveal carries no @media rule of its
+  own beyond the prefers-reduced-motion gate.
+{% endcomment %}
+<section class="bw-section bw-section--reveal-enter">
+  <div class="bw-section__inner">
+    <div class="bw-section__intro">
+      <p class="bw-section__overline">What is included</p>
+      <h2 class="bw-section__heading">Everything the chasing needs</h2>
+      <p class="bw-section__lede">The parts of getting paid that nobody wants to do by hand.</p>
+    </div>
+    {% include "brickwork_marketing/components/_feature_list.html" with items=feature_list_items %}
+  </div>
+</section>
