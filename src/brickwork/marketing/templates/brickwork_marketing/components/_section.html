@@ -71,8 +71,7 @@ Responsive: bleed escape is fluid at every width (100vw, capped); inner
   measure + gutter match the marketing shell rail.
 {% endcomment %}
 <section class="bw-section{% if width == 'bleed' %} bw-section--bleed{% endif %}{% if band == 'tint' %} bw-section--tint{% endif %}{% if atmosphere == 'soft-stage' %} bw-section--atmosphere-soft-stage{% endif %}{% if reveal == 'enter' %} bw-section--reveal-enter{% endif %}">
-  {% if atmosphere == 'soft-stage' %}<div class="bw-stage" aria-hidden="true"></div>{% endif %}
-  <div class="bw-section__inner">
+  {% if atmosphere == 'soft-stage' %}<div class="bw-stage" aria-hidden="true"></div>{% endif %}<div class="bw-section__inner">
     {% block section_content %}{% endblock %}
   </div>
 </section>

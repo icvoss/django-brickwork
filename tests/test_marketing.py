@@ -2426,6 +2426,15 @@ def test_hero_atmosphere_unrecognised_value_falls_back_to_default() -> None:
     assert "bw-stage" not in html
 
 
+def test_section_empty_output_is_byte_identical_to_pre_atmosphere_skeleton() -> None:
+    # Full-string equality: substring checks above would pass on a
+    # whitespace-only regression from a stray {% if %} inside the shell,
+    # the same class of bug test_hero_heading_only_output_is_byte_identical_
+    # to_pre_slot_blocks guards against for _hero.html.
+    html = _render("brickwork_marketing/components/_section.html")
+    assert html == ('\n<section class="bw-section">\n  <div class="bw-section__inner">\n    \n  </div>\n</section>\n')
+
+
 def test_section_atmosphere_omitted_is_byte_identical_to_no_atmosphere() -> None:
     omitted = _render("brickwork_marketing/components/_section.html")
     explicit = _include("brickwork_marketing/components/_section.html", atmosphere="none")
