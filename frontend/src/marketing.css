@@ -3486,6 +3486,8 @@ same pattern as .bw-bio__profile-link. */
   border: var(--bw-size-border-hairline) solid
     color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
   background: var(--bw-color-surface-raised);
+  /* The ambient literal matches .bw-product-chrome's own box-shadow above
+     (same elevation precedent, not an untokenised one-off). */
   box-shadow:
     var(--bw-elevation-2),
     0 8px 28px -10px oklch(0 0 0 / 0.14);
