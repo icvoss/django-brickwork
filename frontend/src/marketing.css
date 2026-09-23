@@ -3435,14 +3435,27 @@ same pattern as .bw-bio__profile-link. */
 /* Soft-stage atmosphere (BR-BW-MKT-007, #570). Opt-in wash-and-grid
    behind first-band copy. Extra markup only when atmosphere="soft-stage".
    Colour is only --bw-color-stage-*; not a synonym for media_placement
-   "behind". */
+   "behind".
+
+   The lifted-content rule is scoped to .bw-hero__copy / .bw-hero__media /
+   .bw-hero__decoration and .bw-section__inner by NAME, not by a
+   ":not(.bw-stage)" catch-all over every direct child. A catch-all at
+   (0,2,0) specificity collided with media_placement="behind", which sets
+   position/z-index on .bw-hero__media at the same specificity later in the
+   cascade: soft-stage's rule lost that fight only when it happened to be
+   declared earlier in the file, and would have silently broken again on
+   any future reorder. Naming the children keeps soft-stage inert on any
+   element it does not own, so it composes with every media_placement
+   value, including "behind", without depending on source order. */
 .bw-hero--atmosphere-soft-stage,
 .bw-section--atmosphere-soft-stage {
   position: relative;
 }
 
-.bw-hero--atmosphere-soft-stage > :not(.bw-stage),
-.bw-section--atmosphere-soft-stage > :not(.bw-stage) {
+.bw-hero--atmosphere-soft-stage > .bw-hero__copy,
+.bw-hero--atmosphere-soft-stage > .bw-hero__decoration,
+.bw-hero--atmosphere-soft-stage > .bw-hero__media,
+.bw-section--atmosphere-soft-stage > .bw-section__inner {
   position: relative;
   z-index: 1;
 }
