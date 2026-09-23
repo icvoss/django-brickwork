@@ -1,0 +1,30 @@
+{% comment %}
+HERO / soft-stage: the centred hero with the package-owned decorative
+wash-and-grid layer behind the copy.
+
+WHEN TO USE THIS INSTEAD OF THE PLAIN CENTRED HERO. When the opening band
+needs a little visual weight but the page is not supplying a hero image or
+illustration: soft-stage gives the band atmosphere from tokens alone, with
+no art asset and no site CSS.
+
+This one is the shipped _hero.html component with atmosphere="soft-stage"
+(BR-BW-MKT-007, icvoss/django-brickwork#570): a decorative, aria-hidden
+wash-and-grid layer painted behind the copy from --bw-color-stage-wash and
+--bw-color-stage-grid, both derived from the load-bearing accent/border
+pair so a brand recolours it for free. It is not a synonym for
+media_placement="behind": there is no media here, only atmosphere.
+
+Required context: none. Optional context: see _hero.html's own header for
+the full Optional context list this include accepts.
+
+States: see _hero.html's own header for the full states contract; this
+  example fixes atmosphere="soft-stage" and align="center".
+Accessibility: see _hero.html; the heading renders as the page's own <h1>.
+  The .bw-stage layer is aria-hidden and pointer-events: none, so it never
+  enters the accessibility tree. Covered by axe.spec.mjs against
+  sections-*.html, both themes.
+Responsive: no breakpoint switch; atmosphere carries no @media rule of its
+  own (the reduced-motion variant softens the mask, it does not change
+  layout).
+{% endcomment %}
+{% include "brickwork_marketing/components/_hero.html" with align="center" eyebrow="Invoicing" heading="A quieter opening band, with no art asset" lede="Soft-stage paints a decorative wash and grid behind the copy from package tokens alone, so a brand gets atmosphere without a hero image." primary_cta_label="Start free trial" primary_cta_href="/accounts/signup/" secondary_cta_label="Book a demo" secondary_cta_href="/demo/" atmosphere="soft-stage" %}

@@ -49,7 +49,7 @@ from your view.
 
 | Type | Variants |
 |---|---|
-| `hero` | `centred`, `split-media`, `media-behind`, `minimal` |
+| `hero` | `centred`, `split-media`, `media-behind`, `minimal`, `soft-stage`, `product-shot` |
 | `features` | `icon-grid`, `alternating-rows`, `simple-list` |
 | `cta` | `centred-band`, `split`, `full-bleed` |
 | `content` | `prose-block`, `media-and-text`, `callout`, `code` |
@@ -58,6 +58,7 @@ from your view.
 | `faq` | `single-column`, `two-column` |
 | `stats` | `inline-band`, `card-row` |
 | `listing` | `card-grid`, `media-list`, `compact-table` |
+| `section` | `intro`, `reveal` |
 
 Most sections render from an EMPTY context, because the copy is typed into the
 file. That is what makes them genuinely copy-paste. The exceptions are the ones
@@ -69,6 +70,8 @@ whose content is a list of dicts, which a Django template cannot build inline:
 | `pricing/three-tier` | `tiers` |
 | `stats/inline-band` | `stats` |
 | `listing/*` (all three) | `entries` |
+| `hero/product-shot` | `shot_content` (plus the usual flat hero copy vars: `eyebrow`, `heading`, `lede`, `primary_cta_label`, `primary_cta_href`, `media_placement`) |
+| `section/reveal` | `feature_list_items` |
 
 Each of those files documents the exact shape to pass in its header comment.
 Where a zero-context alternative exists, the file says so: `pricing/single-plan`
