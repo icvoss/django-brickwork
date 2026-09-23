@@ -218,6 +218,7 @@ Status values:
 | pricing_comparison | N/A (compose) | Thin include of `_comparison_table.html` (#626) |
 | pricing_table | N/A (local) | Tier count is data; highlighted recipe on tier |
 | pricing_tier | N/A (local) | `highlighted` raises elevation; shared `surface`/`elevation` refused |
+| product_shot | N/A (local) | `window` none (default) / light decorative chrome; structural media wrap, no shared `surface`/`elevation` axis (BR-BW-MKT-008, #571) |
 | progress | N/A (keep lean) | Single authored track; consumer drives `--bw-progress-value` |
 | proof_collage | N/A (local) | Marketing proof section; band/width local |
 | ranked_list | N/A (compose) | Empty path uses `_empty_state`; list itself stays unframed |

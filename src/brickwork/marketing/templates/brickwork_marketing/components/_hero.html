@@ -174,8 +174,7 @@ Responsive: media_placement="below" (the default), "behind" and "above"
   centred against the copy.
 {% endcomment %}
 <section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% elif media_placement == 'above' %} bw-hero--media-above{% endif %}{% if media_shape == 'circle' %} bw-hero--media-circle{% endif %}{% if atmosphere == 'soft-stage' %} bw-hero--atmosphere-soft-stage{% endif %}{% if reveal == 'enter' %} bw-hero--reveal-enter{% endif %}">
-  {% if atmosphere == 'soft-stage' %}<div class="bw-stage" aria-hidden="true"></div>{% endif %}
-  <div class="bw-hero__copy">
+  {% if atmosphere == 'soft-stage' %}<div class="bw-stage" aria-hidden="true"></div>{% endif %}<div class="bw-hero__copy">
     {% block eyebrow %}{% if eyebrow %}<p class="bw-hero__eyebrow{% if eyebrow_marker == 'rule' %} bw-hero__eyebrow--rule{% endif %}{% if eyebrow_tone == 'sentence' %} bw-hero__eyebrow--sentence{% endif %}">{{ eyebrow }}</p>{% endif %}{% endblock %}
     {% block heading %}{% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}{% endblock %}
     {% block subheading %}{% if subheading %}<p class="bw-hero__subheading">{{ subheading }}</p>{% endif %}{% endblock %}

@@ -16,8 +16,15 @@ fully visible, no movement. A page composing `{% include
 "brickwork_marketing/components/_section.html" %}` instead passes
 reveal="enter" as ordinary context.
 
-Required context: none. The feature items are typed inline; replace them
-with your own copy.
+WHAT YOUR VIEW MUST SUPPLY. Pass feature_list_items as items (list of str),
+matching `sections/features/simple-list.html`'s own convention (this
+example composes the same `_feature_list.html` include):
+
+    feature_list_items = [
+        "Invoices chased automatically",
+        "Payment reminders on schedule",
+        "Reconciliation without spreadsheets",
+    ]
 
 States: see _section.html's own header for the full axis contract (this
   example fixes reveal="enter", leaving width and band at their
