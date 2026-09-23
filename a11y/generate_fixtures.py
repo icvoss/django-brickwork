@@ -4138,6 +4138,194 @@ def render_cta_width(theme: str) -> str:
     return _inline_css(html)
 
 
+# --- marketing sustainment primitives (BR-BW-MKT-007..009, #570/#571) ---------
+#
+# Three primitives shipped with no dedicated fixture: soft-stage atmosphere
+# under the overlay header (BR-BW-MKT-007 composing with BR-BW-MKT-006),
+# product-shot chrome inside a hero media slot at both media_placement values
+# it supports (BR-BW-MKT-008), and section reveal motion (BR-BW-MKT-009).
+# render_sections already stacks the example sections that exercise each of
+# these once, but that fixture never composes soft-stage with the overlay
+# header (the two features interact: BR-BW-MKT-007 rule 3), and never shows
+# the product shot at both "beside" and "below". These fixtures close that gap
+# rather than duplicate render_sections' own coverage.
+
+_SOFT_STAGE_OVERLAY_HERO = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Invoicing" heading="Atmosphere under the overlay header"'
+    ' lede="Soft-stage is the first-band atmosphere under an overlay header, not a second shell."'
+    ' primary_cta=primary_cta secondary_cta=secondary_cta'
+    ' align="center" atmosphere="soft-stage" %}'
+)
+
+
+def render_soft_stage_overlay(theme: str) -> str:
+    """BR-BW-MKT-007 rule 3: soft-stage composes with the overlay header (BR-BW-MKT-006).
+
+    Reuses the overlay shell shape from render_marketing_overlay, but with a
+    soft-stage hero as the first band rather than the plain full-bleed
+    section that fixture uses, so BOTH clearance mechanisms are exercised
+    together on the same document.
+    """
+    request = RequestFactory().get("/marketing/soft-stage-overlay/")
+    source = (
+        '{% extends "brickwork_marketing/shell/marketing.html" %}'
+        "{% load brickwork_components %}"
+        "{% block marketing_header_modifiers %}bw-site-header--overlay{% endblock %}"
+        '{% block marketing_header_attrs %} data-bw-overlay-ready data-bw-nav-context="dark" data-bw-scrolled="false"{% endblock %}'
+        "{% block brand_wordmark %}Acme{% endblock %}"
+        "{% block marketing_nav %}"
+        '<a href="#features">Features</a>'
+        '<a href="#pricing">Pricing</a>'
+        '<a href="#about">About</a>'
+        "{% endblock %}"
+        "{% block marketing_actions %}"
+        '<a href="#signin">Sign in</a>'
+        '{% bw_button "Get started" href="#start" variant="primary" size="sm" %}'
+        "{% endblock %}"
+        "{% block content %}"
+        + _SOFT_STAGE_OVERLAY_HERO
+        + "{% endblock %}"
+        "{% block footer_legal %}&copy; 2026 Acme Ltd. All rights reserved.{% endblock %}"
+    )
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Soft-stage under overlay",
+        "bw_page_title": "Soft-stage under overlay, Acme",
+        "primary_cta": {"label": "Start free trial", "url": "#start"},
+        "secondary_cta": {"label": "Book a demo", "url": "#demo"},
+    }
+    html = engines["django"].from_string(source).render(ctx, request=request)
+    return _inline_overlay_script(_inline_css(html), inject=False)
+
+
+_PRODUCT_SHOT_BESIDE_HERO = (
+    "{% extends \"brickwork_marketing/components/_hero.html\" %}"
+    "{% block media %}"
+    '<div class="bw-hero__media">'
+    '{% include "brickwork_marketing/components/_product_shot.html" with content=shot_media window="light" %}'
+    "</div>"
+    "{% endblock %}"
+)
+_PRODUCT_SHOT_BELOW_HERO = (
+    "{% extends \"brickwork_marketing/components/_hero.html\" %}"
+    "{% block media %}"
+    '<div class="bw-hero__media">'
+    '{% include "brickwork_marketing/components/_product_shot.html" with content=shot_media %}'
+    "</div>"
+    "{% endblock %}"
+)
+
+
+def render_product_shot_placement(theme: str) -> str:
+    """BR-BW-MKT-008: the product shot inside a hero media slot, both the
+    "beside" placement the spec names explicitly and the "below" default.
+    """
+    from django.utils.safestring import mark_safe
+
+    request = RequestFactory().get("/marketing/product-shot-placement/")
+    shot_media = mark_safe(  # noqa: S308 - our own fixture markup
+        '<svg viewBox="0 0 480 320" aria-hidden="true" focusable="false">'
+        '<rect width="480" height="320" fill="var(--bw-color-surface-sunken)"/>'
+        '<rect x="24" y="24" width="240" height="16" rx="8" fill="var(--bw-color-border)"/>'
+        '<rect x="24" y="60" width="160" height="16" rx="8" fill="var(--bw-color-border)"/>'
+        "</svg>"
+    )
+    beside = engines["django"].from_string(_PRODUCT_SHOT_BESIDE_HERO).render(
+        {
+            "eyebrow": "Invoicing",
+            "heading": "Beside: a true two-column row",
+            "lede": "The product shot fills the media column from 48rem up.",
+            "primary_cta_label": "Start free trial",
+            "primary_cta_href": "#start",
+            "media_placement": "beside",
+            "shot_media": shot_media,
+        }
+    )
+    below = engines["django"].from_string(_PRODUCT_SHOT_BELOW_HERO).render(
+        {
+            "eyebrow": "Invoicing",
+            "heading": "Below: the media_placement default",
+            "lede": "Omitting media_placement stacks the shot after the copy, the shipped column-flex layout.",
+            "primary_cta_label": "Start free trial",
+            "primary_cta_href": "#start",
+            "shot_media": shot_media,
+        }
+    )
+    source = (
+        '{% extends "brickwork_marketing/shell/marketing.html" %}'
+        + _MARKETING_CHROME
+        + "{% block content %}{{ beside }}{{ below }}{% endblock %}"
+    )
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Product shot placement",
+        "bw_page_title": "Product shot placement, Acme",
+        "beside": mark_safe(beside),  # noqa: S308 - our own rendered template
+        "below": mark_safe(below),  # noqa: S308 - our own rendered template
+    }
+    html = engines["django"].from_string(source).render(ctx, request=request)
+    return _inline_css(html)
+
+
+_REVEAL_SECTION = (
+    '{% include "brickwork_marketing/components/_feature_grid.html" with'
+    ' heading="Everything the chasing needs" items=features columns=3 %}'
+)
+
+
+def render_marketing_reveal(theme: str) -> str:
+    """BR-BW-MKT-009: reveal="enter" on a section wrapping a feature grid.
+
+    The static export IS the resting state (no-JS floor): a11y/marketing_
+    reveal.spec.mjs proves the reduced-motion computed style separately.
+    """
+    request = RequestFactory().get("/marketing/reveal/")
+    features = [
+        {
+            "icon": "bell",
+            "heading": "Automatic reminders",
+            "body": "Chase on your schedule, not when you remember.",
+        },
+        {
+            "icon": "calendar",
+            "heading": "Late-payment prediction",
+            "body": "Know which accounts slip before they do.",
+        },
+        {
+            "icon": "check",
+            "heading": "Reconciliation",
+            "body": "Payments matched to invoices automatically.",
+        },
+    ]
+    source = (
+        '{% extends "brickwork_marketing/shell/marketing.html" %}'
+        + _MARKETING_CHROME
+        + "{% block content %}"
+        '<section class="bw-section bw-section--reveal-enter">'
+        '<div class="bw-section__inner">' + _REVEAL_SECTION + "</div>"
+        "</section>"
+        "{% endblock %}"
+    )
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Section reveal",
+        "bw_page_title": "Section reveal, Acme",
+        "features": features,
+    }
+    html = engines["django"].from_string(source).render(ctx, request=request)
+    return _inline_css(html)
+
+
 # --- the example sections (3.1.0, plan Phase 6a) ------------------------------
 #
 # Gate 3 of the plan's Phase 6: every section variant clears axe WCAG 2.2 AA in
@@ -5161,6 +5349,15 @@ def main() -> None:
         # the CTA width axis (ADR-057 section 1a, #98/#118 pattern): width="bleed"
         # (bw-cta--bleed), never rendered by any other fixture, crossed with band
         _emit(OUT / f"cta-width-{theme}.html", render_cta_width(theme), written)
+        # soft-stage atmosphere composing with the overlay header (BR-BW-MKT-007
+        # rule 3 / BR-BW-MKT-006), never composed together by any other fixture
+        _emit(OUT / f"soft-stage-overlay-{theme}.html", render_soft_stage_overlay(theme), written)
+        # product-shot chrome (BR-BW-MKT-008) inside a hero media slot at both
+        # "beside" and the "below" default, never rendered by any other fixture
+        _emit(OUT / f"product-shot-placement-{theme}.html", render_product_shot_placement(theme), written)
+        # section reveal motion (BR-BW-MKT-009): the resting-state (no-JS) export;
+        # the reduced-motion computed-style proof is a11y/marketing_reveal.spec.mjs
+        _emit(OUT / f"marketing-reveal-{theme}.html", render_marketing_reveal(theme), written)
         # the nav renderers (#102/#82): the marketing-header row and the
         # two-tier rail + contextual pairing, ancestor-active states lit
         _emit(OUT / f"nav-renderers-{theme}.html", render_nav_renderers(theme), written)
