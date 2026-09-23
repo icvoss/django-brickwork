@@ -4151,16 +4151,13 @@ def render_cta_width(theme: str) -> str:
 # rather than duplicate render_sections' own coverage.
 
 
-def _soft_stage_overlay_hero(hero_context: str) -> str:
-    return (
-        f'<div data-bw-nav-context="{hero_context}">'
-        '{% include "brickwork_marketing/components/_hero.html" with'
-        ' eyebrow="Invoicing" heading="Atmosphere under the overlay header"'
-        ' lede="Soft-stage is the first-band atmosphere under an overlay header, not a second shell."'
-        " primary_cta=primary_cta secondary_cta=secondary_cta"
-        ' align="center" atmosphere="soft-stage" %}'
-        "</div>"
-    )
+_SOFT_STAGE_OVERLAY_HERO = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Invoicing" heading="Atmosphere under the overlay header"'
+    ' lede="Soft-stage is the first-band atmosphere under an overlay header, not a second shell."'
+    " primary_cta=primary_cta secondary_cta=secondary_cta"
+    ' align="center" atmosphere="soft-stage" %}'
+)
 
 
 def render_soft_stage_overlay(theme: str) -> str:
@@ -4171,11 +4168,16 @@ def render_soft_stage_overlay(theme: str) -> str:
     section that fixture uses, so BOTH clearance mechanisms are exercised
     together on the same document. The soft-stage hero here is the default
     "below" media placement on the ordinary surface, so its ink follows the
-    page theme, matching how _overlay_shell_source marks its own bands per
-    theme (BR-BW-MKT-006 rule 4: "Consumers mark bands with
-    data-bw-nav-context"). A hard-coded "dark" here rendered the light-theme
-    header ink near-white on a near-white band, which axe reports as
-    incomplete gradient-backed contrast rather than a violation.
+    page theme: the header's own data-bw-nav-context is stamped to match
+    theme (BR-BW-MKT-006 rule 4), not hard-coded to "dark". A hard-coded
+    "dark" here rendered the light-theme header ink near-white on a
+    near-white band, which axe reports as incomplete gradient-backed
+    contrast rather than a violation. _hero.html's root <section> has no
+    attrs passthrough to also stamp data-bw-nav-context on the band itself
+    (the marking _overlay_shell_source's own hand-authored bands do); that
+    is moot for this fixture regardless, since it is the no-JS static
+    export (inject=False) where marketing-overlay.js's band scan never
+    runs, so only the header's own stamped attribute is ever examined.
     """
     hero_context = "dark" if theme == "dark" else "light"
     request = RequestFactory().get("/marketing/soft-stage-overlay/")
@@ -4194,7 +4196,7 @@ def render_soft_stage_overlay(theme: str) -> str:
         '<a href="#signin">Sign in</a>'
         '{% bw_button "Get started" href="#start" variant="primary" size="sm" %}'
         "{% endblock %}"
-        "{% block content %}" + _soft_stage_overlay_hero(hero_context) + "{% endblock %}"
+        "{% block content %}" + _SOFT_STAGE_OVERLAY_HERO + "{% endblock %}"
         "{% block footer_legal %}&copy; 2026 Acme Ltd. All rights reserved.{% endblock %}"
     )
     ctx = {
