@@ -16,6 +16,69 @@ versioning contract).
 
 ### Removed
 
+## [4.1.0] - 2026-09-23
+
+Marketing pages gain quieter proof shapes (plain stat chrome, start-aligned
+CTA, a shared section intro and an outcomes band), and the app shell gains a
+three-region layout with an icon-only capability rail and menu triggers. No
+behaviour changes: every new option defaults to the previous output.
+
+### Added
+
+- **Stat tile `chrome` axis** (icvoss/django-brickwork#694). `_stat.html`
+  accepts `chrome="card"` (default KPI chrome, byte-identical) or
+  `chrome="plain"` (`bw-stat--chrome-plain`) for proof figures without
+  border, elevation or card padding. `_stat_band.html` forwards `chrome`
+  explicitly; pair `align="start"` with `chrome="plain"` for an airy proof
+  band. Example: `examples/sections/stats/plain-start.html`.
+
+- **Section shell shared intro** (icvoss/django-brickwork#695). Documented
+  class contract inside `.bw-section__inner`: `.bw-section__overline`,
+  `.bw-section__heading`, `.bw-section__lede` (optional `.bw-section__intro`
+  wrapper), using package type roles. Helper include
+  `_section_intro.html`. Example: `examples/sections/section/intro.html`.
+
+- **Quiet outcomes / columns band** (icvoss/django-brickwork#696). New
+  `{% include "brickwork_marketing/components/_outcomes.html" %}` for equal
+  columns of `{heading, body}` with an optional section foot text link
+  (`url` + `link_label`). No cards, no stages, no per-column CTA. Sibling
+  of `_methods.html`, not a variant. Example:
+  `examples/sections/outcomes/quiet-columns.html`.
+
+- **CTA band `align` axis** (icvoss/django-brickwork#697). `_cta.html` accepts
+  `align="center"` (default, byte-identical) or `align="start"`
+  (`bw-cta--align-start`) for quiet contact-foot stacks. Pair with
+  `band="plain"` for a soft left close. Example:
+  `examples/sections/cta/start-aligned.html`.
+
+- Density tokens `--bw-density-rail-width` and
+  `--bw-density-rail-width-expanded` (all three density axes), for the
+  icon-only rail resting and expanded widths
+  (icvoss/django-brickwork#701).
+
+- **App shell `layout="regions"`** (icvoss/django-brickwork#700 / #703):
+  full-width topbar above sibling capability rail, contextual sidebar, and
+  workspace. New blocks: `rail_region` / `rail`, `sidebar_region` (wraps the
+  existing sidebar aside). Empty `{% block rail %}` or `{% block sidebar %}`
+  collapses that column (`--bw-shell-*-track` to 0) and reclaims width;
+  omitting a `*_region` wrapper does the same. Icon-density rails expand their
+  grid column on hover and keyboard focus, keeping revealed labels visible.
+  Default `layout="sidebar"` and `layout="topbar"` stay supported; nested
+  `.bw-nav-two-tier` inside `{% block sidebar %}` is unchanged. Mobile keeps
+  one drawer tree for both columns.
+
+- **`{% bw_nav_rail density="icons" %}`** (icvoss/django-brickwork#701):
+  icon-only resting rail at `--bw-density-rail-width`, labels on
+  hover/focus-within expand to `--bw-density-rail-width-expanded`. Default
+  `density="labelled"` keeps caption labels visible.
+
+- **`NavItem.menu_trigger`** (icvoss/django-brickwork#702): rail entries that
+  open a menu render as `<button aria-haspopup="menu" aria-expanded="false">`.
+  The flyout panel is not shipped (consumer-owned seam). Validation rejects
+  trigger + URL or trigger + `section_header`. In `{% bw_nav %}` a trigger
+  renders like a section header so children stay reachable on the no-JS /
+  mobile floor. Link rail entries stay real anchors by default.
+
 ## [4.0.0] - 2026-09-19
 
 Major: **clean-break removal** of already-deprecated template block names,
