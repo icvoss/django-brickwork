@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-brickwork"
-version = "4.0.0"
+version = "4.1.0"
 description = "Beautiful by default: brand-agnostic interface foundation for server-rendered Django. Frontend fast across public, product, data, documentation, editorial and transactional surfaces. WCAG 2.2 AA tested in CI; not a Django-admin skin."
 readme = "README.md"
 license = "MIT"
