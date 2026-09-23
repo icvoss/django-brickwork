@@ -3432,3 +3432,122 @@ same pattern as .bw-bio__profile-link. */
   border-block-end-color: var(--bw-color-fg);
 }
 
+/* Soft-stage atmosphere (BR-BW-MKT-007, #570). Opt-in wash-and-grid
+   behind first-band copy. Extra markup only when atmosphere="soft-stage".
+   Colour is only --bw-color-stage-*; not a synonym for media_placement
+   "behind". */
+.bw-hero--atmosphere-soft-stage,
+.bw-section--atmosphere-soft-stage {
+  position: relative;
+}
+
+.bw-hero--atmosphere-soft-stage > :not(.bw-stage),
+.bw-section--atmosphere-soft-stage > :not(.bw-stage) {
+  position: relative;
+  z-index: 1;
+}
+
+.bw-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(180deg, var(--bw-color-stage-wash) 0%, transparent 62%),
+    linear-gradient(var(--bw-color-stage-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bw-color-stage-grid) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    var(--bw-space-8) var(--bw-space-8),
+    var(--bw-space-8) var(--bw-space-8);
+  mask-image: linear-gradient(180deg, black 0%, transparent 88%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-stage {
+    background-image: linear-gradient(
+      180deg,
+      var(--bw-color-stage-wash) 0%,
+      transparent 70%
+    );
+    background-size: 100% 100%;
+    mask-image: none;
+  }
+}
+
+/* Product shot (BR-BW-MKT-008, #571). Elevation wrap for stills in
+   hero / feature media slots. Distinct from .bw-preview-frame (ILL-026).
+   Reuses the existing product-chrome elevation language. */
+.bw-product-shot {
+  margin: 0;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  overflow: hidden;
+  border-radius: var(--bw-radius-xl);
+  border: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
+  background: var(--bw-color-surface-raised);
+  box-shadow:
+    var(--bw-elevation-2),
+    0 8px 28px -10px oklch(0 0 0 / 0.14);
+}
+
+.bw-product-shot__media > :where(img, video, iframe, svg) {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+
+.bw-product-shot--window-light .bw-product-shot__window {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  min-block-size: var(--bw-size-control-height-sm);
+  padding-inline: var(--bw-space-3);
+  background: var(--bw-color-surface-sunken);
+  border-block-end: var(--bw-size-border-hairline) solid
+    color-mix(in oklab, var(--bw-color-fg) 10%, transparent);
+}
+
+.bw-product-shot__dot {
+  inline-size: var(--bw-space-1-5);
+  block-size: var(--bw-space-1-5);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-fg-muted);
+}
+
+.bw-feature-row__media .bw-product-shot,
+.bw-hero__media .bw-product-shot {
+  max-inline-size: 100%;
+}
+
+/* CSS-only reveal (BR-BW-MKT-009). Resting state is the visible layout;
+   motion is an enhancement gated to no-preference. Never set opacity 0
+   at rest. Reduced-motion floor is MOT-003 (!important). */
+@keyframes bw-reveal-enter {
+  from {
+    opacity: 0.92;
+    transform: translateY(var(--bw-space-2));
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bw-hero--reveal-enter,
+  .bw-section--reveal-enter {
+    animation: bw-reveal-enter var(--bw-duration-slow) var(--bw-ease-out) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-hero--reveal-enter,
+  .bw-section--reveal-enter {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
