@@ -49,8 +49,9 @@ Required context: shot_content, plus the usual flat _hero.html copy vars
   media_placement) this example passes at the call site above.
 
 States: see _hero.html and _product_shot.html for their own states
-  contracts; this example fixes media_placement="beside" and
-  window="light".
+  contracts; this example fixes window="light". media_placement is
+  view-supplied context, not fixed by this file (see WHAT YOUR VIEW
+  MUST SUPPLY above); the sample context above passes "beside".
 Accessibility: see _hero.html; the heading renders as the page's own <h1>.
   The product shot is a <figure> with no caption; its window dots are
   aria-hidden. Covered by axe.spec.mjs against sections-*.html, both
