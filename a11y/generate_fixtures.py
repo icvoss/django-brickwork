@@ -4150,13 +4150,17 @@ def render_cta_width(theme: str) -> str:
 # the product shot at both "beside" and "below". These fixtures close that gap
 # rather than duplicate render_sections' own coverage.
 
-_SOFT_STAGE_OVERLAY_HERO = (
-    '{% include "brickwork_marketing/components/_hero.html" with'
-    ' eyebrow="Invoicing" heading="Atmosphere under the overlay header"'
-    ' lede="Soft-stage is the first-band atmosphere under an overlay header, not a second shell."'
-    " primary_cta=primary_cta secondary_cta=secondary_cta"
-    ' align="center" atmosphere="soft-stage" %}'
-)
+
+def _soft_stage_overlay_hero(hero_context: str) -> str:
+    return (
+        f'<div data-bw-nav-context="{hero_context}">'
+        '{% include "brickwork_marketing/components/_hero.html" with'
+        ' eyebrow="Invoicing" heading="Atmosphere under the overlay header"'
+        ' lede="Soft-stage is the first-band atmosphere under an overlay header, not a second shell."'
+        " primary_cta=primary_cta secondary_cta=secondary_cta"
+        ' align="center" atmosphere="soft-stage" %}'
+        "</div>"
+    )
 
 
 def render_soft_stage_overlay(theme: str) -> str:
@@ -4165,14 +4169,21 @@ def render_soft_stage_overlay(theme: str) -> str:
     Reuses the overlay shell shape from render_marketing_overlay, but with a
     soft-stage hero as the first band rather than the plain full-bleed
     section that fixture uses, so BOTH clearance mechanisms are exercised
-    together on the same document.
+    together on the same document. The soft-stage hero here is the default
+    "below" media placement on the ordinary surface, so its ink follows the
+    page theme, matching how _overlay_shell_source marks its own bands per
+    theme (BR-BW-MKT-006 rule 4: "Consumers mark bands with
+    data-bw-nav-context"). A hard-coded "dark" here rendered the light-theme
+    header ink near-white on a near-white band, which axe reports as
+    incomplete gradient-backed contrast rather than a violation.
     """
+    hero_context = "dark" if theme == "dark" else "light"
     request = RequestFactory().get("/marketing/soft-stage-overlay/")
     source = (
         '{% extends "brickwork_marketing/shell/marketing.html" %}'
         "{% load brickwork_components %}"
         "{% block marketing_header_modifiers %}bw-site-header--overlay{% endblock %}"
-        '{% block marketing_header_attrs %} data-bw-overlay-ready data-bw-nav-context="dark" data-bw-scrolled="false"{% endblock %}'
+        f'{{% block marketing_header_attrs %}} data-bw-overlay-ready data-bw-nav-context="{hero_context}" data-bw-scrolled="false"{{% endblock %}}'
         "{% block brand_wordmark %}Acme{% endblock %}"
         "{% block marketing_nav %}"
         '<a href="#features">Features</a>'
@@ -4183,7 +4194,7 @@ def render_soft_stage_overlay(theme: str) -> str:
         '<a href="#signin">Sign in</a>'
         '{% bw_button "Get started" href="#start" variant="primary" size="sm" %}'
         "{% endblock %}"
-        "{% block content %}" + _SOFT_STAGE_OVERLAY_HERO + "{% endblock %}"
+        "{% block content %}" + _soft_stage_overlay_hero(hero_context) + "{% endblock %}"
         "{% block footer_legal %}&copy; 2026 Acme Ltd. All rights reserved.{% endblock %}"
     )
     ctx = {
@@ -4198,6 +4209,58 @@ def render_soft_stage_overlay(theme: str) -> str:
     }
     html = engines["django"].from_string(source).render(ctx, request=request)
     return _inline_overlay_script(_inline_css(html), inject=False)
+
+
+_SOFT_STAGE_MEDIA_BEHIND_HERO = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Invoicing" heading="Copy stays on top of the stage and the media"'
+    ' lede="Soft-stage composes with media_placement=behind: copy and its scrim'
+    ' must still paint above both the decorative stage and the media."'
+    " primary_cta=primary_cta secondary_cta=secondary_cta"
+    ' media=behind_media media_placement="behind" atmosphere="soft-stage" %}'
+)
+
+
+def render_soft_stage_media_behind(theme: str) -> str:
+    """BR-BW-MKT-007 rule 3 x ADR-057 media_placement="behind": soft-stage's
+    decorative .bw-stage layer must not repaint over .bw-hero__media, which
+    must in turn not repaint over .bw-hero__copy and its scrim. No other
+    fixture composes soft-stage with "behind": render_soft_stage_overlay
+    above only exercises the default "below" placement, and
+    render_hero_media_placement exercises "behind" without atmosphere.
+    marketing_stacking.spec.mjs proves the stacking order live with
+    elementFromPoint, which axe cannot: axe checks contrast and semantics,
+    not paint order.
+    """
+    from django.utils.safestring import mark_safe
+
+    request = RequestFactory().get("/marketing/soft-stage-media-behind/")
+    behind_media = mark_safe(  # noqa: S308 - our own fixture markup
+        '<svg viewBox="0 0 480 320" aria-hidden="true" focusable="false">'
+        '<rect width="480" height="320" fill="#050506"/>'
+        '<circle cx="240" cy="160" r="90" fill="#121214"/>'
+        "</svg>"
+    )
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Soft-stage with media behind",
+        "bw_page_title": "Soft-stage with media behind, Acme",
+        "primary_cta": {"label": "Start free trial", "url": "#start"},
+        "secondary_cta": {"label": "Book a demo", "url": "#demo"},
+        "behind_media": behind_media,
+    }
+    source = (
+        '{% extends "brickwork_marketing/shell/marketing.html" %}'
+        + _MARKETING_CHROME
+        + "{% block content %}"
+        + _SOFT_STAGE_MEDIA_BEHIND_HERO
+        + "{% endblock %}"
+    )
+    html = engines["django"].from_string(source).render(ctx, request=request)
+    return _inline_css(html)
 
 
 _PRODUCT_SHOT_BESIDE_HERO = (
@@ -5356,6 +5419,15 @@ def main() -> None:
         # soft-stage atmosphere composing with the overlay header (BR-BW-MKT-007
         # rule 3 / BR-BW-MKT-006), never composed together by any other fixture
         _emit(OUT / f"soft-stage-overlay-{theme}.html", render_soft_stage_overlay(theme), written)
+        # soft-stage atmosphere composing with media_placement="behind"
+        # (BR-BW-MKT-007 rule 3, ADR-057 section 1a): the stacking order
+        # marketing_stacking.spec.mjs proves live, never rendered by any
+        # other fixture
+        _emit(
+            OUT / f"soft-stage-media-behind-{theme}.html",
+            render_soft_stage_media_behind(theme),
+            written,
+        )
         # product-shot chrome (BR-BW-MKT-008) inside a hero media slot at both
         # "beside" and the "below" default, never rendered by any other fixture
         _emit(OUT / f"product-shot-placement-{theme}.html", render_product_shot_placement(theme), written)

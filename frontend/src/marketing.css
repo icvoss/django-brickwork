@@ -3437,55 +3437,41 @@ same pattern as .bw-bio__profile-link. */
    Colour is only --bw-color-stage-*; not a synonym for media_placement
    "behind".
 
-   The lifted-content rule is scoped to .bw-hero__copy / .bw-hero__media /
-   .bw-hero__decoration and .bw-section__inner by NAME, not by a
-   ":not(.bw-stage)" catch-all over every direct child. A catch-all at
-   (0,2,0) specificity collided with media_placement="behind", which sets
-   position/z-index on .bw-hero__media at the same specificity later in the
-   cascade: soft-stage's rule lost that fight only when it happened to be
-   declared earlier in the file, and would have silently broken again on
-   any future reorder. Naming the children keeps soft-stage inert on any
-   element it does not own, so it composes with every media_placement
-   value, including "behind", without depending on source order. */
+   Stacking is isolation, not child-lifting. The root gets its own stacking
+   context (position: relative; isolation: isolate) and .bw-stage sits at
+   z-index: -1 inside it. In an isolated context a negative z-index child
+   paints after the root's own background and before every in-flow or
+   z-index: 0/auto descendant, so .bw-stage always sits behind the band's
+   real content without promoting any named child to its own layer. Lifting
+   .bw-hero__copy / .bw-hero__media / .bw-hero__decoration to z-index: 1
+   (the earlier approach) instead gave .bw-hero__media a stacking context
+   under media_placement="behind", where it already carries position:
+   relative with no z-index of its own (relying on document order to stay
+   under .bw-hero__copy at z-index: 1): the promoted, DOM-later media then
+   painted over the copy and its scrim, and separately overrode
+   .bw-hero__decoration's own position: absolute; z-index: 0. Isolation
+   leaves every existing hero/section descendant's position and z-index
+   untouched, so every media_placement value keeps its current stacking. */
 .bw-hero--atmosphere-soft-stage,
 .bw-section--atmosphere-soft-stage {
   position: relative;
-}
-
-.bw-hero--atmosphere-soft-stage > .bw-hero__copy,
-.bw-hero--atmosphere-soft-stage > .bw-hero__decoration,
-.bw-hero--atmosphere-soft-stage > .bw-hero__media,
-.bw-section--atmosphere-soft-stage > .bw-section__inner {
-  position: relative;
-  z-index: 1;
+  isolation: isolate;
 }
 
 .bw-stage {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   background-image:
     linear-gradient(180deg, var(--bw-color-stage-wash) 0%, transparent 62%),
-    linear-gradient(var(--bw-color-stage-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bw-color-stage-grid) 1px, transparent 1px);
+    linear-gradient(var(--bw-color-stage-grid) var(--bw-size-border-hairline), transparent var(--bw-size-border-hairline)),
+    linear-gradient(90deg, var(--bw-color-stage-grid) var(--bw-size-border-hairline), transparent var(--bw-size-border-hairline));
   background-size:
     100% 100%,
     var(--bw-space-8) var(--bw-space-8),
     var(--bw-space-8) var(--bw-space-8);
   mask-image: linear-gradient(180deg, black 0%, transparent 88%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bw-stage {
-    background-image: linear-gradient(
-      180deg,
-      var(--bw-color-stage-wash) 0%,
-      transparent 70%
-    );
-    background-size: 100% 100%;
-    mask-image: none;
-  }
 }
 
 /* Product shot (BR-BW-MKT-008, #571). Elevation wrap for stills in
