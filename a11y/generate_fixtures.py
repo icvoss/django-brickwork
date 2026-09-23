@@ -4396,6 +4396,70 @@ def render_nav_renderers(theme: str) -> str:
     )
 
 
+# --- app shell three-region layout (brickwork#700 / #701 / #702 / #703) -------
+#
+# app-regions-<theme>.html  extends shell/app.html with layout="regions", an
+#                           icon-density rail (link + menu_trigger), a
+#                           contextual sidebar {% bw_nav %}, and a filled
+#                           topbar so axe sees the full-width topbar + sibling
+#                           rail + sibling sidebar landmarks together. Empty
+#                           suppression is covered by the unit tests; this
+#                           fixture is the populated happy path.
+
+_APP_REGIONS_SOURCE = (
+    "{% extends 'brickwork/shell/app.html' %}"
+    "{% load brickwork_nav %}"
+    "{% block page_title %}App regions{% endblock %}"
+    "{% block rail %}"
+    "{% bw_nav_rail items=rail_items active=active density='icons' %}"
+    "{% endblock %}"
+    "{% block sidebar %}"
+    "{% bw_nav items=contextual_items active=active %}"
+    "{% endblock %}"
+    "{% block mobile_nav %}"
+    "{% bw_nav items=rail_items active=active %}"
+    "{% endblock %}"
+    "{% block topbar_search %}"
+    '<input type="search" aria-label="Search" placeholder="Search">'
+    "{% endblock %}"
+    "{% block content %}"
+    "<h1>Regions shell</h1>"
+    "<p>Three-region app shell fixture.</p>"
+    "{% endblock %}"
+)
+
+
+def render_app_regions(theme: str) -> str:
+    from brickwork.models import NavItem
+
+    rail_items = (
+        NavItem(key="fx-ar-home", label="Home", href="/", icon="home"),
+        NavItem(
+            key="fx-ar-channels",
+            label="Channels",
+            menu_trigger=True,
+            icon="folder",
+            children=(NavItem(key="fx-ar-email", label="Email", href="/email/"),),
+        ),
+        NavItem(key="fx-ar-settings", label="Settings", href="/settings/", icon="settings"),
+    )
+    contextual_items = (
+        NavItem(key="fx-ar-overview", label="Overview", href="/"),
+        NavItem(key="fx-ar-activity", label="Activity", href="/activity/"),
+    )
+    request = RequestFactory().get("/")
+    ctx = {
+        "request": request,
+        "layout": "regions",
+        "bw_theme": theme,
+        "rail_items": rail_items,
+        "contextual_items": contextual_items,
+        "active": rail_items[0],
+    }
+    html = engines["django"].from_string(_APP_REGIONS_SOURCE).render(ctx, request=request)
+    return _inline_css(html)
+
+
 # --- the search + loading-button fixtures (icvoss/django-brickwork#226) -------
 #
 # search-<theme>.html is a standalone (non-shell) page, mirroring render_
@@ -5100,6 +5164,9 @@ def main() -> None:
         # the nav renderers (#102/#82): the marketing-header row and the
         # two-tier rail + contextual pairing, ancestor-active states lit
         _emit(OUT / f"nav-renderers-{theme}.html", render_nav_renderers(theme), written)
+        # three-region app shell (#700/#701/#702/#703): full-width topbar +
+        # sibling icon rail (with menu trigger) + contextual sidebar
+        _emit(OUT / f"app-regions-{theme}.html", render_app_regions(theme), written)
         # search + loading button (#226): bw_search and _spinner.html's
         # loading=True mount, neither previously rendered by any fixture
         _emit(OUT / f"search-{theme}.html", render_search(theme), written)

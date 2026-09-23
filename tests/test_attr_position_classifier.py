@@ -185,6 +185,7 @@ _KNOWN_EXEMPT: dict[str, int] = {
     "forms/_form.html|data-density|density": 1,
     "nav/_nav.html|href|item.href|default:'#'": 1,
     "nav/_nav_header.html|href|item.href|default:'#'": 1,
+    "nav/_nav_rail.html|data-bw-nav-menu-trigger|item.key": 1,
     "nav/_nav_rail.html|href|item.href|default:'#'": 1,
     "shell/app.html|data-bw-sidebar-collapse-label|bw_sidebar_collapse_label": 1,
     "shell/app.html|data-bw-sidebar-expand-label|bw_sidebar_expand_label": 1,

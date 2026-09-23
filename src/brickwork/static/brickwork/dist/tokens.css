@@ -311,6 +311,8 @@
   --bw-density-stack-gap: 1rem;
   --bw-density-sidebar-width: 16rem;
   --bw-density-sidebar-width-collapsed: 4rem;
+  --bw-density-rail-width: 3.25rem;
+  --bw-density-rail-width-expanded: 13.75rem;
   --bw-density-topbar-height: 3.5rem;
   --bw-density-section-gap: 2rem;
   --bw-density-card-padding: 1rem;
@@ -495,6 +497,8 @@
   --bw-density-stack-gap: 1rem;
   --bw-density-sidebar-width: 16rem;
   --bw-density-sidebar-width-collapsed: 4rem;
+  --bw-density-rail-width: 3.25rem;
+  --bw-density-rail-width-expanded: 13.75rem;
   --bw-density-topbar-height: 3.5rem;
   --bw-density-section-gap: 2rem;
   --bw-density-card-padding: 1rem;
@@ -509,6 +513,8 @@
   --bw-density-stack-gap: 0.625rem;
   --bw-density-sidebar-width: 13rem;
   --bw-density-sidebar-width-collapsed: 3.5rem;
+  --bw-density-rail-width: 3.25rem;
+  --bw-density-rail-width-expanded: 12.5rem;
   --bw-density-topbar-height: 3rem;
   --bw-density-section-gap: 1.5rem;
   --bw-density-card-padding: 0.75rem;
@@ -523,6 +529,8 @@
   --bw-density-stack-gap: 1.5rem;
   --bw-density-sidebar-width: 18rem;
   --bw-density-sidebar-width-collapsed: 4.5rem;
+  --bw-density-rail-width: 3.5rem;
+  --bw-density-rail-width-expanded: 14rem;
   --bw-density-topbar-height: 4rem;
   --bw-density-section-gap: 3rem;
   --bw-density-card-padding: 1.5rem;

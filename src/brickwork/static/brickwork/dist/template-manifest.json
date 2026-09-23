@@ -626,6 +626,24 @@
       ]
     },
     {
+      "name": "rail",
+      "declaredIn": [
+        "brickwork/shell/app.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "rail_region",
+      "declaredIn": [
+        "brickwork/shell/app.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "role",
       "declaredIn": [
         "brickwork_marketing/components/_bio.html",
@@ -692,6 +710,15 @@
     },
     {
       "name": "sidebar_mobile",
+      "declaredIn": [
+        "brickwork/shell/app.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
+      "name": "sidebar_region",
       "declaredIn": [
         "brickwork/shell/app.html"
       ],

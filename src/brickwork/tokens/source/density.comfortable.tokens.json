@@ -23,6 +23,14 @@
     "sidebar-width-collapsed": {
       "$value": "4rem"
     },
+    "rail-width": {
+      "$value": "3.25rem",
+      "$description": "Capability rail resting width for layout=regions and bw_nav_rail density=icons (brickwork#700/#701). 3.25rem = 52px."
+    },
+    "rail-width-expanded": {
+      "$value": "13.75rem",
+      "$description": "Capability rail width on hover/focus-within expand (brickwork#701). 13.75rem = 220px."
+    },
     "topbar-height": {
       "$value": "3.5rem"
     },

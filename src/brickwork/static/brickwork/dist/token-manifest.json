@@ -238,6 +238,8 @@
     "--bw-density-control-height",
     "--bw-density-control-padding-inline",
     "--bw-density-page-gutter-inline",
+    "--bw-density-rail-width",
+    "--bw-density-rail-width-expanded",
     "--bw-density-row-padding-block",
     "--bw-density-row-padding-inline",
     "--bw-density-section-gap",

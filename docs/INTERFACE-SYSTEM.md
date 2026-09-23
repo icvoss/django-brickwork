@@ -54,8 +54,11 @@ content sources and integrations.
 ### Layouts and page archetypes
 
 Brickwork supplies the responsive shells, layout patterns and copyable page
-archetypes that compose those primitives. Coverage is required for these
-families:
+archetypes that compose those primitives. The app shell
+(`brickwork/shell/app.html`) supports `layout="sidebar"` (default),
+`layout="topbar"`, and `layout="regions"` (full-width topbar above sibling
+capability rail, contextual sidebar, and workspace; see INTEGRATION.md).
+Coverage is required for these families:
 
 | Family | Required archetypes |
 |---|---|

@@ -21,7 +21,7 @@ Optional context from the tag:
 
 {% partialdef nav_item %}
   {% comment %} `item` is a RenderedNavItem. {% endcomment %}
-  {% if item.is_section_header %}
+  {% if item.is_section_header or item.is_menu_trigger %}
     <li class="bw-nav__section">
       <span class="bw-nav__section-label">{{ item.label }}</span>
       {% if item.children %}

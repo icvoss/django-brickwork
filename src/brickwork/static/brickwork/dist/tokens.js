@@ -133,6 +133,8 @@ export const tokens = Object.freeze({
   "density_control_height": "var(--bw-density-control-height)",
   "density_control_padding_inline": "var(--bw-density-control-padding-inline)",
   "density_page_gutter_inline": "var(--bw-density-page-gutter-inline)",
+  "density_rail_width": "var(--bw-density-rail-width)",
+  "density_rail_width_expanded": "var(--bw-density-rail-width-expanded)",
   "density_row_padding_block": "var(--bw-density-row-padding-block)",
   "density_row_padding_inline": "var(--bw-density-row-padding-inline)",
   "density_section_gap": "var(--bw-density-section-gap)",

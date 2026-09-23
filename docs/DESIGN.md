@@ -714,6 +714,13 @@ Shipped seven unchanged. New:
 | `--bw-density-section-gap` **[NEW]** | 1.5rem | 2rem | 3rem |
 | `--bw-density-card-padding` **[NEW]** | 0.75rem | 1rem | 1.5rem |
 | `--bw-density-page-gutter-inline` **[NEW]** | 1rem | 1.5rem | 2rem |
+| `--bw-density-rail-width` **[NEW, #700/#701]** | 3.25rem | 3.25rem | 3.5rem |
+| `--bw-density-rail-width-expanded` **[NEW, #701]** | 12.5rem | 13.75rem | 14rem |
+
+`rail-width` is the resting capability-rail track for `layout="regions"` and
+for `{% bw_nav_rail density="icons" %}` (52px at comfortable). `rail-width-expanded`
+is the hover/focus-within expand target. Override either in brand CSS; do not
+style against private `.bw-nav-rail__*` internals for width.
 
 `section-gap` is the gap BETWEEN page sections; `stack-gap` stays the gap
 WITHIN a stack. `page-gutter-inline` frees `row-padding-inline` to mean only

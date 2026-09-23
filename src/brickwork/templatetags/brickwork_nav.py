@@ -60,6 +60,7 @@ class RenderedNavItem:
     is_active: bool  # this exact item is the current route
     is_active_ancestor: bool  # a descendant is the current route (NAV-008)
     is_section_header: bool
+    is_menu_trigger: bool  # rail button with aria-haspopup (brickwork#702)
     is_external: bool
     is_disabled: bool  # a bad url_name under the "disabled" fallback
     opens_in_new_tab: bool  # target=_blank, independent of is_external (NAV-020)
@@ -130,7 +131,7 @@ def _prepare(
             f"or register it via brickwork.icons.register_icons()."
         )
 
-    if item.section_header:
+    if item.section_header or item.menu_trigger:
         href = None
     elif is_external:
         href = item.external_url
@@ -158,6 +159,10 @@ def _prepare(
     # a section header with no surviving children renders nothing
     if item.section_header and not children:
         return None
+    # a menu trigger that only existed to group children drops when empty;
+    # a childless trigger (panel content owned outside the tree) still renders
+    if item.menu_trigger and item.children and not children:
+        return None
 
     # Active state: normally by the resolved `active` NavItem (key match). A raw
     # `href` item cannot participate in that resolution (it has no url_name for
@@ -177,12 +182,16 @@ def _prepare(
         is_active=is_active,
         is_active_ancestor=is_ancestor_of_active(item, active) and (active is None or item.key != active.key),
         is_section_header=item.section_header,
+        is_menu_trigger=item.menu_trigger,
         is_external=is_external,
         is_disabled=is_disabled,
         # New-tab is its own axis (NAV-020), tri-state: None keeps the historical
         # default (external links open a new tab, internal links do not), an
-        # explicit bool overrides either way. Never on a section header (no link).
-        opens_in_new_tab=_resolve_new_tab(item.opens_in_new_tab, is_external) and not item.section_header,
+        # explicit bool overrides either way. Never on a section header or menu
+        # trigger (no link).
+        opens_in_new_tab=_resolve_new_tab(item.opens_in_new_tab, is_external)
+        and not item.section_header
+        and not item.menu_trigger,
         children=children,
     )
 
@@ -211,6 +220,7 @@ def _prepare_tree(
 
 
 _NAV_LABELS = frozenset({"truncate", "wrap"})
+_RAIL_DENSITIES = frozenset({"labelled", "icons"})
 
 
 @register.inclusion_tag("brickwork/nav/_nav.html", takes_context=True)
@@ -272,10 +282,21 @@ def bw_nav_rail(
     items: tuple[NavItem, ...],
     active: NavItem | None = None,
     resolver_match=None,
+    density: str = "labelled",
 ) -> dict:
     """Render the compact icon+label rail over the same NavItem tree
     (brickwork#82): tier one of the capability-rail + contextual-sidebar
     layout, paired with an ordinary ``{% bw_nav %}`` as the contextual second
     tier. Same arguments and preparation as ``{% bw_nav %}``; only the render
-    target differs. See nav/_nav_rail.html's own contract."""
-    return {"bw_nav_tree": _prepare_tree(context, items, active, resolver_match)}
+    target differs. See nav/_nav_rail.html's own contract.
+
+    ``density`` is ``"labelled"`` (default: caption labels always visible) or
+    ``"icons"`` (icon-only at rest, labels on hover/focus-within expand;
+    brickwork#701). Closed vocabulary.
+    """
+    if density not in _RAIL_DENSITIES:
+        raise TemplateSyntaxError(f"bw_nav_rail density must be one of {sorted(_RAIL_DENSITIES)}, got {density!r}")
+    return {
+        "bw_nav_tree": _prepare_tree(context, items, active, resolver_match),
+        "density": density,
+    }
