@@ -18,8 +18,10 @@ Optional context:
             only and emits no window modifier. "light" adds decorative
             traffic-light dots, aria-hidden, never content.
 
-Named blocks (semver-public, BR-BW-TPL-001): shot. When extending, fill
-`{% block shot %}`; the block wins over content when both are set.
+No named blocks (ruled 2026-09-23 at build, BR-BW-MKT-008 rule 1): the
+whole figure is gated on `content`, so a block inside it would be
+unreachable when content is empty. Content-only, matching the media/
+decoration convention.
 
 States: resting only; window is a presentation option.
 Accessibility: figure with no caption (captions are inspection chrome).
@@ -36,6 +38,6 @@ Responsive: fluid; the frame is max-inline-size 100% inside hero / feature
     <span class="bw-product-shot__dot"></span>
   </div>
   {% endif %}
-  <div class="bw-product-shot__media">{% block shot %}{{ content }}{% endblock %}</div>
+  <div class="bw-product-shot__media">{{ content }}</div>
 </figure>
 {% endif %}
