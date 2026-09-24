@@ -736,6 +736,37 @@ which also gives
   text-align: center;
 }
 
+/* width="bleed" (ADR-057 section 1a / #710): the hero has no separate
+ * __inner wrapper the way .bw-section does (media_placement="behind" and
+ * "beside" both need .bw-hero__copy and .bw-hero__media as DIRECT children
+ * for their own display:grid tricks below, and the media_placement axis is
+ * documented CSS-only, so this axis cannot add one either). Collapsing the
+ * section shell's two-box escape (100vw outer, capped-and-gutter inner)
+ * onto the one box .bw-hero already is: inline-size/margin-inline give the
+ * same fluid viewport escape as .bw-section--bleed, and padding-inline
+ * reproduces .bw-section__inner's cap in a single declaration (the larger
+ * of the page gutter or the space needed to keep the content box at
+ * --bw-component-content-max-width-marketing). .bw-hero__media already
+ * caps at 100% of its container (max-inline-size: 100%, above), and
+ * .bw-hero__copy already caps narrower still at the prose measure, so both
+ * land on the marketing measure inside this padding without their own
+ * change. .bw-stage (position: absolute; inset: 0 relative to the padding
+ * edge) ignores this padding and keeps covering the full bleed box.
+ * media_placement="behind" applies AFTER this in source order and sets its
+ * own `padding` shorthand (not padding-inline alone), which resets this
+ * rule's padding-inline back to its own space-16/space-8: bleed then makes
+ * the inverse panel itself span the viewport, exactly per the issue, while
+ * .bw-hero__copy keeps capping itself at the prose measure inside it. */
+.bw-hero--bleed {
+  inline-size: 100vw;
+  max-inline-size: 100vw;
+  margin-inline: calc(50% - 50vw);
+  padding-inline: max(
+    var(--bw-density-page-gutter-inline),
+    calc((100vw - var(--bw-component-content-max-width-marketing)) / 2)
+  );
+}
+
 .bw-hero__copy {
   display: flex;
   flex-direction: column;
