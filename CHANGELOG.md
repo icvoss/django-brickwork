@@ -16,6 +16,21 @@ versioning contract).
 
 ### Removed
 
+## [4.3.1] - 2026-09-24
+
+Patch for 4.3.0's `width="bleed"` hero: on viewports wider than the
+marketing measure its content sat one page gutter outside every other
+band. No change for a consumer that does not use `width="bleed"`.
+
+### Fixed
+
+- **Hero `width="bleed"` keeps the page gutter** (follow-up to
+  icvoss/django-brickwork#710). In 4.3.0 the bleed hero's inline padding was
+  `max(gutter, cap)`, so on viewports wider than the marketing measure the
+  copy and media sat one page gutter outside every other band's content
+  edge. It is now cap plus gutter, matching the rail rule and
+  `.bw-section__inner`. No change on viewports narrower than the measure.
+
 ## [4.3.0] - 2026-09-24
 
 One axis, prompted by the first consumer of 4.2.0's soft-stage: the hero
