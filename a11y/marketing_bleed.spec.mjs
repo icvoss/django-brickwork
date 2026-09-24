@@ -43,17 +43,26 @@ for (const theme of ["light", "dark"]) {
     const copyBox = await copy.evaluate((el) => el.getBoundingClientRect());
     expect(copyBox.left).toBeGreaterThanOrEqual(48);
 
-    // Alignment proof (4.3.1): the bleed hero's copy edge must sit exactly
-    // where the contained hero's copy edge sits, cap plus page gutter. In
-    // 4.3.0 the padding was max(cap, gutter), which dropped the gutter on
-    // wide viewports and put the copy one gutter outside every other band.
+    // Alignment proof (4.3.1): the bleed hero's CONTENT edge (its own left
+    // plus its computed inline-start padding) must sit exactly where the
+    // contained hero's content edge sits: cap plus page gutter. Measured on
+    // the hero box, not on .bw-hero__copy, because these fixtures centre the
+    // copy and a centred child's left edge does not move with symmetric
+    // padding. In 4.3.0 the padding was max(cap, gutter), which dropped the
+    // gutter on wide viewports and put the content one gutter outside every
+    // other band.
+    const bleedContentEdge = await hero.evaluate(
+      (el) => el.getBoundingClientRect().left + parseFloat(getComputedStyle(el).paddingInlineStart),
+    );
     await page.goto(
       pathToFileURL(join(FIXTURES, `soft-stage-overlay-${theme}.html`)).href,
     );
-    const containedCopy = page.locator(".bw-hero .bw-hero__copy").first();
-    await expect(containedCopy).toBeVisible();
-    const containedBox = await containedCopy.evaluate((el) => el.getBoundingClientRect());
-    expect(Math.abs(copyBox.left - containedBox.left)).toBeLessThanOrEqual(1);
+    const containedHero = page.locator(".bw-hero").first();
+    await expect(containedHero).toBeVisible();
+    const containedContentEdge = await containedHero.evaluate(
+      (el) => el.getBoundingClientRect().left + parseFloat(getComputedStyle(el).paddingInlineStart),
+    );
+    expect(Math.abs(bleedContentEdge - containedContentEdge)).toBeLessThanOrEqual(1);
   });
 
   test(`hero stays on the marketing rail without width="bleed" (${theme})`, async ({
