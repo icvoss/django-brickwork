@@ -16,6 +16,30 @@ versioning contract).
 
 ### Removed
 
+## [4.3.0] - 2026-09-24
+
+One axis, prompted by the first consumer of 4.2.0's soft-stage: the hero
+gains `width="bleed"` so a first band can run edge to edge on desktop
+widths instead of clipping to the content rail. No behaviour change for an
+existing consumer on upgrade: omitting the option, or passing
+`width="contained"`, is byte-identical to 4.2.0.
+
+### Added
+
+- **Hero `width` axis: bleed** (icvoss/django-brickwork#710). `_hero.html`
+  accepts `width="contained"` (default, byte-identical) or `width="bleed"`
+  (`bw-hero--bleed`), spelled exactly as `_section.html`'s own `width` axis
+  (ADR-057 section 1a). `"bleed"` reuses the section shell's fluid viewport
+  escape so the hero box, and therefore a `atmosphere="soft-stage"` wash-and-
+  grid layer or a `media_placement="behind"` inverse panel, runs edge to edge
+  on desktop widths instead of clipping to the marketing content rail, while
+  `.bw-hero__copy` and `.bw-hero__media` stay on the marketing measure and
+  gutter. CSS-only axis: no markup changes, so it composes with every other
+  hero option and with the overlay header's own first-child clearance
+  (BR-BW-MKT-006). No behaviour change for an existing consumer: omitting the
+  option, or passing `width="contained"` explicitly, renders byte-identically
+  to before this option existed. Example: `examples/sections/hero/bleed-soft-stage.html`.
+
 ## [4.2.0] - 2026-09-23
 
 Marketing sustainment: the three package-owned gaps that still forced
