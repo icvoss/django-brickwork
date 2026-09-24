@@ -142,7 +142,7 @@ def test_items_covers_every_shell_component_section_and_archetype() -> None:
 def test_items_by_kind_filters_correctly() -> None:
     assert len(items_by_kind("shell")) == 6
     assert len(items_by_kind("component")) == 84
-    assert len(items_by_kind("section")) == 43
+    assert len(items_by_kind("section")) == 44
     assert len(items_by_kind("archetype")) == 52
     assert len(items_by_kind("skeleton")) == 1
 
@@ -239,7 +239,7 @@ def test_sections_requiring_context_match_the_documented_shape() -> None:
 def test_most_sections_render_from_empty_context() -> None:
     section_items = items_by_kind("section")
     empty_context = [entry for entry in section_items if not entry["requiresContext"]]
-    assert len(empty_context) == 23  # 43 sections total, 20 need context
+    assert len(empty_context) == 24  # 44 sections total, 20 need context
 
 
 def test_archetypes_are_scoped_to_their_shipped_family() -> None:

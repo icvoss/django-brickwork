@@ -1899,6 +1899,7 @@ _SECTION_CONTEXTS: dict[str, dict[str, object]] = {
     "sections/outcomes/quiet-columns.html": {"outcome_items": _SECTION_OUTCOME_ITEMS},
     "sections/section/intro.html": {},
     "sections/section/reveal.html": {"feature_list_items": _SECTION_FEATURE_LIST_ITEMS},
+    "sections/hero/bleed-soft-stage.html": {},
     "sections/hero/centred.html": {},
     "sections/hero/media-behind.html": {},
     "sections/hero/minimal.html": {},

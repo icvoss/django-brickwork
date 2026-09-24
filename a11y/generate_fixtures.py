@@ -4213,6 +4213,65 @@ def render_soft_stage_overlay(theme: str) -> str:
     return _inline_overlay_script(_inline_css(html), inject=False)
 
 
+_HERO_BLEED_SOFT_STAGE_HERO = (
+    '{% include "brickwork_marketing/components/_hero.html" with'
+    ' eyebrow="Invoicing" heading="A stage that runs edge to edge"'
+    ' lede="width=bleed composes with atmosphere=soft-stage: the wash-and-grid'
+    ' layer now spans the full viewport instead of stopping at the marketing rail."'
+    " primary_cta=primary_cta secondary_cta=secondary_cta"
+    ' align="center" width="bleed" atmosphere="soft-stage" %}'
+)
+
+
+def render_hero_bleed_soft_stage(theme: str) -> str:
+    """icvoss/django-brickwork#710: width="bleed" composed with atmosphere="soft-stage".
+
+    Mirrors render_soft_stage_overlay's shell shape exactly (same overlay
+    header, same clearance mechanism, BR-BW-MKT-006) so this fixture also
+    proves width="bleed" composes with the overlay's own first-child
+    clearance padding, which targets .bw-hero directly and is unaffected
+    by the bleed axis's inline-size escape. No other fixture composes
+    width="bleed" with atmosphere="soft-stage": render_soft_stage_overlay
+    exercises soft-stage alone (the default "contained" width), and
+    render_cta_width exercises width="bleed" on _cta.html/_section.html,
+    never on the hero. a11y/marketing_bleed.spec.mjs proves the escape
+    live (bounding-box width against the viewport), which axe cannot:
+    axe checks contrast and semantics, not layout geometry.
+    """
+    hero_context = "dark" if theme == "dark" else "light"
+    request = RequestFactory().get("/marketing/hero-bleed-soft-stage/")
+    source = (
+        '{% extends "brickwork_marketing/shell/marketing.html" %}'
+        "{% load brickwork_components %}"
+        "{% block marketing_header_modifiers %}bw-site-header--overlay{% endblock %}"
+        f'{{% block marketing_header_attrs %}} data-bw-overlay-ready data-bw-nav-context="{hero_context}" data-bw-scrolled="false"{{% endblock %}}'
+        "{% block brand_wordmark %}Acme{% endblock %}"
+        "{% block marketing_nav %}"
+        '<a href="#features">Features</a>'
+        '<a href="#pricing">Pricing</a>'
+        '<a href="#about">About</a>'
+        "{% endblock %}"
+        "{% block marketing_actions %}"
+        '<a href="#signin">Sign in</a>'
+        '{% bw_button "Get started" href="#start" variant="primary" size="sm" %}'
+        "{% endblock %}"
+        "{% block content %}" + _HERO_BLEED_SOFT_STAGE_HERO + "{% endblock %}"
+        "{% block footer_legal %}&copy; 2026 Acme Ltd. All rights reserved.{% endblock %}"
+    )
+    ctx = {
+        "request": request,
+        "bw_theme": theme,
+        "bw_density": "comfortable",
+        "bw_dir": "ltr",
+        "title": "Hero bleed with soft-stage",
+        "bw_page_title": "Hero bleed with soft-stage, Acme",
+        "primary_cta": {"label": "Start free trial", "url": "#start"},
+        "secondary_cta": {"label": "Book a demo", "url": "#demo"},
+    }
+    html = engines["django"].from_string(source).render(ctx, request=request)
+    return _inline_overlay_script(_inline_css(html), inject=False)
+
+
 _SOFT_STAGE_MEDIA_BEHIND_HERO = (
     '{% include "brickwork_marketing/components/_hero.html" with'
     ' eyebrow="Invoicing" heading="Copy stays on top of the stage and the media"'
@@ -5421,6 +5480,14 @@ def main() -> None:
         # soft-stage atmosphere composing with the overlay header (BR-BW-MKT-007
         # rule 3 / BR-BW-MKT-006), never composed together by any other fixture
         _emit(OUT / f"soft-stage-overlay-{theme}.html", render_soft_stage_overlay(theme), written)
+        # hero width="bleed" composing with atmosphere="soft-stage" under the
+        # overlay header (icvoss/django-brickwork#710): the geometry proof is
+        # a11y/marketing_bleed.spec.mjs, never rendered by any other fixture
+        _emit(
+            OUT / f"hero-bleed-soft-stage-{theme}.html",
+            render_hero_bleed_soft_stage(theme),
+            written,
+        )
         # soft-stage atmosphere composing with media_placement="behind"
         # (BR-BW-MKT-007 rule 3, ADR-057 section 1a): the stacking order
         # marketing_stacking.spec.mjs proves live, never rendered by any

@@ -5,7 +5,7 @@
   "counts": {
     "shells": 6,
     "components": 84,
-    "sections": 43,
+    "sections": 44,
     "archetypes": 52,
     "skeletons": 1
   },
@@ -1528,6 +1528,7 @@
         "marketing/pricing.html"
       ],
       "usedBySections": [
+        "sections/hero/bleed-soft-stage.html",
         "sections/hero/centred.html",
         "sections/hero/media-behind.html",
         "sections/hero/minimal.html",
@@ -2371,6 +2372,17 @@
       "requiresContext": true,
       "composesItems": [
         "brickwork_marketing/components/_feature_list.html"
+      ]
+    },
+    {
+      "name": "examples/sections/hero/bleed-soft-stage.html",
+      "kind": "section",
+      "family": null,
+      "templatePath": "examples/sections/hero/bleed-soft-stage.html",
+      "docSource": "examples/sections/hero/bleed-soft-stage.html",
+      "requiresContext": false,
+      "composesItems": [
+        "brickwork_marketing/components/_hero.html"
       ]
     },
     {

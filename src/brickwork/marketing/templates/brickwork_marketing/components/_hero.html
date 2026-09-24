@@ -120,6 +120,22 @@ Optional context:
                 "enter" emits bw-hero--reveal-enter. No-JS and reduced
                 motion are the resting state. Unrecognised values fall
                 back to none.
+  width         ("contained" default | "bleed", ADR-057 section 1a / #710):
+                spelled exactly as _section.html's width axis (the ADR-057
+                section 1a binding rule that the same axis carries the
+                same spelling everywhere it appears). "contained" (also
+                omitted) is byte-identical: the pre-existing shell-capped
+                layout. "bleed" emits bw-hero--bleed on the root, reusing
+                _section.html's fluid 100vw escape (capped, see
+                marketing.css) so the hero box, and therefore the
+                soft-stage .bw-stage layer and a media_placement="behind"
+                panel, span the viewport while .bw-hero__copy and
+                .bw-hero__media stay on the marketing measure and gutter.
+                Composes with every align, media_placement, atmosphere
+                and reveal value, and with the marketing shell's
+                first-child overlay clearance (BR-BW-MKT-006), which
+                targets .bw-hero directly and is unaffected by this
+                axis. Unrecognised values fall back to contained.
 
 Uses the display type role (--bw-text-heading-display-*) and the marketing
 section-rhythm token for its own block spacing. Decoration opacity and
@@ -147,8 +163,9 @@ States: none of its own beyond the primary/secondary bw_button CTAs'
   eyebrow_marker states (none default, rule), two eyebrow_tone states
   (accent default, sentence), two media_shape states (default,
   circle), two atmosphere states (none default, soft-stage; soft-stage
-  adds a decorative node), and two reveal states (none default, enter),
-  each a CSS-only modifier class change where applicable.
+  adds a decorative node), two reveal states (none default, enter), and
+  two width states (contained default, bleed), each a CSS-only modifier
+  class change where applicable.
 Accessibility: the heading renders as the page's own <h1> (a page
   composing this include owns exactly one hero per page); with
   media_placement="behind" the copy takes the inverse foreground colour
@@ -173,7 +190,7 @@ Responsive: media_placement="below" (the default), "behind" and "above"
   upward it becomes a true two-column grid (1fr 1fr), media vertically
   centred against the copy.
 {% endcomment %}
-<section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% elif media_placement == 'above' %} bw-hero--media-above{% endif %}{% if media_shape == 'circle' %} bw-hero--media-circle{% endif %}{% if atmosphere == 'soft-stage' %} bw-hero--atmosphere-soft-stage{% endif %}{% if reveal == 'enter' %} bw-hero--reveal-enter{% endif %}">
+<section class="bw-hero bw-hero--{% firstof align 'start' %}{% if media_placement == 'behind' %} bw-hero--media-behind{% elif media_placement == 'beside' %} bw-hero--media-beside{% elif media_placement == 'above' %} bw-hero--media-above{% endif %}{% if media_shape == 'circle' %} bw-hero--media-circle{% endif %}{% if atmosphere == 'soft-stage' %} bw-hero--atmosphere-soft-stage{% endif %}{% if reveal == 'enter' %} bw-hero--reveal-enter{% endif %}{% if width == 'bleed' %} bw-hero--bleed{% endif %}">
   {% if atmosphere == 'soft-stage' %}<div class="bw-stage" aria-hidden="true"></div>{% endif %}<div class="bw-hero__copy">
     {% block eyebrow %}{% if eyebrow %}<p class="bw-hero__eyebrow{% if eyebrow_marker == 'rule' %} bw-hero__eyebrow--rule{% endif %}{% if eyebrow_tone == 'sentence' %} bw-hero__eyebrow--sentence{% endif %}">{{ eyebrow }}</p>{% endif %}{% endblock %}
     {% block heading %}{% if heading %}<h1 class="bw-hero__heading">{{ heading }}</h1>{% endif %}{% endblock %}
