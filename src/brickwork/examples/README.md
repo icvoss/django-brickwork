@@ -49,7 +49,7 @@ from your view.
 
 | Type | Variants |
 |---|---|
-| `hero` | `centred`, `split-media`, `media-behind`, `minimal`, `soft-stage`, `product-shot` |
+| `hero` | `centred`, `split-media`, `media-behind`, `minimal`, `soft-stage`, `bleed-soft-stage`, `product-shot` |
 | `features` | `icon-grid`, `alternating-rows`, `simple-list` |
 | `cta` | `centred-band`, `split`, `full-bleed` |
 | `content` | `prose-block`, `media-and-text`, `callout`, `code` |
