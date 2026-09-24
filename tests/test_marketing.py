@@ -2489,6 +2489,105 @@ def test_soft_stage_css_references_only_documented_stage_tokens() -> None:
     assert not re.search(r"#[0-9a-fA-F]{3,8}\b", body), f".bw-stage hardcodes a hex colour: {body!r}"
 
 
+# --- hero width axis (ADR-057 section 1a, icvoss/django-brickwork#710) -------
+
+
+def test_hero_width_omitted_is_byte_identical_to_contained() -> None:
+    omitted = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+    )
+    explicit = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        width="contained",
+    )
+    assert omitted == explicit
+    assert "bw-hero--bleed" not in explicit
+
+
+def test_hero_width_bleed_emits_its_modifier_class() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        width="bleed",
+    )
+    assert "bw-hero--bleed" in html
+
+
+def test_hero_width_unrecognised_value_falls_back_to_contained() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        width="full",
+    )
+    assert "bw-hero--bleed" not in html
+
+
+def test_hero_width_is_css_only_and_adds_no_markup() -> None:
+    # Same CSS-only invariant as media_placement/atmosphere/reveal: only the
+    # modifier class changes, never the DOM shape.
+    contained = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Same shape",
+    )
+    bleed = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Same shape",
+        width="bleed",
+    )
+    strip_classes = lambda html: re.sub(r'\sclass="[^"]*"', "", html)  # noqa: E731
+    assert strip_classes(contained) == strip_classes(bleed)
+
+
+def test_hero_width_bleed_composes_with_atmosphere_soft_stage() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        width="bleed",
+        atmosphere="soft-stage",
+    )
+    assert "bw-hero--bleed" in html
+    assert "bw-hero--atmosphere-soft-stage" in html
+    assert '<div class="bw-stage" aria-hidden="true"></div>' in html
+
+
+def test_hero_width_bleed_composes_with_media_placement_behind() -> None:
+    html = _include(
+        "brickwork_marketing/components/_hero.html",
+        heading="Ship faster",
+        media=mark_safe("<img src='/hero.png' alt=''>"),  # noqa: S308 (test-authored trusted markup)
+        media_placement="behind",
+        width="bleed",
+    )
+    assert "bw-hero--bleed" in html
+    assert "bw-hero--media-behind" in html
+
+
+def test_hero_width_bleed_css_reuses_the_section_viewport_escape() -> None:
+    # The shared technique: .bw-hero has no __inner wrapper the way
+    # .bw-section does (media_placement="behind"/"beside" both need
+    # .bw-hero__copy/.bw-hero__media as direct children), so the viewport
+    # escape and the measure cap are collapsed onto the one .bw-hero--bleed
+    # box instead of a second element, but the fluid 100vw values are the
+    # same shared technique as .bw-section--bleed (read via the compiled
+    # dist bundle, same as test_section_shell_css_owns_inner_rail_and_
+    # bleed_escape, since .bw-section--bleed is only ever declared as part
+    # of a comma-group selector, never alone).
+    css = (_DIST / "brickwork.css").read_text().replace(" ", "")
+    section_bleed = re.search(r"([^{}]*\.bw-section--bleed[^{}]*)\{([^}]*)\}", css)
+    assert section_bleed is not None, "expected .bw-section--bleed in dist/brickwork.css"
+    section_body = section_bleed.group(2)
+    assert "inline-size:100vw" in section_body
+    assert "margin-inline:calc(50%-50vw)" in section_body
+
+    hero_body = _rule_body(_marketing_css_rules(), ".bw-hero--bleed")
+    assert "inline-size:100vw" in hero_body.replace(" ", "")
+    assert "margin-inline:calc(50%-50vw)" in hero_body.replace(" ", "")
+    assert "--bw-component-content-max-width-marketing" in hero_body
+    assert "--bw-density-page-gutter-inline" in hero_body
+
+
 # --- AC-BW-106: product-shot chrome (BR-BW-MKT-008) --------------------------
 
 

@@ -69,6 +69,11 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     # there is no CSS rule to pin, only the byte-identity test in
     # test_marketing.py.
     ("_cta", "width", "bleed", "bw-cta--bleed"),
+    # --- hero width (ADR-057 section 1a, icvoss/django-brickwork#710) -------
+    # "contained" is the honestly-named default and emits no modifier class
+    # at all, so it has no entry here: there is no CSS rule to pin, only the
+    # byte-identity test in test_marketing.py.
+    ("_hero", "width", "bleed", "bw-hero--bleed"),
     # --- cta align (#697) ---------------------------------------------------
     # "center" is the honestly-named default (the pre-existing centred
     # layout) and emits no modifier class at all, so it has no entry here:

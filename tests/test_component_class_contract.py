@@ -1159,6 +1159,8 @@ _VOCABULARY_CONTEXTS: dict[str, Callable[[str], str]] = {
             if value in {"none", "soft-stage"}
             else {"reveal": value}
             if value in {"enter"}
+            else {"width": value}
+            if value in {"bleed"}
             else {"media_placement": value}
         ),
     ),
