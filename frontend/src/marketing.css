@@ -761,9 +761,14 @@ which also gives
   inline-size: 100vw;
   max-inline-size: 100vw;
   margin-inline: calc(50% - 50vw);
-  padding-inline: max(
-    var(--bw-density-page-gutter-inline),
-    calc((100vw - var(--bw-component-content-max-width-marketing)) / 2)
+  /* Cap plus gutter, not max(cap, gutter): the rail rule and
+     .bw-section__inner are border-box, so their content edge sits at
+     (100vw - measure) / 2 + gutter. max() dropped the gutter on wide
+     viewports and the bleed hero's copy sat one gutter outside every
+     other band (4.3.0 defect, found on the first consumer). */
+  padding-inline: calc(
+    max(0px, (100vw - var(--bw-component-content-max-width-marketing)) / 2) +
+      var(--bw-density-page-gutter-inline)
   );
 }
 

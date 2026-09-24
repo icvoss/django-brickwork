@@ -42,6 +42,18 @@ for (const theme of ["light", "dark"]) {
     const copy = hero.locator(".bw-hero__copy");
     const copyBox = await copy.evaluate((el) => el.getBoundingClientRect());
     expect(copyBox.left).toBeGreaterThanOrEqual(48);
+
+    // Alignment proof (4.3.1): the bleed hero's copy edge must sit exactly
+    // where the contained hero's copy edge sits, cap plus page gutter. In
+    // 4.3.0 the padding was max(cap, gutter), which dropped the gutter on
+    // wide viewports and put the copy one gutter outside every other band.
+    await page.goto(
+      pathToFileURL(join(FIXTURES, `soft-stage-overlay-${theme}.html`)).href,
+    );
+    const containedCopy = page.locator(".bw-hero .bw-hero__copy").first();
+    await expect(containedCopy).toBeVisible();
+    const containedBox = await containedCopy.evaluate((el) => el.getBoundingClientRect());
+    expect(Math.abs(copyBox.left - containedBox.left)).toBeLessThanOrEqual(1);
   });
 
   test(`hero stays on the marketing rail without width="bleed" (${theme})`, async ({
