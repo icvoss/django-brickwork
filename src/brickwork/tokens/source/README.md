@@ -1,3 +1,12 @@
+# Token source (release mirror)
+
+**Migrated unit.** Editorial home is `icvoss/brickwork` →
+`packages/tokens/src/dtcg`. Do not author token changes here.
+
+Sync: `node scripts/sync-from-monorepo.mjs` (see `/LOCKSTEP.md`).
+
+---
+
 # brickwork design-token source (DTCG)
 
 The authored source for brickwork's design tokens. `node build-tokens.mjs`

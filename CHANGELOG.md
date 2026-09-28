@@ -10,6 +10,11 @@ versioning contract).
 
 ### Added
 
+- **Monorepo lockstep for tokens and CSS layers** (icvoss/django-brickwork#718,
+  ADR-119 Wave D). DTCG tokens and `shell`/`nav`/`components`/`marketing` CSS
+  are mirrors of `icvoss/brickwork`; see `LOCKSTEP.md`, `lockstep-manifest.json`,
+  and `npm run sync:monorepo`. CI asserts mirror hashes.
+
 ### Changed
 
 ### Fixed
