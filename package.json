@@ -20,7 +20,8 @@
     "visual-bar:capture:folio": "VISUAL_BAR_BRAND=folio node a11y/visual_bar_capture.mjs",
     "a11y": "playwright test",
     "a11y:startsite": "playwright test --config startsite.playwright.config.mjs",
-    "a11y:lint": "eslint ."
+    "a11y:lint": "eslint .",
+    "sync:monorepo": "node scripts/sync-from-monorepo.mjs"
   },
   "devDependencies": {
     "@alpinejs/focus": "^3.15.12",

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "migrated_units": [
+    "tokens",
+    "css-layers"
+  ],
+  "editorial_home": "icvoss/brickwork",
+  "synced_at": "2026-09-28T11:53:33.447Z",
+  "units": {
+    "tokens": {
+      "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
+      "component.tokens.json": "1f41bf59f2bc2fab3a756f1b46eed433c88117e20a94ab34db6bd64ae0539565",
+      "density.comfortable.tokens.json": "3dad471d1ccc48c1248eafcb6f5a34aebd7a3a50291c2067202b4fd837708ce4",
+      "density.compact.tokens.json": "00dbea7f5a50425987e00dbaf5e58e0e35262bdd35acf74b5989a10f1dbf8814",
+      "density.spacious.tokens.json": "e9c77d94ae36ccfb293aa7402de8a541b8e4aafc204ee2a1162a923059f2bb6c",
+      "motion.tokens.json": "5b0f3771b0a812abcba4c2b0d6ccf0cbd2c36bd5fc8d128d24080bddd5b27584",
+      "primitive.tokens.json": "1885733237d2444cb956fe6f8774d6705bbddbd899313ee8ea61f2c6f73c16e8",
+      "semantic.dark.tokens.json": "1e9fc38d257673a3db474e9bb5d34eca4f92e1558e12097e1a3ef75ca4c18dfa",
+      "semantic.light.tokens.json": "39ffb2ebf14c0f38ea50c4fcc0d7bc5b7cb354870615f170baa7bc16e67c440b",
+      "typography.tokens.json": "3326540e70716969db8503f349af99fa354f141cbc636237aad2761fe4b211e8"
+    },
+    "css": {
+      "shell.css": "6f44d6f6f815dc373db7dc56e8391c85a9ea16489841041a692af1f72bd8ae63",
+      "nav.css": "fb336f329be04ea7b4d67de5309a15dd57c4ca368d03464e0a63582b11582177",
+      "components.css": "5e9345780f8357807725beb188fc363170ff1379c699cfb0f59db8d5f87e4364",
+      "marketing.css": "fec04e26119ba73362b5f7aa488712ac9c1605c91c76f92179c54c74dfa55848"
+    }
+  }
+}
