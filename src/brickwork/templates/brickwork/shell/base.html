@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n brickwork_assets %}
 {% comment %}
 brickwork shell base. Every shell (app/auth/centred) extends this. It owns the
 document skeleton, the token/CSS asset links via plain {% static %} (stable
@@ -56,8 +56,15 @@ Responsive: none of its own; it sets no width-dependent CSS. Each concrete
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block page_title %}{% firstof bw_page_title '' %}{% endblock %}</title>
-  {# Stable-named artefacts, referenced by plain {% static %} (no manifest). #}
-  <link rel="stylesheet" href="{% static 'brickwork/dist/brickwork.css' %}">
+  {% comment %}Stable-named artefact, referenced by {% templatetag openblock %} static {% templatetag closeblock %}
+  (no django-vite manifest). Wrapped in {% templatetag openblock %} block head_css {% templatetag closeblock %}
+  and versioned with a ?v=<brickwork version> query (brickwork#723) so a
+  long-lived /static/ cache on a non-hashing storage cannot hide a package
+  upgrade: the URL changes on every upgrade and is stable between them. Override
+  this block to self-host the sheet or to drive its URL from a setting; put a
+  brand override sheet in {% templatetag openblock %} block head_extra {% templatetag closeblock %}
+  below so it keeps winning the cascade AFTER this one.{% endcomment %}
+  {% block head_css %}<link rel="stylesheet" href="{% bw_asset_url 'brickwork/dist/brickwork.css' %}">{% endblock %}
   {% block head_extra %}{% endblock %}
   {% block head_js %}{% endblock %}
 </head>

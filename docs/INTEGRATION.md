@@ -71,6 +71,34 @@ That single `<link>`, holding your ~7-14 token brand delta, is the whole visual
 rebrand. Do not fork brickwork's stylesheet or reach into its component classes;
 override tokens only.
 
+#### Cache-busting the shipped stylesheet (brickwork#723)
+
+The shell links `brickwork.css` through `{% bw_asset_url %}`, so the default URL
+is `brickwork/dist/brickwork.css?v=<installed brickwork version>`. The version
+query changes on every upgrade and is stable between them, so a consumer whose
+static storage does not hash filenames (for example whitenoise
+`CompressedStaticFilesStorage`, chosen because `ManifestStaticFilesStorage`
+double-hashes django-vite output) behind an immutable `/static/` cache still
+picks up a new stylesheet after upgrading brickwork, rather than serving the
+stale one until the cache expires. Hashing storages are unaffected: the query is
+redundant there, never harmful.
+
+If you need to self-host the sheet, serve it from a CDN, or version it another
+way, override the `head_css` block instead of adding a second `<link>` (the
+DEBUG duplicate detector, brickwork#271, warns on a second link to
+`brickwork.css`):
+
+```django
+{% extends "brickwork/shell/app.html" %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="https://cdn.example.com/brickwork.css?v=4.3.1">
+{% endblock %}
+```
+
+Keep your brand override in `head_extra` (above) so it still loads after this
+block and wins the cascade.
+
 ### What `brickwork.css` provides, and what it does not (brickwork#64)
 
 `brickwork.css` styles the **substrate**: the `bw-*` component and shell classes

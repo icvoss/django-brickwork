@@ -43,7 +43,7 @@ CSS = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
 OUT = Path(__file__).resolve().parent / "fixtures"
 OUT.mkdir(exist_ok=True)
 
-_STATIC_LINK = re.compile(r'<link rel="stylesheet" href="[^"]*brickwork\.css">')
+_STATIC_LINK = re.compile(r'<link rel="stylesheet" href="[^"]*brickwork\.css(?:\?[^"]*)?">')
 
 
 def _inline_css(html: str) -> str:
