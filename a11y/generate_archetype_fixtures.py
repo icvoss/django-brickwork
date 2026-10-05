@@ -60,7 +60,7 @@ CSS = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text(enc
 OUT = Path(__file__).resolve().parent / "fixtures" / "archetypes"
 OUT.mkdir(parents=True, exist_ok=True)
 
-_STATIC_LINK = re.compile(r'<link rel="stylesheet" href="[^"]*brickwork\.css">')
+_STATIC_LINK = re.compile(r'<link rel="stylesheet" href="[^"]*brickwork\.css(?:\?[^"]*)?">')
 
 THEMES = ("light", "dark")
 

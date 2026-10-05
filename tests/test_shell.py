@@ -172,8 +172,9 @@ def test_shell_honours_theme_density_dir_context() -> None:
 
 def test_shell_links_the_stable_css_artefact() -> None:
     html = _render("brickwork/shell/app.html")
-    # referenced by plain {% static %}, stable filename (no hash)
-    assert re.search(r'href="[^"]*brickwork/dist/brickwork\.css"', html)
+    # referenced via {% bw_asset_url %} over {% static %}: stable filename (no
+    # hash), carrying a ?v=<version> cache-buster (icvoss/django-brickwork#723).
+    assert re.search(r'href="[^"]*brickwork/dist/brickwork\.css(\?[^"]*)?"', html)
 
 
 # --- app shell structure (SHL region) --------------------------------------
@@ -343,3 +344,57 @@ def test_app_shell_mobile_nav_trigger_defaults_to_a_visible_menu_icon() -> None:
     trigger = html[trigger_start:trigger_end]
     assert 'class="bw-icon' in trigger
     assert "bw-drawer__trigger" in html
+
+
+# --- versioned, overridable stylesheet link (icvoss/django-brickwork#723) ----
+
+
+@pytest.mark.parametrize("template", SHELLS)
+def test_shell_stylesheet_url_carries_the_package_version(template: str) -> None:
+    # A consumer on a non-hashing static storage behind an immutable /static/
+    # cache must still see a brickwork upgrade: the shipped stylesheet lives at
+    # a stable path, so the shell versions its URL with ?v=<brickwork version>
+    # to change the URL on every upgrade (icvoss/django-brickwork#723).
+    from brickwork import __version__
+
+    html = _render(template)
+    assert "brickwork/dist/brickwork.css" in html
+    assert f"brickwork/dist/brickwork.css?v={__version__}" in html
+
+
+@pytest.mark.parametrize("template", SHELLS)
+def test_head_css_block_can_be_overridden(template: str) -> None:
+    # Acceptance: the stylesheet <link> sits in an overridable block so a
+    # consumer can self-host it or drive its URL from a setting without
+    # re-linking (the DEBUG duplicate detector forbids a second link).
+    from django.template import Context, Template
+
+    child = Template(
+        "{% extends '" + template + "' %}"
+        "{% block head_css %}<link rel='stylesheet' href='/cdn/brickwork.css'>{% endblock %}"
+    )
+    html = child.render(Context({}))
+    assert "/cdn/brickwork.css" in html
+    assert "brickwork/dist/brickwork.css" not in html
+
+
+def test_bw_asset_url_appends_version_query() -> None:
+    from brickwork import __version__
+    from brickwork.templatetags.brickwork_assets import bw_asset_url
+
+    url = bw_asset_url("brickwork/dist/brickwork.css")
+    assert url.endswith(f"?v={__version__}")
+
+
+def test_bw_asset_url_respects_an_existing_query() -> None:
+    # If a storage backend ever resolves the static path to a URL that already
+    # carries a query, the version must extend it with & rather than a second ?.
+    from brickwork.templatetags import brickwork_assets
+
+    original = brickwork_assets.static
+    try:
+        brickwork_assets.static = lambda path: "/static/brickwork/dist/brickwork.css?x=1"
+        url = brickwork_assets.bw_asset_url("brickwork/dist/brickwork.css")
+    finally:
+        brickwork_assets.static = original
+    assert url == f"/static/brickwork/dist/brickwork.css?x=1&v={brickwork_assets.__version__}"

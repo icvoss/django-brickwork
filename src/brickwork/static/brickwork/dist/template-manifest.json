@@ -342,6 +342,15 @@
       ]
     },
     {
+      "name": "head_css",
+      "declaredIn": [
+        "brickwork/shell/base.html"
+      ],
+      "consumption": [
+        "include"
+      ]
+    },
+    {
       "name": "head_extra",
       "declaredIn": [
         "brickwork/shell/base.html"
