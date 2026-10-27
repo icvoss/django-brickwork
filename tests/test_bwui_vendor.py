@@ -63,3 +63,19 @@ def test_vendored_css_is_minified_from_installed_package() -> None:
     # Minify changes bytes; the published source must still be the input.
     assert b".bw-badge--neutral" in published.read_bytes()
     assert b".bw-badge--neutral" in shipped.read_bytes()
+
+
+@pytest.mark.skipif(not CSS_NM.is_dir(), reason="npm deps not installed")
+def test_vendored_css_appends_a11y_overlays_after_published_sheet() -> None:
+    """@bwui/css 0.1.2 fails Django axe without the overlays in vendor-overlays.css."""
+    shipped = (DIST / "brickwork.css").read_text(encoding="utf-8")
+    published = (CSS_NM / "dist" / "brickwork.css").read_text(encoding="utf-8")
+    assert ".bw-sparkline>span:nth-child(n)" in shipped.replace(" ", "")
+    assert "color-scheme:dark" in shipped.replace(" ", "")
+    demo = published.find(".bw-sparkline > span")
+    assert demo != -1, "published @bwui/css still ships the wave-e demo sparkline"
+    overlay = shipped.rfind(".bw-sparkline>span:nth-child(n)")
+    assert overlay != -1
+    assert overlay > shipped.find(".bw-sparkline"), (
+        "sparkline overlay must follow the published demo so it wins cascade"
+    )

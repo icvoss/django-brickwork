@@ -67,15 +67,33 @@ try {
     minify: true,
   })
   // @bwui/css 0.1.2 omits the Django index.css extras (box-sizing, hidden
-  // floor, skip-link, .bw-icon-directional, focus ring, reduced-motion).
-  // Strip @imports so we do not recompile the lockstep layers, then append.
+  // floor, skip-link, .bw-icon-directional, focus ring, reduced-motion) and
+  // ships a reset plus wave-e demo rules that fail the Django a11y gate.
+  // Strip @imports so we do not recompile the lockstep layers, then append
+  // extras and the a11y overlays. Drop overlays when a later @bwui/css
+  // release lands the same repairs (icvoss/brickwork#11).
   const extrasSource = readFileSync(indexCss, "utf8").replace(/@import\s+[^;]+;/g, "").trim()
   const { code: minifiedExtras } = transform({
     filename: "index-extras.css",
     code: Buffer.from(extrasSource),
     minify: true,
   })
-  writeFileSync(cssTo, Buffer.concat([minifiedPublished, Buffer.from("\n"), minifiedExtras]))
+  const overlayCss = resolve(ROOT, "frontend/src/vendor-overlays.css")
+  const { code: minifiedOverlays } = transform({
+    filename: "vendor-overlays.css",
+    code: readFileSync(overlayCss),
+    minify: true,
+  })
+  writeFileSync(
+    cssTo,
+    Buffer.concat([
+      minifiedPublished,
+      Buffer.from("\n"),
+      minifiedExtras,
+      Buffer.from("\n"),
+      minifiedOverlays,
+    ]),
+  )
 } catch (err) {
   console.error(`Cannot vendor minified ${cssFrom}`)
   console.error(err)

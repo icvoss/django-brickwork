@@ -1,0 +1,58 @@
+/*
+ * Django-side overlays for defects in published @bwui/css 0.1.2.
+ *
+ * Appended last by scripts/vendor-bwui.mjs. Drop these once a published
+ * @bwui/css release ships the same repairs (icvoss/brickwork#11, plus the
+ * wave-e class collision and reset a11y notes on that issue).
+ *
+ * Do not edit the lockstep CSS mirrors to paper over npm dist: the wheel
+ * ships the published file plus these overlays.
+ */
+
+/* Native form controls inherit --bw-color-fg from the reset (color: inherit)
+ * but keep the UA light fill unless the document declares a dark color-scheme.
+ * Wizard, slide-over and app-region fixtures use unclassed <input>s; without
+ * this they paint #e7e8e9 on #ffffff (1.22:1). */
+[data-theme="light"] {
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+    [type="file"]
+  ):not([type="hidden"]):not([type="submit"]):not([type="button"]):not(
+    [type="reset"]
+  ):not([type="image"]):not([type="color"]),
+textarea,
+select {
+  background-color: var(--bw-color-surface);
+  color: var(--bw-color-fg);
+}
+
+/* The @bwui reset sets a { text-decoration: none }. Bare inline links in
+ * auth enrolment and signup then fail WCAG 1.4.1 (accent #4fa2ff against
+ * surrounding #e7e8e9, 2.15:1, and no underline). Classed chrome that wants
+ * no underline (.bw-btn, .bw-nav__link) still wins on specificity. */
+a {
+  text-decoration: underline;
+}
+
+/* wave-e.css ships a demo bar chart as .bw-sparkline > span { background:
+ * accent }. That selector paints every label and value span in the real
+ * component. Restore the product layout and cancel the demo bars. */
+.bw-sparkline {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--bw-space-1);
+  block-size: auto;
+}
+.bw-sparkline > span:nth-child(n) {
+  flex: none;
+  background: transparent;
+  border-radius: 0;
+  opacity: 1;
+  block-size: auto;
+}

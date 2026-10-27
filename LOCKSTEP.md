@@ -19,7 +19,7 @@ are produced from published packages during `npm run build`:
 | Package | Pin | Dist files in the wheel |
 |---|---|---|
 | `@bwui/tokens` | `0.1.2` | `tokens.css`, `tailwind-theme.css`, `tokens.js` (copied) |
-| `@bwui/css` | `0.1.2` | `brickwork.css` (minified with lightningcss, plus Django `index.css` extras that `@bwui/css` 0.1.2 omits) |
+| `@bwui/css` | `0.1.2` | `brickwork.css` (minified with lightningcss, plus Django `index.css` extras and `vendor-overlays.css` that `@bwui/css` 0.1.2 omits) |
 
 Integrity: `src/brickwork/static/brickwork/dist/bwui-pin.json` records the
 installed versions. CI's frontend-build job runs `npm ci` then `npm run build`
@@ -79,8 +79,11 @@ Explicitly residual; these stay editorial here until a later packaging cutover:
 - Python package layout and the PyPI publish pipeline
 - Gallery HTML in monorepo vs Django examples (parallel artefacts OK until
   gallery unit is marked migrated)
-- `token-manifest.json` Django-shaped extras (`contrastPairs`) and the
-  `index.css` extras overlay, until [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11) lands
+- `token-manifest.json` Django-shaped extras (`contrastPairs`), the
+  `index.css` extras overlay, and `frontend/src/vendor-overlays.css` (dark
+  `color-scheme` for native inputs, bare-link underline, wave-e sparkline
+  demo cancelled), until [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)
+  lands a `@bwui/css` that includes those repairs
 
 ## Fleet pins
 

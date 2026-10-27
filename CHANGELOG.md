@@ -28,6 +28,14 @@ versioning contract).
 
 ### Fixed
 
+- **Vendored `@bwui/css` 0.1.2 no longer fails WCAG 2.2 AA contrast.** The npm
+  sheet's reset left native inputs white under `data-theme="dark"` and stripped
+  underlines from bare inline links, and `wave-e.css` painted `.bw-sparkline`
+  labels with the accent. `frontend/src/vendor-overlays.css` restores
+  `color-scheme`, control fills, link underlines, and the product sparkline
+  layout until a later `@bwui/css` release lands the same repairs
+  ([icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)).
+
 ### Removed
 
 ## [4.3.1] - 2026-09-24
