@@ -33,6 +33,7 @@
     "@alpinejs/focus": "^3.15.12",
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.62.0",
+    "@tailwindcss/node": "^4.3.3",
     "alpinejs": "^3.15.12",
     "eslint": "^10.9.1",
     "eslint-plugin-playwright": "^2.11.0",

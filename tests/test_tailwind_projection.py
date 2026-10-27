@@ -81,9 +81,7 @@ def _emitted_bw_names(*, include_aliases: bool = True) -> set[str]:
                     re.M,
                 )
             )
-        alias_names = set(
-            re.findall(r"^\s*(--bw-[a-z0-9-]+):\s*var\(--bw-component-", css, re.M)
-        )
+        alias_names = set(re.findall(r"^\s*(--bw-[a-z0-9-]+):\s*var\(--bw-component-", css, re.M))
         names -= alias_names
     return names
 
