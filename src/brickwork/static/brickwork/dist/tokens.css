@@ -1,7 +1,7 @@
-/* django-brickwork design tokens. GENERATED from src/brickwork/tokens/source/**.
- * Do NOT edit by hand: run `npm run build:tokens`. Names are the versioned
- * public contract (BR-BW-TOK-001); values are brand-overridable. oklch,
- * dark authored not derived (BR-BW-TOK-002/003). */
+/* @bwui/tokens design tokens. GENERATED from packages/tokens/src/dtcg/**.
+ * Do NOT edit by hand: run `pnpm --filter @bwui/tokens build`. Names are
+ * the versioned public contract; values are brand-overridable. oklch, dark
+ * authored not derived. */
 
 
 :root {
@@ -495,6 +495,91 @@
   --bw-elevation-5: 0 20px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.4), inset 0 1px 0 0 oklch(1 0 0 / 0.06);
 }
 
+.dark {
+  --bw-color-surface: oklch(0.18 0.005 265);
+  --bw-color-surface-sunken: color-mix(in oklab, var(--bw-color-surface) 76%, black);
+  --bw-color-surface-raised: color-mix(in oklab, var(--bw-color-surface) 93%, white);
+  --bw-color-surface-inverse: var(--bw-color-fg);
+  --bw-color-surface-overlay: oklch(0 0 0 / 0.6);
+  --bw-color-fg: oklch(0.93 0.002 265);
+  --bw-color-fg-muted: color-mix(in oklab, var(--bw-color-fg) 72%, var(--bw-color-surface));
+  --bw-color-fg-subtle: color-mix(in oklab, var(--bw-color-fg) 49%, var(--bw-color-surface));
+  --bw-color-fg-on-accent: oklch(0.145 0.004 265);
+  --bw-color-fg-on-inverse: var(--bw-color-surface);
+  --bw-color-status-fg-ink: oklch(0.93 0.002 265);
+  --bw-color-border: oklch(0.269 0.006 265);
+  --bw-color-border-strong: color-mix(in oklab, var(--bw-color-border) 86%, white);
+  --bw-color-border-control: color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface));
+  --bw-color-action-disabled-bg: color-mix(in oklab, var(--bw-color-surface) 76%, black);
+  --bw-color-action-disabled-text: color-mix(in oklab, var(--bw-color-fg) 72%, var(--bw-color-surface));
+  --bw-color-action-disabled-border: color-mix(in oklab, var(--bw-color-fg) 45%, var(--bw-color-surface));
+  --bw-color-accent: oklch(0.707 0.165 254);
+  --bw-color-accent-hover: color-mix(in oklab, var(--bw-color-accent) 88%, black);
+  --bw-color-accent-subtle: color-mix(in oklab, var(--bw-color-accent) 30%, black);
+  --bw-color-danger: oklch(0.637 0.208 25);
+  --bw-color-danger-subtle: color-mix(in oklab, var(--bw-color-danger) 26%, black);
+  --bw-color-danger-border: color-mix(in oklab, var(--bw-color-danger) 55%, black);
+  --bw-color-danger-strong: color-mix(in oklab, var(--bw-color-danger) 96%, white);
+  --bw-color-danger-fg: color-mix(in oklab, var(--bw-color-danger) 73%, white);
+  --bw-color-danger-on-fg: oklch(0.145 0.004 265);
+  --bw-color-warning: oklch(0.769 0.166 70);
+  --bw-color-warning-subtle: color-mix(in oklab, var(--bw-color-warning) 22%, black);
+  --bw-color-warning-border: color-mix(in oklab, var(--bw-color-warning) 55%, black);
+  --bw-color-warning-strong: color-mix(in oklab, var(--bw-color-warning) 96%, white);
+  --bw-color-warning-fg: color-mix(in oklab, var(--bw-color-warning) 78%, white);
+  --bw-color-warning-on-fg: oklch(0.145 0.004 265);
+  --bw-color-success: oklch(0.723 0.169 152);
+  --bw-color-success-subtle: color-mix(in oklab, var(--bw-color-success) 23%, black);
+  --bw-color-success-border: color-mix(in oklab, var(--bw-color-success) 55%, black);
+  --bw-color-success-strong: color-mix(in oklab, var(--bw-color-success) 96%, white);
+  --bw-color-success-fg: color-mix(in oklab, var(--bw-color-success) 78%, white);
+  --bw-color-success-on-fg: oklch(0.145 0.004 265);
+  --bw-color-info: oklch(0.72 0.11 220);
+  --bw-color-info-subtle: color-mix(in oklab, var(--bw-color-info) 26%, black);
+  --bw-color-info-border: color-mix(in oklab, var(--bw-color-info) 55%, black);
+  --bw-color-info-strong: color-mix(in oklab, var(--bw-color-info) 96%, white);
+  --bw-color-info-fg: color-mix(in oklab, var(--bw-color-info) 78%, white);
+  --bw-color-info-on-fg: oklch(0.145 0.004 265);
+  --bw-color-icon-muted: var(--bw-color-fg-subtle);
+  --bw-color-focus-ring: color-mix(in oklab, var(--bw-color-accent) 82%, black);
+  --bw-component-nav-item-active-bg: var(--bw-color-accent-subtle);
+  --bw-component-nav-item-active-text: color-mix(in oklab, var(--bw-color-accent) 25%, white);
+  --bw-component-nav-item-active-border: var(--bw-color-accent);
+  --bw-component-nav-item-disabled-text: var(--bw-color-fg-subtle);
+  --bw-component-nav-section-text: var(--bw-color-fg-muted);
+  --bw-component-breadcrumb-current: var(--bw-color-fg);
+  --bw-component-breadcrumb-separator: var(--bw-color-fg-subtle);
+  --bw-component-skeleton-bg: color-mix(in oklab, var(--bw-color-surface-sunken) 82%, white);
+  --bw-component-skeleton-shimmer: color-mix(in oklab, var(--bw-component-skeleton-bg) 86%, white);
+  --bw-color-surface-marketing-tint: color-mix(in oklab, var(--bw-color-accent) 12%, var(--bw-color-surface));
+  --bw-color-stage-wash: color-mix(in oklab, var(--bw-color-accent) 16%, transparent);
+  --bw-color-stage-grid: color-mix(in oklab, var(--bw-color-border) 70%, transparent);
+  --bw-color-chart-1: oklch(0.595 0.138 46);
+  --bw-color-chart-2: oklch(0.874 0.163 92);
+  --bw-color-chart-3: oklch(0.709 0.170 130);
+  --bw-color-chart-4: oklch(0.529 0.086 175);
+  --bw-color-chart-5: oklch(0.739 0.121 226);
+  --bw-color-chart-6: oklch(0.881 0.054 268);
+  --bw-color-chart-7: oklch(0.612 0.168 308);
+  --bw-color-chart-8: oklch(0.756 0.135 358);
+  --bw-color-chart-axis: oklch(0.62 0.004 265);
+  --bw-color-chart-grid: oklch(0.33 0.004 265);
+  --bw-color-chart-axis-label: oklch(0.72 0.003 265);
+  --bw-color-chart-tooltip-bg: oklch(0.279 0.006 265);
+  --bw-color-chart-tooltip-text: oklch(0.985 0.001 265);
+  --bw-color-chart-tooltip-border: oklch(0.371 0.007 265);
+  --bw-color-sparkline-stroke: oklch(0.595 0.138 46);
+  --bw-state-hover-overlay: oklch(1 0 0 / 0.06);
+  --bw-state-active-overlay: oklch(1 0 0 / 0.12);
+  --bw-state-selected-bg: var(--bw-color-accent-subtle);
+  --bw-elevation-0: none;
+  --bw-elevation-1: 0 1px 2px 0 oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.03);
+  --bw-elevation-2: 0 1px 3px 0 oklch(0 0 0 / 0.36), 0 1px 2px -1px oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.04);
+  --bw-elevation-3: 0 4px 6px -1px oklch(0 0 0 / 0.4), 0 2px 4px -2px oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.04);
+  --bw-elevation-4: 0 10px 15px -3px oklch(0 0 0 / 0.45), 0 4px 6px -4px oklch(0 0 0 / 0.35), inset 0 1px 0 0 oklch(1 0 0 / 0.05);
+  --bw-elevation-5: 0 20px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.4), inset 0 1px 0 0 oklch(1 0 0 / 0.06);
+}
+
 [data-density="comfortable"] {
   --bw-density-control-height: 2.5rem;
   --bw-density-control-padding-inline: 0.75rem;
@@ -543,9 +628,6 @@
   --bw-density-page-gutter-inline: 2rem;
 }
 
-/* 0.10.0 -> 0.11.0 courtesy aliases (ADR-054 section 7): the renamed tokens
- * kept under their old names so a 0.10.0 consumer does not break on this
- * minor. Time-boxed for the 0.x window; prefer the canonical names. */
 :root {
   --bw-button-elevation: var(--bw-component-button-elevation);
   --bw-button-elevation-hover: var(--bw-component-button-elevation-hover);

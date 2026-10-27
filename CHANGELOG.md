@@ -17,6 +17,15 @@ versioning contract).
 
 ### Changed
 
+- **Frontend build vendors `@bwui/tokens` and `@bwui/css` by name.**
+  `npm run build` copies `@bwui/tokens@0.1.2` dist and minifies
+  `@bwui/css@0.1.2` into `static/brickwork/dist` instead of compiling DTCG
+  and CSS layers a second time in this repo. Django `index.css` extras that
+  the npm CSS package still omits are appended so `.bw-icon-directional`
+  keeps shipping ([icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)). Alpine registration JS is
+  still a Vite compile here. Pip consumers are unchanged: they still
+  `{% static %}` the same filenames and never run npm.
+
 ### Fixed
 
 ### Removed

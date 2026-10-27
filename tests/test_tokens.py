@@ -1,10 +1,10 @@
 """Token-layer contract tests (BR-BW-TOK-*), validating source + built artefacts.
 
 These read the committed DTCG source and the committed compiled artefacts in
-static/brickwork/dist/. They do NOT run Style Dictionary (node) at test time: the
-built files are shipped artefacts (the package product), so the suite asserts on
-what is actually shipped. A separate CI frontend-build job rebuilds and asserts
-the artefacts are up to date with source.
+static/brickwork/dist/. They do NOT run npm at test time: the built files are
+shipped artefacts (the package product), so the suite asserts on what is
+actually shipped. A separate CI frontend-build job vendors @bwui/tokens and
+@bwui/css and asserts the artefacts match the pins.
 """
 
 from __future__ import annotations
@@ -128,7 +128,7 @@ def test_dark_values_are_actually_different_from_light() -> None:
 @pytest.mark.parametrize("filename", ["tokens.css", "tailwind-theme.css", "tokens.js"])
 def test_stable_named_artefact_exists(filename: str) -> None:
     path = _DIST / filename
-    assert path.is_file(), f"missing built artefact {filename} (run npm run build:tokens)"
+    assert path.is_file(), f"missing built artefact {filename} (run npm run build)"
     assert path.stat().st_size > 0, f"{filename} is empty"
 
 

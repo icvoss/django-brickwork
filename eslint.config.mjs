@@ -2,7 +2,7 @@
 // (icvoss/django-brickwork#276, #313).
 //
 // Scope is deliberately narrow: a11y/**/*.spec.mjs only. This is not
-// general JS linting for the repo (build-tokens.mjs, vite.config.js,
+// general JS linting for the repo (scripts/vendor-bwui.mjs, vite.config.js,
 // frontend/src/js/* are out of scope; that is a separate decision with
 // a separate cost).
 //

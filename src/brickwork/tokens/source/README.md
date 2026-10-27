@@ -9,12 +9,14 @@ Sync: `node scripts/sync-from-monorepo.mjs` (see `/LOCKSTEP.md`).
 
 # brickwork design-token source (DTCG)
 
-The authored source for brickwork's design tokens. `node build-tokens.mjs`
-(`npm run build:tokens`) compiles these into the shipped artefacts in
-`../../static/brickwork/dist/` (`tokens.css`, `tailwind-theme.css`, `tokens.js`),
-with **stable, non-hashed filenames** versioned by the Python package's semver.
-Consumers reference the artefacts via plain `{% static %}`; they never run Style
-Dictionary themselves (04-interfaces.md section 8).
+The authored source for brickwork's design tokens, kept as a lockstep mirror
+of `icvoss/brickwork` `packages/tokens/src/dtcg` so Python contract tests can
+read it without Node. Shipped artefacts in `../../static/brickwork/dist/`
+(`tokens.css`, `tailwind-theme.css`, `tokens.js`, `token-manifest.json`) are
+vendored from published `@bwui/tokens` by `npm run vendor:bwui`, with
+**stable, non-hashed filenames** versioned by the Python package's semver.
+Consumers reference the artefacts via plain `{% static %}`; they never run npm
+or Style Dictionary (04-interfaces.md section 8).
 
 ## Files and tiers
 
