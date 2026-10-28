@@ -66,10 +66,23 @@ def _emitted_bw_names(*, include_aliases: bool = True) -> set[str]:
     part of the projected semantic-colour contract.
     """
     css = (_DIST / "tokens.css").read_text()
-    if not include_aliases:
-        css = css.split(_ALIAS_BLOCK_MARKER, 1)[0]
     names = set(re.findall(r"^\s*(--bw-[a-z0-9-]+):", css, re.M))
     assert names, "no custom properties found in dist/tokens.css"
+    if not include_aliases:
+        # Django's local compiler labelled the alias block with this marker;
+        # @bwui/tokens 0.1.2 emits the same aliases without that comment.
+        # Names that only exist as var(--bw-component-*) are 0.10.0 courtesy
+        # aliases, not the semantic colour contract.
+        if _ALIAS_BLOCK_MARKER in css:
+            names = set(
+                re.findall(
+                    r"^\s*(--bw-[a-z0-9-]+):",
+                    css.split(_ALIAS_BLOCK_MARKER, 1)[0],
+                    re.M,
+                )
+            )
+        alias_names = set(re.findall(r"^\s*(--bw-[a-z0-9-]+):\s*var\(--bw-component-", css, re.M))
+        names -= alias_names
     return names
 
 

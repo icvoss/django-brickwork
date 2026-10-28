@@ -1,8 +1,5 @@
-/* GENERATED: plain @theme breakpoint bridge (ADR-079), NOT @theme inline.
- * Media queries cannot resolve var(), so these are literals, generated
- * from the same source as the --bw-breakpoint-* tokens in tokens.css.
- * Aligns a consumer's own sm:/md:/lg:/xl: utilities with brickwork's
- * breakpoints. Do not edit by hand. */
+/* GENERATED: plain @theme breakpoint bridge (media queries cannot resolve
+ * var(), so these are literals from the same source as --bw-breakpoint-*). */
 @theme {
   --breakpoint-sm: 40rem;
   --breakpoint-md: 48rem;
@@ -11,13 +8,8 @@
 }
 
 /* GENERATED: Tailwind 4 @theme inline projection of the --bw-* semantic
- * contract into Tailwind's utility namespaces (ADR-054 section 4), so
- * consumer utilities inherit the brand and both themes: colours, radius,
- * elevation (shadow-*), type roles (text-<role>), font stacks, and the
- * dynamic --spacing base. Every value is a var(--bw-*) reference, so theme
- * and brand switching recolours consumer utilities with no rebuild.
- * Import this fragment in a consumer's entry CSS AFTER the Tailwind import
- * (the line that pulls in tailwindcss itself). Do not edit by hand. */
+ * contract. Import AFTER the tailwindcss import. Requires the token vars
+ * (import "@bwui/tokens/tokens.css"). Do not edit by hand. */
 @theme inline {
   --color-surface: var(--bw-color-surface);
   --color-surface-sunken: var(--bw-color-surface-sunken);

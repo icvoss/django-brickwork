@@ -2,11 +2,12 @@
   "name": "django-brickwork-frontend",
   "private": true,
   "type": "module",
-  "description": "Frontend build for the brickwork Django package. Compiles design tokens (Style Dictionary, from src/brickwork/tokens/source) and component CSS/JS (Vite + @tailwindcss/vite) into src/brickwork/static/brickwork/dist as STABLE, non-hashed filenames versioned by the Python package's own semver. Consumers reference these via plain {% static %}; django-vite is deliberately not required (build-tool research 2026-07-30).",
+  "description": "Frontend build for the brickwork Django package. Compiles Alpine registration JS (Vite) and vendors published @bwui/tokens and @bwui/css into src/brickwork/static/brickwork/dist as STABLE, non-hashed filenames versioned by the Python package's own semver. Consumers reference these via plain {% static %}; they never run npm. django-vite is deliberately not required (build-tool research 2026-07-30).",
   "scripts": {
-    "build:tokens": "node build-tokens.mjs",
+    "vendor:bwui": "node scripts/vendor-bwui.mjs",
+    "build:tokens": "npm run vendor:bwui",
     "build:assets": "vite build",
-    "build": "npm run build:tokens && npm run build:assets",
+    "build": "npm run build:assets && npm run vendor:bwui",
     "a11y:fixtures": "DJANGO_SETTINGS_MODULE=tests.settings_seams PYTHONPATH=src:.:tests python3 a11y/generate_fixtures.py",
     "a11y:fixtures:archetypes": "DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python3 a11y/generate_archetype_fixtures.py",
     "a11y:fixtures:startsite": "DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests python3 a11y/generate_startsite_fixtures.py",
@@ -23,16 +24,20 @@
     "a11y:lint": "eslint .",
     "sync:monorepo": "node scripts/sync-from-monorepo.mjs"
   },
+  "dependencies": {
+    "@bwui/css": "0.1.2",
+    "@bwui/tokens": "0.1.2",
+    "lightningcss": "1.32.0"
+  },
   "devDependencies": {
     "@alpinejs/focus": "^3.15.12",
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.62.0",
-    "@tailwindcss/vite": "^4.0",
+    "@tailwindcss/node": "^4.3.3",
     "alpinejs": "^3.15.12",
     "eslint": "^10.9.1",
     "eslint-plugin-playwright": "^2.11.0",
     "htmx.org": "^2.0.10",
-    "style-dictionary": "^4.0",
     "tailwindcss": "^4.0",
     "vite": "^6.0"
   }

@@ -398,8 +398,8 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Frontend build (compiles tokens + component assets into the package's static
-dir; see `frontend/README.md`):
+Frontend build (vendors `@bwui/tokens` + `@bwui/css` and compiles Alpine JS
+into the package's static dir; see `frontend/README.md`):
 
 ```
 npm install

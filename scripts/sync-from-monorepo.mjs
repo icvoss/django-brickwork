@@ -4,8 +4,9 @@
  * Editorial home is the monorepo; edit there, then sync. Updates
  * lockstep-manifest.json.
  *
- * Units: tokens, css (product layers), templates (Django templates),
- * frontend-js (Vite entry: index.js, index.css, js/).
+ * Units: tokens (DTCG source mirror; shipped CSS comes from @bwui/tokens),
+ * css (product-layer source mirror; shipped brickwork.css comes from @bwui/css),
+ * templates (Django templates), frontend-js (Vite JS entry: index.js, index.css, js/).
  *
  * Usage:
  *   node scripts/sync-from-monorepo.mjs [--monorepo /path/to/brickwork]

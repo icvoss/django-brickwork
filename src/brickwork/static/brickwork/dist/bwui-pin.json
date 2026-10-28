@@ -1,0 +1,10 @@
+{
+  "tokens": "0.1.2",
+  "css": "0.1.2",
+  "vendored": [
+    "tokens.css",
+    "tailwind-theme.css",
+    "tokens.js",
+    "brickwork.css"
+  ]
+}

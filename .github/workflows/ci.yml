@@ -10,7 +10,7 @@ name: CI
 #     and a page composing the wider component/interaction set), run as its own
 #     step in the test job under settings_consumer, alongside the existing
 #     settings_seams leg.
-#   - Frontend build (tokens + Vite assets) and the accessibility gate
+  #   - Frontend build (vendor @bwui dist + Vite Alpine JS) and the accessibility gate
 #     (axe-core/Playwright WCAG 2.2 AA, light and dark, plus the no-JS floor
 #     and keyboard suite) are fully wired and blocking, not stubs: see the
 #     frontend-build and a11y-gate jobs below.
@@ -167,12 +167,13 @@ jobs:
           DJANGO_SETTINGS_MODULE: tests.settings_consumer
           PYTHONPATH: src:.:tests
 
-  # ── Frontend build: tokens (Style Dictionary) + assets (Vite) ────────
-  # Rebuilds the tokens + component bundle from source and asserts the committed
-  # stable-named artefacts match a clean build (so a source edit without a
-  # rebuild cannot ship stale artefacts).
+  # ── Frontend build: vendor @bwui dist + Alpine JS (Vite) ────────────
+  # npm ci installs the pinned @bwui/tokens and @bwui/css packages; Vite
+  # compiles Alpine JS; vendor:bwui copies tokens dist and minifies
+  # @bwui/css into brickwork.css. Committed artefacts must match a clean
+  # vendor+build so a pin bump without a rebuild cannot ship stale files.
   frontend-build:
-    name: Frontend build (tokens + assets)
+    name: Frontend build (vendor @bwui + assets)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -183,24 +184,25 @@ jobs:
           cache: "npm"
       - name: Install frontend deps
         run: npm ci
-      - name: Build tokens + assets
+      - name: Build Alpine JS and vendor @bwui dist
         run: npm run build
       - name: Assert stable-named artefacts exist
         run: |
-          for f in tokens.css tailwind-theme.css tokens.js brickwork.css brickwork.js; do
+          for f in tokens.css tailwind-theme.css tokens.js token-manifest.json brickwork.css brickwork.js bwui-pin.json; do
             test -s "src/brickwork/static/brickwork/dist/$f" || { echo "missing/empty $f"; exit 1; }
           done
-      - name: Assert committed token artefacts are up to date with source
-        # The Style Dictionary token outputs are deterministic, so a clean rebuild
-        # must not change them (else the DTCG source and shipped tokens have
-        # drifted). Scoped to the token files, not the Vite bundle, whose exact
-        # minified bytes can vary across Node/OS and are not a useful drift signal.
+      - name: Assert committed @bwui artefacts match the npm pins
+        # Vendored files are the published bytes, so a clean rebuild must not
+        # change them. Scoped to the @bwui copies, not brickwork.js, whose
+        # minified bytes can vary across Node/OS.
         run: |
           git diff --exit-code -- \
             src/brickwork/static/brickwork/dist/tokens.css \
             src/brickwork/static/brickwork/dist/tokens.js \
             src/brickwork/static/brickwork/dist/tailwind-theme.css \
-            || { echo "Committed token artefacts are stale. Run 'npm run build:tokens' and commit."; exit 1; }
+            src/brickwork/static/brickwork/dist/brickwork.css \
+            src/brickwork/static/brickwork/dist/bwui-pin.json \
+            || { echo "Committed @bwui artefacts are stale. Run 'npm run build' and commit."; exit 1; }
 
   # ── Accessibility + no-JS gate (load-bearing, the package's core promise) ──
   # axe-core WCAG 2.2 AA against the REAL rendered pages in light AND dark, plus

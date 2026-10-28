@@ -44,8 +44,8 @@ keywords = [
 #     filenames referenced by plain {% static %}; there is no Vite manifest to
 #     resolve. (Also stale: no Django 5.x/6.x support.)
 #   - django-tailwind / -cli: irrelevant. They manage a Tailwind build inside a
-#     live Django project; brickwork compiles its CSS in its OWN repo (Vite +
-#     @tailwindcss/vite) and ships the precompiled artefact.
+#     live Django project; brickwork vendors compiled @bwui/css in its OWN
+#     repo and ships the precompiled artefact.
 # Tailwind/Alpine/HTMX are FRONTEND runtime (loaded via <link>/<script> against
 # the shipped static assets), not Python packages. @alpinejs/ui + @alpinejs/focus
 # are host-owned peer deps delivered by the consumer's own Vite/npm build.
