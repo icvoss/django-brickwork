@@ -14,17 +14,19 @@ import { dirname, join } from "node:path";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(HERE, "fixtures", "startsite");
 const expectedFixtures = [
-  "landing-light.html",
-  "landing-dark.html",
-  "dashboard-light.html",
-  "dashboard-dark.html",
-  "docs-home-light.html",
-  "docs-home-dark.html",
+  "public-site-landing-light.html",
+  "public-site-landing-dark.html",
+  "public-site-docs-home-light.html",
+  "public-site-docs-home-dark.html",
+  "data-app-dashboard-light.html",
+  "data-app-dashboard-dark.html",
+  "data-app-invoices-light.html",
+  "data-app-invoices-dark.html",
 ];
 const fixtures = readdirSync(FIXTURES).filter((file) => file.endsWith(".html")).sort();
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-test("emitted startsite fixtures cover every page in both themes", () => {
+test("emitted startsite fixtures cover every starter page in both themes", () => {
   expect(fixtures).toEqual(expectedFixtures.sort());
 });
 

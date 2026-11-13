@@ -1,26 +1,32 @@
-"""The file payload the ``startsite`` command writes (ADR-095, icvoss/django-brickwork#470).
+"""The payload every ``startsite`` starter shares (ADR-095, icvoss/django-brickwork#470).
 
 Kept separate from ``startsite.py`` so the command module stays orchestration
 only (parse arguments, write files, report), matching the "thin command"
 convention every management command in the ecosystem follows. Every constant
-here is the literal text of one emitted file.
+or function here yields the literal text of one emitted file.
+
+What lives here is what both starters emit identically: the brand token file,
+``manage.py``, ``wsgi.py``, the settings module (parameterised by the starter's
+own app), the ``.gitignore``, and the ownership banner that prefixes every
+copied example page. What differs per starter lives beside it, in
+``_startsite_public_site.py`` and ``_startsite_data_app.py``, and is selected
+through ``_startsite_starters.py``.
 
 Nothing in this module is supported surface in its own right (ADR-095 section
 3): the command that writes these files is governed; the files it writes are
 plain, owned copies from the moment they land in a consumer's tree, and this
 module is simply where their starting text lives.
 
-Two of the three pages embed real ``brickwork.examples.read_example()`` source
-(``app/dashboard.html``, ``docs/home.html``, ``marketing/landing.html``), never
-a hand-retyped copy, so the emitted page can never drift from what the
-installed package actually ships (ADR-095 section 3, "the payload already
-ships"). A short banner is prepended to each, in the voice
-``examples/base.html`` already uses, naming the file as emitted, owned output.
+Emitted pages embed real ``brickwork.examples.read_example()`` source, never a
+hand-retyped copy, so the emitted page can never drift from what the installed
+package actually ships (ADR-095 section 3, "the payload already ships"). A
+short banner is prepended to each, in the voice ``examples/base.html`` already
+uses, naming the file as emitted, owned output.
 """
 
 from __future__ import annotations
 
-from brickwork import examples
+from brickwork import __version__, examples
 
 # --- Brand tokens ------------------------------------------------------
 #
@@ -59,6 +65,12 @@ DARK_TOKENS = {
     "--bw-color-fg-on-accent": "oklch(0.16 0.02 270)",
 }
 
+#: Where the emitted brand stylesheet lives, relative to the project root, and
+#: the ``{% static %}`` name the emitted pages link it by. One definition so the
+#: two cannot drift apart.
+BRAND_CSS_PATH = "static/brand.css"
+BRAND_CSS_STATIC_NAME = "brand.css"
+
 
 def brand_css() -> str:
     """Render the emitted brand stylesheet from the literal token values above.
@@ -75,7 +87,7 @@ def brand_css() -> str:
 
     banner = (
         "/*\n"
-        " * static/pages/brand.css -- emitted by `manage.py startsite`.\n"
+        f" * {BRAND_CSS_PATH} -- emitted by `manage.py startsite`.\n"
         " *\n"
         " * This file is yours from the moment it was written (ADR-095). It is not\n"
         " * brickwork's brand: it is a starting point with placeholder values, proven\n"
@@ -84,7 +96,7 @@ def brand_css() -> str:
         " * package) covers the load-bearing token set and the fg-on-accent trap this\n"
         " * file's --bw-color-fg-on-accent values already satisfy.\n"
         " *\n"
-        " * Loaded AFTER brickwork's own tokens.css (see head_extra in base.html),\n"
+        " * Loaded AFTER brickwork's own tokens.css (see head_extra in each page),\n"
         " * which is what lets these overrides win the cascade.\n"
         " */\n\n"
     )
@@ -93,14 +105,14 @@ def brand_css() -> str:
 
 # --- Settings ------------------------------------------------------------
 
-SETTINGS_PY = '''"""Settings for the project `manage.py startsite` emitted (ADR-095).
+_SETTINGS_TEMPLATE = '''"""Settings for the project `manage.py startsite` emitted (ADR-095).
 
 This file is yours from the moment it was written. It is not governed by
 django-brickwork's versioning: edit it freely, the way you would any other
 Django settings module. It wires exactly what a brickwork-based project needs
-to run with populated example pages; everything past that (a real database, allowed
-hosts, a secret key from the environment, deployment settings) is this
-project's own to add.
+to run with populated example pages; everything past that (a production
+database, allowed hosts, a secret key from the environment, deployment
+settings) is this project's own to add.
 """
 
 from pathlib import Path
@@ -121,12 +133,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.messages",
-    # The UI substrate. brickwork.marketing is the opt-in marketing kit
-    # (added alongside brickwork, never in place of it); this project uses
-    # both, since one of its three pages is the marketing landing page.
-    "brickwork",
-    "brickwork.marketing",
-    "pages",
+__BRICKWORK_APPS__
 ]
 
 MIDDLEWARE = [
@@ -180,24 +187,50 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 '''
 
-# --- urls.py ---------------------------------------------------------------
 
-URLS_PY = '''"""URLconf for the project `manage.py startsite` emitted (ADR-095).
+def settings_py(*, app: str, marketing: bool) -> str:
+    """Render the emitted settings module for one starter.
 
-Yours from the moment it was written. Wires the three starting pages this
-command generated; add your own routes here as the project grows.
+    ``app`` is the starter's own Django app (``pages`` or ``invoices``);
+    ``marketing`` adds ``brickwork.marketing`` alongside ``brickwork`` for a
+    starter whose pages extend the marketing shell. The marketing kit is a
+    second, opt-in app (ADR-055): a starter that has no marketing page does
+    not install it, so its output stays byte-identical to a bare
+    ``brickwork`` install.
+    """
+    lines = [
+        "    # The UI substrate.",
+        '    "brickwork",',
+    ]
+    if marketing:
+        lines += [
+            "    # brickwork.marketing is the opt-in marketing kit (added alongside",
+            "    # brickwork, never in place of it): this starter's landing page extends",
+            "    # its shell.",
+            '    "brickwork.marketing",',
+        ]
+    lines += [f'    "{app}",']
+    return _SETTINGS_TEMPLATE.replace("__BRICKWORK_APPS__", "\n".join(lines))
+
+
+def requirements_txt() -> str:
+    """The emitted project's one dependency, pinned to the brickwork that wrote it.
+
+    The pin is the version of the installed package that emitted the project,
+    so the project is recorded as working against exactly what it was
+    generated from. The consumer owns it from there (docs/QUICKSTART.md:
+    "You own the pin"). Django is not listed: django-brickwork depends on it.
+    """
+    return f"# Emitted by `manage.py startsite`. Yours to edit.\ndjango-brickwork=={__version__}\n"
+
+
+GITIGNORE = """# Emitted by `manage.py startsite`. Yours to edit.
+__pycache__/
+*.pyc
+db.sqlite3
+staticfiles/
+.venv/
 """
-
-from django.urls import path
-
-from pages import views
-
-urlpatterns = [
-    path("", views.landing, name="landing"),
-    path("app/", views.dashboard, name="dashboard"),
-    path("docs/", views.docs_home, name="docs-home"),
-]
-'''
 
 WSGI_PY = '''"""WSGI entrypoint for the project `manage.py startsite` emitted."""
 
@@ -234,266 +267,6 @@ if __name__ == "__main__":
     main()
 '''
 
-# --- nav.py ------------------------------------------------------------
-
-NAV_PY = '''"""Navigation config for the project `manage.py startsite` emitted (ADR-095).
-
-Yours from the moment it was written. Validated at import via
-validate_nav_config (brickwork's own documented pattern, docs/INTEGRATION.md
-section 2), so a bad nav tree fails at startup, never at first render.
-
-nav_items / nav_active is a convention the shipped example pages use, not a
-brickwork contract: no shell reads a nav variable from context, they expose
-blocks a page fills with {% bw_nav %}. This file follows that convention
-because the emitted dashboard and docs pages do; it is not an API you must
-keep.
-"""
-
-from brickwork.models import NavItem
-from brickwork.services.navigation import validate_nav_config
-
-NAV = (
-    NavItem(key="dashboard", label="Dashboard", url_name="dashboard", icon="folder"),
-    NavItem(key="docs", label="Docs", url_name="docs-home", icon="file"),
-)
-
-validate_nav_config(NAV)
-'''
-
-# --- views.py ------------------------------------------------------------
-
-VIEWS_PY = '''"""Views for the project `manage.py startsite` emitted (ADR-095).
-
-Yours from the moment it was written. Each view supplies exactly the context
-its page template needs; see that template's own leading comment (copied
-from the brickwork example it started from) for the full contract. Extend or
-replace these however this project needs.
-"""
-
-from django.shortcuts import render
-from django.template.loader import render_to_string
-from django.urls import resolve
-from django.utils.safestring import mark_safe
-
-from brickwork.services.navigation import resolve_active_item
-
-from .nav import NAV
-
-
-def landing(request):
-    """The marketing landing page (from brickwork's examples/marketing/landing.html)."""
-    logos = [
-        {"src": "https://placehold.co/120x32?text=Acme", "alt": "Acme"},
-        {"src": "https://placehold.co/120x32?text=Globex", "alt": "Globex"},
-        {"src": "https://placehold.co/120x32?text=Initech", "alt": "Initech"},
-    ]
-    features = [
-        {
-            "icon": "folder",
-            "heading": "Organise everything",
-            "body": "Keep every project, file and conversation in one searchable place.",
-        },
-        {
-            "icon": "users",
-            "heading": "Built for teams",
-            "body": "Invite your team and share context without a single lost thread.",
-        },
-        {
-            "icon": "settings",
-            "heading": "Configured your way",
-            "body": "Every workspace is different. Set it up the way your team works.",
-        },
-    ]
-    feature_rows = [
-        {
-            "heading": "Reminders that go out without you",
-            "body": "Set the schedule once. Northwind sends the nudges and stops when paid.",
-        },
-        {
-            "heading": "Know who is about to run late",
-            "body": "Every account carries a prediction based on how it has actually paid you.",
-        },
-    ]
-    stats = [
-        {"value": "2,400+", "label": "Teams onboarded"},
-        {"value": "99.98%", "label": "Uptime last quarter"},
-        {"value": "4.8/5", "label": "Average review score"},
-    ]
-    footer_groups = [
-        {
-            "heading": "Product",
-            "links": [
-                {"label": "Features", "href": "/features/"},
-                {"label": "Pricing", "href": "/pricing/"},
-            ],
-        },
-        {
-            "heading": "Company",
-            "links": [
-                {"label": "About", "href": "/about/"},
-                {"label": "Contact", "href": "/contact/"},
-            ],
-        },
-    ]
-    # Beside-hero media: layered product chrome (tokens only; example-owned SVG).
-    hero_media = mark_safe(
-        '<div class="bw-product-chrome bw-product-chrome--stack" aria-hidden="true">'
-        '<div class="bw-product-chrome__frame bw-product-chrome__frame--rear"></div>'
-        '<div class="bw-product-chrome__frame">'
-        '<div class="bw-product-chrome__bar"><span class="bw-product-chrome__title">'
-        "Open invoices</span></div>"
-        '<div class="bw-product-chrome__stage"></div>'
-        "</div></div>"
-    )
-    return render(
-        request,
-        "pages/landing.html",
-        {
-            "logos": logos,
-            "features": features,
-            "feature_rows": feature_rows,
-            "stats": stats,
-            "footer_groups": footer_groups,
-            "hero_media": hero_media,
-        },
-    )
-
-
-def dashboard(request):
-    """The app dashboard (from brickwork's examples/app/dashboard.html)."""
-    from django.template import Context, Template
-
-    activity_columns = [
-        {"label": "Item", "sortable": False},
-        {"label": "Status", "sortable": False},
-        {"label": "Updated", "sortable": False},
-    ]
-    activity_rows = [
-        {"id": "row-1", "cells": ["Quarterly report", "Complete", "2 hours ago"]},
-        {"id": "row-2", "cells": ["Client onboarding", "In progress", "Yesterday"]},
-        {"id": "row-3", "cells": ["Budget review", "Complete", "3 days ago"]},
-    ]
-    top_accounts_rows = [
-        {"label": "Dunmore Retail", "amount": 3150, "value": "£3,150"},
-        {"label": "Carrick & Sons", "amount": 2090, "value": "£2,090"},
-        {"label": "Acme Corp", "amount": 1240, "value": "£1,240"},
-    ]
-    # Server-rendered trend SVG (no JS chart engine); matches the example shape.
-    points = [42, 55, 48, 62, 58, 71, 66, 78, 74, 88, 82, 95]
-    n = len(points) - 1
-    coords = [(i * (640 / n), 200 - (p / 100) * 180 - 10) for i, p in enumerate(points)]
-    line = " ".join(f"{x:.1f},{y:.1f}" for x, y in coords)
-    area = (
-        f"M {coords[0][0]:.1f},200 L "
-        + " L ".join(f"{x:.1f},{y:.1f}" for x, y in coords)
-        + " L 640,200 Z"
-    )
-    trend_mount = mark_safe(
-        '<svg class="bw-dashboard-trend" viewBox="0 0 640 200" width="100%" '
-        'height="200" role="img" aria-label="Revenue by week for the last 12 weeks.">'
-        '<defs><linearGradient id="bw-dash-trend-fill" x1="0" y1="0" x2="0" y2="1">'
-        '<stop offset="0%" stop-color="var(--bw-color-chart-1)" stop-opacity="0.35"/>'
-        '<stop offset="100%" stop-color="var(--bw-color-chart-1)" stop-opacity="0"/>'
-        "</linearGradient></defs>"
-        f'<path d="{area}" fill="url(#bw-dash-trend-fill)"/>'
-        f'<polyline fill="none" stroke="var(--bw-color-chart-1)" stroke-width="2.5" '
-        f'points="{line}"/>'
-        "</svg>"
-    )
-    trend_data_table = Template(
-        "{% load brickwork_components %}"
-        "{% bw_chart_data_table caption=caption columns=columns rows=rows "
-        'data_table_mode="toggle" toggle_label="Show revenue by week" %}'
-    ).render(
-        Context(
-            {
-                "caption": "Revenue by week (last 12 weeks)",
-                "columns": ("Week", "Revenue"),
-                "rows": [(f"W{i + 1}", f"£{v},000") for i, v in enumerate(points)],
-            }
-        )
-    )
-    # Weighted scorecard: revenue is the argument; supporting tiles take one
-    # column each (visual bar S4 / icvoss/django-brickwork#512).
-    headline_tiles = [
-        {
-            "content": mark_safe(
-                render_to_string(
-                    "brickwork/components/_stat_comparison.html",
-                    {
-                        "label": "Revenue",
-                        "current": "£48,290",
-                        "previous": "£43,120",
-                        "period_label": "prior 30 days",
-                        "trend": "up",
-                        "trend_label": "12% up on last month",
-                        "size": "lg",
-                    },
-                )
-            ),
-            "span": 2,
-        },
-        {
-            "content": mark_safe(
-                render_to_string(
-                    "brickwork/components/_stat.html",
-                    {
-                        "label": "Invoices raised",
-                        "value": "317",
-                        "trend": "up",
-                        "trend_label": "24 more than last month",
-                    },
-                )
-            ),
-        },
-        {
-            "content": mark_safe(
-                render_to_string(
-                    "brickwork/components/_stat.html",
-                    {
-                        "label": "Overdue",
-                        "value": "£3,140",
-                        "trend": "down",
-                        "trend_label": "8% down on last month",
-                    },
-                )
-            ),
-        },
-    ]
-    active = resolve_active_item(NAV, resolve(request.path))
-    return render(
-        request,
-        "pages/dashboard.html",
-        {
-            "activity_columns": activity_columns,
-            "activity_rows": activity_rows,
-            "top_accounts_rows": top_accounts_rows,
-            "trend_mount": trend_mount,
-            "trend_data_table": trend_data_table,
-            "headline_tiles": headline_tiles,
-            "nav_items": NAV,
-            "nav_active": active,
-        },
-    )
-
-
-def docs_home(request):
-    """The docs home page (from brickwork's examples/docs/home.html)."""
-    active = resolve_active_item(NAV, resolve(request.path))
-    return render(
-        request,
-        "pages/docs_home.html",
-        {
-            "nav_items": NAV,
-            "nav_active": active,
-            # No search view is scaffolded by startsite; point this at your
-            # own search endpoint once you build one.
-            "docs_search_action": "/docs/search/",
-            "has_published_docs": True,
-        },
-    )
-'''
-
 # --- Page templates --------------------------------------------------------
 #
 # Each is the real, installed brickwork.examples source, prefixed with a
@@ -516,12 +289,12 @@ never reach back into it.
 {{% load static %}}
 {{% block head_extra %}}
   {{{{ block.super }}}}
-  <link rel="stylesheet" href="{{% static 'pages/brand.css' %}}">
+  <link rel="stylesheet" href="{{% static '{brand}' %}}">
 {{% endblock %}}
 """
 
 
-def _emitted_page(source_name: str, emitted_path: str) -> str:
+def emitted_page(source_name: str, emitted_path: str) -> str:
     """Prepend the ownership banner to a copied example, after its {% extends %}.
 
     {% extends %} must be the first tag in a Django template, so the banner
@@ -533,53 +306,11 @@ def _emitted_page(source_name: str, emitted_path: str) -> str:
     and fails silently), with {{ block.super }} so it never has to know
     whether the shell adds anything of its own to that block.
     """
-    source = examples.read_example(source_name)
+    return emitted_page_from_source(examples.read_example(source_name), source_name, emitted_path)
+
+
+def emitted_page_from_source(source: str, source_name: str, emitted_path: str) -> str:
+    """As :func:`emitted_page`, for example source a starter has already adjusted."""
     extends_line, _, rest = source.partition("\n")
-    banner = _BANNER.format(path=emitted_path, source=source_name)
+    banner = _BANNER.format(path=emitted_path, source=source_name, brand=BRAND_CSS_STATIC_NAME)
     return f"{extends_line}\n{banner}{rest}"
-
-
-def landing_html() -> str:
-    return _emitted_page("marketing/landing.html", "pages/templates/pages/landing.html")
-
-
-def dashboard_html() -> str:
-    return _emitted_page("app/dashboard.html", "pages/templates/pages/dashboard.html")
-
-
-def docs_home_html() -> str:
-    return _emitted_page("docs/home.html", "pages/templates/pages/docs_home.html")
-
-
-# --- Project README ---------------------------------------------------------
-
-README_MD = """# This project was started with `manage.py startsite`
-
-Everything in this directory is yours from the moment it was written
-(ADR-095 in django-brickwork). There is no update command and no upgrade
-path: this is a one-time emission, not a framework that reaches back into
-your files later. Edit anything here however your project needs.
-
-## What you have
-
-- `mysite/settings.py`: brickwork and brickwork.marketing installed, the
-  theme context processor wired, static files configured.
-- `pages/nav.py`: a real navigation config, validated at import.
-- `pages/views.py`: three views, each supplying the context its page needs.
-- `pages/templates/pages/`: three real pages, copied from brickwork's own
-  example pages (a marketing landing page, an app dashboard, a docs home).
-- `static/pages/brand.css`: placeholder brand tokens, contrast-verified,
-  ready for you to replace with your own brand.
-
-## Next steps
-
-1. `python manage.py runserver` and look at the three pages.
-2. Edit `static/pages/brand.css` with your real brand colours. Re-verify
-   `--bw-color-fg-on-accent` at 4.5:1 against your new accent in each theme;
-   see BRANDING.md in the installed django-brickwork package.
-3. Edit `pages/nav.py`, `pages/views.py` and the page templates: none of
-   it is generated again, so there is nothing to lose by changing it.
-4. Read INTEGRATION.md in the installed django-brickwork package for the
-   rest of the seams (forms, htmx, the chrome/body boundary) as you build
-   past these three pages.
-"""
