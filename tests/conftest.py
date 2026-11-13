@@ -31,15 +31,23 @@ from django.apps import apps
 def pytest_ignore_collect(collection_path, config):
     path_str = str(collection_path)
     if "test_integration.py" in path_str:
-        return not apps.is_installed("brickwork_testapp")
+        if not apps.is_installed("brickwork_testapp"):
+            return True
+        return None
     if "test_consumer_smoke.py" in path_str:
-        return not apps.is_installed("consumer")
+        if not apps.is_installed("consumer"):
+            return True
+        return None
     if "test_marketing.py" in path_str:
         # is_installed() checks the dotted app NAME ("brickwork.marketing"),
         # not its label ("brickwork_marketing", used everywhere else in this
         # file): the marketing sub-app is the one app here whose name and
         # label differ.
-        return not apps.is_installed("brickwork.marketing")
+        if not apps.is_installed("brickwork.marketing"):
+            return True
+        return None
     if "test_a11y_fixture_coverage.py" in path_str:
-        return not apps.is_installed("brickwork_testapp")
-    return False
+        if not apps.is_installed("brickwork_testapp"):
+            return True
+        return None
+    return None
