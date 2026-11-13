@@ -85,9 +85,12 @@ def test_check_is_registered_with_django() -> None:
 
 def test_run_checks_end_to_end_emits_and_clears_w001() -> None:
     # Through Django's own runner, not just the function in isolation.
+    # Django 6.1 defaults databases=None to every connection and probes
+    # connection.features (JSONField), which needs databases=[] or django_db.
+    # Only package configuration checks are asserted, so skip DB probing.
     with override_settings(TEMPLATES=_templates(_django_backend([]))):
-        ids = [message.id for message in run_checks()]
+        ids = [message.id for message in run_checks(databases=[])]
     assert "brickwork.W001" in ids
     with override_settings(TEMPLATES=_templates(_django_backend([THEME_CONTEXT_PROCESSOR]))):
-        ids = [message.id for message in run_checks()]
+        ids = [message.id for message in run_checks(databases=[])]
     assert "brickwork.W001" not in ids
