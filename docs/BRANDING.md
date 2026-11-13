@@ -14,6 +14,11 @@ elevation, spacing/density) is still token overrides at L2 to L4, not component
 forks. [DESIGN.md](DESIGN.md) is the authoritative token reference; [brand-pack.md](brand-pack.md)
 is the portable pack unit.
 
+**In a hurry?** [QUICKSTART.md](QUICKSTART.md#one-sitting-install-to-a-branded-page)
+is the install-to-branded-page path: it points at the ~16-token L1 starter in
+[examples/brand-pack/northline/tokens.css](examples/brand-pack/northline/tokens.css).
+Read on here for the rules behind it.
+
 ## The mechanism: override tokens, don't touch classes
 
 Put your brand's values on `:root` (or a scoped ancestor) in your own stylesheet,

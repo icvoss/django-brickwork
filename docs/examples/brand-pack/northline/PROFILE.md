@@ -7,6 +7,7 @@ Axes authored:
   - L2 font families (see tokens.css / DESIGN.md)
 Kit exceptions: none
 Preview routes: see preview/README.md (interim until live specimen wired)
+Live L1 specimen: https://brickworkui.com/templates/ with `brand=l1` (Free pages, L1 recolour only).
 Contrast: fg-on-accent documented in DESIGN.md
 Deferred: L3 radius/elevation/surfaces; L4 spacing/density (base-theme)
 

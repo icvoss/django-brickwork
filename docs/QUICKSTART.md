@@ -4,8 +4,39 @@ A short "start here" for a Django developer bringing brickwork into an app.
 It orients you and then routes you to the guide that actually has the
 detail: [docs/INTEGRATION.md](INTEGRATION.md) for wiring plumbing, or
 [docs/ADOPTION.md](ADOPTION.md) for migrating an existing UI onto it.
-This page is deliberately thin; do not look here for the wiring steps
-themselves.
+This page is deliberately thin: the one-sitting path below gets you to a
+branded page, and INTEGRATION.md holds the wiring depth.
+
+## One sitting: install to a branded page
+
+1. **Install and pin.** `pip install django-brickwork`, then record the
+   exact version you tested (`pip freeze | grep -i brickwork`, giving
+   `django-brickwork==<version>` in your requirements). You own the pin.
+2. **Wire it.** Add `"brickwork"` to `INSTALLED_APPS` (and
+   `"brickwork.marketing"` for a public site), add
+   `brickwork.context_processors.theme` to your template context processors,
+   and run `collectstatic`. The shell links
+   `brickwork/dist/brickwork.css` for you. Exact settings, static and
+   `head_extra` wiring:
+   [INTEGRATION.md section 1](INTEGRATION.md#1-settings-and-static).
+3. **Get a page.** Either copy a Free page from the
+   [brickworkui.com templates](https://brickworkui.com/templates/) (the
+   homepage or the full landing page), or copy one from
+   `src/brickwork/examples/` (see [Example pages](../README.md#example-pages)),
+   or run `manage.py startsite` (below). A copied page is yours outright.
+4. **L1 recolour.** Paste about 16 colour overrides (eight tokens, light and
+   dark, including `--bw-color-fg-on-accent`) in your own stylesheet,
+   linked after brickwork's CSS via `head_extra`. Start from
+   [northline/tokens.css](examples/brand-pack/northline/tokens.css) and edit
+   the values; the rules and the contrast trap are in
+   [BRANDING.md](BRANDING.md).
+5. **Optional, when you want more.** L2 voice: set `--bw-font-family-sans`,
+   `-display` and `-mono` (the northline file shows all three). L3 material:
+   author `--bw-radius-sm/md/lg` and `--bw-elevation-1/2/3`; modal, toast and
+   popover panels also read `--bw-radius-xl`, and open modal, slide-over and
+   toast read `--bw-elevation-4` and `-5`, so author those steps if overlays
+   should follow your brand. Levels, minimums and honesty rules:
+   [THEME.md](THEME.md#depth-ladder).
 
 ## What brickwork is
 
