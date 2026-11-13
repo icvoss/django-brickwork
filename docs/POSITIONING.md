@@ -44,7 +44,7 @@ copy must name which job a claim is about:
 |---|---|---|
 | **Substrate** | Tokens, shells, polished primitives, layout structures, interaction contracts, WCAG/a11y gates, brand override by `--bw-*` | install, pin, compose, override tokens |
 | **Reference catalogue** | Archetypes and compositions that prove coverage, plus Alpine/HTMX wiring; copy and own | browse, copy, adapt |
-| **Installable template** | `manage.py startsite` emits a running project that is yours | emit once |
+| **Installable template** | `python -m brickwork startsite` emits a running project that is yours, from an empty directory, in one of two starters | emit once |
 
 **Showcase ownership (brickworkui.com).** The flagship site owns its brand
 pack and its sell page compositions. It proves the package by composing it;
@@ -178,9 +178,12 @@ own headers: "It is not on the template loader path, so you cannot extend it
 (ADR-056)" (`src/brickwork/examples/app/date-range-picker.html:5-6`).
 
 **The starter supplies a running starting composition (ADR-095).**
-`manage.py startsite` emits wired settings, a contrast-verified brand file,
-and populated marketing, dashboard and documentation pages with their views.
-That establishes a working starting point for a consumer. It does not certify
+`startsite` (run as `python -m brickwork startsite` from an empty directory, or
+`manage.py startsite` inside a project) emits wired settings and a
+contrast-verified brand file, with the pages and views of one of two starters:
+`public-site` (a marketing landing page and a documentation home, no database)
+or `data-app` (a dashboard and a filterable list over a model, with a migration
+and seed command). That establishes a working starting point for a consumer. It does not certify
 its visual quality or the consumer's final result. Review the actual emitted
 pages at the target viewports and with the intended content.
 

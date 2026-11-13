@@ -1,36 +1,242 @@
 # Adoption quickstart
 
 A short "start here" for a Django developer bringing brickwork into an app.
-It orients you and then routes you to the guide that actually has the
-detail: [docs/INTEGRATION.md](INTEGRATION.md) for wiring plumbing, or
-[docs/ADOPTION.md](ADOPTION.md) for migrating an existing UI onto it.
-This page is deliberately thin: the one-sitting path below gets you to a
-branded page, and INTEGRATION.md holds the wiring depth.
+Pick the row that matches where you are today:
+
+| You have | Start at |
+|---|---|
+| An empty directory | [Path A](#path-a-from-an-empty-directory): one command emits a running project |
+| An existing Django project | [Path B](#path-b-an-existing-project-one-complete-page): one complete page, every seam in one place |
+| An existing UI to migrate, cluster by cluster | [docs/ADOPTION.md](ADOPTION.md) |
+
+This page is deliberately thin: it gets you to a running, branded page, and
+[docs/INTEGRATION.md](INTEGRATION.md) holds the wiring depth once you are past
+it.
+
+## Path A: from an empty directory
+
+You need Python 3.12 or later and nothing else. You do **not** need a Django
+project first: `startsite` is the project scaffold, so do not run
+`django-admin startproject` before it.
+
+```
+mkdir mysite && cd mysite
+python -m venv .venv && source .venv/bin/activate    # or: uv venv && source .venv/bin/activate
+pip install django-brickwork                         # or: uv pip install django-brickwork
+python -m brickwork startsite .
+python manage.py runserver
+```
+
+1. **Install.** `pip install django-brickwork` brings Django 6 with it, its
+   only hard dependency. `python -m brickwork` is the entry point that needs no
+   project, because there is not one yet; it runs the one command it exposes,
+   `startsite`.
+2. **Emit.** `python -m brickwork startsite .` writes a complete project into
+   the current directory: `manage.py`, settings with `brickwork` wired in, the
+   theme context processor, URLs, a validated nav config, a brand token file,
+   a `requirements.txt` that pins the brickwork that wrote it, and the pages
+   of the starter you chose. A `.venv`, `venv` or `.git` entry does not count
+   as "not empty"; anything else does, and the command refuses before it
+   writes a file. Pass a path instead of `.` to emit into a new subdirectory.
+3. **Run.** `python manage.py runserver`, then open
+   <http://127.0.0.1:8000/>. The emitted `README.md` lists the pages.
+
+### Choose a starter
+
+`--starter` selects what is emitted. There are two, and the default is
+`public-site`.
+
+| Starter | You get | Database | After emitting |
+|---|---|---|---|
+| `public-site` (default) | A marketing landing page at `/` and a docs home at `/docs/`, each with the view that feeds it. Installs `brickwork.marketing` for the landing shell. | None | `python manage.py runserver` |
+| `data-app` | An invoices dashboard at `/` whose figures are aggregates over real rows, and a filterable, sortable, paginated list at `/invoices/`. One model, its migration, and a `seed_demo` command. | SQLite | `python manage.py migrate`, `python manage.py seed_demo`, `python manage.py runserver` |
+
+```
+python -m brickwork startsite --starter data-app .
+python manage.py migrate
+python manage.py seed_demo
+python manage.py runserver
+```
+
+Pick `public-site` when the content lives in templates (a brochure, a docs
+site, a landing page) and `data-app` when the screens read from your own
+models. The `data-app` views are the worked answer to "what does a view that
+feeds a brickwork page look like when the data is real": they turn rows into
+the plain lists and dicts a component asks for, because brickwork never reads
+your models. Without `seed_demo` its screens render honest empty states.
+
+### What you own
+
+**The emitted project is yours outright from the moment it is written.**
+There is no update command and nothing here reaches back into it later
+(ADR-095): it is the same one-time copy the example pages already are
+(ADR-056), automated. Edit anything in it, starting with `static/brand.css`
+(placeholder brand tokens with a contrast-verified
+`--bw-color-fg-on-accent`). Open the pages, then adapt their content and
+composition to your product. The emitted pages are starting examples, not
+visual acceptance of the site you build. `requirements.txt` carries the one
+pin, `django-brickwork==<version>`; you own it from there.
+
+Already inside a Django project? `python manage.py startsite ../scratch` (with
+`brickwork` in `INSTALLED_APPS`) emits a separate starter project beside yours
+and never touches yours: use it as a reference to read and copy from, or follow
+Path B to wire brickwork into the project you have.
+
+## Path B: an existing project, one complete page
+
+This is one complete integration in one place: a URL, a view, a template, the
+context that template needs, and the static file that brands it, on a fresh
+`django-admin startproject mysite .` and `python manage.py startapp reports`.
+Every seam named in [INTEGRATION.md](INTEGRATION.md) appears once below; read
+that guide for the reasoning behind each. The first block is a set of
+additions to the bottom of your settings; the rest are whole files.
+
+**`mysite/settings.py`** (add to the bottom)
+
+```python
+# brickwork is a plain Django app. The theme context processor wires the
+# theme, density and direction onto <html>; without it the shell renders
+# unstyled with no error (system check brickwork.W001 names the trap).
+INSTALLED_APPS += ["brickwork", "reports"]
+TEMPLATES[0]["OPTIONS"]["context_processors"] += [
+    "brickwork.context_processors.theme",
+]
+
+# Your own static directory, where the brand stylesheet below lives.
+STATICFILES_DIRS = [BASE_DIR / "static"]
+```
+
+**`mysite/urls.py`**
+
+```python
+from django.urls import path
+
+from reports import views
+
+urlpatterns = [
+    path("reports/", views.index, name="reports"),
+]
+```
+
+**`reports/views.py`**
+
+```python
+from django.shortcuts import render
+from django.urls import resolve
+
+from brickwork.models import NavItem
+from brickwork.services.navigation import resolve_active_item, validate_nav_config
+
+# The nav is declared once and validated at import, so a bad tree fails at
+# startup rather than at first render.
+NAV = (NavItem(key="reports", label="Reports", url_name="reports", icon="document"),)
+validate_nav_config(NAV)
+
+
+def index(request):
+    # brickwork renders what you hand it; it never reads your models. The
+    # table wants columns and rows as plain dicts, each row with a stable id
+    # and its cells already formatted.
+    columns = [
+        {"label": "Report", "sortable": False},
+        {"label": "Owner", "sortable": False},
+        {"label": "Updated", "sortable": False},
+    ]
+    rows = [
+        {"id": "r1", "cells": ["Quarterly summary", "Finance", "2 hours ago"]},
+        {"id": "r2", "cells": ["Churn review", "Customer success", "Yesterday"]},
+    ]
+    return render(
+        request,
+        "reports/index.html",
+        {
+            "nav_items": NAV,
+            "nav_active": resolve_active_item(NAV, resolve(request.path)),
+            "report_columns": columns,
+            "report_rows": rows,
+        },
+    )
+```
+
+**`reports/templates/reports/index.html`**
+
+```html
+{% extends "brickwork/shell/app.html" %}
+{% load static brickwork_components brickwork_nav %}
+
+{% block page_title %}Reports{% endblock %}
+
+{# Your brand stylesheet MUST load after brickwork's, or your overrides lose the cascade. #}
+{% block head_extra %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'brand.css' %}">
+{% endblock %}
+
+{# The same nav in the desktop sidebar and in the mobile drawer. #}
+{% block sidebar %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block sidebar_mobile %}{% bw_nav nav_items nav_active %}{% endblock %}
+{% block brand_wordmark %}Acme{% endblock %}
+
+{% block page_header %}
+  {% include "brickwork/components/_page_header.html" with title="Reports" description="Everything your team has published." %}
+{% endblock %}
+
+{% block content %}
+  {% include "brickwork/components/_data_table.html" with table_id="reports-table" columns=report_columns rows=report_rows empty_heading="No reports yet" empty_body="Published reports will appear here." %}
+{% endblock %}
+```
+
+**`static/brand.css`**
+
+```css
+/* Recolour: override the --bw-* tokens you want to change, nothing else. */
+:root {
+  --bw-color-accent: oklch(0.55 0.20 265);
+  --bw-color-fg-on-accent: oklch(0.99 0 0);
+}
+[data-theme="dark"] {
+  --bw-color-accent: oklch(0.68 0.17 265);
+  --bw-color-fg-on-accent: oklch(0.16 0.02 270);
+}
+```
+
+Run `python manage.py runserver` and open <http://127.0.0.1:8000/reports/>.
+`runserver` serves the static files through Django's staticfiles app while
+`DEBUG` is on; for production set `STATIC_ROOT` and run `collectstatic`, which
+collects brickwork's compiled `brickwork/dist/brickwork.css` alongside your own
+files (the shell links it for you). The two accent values differ between themes
+on purpose: the safe `--bw-color-fg-on-accent` flips with the accent's
+lightness, so author it for each theme and verify it at 4.5:1
+([BRANDING.md](BRANDING.md#the-fg-on-accent-trap-do-not-assume-white-brickwork35)).
+
+A public marketing page follows the same shape with two changes: add
+`"brickwork.marketing"` to `INSTALLED_APPS` and extend
+`brickwork_marketing/shell/marketing.html` (see [Install](#install) for why it
+is a separate app). The shell's interactive pieces (the mobile drawer, menus,
+toasts) register against your own Alpine 3 instance; see
+[Prerequisites](#prerequisites). The page itself renders without it.
 
 ## One sitting: install to a branded page
 
-1. **Install and pin.** `pip install django-brickwork`, then record the
-   exact version you tested (`pip freeze | grep -i brickwork`, giving
-   `django-brickwork==<version>` in your requirements). You own the pin.
-2. **Wire it.** Add `"brickwork"` to `INSTALLED_APPS` (and
-   `"brickwork.marketing"` for a public site), add
-   `brickwork.context_processors.theme` to your template context processors,
-   and run `collectstatic`. The shell links
-   `brickwork/dist/brickwork.css` for you. Exact settings, static and
-   `head_extra` wiring:
-   [INTEGRATION.md section 1](INTEGRATION.md#1-settings-and-static).
-3. **Get a page.** Either copy a Free page from the
+Once a first page runs, by either path above, the rest of a first sitting is
+recolouring it.
+
+1. **Pin.** Record the exact version you tested (`pip freeze | grep -i
+   brickwork`, giving `django-brickwork==<version>` in your requirements).
+   Path A's `requirements.txt` already carries it; you own the pin.
+2. **More pages.** Copy a Free page from the
    [brickworkui.com templates](https://brickworkui.com/templates/) (the
    homepage or the full landing page), or copy one from
-   `src/brickwork/examples/` (see [Example pages](../README.md#example-pages)),
-   or run `manage.py startsite` (below). A copied page is yours outright.
-4. **L1 recolour.** Paste about 16 colour overrides (eight tokens, light and
+   `src/brickwork/examples/` (see [Example pages](../README.md#example-pages)).
+   A copied page is yours outright. The `head_extra` link in the Path B
+   template is how any page loads your stylesheet.
+3. **L1 recolour.** Paste about 16 colour overrides (eight tokens, light and
    dark, including `--bw-color-fg-on-accent`) in your own stylesheet,
    linked after brickwork's CSS via `head_extra`. Start from
    [northline/tokens.css](examples/brand-pack/northline/tokens.css) and edit
    the values; the rules and the contrast trap are in
    [BRANDING.md](BRANDING.md).
-5. **Optional, when you want more.** L2 voice: set `--bw-font-family-sans`,
+4. **Optional, when you want more.** L2 voice: set `--bw-font-family-sans`,
    `-display` and `-mono` (the northline file shows all three). L3 material:
    author `--bw-radius-sm/md/lg` and `--bw-elevation-1/2/3`; modal, toast and
    popover panels also read `--bw-radius-xl`, and open modal, slide-over and
@@ -96,35 +302,6 @@ inlines the `HX-Request` header check itself and only uses the richer
 `request.htmx` surface when you already run django-htmx. Add the extra only
 if you want that.
 
-## The fastest path: emit a starter project
-
-Once brickwork is installed, the fastest way to a running starter site is
-`manage.py startsite`, not the manual wiring below:
-
-```
-django-admin startproject mysite .   # or use an existing project
-python manage.py startsite myproject
-cd myproject
-python manage.py runserver
-```
-
-That emits a small, complete project: settings wired for `brickwork` and
-`brickwork.marketing`, a brand token file with the seven load-bearing tokens
-plus a contrast-verified `--bw-color-fg-on-accent`, a validated nav config,
-and three real pages (a marketing landing page, an app dashboard, a docs
-home) each with the view that supplies its context. Open `http://127.0.0.1:8000/`
-to inspect the populated pages, then adapt their content and composition to
-your product. The emitted pages are starting examples, not visual acceptance
-of the site you build.
-
-**The emitted project is yours outright from the moment it is written.**
-There is no update command and nothing here reaches back into it later
-(ADR-095): it is the same one-time copy the example pages already are
-(ADR-056), automated. Edit anything in it, starting with
-`static/pages/brand.css`. The rest of this page, and INTEGRATION.md, cover
-the same seams by hand for a project that already has its own settings and
-routing to wire brickwork into, rather than starting from nothing.
-
 ## A first taste of re-skinning (L1 Recolour)
 
 Seven load-bearing colour tokens start an **L1 Brickwork Theme**
@@ -170,9 +347,11 @@ for the worked failure.
 
 ## Where to go next
 
-- **Starting from nothing:** run `manage.py startsite`, above. It is the
-  fastest path to a running starter project and is where a new consumer
-  should start.
+- **Starting from nothing:** [Path A](#path-a-from-an-empty-directory). One
+  command, `python -m brickwork startsite`, emits a running starter project
+  (`public-site` or `data-app`) and is where a new consumer should start.
+- **Adding brickwork to an existing project:**
+  [Path B](#path-b-an-existing-project-one-complete-page), one complete page.
 - **Building a new screen, or a project with no existing UI kit to
   displace:** go straight to [docs/INTEGRATION.md](INTEGRATION.md). It
   is the seam-by-seam cookbook: settings and static, the nav config, the

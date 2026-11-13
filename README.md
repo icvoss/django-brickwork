@@ -149,9 +149,9 @@ imposed on consumers. Consumers provide their own Alpine 3 +
 registers behaviour onto the host Alpine instance and never calls
 `Alpine.start()`.
 
-Starting a project from nothing? Skip ahead to `manage.py startsite` in the
-Quickstart section below: it emits a running starter project rather than
-walking you through wiring one by hand.
+Starting a project from nothing? Skip ahead to the Quickstart section below:
+`python -m brickwork startsite` emits a running starter project from an empty
+directory, rather than walking you through wiring one by hand.
 
 ### Supported versions
 
@@ -176,18 +176,34 @@ prerequisite before adopting brickwork's interaction primitives; see
 
 ## Quickstart: the fastest path is a command, not this section
 
+From an empty directory, with nothing but Python 3.12 or later:
+
 ```
-python manage.py startsite myproject
+mkdir mysite && cd mysite
+python -m venv .venv && source .venv/bin/activate
+pip install django-brickwork
+python -m brickwork startsite .      # or: --starter data-app
+python manage.py runserver
 ```
 
-emits a minimal, running project: settings wired for brickwork (and the
-optional marketing kit), a contrast-verified brand file, a validated nav
-config, and three real pages, each with the view that feeds it. `cd
-myproject && python manage.py runserver` opens the populated starting pages.
-Adapt their content and brand, then review the composition in its real states
-and viewports. The emitted project is yours outright from
-the moment it is written, with no update path back into it (ADR-095); see
-[docs/QUICKSTART.md](docs/QUICKSTART.md#the-fastest-path-emit-a-starter-project).
+No Django project is needed first: `startsite` is the project scaffold. It
+emits a minimal, running project: settings wired for brickwork, a
+contrast-verified brand file, a validated nav config, a `requirements.txt` that
+pins the brickwork that wrote it, and the pages of the starter you choose with
+`--starter`:
+
+- `public-site` (the default): a marketing landing page and a docs home, with
+  no database.
+- `data-app`: an invoices dashboard and a filterable, sortable, paginated list
+  backed by a model, a migration and a `seed_demo` command (`python manage.py
+  migrate && python manage.py seed_demo` before `runserver`).
+
+Adapt the pages' content and brand, then review the composition in its real
+states and viewports. The emitted project is yours outright from the moment it
+is written, with no update path back into it (ADR-095). The full walk-through,
+and one complete page wired into an **existing** project (URL, view, template,
+context and static file in one place), is in
+[docs/QUICKSTART.md](docs/QUICKSTART.md#path-a-from-an-empty-directory).
 
 The rest of this section wires the same seams by hand, for a project that
 already has its own settings and routing brickwork needs to fit into.
