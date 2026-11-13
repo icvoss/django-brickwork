@@ -80,14 +80,45 @@ jobs:
             echo "ERROR: $CHANGELOG does not exist. Every release must ship a CHANGELOG."
             exit 1
           fi
-          # Require a heading like "## [0.4.0]" (date and surrounding text optional).
-          if ! grep -qE "^##[[:space:]]+\[${VERSION//./\\.}\]" "$CHANGELOG"; then
-            echo "ERROR: No CHANGELOG entry found for version ${VERSION} in $CHANGELOG."
-            echo "Add a '## [${VERSION}] - <date>' section (rename [Unreleased]) before tagging."
-            echo "See RELEASING.md - every release must ship a dated CHANGELOG entry."
-            exit 1
-          fi
-          echo "Found CHANGELOG entry for ${VERSION}."
+          # Heading alone is not enough: brickwork 3.2.1 shipped an empty body
+          # under a matching heading (icvoss/icv-oss-umbrella#270). Require the
+          # heading and at least one non-blank line before the next "## ["
+          # heading (or EOF).
+          python3 - <<'PY'
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          version = os.environ["VERSION"]
+          changelog = Path("CHANGELOG.md")
+          text = changelog.read_text()
+          heading = re.compile(rf"^##\s+\[{re.escape(version)}\].*$", re.M)
+          match = heading.search(text)
+          if not match:
+              print(
+                  f"ERROR: No CHANGELOG entry found for version {version} in {changelog}."
+              )
+              print(
+                  f"Add a '## [{version}] - <date>' section (rename [Unreleased]) before tagging."
+              )
+              print(
+                  "See RELEASING.md - every release must ship a dated CHANGELOG entry."
+              )
+              sys.exit(1)
+          rest = text[match.end() :]
+          next_heading = re.search(r"^##\s+\[", rest, re.M)
+          body = rest[: next_heading.start()] if next_heading else rest
+          if not any(line.strip() for line in body.splitlines()):
+              print(
+                  f"ERROR: CHANGELOG entry for {version} has an empty body."
+              )
+              print(
+                  f"Add at least one non-blank line under the '## [{version}]' heading before tagging."
+              )
+              sys.exit(1)
+          print(f"Found CHANGELOG entry with a non-empty body for {version}.")
+          PY
 
       - name: Set up Python
         uses: actions/setup-python@v6
