@@ -338,11 +338,11 @@ jobs:
           test "$count" -gt 0 || { echo "a11y/fixtures/archetypes/ has no .html fixtures; the generator produced nothing."; exit 1; }
       - name: Render emitted startsite fixtures (ADR-095)
         run: npm run a11y:fixtures:startsite
-      - name: Assert emitted startsite fixtures cover three pages in both themes (ADR-095)
+      - name: Assert emitted startsite fixtures cover both starters in both themes (ADR-095)
         run: |
           count=$(find a11y/fixtures/startsite -maxdepth 1 -name '*.html' 2>/dev/null | wc -l)
           echo "startsite fixtures: $count"
-          test "$count" -eq 6 || { echo "expected six startsite fixtures: landing, dashboard and docs home in light and dark themes."; exit 1; }
+          test "$count" -eq 8 || { echo "expected eight startsite fixtures: two pages for each of public-site and data-app, in light and dark themes."; exit 1; }
       - name: Run emitted startsite axe WCAG 2.2 AA gate (ADR-095)
         run: npm run a11y:startsite
       - name: Assert emitted startsite gate actually ran tests (ADR-095)

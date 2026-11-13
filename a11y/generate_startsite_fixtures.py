@@ -1,18 +1,20 @@
 """Render ``manage.py startsite`` output into a11y fixtures.
 
-ADR-095 requires the project emitted by ``manage.py startsite`` to clear the
-same WCAG 2.2 AA gate as the package itself. This generator deliberately does
-not render the copied templates through this repository's configured Django
-engine. It emits a temporary project, then starts that project's settings in
-a subprocess and requests each of its real URLs. That is the boundary a new
+ADR-095 requires every project emitted by ``manage.py startsite`` to clear the
+same WCAG 2.2 AA gate as the package itself, for each starter (``public-site``
+and ``data-app``). This generator deliberately does not render the copied
+templates through this repository's configured Django engine. It emits a
+temporary project per starter, then starts that project's settings in a
+subprocess and requests each of its real URLs. That is the boundary a new
 consumer receives: its own settings, URLconf, app registry, views and copied
-templates.
+templates. The ``data-app`` project is migrated and seeded first, so its pages
+are scanned populated, which is the state that has the most to fail.
 
 The resulting files are self-contained ``file://`` fixtures. Both the shipped
 brickwork stylesheet and the emitted project's brand stylesheet are inlined,
 so Playwright measures the actual cascade without needing a development
-server. Six fixtures are written: the landing, dashboard and docs pages in
-both light and dark themes.
+server. Eight fixtures are written, named ``<starter>-<page>-<theme>.html``:
+two pages per starter, in both light and dark themes.
 
 Run:
 DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=src:.:tests \
@@ -39,9 +41,8 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "a11y" / "fixtures" / "startsite"
 THEMES = ("light", "dark")
 PAGES = {
-    "landing": "/",
-    "dashboard": "/app/",
-    "docs-home": "/docs/",
+    "public-site": {"landing": "/", "docs-home": "/docs/"},
+    "data-app": {"dashboard": "/", "invoices": "/invoices/"},
 }
 _RENDER = """
 import json
@@ -60,7 +61,7 @@ response = Client().get(sys.argv[2])
 print(json.dumps({"status": response.status_code, "body": response.content.decode()}))
 """
 _BRICKWORK_CSS_LINK = re.compile(r'<link rel="stylesheet" href="/?static/brickwork/dist/brickwork\.css">')
-_BRAND_CSS_LINK = re.compile(r'<link rel="stylesheet" href="/?static/pages/brand\.css">')
+_BRAND_CSS_LINK = re.compile(r'<link rel="stylesheet" href="/?static/brand\.css">')
 
 
 def _render_page(target: Path, theme: str, path: str) -> str:
@@ -101,7 +102,7 @@ def _inline_stylesheets(html: str, target: Path) -> str:
     a visually unstyled fixture whose axe result would be misleading.
     """
     brickwork_css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text(encoding="utf-8")
-    brand_css = (target / "static/pages/brand.css").read_text(encoding="utf-8")
+    brand_css = (target / "static/brand.css").read_text(encoding="utf-8")
     html, brickwork_replacements = _BRICKWORK_CSS_LINK.subn(f"<style>{brickwork_css}</style>", html)
     html, brand_replacements = _BRAND_CSS_LINK.subn(f"<style>{brand_css}</style>", html)
     if brickwork_replacements != 1 or brand_replacements != 1:
@@ -112,19 +113,42 @@ def _inline_stylesheets(html: str, target: Path) -> str:
     return html
 
 
+def _manage(target: Path, *args: str) -> None:
+    """Run ``manage.py`` in the emitted project, failing loudly on any error."""
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(ROOT / "src")
+    env["DJANGO_SETTINGS_MODULE"] = "mysite.settings"
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, "manage.py", *args],
+        cwd=target,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    if result.returncode:
+        raise RuntimeError(f"startsite `manage.py {' '.join(args)}` failed: {result.stdout}{result.stderr}")
+
+
 def generate_fixtures(out: Path = OUT) -> list[Path]:
-    """Emit and render every required startsite page and theme fixture."""
+    """Emit and render every required startsite page and theme fixture, for every starter."""
     out.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="brickwork-startsite-") as temporary_directory:
-        target = Path(temporary_directory) / "project"
-        call_command("startsite", str(target))
-        written = []
-        for name, path in PAGES.items():
-            for theme in THEMES:
-                html = _inline_stylesheets(_render_page(target, theme, path), target)
-                fixture = out / f"{name}-{theme}.html"
-                fixture.write_text(html, encoding="utf-8")
-                written.append(fixture)
+    written = []
+    for starter, pages in PAGES.items():
+        with tempfile.TemporaryDirectory(prefix="brickwork-startsite-") as temporary_directory:
+            target = Path(temporary_directory) / "project"
+            call_command("startsite", str(target), starter=starter)
+            if starter == "data-app":
+                # A database-backed starter is scanned with rows in it: an
+                # empty table is the easy case, and not the one a user sees.
+                _manage(target, "migrate", "--verbosity", "0")
+                _manage(target, "seed_demo")
+            for name, path in pages.items():
+                for theme in THEMES:
+                    html = _inline_stylesheets(_render_page(target, theme, path), target)
+                    fixture = out / f"{starter}-{name}-{theme}.html"
+                    fixture.write_text(html, encoding="utf-8")
+                    written.append(fixture)
     return written
 
 
