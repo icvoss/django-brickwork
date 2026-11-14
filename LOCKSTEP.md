@@ -11,23 +11,19 @@ repository keeps a **release mirror** of source that still lives here, and
 mirrored files here and treat that as source: change the monorepo, then
 sync and, for tokens/CSS, publish `@bwui/*` and bump the pins below.
 
-## Shipped token and CSS artefacts (npm, 2026-10-27)
+## Shipped token and CSS artefacts (npm, 2026-11-14)
 
-The wheel's `static/brickwork/dist/{tokens.css,tailwind-theme.css,tokens.js,brickwork.css}`
+The wheel's `static/brickwork/dist/{tokens.css,tailwind-theme.css,tokens.js,token-manifest.json,brickwork.css}`
 are produced from published packages during `npm run build`:
 
 | Package | Pin | Dist files in the wheel |
 |---|---|---|
-| `@bwui/tokens` | `0.1.2` | `tokens.css`, `tailwind-theme.css`, `tokens.js` (copied) |
-| `@bwui/css` | `0.1.2` | `brickwork.css` (minified with lightningcss, plus Django `index.css` extras and `vendor-overlays.css` that `@bwui/css` 0.1.2 omits) |
+| `@bwui/tokens` | `0.1.3` | `tokens.css`, `tailwind-theme.css`, `tokens.js`, `token-manifest.json` (copied) |
+| `@bwui/css` | `0.1.3` | `brickwork.css` (minified with lightningcss; includes index extras and document a11y from [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)) |
 
 Integrity: `src/brickwork/static/brickwork/dist/bwui-pin.json` records the
 installed versions. CI's frontend-build job runs `npm ci` then `npm run build`
 and fails if those artefacts differ from the committed copies.
-
-`token-manifest.json` stays the Django-shaped contract (`contrastPairs`,
-`authoredPerTheme`) until `@bwui/tokens` emits that schema. Do not vendor
-the thinner npm manifest over it.
 
 Pip consumers never run npm. They still `{% static %}` the same filenames.
 
@@ -79,11 +75,6 @@ Explicitly residual; these stay editorial here until a later packaging cutover:
 - Python package layout and the PyPI publish pipeline
 - Gallery HTML in monorepo vs Django examples (parallel artefacts OK until
   gallery unit is marked migrated)
-- `token-manifest.json` Django-shaped extras (`contrastPairs`), the
-  `index.css` extras overlay, and `frontend/src/vendor-overlays.css` (dark
-  `color-scheme` for native inputs, bare-link underline, wave-e sparkline
-  demo cancelled), until [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)
-  lands a `@bwui/css` that includes those repairs
 
 ## Fleet pins
 

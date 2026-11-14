@@ -7,6 +7,10 @@
  * published artefacts into src/brickwork/static/brickwork/dist/ so the
  * wheel ships the same substrate as an npm install of those packages.
  *
+ * From @bwui 0.1.3 (icvoss/brickwork#11) the published CSS already includes
+ * Django index extras and document a11y repairs, and the published
+ * token-manifest.json is the Django-shaped contract. No local overlays.
+ *
  * brickwork.css is minified with lightningcss so existing Django contract
  * tests (written against Vite's minified output) keep matching. Alpine JS
  * is still compiled in this repo (Vite).
@@ -44,6 +48,7 @@ const copies = [
   [resolve(tokensDir, "dist/tokens.css"), resolve(DIST, "tokens.css")],
   [resolve(tokensDir, "dist/tailwind-theme.css"), resolve(DIST, "tailwind-theme.css")],
   [resolve(tokensDir, "dist/tokens.js"), resolve(DIST, "tokens.js")],
+  [resolve(tokensDir, "dist/token-manifest.json"), resolve(DIST, "token-manifest.json")],
 ]
 
 for (const [from, to] of copies) {
@@ -58,7 +63,6 @@ for (const [from, to] of copies) {
 
 const cssFrom = resolve(cssDir, "dist/brickwork.css")
 const cssTo = resolve(DIST, "brickwork.css")
-const indexCss = resolve(ROOT, "frontend/src/index.css")
 try {
   const published = readFileSync(cssFrom)
   const { code: minifiedPublished } = transform({
@@ -66,34 +70,7 @@ try {
     code: published,
     minify: true,
   })
-  // @bwui/css 0.1.2 omits the Django index.css extras (box-sizing, hidden
-  // floor, skip-link, .bw-icon-directional, focus ring, reduced-motion) and
-  // ships a reset plus wave-e demo rules that fail the Django a11y gate.
-  // Strip @imports so we do not recompile the lockstep layers, then append
-  // extras and the a11y overlays. Drop overlays when a later @bwui/css
-  // release lands the same repairs (icvoss/brickwork#11).
-  const extrasSource = readFileSync(indexCss, "utf8").replace(/@import\s+[^;]+;/g, "").trim()
-  const { code: minifiedExtras } = transform({
-    filename: "index-extras.css",
-    code: Buffer.from(extrasSource),
-    minify: true,
-  })
-  const overlayCss = resolve(ROOT, "frontend/src/vendor-overlays.css")
-  const { code: minifiedOverlays } = transform({
-    filename: "vendor-overlays.css",
-    code: readFileSync(overlayCss),
-    minify: true,
-  })
-  writeFileSync(
-    cssTo,
-    Buffer.concat([
-      minifiedPublished,
-      Buffer.from("\n"),
-      minifiedExtras,
-      Buffer.from("\n"),
-      minifiedOverlays,
-    ]),
-  )
+  writeFileSync(cssTo, minifiedPublished)
 } catch (err) {
   console.error(`Cannot vendor minified ${cssFrom}`)
   console.error(err)

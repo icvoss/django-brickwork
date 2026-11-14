@@ -14,7 +14,7 @@ PIN = DIST / "bwui-pin.json"
 TOKENS_NM = ROOT / "node_modules" / "@bwui" / "tokens"
 CSS_NM = ROOT / "node_modules" / "@bwui" / "css"
 
-TOKEN_FILES = ("tokens.css", "tailwind-theme.css", "tokens.js")
+TOKEN_FILES = ("tokens.css", "tailwind-theme.css", "tokens.js", "token-manifest.json")
 CSS_FILES = ("brickwork.css",)
 
 
@@ -66,16 +66,15 @@ def test_vendored_css_is_minified_from_installed_package() -> None:
 
 
 @pytest.mark.skipif(not CSS_NM.is_dir(), reason="npm deps not installed")
-def test_vendored_css_appends_a11y_overlays_after_published_sheet() -> None:
-    """@bwui/css 0.1.2 fails Django axe without the overlays in vendor-overlays.css."""
-    shipped = (DIST / "brickwork.css").read_text(encoding="utf-8")
+def test_published_css_carries_django_a11y_without_local_overlays() -> None:
+    """@bwui/css 0.1.3+ ships index extras and document a11y (icvoss/brickwork#11)."""
     published = (CSS_NM / "dist" / "brickwork.css").read_text(encoding="utf-8")
-    assert ".bw-sparkline>span:nth-child(n)" in shipped.replace(" ", "")
-    assert "color-scheme:dark" in shipped.replace(" ", "")
-    demo = published.find(".bw-sparkline > span")
-    assert demo != -1, "published @bwui/css still ships the wave-e demo sparkline"
-    overlay = shipped.rfind(".bw-sparkline>span:nth-child(n)")
-    assert overlay != -1
-    assert overlay > shipped.find(".bw-sparkline"), (
-        "sparkline overlay must follow the published demo so it wins cascade"
-    )
+    shipped = (DIST / "brickwork.css").read_text(encoding="utf-8")
+    compact_pub = published.replace(" ", "")
+    compact_ship = shipped.replace(" ", "")
+    assert ".bw-icon-directional" in published
+    assert "color-scheme:dark" in compact_pub
+    assert "bw-demo-barchart" in published
+    assert ".bw-sparkline>span:nth-child" not in compact_pub
+    assert "color-scheme:dark" in compact_ship
+    assert "bw-demo-barchart" in shipped
