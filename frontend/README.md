@@ -13,11 +13,11 @@ Into `src/brickwork/static/brickwork/dist/` (committed and shipped in the wheel)
 - `tailwind-theme.css` : the `@theme inline` Tailwind bridge mapping `--bw-*`
   tokens to short utility names, vendored from `@bwui/tokens`.
 - `tokens.js` : a JS re-export of the token names, vendored from `@bwui/tokens`.
-- `token-manifest.json` : the load-bearing brand set (Django-shaped contract,
-  including `contrastPairs`; not overwritten by the thinner npm manifest).
+- `token-manifest.json` : the load-bearing brand set including `contrastPairs`,
+  vendored from `@bwui/tokens` (Django-shaped from 0.1.3; icvoss/brickwork#11).
 - `brickwork.css` : the compiled component/shell CSS, vendored from `@bwui/css`
-  and minified with lightningcss, plus the Django `index.css` extras
-  (`.bw-icon-directional` and the a11y floor) that `@bwui/css` 0.1.2 omits.
+  and minified with lightningcss (index extras and document a11y ship in the
+  npm package from 0.1.3; no local overlays).
 - `brickwork.js` : the compiled Alpine component registrations (wrapping
   `@alpinejs/ui` + `@alpinejs/focus`), which register behaviour and never call
   `Alpine.start()`. Exports `registerBrickworkComponents(Alpine)` (which also
