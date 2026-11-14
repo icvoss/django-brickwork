@@ -8,12 +8,39 @@ versioning contract).
 
 ## Unreleased
 
+## [4.4.0] - 2026-11-14
+
+First-run and lockstep release: clean-directory `startsite`, selectable
+starters, and a single `@bwui` 0.1.3 substrate with no Django-only CSS
+overlays. Pip consumers still `{% static %}` the same filenames.
+
 ### Added
 
 - **Monorepo lockstep for tokens and CSS layers** (icvoss/django-brickwork#718,
   ADR-119 Wave D). DTCG tokens and `shell`/`nav`/`components`/`marketing` CSS
   are mirrors of `icvoss/brickwork`; see `LOCKSTEP.md`, `lockstep-manifest.json`,
   and `npm run sync:monorepo`. CI asserts mirror hashes.
+- **`python -m brickwork startsite DIRECTORY` runs with no Django project.**
+  `manage.py startsite` needed a project to run in, so a consumer starting from
+  an empty directory had to build one by hand before they could run the command
+  that builds one. The new module entry point configures just enough Django to
+  run `startsite` and nothing else, so `pip install django-brickwork` followed by
+  `python -m brickwork startsite .` is the whole clean-directory path. It never
+  reads the caller's settings. `manage.py startsite` is unchanged and still works
+  inside a project.
+- **`startsite --starter` selects one of two starters.** `public-site` is the
+  existing landing page and docs home with no database. `data-app` is new: an
+  `invoices` app with a model, a migration and a `seed_demo` command, a dashboard
+  whose figures are aggregates over the rows, and a filterable, sortable,
+  paginated list, both pages copied from the shipped `app/dashboard.html` and
+  `app/list.html` examples. Both starters pass the same WCAG 2.2 AA gate the
+  package does, with `data-app` scanned populated.
+- **Emitted projects carry a `requirements.txt`** pinning the django-brickwork
+  that wrote them, and a `.gitignore`.
+- **QUICKSTART documents the existing-project path as one complete page.** Path B
+  shows the settings lines, URL, view, context, template and static brand
+  stylesheet in one place, and `tests/test_quickstart_docs.py` writes those
+  blocks into a fresh `startproject` project to prove they work as written.
 
 ### Changed
 
@@ -24,21 +51,30 @@ versioning contract).
   From `@bwui` 0.1.3 the published CSS already includes index extras and
   document a11y ([icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11));
   local `vendor-overlays.css` is removed. Alpine registration JS is still a
-  Vite compile here. Pip consumers are unchanged: they still `{% static %}`
-  the same filenames and never run npm.
+  Vite compile here.
 - **Bump `@bwui/tokens` and `@bwui/css` pins to 0.1.3.**
-
-### Fixed
-
-- **Vendored `@bwui/css` 0.1.2 no longer fails WCAG 2.2 AA contrast.** The npm
-  sheet's reset left native inputs white under `data-theme="dark"` and stripped
-  underlines from bare inline links, and `wave-e.css` painted `.bw-sparkline`
-  labels with the accent. `frontend/src/vendor-overlays.css` restores
-  `color-scheme`, control fills, link underlines, and the product sparkline
-  layout until a later `@bwui/css` release lands the same repairs
-  ([icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)).
-
-### Removed
+- **`startsite` emits the `public-site` starter by default, which is two pages,
+  not three.** The previous default project carried a landing page, an app
+  dashboard and a docs home. The dashboard moved into the new `data-app`
+  starter, where it reads a database; the default now emits the landing page and
+  docs home only. Run `startsite --starter data-app` for the dashboard. Emitted
+  output carries no semver guarantee (ADR-095), but a consumer who scripts
+  `startsite` and expects `/app/` will find it gone.
+- **The emitted brand stylesheet moved from `static/pages/brand.css` to
+  `static/brand.css`**, linked as `{% static 'brand.css' %}`, because the two
+  starters no longer share an app directory to nest it in. Only projects emitted
+  after this release are affected; existing ones are untouched.
+- **`startsite` accepts a directory that holds only a `.git`, `.venv` or `venv`
+  entry.** It used to refuse any non-empty directory, so the natural first step
+  of creating a virtual environment in a fresh project directory made the
+  command refuse. Any other entry still refuses before a file is written.
+- **`startsite` no longer runs Django's system checks on its own invocation.**
+  It writes files and reads no models or URLs, and the clean-directory path has
+  no settings module to check. The emitted project's own `manage.py check` is
+  unchanged.
+- **The `docs/QUICKSTART.md` install path no longer runs `django-admin
+  startproject mysite .` before `startsite myproject`.** That sequence made two
+  projects, the second nested inside the first.
 
 ## [4.3.1] - 2026-09-24
 
