@@ -7,7 +7,7 @@
     "frontend-js"
   ],
   "editorial_home": "icvoss/brickwork",
-  "synced_at": "2026-09-29T14:49:19.882Z",
+  "synced_at": "2026-11-15T21:09:22.654Z",
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
@@ -24,7 +24,7 @@
     "css": {
       "shell.css": "6f44d6f6f815dc373db7dc56e8391c85a9ea16489841041a692af1f72bd8ae63",
       "nav.css": "fb336f329be04ea7b4d67de5309a15dd57c4ca368d03464e0a63582b11582177",
-      "components.css": "5e9345780f8357807725beb188fc363170ff1379c699cfb0f59db8d5f87e4364",
+      "components.css": "f06e7e6db7f202483dc11e6e469e7f2c6b6665605975274f44e2b4a314e2d4e9",
       "marketing.css": "fec04e26119ba73362b5f7aa488712ac9c1605c91c76f92179c54c74dfa55848"
     },
     "templates": {
@@ -45,7 +45,7 @@
       "brickwork/components/_chart_data_table.html": "583388cc3ed49595e63759f83c38dd5e8987daaee8db1c2f470734c83fafa812",
       "brickwork/components/_chip.html": "38f1f0f31859e4633ff21fdcb302c1adec0209ba3f19459eb6288bcaee0c6dff",
       "brickwork/components/_code.html": "9c5b499c6b036f15093f719b0d50a61a1693d53b9e49bc117caf707454123732",
-      "brickwork/components/_combobox.html": "f321ef87e939bf3f42f40867cc871dd0e262b8fd46fba25de8465fa71875a45e",
+      "brickwork/components/_combobox.html": "6f7480685b68d9b4987e75e796a475cb638ea895143afc9c2bd7c966a9fac139",
       "brickwork/components/_comparison_table.html": "936e6294558637e6f972fa2f186f57b5e8fa78d6f7c78f130171b110df4b74c7",
       "brickwork/components/_data_table.html": "f09c1194640252a28cb57aad3456b35bbd9e0b4576d2121e934c6d4a3be9c3ac",
       "brickwork/components/_date_picker_chrome.html": "a90321b210f15ac19abca02c4f1c6a377b12f98793e26237e95ff442445f580e",
@@ -129,7 +129,7 @@
     },
     "frontend-js": {
       "js/code_copy.js": "cb15d7087e379773ff608ee9f662b36161a1a66f1833fb1995781ce810b788e5",
-      "js/combobox.js": "5b976187c986a12fbe503856e17441478397508d93843a301ed64cce06015257",
+      "js/combobox.js": "21af668f02dfd629546b7fbd77271dd171864570dd4f2d8d269887849a4b9bd5",
       "js/disclosure.js": "18f319488e921a7d25ea41aec73a5b7cd937cc58e9254cc9501b3666df8daf0d",
       "js/dismissible.js": "9ab056fda75c877a76a92c65af9f72afe30fa3c5b365e7b9d0c68888d2f6272e",
       "js/dropdown.js": "a9c581c0084b5b020de13ea95c71337c91f4c48dd5aa35ae5890dd201b932550",

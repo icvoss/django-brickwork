@@ -76,6 +76,14 @@ revealed with the current query filled into its span; activating it emits
 bw:combobox:create { query }, and wiring that to an endpoint is the
 caller's job (brickwork ships the affordance only).
 
+Raise (docs/components/combobox.md): a click on the input opens the list; the
+floor select receives a native change event on every selection change; single
+mode restores the committed label when focus leaves without a commit; the
+enhanced input is named from the floor's labels at init; the status region
+and aria-busy/error row cover result counts, loading and server-filter
+failure; multiple mode carries bw-combobox--multiple so the chips and input
+share one frame (CMB-031).
+
 Events (optional conventions, BR-BW-HTMX-004): bw:combobox:open/close,
 bw:combobox:select { value, label }, bw:combobox:create { query }
 (allow_create only), emitted by bwCombobox.
@@ -115,7 +123,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   --bw-component-menu-min-width, fixed regardless of viewport.
 {% endcomment %}
 {% partialdef combobox_control %}
-<div class="bw-combobox"
+<div class="bw-combobox{% if multiple %} bw-combobox--multiple{% endif %}"
      x-data='bwCombobox({ filterMode: "{{ filter_mode }}", multiple: {{ multiple|yesno:"true,false" }}, allowCreate: {{ allow_create|yesno:"true,false" }} })'
      data-bw-combobox>
   <select class="bw-combobox__floor bw-input"
@@ -175,7 +183,19 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
       {% endif %}
       {# Empty message row (CMP-029): revealed by bwCombobox when no option matches; kept across server swaps by re-appending. #}
       <li class="bw-combobox__empty" role="presentation" data-bw-combobox-empty hidden>{{ empty_message }}</li>
+      {% if filter_mode == "server" %}
+      {# Server-filter failure row (CMB-019): revealed by bwCombobox when the options request fails; the previous options stay; kept across swaps by re-appending. #}
+      <li class="bw-combobox__error" role="presentation" data-bw-combobox-error hidden>{% translate "Options could not be loaded. Type to try again." %}</li>
+      {% endif %}
     </ul>
+    {# Live region (CMB-052): bwCombobox writes the result count, "No matches", loading and failure here. Strings are template-supplied so no English originates in script; {count} is replaced in script. #}
+    <div class="bw-combobox__status bw-visually-hidden"
+         role="status"
+         aria-live="polite"
+         data-bw-combobox-status
+         data-bw-status-loading="{% translate "Loading options" %}"
+         data-bw-status-one="{% translate "1 result available" %}"
+         data-bw-status-other="{% translate "{count} results available" %}"></div>
   </div>
 </div>
 {% endpartialdef %}

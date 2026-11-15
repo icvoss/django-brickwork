@@ -52,11 +52,16 @@
 // the input, options get no roving tabindex; semver-public,
 // BR-BW-JS-005): closed: ArrowDown opens with first-or-current active,
 // ArrowUp opens with last active, Alt+ArrowDown opens without moving,
-// typing opens and filters, Escape clears the query. Open:
-// ArrowDown/ArrowUp move the active option with wrap, Enter selects
+// typing opens and filters, a click on the input opens (CMB-022; keyboard
+// focus alone does not), Escape clears an uncommitted query (single mode
+// restores the committed label instead, CMB-013). Open:
+// ArrowDown/ArrowUp move the active option with wrap and skip disabled
+// options (aria-disabled="true", CMB-016), Enter selects
 // (single: select and close; multiple: toggle and stay open), Escape
 // closes, Tab closes without selecting and continues, Home/End keep
-// native caret behaviour. Multiple: Backspace with an empty query removes
+// native caret behaviour. Single mode restores the committed label whenever
+// focus leaves without a commit (blur, Tab, outside press, Escape on a
+// closed list), so the input text never sits blank over a retained value. Multiple: Backspace with an empty query removes
 // the last chip; chips render as span.bw-combobox__chip with an icon-only
 // button.bw-combobox__chip-remove.
 //
@@ -80,6 +85,19 @@
 // icon to clone into JS-built chips plus data-bw-chip-remove-label, the
 // translated chip-remove aria-label prefix. Untranslated fallbacks apply
 // when a hand-rolled markup omits them.
+//
+// The floor select receives a bubbling native `change` event whenever a
+// selection actually changes (choose, remove, clear), so dependent fields and
+// htmx `hx-trigger="change"` wiring behave as with a native select (CMB-012).
+//
+// Accessible name (CMB-050): the label's `for` targets the hidden floor, so at
+// init the enhanced input is named from the floor's labels (aria-labelledby)
+// or the floor's aria-label when the template did not already supply one.
+// A polite role="status" region ([data-bw-combobox-status], template-supplied
+// strings) announces the result count, "No matches", loading and failure
+// (CMB-052). Server mode sets aria-busy on the listbox while a request is in
+// flight and shows the template-supplied error row ([data-bw-combobox-error])
+// when the request fails, keeping the previous options (CMB-019).
 //
 // Motion is CSS-owned: this module toggles state ([data-bw-open] on the
 // root, aria-expanded, hidden on options) and never sequences animation
@@ -123,6 +141,8 @@ export default function combobox(config = {}) {
     _listbox: null,
     _empty: null,
     _create: null,
+    _error: null,
+    _status: null,
     _chipSeed: null,
     _searchSource: null,
     _debounceMs: DEBOUNCE_FALLBACK_MS,
@@ -148,6 +168,8 @@ export default function combobox(config = {}) {
       // label) so no English and no artwork ever originate here.
       this._create = this._listbox.querySelector("[data-bw-combobox-create]");
       this._chipSeed = root.querySelector("template[data-bw-combobox-chip-icon]");
+      this._error = this._listbox.querySelector("[data-bw-combobox-error]");
+      this._status = root.querySelector("[data-bw-combobox-status]");
 
       instanceCount += 1;
       this._id = root.id || `bw-combobox-${instanceCount}`;
@@ -174,6 +196,7 @@ export default function combobox(config = {}) {
       this._input.setAttribute("aria-controls", this._listbox.id);
       this._input.setAttribute("aria-autocomplete", "list");
       this._listbox.setAttribute("role", "listbox");
+      this._nameInput();
       this._upgradeOptions();
       this._syncOptionSelection();
       this._renderChips();
@@ -200,6 +223,16 @@ export default function combobox(config = {}) {
 
       this._input.addEventListener("keydown", (event) => this._onKeydown(event));
       this._input.addEventListener("input", () => this._onInput());
+      // A click or tap on the input opens the list (CMB-022); keyboard focus
+      // alone never does.
+      this._input.addEventListener("click", () => this.open());
+      // Focus leaving the component without a commit closes the list and, in
+      // single mode, restores the committed label (CMB-013).
+      this._input.addEventListener("blur", (event) => {
+        if (event.relatedTarget && root.contains(event.relatedTarget)) return;
+        this.close();
+        this._restoreText();
+      });
       // Option clicks must not blur the input (focus stays on the input,
       // aria-activedescendant carries the active option).
       this._listbox.addEventListener("mousedown", (event) =>
@@ -208,10 +241,43 @@ export default function combobox(config = {}) {
       this._listbox.addEventListener("click", (event) =>
         this._onOptionClick(event),
       );
+      // One highlight (CMB-023): moving the pointer over an enabled option
+      // makes it the active option, so hover and keyboard never disagree.
+      this._listbox.addEventListener("mousemove", (event) =>
+        this._onOptionPointerMove(event),
+      );
       this._field.addEventListener("click", (event) => this._onChipClick(event));
       root.addEventListener("htmx:afterSwap", (event) => {
         if (event.target === this._listbox) this._onOptionsSwapped();
       });
+      // Server-filter request lifecycle (CMB-019): busy while in flight, an
+      // error row when it fails. htmx fires afterRequest for every outcome.
+      root.addEventListener("htmx:beforeRequest", (event) => {
+        if (event.target !== this._input) return;
+        this._hideError();
+        this._listbox.setAttribute("aria-busy", "true");
+        this._announce(this._statusText("loading"));
+      });
+      root.addEventListener("htmx:afterRequest", (event) => {
+        if (event.target !== this._input) return;
+        this._listbox.removeAttribute("aria-busy");
+        const detail = event.detail || {};
+        if (detail.failed === true || detail.successful === false) {
+          this._showError();
+        }
+      });
+      // Network failures, timeouts and HTTP error responses fire their own
+      // events and do not always flag afterRequest as failed. An abort
+      // (htmx:abort / a superseded request) is deliberately not an error.
+      ["htmx:sendError", "htmx:timeout", "htmx:responseError"].forEach(
+        (name) => {
+          root.addEventListener(name, (event) => {
+            if (event.target !== this._input) return;
+            this._listbox.removeAttribute("aria-busy");
+            this._showError();
+          });
+        },
+      );
 
       this._onOutsidePointerDown = (event) => {
         if (this.isOpen && !root.contains(event.target)) this.close();
@@ -228,6 +294,7 @@ export default function combobox(config = {}) {
 
     open() {
       if (this.isOpen || !this._listbox) return;
+      if (this._input.disabled || this._input.readOnly) return;
       this.isOpen = true;
       this._root.setAttribute("data-bw-open", "");
       this._input.setAttribute("aria-expanded", "true");
@@ -251,6 +318,7 @@ export default function combobox(config = {}) {
     },
 
     select(value) {
+      const before = this._selectionKey();
       // Multiple mode toggles (Enter on a selected option, Backspace on
       // the last chip, a chip-remove click all route through here).
       if (this.multiple && this.selected.includes(value)) {
@@ -264,24 +332,29 @@ export default function combobox(config = {}) {
         this._syncFloor();
         this._renderChips();
         this._syncOptionSelection();
+        this._emitChange(before);
       } else {
-        this.selected = [value];
-        this._ensureFloorOption(value, label);
+        // A blank value is "no selection", matching how init rehydrates the
+        // floor (a blank option never counts as selected).
+        this.selected = value === "" ? [] : [value];
+        if (value !== "") this._ensureFloorOption(value, label);
         this._syncFloor();
-        this._input.value = label;
-        this.query = label;
+        this._restoreText();
         this._syncOptionSelection();
+        this._emitChange(before);
         this.close();
       }
       dispatch(this._root, "bw:combobox:select", { value, label });
     },
 
     clear() {
+      const before = this._selectionKey();
       this.selected = [];
       this._syncFloor();
       this._renderChips();
       this._syncOptionSelection();
       this._clearQuery();
+      this._emitChange(before);
     },
 
     // ----- keyboard -----
@@ -298,16 +371,19 @@ export default function combobox(config = {}) {
               this._setActive(current === -1 ? 0 : current);
             }
           } else if (!event.altKey) {
-            this._setActive(this.activeIndex + 1);
+            this._setActive(this.activeIndex + 1, 1);
           }
           break;
         case "ArrowUp":
           event.preventDefault();
           if (!this.isOpen) {
             this.open();
-            this._setActive(-1); // last
+            this._setActive(-1, -1); // last enabled
           } else {
-            this._setActive(this.activeIndex === -1 ? -1 : this.activeIndex - 1);
+            this._setActive(
+              this.activeIndex === -1 ? -1 : this.activeIndex - 1,
+              -1,
+            );
           }
           break;
         case "Enter":
@@ -320,6 +396,14 @@ export default function combobox(config = {}) {
           if (this.isOpen) {
             event.preventDefault();
             this.close();
+          } else if (!this.multiple) {
+            // Single mode: the input text is the committed label (CMB-013),
+            // so Escape reverts an uncommitted edit instead of blanking the
+            // box over a retained value.
+            if (this._input.value !== this._committedLabel()) {
+              event.preventDefault();
+              this._restoreText();
+            }
           } else if (this._input.value !== "" || this.query !== "") {
             event.preventDefault();
             this._clearQuery();
@@ -329,6 +413,7 @@ export default function combobox(config = {}) {
           // Close without selecting; the default Tab continues the
           // sequence from the input (no preventDefault).
           if (this.isOpen) this.close();
+          this._restoreText();
           break;
         case "Backspace":
           if (this.multiple && this._input.value === "" && this.selected.length) {
@@ -350,6 +435,7 @@ export default function combobox(config = {}) {
       if (!this.isOpen) this.open();
       if (this.filterMode === "client") {
         this._applyClientFilter();
+        this._announceResults();
       } else {
         this._ensureCreateOption();
         this._toggleEmpty();
@@ -401,11 +487,16 @@ export default function combobox(config = {}) {
       if (this._empty && !this._listbox.contains(this._empty)) {
         this._listbox.appendChild(this._empty);
       }
+      if (this._error && !this._listbox.contains(this._error)) {
+        this._listbox.appendChild(this._error);
+      }
+      this._hideError();
       this._upgradeOptions();
       this._resetActive();
       this._syncOptionSelection();
       this._ensureCreateOption();
       this._toggleEmpty();
+      this._announceResults();
     },
 
     // ----- options -----
@@ -465,11 +556,60 @@ export default function combobox(config = {}) {
     _toggleEmpty() {
       if (!this._empty) return;
       const anyVisible = this._realOptions().some((option) => !option.hidden);
-      this._empty.hidden = anyVisible;
+      // A failed request shows the error row instead of "No matches".
+      const failed = this._error !== null && !this._error.hidden;
+      this._empty.hidden = anyVisible || failed;
+    },
+
+    // ----- status, busy and failure (CMB-019, CMB-052) -----
+
+    _statusText(key) {
+      if (!this._status) return "";
+      const map = {
+        loading: this._status.dataset.bwStatusLoading,
+        one: this._status.dataset.bwStatusOne,
+        other: this._status.dataset.bwStatusOther,
+      };
+      return map[key] || "";
+    },
+
+    _announce(text) {
+      if (this._status && text) this._status.textContent = text;
+    },
+
+    _announceResults() {
+      const count = this._realOptions().filter((option) => !option.hidden).length;
+      if (count === 0) {
+        this._announce(this._empty ? (this._empty.textContent || "").trim() : "");
+      } else if (count === 1) {
+        this._announce(this._statusText("one"));
+      } else {
+        this._announce(this._statusText("other").replace("{count}", String(count)));
+      }
+    },
+
+    _showError() {
+      if (!this._error) return;
+      // The failed request never swapped, so the previous options are still
+      // in the listbox; the row is shown beside them, never silently.
+      if (!this._listbox.contains(this._error)) {
+        this._listbox.appendChild(this._error);
+      }
+      this._error.hidden = false;
+      if (this._empty) this._empty.hidden = true;
+      this._announce((this._error.textContent || "").trim());
+    },
+
+    _hideError() {
+      if (this._error) this._error.hidden = true;
+    },
+
+    _isDisabled(option) {
+      return option.getAttribute("aria-disabled") === "true";
     },
 
     _activateOption(option) {
-      if (!option) return;
+      if (!option || this._isDisabled(option)) return;
       if (option.hasAttribute("data-bw-combobox-create")) {
         // The server owns creation (BR-BW-HTMX-007 spirit): emit only.
         dispatch(this._root, "bw:combobox:create", { query: this.query.trim() });
@@ -485,18 +625,36 @@ export default function combobox(config = {}) {
       this._activateOption(option);
     },
 
+    _onOptionPointerMove(event) {
+      // Browsers fire synthetic mousemoves when keyboard scrolling slides a
+      // row under a still pointer; a real move has a non-zero delta.
+      if (event.movementX === 0 && event.movementY === 0) return;
+      const option = event.target.closest(".bw-combobox__option");
+      if (!option || !this._listbox.contains(option)) return;
+      if (this._isDisabled(option) || option.hasAttribute("data-bw-active")) return;
+      const index = this._visibleOptions().indexOf(option);
+      if (index !== -1) this._setActive(index, 1, false);
+    },
+
     // ----- active option (aria-activedescendant, no roving tabindex) -----
 
-    _setActive(index) {
+    // `step` is the direction of travel (1 or -1): a disabled target is
+    // skipped in that direction, wrapping (CMB-016).
+    _setActive(index, step = 1, scroll = true) {
       const options = this._visibleOptions();
-      if (!options.length) return;
-      const wrapped = ((index % options.length) + options.length) % options.length;
+      const count = options.length;
+      if (!count) return;
+      let wrapped = ((index % count) + count) % count;
+      for (let tried = 0; tried < count && this._isDisabled(options[wrapped]); tried += 1) {
+        wrapped = (wrapped + step + count) % count;
+      }
+      if (this._isDisabled(options[wrapped])) return; // every option disabled
       this.activeIndex = wrapped;
       this._clearActiveMarker();
       const option = options[wrapped];
       option.setAttribute("data-bw-active", "");
       this._input.setAttribute("aria-activedescendant", option.id);
-      if (typeof option.scrollIntoView === "function") {
+      if (scroll && typeof option.scrollIntoView === "function") {
         option.scrollIntoView({ block: "nearest" });
       }
     },
@@ -522,10 +680,60 @@ export default function combobox(config = {}) {
     // ----- selection mirroring (the floor select carries form state) -----
 
     _remove(value) {
+      const before = this._selectionKey();
       this.selected = this.selected.filter((item) => item !== value);
       this._syncFloor();
       this._renderChips();
       this._syncOptionSelection();
+      this._emitChange(before);
+    },
+
+    _selectionKey() {
+      return JSON.stringify(this.selected);
+    },
+
+    // Native `change` on the floor, only when the selection really changed
+    // (a native select never fires change for a no-op), so dependent fields
+    // and htmx change triggers see the new value (CMB-012).
+    _emitChange(before) {
+      if (this._selectionKey() === before) return;
+      this._floor.dispatchEvent(new Event("change", { bubbles: true }));
+    },
+
+    // Single mode only: the committed option's label, "" when nothing (or a
+    // blank option) is committed.
+    _committedLabel() {
+      if (this.multiple || !this.selected.length) return "";
+      return this._floorLabel(this.selected[0]) || this.selected[0];
+    },
+
+    // Single mode: put the committed label back in the input (CMB-013).
+    _restoreText() {
+      if (this.multiple) return;
+      const label = this._committedLabel();
+      if (this._input.value !== label) this._input.value = label;
+      this.query = label;
+    },
+
+    // The label's `for` targets the hidden floor, so name the enhanced input
+    // from the floor's labels (or its aria-label) unless the template did
+    // (CMB-050). Labels without an id get a stable generated one.
+    _nameInput() {
+      if (
+        this._input.hasAttribute("aria-labelledby") ||
+        this._input.hasAttribute("aria-label")
+      ) {
+        return;
+      }
+      const ids = Array.from(this._floor.labels || []).map((label, index) => {
+        if (!label.id) label.id = `${this._floor.id || this._id}-label-${index}`;
+        return label.id;
+      });
+      if (ids.length) {
+        this._input.setAttribute("aria-labelledby", ids.join(" "));
+      } else if (this._floor.hasAttribute("aria-label")) {
+        this._input.setAttribute("aria-label", this._floor.getAttribute("aria-label"));
+      }
     },
 
     _syncFloor() {
