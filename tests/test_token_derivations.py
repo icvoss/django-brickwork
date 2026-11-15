@@ -55,6 +55,9 @@ _PER_INSTANCE_VAR_HOOKS = frozenset(
         # (brickwork#700 / #703); set on .bw-app, not emitted as design tokens.
         "--bw-shell-rail-track",
         "--bw-shell-sidebar-track",
+        # Local chip block size on .bw-combobox (CMB-038); derived from density and
+        # space tokens per instance, referenced with a 1.5rem fallback.
+        "--bw-combobox-chip-size",
     }
 )
 

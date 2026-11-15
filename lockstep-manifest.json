@@ -7,7 +7,7 @@
     "frontend-js"
   ],
   "editorial_home": "icvoss/brickwork",
-  "synced_at": "2026-11-15T21:06:03.093Z",
+  "synced_at": "2026-11-15T21:09:22.654Z",
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
@@ -24,7 +24,7 @@
     "css": {
       "shell.css": "6f44d6f6f815dc373db7dc56e8391c85a9ea16489841041a692af1f72bd8ae63",
       "nav.css": "fb336f329be04ea7b4d67de5309a15dd57c4ca368d03464e0a63582b11582177",
-      "components.css": "8b8b7423cd77ab68f22a37487fbb99e562f7cd0241336f2630f7e06464e8d13b",
+      "components.css": "f06e7e6db7f202483dc11e6e469e7f2c6b6665605975274f44e2b4a314e2d4e9",
       "marketing.css": "fec04e26119ba73362b5f7aa488712ac9c1605c91c76f92179c54c74dfa55848"
     },
     "templates": {

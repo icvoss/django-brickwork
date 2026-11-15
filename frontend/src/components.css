@@ -4203,7 +4203,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 /* The global ring (reset.css :focus-visible) moves from the input to the
  * frame so keyboard focus is outlined at the control edge, once. */
 .bw-combobox--multiple .bw-combobox__field:has(.bw-combobox__input:focus-visible) {
-  outline: 2px solid var(--bw-color-ring, var(--bw-color-accent));
+  outline: 2px solid var(--bw-color-focus-ring, var(--bw-color-accent));
   outline-offset: 2px;
 }
 /* Declared after focus so the danger border persists while focused, as for
@@ -4228,7 +4228,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
    * block-size mirrors a chip so a wrapped row keeps one baseline rhythm. */
   flex-basis: 4rem; /* a length literal: a short typing run beside chips, no sizing-ramp step */
   block-size: auto;
-  min-block-size: var(--bw-combobox-chip-size);
+  min-block-size: var(--bw-combobox-chip-size, 1.5rem);
   padding-inline: var(--bw-space-1);
   background: transparent;
   border: 0;
@@ -4350,7 +4350,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 .bw-combobox__chip {
   display: inline-flex;
   align-items: center;
-  block-size: var(--bw-combobox-chip-size);
+  block-size: var(--bw-combobox-chip-size, 1.5rem);
   gap: var(--bw-space-1);
   padding-inline: var(--bw-space-3) var(--bw-space-1);
   background: var(--bw-state-selected-bg);
