@@ -4139,6 +4139,13 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  * list too (compose, never duplicate); only combobox-specific physics live
  * here. */
 .bw-combobox {
+  /* Chip block size (CMB-038): the control height less the frame's own
+   * block padding, never below the 1.5rem WCAG 2.5.8 target plus the chip's
+   * hairline border. Shared by the chip and the multiple-mode input. */
+  --bw-combobox-chip-size: max(
+    calc(1.5rem + 2 * var(--bw-size-border-hairline)),
+    calc(var(--bw-density-control-height) - 2 * var(--bw-space-2))
+  );
   position: relative;
 }
 /* Chips and the input share one wrapping row; the absolutely positioned
@@ -4155,6 +4162,81 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   flex: 1 1 var(--bw-component-menu-min-width);
   inline-size: auto;
   min-inline-size: 0;
+}
+/* Placeholder colour (CMB-035, GAP-CMB-15): the shipped bundle had no
+ * placeholder rule, so the UA default applied. Scoped to the combobox input;
+ * opacity is reset because Firefox dims ::placeholder on top of its colour.
+ * fg-subtle is the contract's target colour; its measured ratio is still to be
+ * recorded (combobox.md 4.3). */
+.bw-combobox__input::placeholder {
+  color: var(--bw-color-fg-subtle);
+  opacity: 1;
+}
+/* Multiple-mode frame (CMB-031, deliberate break, combobox.md 13.3): the chips
+ * and the input share ONE frame. The frame moves from the input to the field
+ * wrapper (the shared .bw-input recipe restated: control border, radius-md,
+ * inset hairline, hover pre-light, accent border plus halo on focus) and
+ * grows with wrapped chips (min-block-size, never a fixed height). The input
+ * goes borderless so it reads as part of the field. Single mode is untouched:
+ * it keeps the bare .bw-input frame (CMB-030). */
+.bw-combobox--multiple .bw-combobox__field {
+  min-block-size: var(--bw-density-control-height);
+  padding-block: var(--bw-space-1);
+  padding-inline: var(--bw-density-control-padding-inline);
+  background: var(--bw-color-surface);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-md);
+  box-shadow: inset 0 1px 2px 0 oklch(0 0 0 / 0.04);
+  transition: var(--bw-transition-colors), var(--bw-transition-shadow);
+}
+.bw-combobox--multiple .bw-combobox__field:hover:where(
+    :not(:focus-within):not(:has(.bw-combobox__input:disabled, .bw-combobox__input[readonly]))
+  ) {
+  border-color: color-mix(in oklab, var(--bw-color-border-control) 82%, var(--bw-color-fg));
+}
+.bw-combobox--multiple .bw-combobox__field:focus-within {
+  border-color: var(--bw-color-accent);
+  box-shadow:
+    inset 0 1px 2px 0 oklch(0 0 0 / 0.04),
+    0 0 0 3px color-mix(in oklab, var(--bw-color-accent) 18%, transparent);
+}
+/* The global ring (reset.css :focus-visible) moves from the input to the
+ * frame so keyboard focus is outlined at the control edge, once. */
+.bw-combobox--multiple .bw-combobox__field:has(.bw-combobox__input:focus-visible) {
+  outline: 2px solid var(--bw-color-ring, var(--bw-color-accent));
+  outline-offset: 2px;
+}
+/* Declared after focus so the danger border persists while focused, as for
+ * .bw-input. */
+.bw-combobox--multiple .bw-combobox__field:has(.bw-combobox__input[aria-invalid="true"]) {
+  border-color: var(--bw-color-danger);
+}
+.bw-combobox--multiple .bw-combobox__field:has(.bw-combobox__input[readonly]) {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-combobox--multiple .bw-combobox__field:has(.bw-combobox__input:disabled) {
+  background: var(--bw-color-action-disabled-bg);
+  border-color: var(--bw-color-action-disabled-border);
+  cursor: not-allowed;
+}
+.bw-combobox--multiple .bw-combobox__input,
+.bw-combobox--multiple .bw-combobox__input:hover,
+.bw-combobox--multiple .bw-combobox__input:focus-visible,
+.bw-combobox--multiple .bw-combobox__input:disabled,
+.bw-combobox--multiple .bw-combobox__input[readonly] {
+  /* The frame owns border, fill, well and ring; the input only types. The
+   * block-size mirrors a chip so a wrapped row keeps one baseline rhythm. */
+  flex-basis: 4rem; /* a length literal: a short typing run beside chips, no sizing-ramp step */
+  block-size: auto;
+  min-block-size: var(--bw-combobox-chip-size);
+  padding-inline: var(--bw-space-1);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  outline: none;
+}
+.bw-combobox--multiple .bw-combobox__input:disabled {
+  color: var(--bw-color-action-disabled-text);
 }
 /* The listbox mirrors the dropdown panel exactly (DESIGN.md reserved rows):
  * raised surface, elevation-3 at z-dropdown, radius-lg, menu min-width, the
@@ -4197,6 +4279,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  * stamps it on: the target listbox itself, or the requesting input beside
  * it. First consumer of --bw-component-htmx-indicator-opacity. */
 .bw-combobox__listbox.htmx-request,
+.bw-combobox__listbox[aria-busy="true"],
 .bw-combobox__input.htmx-request ~ .bw-combobox__listbox {
   opacity: var(--bw-component-htmx-indicator-opacity);
 }
@@ -4227,19 +4310,47 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 .bw-combobox__option[aria-selected="true"] {
   font-weight: var(--bw-font-weight-medium);
 }
+/* Disabled option (CMB-016): stays visible and filterable, paints the flat
+ * disabled colours, shows no hover wash and cannot be chosen (the behaviour
+ * skips it). The state is also carried by aria-disabled, not colour alone. */
+.bw-combobox__option[aria-disabled="true"] {
+  color: var(--bw-color-action-disabled-text);
+  cursor: not-allowed;
+}
+.bw-combobox__option[aria-disabled="true"]:hover {
+  background-color: transparent;
+}
+/* Create row (CMB-020, GAP-CMB-16): the lead word is quiet and the echoed
+ * query carries the weight, so the row reads "Create <query>". */
+.bw-combobox__option--create {
+  color: var(--bw-color-fg-muted);
+}
+.bw-combobox__create-query {
+  color: var(--bw-color-fg);
+  font-weight: var(--bw-font-weight-medium);
+  overflow-wrap: anywhere;
+}
 .bw-combobox__empty {
   padding: var(--bw-space-2) var(--bw-space-3);
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-body-sm-size);
   line-height: var(--bw-text-body-sm-line-height);
 }
+/* Server-filter failure row (CMB-019): the same row shape as the empty
+ * message, in the text-duty danger tier (the .bw-field__error precedent). */
+.bw-combobox__error {
+  padding: var(--bw-space-2) var(--bw-space-3);
+  color: var(--bw-color-danger-fg);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
 /* Selected-value chips (multiple mode, CMP-028): the selected wash at
- * radius-full, block-sized by the floor-height remove control (the
- * pagination-link touch pattern), so a chip row sits level with the
- * control beside it. */
+ * radius-full, sized by --bw-combobox-chip-size (CMB-038) so a chip row sits
+ * inside the control's height rather than stretching it. */
 .bw-combobox__chip {
   display: inline-flex;
   align-items: center;
+  block-size: var(--bw-combobox-chip-size);
   gap: var(--bw-space-1);
   padding-inline: var(--bw-space-3) var(--bw-space-1);
   background: var(--bw-state-selected-bg);
@@ -4252,8 +4363,12 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-block-size: var(--bw-size-touch-target-min);
-  min-inline-size: var(--bw-size-touch-target-min);
+  /* 1.5rem is the WCAG 2.5.8 floor (CMB-053); the chip sizes to it, so the
+   * remove control no longer pushes a chip taller than the control (CMB-038,
+   * GAP-CMB-10). It fills the chip's inner block size. */
+  block-size: 100%;
+  min-block-size: 1.5rem;
+  min-inline-size: 1.5rem;
   padding: var(--bw-space-1);
   background: transparent;
   border: 0;

@@ -571,7 +571,7 @@ test.describe("combobox keyboard", () => {
     await expect(page.locator("#bw-listbox-id_colour-opt-1")).toHaveAttribute("aria-selected", "true");
   });
 
-  test("Escape closes; Escape when already closed clears the query but not the selection", async ({ page }) => {
+  test("Escape closes; Escape when already closed reverts an uncommitted edit to the committed label, never blanking the box over a retained value (CMB-013)", async ({ page }) => {
     const root = colourRoot(page);
     const input = page.locator("#id_colour_combobox");
     await input.focus();
@@ -582,11 +582,168 @@ test.describe("combobox keyboard", () => {
     await page.keyboard.press("Escape");
     await expect(root).not.toHaveAttribute("data-bw-open", "");
     await expect(input).toHaveValue("Green"); // closing does not clear
-    await page.keyboard.press("Escape"); // already closed: clears the query
-    await expect(input).toHaveValue("");
+    await page.keyboard.press("Escape"); // closed, text already the label: nothing to revert
+    await expect(input).toHaveValue("Green");
+    await input.pressSequentially("xyz"); // an uncommitted edit; typing opens
+    await expect(input).toHaveValue("Greenxyz");
+    await page.keyboard.press("Escape"); // closes, text unchanged
+    await expect(root).not.toHaveAttribute("data-bw-open", "");
+    await expect(input).toHaveValue("Greenxyz");
+    await page.keyboard.press("Escape"); // closed with an uncommitted edit: revert
+    await expect(input).toHaveValue("Green");
     // the query is not the selection: form state lives on the floor
     await expect(page.locator("#id_colour")).toHaveValue("green");
-    expect((await recordedEvents(page)).filter((e) => e.type === "bw:combobox:close")).toHaveLength(2);
+    expect((await recordedEvents(page)).filter((e) => e.type === "bw:combobox:close")).toHaveLength(3);
+  });
+
+  test("a click on the input opens the list; keyboard focus alone does not (CMB-022)", async ({ page }) => {
+    const root = colourRoot(page);
+    const input = page.locator("#id_colour_combobox");
+    await input.focus();
+    await expect(root).not.toHaveAttribute("data-bw-open", "");
+    await expect(input).toHaveAttribute("aria-expanded", "false");
+    await input.click();
+    await expect(root).toHaveAttribute("data-bw-open", "");
+    await expect(input).toHaveAttribute("aria-expanded", "true");
+    // a second click stays open
+    await input.click();
+    await expect(root).toHaveAttribute("data-bw-open", "");
+  });
+
+  test("choosing fires a bubbling native change on the floor once, and not for a no-op (CMB-012)", async ({ page }) => {
+    const input = page.locator("#id_colour_combobox");
+    await page.evaluate(() => {
+      window.__changes = [];
+      document.addEventListener("change", (event) => {
+        if (event.target.id === "id_colour") window.__changes.push(event.target.value);
+      });
+    });
+    await input.focus();
+    await page.keyboard.press("ArrowDown"); // open, Red (the current value) active
+    await page.keyboard.press("Enter"); // Red again: no change
+    expect(await page.evaluate(() => window.__changes)).toEqual([]);
+    await page.keyboard.press("ArrowDown"); // reopen, Red active
+    await page.keyboard.press("ArrowDown"); // Green
+    await page.keyboard.press("Enter");
+    expect(await page.evaluate(() => window.__changes)).toEqual(["green"]);
+  });
+
+  test("multiple mode fires change on the floor for add, chip removal and Backspace removal (CMB-012)", async ({ page }) => {
+    const root = tagsRoot(page);
+    const input = page.locator("#id_tags_combobox");
+    await page.evaluate(() => {
+      window.__changes = [];
+      document.addEventListener("change", (event) => {
+        if (event.target.id === "id_tags") window.__changes.push([...event.target.selectedOptions].map((o) => o.value));
+      });
+    });
+    await root.locator(".bw-combobox__chip", { hasText: "Beta" }).locator(".bw-combobox__chip-remove").click();
+    await input.focus();
+    await page.keyboard.press("Backspace"); // removes the last chip (Alpha)
+    await page.keyboard.press("ArrowDown"); // open
+    await page.keyboard.press("Enter"); // toggles the active option on
+    const changes = await page.evaluate(() => window.__changes);
+    expect(changes).toHaveLength(3);
+    expect(changes[0]).toEqual(["alpha"]);
+    expect(changes[1]).toEqual([]);
+  });
+
+  test("blur and Tab restore the committed label and leave the floor value alone (CMB-013)", async ({ page }) => {
+    const input = page.locator("#id_colour_combobox");
+    await input.focus();
+    await input.fill("");
+    await expect(input).toHaveValue("");
+    await expect(page.locator("#id_colour")).toHaveValue("red"); // still retained
+    await page.keyboard.press("Tab");
+    await expect(input).toHaveValue("Red"); // the label is back
+    await input.focus();
+    await input.pressSequentially("zz");
+    await page.locator("body").click({ position: { x: 1, y: 1 } }); // outside press
+    await expect(input).toHaveValue("Red");
+    await expect(page.locator("#id_colour")).toHaveValue("red");
+  });
+
+  test("the enhanced input is named from the floor's label when the template gave none (CMB-050)", async ({ page }) => {
+    // The standalone trio instance has a plain <label for="id_skills"> that
+    // targets the hidden floor; init names the input from it.
+    const input = page.locator("#id_skills_combobox");
+    await expect(input).toHaveAttribute("aria-labelledby", /.+/);
+    await expect(input).toHaveAccessibleName("Skills");
+    // the bound-field path keeps the template's own wiring
+    await expect(page.locator("#id_colour_combobox")).toHaveAccessibleName("Colour");
+  });
+
+  test("the status region announces the result count and No matches (CMB-052)", async ({ page }) => {
+    const root = tagsRoot(page);
+    const input = page.locator("#id_tags_combobox");
+    const status = root.locator("[data-bw-combobox-status]");
+    await expect(status).toHaveAttribute("role", "status");
+    await input.focus();
+    await input.pressSequentially("al");
+    await expect(status).toHaveText("1 result available");
+    await input.pressSequentially("zzz");
+    await expect(status).toHaveText("No matches");
+    await input.fill("");
+    await expect(status).toHaveText("3 results available");
+  });
+
+  test("a disabled option is skipped by the arrows and cannot be chosen (CMB-016)", async ({ page }) => {
+    const input = page.locator("#id_tags_combobox");
+    await page.evaluate(() => {
+      document.getElementById("bw-listbox-id_tags-opt-1").setAttribute("aria-disabled", "true");
+    });
+    await input.focus();
+    await page.keyboard.press("ArrowDown"); // open, Alpha (selected) active
+    await expect(input).toHaveAttribute("aria-activedescendant", "bw-listbox-id_tags-opt-0");
+    await page.keyboard.press("ArrowDown"); // Beta is disabled: skip to Gamma
+    await expect(input).toHaveAttribute("aria-activedescendant", "bw-listbox-id_tags-opt-2");
+    await page.keyboard.press("ArrowUp"); // and back past it
+    await expect(input).toHaveAttribute("aria-activedescendant", "bw-listbox-id_tags-opt-0");
+    await page.locator("#bw-listbox-id_tags-opt-1").click(); // a click does nothing
+    await expect(page.locator("#id_tags")).toHaveValues(["alpha", "beta"]); // unchanged from the initial selection
+  });
+
+  test("pointer movement makes the hovered option the single active row (CMB-023)", async ({ page }) => {
+    const input = page.locator("#id_colour_combobox");
+    await input.focus();
+    await page.keyboard.press("ArrowDown"); // open, Red active
+    const green = page.locator("#bw-listbox-id_colour-opt-1");
+    const box = await green.boundingBox();
+    await page.mouse.move(box.x + 4, box.y + box.height / 2);
+    await page.mouse.move(box.x + 10, box.y + box.height / 2);
+    await expect(green).toHaveAttribute("data-bw-active", "");
+    await expect(input).toHaveAttribute("aria-activedescendant", "bw-listbox-id_colour-opt-1");
+    expect(await page.locator("#bw-listbox-id_colour [data-bw-active]").count()).toBe(1);
+  });
+
+  test("a failed server-filter request clears aria-busy, shows the error row, keeps the options and never goes silent (CMB-019)", async ({ page }) => {
+    const root = colourRoot(page);
+    const input = page.locator("#id_colour_combobox");
+    const listbox = page.locator("#bw-listbox-id_colour");
+    // point the wired hx-get at a fragment that does not exist
+    await page.evaluate(() => {
+      const el = document.getElementById("id_colour_combobox");
+      el.setAttribute("hx-get", "fragments/does-not-exist.html");
+      window.htmx.process(el);
+    });
+    await input.focus();
+    await input.pressSequentially("x");
+    const error = root.locator("[data-bw-combobox-error]");
+    await expect(error).toBeVisible();
+    await expect(listbox).not.toHaveAttribute("aria-busy", "true");
+    await expect(root.locator("[data-bw-combobox-status]")).toHaveText(/could not be loaded/i);
+    // the previous options are still there
+    expect(await listbox.locator(".bw-combobox__option").count()).toBeGreaterThan(0);
+    await expect(root.locator(".bw-combobox__empty")).toBeHidden();
+    // a later successful query clears the row
+    await page.evaluate(() => {
+      const el = document.getElementById("id_colour_combobox");
+      el.setAttribute("hx-get", "fragments/combobox-options-green.html");
+      window.htmx.process(el);
+    });
+    await input.pressSequentially("y");
+    await expect(listbox.locator(".bw-combobox__option")).toHaveText(["Green"]);
+    await expect(error).toBeHidden();
   });
 
   test("Tab closes without selecting and continues; Home and End keep the native caret", async ({ page }) => {

@@ -24,6 +24,8 @@ from django import forms
 from django.template import engines
 from django.template.exceptions import TemplateSyntaxError
 
+from tests._class_contract import PENDING_BWUI_CSS_PIN, styled_bw_classes
+
 _DIST_JS = Path(__file__).resolve().parent.parent / "src/brickwork/static/brickwork/dist/brickwork.js"
 
 _COLOURS = [("red", "Red"), ("green", "Green"), ("blue", "Blue")]
@@ -250,3 +252,70 @@ def test_bundle_registers_bwcombobox_with_documented_events() -> None:
     assert "bwCombobox" in bundle
     for event in ("bw:combobox:open", "bw:combobox:close", "bw:combobox:select", "bw:combobox:create"):
         assert event in bundle
+
+
+# --- the raise (docs/components/combobox.md, CMB-019, 031, 050, 052) -----------
+
+
+def test_multiple_mode_root_carries_the_frame_modifier_and_single_mode_does_not() -> None:
+    # CMB-031: the modifier is what moves the frame from the input to the field
+    # wrapper; single mode keeps the bare shared input frame (CMB-030).
+    multiple = _render(
+        '{% bw_combobox field=field multiple=True filter_mode="client" %}',
+        field=_bound()["tags"],
+    )
+    assert 'class="bw-combobox bw-combobox--multiple"' in multiple
+    assert "bw-combobox--multiple" not in _render()
+
+
+def test_status_region_is_a_polite_live_region_with_template_supplied_strings() -> None:
+    # CMB-052 and CMB-072: the strings are rendered here so no English
+    # originates in script; {count} is the only token script fills in.
+    html = _render()
+    status = _tag_of(html, "data-bw-combobox-status")
+    assert 'role="status"' in status
+    assert 'aria-live="polite"' in status
+    assert "bw-visually-hidden" in status
+    assert 'data-bw-status-loading="Loading options"' in status
+    assert 'data-bw-status-one="1 result available"' in status
+    assert 'data-bw-status-other="{count} results available"' in status
+
+
+def test_status_region_sits_inside_the_hidden_enhanced_wrapper() -> None:
+    # The no-JS floor never exposes dead enhanced markup (BR-BW-HTMX-001).
+    html = _render()
+    assert html.index("bw-combobox__field") < html.index("bw-combobox__listbox") < html.index("data-bw-combobox-status")
+    assert _bare_hidden(_tag_of(html, "bw-combobox__field"))
+
+
+def test_server_mode_ships_a_hidden_translated_failure_row_and_client_mode_does_not() -> None:
+    # CMB-019 / OQ-CMB-1: a failed server-filter request must be visible, so the
+    # row exists up front; client mode makes no request and has nothing to fail.
+    server = _render()
+    error = _tag_of(server, "data-bw-combobox-error")
+    assert _bare_hidden(error)
+    assert "bw-combobox__error" in error
+    assert "Options could not be loaded. Type to try again." in server
+    assert "data-bw-combobox-error" not in _render('{% bw_combobox field=field filter_mode="client" %}')
+
+
+def test_bundle_carries_the_raise_hooks() -> None:
+    bundle = _DIST_JS.read_text()
+    for hook in (
+        "data-bw-combobox-status",
+        "data-bw-combobox-error",
+        "aria-busy",
+        "htmx:beforeRequest",
+        "htmx:afterRequest",
+        "aria-labelledby",
+    ):
+        assert hook in bundle
+
+
+def test_pending_pin_classes_expire_once_the_pin_styles_them() -> None:
+    # The pending allowlist (tests/_class_contract.py) exists only until the
+    # vendored @bwui/css carries these rules. When it does, drop the entry in
+    # the pin-bump PR: a stale entry would silently exempt a class from the
+    # "every emitted class is styled" contract.
+    now_styled = sorted(PENDING_BWUI_CSS_PIN & styled_bw_classes())
+    assert not now_styled, f"remove from PENDING_BWUI_CSS_PIN, the vendored CSS now styles: {now_styled}"

@@ -109,6 +109,8 @@ UNSTYLED_BY_DESIGN: set[str] = {
     # matching bw-tag-input__floor's own doctrine above.
     "bw-combobox__option--create",  # JS hook (data-bw-combobox-create); .bw-combobox__option
     # carries the row's look.
+    "bw-combobox__status",  # the live-region hook (data-bw-combobox-status); the element
+    # also carries .bw-visually-hidden, which is its whole visual treatment.
     # --- carried across from test_component_class_contract.py verbatim ------
     # marketing section roots whose children carry every rule (the
     # test_examples.py precedent for *-section wrappers, same reasoning
@@ -119,3 +121,18 @@ UNSTYLED_BY_DESIGN: set[str] = {
     "bw-stat-band-section",
     "bw-faq-section",
 }
+
+# Classes the brickwork monorepo CSS already styles but the vendored @bwui/css
+# pin does not carry yet (the Combobox raise: the multiple-mode frame and the
+# server-filter failure row, docs/components/combobox.md CMB-031 and CMB-019).
+# The templates and script ship first and degrade gracefully (multiple mode
+# keeps its old look, the error row is plain text) until the pin is bumped to
+# the @bwui/css release carrying those rules. This is NOT "unstyled by design":
+# tests/test_combobox.py::test_pending_pin_classes_expire_once_the_pin_styles_them
+# fails the moment the vendored CSS styles one of them, so an entry here cannot
+# go stale. Remove an entry in the pin-bump PR.
+PENDING_BWUI_CSS_PIN: set[str] = {
+    "bw-combobox--multiple",
+    "bw-combobox__error",
+}
+UNSTYLED_BY_DESIGN |= PENDING_BWUI_CSS_PIN
