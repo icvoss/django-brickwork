@@ -699,7 +699,8 @@ test.describe("combobox keyboard", () => {
     await expect(input).toHaveAttribute("aria-activedescendant", "bw-listbox-id_tags-opt-2");
     await page.keyboard.press("ArrowUp"); // and back past it
     await expect(input).toHaveAttribute("aria-activedescendant", "bw-listbox-id_tags-opt-0");
-    await page.locator("#bw-listbox-id_tags-opt-1").click(); // a click does nothing
+    // force: Playwright treats aria-disabled as not actionable; a real pointer still lands
+    await page.locator("#bw-listbox-id_tags-opt-1").click({ force: true }); // a click does nothing
     await expect(page.locator("#id_tags")).toHaveValues(["alpha", "beta"]); // unchanged from the initial selection
   });
 
