@@ -266,6 +266,18 @@ export default function combobox(config = {}) {
           this._showError();
         }
       });
+      // Network failures, timeouts and HTTP error responses fire their own
+      // events and do not always flag afterRequest as failed. An abort
+      // (htmx:abort / a superseded request) is deliberately not an error.
+      ["htmx:sendError", "htmx:timeout", "htmx:responseError"].forEach(
+        (name) => {
+          root.addEventListener(name, (event) => {
+            if (event.target !== this._input) return;
+            this._listbox.removeAttribute("aria-busy");
+            this._showError();
+          });
+        },
+      );
 
       this._onOutsidePointerDown = (event) => {
         if (this.isOpen && !root.contains(event.target)) this.close();
