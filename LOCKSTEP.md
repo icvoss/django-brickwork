@@ -18,8 +18,8 @@ are produced from published packages during `npm run build`:
 
 | Package | Pin | Dist files in the wheel |
 |---|---|---|
-| `@bwui/tokens` | `0.1.4` | `tokens.css`, `tailwind-theme.css`, `tokens.js`, `token-manifest.json` (copied) |
-| `@bwui/css` | `0.1.4` | `brickwork.css` (minified with lightningcss; includes index extras and document a11y from [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)) |
+| `@bwui/tokens` | `0.1.8` | `tokens.css`, `tailwind-theme.css`, `tokens.js`, `token-manifest.json` (copied) |
+| `@bwui/css` | `0.1.8` | `brickwork.css` (minified with lightningcss; includes index extras and document a11y from [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)) |
 
 Integrity: `src/brickwork/static/brickwork/dist/bwui-pin.json` records the
 installed versions. CI's frontend-build job runs `npm ci` then `npm run build`

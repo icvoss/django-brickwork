@@ -99,6 +99,14 @@
 // flight and shows the template-supplied error row ([data-bw-combobox-error])
 // when the request fails, keeping the previous options (CMB-019).
 //
+// Completion (docs/components/combobox.md, nothing deferred): a clear control
+// ([data-bw-combobox-clear], hidden until there is a value or a query on an
+// operable control, CMB-015); groups (.bw-combobox__group wrappers hidden while
+// none of their options is visible, CMB-017); readonly and disabled controls
+// (the input is readonly or disabled, so the list never opens and chips cannot
+// be removed, CMB-024 and CMB-025); and the multiple-mode "added", "removed"
+// and "cleared" announcements through the status region (CMB-052).
+//
 // Motion is CSS-owned: this module toggles state ([data-bw-open] on the
 // root, aria-expanded, hidden on options) and never sequences animation
 // (BR-BW-TOK-009 lives entirely in the component CSS).
@@ -142,6 +150,7 @@ export default function combobox(config = {}) {
     _empty: null,
     _create: null,
     _error: null,
+    _clearButton: null,
     _status: null,
     _chipSeed: null,
     _searchSource: null,
@@ -170,6 +179,7 @@ export default function combobox(config = {}) {
       this._chipSeed = root.querySelector("template[data-bw-combobox-chip-icon]");
       this._error = this._listbox.querySelector("[data-bw-combobox-error]");
       this._status = root.querySelector("[data-bw-combobox-status]");
+      this._clearButton = root.querySelector("[data-bw-combobox-clear]");
 
       instanceCount += 1;
       this._id = root.id || `bw-combobox-${instanceCount}`;
@@ -220,6 +230,20 @@ export default function combobox(config = {}) {
         );
         return Number.isFinite(ms) ? ms : DEBOUNCE_FALLBACK_MS;
       })();
+
+      if (this._clearButton) {
+        // Keep focus on the input while the control is pressed (CMB-010).
+        this._clearButton.addEventListener("mousedown", (event) =>
+          event.preventDefault(),
+        );
+        this._clearButton.addEventListener("click", () => {
+          if (!this._operable()) return;
+          this.clear();
+          this._input.focus();
+        });
+      }
+      this._updateClear();
+      this._syncGroups();
 
       this._input.addEventListener("keydown", (event) => this._onKeydown(event));
       this._input.addEventListener("input", () => this._onInput());
@@ -292,9 +316,22 @@ export default function combobox(config = {}) {
       if (this._debounceTimer) clearTimeout(this._debounceTimer);
     },
 
+    // Operable: neither disabled nor read-only (CMB-024, CMB-025).
+    _operable() {
+      return !this._input.disabled && !this._input.readOnly;
+    },
+
+    // The clear control shows while the control is operable and holds a value
+    // or a non-empty query (CMB-015); otherwise it is not rendered.
+    _updateClear() {
+      if (!this._clearButton) return;
+      const has = this.selected.length > 0 || this._input.value !== "";
+      this._clearButton.hidden = !(this._operable() && has);
+    },
+
     open() {
       if (this.isOpen || !this._listbox) return;
-      if (this._input.disabled || this._input.readOnly) return;
+      if (!this._operable()) return;
       this.isOpen = true;
       this._root.setAttribute("data-bw-open", "");
       this._input.setAttribute("aria-expanded", "true");
@@ -302,7 +339,8 @@ export default function combobox(config = {}) {
         // Opening shows the full list; typing narrows it from here (the
         // input handler re-applies the filter straight after open()).
         for (const option of this._realOptions()) option.hidden = false;
-        this._ensureCreateOption();
+        this._syncGroups();
+        this._ensureCreateOption("");
         this._toggleEmpty();
       }
       dispatch(this._root, "bw:combobox:open", { id: this._id });
@@ -333,6 +371,7 @@ export default function combobox(config = {}) {
         this._renderChips();
         this._syncOptionSelection();
         this._emitChange(before);
+        this._announce(this._labelled("added", label));
       } else {
         // A blank value is "no selection", matching how init rehydrates the
         // floor (a blank option never counts as selected).
@@ -344,10 +383,12 @@ export default function combobox(config = {}) {
         this._emitChange(before);
         this.close();
       }
+      this._updateClear();
       dispatch(this._root, "bw:combobox:select", { value, label });
     },
 
     clear() {
+      if (!this._operable()) return;
       const before = this._selectionKey();
       this.selected = [];
       this._syncFloor();
@@ -355,6 +396,9 @@ export default function combobox(config = {}) {
       this._syncOptionSelection();
       this._clearQuery();
       this._emitChange(before);
+      this.close();
+      this._updateClear();
+      this._announce(this._statusText("cleared"));
     },
 
     // ----- keyboard -----
@@ -416,7 +460,12 @@ export default function combobox(config = {}) {
           this._restoreText();
           break;
         case "Backspace":
-          if (this.multiple && this._input.value === "" && this.selected.length) {
+          if (
+            this.multiple &&
+            this._operable() &&
+            this._input.value === "" &&
+            this.selected.length
+          ) {
             event.preventDefault();
             this._remove(this.selected[this.selected.length - 1]);
           }
@@ -431,6 +480,7 @@ export default function combobox(config = {}) {
       // Typing opens and filters; a query change always resets the active
       // option (APG: filtering invalidates the previous active index).
       this.query = this._input.value;
+      this._updateClear();
       this._resetActive();
       if (!this.isOpen) this.open();
       if (this.filterMode === "client") {
@@ -451,6 +501,7 @@ export default function combobox(config = {}) {
         const label = (option.textContent || "").trim().toLowerCase();
         option.hidden = needle !== "" && !label.includes(needle);
       }
+      this._syncGroups();
       this._ensureCreateOption();
       this._toggleEmpty();
     },
@@ -492,6 +543,7 @@ export default function combobox(config = {}) {
       }
       this._hideError();
       this._upgradeOptions();
+      this._syncGroups();
       this._resetActive();
       this._syncOptionSelection();
       this._ensureCreateOption();
@@ -517,6 +569,16 @@ export default function combobox(config = {}) {
       return this._options().filter((option) => !option.hidden);
     },
 
+    // A group wrapper is hidden while none of its options is visible
+    // (CMB-017), so a heading never sits over an empty run. Arrow movement
+    // skips headings because they are not options.
+    _syncGroups() {
+      for (const group of this._listbox.querySelectorAll(".bw-combobox__group")) {
+        const options = group.querySelectorAll(".bw-combobox__option");
+        group.hidden = !Array.from(options).some((option) => !option.hidden);
+      }
+    },
+
     _upgradeOptions() {
       this._options().forEach((option, index) => {
         option.setAttribute("role", "option");
@@ -524,9 +586,11 @@ export default function combobox(config = {}) {
       });
     },
 
-    _ensureCreateOption() {
+    // The create row follows the text the user typed (`text`), never the
+    // committed label restored into the input after a choice (CMB-020).
+    _ensureCreateOption(text) {
       if (!this.allowCreate) return;
-      const query = this.query.trim();
+      const query = (text === undefined ? this.query : text).trim();
       let create = this._create;
       if (query === "") {
         if (create) create.hidden = true;
@@ -567,10 +631,20 @@ export default function combobox(config = {}) {
       if (!this._status) return "";
       const map = {
         loading: this._status.dataset.bwStatusLoading,
+        cleared: this._status.dataset.bwStatusCleared,
         one: this._status.dataset.bwStatusOne,
         other: this._status.dataset.bwStatusOther,
       };
       return map[key] || "";
+    },
+
+    // A status string with {label} filled in (multiple-mode added/removed).
+    _labelled(key, label) {
+      const map = {
+        added: this._status && this._status.dataset.bwStatusAdded,
+        removed: this._status && this._status.dataset.bwStatusRemoved,
+      };
+      return (map[key] || "").replace("{label}", label);
     },
 
     _announce(text) {
@@ -680,12 +754,16 @@ export default function combobox(config = {}) {
     // ----- selection mirroring (the floor select carries form state) -----
 
     _remove(value) {
+      if (!this._operable()) return;
       const before = this._selectionKey();
+      const label = this._floorLabel(value) || value;
       this.selected = this.selected.filter((item) => item !== value);
       this._syncFloor();
       this._renderChips();
       this._syncOptionSelection();
       this._emitChange(before);
+      this._updateClear();
+      this._announce(this._labelled("removed", label));
     },
 
     _selectionKey() {
@@ -713,6 +791,7 @@ export default function combobox(config = {}) {
       const label = this._committedLabel();
       if (this._input.value !== label) this._input.value = label;
       this.query = label;
+      this._updateClear();
     },
 
     // The label's `for` targets the hidden floor, so name the enhanced input
@@ -814,7 +893,7 @@ export default function combobox(config = {}) {
 
     _onChipClick(event) {
       const button = event.target.closest(".bw-combobox__chip-remove");
-      if (!button) return;
+      if (!button || !this._operable()) return;
       const chip = button.closest(".bw-combobox__chip");
       if (!chip) return;
       event.preventDefault();
@@ -826,8 +905,10 @@ export default function combobox(config = {}) {
       this._input.value = "";
       this.query = "";
       this._resetActive();
+      this._updateClear();
       if (this.filterMode === "client") {
         for (const option of this._realOptions()) option.hidden = false;
+        this._syncGroups();
         this._ensureCreateOption();
         this._toggleEmpty();
       }

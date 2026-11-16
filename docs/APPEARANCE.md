@@ -182,7 +182,7 @@ Status values:
 | chart_data_table | N/A (defaults) | Header chrome shares data_table tokens |
 | chip | Adopted | `variant`, `size` |
 | code | N/A (defaults) | Muted/raised panel authored; line numbers stay Could |
-| combobox | N/A (defaults) | Listbox panel matches dropdown craft |
+| combobox | `size` (xs, sm, md, lg, xl) | Listbox panel matches dropdown craft; the frame, text, chips and icons follow the step |
 | comparison_table | Adopted | `highlighted` (0-based index or plan name); emits `__col--highlighted` |
 | cta | Adopted | `band`, `width` (ADR-057); `align` center (default) / start (#697) |
 | cta_bleed | N/A (local) | First-class Phase C composition (inverse bleed) |

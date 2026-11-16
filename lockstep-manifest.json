@@ -7,7 +7,7 @@
     "frontend-js"
   ],
   "editorial_home": "icvoss/brickwork",
-  "synced_at": "2026-11-16T10:45:28.102Z",
+  "synced_at": "2026-11-16T12:34:20.610Z",
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
@@ -16,7 +16,7 @@
       "density.compact.tokens.json": "00dbea7f5a50425987e00dbaf5e58e0e35262bdd35acf74b5989a10f1dbf8814",
       "density.spacious.tokens.json": "e9c77d94ae36ccfb293aa7402de8a541b8e4aafc204ee2a1162a923059f2bb6c",
       "motion.tokens.json": "5b0f3771b0a812abcba4c2b0d6ccf0cbd2c36bd5fc8d128d24080bddd5b27584",
-      "primitive.tokens.json": "459574853268e69f33dfe0c33e6025913e045b02b7dd480b644e7559ba6330d1",
+      "primitive.tokens.json": "2525e05d3dadc729864c3200662d9cb3cdc84d158218b93fef5e4ea3d361c564",
       "semantic.dark.tokens.json": "1e9fc38d257673a3db474e9bb5d34eca4f92e1558e12097e1a3ef75ca4c18dfa",
       "semantic.light.tokens.json": "39ffb2ebf14c0f38ea50c4fcc0d7bc5b7cb354870615f170baa7bc16e67c440b",
       "typography.tokens.json": "3326540e70716969db8503f349af99fa354f141cbc636237aad2761fe4b211e8"
@@ -24,7 +24,7 @@
     "css": {
       "shell.css": "6f44d6f6f815dc373db7dc56e8391c85a9ea16489841041a692af1f72bd8ae63",
       "nav.css": "fb336f329be04ea7b4d67de5309a15dd57c4ca368d03464e0a63582b11582177",
-      "components.css": "fcba1ad62c2b743bd41ca3e1916eda834bca4423e3e6cf25739254543cbc9aa4",
+      "components.css": "ae8ef69fbc2986a4401e6e33de389ccfd258d2332c5b020b160fc8049a982f87",
       "marketing.css": "fec04e26119ba73362b5f7aa488712ac9c1605c91c76f92179c54c74dfa55848"
     },
     "templates": {
@@ -37,7 +37,7 @@
       "brickwork/components/_badge.html": "b7203847df6a2648e1750afc65b54d41b63555bdf4fa6482706a8b3fa2dc1c67",
       "brickwork/components/_breadcrumbs.html": "943857040084d422cf803217e921ed68070ede0dcfd06129522ffed1ea658295",
       "brickwork/components/_bulk_actions_bar.html": "9afe602827c3214441754723f68f5744afe79d22ebfeef6a00c594dfcf4e51c8",
-      "brickwork/components/_button.html": "fa3eb9180cb0be5e31c3beb69bad001f2a1b791e01ff817bfe470ef603fa16c2",
+      "brickwork/components/_button.html": "6464a1e7a113c63545e9083b1ca45e8915348ec8369ae94e6f307b2af5044340",
       "brickwork/components/_button_group.html": "007f7b81bf1e734b74b783cbf7bc4e0b8c75541efd433e11956cdbf3ba923aa8",
       "brickwork/components/_callout.html": "dc34c43f0242ffea46940fd9d8d94432deb7a2afde2b26d80bcb4ff8a253b22f",
       "brickwork/components/_card.html": "2542af8555927509c7b7fcd5d5596ba13287f546fc4bd32b9f1b476f326b2de3",
@@ -45,7 +45,7 @@
       "brickwork/components/_chart_data_table.html": "583388cc3ed49595e63759f83c38dd5e8987daaee8db1c2f470734c83fafa812",
       "brickwork/components/_chip.html": "38f1f0f31859e4633ff21fdcb302c1adec0209ba3f19459eb6288bcaee0c6dff",
       "brickwork/components/_code.html": "cdc11c635cb1ee5dfde7d6715f419eb2c6a29f2316e4611a662a6dac62206d3e",
-      "brickwork/components/_combobox.html": "25dc193a97baa837f62087cb8a01134cf98c2be26d61fc0840052e4f19b03953",
+      "brickwork/components/_combobox.html": "5c1df9bf334e4d41f1a06673f0528998549318857f63f340974bcd75595b8c6d",
       "brickwork/components/_comparison_table.html": "936e6294558637e6f972fa2f186f57b5e8fa78d6f7c78f130171b110df4b74c7",
       "brickwork/components/_data_table.html": "f09c1194640252a28cb57aad3456b35bbd9e0b4576d2121e934c6d4a3be9c3ac",
       "brickwork/components/_date_picker_chrome.html": "a90321b210f15ac19abca02c4f1c6a377b12f98793e26237e95ff442445f580e",
@@ -129,7 +129,7 @@
     },
     "frontend-js": {
       "js/code_copy.js": "cb15d7087e379773ff608ee9f662b36161a1a66f1833fb1995781ce810b788e5",
-      "js/combobox.js": "21af668f02dfd629546b7fbd77271dd171864570dd4f2d8d269887849a4b9bd5",
+      "js/combobox.js": "dc6d6c95a61dc4c2b5b7396abccb92ac78a9a2f283e7706376c5a43fbccb5b6f",
       "js/disclosure.js": "18f319488e921a7d25ea41aec73a5b7cd937cc58e9254cc9501b3666df8daf0d",
       "js/dismissible.js": "9ab056fda75c877a76a92c65af9f72afe30fa3c5b365e7b9d0c68888d2f6272e",
       "js/dropdown.js": "a9c581c0084b5b020de13ea95c71337c91f4c48dd5aa35ae5890dd201b932550",

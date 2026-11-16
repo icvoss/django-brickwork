@@ -605,7 +605,7 @@ def _rewire_comboboxes_js(html: str) -> str:
 
 
 def render_comboboxes(theme: str, *, selected: bool = False, inject_js: bool = False) -> str:
-    from brickwork_testapp.forms import SKILL_OPTIONS, ComboDemoForm
+    from brickwork_testapp.forms import DEPOT_OPTIONS, SKILL_OPTIONS, ComboDemoForm
     from django.urls import resolve
 
     request = RequestFactory().get(COMBOBOX_PAGE_PATH)
@@ -618,6 +618,7 @@ def render_comboboxes(theme: str, *, selected: bool = False, inject_js: bool = F
             "title": "Comboboxes",
             "description": "Filterable selection over a native select floor.",
             "skill_options": SKILL_OPTIONS,
+            "depot_options": DEPOT_OPTIONS,
         }
     )
     ctx["form"] = ComboDemoForm(initial={"tags": ["alpha", "beta"]}) if selected else ComboDemoForm()

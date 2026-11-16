@@ -31,6 +31,7 @@ from django.utils.http import urlencode
 from django.utils.safestring import SafeString, mark_safe
 from django.utils.translation import gettext
 
+from brickwork.appearance import COMBOBOX_SIZES
 from brickwork.templatetags.brickwork_components import (
     _DATA_ATTRIBUTE_NAME_RE,
     normalise_accessible_name,
@@ -425,48 +426,65 @@ class RenderedComboboxOption:
     label: str
     is_selected: bool
     option_id: str  # <listbox id>-opt-<n>: the aria-activedescendant target
+    is_disabled: bool = False
 
 
-def _combobox_pairs_from_options(options: object) -> list[tuple[str, str]]:
-    """Normalise the explicit options= argument to (value, label) pairs.
-    Accepts mappings with "value"/"label" keys or two-item sequences."""
+@dataclass(frozen=True)
+class RenderedComboboxEntry:
+    """One top-level run in the listbox: either a single ungrouped option
+    (``group_label`` is empty) or a group heading with its options (CMB-017)."""
+
+    options: tuple[RenderedComboboxOption, ...]
+    group_label: str = ""
+    label_id: str = ""
+    is_disabled: bool = False
+
+
+# (group label or "", value, label, disabled)
+_RawCombobox = tuple[str, str, str, bool]
+
+
+def _combobox_raw_from_options(options: object) -> list[_RawCombobox]:
+    """Normalise the explicit options= argument to raw rows. Accepts mappings
+    with "value" and "label" keys (optionally "disabled" and "group") or
+    two-item (value, label) sequences."""
     if not isinstance(options, list | tuple) or not options:
         raise TemplateSyntaxError(
             "bw_combobox options= must be a non-empty list/tuple of options "
             '(mappings with "value" and "label", or (value, label) pairs)'
         )
-    pairs: list[tuple[str, str]] = []
+    rows: list[_RawCombobox] = []
     for raw in options:
         if isinstance(raw, Mapping):
             if "value" not in raw or "label" not in raw:
                 raise TemplateSyntaxError(f'bw_combobox option mappings require "value" and "label", got {dict(raw)!r}')
-            pairs.append((str(raw["value"]), str(raw["label"])))
+            rows.append((str(raw.get("group") or ""), str(raw["value"]), str(raw["label"]), bool(raw.get("disabled"))))
         elif isinstance(raw, list | tuple) and len(raw) == 2:
-            pairs.append((str(raw[0]), str(raw[1])))
+            rows.append(("", str(raw[0]), str(raw[1]), False))
         else:
             raise TemplateSyntaxError(
                 f"bw_combobox options entries must be value/label mappings or (value, label) pairs, got {raw!r}"
             )
-    return pairs
+    return rows
 
 
-def _combobox_pairs_from_field(field: BoundField) -> list[tuple[str, str]]:
-    """(value, label) pairs from a bound choice field. Optgroups are flattened:
-    the combobox listbox is a flat role=listbox (group semantics are not part
-    of the 4b contract)."""
+def _combobox_raw_from_field(field: BoundField) -> list[_RawCombobox]:
+    """Raw rows from a bound choice field. A Django ``optgroup`` choice
+    (``("Group", [(value, label), ...])``) becomes a listbox group and a
+    floor ``<optgroup>`` (CMB-017)."""
     choices = getattr(field.field, "choices", None)
     if choices is None:
         raise TemplateSyntaxError(
             "bw_combobox field= must be a bound CHOICE field (the field supplies the "
             f"option set); {field.name!r} has no choices"
         )
-    pairs: list[tuple[str, str]] = []
+    rows: list[_RawCombobox] = []
     for value, label in choices:
         if isinstance(label, list | tuple):
-            pairs.extend((str(group_value), str(group_label)) for group_value, group_label in label)
+            rows.extend((str(value), str(group_value), str(group_label), False) for group_value, group_label in label)
         else:
-            pairs.append((str(value), str(label)))
-    return pairs
+            rows.append(("", str(value), str(label), False))
+    return rows
 
 
 def _combobox_selected_set(selected: object) -> set[str]:
@@ -477,6 +495,52 @@ def _combobox_selected_set(selected: object) -> set[str]:
     if isinstance(selected, list | tuple | set):
         return {str(value) for value in selected}
     return {str(selected)}
+
+
+def _combobox_entries(
+    rows: list[_RawCombobox], selected_set: set[str], disabled_set: set[str], listbox_id: str
+) -> tuple[list[RenderedComboboxOption], list[RenderedComboboxEntry]]:
+    """Shape raw rows into the flat option list (chips, floor order) and the
+    listbox entries, grouping adjacent rows that share a group label."""
+    flat: list[RenderedComboboxOption] = []
+    entries: list[RenderedComboboxEntry] = []
+    run: list[RenderedComboboxOption] = []
+    run_label = ""
+    group_count = 0
+
+    def flush() -> None:
+        nonlocal run, group_count
+        if not run:
+            return
+        if run_label:
+            entries.append(
+                RenderedComboboxEntry(
+                    options=tuple(run),
+                    group_label=run_label,
+                    label_id=f"{listbox_id}-group-{group_count}",
+                    is_disabled=all(opt.is_disabled for opt in run),
+                )
+            )
+            group_count += 1
+        else:
+            entries.extend(RenderedComboboxEntry(options=(opt,)) for opt in run)
+        run = []
+
+    for index, (group, value, label, disabled) in enumerate(rows):
+        option = RenderedComboboxOption(
+            value=value,
+            label=label,
+            is_selected=value in selected_set,
+            option_id=f"{listbox_id}-opt-{index}",
+            is_disabled=disabled or value in disabled_set,
+        )
+        flat.append(option)
+        if group != run_label:
+            flush()
+            run_label = group
+        run.append(option)
+    flush()
+    return flat, entries
 
 
 @register.inclusion_tag("brickwork/components/_combobox.html")
@@ -492,6 +556,12 @@ def bw_combobox(
     allow_create: bool = False,
     empty_message: str = "",
     placeholder: str = "",
+    size: str = "md",
+    disabled: bool = False,
+    readonly: bool = False,
+    aria_label: str = "",
+    error_message: str = "",
+    disabled_options: object = None,
 ) -> dict:
     """A filterable select (04-interfaces 4b). ONE markup, progressively
     enhanced (BR-BW-HTMX-006): the rendered floor is a native <select> (or
@@ -501,7 +571,20 @@ def bw_combobox(
     errors, aria-describedby), exactly as bw_field_widget-composed fields do;
     given the explicit name=/options=/selected= trio it renders the bare
     control (the consumer owns labelling). field wins when both are passed.
-    filter_mode="server" (the default) REQUIRES options_url (CBH-019)."""
+    filter_mode="server" (the default) REQUIRES options_url (CBH-019).
+
+    Completion arguments (docs/components/combobox.md): ``size`` (``xs`` to
+    ``xl``, CMB-002), ``disabled`` and ``readonly`` (CMB-024, CMB-025; a
+    read-only control still submits its value), ``aria_label`` (the accessible
+    name when there is no visible label, CMB-050), ``error_message`` (the
+    translated server-failure row, CMB-019) and ``disabled_options`` (values
+    whose rows are disabled, CMB-016; an options mapping may also carry
+    ``"disabled": True`` and ``"group": "Label"``). A bound field's optgroups
+    render as groups (CMB-017)."""
+    if size not in COMBOBOX_SIZES:
+        raise TemplateSyntaxError(f"bw_combobox size must be one of {sorted(COMBOBOX_SIZES)}, got {size!r}")
+    if disabled and readonly:
+        raise TemplateSyntaxError("bw_combobox takes disabled or readonly, not both: a control is one or the other.")
     if filter_mode not in _FILTER_MODES:
         raise TemplateSyntaxError(
             f"bw_combobox filter_mode must be one of {sorted(_FILTER_MODES)}, got {filter_mode!r}"
@@ -526,7 +609,7 @@ def bw_combobox(
                 f"got auto_id {field_id!r} for field {field.name!r}."
             )
         html_name = field.html_name
-        pairs = _combobox_pairs_from_field(field)
+        raw_rows = _combobox_raw_from_field(field)
         selected_set = _combobox_selected_set(field.value())
         # field.label / field.help_text are str | Promise (Django lazy translation);
         # coerced to str here, matching the label=str(label) pattern already used
@@ -534,6 +617,11 @@ def bw_combobox(
         # threading Promise through the rest of the function and the template
         # context dict returned below.
         label = str(field.label)
+        if not label.strip() and not aria_label:
+            raise TemplateSyntaxError(
+                f"bw_combobox field {field.name!r} has no label: give the field a label or pass aria_label= "
+                "so both controls have an accessible name (CMB-050)."
+            )
         required = field.field.required
         help_text = str(field.help_text)
         errors = list(field.errors)
@@ -545,7 +633,7 @@ def bw_combobox(
             )
         field_id = f"id_{name}"  # mirror Django's auto_id convention
         html_name = name
-        pairs = _combobox_pairs_from_options(options)
+        raw_rows = _combobox_raw_from_options(options)
         selected_set = _combobox_selected_set(selected)
     else:
         raise TemplateSyntaxError(
@@ -553,15 +641,7 @@ def bw_combobox(
             "name=/options=/selected= (04-interfaces 4b)."
         )
     listbox_id = f"bw-listbox-{field_id}"
-    rendered = [
-        RenderedComboboxOption(
-            value=value,
-            label=option_label,
-            is_selected=value in selected_set,
-            option_id=f"{listbox_id}-opt-{index}",
-        )
-        for index, (value, option_label) in enumerate(pairs)
-    ]
+    rendered, entries = _combobox_entries(raw_rows, selected_set, _combobox_selected_set(disabled_options), listbox_id)
     # aria-describedby mirrors bw_field_widget: the help id and the error
     # container id the field chrome renders (BR-BW-A11Y-002).
     described_by_ids: list[str] = []
@@ -583,16 +663,23 @@ def bw_combobox(
         "html_name": html_name,
         "listbox_id": listbox_id,
         "options": rendered,
+        "entries": entries,
         "filter_mode": filter_mode,
         "options_url": options_url,
         "multiple": bool(multiple),
         "allow_create": bool(allow_create),
         "empty_message": empty_message or gettext("No matches"),
         "placeholder": placeholder,
+        "size": size,
+        "disabled": bool(disabled),
+        "readonly": bool(readonly),
+        "aria_label": aria_label,
+        "error_message": error_message or gettext("Options could not be loaded. Type to try again."),
     }
 
 
 __all__ = [
+    "RenderedComboboxEntry",
     "RenderedComboboxOption",
     "RenderedMenuItem",
     "RenderedTab",

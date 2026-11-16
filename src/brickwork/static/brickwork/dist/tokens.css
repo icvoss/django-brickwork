@@ -44,6 +44,11 @@
   --bw-size-step-md: 1;
   --bw-size-step-lg: 1.125;
   --bw-size-step-xl: 1.25;
+  --bw-size-text-step-xs: 0.875;
+  --bw-size-text-step-sm: 0.9375;
+  --bw-size-text-step-md: 1;
+  --bw-size-text-step-lg: 1.125;
+  --bw-size-text-step-xl: 1.25;
   --bw-size-control-height-xs: max(1.5rem, calc(var(--bw-density-control-height) * var(--bw-size-step-xs)));
   --bw-size-control-height-sm: max(1.5rem, calc(var(--bw-density-control-height) * var(--bw-size-step-sm)));
   --bw-size-control-height-md: var(--bw-density-control-height);
@@ -64,6 +69,11 @@
   --bw-size-control-gap-md: var(--bw-space-2);
   --bw-size-control-gap-lg: var(--bw-space-3);
   --bw-size-control-gap-xl: var(--bw-space-3);
+  --bw-size-control-font-size-xs: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-xs)));
+  --bw-size-control-font-size-sm: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-sm)));
+  --bw-size-control-font-size-md: var(--bw-text-label-size);
+  --bw-size-control-font-size-lg: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-lg)));
+  --bw-size-control-font-size-xl: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-xl)));
   --bw-size-touch-target-min: 2.75rem;
   --bw-size-max-width-prose: 65ch;
   --bw-size-max-width-form: 32rem;
@@ -74,6 +84,7 @@
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
   --bw-control-icon-size: var(--bw-size-control-icon-md);
   --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-size-control-font-size-md);
   --bw-component-icon-size-sm: 1rem;
   --bw-component-icon-size-md: 1.25rem;
   --bw-component-icon-size-lg: 1.5rem;
@@ -640,10 +651,16 @@
   --bw-size-control-gap-md: var(--bw-space-2);
   --bw-size-control-gap-lg: var(--bw-space-3);
   --bw-size-control-gap-xl: var(--bw-space-3);
+  --bw-size-control-font-size-xs: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-xs)));
+  --bw-size-control-font-size-sm: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-sm)));
+  --bw-size-control-font-size-md: var(--bw-text-label-size);
+  --bw-size-control-font-size-lg: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-lg)));
+  --bw-size-control-font-size-xl: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-xl)));
   --bw-control-height: var(--bw-size-control-height-md);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
   --bw-control-icon-size: var(--bw-size-control-icon-md);
   --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-size-control-font-size-md);
 }
 
 [data-density="compact"] {
@@ -680,10 +697,16 @@
   --bw-size-control-gap-md: var(--bw-space-2);
   --bw-size-control-gap-lg: var(--bw-space-3);
   --bw-size-control-gap-xl: var(--bw-space-3);
+  --bw-size-control-font-size-xs: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-xs)));
+  --bw-size-control-font-size-sm: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-sm)));
+  --bw-size-control-font-size-md: var(--bw-text-label-size);
+  --bw-size-control-font-size-lg: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-lg)));
+  --bw-size-control-font-size-xl: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-xl)));
   --bw-control-height: var(--bw-size-control-height-md);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
   --bw-control-icon-size: var(--bw-size-control-icon-md);
   --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-size-control-font-size-md);
 }
 
 [data-density="spacious"] {
@@ -720,10 +743,16 @@
   --bw-size-control-gap-md: var(--bw-space-2);
   --bw-size-control-gap-lg: var(--bw-space-3);
   --bw-size-control-gap-xl: var(--bw-space-3);
+  --bw-size-control-font-size-xs: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-xs)));
+  --bw-size-control-font-size-sm: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-sm)));
+  --bw-size-control-font-size-md: var(--bw-text-label-size);
+  --bw-size-control-font-size-lg: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-lg)));
+  --bw-size-control-font-size-xl: max(var(--bw-font-size-xs), calc(var(--bw-text-label-size) * var(--bw-size-text-step-xl)));
   --bw-control-height: var(--bw-size-control-height-md);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
   --bw-control-icon-size: var(--bw-size-control-icon-md);
   --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-size-control-font-size-md);
 }
 
 :root {

@@ -934,6 +934,18 @@
       "consumption": "tag"
     },
     {
+      "name": "combobox_floor_option",
+      "declaredIn": "brickwork/components/_combobox.html",
+      "inline": false,
+      "consumption": "tag"
+    },
+    {
+      "name": "combobox_option",
+      "declaredIn": "brickwork/components/_combobox.html",
+      "inline": false,
+      "consumption": "tag"
+    },
+    {
       "name": "nav_header_item",
       "declaredIn": "brickwork/nav/_nav_header.html",
       "inline": false,

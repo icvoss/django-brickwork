@@ -1,0 +1,19 @@
+{% load brickwork_interactions %}
+{% comment %}
+The completion-pass specimens (docs/components/combobox.md, owner ruling
+2026-11-16): groups with a disabled row, the clear control, a size step, a
+read-only and a disabled control. Standalone instances outside the submitted
+form (the explicit name=/options= trio, client filter mode); the consumer owns
+labelling, so each label pairs with the floor select's derived id.
+{% endcomment %}
+<section id="combobox-complete-demo" aria-labelledby="combobox-complete-demo-heading">
+  <h2 id="combobox-complete-demo-heading">Depots (groups, clear, size, readonly, disabled)</h2>
+  <label class="bw-field__label" for="id_depot">Depot</label>
+  {% bw_combobox name="depot" options=depot_options selected="bristol" filter_mode="client" size="lg" placeholder="Search depots" %}
+  <label class="bw-field__label" for="id_depot_ro">Depot (read-only)</label>
+  {% bw_combobox name="depot_ro" options=depot_options selected="dundee" filter_mode="client" readonly=True %}
+  <label class="bw-field__label" for="id_depot_off">Depot (disabled)</label>
+  {% bw_combobox name="depot_off" options=depot_options selected="cardiff" filter_mode="client" disabled=True %}
+  <label class="bw-field__label" for="id_depot_xs">Depots (extra small, several)</label>
+  {% bw_combobox name="depot_xs" options=depot_options selected="aberdeen" filter_mode="client" multiple=True size="xs" placeholder="Add depot" %}
+</section>
