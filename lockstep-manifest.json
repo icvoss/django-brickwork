@@ -7,7 +7,7 @@
     "frontend-js"
   ],
   "editorial_home": "icvoss/brickwork",
-  "synced_at": "2026-11-16T10:45:28.102Z",
+  "synced_at": "2026-11-16T11:00:31.005Z",
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
@@ -16,7 +16,7 @@
       "density.compact.tokens.json": "00dbea7f5a50425987e00dbaf5e58e0e35262bdd35acf74b5989a10f1dbf8814",
       "density.spacious.tokens.json": "e9c77d94ae36ccfb293aa7402de8a541b8e4aafc204ee2a1162a923059f2bb6c",
       "motion.tokens.json": "5b0f3771b0a812abcba4c2b0d6ccf0cbd2c36bd5fc8d128d24080bddd5b27584",
-      "primitive.tokens.json": "459574853268e69f33dfe0c33e6025913e045b02b7dd480b644e7559ba6330d1",
+      "primitive.tokens.json": "5485798ce1ed49fd1e4811781b6117476ea1cb41cef91c6be05f5e51b99e06f4",
       "semantic.dark.tokens.json": "1e9fc38d257673a3db474e9bb5d34eca4f92e1558e12097e1a3ef75ca4c18dfa",
       "semantic.light.tokens.json": "39ffb2ebf14c0f38ea50c4fcc0d7bc5b7cb354870615f170baa7bc16e67c440b",
       "typography.tokens.json": "3326540e70716969db8503f349af99fa354f141cbc636237aad2761fe4b211e8"
@@ -24,7 +24,7 @@
     "css": {
       "shell.css": "6f44d6f6f815dc373db7dc56e8391c85a9ea16489841041a692af1f72bd8ae63",
       "nav.css": "fb336f329be04ea7b4d67de5309a15dd57c4ca368d03464e0a63582b11582177",
-      "components.css": "fcba1ad62c2b743bd41ca3e1916eda834bca4423e3e6cf25739254543cbc9aa4",
+      "components.css": "727dc97ef508f89ef443cb6c15600a21da2c83da260d0f237c1816fff74b277e",
       "marketing.css": "fec04e26119ba73362b5f7aa488712ac9c1605c91c76f92179c54c74dfa55848"
     },
     "templates": {
@@ -37,7 +37,7 @@
       "brickwork/components/_badge.html": "b7203847df6a2648e1750afc65b54d41b63555bdf4fa6482706a8b3fa2dc1c67",
       "brickwork/components/_breadcrumbs.html": "943857040084d422cf803217e921ed68070ede0dcfd06129522ffed1ea658295",
       "brickwork/components/_bulk_actions_bar.html": "9afe602827c3214441754723f68f5744afe79d22ebfeef6a00c594dfcf4e51c8",
-      "brickwork/components/_button.html": "1f5280757c57a215adc5e8d096da30c6fa3abe12737bfc2183b4c59af021482a",
+      "brickwork/components/_button.html": "fa3eb9180cb0be5e31c3beb69bad001f2a1b791e01ff817bfe470ef603fa16c2",
       "brickwork/components/_button_group.html": "007f7b81bf1e734b74b783cbf7bc4e0b8c75541efd433e11956cdbf3ba923aa8",
       "brickwork/components/_callout.html": "dc34c43f0242ffea46940fd9d8d94432deb7a2afde2b26d80bcb4ff8a253b22f",
       "brickwork/components/_card.html": "2542af8555927509c7b7fcd5d5596ba13287f546fc4bd32b9f1b476f326b2de3",
@@ -72,7 +72,7 @@
       "brickwork/components/_skeleton.html": "01ffdc14d621dcf01d2bbd24bc7f1a79a572ca44781d247385280226682e0803",
       "brickwork/components/_slide_over.html": "507e40796fd0853215310e01a9106e3f6eac3c98e0fbdc67bf14df9f07b7310e",
       "brickwork/components/_sparkline.html": "5dc7c8918687a9983c16ef587d0be0f01d8345e1f6b65624c481fa2e6bf9d6f9",
-      "brickwork/components/_spinner.html": "157203536f1bdc02655b089ef5af07700611ff09dc3d9a1cc02d21a84dfacdc8",
+      "brickwork/components/_spinner.html": "6f0f1703e93bbc84c28c9dd0495f2ab6e2e8ccbff6d4288ab545b476eb45117a",
       "brickwork/components/_stat.html": "f4eadd3c21febec5d181803d0596ef0ce537fb98cfa44ce1616397d1e6975ccf",
       "brickwork/components/_stat_comparison.html": "b8508e3917aac417d85297f052c0726e9af690356a1709b26b00fc2458ce3d75",
       "brickwork/components/_stepper.html": "e62cc56c15bcb186bd480683d578f1f476f610e97f4d1a054d8ffeaf847027df",

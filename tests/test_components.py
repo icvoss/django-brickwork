@@ -279,12 +279,14 @@ def test_button_loading_marks_busy_and_disabled() -> None:
     out = _render('{% bw_button "Save" loading=True %}')
     assert 'aria-busy="true"' in out
     assert "bw-spinner" in out
-    # ICO-004/issue #16: the spinner sizes via the --bw-icon-size CSS custom
-    # property (which .bw-spinner reads for inline-size/block-size), never as
-    # an SVG width/height attribute (var() is invalid there and silently
-    # falls back to the 300x150 SVG default). The token is the canonical
-    # component-tier name (0.11.0 tier re-grammar).
-    assert "--bw-icon-size: var(--bw-component-icon-size-sm)" in out
+    # ICO-004/issue #16: the spinner is never sized by an SVG width/height
+    # attribute (var() is invalid there and silently falls back to the 300x150
+    # SVG default). Its box comes from CSS: .bw-spinner defaults to the
+    # component-tier icon token and inside a .bw-btn it reads the control's
+    # icon role variable (ADR-126 section 4), so the markup carries no inline
+    # size and the spinner follows the button's size step.
+    assert "--bw-icon-size" not in out
+    assert "style=" not in out.split("<svg", 1)[1].split(">", 1)[0]
     assert ' width="var(' not in out
     assert ' height="var(' not in out
 

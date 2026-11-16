@@ -140,7 +140,7 @@ def test_icon_only_loading_shows_the_spinner_in_place_of_the_glyph() -> None:
 def _button_block() -> str:
     css = _CSS_MIRROR.read_text()
     start = css.index("/* --- Buttons (docs/components/button.md)")
-    end = css.index(".bw-spinner {")
+    end = css.index("\n.bw-spinner {")
     return css[start:end]
 
 
@@ -160,11 +160,104 @@ def test_css_mirror_has_the_raised_button_fixes() -> None:
     assert re.search(r"\.bw-btn:hover\s*\{\s*text-decoration:\s*none", block)
     assert re.search(r"\.bw-btn \.bw-btn__icon\s*\{[^}]*background:\s*transparent", block)
     assert ":is(.bw-btn--primary, .bw-btn--solid)" in block
-    # Geometry reads the size tokens, never the density base or a literal.
-    assert "var(--bw-size-control-height-md)" in block
+    # Geometry reads the control role variables, never the density base or a
+    # literal (ADR-126 section 4; the role variables are covered below).
+    assert "var(--bw-control-height)" in block
     assert "--bw-density-control-height" not in block
 
 
 def test_css_mirror_has_no_accent_fg_token() -> None:
     # --bw-color-accent-fg is not a token; .bw-btn--solid read it (GAP-BTN-6).
     assert "--bw-color-accent-fg" not in re.sub(r"/\*.*?\*/", "", _button_block(), flags=re.S)
+
+
+# --- ADR-126: role variables, icon and gap by step, fit ---------------------
+
+_ROLES = {
+    "height": "height",
+    "padding-inline": "padding-inline",
+    "icon-size": "icon",
+    "gap": "gap",
+}
+
+
+def _stripped_block() -> str:
+    return re.sub(r"/\*.*?\*/", "", _button_block(), flags=re.S)
+
+
+def test_css_mirror_button_reads_only_the_control_role_variables() -> None:
+    block = _stripped_block()
+    base = re.search(r"\n\.bw-btn \{([^}]*)\}", "\n" + block).group(1)  # type: ignore[union-attr]
+    assert "block-size: var(--bw-control-height);" in base
+    assert "padding-inline: var(--bw-control-padding-inline);" in base
+    assert "gap: var(--bw-control-gap);" in base
+    # Outside the size classes the button names no density or step token.
+    outside = re.sub(r"\.bw-btn--(?:sm|md|lg), \.bw-btn--size-(?:sm|md|lg) \{[^}]*\}", "", block)
+    assert not re.search(r"--bw-(?:size-control|density|size-step)", outside)
+
+
+@pytest.mark.parametrize("step", ["sm", "md", "lg"])
+def test_css_mirror_size_class_repoints_the_four_role_variables(step: str) -> None:
+    rule = re.search(rf"\.bw-btn--size-{step} \{{([^}}]*)\}}", _stripped_block())
+    assert rule, f"missing .bw-btn--size-{step}"
+    declared = re.findall(r"(--[a-z-]+):\s*([^;]+);", rule.group(1))
+    assert declared == [
+        (f"--bw-control-{role}", f"var(--bw-size-control-{source}-{step})") for role, source in _ROLES.items()
+    ]
+
+
+def test_css_mirror_icon_and_spinner_follow_the_control_icon_size() -> None:
+    block = _stripped_block()
+    rule = re.search(r"\.bw-btn \.bw-btn__icon,\s*\.bw-btn \.bw-spinner \{([^}]*)\}", block)
+    assert rule, "the glyph and the spinner share one role-variable rule"
+    assert "inline-size: var(--bw-control-icon-size);" in rule.group(1)
+    assert "block-size: var(--bw-control-icon-size);" in rule.group(1)
+
+
+def test_css_mirror_icon_only_is_square_at_the_role_height() -> None:
+    block = _stripped_block()
+    assert re.search(r"\.bw-btn--icon-only \{[^}]*inline-size: var\(--bw-control-height\);", block)
+    # No per-size icon-only rule: the role variable already carries the step.
+    assert not re.search(r"\.bw-btn--(?:size-)?(?:sm|lg)\.bw-btn--icon-only", block)
+
+
+def test_css_mirror_has_the_fit_fill_rule() -> None:
+    block = _stripped_block()
+    assert re.search(r"\.bw-btn--fit-fill \{[^}]*inline-size: 100%;", block)
+    # Declared after the icon-only rule so the two never fight.
+    assert block.index(".bw-btn--fit-fill") > block.index(".bw-btn--icon-only {")
+
+
+def test_token_source_mirror_carries_the_role_variables_and_icon_gap_steps() -> None:
+    import json
+
+    source = json.loads((_ROOT / "src/brickwork/tokens/source/primitive.tokens.json").read_text())
+    control = source["control"]
+    assert set(k for k in control if not k.startswith("$")) == {"height", "padding-inline", "icon-size", "gap"}
+    assert control["height"]["$value"] == "var(--bw-size-control-height-md)"
+    assert control["icon-size"]["$value"] == "var(--bw-size-control-icon-md)"
+    for axis in ("control-icon", "control-gap"):
+        steps = {k for k in source["size"][axis] if not k.startswith("$")}
+        assert steps == {"xs", "sm", "md", "lg", "xl"}, axis
+
+
+def test_button_template_emits_fit_fill_on_every_host_after_icon_only() -> None:
+    tpl = "{% include 'brickwork/components/_button.html' %}"
+    base = {"label": "Go", "variant": "primary", "size": "md", "type": "button", "fit": "fill"}
+    for extra, host in (
+        ({}, "<button"),
+        ({"href": "/x/"}, "<a "),
+        ({"href": "/x/", "disabled": True}, "<span"),
+    ):
+        tag = _root_tag(Template(tpl).render(Context({**base, **extra})))
+        assert tag.startswith(host)
+        assert "bw-btn--fit-fill" in _classes(tag)
+    icon_only = _classes(_root_tag(Template(tpl).render(Context({**base, "icon_only": True, "aria_label": "x"}))))
+    assert icon_only.index("bw-btn--icon-only") < icon_only.index("bw-btn--fit-fill")
+
+
+@pytest.mark.parametrize("fit", ["", "auto"])
+def test_button_template_emits_no_fit_class_for_auto_or_absent(fit: str) -> None:
+    tpl = "{% include 'brickwork/components/_button.html' %}"
+    ctx = {"label": "Go", "variant": "primary", "size": "md", "type": "button", "fit": fit}
+    assert "bw-btn--fit-fill" not in Template(tpl).render(Context(ctx))
