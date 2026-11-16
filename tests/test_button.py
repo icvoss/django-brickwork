@@ -163,7 +163,8 @@ def test_icon_only_loading_shows_the_spinner_in_place_of_the_glyph() -> None:
 def _button_block() -> str:
     css = _CSS_MIRROR.read_text()
     start = css.index("/* --- Buttons (docs/components/button.md)")
-    end = css.index(".bw-spinner {")
+    # The standalone spinner rule, not the .bw-btn .bw-spinner sizing rule inside the block.
+    end = css.index("\n.bw-spinner {")
     return css[start:end]
 
 

@@ -110,7 +110,7 @@ def test_bw_button_earns_the_whole_grammar_and_each_step_changes_the_output() ->
     # 2026-11-16). Each accepted step emits its own class, so none is a no-op.
     from brickwork.appearance import BUTTON_SIZES
 
-    assert BUTTON_SIZES == frozenset(SIZE_STEPS)
+    assert frozenset(SIZE_STEPS) == BUTTON_SIZES
     outputs = {size: _tag('{% bw_button label="Go" size=size %}', size=size) for size in SIZE_STEPS}
     assert len(set(outputs.values())) == len(SIZE_STEPS)
 

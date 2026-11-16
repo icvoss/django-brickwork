@@ -513,7 +513,7 @@ def bw_button(
         raise TemplateSyntaxError(f"bw_button fit must be one of {sorted(_BUTTON_FITS)}, got {fit!r}")
     if fit == "fill" and icon_only:
         raise TemplateSyntaxError(
-            "bw_button fit=\"fill\" cannot be combined with icon_only=True: an icon-only "
+            'bw_button fit="fill" cannot be combined with icon_only=True: an icon-only '
             "button is a square at its size step, so fill would do nothing (ADR-060 section 3)."
         )
     # Stripped before testing, not merely truthiness-tested: a whitespace-only
