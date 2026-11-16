@@ -26,6 +26,7 @@ resolve_active_item)::
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -220,7 +221,9 @@ def _prepare_tree(
 
 
 _NAV_LABELS = frozenset({"truncate", "wrap"})
-_RAIL_DENSITIES = frozenset({"labelled", "icons"})
+# ADR-125 (django-brickwork#745): the rail's labelled-or-icons choice is a
+# component variant, not the global density axis (comfortable|compact|spacious).
+_RAIL_VARIANTS = frozenset({"labelled", "icons"})
 
 
 @register.inclusion_tag("brickwork/nav/_nav.html", takes_context=True)
@@ -282,7 +285,8 @@ def bw_nav_rail(
     items: tuple[NavItem, ...],
     active: NavItem | None = None,
     resolver_match=None,
-    density: str = "labelled",
+    variant: str | None = None,
+    density: str | None = None,
 ) -> dict:
     """Render the compact icon+label rail over the same NavItem tree
     (brickwork#82): tier one of the capability-rail + contextual-sidebar
@@ -290,13 +294,38 @@ def bw_nav_rail(
     tier. Same arguments and preparation as ``{% bw_nav %}``; only the render
     target differs. See nav/_nav_rail.html's own contract.
 
-    ``density`` is ``"labelled"`` (default: caption labels always visible) or
+    ``variant`` is ``"labelled"`` (default: caption labels always visible) or
     ``"icons"`` (icon-only at rest, labels on hover/focus-within expand;
     brickwork#701). Closed vocabulary.
+
+    ``density`` is the DEPRECATED former spelling of ``variant`` (ADR-125,
+    django-brickwork#745: ``density`` names the global comfortable, compact and
+    spacious axis, and one name must not mean two things). It still accepts
+    ``"labelled"`` / ``"icons"`` and emits a ``DeprecationWarning``; it is
+    removed in the next major. Passing both with different values raises.
     """
-    if density not in _RAIL_DENSITIES:
-        raise TemplateSyntaxError(f"bw_nav_rail density must be one of {sorted(_RAIL_DENSITIES)}, got {density!r}")
+    if density is not None:
+        warnings.warn(
+            "bw_nav_rail density= is deprecated; use variant= ('labelled' | 'icons'). "
+            "density names the global comfortable|compact|spacious axis (ADR-125). "
+            "It is removed in the next major.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if density not in _RAIL_VARIANTS:
+            raise TemplateSyntaxError(
+                f"bw_nav_rail density must be one of {sorted(_RAIL_VARIANTS)} (use variant= instead), got {density!r}"
+            )
+        if variant is not None and variant != density:
+            raise TemplateSyntaxError(
+                f"bw_nav_rail got variant={variant!r} and density={density!r}; pass variant= only."
+            )
+        variant = density
+    if variant is None:
+        variant = "labelled"
+    if variant not in _RAIL_VARIANTS:
+        raise TemplateSyntaxError(f"bw_nav_rail variant must be one of {sorted(_RAIL_VARIANTS)}, got {variant!r}")
     return {
         "bw_nav_tree": _prepare_tree(context, items, active, resolver_match),
-        "density": density,
+        "variant": variant,
     }

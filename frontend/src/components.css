@@ -27,9 +27,15 @@
     var(--bw-transition-shadow),
     var(--bw-transition-transform);
 }
-.bw-btn--sm {
+/* Size classes (ADR-125 section 6): the grammar is bw-<component>--size-<step>.
+ * The bare spelling (bw-btn--sm, and the same for gauge, icon, modal,
+ * slide-over, stat and stat-comparison) is DEPRECATED. Both selectors stay in
+ * one grouped rule for the deprecation window; the bare ones are removed in
+ * the next major of django-brickwork and in the @bwui/css release shipped with
+ * it. Templates, React, Vue and the gallery emit the new class. */
+.bw-btn--sm, .bw-btn--size-sm {
   block-size: var(--bw-size-control-height-sm);
-  padding-inline: var(--bw-space-2);
+  padding-inline: var(--bw-size-control-padding-inline-sm);
 }
 /* md is the base .bw-btn size (icvoss/django-brickwork#130): every shipped
  * template that names a size emits bw-btn--md explicitly rather than leaving
@@ -38,13 +44,16 @@
  * to the base. Without this rule the class existed in markup with nothing in
  * the stylesheet naming it, which is the defect class this issue is about:
  * the base values happened to make it look correct by accident. */
-.bw-btn--md {
-  block-size: var(--bw-density-control-height);
-  padding-inline: var(--bw-density-control-padding-inline);
+.bw-btn--md, .bw-btn--size-md {
+  block-size: var(--bw-size-control-height-md);
+  padding-inline: var(--bw-size-control-padding-inline-md);
 }
-.bw-btn--lg {
+/* ADR-125: sm, md and lg resolve from the density control base times a
+ * kit-wide step multiplier (--bw-size-step-*), not from absolute rem values,
+ * so every density keeps three distinct heights. */
+.bw-btn--lg, .bw-btn--size-lg {
   block-size: var(--bw-size-control-height-lg);
-  padding-inline: var(--bw-space-4);
+  padding-inline: var(--bw-size-control-padding-inline-lg);
 }
 /* Solid buttons carry a border in their own hue (0.7.0 craft): 80% of the fill
  * toward black is the Radix solid-button edge, a shade the fill visibly sits
@@ -143,10 +152,10 @@
 }
 /* Exact square at every size (0.7.0 craft): the sm/lg heights bring their own
  * widths, so an icon button's optical padding is identical on all four sides. */
-.bw-btn--sm.bw-btn--icon-only {
+.bw-btn--sm.bw-btn--icon-only, .bw-btn--size-sm.bw-btn--icon-only {
   inline-size: var(--bw-size-control-height-sm);
 }
-.bw-btn--lg.bw-btn--icon-only {
+.bw-btn--lg.bw-btn--icon-only, .bw-btn--size-lg.bw-btn--icon-only {
   inline-size: var(--bw-size-control-height-lg);
 }
 /* Flat disabled colours (COL-018 / #282), not opacity: opacity failed
@@ -2376,11 +2385,11 @@ a.bw-stat:hover {
    consumer stylesheet that selects .bw-stat__trend directly; #334). */
 /* size arg (VIZ-027): modifiers re-point the value-size component token, so
    the numeral rule itself never forks. */
-.bw-stat--sm {
+.bw-stat--sm, .bw-stat--size-sm {
   --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
   padding: var(--bw-space-3);
 }
-.bw-stat--lg {
+.bw-stat--lg, .bw-stat--size-lg {
   --bw-component-stat-tile-value-size: var(--bw-font-size-4xl);
   padding: var(--bw-space-6);
 }
@@ -2395,8 +2404,11 @@ a.bw-stat:hover {
   padding: 0;
 }
 .bw-stat--chrome-plain.bw-stat--sm,
+.bw-stat--chrome-plain.bw-stat--size-sm,
 .bw-stat--chrome-plain.bw-stat--lg,
-.bw-stat--chrome-plain.bw-stat--md {
+.bw-stat--chrome-plain.bw-stat--size-lg,
+.bw-stat--chrome-plain.bw-stat--md,
+.bw-stat--chrome-plain.bw-stat--size-md {
   padding: 0;
 }
 a.bw-stat--chrome-plain:hover {
@@ -2570,11 +2582,11 @@ a.bw-stat--chrome-plain:hover {
 /* size arg (mirrors _stat.html's VIZ-027 seam): modifiers re-point the
    same value-size component token _stat.html uses, so a comparison tile
    sits at the same scale as a plain stat tile sharing its grid. */
-.bw-stat-comparison--sm {
+.bw-stat-comparison--sm, .bw-stat-comparison--size-sm {
   --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
   padding: var(--bw-space-3);
 }
-.bw-stat-comparison--lg {
+.bw-stat-comparison--lg, .bw-stat-comparison--size-lg {
   --bw-component-stat-tile-value-size: var(--bw-font-size-4xl);
   padding: var(--bw-space-6);
 }
@@ -2879,15 +2891,15 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 }
 /* size arg (VIZ-010): modifiers re-point the diameter component token, the
    same mechanism .bw-stat--sm/--lg use for their own value-size token. */
-.bw-gauge--sm {
+.bw-gauge--sm, .bw-gauge--size-sm {
   inline-size: var(--bw-component-gauge-diameter-sm);
   block-size: var(--bw-component-gauge-diameter-sm);
 }
-.bw-gauge--md {
+.bw-gauge--md, .bw-gauge--size-md {
   inline-size: var(--bw-component-gauge-diameter-md);
   block-size: var(--bw-component-gauge-diameter-md);
 }
-.bw-gauge--lg {
+.bw-gauge--lg, .bw-gauge--size-lg {
   inline-size: var(--bw-component-gauge-diameter-lg);
   block-size: var(--bw-component-gauge-diameter-lg);
 }
@@ -3646,16 +3658,16 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 /* Size modifiers (CMP-020): sm/lg re-point the max-width token (the floor
  * panel honours them too); full is full-viewport, gutterless, radius
  * squared off, and only means anything as an overlay. */
-.bw-modal--sm .bw-modal__panel {
+.bw-modal--sm .bw-modal__panel, .bw-modal--size-sm .bw-modal__panel {
   max-inline-size: var(--bw-size-max-width-modal-sm);
 }
-.bw-modal--lg .bw-modal__panel {
+.bw-modal--lg .bw-modal__panel, .bw-modal--size-lg .bw-modal__panel {
   max-inline-size: var(--bw-size-max-width-modal-lg);
 }
-.bw-modal--full:is(.bw-modal--open, [data-bw-open]) {
+.bw-modal--full:is(.bw-modal--open, [data-bw-open]), .bw-modal--size-full:is(.bw-modal--open, [data-bw-open]) {
   padding: 0;
 }
-.bw-modal--full:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
+.bw-modal--full:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel, .bw-modal--size-full:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
   max-inline-size: none;
   block-size: 100%;
   border-radius: var(--bw-radius-none);
@@ -3864,17 +3876,17 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   }
 }
 /* Size modifiers: reuse the modal's own width ramp. */
-.bw-slide-over--sm .bw-slide-over__panel {
+.bw-slide-over--sm .bw-slide-over__panel, .bw-slide-over--size-sm .bw-slide-over__panel {
   max-inline-size: var(--bw-size-max-width-modal-sm);
 }
 /* --md is the DOCUMENTED DEFAULT and the template emits it unconditionally, so
  * it needs a real rule: without one the default size resolved to the panel's
  * base width by accident rather than by declaration (the #120 defect class,
  * found in the 3.0.0 options audit). */
-.bw-slide-over--md .bw-slide-over__panel {
+.bw-slide-over--md .bw-slide-over__panel, .bw-slide-over--size-md .bw-slide-over__panel {
   max-inline-size: var(--bw-size-max-width-modal-md);
 }
-.bw-slide-over--lg .bw-slide-over__panel {
+.bw-slide-over--lg .bw-slide-over__panel, .bw-slide-over--size-lg .bw-slide-over__panel {
   max-inline-size: var(--bw-size-max-width-modal-lg);
 }
 /* Sticky header: title plus the always-present close control, divided

@@ -123,16 +123,10 @@ UNSTYLED_BY_DESIGN: set[str] = {
 }
 
 # Classes the brickwork monorepo CSS already styles but the vendored @bwui/css
-# pin does not carry yet (the Combobox raise: the multiple-mode frame and the
-# server-filter failure row, docs/components/combobox.md CMB-031 and CMB-019).
-# The templates and script ship first and degrade gracefully (multiple mode
-# keeps its old look, the error row is plain text) until the pin is bumped to
-# the @bwui/css release carrying those rules. This is NOT "unstyled by design":
-# tests/test_combobox.py::test_pending_pin_classes_expire_once_the_pin_styles_them
+# pin does not carry yet. Empty since the pin moved to 0.1.4, which carries the
+# Combobox multiple-mode frame and failure row. This is NOT "unstyled by
+# design": tests/test_combobox.py::test_pending_pin_classes_expire_once_the_pin_styles_them
 # fails the moment the vendored CSS styles one of them, so an entry here cannot
-# go stale. Remove an entry in the pin-bump PR.
-PENDING_BWUI_CSS_PIN: set[str] = {
-    "bw-combobox--multiple",
-    "bw-combobox__error",
-}
+# go stale. Add an entry only when a template ships ahead of the pin.
+PENDING_BWUI_CSS_PIN: set[str] = set()
 UNSTYLED_BY_DESIGN |= PENDING_BWUI_CSS_PIN

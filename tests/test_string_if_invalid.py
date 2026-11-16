@@ -118,8 +118,8 @@ _COMPONENT_CASES = [
         {"label": "More", "content": "Body"},
         "bw-disclosure--divided",
     ),
-    ("brickwork/components/_modal.html", {"title": "Confirm"}, "bw-modal--md"),
-    ("brickwork/components/_slide_over.html", {"title": "Details"}, "bw-slide-over--md"),
+    ("brickwork/components/_modal.html", {"title": "Confirm"}, "bw-modal--size-md"),
+    ("brickwork/components/_slide_over.html", {"title": "Details"}, "bw-slide-over--size-md"),
     ("brickwork/components/_account_menu.html", {"items": []}, "bw-account-menu--end"),
     ("brickwork/components/_filter_bar.html", {"fields": []}, 'action=""'),
     (

@@ -312,15 +312,59 @@
         "$value": "2.5rem"
       }
     },
-    "control-height": {
+    "step": {
+      "$type": "number",
+      "$description": "ADR-125: kit-wide unitless step multipliers applied to the density control base. Starting ratios; xs and xl ship on a component only where that component earns them. Not a universal root: type, space and radius are computed within their own axes.",
+      "xs": {
+        "$value": 0.75
+      },
       "sm": {
-        "$value": "2rem"
+        "$value": 0.875
+      },
+      "md": {
+        "$value": 1
+      },
+      "lg": {
+        "$value": 1.125
+      },
+      "xl": {
+        "$value": 1.25
+      }
+    },
+    "control-height": {
+      "$description": "ADR-125: computed, never authored per step. density control height x step multiplier, clamped to the 1.5rem WCAG 2.5.8 floor (md is the base and is not clamped). Re-emitted inside every [data-density] block so a density scoped to a subtree re-resolves the whole scale.",
+      "xs": {
+        "$value": "max(1.5rem, calc(var(--bw-density-control-height) * var(--bw-size-step-xs)))"
+      },
+      "sm": {
+        "$value": "max(1.5rem, calc(var(--bw-density-control-height) * var(--bw-size-step-sm)))"
       },
       "md": {
         "$value": "var(--bw-density-control-height)"
       },
       "lg": {
-        "$value": "3rem"
+        "$value": "max(1.5rem, calc(var(--bw-density-control-height) * var(--bw-size-step-lg)))"
+      },
+      "xl": {
+        "$value": "max(1.5rem, calc(var(--bw-density-control-height) * var(--bw-size-step-xl)))"
+      }
+    },
+    "control-padding-inline": {
+      "$description": "ADR-125: density control padding base x step multiplier. Re-emitted inside every [data-density] block.",
+      "xs": {
+        "$value": "calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-xs))"
+      },
+      "sm": {
+        "$value": "calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-sm))"
+      },
+      "md": {
+        "$value": "var(--bw-density-control-padding-inline)"
+      },
+      "lg": {
+        "$value": "calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-lg))"
+      },
+      "xl": {
+        "$value": "calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-xl))"
       }
     },
     "touch-target-min": {

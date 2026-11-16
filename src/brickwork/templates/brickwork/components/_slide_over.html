@@ -156,7 +156,7 @@ Appearance (Beat Phase E, icvoss/django-brickwork#540):
       consumer-authored .bw-slide-over__footer shares the recipe look. The
       footer block still owns its own <footer> wrapper.
 {% endcomment %}{% firstof header_recipe '' as header_recipe %}{% firstof footer_recipe '' as footer_recipe %}{% firstof size '' as size %}{% bw_options component="brickwork/components/_slide_over.html" header_recipe=header_recipe footer_recipe=footer_recipe size=size %}{% firstof slide_over_id "bw-slide-over" as bw_slide_over_instance_id %}
-<div class="bw-slide-over bw-slide-over--{% firstof size 'md' %} bw-slide-over--{% firstof placement 'end' %}{% if header_recipe and header_recipe != "plain" %} bw-slide-over--header-{{ header_recipe }}{% endif %}{% if footer_recipe and footer_recipe != "plain" %} bw-slide-over--footer-{{ footer_recipe }}{% endif %}"
+<div class="bw-slide-over bw-slide-over--size-{% firstof size 'md' %} bw-slide-over--{% firstof placement 'end' %}{% if header_recipe and header_recipe != "plain" %} bw-slide-over--header-{{ header_recipe }}{% endif %}{% if footer_recipe and footer_recipe != "plain" %} bw-slide-over--footer-{{ footer_recipe }}{% endif %}"
      id="{{ bw_slide_over_instance_id }}"
      x-data="bwSlideOver({ backdropDismiss: {% if backdrop_dismiss == False %}false{% else %}true{% endif %} })">
   <div class="bw-slide-over__scrim" data-bw-slide-over-scrim aria-hidden="true"></div>
@@ -173,14 +173,14 @@ Appearance (Beat Phase E, icvoss/django-brickwork#540):
         {# .prevent stops the navigation and closes in place instead. It   #}
         {# deliberately does NOT carry data-bw-slide-over-close: bwSlideOver's #}
         {# own listener would close without preventing the navigation.     #}
-        <a class="bw-slide-over__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
+        <a class="bw-slide-over__close bw-btn bw-btn--ghost bw-btn--size-sm bw-btn--icon-only"
            {% bw_attr "href" close_href %}
            aria-label="{{ bw_slide_over_close_label }}"
            x-on:click.prevent="close('close-button')">
           {% bw_icon "close" size="sm" decorative=True %}
         </a>
       {% else %}
-        <button class="bw-slide-over__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
+        <button class="bw-slide-over__close bw-btn bw-btn--ghost bw-btn--size-sm bw-btn--icon-only"
                 type="button"
                 aria-label="{{ bw_slide_over_close_label }}"
                 data-bw-slide-over-close>

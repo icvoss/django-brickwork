@@ -720,7 +720,7 @@ Shipped seven unchanged. New:
 | `--bw-density-rail-width-expanded` **[NEW, #701]** | 12.5rem | 13.75rem | 14rem |
 
 `rail-width` is the resting capability-rail track for `layout="regions"` and
-for `{% bw_nav_rail density="icons" %}` (52px at comfortable). `rail-width-expanded`
+for `{% bw_nav_rail variant="icons" %}` (52px at comfortable). `rail-width-expanded`
 is the hover/focus-within expand target. Override either in brand CSS; do not
 style against private `.bw-nav-rail__*` internals for width.
 

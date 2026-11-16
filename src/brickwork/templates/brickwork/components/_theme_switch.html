@@ -210,7 +210,7 @@ Responsive: no breakpoint switch; layout is a consumer-chosen option, not a
   {{ valid_values|json_script:values_element_id }}
   {% if layout == 'compact' %}
     <details class="bw-theme-switch__disclosure">
-      <summary class="bw-theme-switch__trigger bw-btn bw-btn--secondary bw-btn--md">
+      <summary class="bw-theme-switch__trigger bw-btn bw-btn--secondary bw-btn--size-md">
         <span class="bw-btn__label">{{ label }}</span>
         {% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-theme-switch__caret" %}
       </summary>

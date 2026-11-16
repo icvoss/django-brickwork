@@ -20,7 +20,11 @@ from django.template.exceptions import TemplateSyntaxError
 # header means unsupported, never "supported and ignored".
 SURFACES: Final[frozenset[str]] = frozenset({"default", "raised", "tint", "inverse", "muted"})
 ELEVATIONS: Final[frozenset[str]] = frozenset({"0", "1", "2", "3"})
-SIZES: Final[frozenset[str]] = frozenset({"sm", "md", "lg"})
+# ADR-125 section 6: one closed five-step size grammar for the whole kit. It is
+# the CEILING, never a default: a component earns steps and declares its own
+# subset explicitly (``size_subset``). A step the stylesheet does not ship for a
+# component is a silent no-op if accepted, so nothing inherits this full set.
+SIZE_STEPS: Final[tuple[str, ...]] = ("xs", "sm", "md", "lg", "xl")
 RADII: Final[frozenset[str]] = frozenset({"default", "sm", "lg", "xl", "none"})
 HEADER_RECIPES: Final[frozenset[str]] = frozenset({"none", "plain", "bordered", "muted", "inverse", "accent"})
 FOOTER_RECIPES: Final[frozenset[str]] = frozenset({"none", "plain", "muted", "actions"})
@@ -30,13 +34,41 @@ WIDTHS: Final[frozenset[str]] = frozenset({"contained", "bleed"})
 TONES: Final[frozenset[str]] = frozenset({"muted", "strong"})
 SPACINGS: Final[frozenset[str]] = frozenset({"sm", "md", "lg"})
 SHAPES: Final[frozenset[str]] = frozenset({"circle", "square"})
-DENSITIES: Final[frozenset[str]] = frozenset({"comfortable", "compact"})
+# The global density axis (ADR-125, ADR-060 rule 1): three values, one meaning.
+# `{% bw_options density= %}` and `{% bw_form density= %}` share this set. A
+# component that renders fewer densities declares its own subset.
+DENSITIES: Final[frozenset[str]] = frozenset({"comfortable", "compact", "spacious"})
+
+
+def size_subset(*steps: str, extra: tuple[str, ...] = ()) -> frozenset[str]:
+    """A component's own closed size set: a subset of ``SIZE_STEPS``.
+
+    ``extra`` names non-step values a component genuinely ships (modal ``full``).
+    Raises ``ValueError`` at import time when a step is not one of the five, so
+    a typo cannot ship as a silent vocabulary.
+    """
+    unknown = [step for step in steps if step not in SIZE_STEPS]
+    if unknown:
+        raise ValueError(f"size_subset: {unknown!r} are not in {SIZE_STEPS!r}")
+    return frozenset((*steps, *extra))
+
+
+# Explicit per-component size subsets. Each lists only the steps the shipped
+# stylesheet renders for that component (ADR-125 section 6: xs and xl exist as
+# tokens and appear on a component only when it earns them).
+BUTTON_SIZES: Final[frozenset[str]] = size_subset("sm", "md", "lg")
+GAUGE_SIZES: Final[frozenset[str]] = size_subset("sm", "md", "lg")
+AVATAR_SIZES: Final[frozenset[str]] = size_subset("sm", "md", "lg")
+
+# The two components whose stylesheet renders only comfortable and compact.
+DENSITIES_COMFORTABLE_COMPACT: Final[frozenset[str]] = frozenset({"comfortable", "compact"})
 
 # Axis name -> closed vocabulary. Used by {% bw_options %} keyword args.
 OPTION_VOCABULARIES: Final[dict[str, frozenset[str]]] = {
     "surface": SURFACES,
     "elevation": ELEVATIONS,
-    "size": SIZES,
+    # No shared "size": every component declares its own subset in
+    # COMPONENT_OPTIONS (ADR-125 section 6), so none inherits the full set.
     "radius": RADII,
     "header_recipe": HEADER_RECIPES,
     "footer_recipe": FOOTER_RECIPES,
@@ -56,20 +88,24 @@ OPTION_VOCABULARIES: Final[dict[str, frozenset[str]]] = {
 COMPONENT_OPTIONS: Final[dict[str, dict[str, frozenset[str]]]] = {
     "brickwork/components/_chip.html": {
         "variant": frozenset({"neutral", "info", "success", "warning", "danger"}),
-        "size": frozenset({"sm", "md"}),
+        "size": size_subset("sm", "md"),
+    },
+    "brickwork/components/_card.html": {
+        "size": size_subset("sm", "md", "lg"),
     },
     "brickwork/components/_callout.html": {
         "variant": frozenset({"note", "info", "success", "warning", "danger", "neutral"}),
     },
     "brickwork/components/_button_group.html": {
         "variant": frozenset({"segmented", "attached"}),
+        "size": size_subset("sm", "md", "lg"),
     },
     "brickwork/components/_divider.html": {
         "tone": TONES,
         "spacing": SPACINGS,
     },
     "brickwork/components/_avatar.html": {
-        "size": SIZES,
+        "size": AVATAR_SIZES,
         "shape": SHAPES,
     },
     "brickwork/components/_empty_state.html": {
@@ -79,20 +115,20 @@ COMPONENT_OPTIONS: Final[dict[str, dict[str, frozenset[str]]]] = {
         "surface": frozenset({"default", "tint"}),
     },
     "brickwork/components/_data_table.html": {
-        "density": DENSITIES,
+        "density": DENSITIES_COMFORTABLE_COMPACT,
     },
     "brickwork/components/_list_item.html": {
-        "density": DENSITIES,
+        "density": DENSITIES_COMFORTABLE_COMPACT,
     },
     "brickwork/components/_modal.html": {
-        "size": frozenset({"sm", "md", "lg", "full"}),
+        "size": size_subset("sm", "md", "lg", extra=("full",)),
         "header_recipe": frozenset({"plain", "muted", "bordered"}),
         "footer_recipe": frozenset({"plain", "muted", "actions"}),
     },
     # Beat Phase E (icvoss/django-brickwork#540): same header/footer recipes
     # as modal. Size stays sm/md/lg (no full: a slide-over is edge-anchored).
     "brickwork/components/_slide_over.html": {
-        "size": frozenset({"sm", "md", "lg"}),
+        "size": size_subset("sm", "md", "lg"),
         "header_recipe": frozenset({"plain", "muted", "bordered"}),
         "footer_recipe": frozenset({"plain", "muted", "actions"}),
     },
@@ -125,6 +161,12 @@ def validate_options(*, component: str = "component", **options: object) -> None
         if _is_omitted(value):
             continue
         vocabulary = component_sets.get(name) or OPTION_VOCABULARIES.get(name)
+        if vocabulary is None and name == "size":
+            raise TemplateSyntaxError(
+                f"bw_options on {component}: this component declares no size subset, so size= is unsupported. "
+                f"Size steps are {list(SIZE_STEPS)} but each component declares the ones it renders "
+                f"(COMPONENT_OPTIONS)."
+            )
         if vocabulary is None:
             known = sorted({*OPTION_VOCABULARIES, *component_sets})
             raise TemplateSyntaxError(

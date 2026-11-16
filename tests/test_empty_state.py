@@ -53,7 +53,7 @@ def test_include_only_output_is_byte_identical_to_pre_slot_blocks() -> None:
 
 def test_include_only_action_href_and_label_still_render_the_anchor() -> None:
     out = _render(action_href="/invoices/new/", action_label="Create invoice")
-    assert '<a class="bw-btn bw-btn--primary bw-btn--md" href="/invoices/new/">Create invoice</a>' in out
+    assert '<a class="bw-btn bw-btn--primary bw-btn--size-md" href="/invoices/new/">Create invoice</a>' in out
 
 
 def test_no_results_variant_shows_the_search_icon_by_default() -> None:
@@ -123,7 +123,7 @@ def test_body_wins_and_legacy_description_fill_is_discarded() -> None:
 
 def test_action_block_default_content_is_the_existing_anchor() -> None:
     out = _render(action_href="/invoices/new/", action_label="Create invoice")
-    assert '<a class="bw-btn bw-btn--primary bw-btn--md" href="/invoices/new/">Create invoice</a>' in out
+    assert '<a class="bw-btn bw-btn--primary bw-btn--size-md" href="/invoices/new/">Create invoice</a>' in out
 
 
 def test_action_block_override_replaces_the_default_anchor() -> None:
@@ -204,7 +204,7 @@ def test_size_sm_action_renders_the_plain_link_not_the_primary_button() -> None:
 
 def test_size_md_action_still_renders_the_primary_button() -> None:
     out = _render(action_href="/invoices/new/", action_label="Create invoice")
-    assert '<a class="bw-btn bw-btn--primary bw-btn--md" href="/invoices/new/">Create invoice</a>' in out
+    assert '<a class="bw-btn bw-btn--primary bw-btn--size-md" href="/invoices/new/">Create invoice</a>' in out
     assert "bw-empty-state__action-link" not in out
 
 

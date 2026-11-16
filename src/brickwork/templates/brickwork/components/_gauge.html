@@ -84,7 +84,7 @@ Responsive: no breakpoint switch; size is the fixed sm/md/lg token scale
   fixed at every size: only the rendered diameter (a CSS custom property per
   size modifier) changes.
 {% endcomment %}
-<div class="bw-gauge bw-gauge--{{ size }}"{{ attrs_html }}>
+<div class="bw-gauge bw-gauge--size-{{ size }}"{{ attrs_html }}>
   <svg class="bw-gauge__svg" viewBox="0 0 100 100" role="img"{% if label %} {% bw_attr "aria-label" label %}{% endif %}>
     <circle class="bw-gauge__track" cx="50" cy="50" r="{{ radius }}" aria-hidden="true"></circle>
     <circle

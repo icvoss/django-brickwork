@@ -81,9 +81,9 @@ def test_close_href_turns_the_close_control_into_a_real_anchor_floor() -> None:
 
 
 def test_size_variants_and_default() -> None:
-    assert "bw-modal--md" in _render()  # CMP-020 default
-    assert "bw-modal--lg" in _render(size="lg")
-    assert "bw-modal--full" in _render(size="full")
+    assert "bw-modal--size-md" in _render()  # CMP-020 default
+    assert "bw-modal--size-lg" in _render(size="lg")
+    assert "bw-modal--size-full" in _render(size="full")
 
 
 def test_backdrop_dismiss_flows_into_the_component_config() -> None:

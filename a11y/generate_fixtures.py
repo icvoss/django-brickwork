@@ -4727,7 +4727,7 @@ _APP_REGIONS_SOURCE = (
     "{% load brickwork_nav %}"
     "{% block page_title %}App regions{% endblock %}"
     "{% block rail %}"
-    "{% bw_nav_rail items=rail_items active=active density='icons' %}"
+    "{% bw_nav_rail items=rail_items active=active variant='icons' %}"
     "{% endblock %}"
     "{% block sidebar %}"
     "{% bw_nav items=contextual_items active=active %}"

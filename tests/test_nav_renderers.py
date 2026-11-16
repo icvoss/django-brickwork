@@ -224,11 +224,11 @@ def test_rail_bad_url_omitted_under_default_fallback() -> None:
     assert "Bad" not in out
 
 
-def test_rail_icons_density_adds_modifier_class() -> None:
-    # brickwork#701: density="icons" is opt-in; labelled remains the default
+def test_rail_icons_variant_adds_modifier_class() -> None:
+    # brickwork#701 / #745: variant="icons" is opt-in; labelled remains the default
     labelled = _render("bw_nav_rail", (NavItem(key="h", label="Home", href="/", icon="home"),))
     assert "bw-nav-rail__list--icons" not in labelled
-    icons = Template("{% load brickwork_nav %}{% bw_nav_rail items=items density='icons' %}").render(
+    icons = Template("{% load brickwork_nav %}{% bw_nav_rail items=items variant='icons' %}").render(
         Context({"items": (NavItem(key="h", label="Home", href="/", icon="home"),)})
     )
     assert "bw-nav-rail__list--icons" in icons
@@ -236,11 +236,49 @@ def test_rail_icons_density_adds_modifier_class() -> None:
     assert "Home" in icons
 
 
-def test_rail_icons_density_rejects_unknown_value() -> None:
+def test_rail_variant_rejects_unknown_value() -> None:
     from django.template import TemplateSyntaxError
 
-    with pytest.raises(TemplateSyntaxError, match="density"):
+    with pytest.raises(TemplateSyntaxError, match="variant"):
+        Template("{% load brickwork_nav %}{% bw_nav_rail items=items variant='wide' %}").render(
+            Context({"items": (NavItem(key="h", label="Home", href="/"),)})
+        )
+
+
+def test_rail_variant_rejects_global_density_values() -> None:
+    # ADR-125: "compact" is a value of the global density axis, never a rail variant
+    from django.template import TemplateSyntaxError
+
+    with pytest.raises(TemplateSyntaxError, match="variant"):
+        Template("{% load brickwork_nav %}{% bw_nav_rail items=items variant='compact' %}").render(
+            Context({"items": (NavItem(key="h", label="Home", href="/"),)})
+        )
+
+
+def test_rail_density_is_a_deprecated_spelling_of_variant() -> None:
+    # #745: density="labelled|icons" keeps working for the deprecation window
+    items = (NavItem(key="h", label="Home", href="/", icon="home"),)
+    with pytest.warns(DeprecationWarning, match="variant"):
+        out = Template("{% load brickwork_nav %}{% bw_nav_rail items=items density='icons' %}").render(
+            Context({"items": items})
+        )
+    assert "bw-nav-rail__list--icons" in out
+
+
+def test_rail_density_rejects_unknown_value_and_names_variant() -> None:
+    from django.template import TemplateSyntaxError
+
+    with pytest.warns(DeprecationWarning), pytest.raises(TemplateSyntaxError, match="variant"):
         Template("{% load brickwork_nav %}{% bw_nav_rail items=items density='wide' %}").render(
+            Context({"items": (NavItem(key="h", label="Home", href="/"),)})
+        )
+
+
+def test_rail_variant_and_conflicting_density_raises() -> None:
+    from django.template import TemplateSyntaxError
+
+    with pytest.warns(DeprecationWarning), pytest.raises(TemplateSyntaxError, match="pass variant"):
+        Template("{% load brickwork_nav %}{% bw_nav_rail items=items variant='icons' density='labelled' %}").render(
             Context({"items": (NavItem(key="h", label="Home", href="/"),)})
         )
 

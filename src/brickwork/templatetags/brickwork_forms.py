@@ -24,6 +24,8 @@ from django.forms.widgets import CheckboxInput, CheckboxSelectMultiple, RadioSel
 from django.template.exceptions import TemplateSyntaxError
 from django.utils.safestring import SafeString
 
+from brickwork.appearance import DENSITIES
+
 if TYPE_CHECKING:
     from django.forms import BoundField, Form
 
@@ -31,8 +33,9 @@ register = template.Library()
 
 _FORM_LAYOUTS = {"stacked", "grid"}
 # ADR-060 rule 2: density reached data-density unvalidated while its two sibling
-# arguments on this same tag validated. The set is the global density axis's.
-_FORM_DENSITIES = {"compact", "comfortable", "spacious"}
+# arguments on this same tag validated. The set is the global density axis's,
+# shared with {% bw_options %} (ADR-125): one constant, not a second copy.
+_FORM_DENSITIES = DENSITIES
 
 
 def _widget_css_class(widget: Widget) -> str:

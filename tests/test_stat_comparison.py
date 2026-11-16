@@ -213,8 +213,8 @@ def test_label_is_escaped() -> None:
 
 
 def test_size_maps_to_modifier_classes() -> None:
-    assert "bw-stat-comparison--sm" in _render(current="1", previous="1", size="sm")
-    assert "bw-stat-comparison--lg" in _render(current="1", previous="1", size="lg")
+    assert "bw-stat-comparison--size-sm" in _render(current="1", previous="1", size="sm")
+    assert "bw-stat-comparison--size-lg" in _render(current="1", previous="1", size="lg")
     assert "bw-stat-comparison--" not in _render(current="1", previous="1")
 
 

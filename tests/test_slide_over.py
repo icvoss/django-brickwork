@@ -78,9 +78,9 @@ def test_close_href_turns_the_close_control_into_a_real_anchor_floor() -> None:
 
 
 def test_size_variants_and_default() -> None:
-    assert "bw-slide-over--md" in _render()
-    assert "bw-slide-over--lg" in _render(size="lg")
-    assert "bw-slide-over--sm" in _render(size="sm")
+    assert "bw-slide-over--size-md" in _render()
+    assert "bw-slide-over--size-lg" in _render(size="lg")
+    assert "bw-slide-over--size-sm" in _render(size="sm")
 
 
 def test_placement_variants_and_default() -> None:
