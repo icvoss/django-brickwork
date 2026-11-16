@@ -2,6 +2,10 @@
   "density": {
     "$description": "Density axis: COMPACT. Tighter spacing and control heights for information-dense admin screens. Same token names as the comfortable/spacious files. Selected via [data-density='compact']. Colour tokens are unaffected (BR-BW-TOK-004).",
     "$type": "dimension",
+    "font-size-base": {
+      "$value": "0.9375rem",
+      "$description": "ADR-127: the type base for this density. The font-size ladder is this value times --bw-font-scale-<step> (md is the base). A gentler spread than control height (about 6 percent against 20 percent): density answers how tight the interface is, and body text does not shrink as fast as the boxes around it. Selected with the other density bases; --bw-font-size-base defaults to it."
+    },
     "control-height": {
       "$value": "2rem"
     },

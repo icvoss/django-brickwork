@@ -453,7 +453,9 @@ def test_heading_section_role_ships_with_heading_xl_defaults() -> None:
     tokens_css = (_DIST / "tokens.css").read_text()
     for prop, scale in (
         ("family", "var(--bw-font-family-display)"),
-        ("size", "var(--bw-font-size-xl)"),
+        # ADR-127: the role picks the ladder step that renders heading-xl's size
+        # (1.5rem at comfortable); the raw names above lg moved up one step.
+        ("size", "var(--bw-font-size-2xl)"),
         ("line-height", "var(--bw-font-line-height-tight)"),
         ("weight", "var(--bw-font-weight-semibold)"),
         ("tracking", "var(--bw-font-tracking-tight)"),
