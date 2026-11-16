@@ -367,42 +367,6 @@
         "$value": "calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-xl))"
       }
     },
-    "control-icon": {
-      "$description": "ADR-126 section 4: icon box inside a control, by step. md is the base icon (the 1rem component icon); the other steps are that base times the shared step multiplier, so an icon follows its control's step (ADR-125 section 5). Density does not change it. Re-emitted inside every [data-density] block beside the other resolved control tokens.",
-      "xs": {
-        "$value": "calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xs))"
-      },
-      "sm": {
-        "$value": "calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-sm))"
-      },
-      "md": {
-        "$value": "var(--bw-component-icon-size-sm)"
-      },
-      "lg": {
-        "$value": "calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-lg))"
-      },
-      "xl": {
-        "$value": "calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xl))"
-      }
-    },
-    "control-gap": {
-      "$description": "ADR-126 section 4: gap between a control's icon and label (or between its inner parts), by step. Aliases the space ramp, so it is a named choice per step rather than a multiplier: xs space-1-5, sm and md space-2, lg and xl space-3. Re-emitted inside every [data-density] block.",
-      "xs": {
-        "$value": "var(--bw-space-1-5)"
-      },
-      "sm": {
-        "$value": "var(--bw-space-2)"
-      },
-      "md": {
-        "$value": "var(--bw-space-2)"
-      },
-      "lg": {
-        "$value": "var(--bw-space-3)"
-      },
-      "xl": {
-        "$value": "var(--bw-space-3)"
-      }
-    },
     "touch-target-min": {
       "$value": "2.75rem"
     },
@@ -422,22 +386,6 @@
       "modal-lg": {
         "$value": "48rem"
       }
-    }
-  },
-  "control": {
-    "$type": "dimension",
-    "$description": "ADR-126 section 4: the four control role variables. Every control reads only these and never a density or step token directly. They default to the resolved md tokens; a size class (bw-<component>--size-<step>) or a control container re-points them for its subtree. Not a public option and not a new axis: authors still write size. Emitted on :root and re-emitted inside every [data-density] block so a density scoped to a subtree re-resolves them.",
-    "height": {
-      "$value": "var(--bw-size-control-height-md)"
-    },
-    "padding-inline": {
-      "$value": "var(--bw-size-control-padding-inline-md)"
-    },
-    "icon-size": {
-      "$value": "var(--bw-size-control-icon-md)"
-    },
-    "gap": {
-      "$value": "var(--bw-size-control-gap-md)"
     }
   }
 }
