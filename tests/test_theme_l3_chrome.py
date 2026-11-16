@@ -35,18 +35,27 @@ def test_button_chrome_reads_radius_and_elevation_tokens() -> None:
     base = _bodies(".bw-btn")
     assert base, "missing .bw-btn"
     assert "var(--bw-component-button-radius)" in base[0]
-    # Exact selector pair for resting filled elevation (not :hover / :active).
+
+    # Resting filled elevation: the one rule that pairs primary and danger
+    # behind the not-disabled guard (not :hover / :active). The Button raise
+    # (docs/components/button.md) widened the guard to disabled, aria-disabled
+    # and busy hosts and wrote primary as :is(.bw-btn--primary, .bw-btn--solid),
+    # so the selector is matched by its parts, not by the old exact string.
+    def _resting(selector: str) -> bool:
+        flat = re.sub(r"\s+", "", selector)
+        return ":not(" in flat and ":hover" not in flat and ":active" not in flat
+
     elev = [
         body
         for sel, body in _rules(_COMPONENTS)
-        if re.sub(r"\s+", "", sel) == ".bw-btn--primary:not(.bw-btn--disabled),.bw-btn--danger:not(.bw-btn--disabled)"
+        if ".bw-btn--primary" in sel and ".bw-btn--danger" in sel and _resting(sel)
     ]
     assert elev, "missing primary/danger elevation rule"
     assert "var(--bw-component-button-elevation)" in elev[0]
     secondary = [
         body
         for sel, body in _rules(_COMPONENTS)
-        if re.sub(r"\s+", "", sel) == ".bw-btn--secondary:not(.bw-btn--disabled)"
+        if re.sub(r"\s+", "", sel).startswith(".bw-btn--secondary:not(") and _resting(sel)
     ]
     assert secondary, "missing secondary elevation rule"
     assert "var(--bw-component-button-elevation)" in secondary[0]

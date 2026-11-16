@@ -24,10 +24,13 @@ wrapper is not a candidate for this dedup, only its contents are.
 
 States: disabled (a <span> for a link-button, since an <a> stays navigable
   regardless of aria-disabled; a real disabled attribute for a <button>),
-  loading (aria-busy="true" plus disabled, mounts the spinner in place of
-  any icon), icon-only (aria_label required, enforced by the tag, never the
-  include), plus four variant treatments (primary/secondary/ghost/danger)
-  each with their own hover and active colour, and three sizes (sm/md/lg).
+  loading (aria-busy="true" plus disabled on a <button>; a link-button with
+  loading=True renders the same non-navigable <span> with aria-busy, since a
+  busy control must not be operable. Mounts the spinner in place of any icon.
+  The variant colours hold while busy; only a disabled control goes flat),
+  icon-only (aria_label required, enforced by the tag, never the include),
+  plus four variant treatments (primary/secondary/ghost/danger) each with
+  their own hover and active colour, and three sizes (sm/md/lg).
 Accessibility: enforced at render time by {% bw_button %}, not this include:
   an icon-only button with no aria_label is a template error, never a
   silent unlabelled control. Every size clears the touch-target floor.
@@ -43,10 +46,10 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-btn*
   {% if not icon_only %}<span class="bw-btn__label">{{ label }}</span>{% endif %}
 {% endpartialdef %}
 {% if href %}
-{% if disabled %}
+{% if disabled or loading %}
 {% comment %}
-brickwork#135: a disabled link-button renders as a non-navigable <span>, not an
-<a>, following the precedent of the disabled bw-pagination__link--disabled span
+brickwork#135: a disabled (or loading) link-button renders as a non-navigable
+<span>, not an <a>, following the precedent of the disabled bw-pagination__link--disabled span
 in _pagination.html for a disabled link control.
 An anchor keeps its href, its own focusability, and its own click/Enter
 navigation regardless of aria-disabled (that attribute is announced to assistive
@@ -54,9 +57,9 @@ tech, it does not change behaviour), so a disabled <a> looked disabled but still
 navigated. The span carries the identical classes so the visual appearance is
 unchanged, and aria-disabled keeps the state announced.
 {% endcomment %}
-<span class="bw-btn bw-btn--{{ variant }} bw-btn--size-{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %} bw-btn--disabled"
+<span class="bw-btn bw-btn--{{ variant }} bw-btn--size-{{ size }}{% if icon_only %} bw-btn--icon-only{% endif %}{% if disabled and not loading %} bw-btn--disabled{% endif %}"
       {% bw_attr "aria-label" aria_label %}
-      aria-disabled="true">
+      aria-disabled="true"{% if loading %} aria-busy="true"{% endif %}>
   {% partial btn_inner %}
 </span>
 {% else %}

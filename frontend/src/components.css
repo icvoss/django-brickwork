@@ -2,7 +2,18 @@
  * Logical CSS properties throughout (RTL via `dir`). Nothing here needs JS.
  */
 
-/* --- Buttons --------------------------------------------------------------- */
+/* --- Buttons (docs/components/button.md) ----------------------------------- */
+
+/* Operable guard. A state rule (hover, press) applies only to a control that is
+ * operable and not busy: not the .bw-btn--disabled class (the non-button
+ * elements), not :disabled (a real <button>), not aria-disabled, not
+ * aria-busy. :not() takes the specificity of its most specific argument, so
+ * the guard weighs the same as the single :not(.bw-btn--disabled) it replaces
+ * and no existing cascade relationship moves. The resting shadow rules use a
+ * narrower guard (not disabled, but a busy control keeps its resting shadow).
+ * Before this guard a disabled or loading <button> still took the hover fill,
+ * ring and (for ghost) the full ink: .bw-btn:disabled weighs 0,2,0 and the
+ * hover rules weighed 0,3,0 (GAP-BTN-1). */
 
 .bw-btn {
   display: inline-flex;
@@ -10,8 +21,10 @@
   justify-content: center;
   gap: var(--bw-space-2);
   padding-block: 0;
-  padding-inline: var(--bw-density-control-padding-inline);
-  block-size: var(--bw-density-control-height);
+  /* ADR-125: md is the base size. Height and padding resolve from the density
+   * control base through the computed size step, never from a literal. */
+  padding-inline: var(--bw-size-control-padding-inline-md);
+  block-size: var(--bw-size-control-height-md);
   border: var(--bw-size-border-hairline) solid transparent;
   border-radius: var(--bw-component-button-radius);
   font: inherit;
@@ -20,12 +33,20 @@
   font-weight: var(--bw-text-label-weight);
   line-height: var(--bw-text-label-line-height);
   letter-spacing: var(--bw-text-label-tracking);
+  /* One line, always (BTN-014): the block size is fixed, so a wrapped label
+   * would spill out of the control (GAP-BTN-4). */
+  white-space: nowrap;
   cursor: pointer;
   text-decoration: none;
   transition:
     var(--bw-transition-colors),
     var(--bw-transition-shadow),
     var(--bw-transition-transform);
+}
+/* The reset underlines every a:hover (0,1,1), which outweighs the 0,1,0 above,
+ * so a link-button underlined on hover (GAP-BTN-2). */
+.bw-btn:hover {
+  text-decoration: none;
 }
 /* Size classes (ADR-125 section 6): the grammar is bw-<component>--size-<step>.
  * The bare spelling (bw-btn--sm, and the same for gauge, icon, modal,
@@ -50,23 +71,40 @@
 }
 /* ADR-125: sm, md and lg resolve from the density control base times a
  * kit-wide step multiplier (--bw-size-step-*), not from absolute rem values,
- * so every density keeps three distinct heights. */
+ * so every density keeps three distinct heights. xs and xl exist in the token
+ * scale; Button does not ship them (BTN-003). */
 .bw-btn--lg, .bw-btn--size-lg {
   block-size: var(--bw-size-control-height-lg);
   padding-inline: var(--bw-size-control-padding-inline-lg);
+}
+/* The glyph and the label are one line of content. The icon is a bw-icon, and
+ * a bare .bw-icon (wave-e) paints a raised box and a muted ink, which showed
+ * as a white square and a grey glyph on a primary button (GAP-BTN-3). Inside
+ * a button the icon is a plain glyph in the button's own ink. Two classes
+ * outrank .bw-icon whatever the layer order. */
+.bw-btn .bw-btn__icon {
+  background: transparent;
+  border-radius: 0;
+  color: inherit;
 }
 /* Solid buttons carry a border in their own hue (0.7.0 craft): 80% of the fill
  * toward black is the Radix solid-button edge, a shade the fill visibly sits
  * inside (decorative against the fill at 1.59:1 light / 1.73:1 dark; it also
  * defines the button against the surface at 8.10:1 / 4.12:1 for primary and
  * 7.74:1 / 3.00:1 for danger). The edge deliberately outlives hover: the
- * hover fill (89% toward black) stays lighter than the 80% edge. */
-.bw-btn--primary {
+ * hover fill (89% toward black) stays lighter than the 80% edge.
+ *
+ * .bw-btn--solid is the early-draft name of primary. It is DEPRECATED, kept
+ * here as an alias through :is() (class weight) for the window ADR-125 sets
+ * for the bare size classes, and removed with them. Its old standalone rule
+ * read --bw-color-accent-fg, which is not a token, so it needed a per-page
+ * shim (GAP-BTN-6). */
+:is(.bw-btn--primary, .bw-btn--solid) {
   background: var(--bw-color-accent);
   color: var(--bw-color-fg-on-accent);
   border-color: color-mix(in oklab, var(--bw-color-accent) 80%, black);
 }
-.bw-btn--primary:not(.bw-btn--disabled):hover {
+:is(.bw-btn--primary, .bw-btn--solid):not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):hover {
   background: var(--bw-color-accent-hover);
   box-shadow: var(--bw-component-button-elevation-hover), inset 0 1px 0 0 oklch(1 0 0 / 0.12);
   transform: translateY(var(--bw-component-button-hover-translate));
@@ -80,10 +118,10 @@
   color: var(--bw-color-fg);
   border-color: var(--bw-color-border);
 }
-.bw-btn--secondary:not(.bw-btn--disabled) {
+.bw-btn--secondary:not(.bw-btn--disabled, :disabled:not([aria-busy="true"]), [aria-disabled="true"]:not([aria-busy="true"])) {
   box-shadow: var(--bw-component-button-elevation);
 }
-.bw-btn--secondary:not(.bw-btn--disabled):hover {
+.bw-btn--secondary:not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):hover {
   border-color: var(--bw-color-border-strong);
   background-color: var(--bw-color-surface-sunken);
   box-shadow: var(--bw-component-button-elevation-hover);
@@ -95,7 +133,7 @@
    * weight; steps up to full fg on hover. */
   color: var(--bw-color-fg-muted);
 }
-.bw-btn--ghost:not(.bw-btn--disabled):hover {
+.bw-btn--ghost:not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):hover {
   background-color: var(--bw-state-hover-overlay);
   color: var(--bw-color-fg);
 }
@@ -105,7 +143,7 @@
   /* Same 80%-toward-black edge as primary, in the danger hue (ratios above). */
   border-color: color-mix(in oklab, var(--bw-color-danger) 80%, black);
 }
-.bw-btn--danger:not(.bw-btn--disabled):hover {
+.bw-btn--danger:not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):hover {
   background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
   box-shadow: var(--bw-component-button-elevation-hover), inset 0 1px 0 0 oklch(1 0 0 / 0.12);
   transform: translateY(var(--bw-component-button-hover-translate));
@@ -113,12 +151,12 @@
 /* Filled action buttons carry physical weight: resting elevation plus a faint
  * top bevel; pressing swaps to an inset shadow so the button visibly sinks.
  * Elevation is the per-button token (#649); the inset highlight is craft. */
-.bw-btn--primary:not(.bw-btn--disabled),
-.bw-btn--danger:not(.bw-btn--disabled) {
+:is(.bw-btn--primary, .bw-btn--solid):not(.bw-btn--disabled, :disabled:not([aria-busy="true"]), [aria-disabled="true"]:not([aria-busy="true"])),
+.bw-btn--danger:not(.bw-btn--disabled, :disabled:not([aria-busy="true"]), [aria-disabled="true"]:not([aria-busy="true"])) {
   box-shadow: var(--bw-component-button-elevation), inset 0 1px 0 0 oklch(1 0 0 / 0.12);
 }
-.bw-btn--primary:not(.bw-btn--disabled):active,
-.bw-btn--danger:not(.bw-btn--disabled):active {
+:is(.bw-btn--primary, .bw-btn--solid):not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):active,
+.bw-btn--danger:not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):active {
   box-shadow: inset 0 1px 2px 0 oklch(0 0 0 / 0.2);
   transform: none;
 }
@@ -127,12 +165,12 @@
  * hovers so it wins the background-image cascade; instant so the press reads
  * immediately. Ghost is excluded (its states are solid overlay fills, so a
  * stacked image would double the tint) and gets its own solid active fill. */
-.bw-btn:not(.bw-btn--disabled):not(.bw-btn--ghost):active {
+.bw-btn:not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):not(.bw-btn--ghost):active {
   background-image: linear-gradient(var(--bw-state-active-overlay), var(--bw-state-active-overlay));
   transition-duration: var(--bw-duration-instant);
   transform: none;
 }
-.bw-btn--ghost:not(.bw-btn--disabled):active {
+.bw-btn--ghost:not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):active {
   background-color: var(--bw-state-active-overlay);
   background-image: none;
   transition-duration: var(--bw-duration-instant);
@@ -140,14 +178,14 @@
 /* Hover-lift is opt-in via --bw-component-button-hover-translate (#649).
  * Prefer no transform when the user asks for reduced motion. */
 @media (prefers-reduced-motion: reduce) {
-  .bw-btn--primary:not(.bw-btn--disabled):hover,
-  .bw-btn--secondary:not(.bw-btn--disabled):hover,
-  .bw-btn--danger:not(.bw-btn--disabled):hover {
+  :is(.bw-btn--primary, .bw-btn--solid):not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):hover,
+  .bw-btn--secondary:not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):hover,
+  .bw-btn--danger:not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"]):hover {
     transform: none;
   }
 }
 .bw-btn--icon-only {
-  inline-size: var(--bw-density-control-height);
+  inline-size: var(--bw-size-control-height-md);
   padding-inline: 0;
 }
 /* Exact square at every size (0.7.0 craft): the sm/lg heights bring their own
@@ -159,15 +197,24 @@
   inline-size: var(--bw-size-control-height-lg);
 }
 /* Flat disabled colours (COL-018 / #282), not opacity: opacity failed
- * contrast on most surfaces and cannot be gated under brand overrides. */
-.bw-btn:disabled,
-.bw-btn--disabled {
+ * contrast on most surfaces and cannot be gated under brand overrides. Three
+ * spellings, one look: the disabled attribute (a <button>), the class (the
+ * non-navigable <span> a disabled link-button renders as) and aria-disabled
+ * (any other host). A busy control is not flat: it holds its variant colours
+ * (BTN-031) and is told apart by the spinner, the not-operable cursor and
+ * aria-busy, so a loading primary does not flash grey. */
+.bw-btn:disabled:not([aria-busy="true"]),
+.bw-btn--disabled:not([aria-busy="true"]),
+.bw-btn[aria-disabled="true"]:not([aria-busy="true"]) {
   background: var(--bw-color-action-disabled-bg);
   background-image: none;
   color: var(--bw-color-action-disabled-text);
   border-color: var(--bw-color-action-disabled-border);
   box-shadow: none;
   cursor: not-allowed;
+}
+.bw-btn[aria-busy="true"] {
+  cursor: progress;
 }
 
 .bw-spinner {

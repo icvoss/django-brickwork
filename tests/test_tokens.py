@@ -647,17 +647,28 @@ def test_bw_btn_variants_read_button_elevation_and_hover_translate() -> None:
             if re.sub(r"\s+", "", sel) == re.sub(r"\s+", "", selector)
         ]
 
-    resting = _bodies(".bw-btn--primary:not(.bw-btn--disabled), .bw-btn--danger:not(.bw-btn--disabled)")
+    # The Button raise (docs/components/button.md) widened the not-disabled
+    # guard to disabled, aria-disabled and busy hosts. A hover or press rule
+    # takes the full guard; the resting shadow rules take the narrower one (a
+    # busy control keeps its resting shadow). primary is written as
+    # :is(.bw-btn--primary, .bw-btn--solid), the deprecated alias sharing its rules.
+    operable = ':not(.bw-btn--disabled, :disabled, [aria-disabled="true"], [aria-busy="true"])'
+    at_rest = (
+        ':not(.bw-btn--disabled, :disabled:not([aria-busy="true"]), [aria-disabled="true"]:not([aria-busy="true"]))'
+    )
+    primary = ":is(.bw-btn--primary, .bw-btn--solid)"
+
+    resting = _bodies(f"{primary}{at_rest}, .bw-btn--danger{at_rest}")
     assert resting and "var(--bw-component-button-elevation)" in resting[0]
     assert "inset 0 1px 0 0" in resting[0], "primary/danger must keep the inset highlight"
 
-    secondary = _bodies(".bw-btn--secondary:not(.bw-btn--disabled)")
+    secondary = _bodies(f".bw-btn--secondary{at_rest}")
     assert secondary and "var(--bw-component-button-elevation)" in secondary[0]
 
     for hover_sel in (
-        ".bw-btn--primary:not(.bw-btn--disabled):hover",
-        ".bw-btn--secondary:not(.bw-btn--disabled):hover",
-        ".bw-btn--danger:not(.bw-btn--disabled):hover",
+        f"{primary}{operable}:hover",
+        f".bw-btn--secondary{operable}:hover",
+        f".bw-btn--danger{operable}:hover",
     ):
         hover = _bodies(hover_sel)
         assert hover, f"missing {hover_sel}"
@@ -666,8 +677,7 @@ def test_bw_btn_variants_read_button_elevation_and_hover_translate() -> None:
 
     assert "@media (prefers-reduced-motion: reduce)" in components
     assert re.search(
-        r"prefers-reduced-motion:\s*reduce[^}]*"
-        r"\.bw-btn--primary:not\(\.bw-btn--disabled\):hover[^}]*transform:\s*none",
+        r"prefers-reduced-motion:\s*reduce[^}]*" + re.escape(f"{primary}{operable}:hover") + r"[^}]*transform:\s*none",
         components,
         flags=re.S,
     ), "reduced-motion must clear the hover translate on elevated buttons"
