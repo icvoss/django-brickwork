@@ -168,3 +168,37 @@ def test_css_mirror_has_the_raised_button_fixes() -> None:
 def test_css_mirror_has_no_accent_fg_token() -> None:
     # --bw-color-accent-fg is not a token; .bw-btn--solid read it (GAP-BTN-6).
     assert "--bw-color-accent-fg" not in re.sub(r"/\*.*?\*/", "", _button_block(), flags=re.S)
+
+
+# --- ADR-126: the fit class on the template mirror --------------------------
+# The CSS rule for bw-btn--fit-fill, and the control role variables it sits
+# beside, ship in the @bwui/css and @bwui/tokens release after 0.1.4. Until the
+# pin moves, only the template emits the class; bw_button takes no fit option
+# (ADR-060 section 3: an option with no rule would be a silent no-op).
+
+
+def test_button_template_emits_fit_fill_on_every_host_after_icon_only() -> None:
+    tpl = "{% include 'brickwork/components/_button.html' %}"
+    base = {"label": "Go", "variant": "primary", "size": "md", "type": "button", "fit": "fill"}
+    for extra, host in (
+        ({}, "<button"),
+        ({"href": "/x/"}, "<a "),
+        ({"href": "/x/", "disabled": True}, "<span"),
+    ):
+        tag = _root_tag(Template(tpl).render(Context({**base, **extra})))
+        assert tag.startswith(host)
+        assert "bw-btn--fit-fill" in _classes(tag)
+    icon_only = _classes(_root_tag(Template(tpl).render(Context({**base, "icon_only": True, "aria_label": "x"}))))
+    assert icon_only.index("bw-btn--icon-only") < icon_only.index("bw-btn--fit-fill")
+
+
+@pytest.mark.parametrize("fit", ["", "auto"])
+def test_button_template_emits_no_fit_class_for_auto_or_absent(fit: str) -> None:
+    tpl = "{% include 'brickwork/components/_button.html' %}"
+    ctx = {"label": "Go", "variant": "primary", "size": "md", "type": "button", "fit": fit}
+    assert "bw-btn--fit-fill" not in Template(tpl).render(Context(ctx))
+
+
+def test_bw_button_tag_takes_no_fit_option_until_the_css_ships() -> None:
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_button "Go" fit="fill" %}')
