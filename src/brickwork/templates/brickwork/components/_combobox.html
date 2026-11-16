@@ -84,6 +84,15 @@ and aria-busy/error row cover result counts, loading and server-filter
 failure; multiple mode carries bw-combobox--multiple so the chips and input
 share one frame (CMB-031).
 
+Completion (docs/components/combobox.md, owner ruling 2026-11-16, nothing
+deferred): size (bw-combobox--size-<step>, five steps, the control role
+variables and font size), groups (the floor keeps <optgroup>; the listbox
+wraps each group in a presentational row holding the heading and a
+role="group" list), a clear control, the chevron (CSS), readonly (a disabled
+floor plus hidden inputs that submit the value) and disabled controls, a
+per-option disabled flag, aria_label, a translated error_message, and the
+multiple-mode "added", "removed" and "cleared" announcements.
+
 Events (optional conventions, BR-BW-HTMX-004): bw:combobox:open/close,
 bw:combobox:select { value, label }, bw:combobox:create { query }
 (allow_create only), emitted by bwCombobox.
@@ -122,21 +131,36 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-combobox* selector. The listbox panel is sized to
   --bw-component-menu-min-width, fixed regardless of viewport.
 {% endcomment %}
+{% partialdef combobox_option %}
+      <li class="bw-combobox__option"
+          id="{{ opt.option_id }}"
+          role="option"
+          data-bw-value="{{ opt.value }}"
+          {% if opt.is_selected %}aria-selected="true"{% endif %}
+          {% if opt.is_disabled %}aria-disabled="true"{% endif %}>{{ opt.label }}</li>
+{% endpartialdef %}
+{% partialdef combobox_floor_option %}
+    <option value="{{ opt.value }}"{% if opt.is_selected %} selected{% endif %}{% if opt.is_disabled %} disabled{% endif %}>{{ opt.label }}</option>
+{% endpartialdef %}
 {% partialdef combobox_control %}
-<div class="bw-combobox{% if multiple %} bw-combobox--multiple{% endif %}"
+<div class="bw-combobox bw-combobox--size-{{ size }}{% if multiple %} bw-combobox--multiple{% endif %}"
      x-data='bwCombobox({ filterMode: "{{ filter_mode }}", multiple: {{ multiple|yesno:"true,false" }}, allowCreate: {{ allow_create|yesno:"true,false" }} })'
      data-bw-combobox>
   <select class="bw-combobox__floor bw-input"
           id="{{ field_id }}"
           name="{{ html_name }}"
           {% if multiple %}multiple{% endif %}
+          {% if disabled or readonly %}disabled{% endif %}
+          {% if readonly %}aria-readonly="true"{% endif %}
           {% if errors %}aria-invalid="true"{% endif %}
           {% if described_by %}aria-describedby="{{ described_by }}"{% endif %}
           data-bw-combobox-floor>
-    {% for opt in options %}
-    <option value="{{ opt.value }}"{% if opt.is_selected %} selected{% endif %}>{{ opt.label }}</option>
-    {% endfor %}
+    {% for entry in entries %}{% if entry.group_label %}<optgroup label="{{ entry.group_label }}"{% if entry.is_disabled %} disabled{% endif %}>{% for opt in entry.options %}{% partial combobox_floor_option %}{% endfor %}</optgroup>{% else %}{% for opt in entry.options %}{% partial combobox_floor_option %}{% endfor %}{% endif %}{% endfor %}
   </select>
+  {% if readonly %}
+  {# A disabled select does not submit, so a read-only control carries its value in hidden inputs: read-only means "shown and submitted, not editable", with no JavaScript as well. #}
+  {% for opt in options %}{% if opt.is_selected %}<input type="hidden" name="{{ html_name }}" value="{{ opt.value }}">{% endif %}{% endfor %}
+  {% endif %}
   <div class="bw-combobox__field" hidden data-bw-combobox-field>
     {% if multiple %}
     {% translate "Remove" as bw_chip_remove_label %}
@@ -153,25 +177,40 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
            aria-controls="{{ listbox_id }}"
            aria-autocomplete="list"
            {% if label_id %}aria-labelledby="{{ label_id }}"{% endif %}
+           {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
            {% if errors %}aria-invalid="true"{% endif %}
            {% if described_by %}aria-describedby="{{ described_by }}"{% endif %}
+           {% if disabled %}disabled{% endif %}
+           {% if readonly %}readonly aria-readonly="true"{% endif %}
            {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
            autocomplete="off"
            name="q"
            form=""
            {% if filter_mode == "server" %}hx-get="{{ options_url }}" hx-target="#{{ listbox_id }}" hx-swap="innerHTML" hx-trigger="bw:combobox:search" hx-include="this" hx-indicator="#{{ listbox_id }}"{% endif %}
            data-bw-combobox-input>
+    {# Clear control (CMB-015): hidden until bwCombobox finds a value or a query on an operable control; never rendered operable on a disabled or read-only control. #}
+    <button class="bw-combobox__clear"
+            type="button"
+            hidden
+            aria-label="{% if multiple %}{% translate "Clear all" %}{% else %}{% translate "Clear selection" %}{% endif %}"
+            data-bw-combobox-clear>{% bw_icon "close" size="sm" decorative=True %}</button>
     <ul class="bw-combobox__listbox"
         id="{{ listbox_id }}"
         role="listbox"
         {% if multiple %}aria-multiselectable="true"{% endif %}
         data-bw-combobox-listbox>
-      {% for opt in options %}
-      <li class="bw-combobox__option"
-          id="{{ opt.option_id }}"
-          role="option"
-          data-bw-value="{{ opt.value }}"
-          {% if opt.is_selected %}aria-selected="true"{% endif %}>{{ opt.label }}</li>
+      {% for entry in entries %}
+      {% if entry.group_label %}
+      {# Group (CMB-017): a presentational wrapper holds the heading and a role="group" list named by it; bwCombobox hides the wrapper while none of its options is visible. #}
+      <li class="bw-combobox__group" role="presentation">
+        <span class="bw-combobox__group-label" id="{{ entry.label_id }}">{{ entry.group_label }}</span>
+        <ul class="bw-combobox__group-options" role="group" aria-labelledby="{{ entry.label_id }}">
+          {% for opt in entry.options %}{% partial combobox_option %}{% endfor %}
+        </ul>
+      </li>
+      {% else %}
+      {% for opt in entry.options %}{% partial combobox_option %}{% endfor %}
+      {% endif %}
       {% endfor %}
       {% if allow_create %}
       {# Create affordance (CBH-021): revealed by bwCombobox with the query filled in; re-appended after server swaps. #}
@@ -185,17 +224,20 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
       <li class="bw-combobox__empty" role="option" aria-disabled="true" data-bw-combobox-empty hidden>{{ empty_message }}</li>
       {% if filter_mode == "server" %}
       {# Server-filter failure row (CMB-019): revealed by bwCombobox when the options request fails; the previous options stay; kept across swaps by re-appending. #}
-      <li class="bw-combobox__error" role="option" aria-disabled="true" data-bw-combobox-error hidden>{% translate "Options could not be loaded. Type to try again." %}</li>
+      <li class="bw-combobox__error" role="option" aria-disabled="true" data-bw-combobox-error hidden>{{ error_message }}</li>
       {% endif %}
     </ul>
-    {# Live region (CMB-052): bwCombobox writes the result count, "No matches", loading and failure here. Strings are template-supplied so no English originates in script; {count} is replaced in script. #}
+    {# Live region (CMB-052): bwCombobox writes the result count, "No matches", loading, failure, and in multiple mode "added", "removed" and "cleared" here. Strings are template-supplied so no English originates in script; {count} and {label} are replaced in script. #}
     <div class="bw-combobox__status bw-visually-hidden"
          role="status"
          aria-live="polite"
          data-bw-combobox-status
          data-bw-status-loading="{% translate "Loading options" %}"
          data-bw-status-one="{% translate "1 result available" %}"
-         data-bw-status-other="{% translate "{count} results available" %}"></div>
+         data-bw-status-other="{% translate "{count} results available" %}"
+         data-bw-status-added="{% translate "{label} added" %}"
+         data-bw-status-removed="{% translate "{label} removed" %}"
+         data-bw-status-cleared="{% translate "Selection cleared" %}"></div>
   </div>
 </div>
 {% endpartialdef %}

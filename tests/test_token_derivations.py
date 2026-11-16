@@ -61,6 +61,14 @@ _PER_INSTANCE_VAR_HOOKS = frozenset(
     }
 )
 
+# Component-local custom properties the stylesheet declares itself and reads
+# WITHOUT a fallback (so the comma rule above cannot cover them): the end gutter
+# and the clear-control square on .bw-combobox (CMB-038), derived from the
+# control role variables per instance so a size step re-points them with no
+# token of their own. The test below requires each to be declared in the same
+# file, so a misspelled read still fails.
+_LOCALLY_DECLARED_VARS = frozenset({"--bw-combobox-end-gutter", "--bw-combobox-clear-size"})
+
 # Tolerances for the linear oklab-model recomputation against the baseline.
 _TOL_L = 0.015
 _TOL_C = 0.02
@@ -364,6 +372,8 @@ def test_frontend_css_only_references_emitted_token_names() -> None:
             if name in emitted:
                 continue
             if terminator == "," and name in _PER_INSTANCE_VAR_HOOKS:
+                continue
+            if name in _LOCALLY_DECLARED_VARS and re.search(rf"^\s*{re.escape(name)}\s*:", css_path.read_text(), re.M):
                 continue
             missing.setdefault(css_path.name, set()).add(name)
     assert not missing, f"frontend CSS references token names tokens.css does not emit: {missing}"

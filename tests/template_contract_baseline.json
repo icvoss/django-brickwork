@@ -102,6 +102,8 @@
   "partials": [
     "btn_inner",
     "combobox_control",
+    "combobox_floor_option",
+    "combobox_option",
     "nav_header_item",
     "nav_item",
     "nav_rail_item",
