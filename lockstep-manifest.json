@@ -7,7 +7,7 @@
     "frontend-js"
   ],
   "editorial_home": "icvoss/brickwork",
-  "synced_at": "2026-11-15T21:09:22.654Z",
+  "synced_at": "2026-11-16T09:35:47.983Z",
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
@@ -24,7 +24,7 @@
     "css": {
       "shell.css": "6f44d6f6f815dc373db7dc56e8391c85a9ea16489841041a692af1f72bd8ae63",
       "nav.css": "fb336f329be04ea7b4d67de5309a15dd57c4ca368d03464e0a63582b11582177",
-      "components.css": "f06e7e6db7f202483dc11e6e469e7f2c6b6665605975274f44e2b4a314e2d4e9",
+      "components.css": "f3ad0228746dcfc1c73221f23b2e9190c261f9de72710f34da23a4f70d2798cc",
       "marketing.css": "fec04e26119ba73362b5f7aa488712ac9c1605c91c76f92179c54c74dfa55848"
     },
     "templates": {
@@ -45,7 +45,7 @@
       "brickwork/components/_chart_data_table.html": "583388cc3ed49595e63759f83c38dd5e8987daaee8db1c2f470734c83fafa812",
       "brickwork/components/_chip.html": "38f1f0f31859e4633ff21fdcb302c1adec0209ba3f19459eb6288bcaee0c6dff",
       "brickwork/components/_code.html": "9c5b499c6b036f15093f719b0d50a61a1693d53b9e49bc117caf707454123732",
-      "brickwork/components/_combobox.html": "6f7480685b68d9b4987e75e796a475cb638ea895143afc9c2bd7c966a9fac139",
+      "brickwork/components/_combobox.html": "25dc193a97baa837f62087cb8a01134cf98c2be26d61fc0840052e4f19b03953",
       "brickwork/components/_comparison_table.html": "936e6294558637e6f972fa2f186f57b5e8fa78d6f7c78f130171b110df4b74c7",
       "brickwork/components/_data_table.html": "f09c1194640252a28cb57aad3456b35bbd9e0b4576d2121e934c6d4a3be9c3ac",
       "brickwork/components/_date_picker_chrome.html": "a90321b210f15ac19abca02c4f1c6a377b12f98793e26237e95ff442445f580e",
