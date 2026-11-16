@@ -4846,11 +4846,25 @@ def _render_search_scoped_fixture() -> str:
 
 
 def _render_loading_button_fixture() -> str:
+    """The Button state set (docs/components/button.md, AC-BTN-009 and 016):
+    busy, disabled, a loading and a disabled link button (the non-navigable
+    span), icon-only, and every variant, composed from the REAL tag so axe sees
+    the aria-busy and aria-disabled markup of each host."""
     from django.template import Context, Template
 
-    return Template('{% load brickwork_components %}{% bw_button "Saving" loading=True disabled=True %}').render(
-        Context({})
-    )
+    return Template(
+        "{% load brickwork_components %}"
+        '{% bw_button "Saving" loading=True disabled=True %}'
+        '{% bw_button "Saving" loading=True variant="secondary" %}'
+        '{% bw_button "Saving link" href="/save/" loading=True %}'
+        '{% bw_button "Unavailable link" href="/nope/" disabled=True variant="secondary" %}'
+        '{% bw_button "Disabled" disabled=True variant="ghost" %}'
+        '{% bw_button "Delete route" variant="danger" size="sm" %}'
+        '{% bw_button "Skip" variant="ghost" size="lg" %}'
+        '{% bw_button icon="plus" icon_only=True aria_label="Add item" variant="secondary" %}'
+        '{% bw_button icon="plus" icon_only=True aria_label="Saving" loading=True %}'
+        '{% bw_button "Add" icon="plus" %}'
+    ).render(Context({}))
 
 
 def render_search(theme: str) -> str:
