@@ -257,9 +257,12 @@ def test_css_mirror_has_all_five_size_classes_each_repointing_the_five_role_vari
     for step in ("xs", "sm", "md", "lg", "xl"):
         rule = re.search(rf"\.bw-btn--size-{step} \{{([^}}]*)\}}", block)
         assert rule, f".bw-btn--size-{step} has a rule"
-        for role in ("height", "padding-inline", "icon", "gap", "font-size"):
+        for role in ("height", "padding-inline", "icon", "gap"):
             target = "icon-size" if role == "icon" else role
             assert f"--bw-control-{target}: var(--bw-size-control-{role}-{step});" in rule.group(1), (step, role)
+        # ADR-127 (@bwui 0.1.9): the label size reads the computed type ladder
+        # for the step, not a per-control font-size token (those were removed).
+        assert f"--bw-control-font-size: var(--bw-font-size-{step});" in rule.group(1), (step, "font-size")
     # xs and xl were never shipped bare, so they exist in the new grammar only.
     assert not re.search(r"\.bw-btn--(xs|xl)\b", block)
 
