@@ -284,7 +284,7 @@ def test_multiple_mode_root_carries_the_frame_modifier_and_single_mode_does_not(
         '{% bw_combobox field=field multiple=True filter_mode="client" %}',
         field=_bound()["tags"],
     )
-    assert 'class="bw-combobox bw-combobox--multiple"' in multiple
+    assert 'class="bw-combobox bw-combobox--size-md bw-combobox--multiple"' in multiple
     assert "bw-combobox--multiple" not in _render()
 
 
@@ -339,3 +339,172 @@ def test_pending_pin_classes_expire_once_the_pin_styles_them() -> None:
     # "every emitted class is styled" contract.
     now_styled = sorted(PENDING_BWUI_CSS_PIN & styled_bw_classes())
     assert not now_styled, f"remove from PENDING_BWUI_CSS_PIN, the vendored CSS now styles: {now_styled}"
+
+
+# --- the completion pass (docs/components/combobox.md, owner ruling 2026-11-16) ---
+# Size, groups, clear, readonly, disabled, per-option disabled, aria_label,
+# error_message and the multiple-mode announcements (icvoss/django-brickwork#742).
+
+
+@pytest.mark.parametrize("step", ["xs", "sm", "md", "lg", "xl"])
+def test_size_emits_the_size_class_for_every_step(step: str) -> None:
+    # CMB-002 / AC-CMB-032: one class re-points the control role variables, so
+    # the frame, chips, rows and text follow the step.
+    html = _render('{% bw_combobox field=field options_url="/o/" size="' + step + '" %}')
+    assert f"bw-combobox--size-{step}" in _tag_of(html, "data-bw-combobox")
+
+
+def test_size_defaults_to_md_and_rejects_anything_else() -> None:
+    assert "bw-combobox--size-md" in _render()
+    for bad in ("huge", "2xl", ""):
+        with pytest.raises(TemplateSyntaxError):
+            _render('{% bw_combobox field=field options_url="/o/" size="' + bad + '" %}')
+
+
+def test_clear_control_ships_hidden_with_a_translated_name() -> None:
+    # CMB-015: hidden until bwCombobox finds a value or a query on an operable control.
+    html = _render()
+    clear = _tag_of(html, "bw-combobox__clear")
+    assert _bare_hidden(clear)
+    assert 'aria-label="Clear selection"' in clear
+    assert "data-bw-combobox-clear" in clear
+    assert clear.startswith("<button") and 'type="button"' in clear
+    multiple = _render('{% bw_combobox field=field multiple=True options_url="/o/" %}', field=_bound()["tags"])
+    assert 'aria-label="Clear all"' in _tag_of(multiple, "bw-combobox__clear")
+
+
+def test_status_region_carries_the_multiple_mode_announcement_strings() -> None:
+    # CMB-052 / AC-CMB-035: no English originates in script.
+    status = _tag_of(_render(), "data-bw-combobox-status")
+    assert 'data-bw-status-added="{label} added"' in status
+    assert 'data-bw-status-removed="{label} removed"' in status
+    assert 'data-bw-status-cleared="Selection cleared"' in status
+
+
+def test_disabled_disables_the_floor_and_the_input_and_submits_nothing() -> None:
+    html = _render('{% bw_combobox field=field options_url="/o/" disabled=True %}')
+    assert re.search(r"\bdisabled\b", _tag_of(html, "bw-combobox__floor"))
+    assert re.search(r"\bdisabled\b", _tag_of(html, "bw-combobox__input"))
+    assert 'type="hidden"' not in html
+
+
+def test_readonly_is_a_disabled_floor_plus_hidden_inputs_that_submit_the_value() -> None:
+    # CMB-025: shown and submitted, not editable, with no JavaScript as well.
+    html = _render(
+        '{% bw_combobox field=field options_url="/o/" readonly=True %}',
+        field=_bound({"colour": "green"})["colour"],
+    )
+    floor = _tag_of(html, "bw-combobox__floor")
+    assert re.search(r"\bdisabled\b", floor)
+    assert 'aria-readonly="true"' in floor
+    field_input = _tag_of(html, "bw-combobox__input")
+    assert re.search(r"\breadonly\b", field_input)
+    assert 'aria-readonly="true"' in field_input
+    hidden = re.findall(r'<input type="hidden"[^>]*>', html)
+    assert hidden == ['<input type="hidden" name="colour" value="green">']
+
+
+def test_readonly_multiple_submits_every_selected_value() -> None:
+    html = _render(
+        '{% bw_combobox field=field multiple=True readonly=True options_url="/o/" %}',
+        field=_bound({"colour": "red", "tags": ["alpha", "beta"]})["tags"],
+    )
+    assert re.findall(r'<input type="hidden" name="tags" value="([^"]+)">', html) == ["alpha", "beta"]
+
+
+def test_disabled_and_readonly_are_exclusive() -> None:
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_combobox field=field options_url="/o/" disabled=True readonly=True %}')
+
+
+def test_aria_label_names_the_input_when_given() -> None:
+    html = _render(
+        "{% bw_combobox name='colour' options=options filter_mode='client' aria_label='Colour' %}",
+        options=_COLOURS,
+    )
+    assert 'aria-label="Colour"' in _tag_of(html, "bw-combobox__input")
+
+
+def test_a_bound_field_with_no_label_and_no_aria_label_raises() -> None:
+    class Unlabelled(forms.Form):
+        colour = forms.ChoiceField(choices=_COLOURS, label=" ")
+
+    field = Unlabelled()["colour"]
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_combobox field=field options_url="/o/" %}', field=field)
+    ok = _render('{% bw_combobox field=field options_url="/o/" aria_label="Colour" %}', field=field)
+    assert 'aria-label="Colour"' in _tag_of(ok, "bw-combobox__input")
+
+
+def test_error_message_overrides_the_translated_failure_row() -> None:
+    html = _render('{% bw_combobox field=field options_url="/o/" error_message="Try later" %}')
+    assert "Try later" in _tag_of_with_text(html, "data-bw-combobox-error", "Try later")
+
+
+def _tag_of_with_text(html: str, marker: str, text: str) -> str:
+    match = re.search(rf"<li[^>]*{marker}[^>]*>{re.escape(text)}</li>", html)
+    assert match, f"no row carrying {marker!r} and text {text!r}"
+    return match.group(0)
+
+
+def test_disabled_options_flag_the_row_and_the_floor_option() -> None:
+    # CMB-016: aria-disabled on the listbox row, disabled on the floor option.
+    html = _render('{% bw_combobox field=field filter_mode="client" disabled_options=locked %}', locked=["green"])
+    row = re.search(r'<li[^>]*data-bw-value="green"[^>]*>', html)
+    assert row and 'aria-disabled="true"' in row.group(0)
+    floor_option = re.search(r'<option[^>]*value="green"[^>]*>', html)
+    assert floor_option and "disabled" in floor_option.group(0)
+    red = re.search(r'<li[^>]*data-bw-value="red"[^>]*>', html)
+    assert red and "aria-disabled" not in red.group(0)
+
+
+def test_options_mapping_may_carry_disabled_and_group() -> None:
+    html = _render(
+        "{% bw_combobox name='depot' options=options filter_mode='client' %}",
+        options=[
+            {"value": "a", "label": "Aberdeen", "group": "Scotland"},
+            {"value": "d", "label": "Dundee", "group": "Scotland", "disabled": True},
+            {"value": "b", "label": "Bristol", "group": "England"},
+            {"value": "x", "label": "Elsewhere"},
+        ],
+    )
+    assert len(re.findall(r'<li class="bw-combobox__group"', html)) == 2
+    labels = re.findall(r'<span class="bw-combobox__group-label" id="([^"]+)">([^<]+)</span>', html)
+    assert [text for _, text in labels] == ["Scotland", "England"]
+    # Each group list is a role="group" named by its heading.
+    for label_id, _ in labels:
+        assert f'role="group" aria-labelledby="{label_id}"' in html
+    dundee = re.search(r'<li[^>]*data-bw-value="d"[^>]*>', html)
+    assert dundee and 'aria-disabled="true"' in dundee.group(0)
+    # The ungrouped option renders outside any group, and the floor groups too.
+    assert html.count("<optgroup") == 2
+    assert "Elsewhere" in html
+
+
+def test_a_bound_fields_optgroup_choices_render_as_groups() -> None:
+    # CMB-017 / AC-CMB-033: grouped choices are no longer flattened.
+    class Grouped(forms.Form):
+        depot = forms.ChoiceField(
+            choices=[("Scotland", [("a", "Aberdeen"), ("d", "Dundee")]), ("England", [("b", "Bristol")])],
+            label="Depot",
+        )
+
+    html = _render('{% bw_combobox field=field filter_mode="client" %}', field=Grouped()["depot"])
+    assert html.count('<optgroup label="') == 2
+    assert 'label="Scotland"' in html and 'label="England"' in html
+    assert len(re.findall(r'<li class="bw-combobox__group"', html)) == 2
+    # Option ids stay unique and sequential across groups.
+    ids = re.findall(r'<li class="bw-combobox__option"\s+id="([^"]+)"', html)
+    assert ids == ["bw-listbox-id_depot-opt-0", "bw-listbox-id_depot-opt-1", "bw-listbox-id_depot-opt-2"]
+
+
+def test_ungrouped_choices_render_no_group_wrappers() -> None:
+    html = _render()
+    assert "bw-combobox__group" not in html
+    assert "<optgroup" not in html
+
+
+def test_bundle_carries_the_completion_hooks() -> None:
+    bundle = _DIST_JS.read_text()
+    for hook in ("data-bw-combobox-clear", "bw-combobox__group", "bwStatusAdded", "bwStatusRemoved", "bwStatusCleared"):
+        assert hook in bundle

@@ -25,7 +25,7 @@ from django.views.generic import CreateView, FormView, ListView, TemplateView, U
 
 from brickwork.services.forms import is_htmx_validation_request
 
-from .forms import COLOUR_CHOICES, SKILL_OPTIONS, ComboDemoForm, WidgetFilterForm, WidgetForm
+from .forms import COLOUR_CHOICES, DEPOT_OPTIONS, SKILL_OPTIONS, ComboDemoForm, WidgetFilterForm, WidgetForm
 from .models import Widget
 
 # The minimal sortable-column contract (#23): only label + sortable + sort_key.
@@ -416,6 +416,7 @@ class ComboboxDemoView(FormView):
                 "title": "Comboboxes",
                 "description": "Filterable selection over a native select floor.",
                 "skill_options": SKILL_OPTIONS,
+                "depot_options": DEPOT_OPTIONS,
             }
         )
         return ctx

@@ -939,6 +939,125 @@ test.describe("combobox keyboard", () => {
 
 // --- dismissible (04-interfaces 4b Dismissible section, CMP-010/012) ----------
 
+// --- the completion pass: groups, clear, size, readonly, disabled, announcements ---
+// docs/components/combobox.md (owner ruling 2026-11-16, nothing deferred);
+// the tag arguments closed with icvoss/django-brickwork#742. The specimens are
+// the standalone instances in _combobox_complete.html.
+
+const depotRoot = (page, id) => page.locator(".bw-combobox", { has: page.locator(`#id_${id}_combobox`) });
+
+test.describe("combobox completion", () => {
+  test.beforeEach(async ({ page }) => {
+    await bootComboboxes(page);
+    await captureEvents(page, COMBOBOX_EVENTS);
+  });
+
+  test("groups: headings and role=group lists, a heading hides with its options, arrows skip headings and disabled rows (CMB-016, CMB-017)", async ({ page }) => {
+    const root = depotRoot(page, "depot");
+    const input = page.locator("#id_depot_combobox");
+    await input.click();
+    await expect(root.locator(".bw-combobox__group-label")).toHaveText(["Scotland", "England", "Wales"]);
+    const list = root.locator(".bw-combobox__group-options").first();
+    await expect(list).toHaveAttribute("role", "group");
+    const labelId = await list.getAttribute("aria-labelledby");
+    await expect(page.locator(`[id="${labelId}"]`)).toHaveText("Scotland");
+    await input.fill("le");
+    await expect(root.locator(".bw-combobox__group:not([hidden]) .bw-combobox__group-label")).toHaveText(["England"]);
+    await input.fill("");
+    // Walk the whole list: Bristol is selected so opening lands there; the
+    // disabled Leicester and every heading are never the active option.
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("ArrowDown");
+    const seen = [];
+    for (let i = 0; i < 6; i += 1) {
+      const id = await input.getAttribute("aria-activedescendant");
+      seen.push(await page.locator(`[id="${id}"]`).textContent());
+      await page.keyboard.press("ArrowDown");
+    }
+    expect(seen).not.toContain("Leicester (closed)");
+    expect(seen.every((text) => ["Aberdeen", "Dundee", "Bristol", "Cardiff"].includes(text))).toBe(true);
+  });
+
+  test("clear: shown with a value, clears value and text, closes, fires change and returns focus (CMB-015)", async ({ page }) => {
+    const root = depotRoot(page, "depot");
+    const clear = root.locator(".bw-combobox__clear");
+    const input = page.locator("#id_depot_combobox");
+    await expect(clear).toBeVisible();
+    await clear.click();
+    await expect(input).toHaveValue("");
+    await expect(page.locator("#id_depot")).toHaveValue("");
+    await expect(clear).toBeHidden();
+    await expect(input).toBeFocused();
+    await expect(root.locator("[data-bw-combobox-status]")).toHaveText("Selection cleared");
+  });
+
+  test("clear is a Tab stop after the input while it is shown (CMB-015, CMB-055)", async ({ page }) => {
+    const root = depotRoot(page, "depot");
+    await page.locator("#id_depot_combobox").focus();
+    await page.keyboard.press("Tab");
+    await expect(root.locator(".bw-combobox__clear")).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("#id_depot")).toHaveValue("");
+  });
+
+  test("size lg: the frame and the text are larger than md and keep the 24px floor (CMB-002)", async ({ page }) => {
+    const metrics = (selector) =>
+      page.locator(selector).evaluate((el) => ({
+        height: el.getBoundingClientRect().height,
+        font: parseFloat(getComputedStyle(el).fontSize),
+      }));
+    const lg = await metrics("#id_depot_combobox");
+    const md = await metrics("#id_colour_combobox");
+    expect(lg.height).toBeGreaterThan(md.height);
+    expect(lg.font).toBeGreaterThan(md.font);
+    await expect(depotRoot(page, "depot")).toHaveClass(/bw-combobox--size-lg/);
+    const xs = await page
+      .locator("#id_depot_xs_combobox")
+      .evaluate((el) => el.closest(".bw-combobox__field").getBoundingClientRect().height);
+    expect(xs).toBeGreaterThanOrEqual(24);
+  });
+
+  test("readonly: cannot open or edit, no chevron or clear, and the value submits through a hidden input (CMB-025)", async ({ page }) => {
+    const root = depotRoot(page, "depot_ro");
+    const input = page.locator("#id_depot_ro_combobox");
+    await expect(input).toHaveAttribute("readonly", "");
+    await input.click();
+    await expect(root).not.toHaveAttribute("data-bw-open", "");
+    await page.keyboard.press("ArrowDown");
+    await expect(root).not.toHaveAttribute("data-bw-open", "");
+    await expect(root.locator(".bw-combobox__clear")).toBeHidden();
+    await expect(page.locator("#id_depot_ro")).toBeDisabled();
+    await expect(root.locator('input[type="hidden"][name="depot_ro"]')).toHaveValue("dundee");
+    const chevron = await root.locator(".bw-combobox__field").evaluate((el) => getComputedStyle(el, "::after").display);
+    expect(chevron).toBe("none");
+  });
+
+  test("disabled: the input is disabled, the list cannot open and nothing submits (CMB-024)", async ({ page }) => {
+    const root = depotRoot(page, "depot_off");
+    await expect(page.locator("#id_depot_off_combobox")).toBeDisabled();
+    await expect(page.locator("#id_depot_off")).toBeDisabled();
+    await expect(root.locator('input[type="hidden"]')).toHaveCount(0);
+    await expect(root.locator(".bw-combobox__clear")).toBeHidden();
+  });
+
+  test("multiple mode announces added, removed and cleared through the status region (CMB-052)", async ({ page }) => {
+    const root = tagsRoot(page);
+    const status = root.locator("[data-bw-combobox-status]");
+    const input = page.locator("#id_tags_combobox");
+    await input.focus();
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowDown"); // Gamma
+    await page.keyboard.press("Enter");
+    await expect(status).toHaveText("Gamma added");
+    await page.keyboard.press("Enter");
+    await expect(status).toHaveText("Gamma removed");
+    await root.locator(".bw-combobox__clear").click();
+    await expect(status).toHaveText("Selection cleared");
+    await expect(root.locator(".bw-combobox__chip")).toHaveCount(0);
+  });
+});
+
 test.describe("dismissible", () => {
   test.beforeEach(async ({ page }) => {
     await bootToasts(page);

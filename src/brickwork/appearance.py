@@ -59,6 +59,9 @@ def size_subset(*steps: str, extra: tuple[str, ...] = ()) -> frozenset[str]:
 BUTTON_SIZES: Final[frozenset[str]] = size_subset("sm", "md", "lg")
 GAUGE_SIZES: Final[frozenset[str]] = size_subset("sm", "md", "lg")
 AVATAR_SIZES: Final[frozenset[str]] = size_subset("sm", "md", "lg")
+# Combobox earns every step (docs/components/combobox.md CMB-002): frame, text,
+# chips, rows, chevron and clear control all follow the control role variables.
+COMBOBOX_SIZES: Final[frozenset[str]] = size_subset("xs", "sm", "md", "lg", "xl")
 
 # The two components whose stylesheet renders only comfortable and compact.
 DENSITIES_COMFORTABLE_COMPACT: Final[frozenset[str]] = frozenset({"comfortable", "compact"})

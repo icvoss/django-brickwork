@@ -19,17 +19,24 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--bw-space-2);
+  /* ADR-126 section 4: the button reads only the five control role variables.
+   * They are declared on :root and in every [data-density] block (md at the
+   * density in force) and are inherited here, so a bare .bw-btn is md, a size
+   * class re-points them, and a control container can set one step for its
+   * children. The button never reads a density or step token itself. */
+  gap: var(--bw-control-gap);
   padding-block: 0;
-  /* ADR-125: md is the base size. Height and padding resolve from the density
-   * control base through the computed size step, never from a literal. */
-  padding-inline: var(--bw-size-control-padding-inline-md);
-  block-size: var(--bw-size-control-height-md);
+  padding-inline: var(--bw-control-padding-inline);
+  block-size: var(--bw-control-height);
   border: var(--bw-size-border-hairline) solid transparent;
   border-radius: var(--bw-component-button-radius);
   font: inherit;
   font-family: var(--bw-text-label-family);
-  font-size: var(--bw-text-label-size);
+  /* Type follows the step: the size is the fifth role variable (ADR-126
+   * section 4), the label role size at md and scaled by the text step ratio at
+   * the other steps, never below the 12 px legibility floor. Family, weight,
+   * line height and tracking stay the label role at every step (BTN-011). */
+  font-size: var(--bw-control-font-size);
   font-weight: var(--bw-text-label-weight);
   line-height: var(--bw-text-label-line-height);
   letter-spacing: var(--bw-text-label-tracking);
@@ -48,34 +55,62 @@
 .bw-btn:hover {
   text-decoration: none;
 }
-/* Size classes (ADR-125 section 6): the grammar is bw-<component>--size-<step>.
+/* Size classes (ADR-125 section 6, ADR-126 section 4): the grammar is
+ * bw-<component>--size-<step>, and a size class only re-points the five control
+ * role variables at the resolved step tokens: height, padding, icon, gap and
+ * the label font size. The box tokens are the density control base times the
+ * kit-wide multiplier (--bw-size-step-*), so every density keeps five distinct
+ * heights; the font size is the label role size times the gentler text
+ * multiplier (--bw-size-text-step-*), clamped to the 12 px legibility floor.
+ * No rule here computes a multiplier. Button earns all five steps, xs to xl
+ * (BTN-003). The 1.5rem target floor is carried by the height tokens (compact
+ * xs is exactly 1.5rem), not by a rule here. xs and xl have no bare spelling:
+ * they were never shipped, so they are new-grammar only and are not part of the
+ * deprecation window.
+ *
  * The bare spelling (bw-btn--sm, and the same for gauge, icon, modal,
  * slide-over, stat and stat-comparison) is DEPRECATED. Both selectors stay in
  * one grouped rule for the deprecation window; the bare ones are removed in
  * the next major of django-brickwork and in the @bwui/css release shipped with
- * it. Templates, React, Vue and the gallery emit the new class. */
+ * it. Templates, React, Vue and the gallery emit the new class.
+ *
+ * md has its own rule (icvoss/django-brickwork#130) so the class that markup
+ * emits is named in the stylesheet, and so a button that names md keeps md
+ * inside a container that scoped a different step. */
+.bw-btn--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-size-control-font-size-xs);
+}
 .bw-btn--sm, .bw-btn--size-sm {
-  block-size: var(--bw-size-control-height-sm);
-  padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-size-control-font-size-sm);
 }
-/* md is the base .bw-btn size (icvoss/django-brickwork#130): every shipped
- * template that names a size emits bw-btn--md explicitly rather than leaving
- * it implicit, so the class needs its own rule even though it restates the
- * base values, exactly as .bw-btn--sm and .bw-btn--lg restate theirs relative
- * to the base. Without this rule the class existed in markup with nothing in
- * the stylesheet naming it, which is the defect class this issue is about:
- * the base values happened to make it look correct by accident. */
 .bw-btn--md, .bw-btn--size-md {
-  block-size: var(--bw-size-control-height-md);
-  padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-size-control-font-size-md);
 }
-/* ADR-125: sm, md and lg resolve from the density control base times a
- * kit-wide step multiplier (--bw-size-step-*), not from absolute rem values,
- * so every density keeps three distinct heights. xs and xl exist in the token
- * scale; Button does not ship them (BTN-003). */
 .bw-btn--lg, .bw-btn--size-lg {
-  block-size: var(--bw-size-control-height-lg);
-  padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-size-control-font-size-lg);
+}
+.bw-btn--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-size-control-font-size-xl);
 }
 /* The glyph and the label are one line of content. The icon is a bw-icon, and
  * a bare .bw-icon (wave-e) paints a raised box and a muted ink, which showed
@@ -86,6 +121,16 @@
   background: transparent;
   border-radius: 0;
   color: inherit;
+}
+/* The glyph and the busy spinner follow the control's step through the role
+ * variable (ADR-125 section 5: an icon inside a control follows its step). The
+ * box is set directly, not through --bw-icon-size, because {% bw_icon %} writes
+ * that custom property inline and an inline declaration would outrank this
+ * rule. Markup in a button carries no inline size. */
+.bw-btn .bw-btn__icon,
+.bw-btn .bw-spinner {
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
 }
 /* Solid buttons carry a border in their own hue (0.7.0 craft): 80% of the fill
  * toward black is the Radix solid-button edge, a shade the fill visibly sits
@@ -185,16 +230,18 @@
   }
 }
 .bw-btn--icon-only {
-  inline-size: var(--bw-size-control-height-md);
+  inline-size: var(--bw-control-height);
   padding-inline: 0;
 }
-/* Exact square at every size (0.7.0 craft): the sm/lg heights bring their own
- * widths, so an icon button's optical padding is identical on all four sides. */
-.bw-btn--sm.bw-btn--icon-only, .bw-btn--size-sm.bw-btn--icon-only {
-  inline-size: var(--bw-size-control-height-sm);
-}
-.bw-btn--lg.bw-btn--icon-only, .bw-btn--size-lg.bw-btn--icon-only {
-  inline-size: var(--bw-size-control-height-lg);
+/* Exact square at every size (0.7.0 craft): the role variable carries the
+ * step's height, so the optical padding is identical on all four sides with no
+ * per-size rule. */
+/* fit (ADR-126 section 3): auto is the default and emits no class; fill takes
+ * the width of its container. After the icon-only rule so the two never fight.
+ * Django and React reject fit="fill" with icon_only: an icon-only control is a
+ * square, so fill would be a silent no-op (ADR-060 section 3). */
+.bw-btn--fit-fill {
+  inline-size: 100%;
 }
 /* Flat disabled colours (COL-018 / #282), not opacity: opacity failed
  * contrast on most surfaces and cannot be gated under brand overrides. Three
@@ -386,6 +433,10 @@
 }
 .bw-form__actions {
   display: flex;
+  /* .bw-btn is white-space: nowrap (0.1.5, "a label stays on one line"), so a
+   * row of buttons cannot shrink; it wraps onto further lines instead of
+   * widening the document at narrow widths (icvoss/brickwork#52). */
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--bw-space-3);
   margin-block-start: var(--bw-space-2);
@@ -1737,6 +1788,7 @@ button.bw-account-menu__item {
 }
 .bw-filter-bar__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--bw-space-2);
 }
@@ -3757,6 +3809,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  * render nothing at the template, so no :empty rule is needed. */
 .bw-modal__footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--bw-space-3);
@@ -3967,6 +4020,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 }
 .bw-slide-over__footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--bw-space-3);
@@ -4200,15 +4254,65 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  * own .bw-input class. The enhanced input composes .bw-input in its class
  * list too (compose, never duplicate); only combobox-specific physics live
  * here. */
+/* Size (CMB-002, ADR-125, ADR-126): the combobox reads only the control role
+ * variables (height, padding-inline, icon size, gap, font size). They are
+ * declared on :root and re-emitted in every [data-density] block, so a bare
+ * combobox is md at the density in force; bw-combobox--size-<step> re-points
+ * them for the whole control, so the frame, the chips, the option rows, the
+ * chevron and the clear control all follow one step and the text scales with
+ * it. The grammar is the kit's one size class grammar (no bare spelling). */
+.bw-combobox--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-size-control-font-size-xs);
+}
+.bw-combobox--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-size-control-font-size-sm);
+}
+.bw-combobox--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-size-control-font-size-md);
+}
+.bw-combobox--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-size-control-font-size-lg);
+}
+.bw-combobox--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-size-control-font-size-xl);
+}
 .bw-combobox {
   /* Chip block size (CMB-038): the control height less the frame's own
    * block padding, never below the 1.5rem WCAG 2.5.8 target plus the chip's
-   * hairline border. Shared by the chip and the multiple-mode input. */
+   * hairline border. Shared by the chip and the multiple-mode input. It
+   * reads the role variable, so it follows the size step. */
   --bw-combobox-chip-size: max(
     calc(1.5rem + 2 * var(--bw-size-border-hairline)),
-    calc(var(--bw-density-control-height) - 2 * var(--bw-space-2))
+    calc(var(--bw-control-height) - 2 * var(--bw-space-2))
   );
+  /* The clear control's square: the step's icon plus its own padding, never
+   * under the 1.5rem WCAG 2.5.8 floor (CMB-053). */
+  --bw-combobox-clear-size: max(1.5rem, calc(var(--bw-control-icon-size) + 2 * var(--bw-space-1)));
+  /* Room kept at the inline end for the chevron (padding, glyph, breathing
+   * space); the clear control adds its own square when it is shown. */
+  --bw-combobox-end-gutter: calc(var(--bw-control-padding-inline) + var(--bw-control-icon-size) + var(--bw-space-1));
   position: relative;
+  font-size: var(--bw-control-font-size);
 }
 /* Chips and the input share one wrapping row; the absolutely positioned
  * listbox anchors to it. The input trades .bw-input's full width for a
@@ -4220,10 +4324,83 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   align-items: center;
   gap: var(--bw-space-1);
 }
+/* The frame reads the role variables (CMB-002), not the density tokens, so the
+ * size step resizes it; the text takes the step's font size. The end padding
+ * clears the chevron, and the clear control when it is shown. */
 .bw-combobox__input {
   flex: 1 1 var(--bw-component-menu-min-width);
   inline-size: auto;
   min-inline-size: 0;
+  block-size: var(--bw-control-height);
+  padding-inline: var(--bw-control-padding-inline) var(--bw-combobox-end-gutter);
+  font-size: var(--bw-control-font-size);
+}
+.bw-combobox:not(.bw-combobox--multiple) .bw-combobox__field:has(.bw-combobox__clear:not([hidden])) .bw-combobox__input {
+  padding-inline-end: calc(var(--bw-combobox-end-gutter) + var(--bw-combobox-clear-size));
+}
+/* Open affordance (CMB-034): the same chevron token as bw-select, drawn as a
+ * pseudo-element at the inline end so it mirrors under RTL with logical
+ * offsets and needs no markup. Visual only: the whole input is the click
+ * target, so it takes no pointer events. It turns over while the list is
+ * open. A read-only control cannot open, so it shows no chevron. */
+.bw-combobox__field::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: var(--bw-control-padding-inline);
+  inset-block-start: calc(var(--bw-control-height) / 2);
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
+  background-image: var(--bw-component-select-indicator);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  translate: 0 -50%;
+  pointer-events: none;
+  transition: var(--bw-transition-transform);
+}
+.bw-combobox[data-bw-open] .bw-combobox__field::after {
+  rotate: 180deg;
+}
+.bw-combobox__field:has(.bw-combobox__input[readonly])::after {
+  display: none;
+}
+/* Clear control (CMB-015): an icon-only button seated just inside the chevron,
+ * centred on the first row of the frame. It is rendered with the hidden
+ * attribute and shown only while there is a value or a query and the control
+ * is operable. fg-muted on the frame fill, as for the chip remove. */
+.bw-combobox__clear {
+  position: absolute;
+  inset-inline-end: calc(var(--bw-control-padding-inline) + var(--bw-control-icon-size));
+  inset-block-start: calc(var(--bw-control-height) / 2);
+  translate: 0 -50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--bw-combobox-clear-size);
+  block-size: var(--bw-combobox-clear-size);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--bw-radius-full);
+  color: var(--bw-color-fg-muted);
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+.bw-combobox__clear .bw-icon,
+.bw-combobox__clear svg {
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
+  background: transparent;
+  border-radius: 0;
+  color: inherit;
+}
+.bw-combobox__clear:hover {
+  background-color: var(--bw-state-hover-overlay);
+  color: var(--bw-color-fg);
+}
+.bw-combobox__clear:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
 }
 /* Placeholder colour (CMB-035, GAP-CMB-15): the shipped bundle had no
  * placeholder rule, so the UA default applied. Scoped to the combobox input;
@@ -4248,14 +4425,17 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  * goes borderless so it reads as part of the field. Single mode is untouched:
  * it keeps the bare .bw-input frame (CMB-030). */
 .bw-combobox--multiple .bw-combobox__field {
-  min-block-size: var(--bw-density-control-height);
+  min-block-size: var(--bw-control-height);
   padding-block: var(--bw-space-1);
-  padding-inline: var(--bw-density-control-padding-inline);
+  padding-inline: var(--bw-control-padding-inline) var(--bw-combobox-end-gutter);
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
   border-radius: var(--bw-radius-md);
   box-shadow: inset 0 1px 2px 0 oklch(0 0 0 / 0.04);
   transition: var(--bw-transition-colors), var(--bw-transition-shadow);
+}
+.bw-combobox--multiple .bw-combobox__field:has(.bw-combobox__clear:not([hidden])) {
+  padding-inline-end: calc(var(--bw-combobox-end-gutter) + var(--bw-combobox-clear-size));
 }
 .bw-combobox--multiple .bw-combobox__field:hover:where(
     :not(:focus-within):not(:has(.bw-combobox__input:disabled, .bw-combobox__input[readonly]))
@@ -4301,6 +4481,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   block-size: auto;
   min-block-size: var(--bw-combobox-chip-size, 1.5rem);
   padding-inline: var(--bw-space-1);
+  font-size: var(--bw-control-font-size);
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -4363,7 +4544,9 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   padding: var(--bw-space-2) var(--bw-space-3);
   border-radius: var(--bw-radius-md);
   color: var(--bw-color-fg);
-  font-size: var(--bw-text-body-sm-size);
+  /* The rows follow the control's step so a larger control lists larger text
+   * (CMB-038); the line height stays the body-sm leading ratio. */
+  font-size: var(--bw-control-font-size);
   line-height: var(--bw-text-body-sm-line-height);
   cursor: pointer;
   transition: var(--bw-transition-colors);
@@ -4380,6 +4563,46 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 }
 .bw-combobox__option[aria-selected="true"] {
   font-weight: var(--bw-font-weight-medium);
+}
+/* Selected check (CMB-033): in multiple mode a chosen row also shows a check at
+ * its inline end, so selection is not carried by weight alone (CMB-054). It is
+ * a mask over currentColor, so it takes the row's ink in both themes and needs
+ * no markup or raw colour. */
+.bw-combobox__listbox[aria-multiselectable="true"] .bw-combobox__option[aria-selected="true"]::after {
+  content: "";
+  flex: none;
+  margin-inline-start: auto;
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+/* Groups (CMB-017): a wrapper row (presentation) holds the heading and a
+ * role="group" list of options. The wrapper is hidden while none of its
+ * options is visible; arrow movement never lands on a heading because it is
+ * not an option. The heading is the quiet label tier. */
+.bw-combobox__group {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bw-combobox__group + .bw-combobox__group,
+.bw-combobox__option + .bw-combobox__group {
+  margin-block-start: var(--bw-space-1);
+}
+.bw-combobox__group-label {
+  display: block;
+  padding: var(--bw-space-2) var(--bw-space-3) var(--bw-space-1);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-control-font-size);
+  font-weight: var(--bw-font-weight-medium);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+.bw-combobox__group-options {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 /* Disabled option (CMB-016): stays visible and filterable, paints the flat
  * disabled colours, shows no hover wash and cannot be chosen (the behaviour
@@ -4404,7 +4627,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 .bw-combobox__empty {
   padding: var(--bw-space-2) var(--bw-space-3);
   color: var(--bw-color-fg-muted);
-  font-size: var(--bw-text-body-sm-size);
+  font-size: var(--bw-control-font-size);
   line-height: var(--bw-text-body-sm-line-height);
 }
 /* Server-filter failure row (CMB-019): the same row shape as the empty
@@ -4412,7 +4635,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 .bw-combobox__error {
   padding: var(--bw-space-2) var(--bw-space-3);
   color: var(--bw-color-danger-fg);
-  font-size: var(--bw-text-body-sm-size);
+  font-size: var(--bw-control-font-size);
   line-height: var(--bw-text-body-sm-line-height);
 }
 /* Selected-value chips (multiple mode, CMP-028): the selected wash at
@@ -4427,7 +4650,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   background: var(--bw-state-selected-bg);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-radius: var(--bw-radius-full);
-  font-size: var(--bw-text-body-sm-size);
+  font-size: var(--bw-control-font-size);
   line-height: var(--bw-text-body-sm-line-height);
 }
 .bw-combobox__chip-remove {
@@ -4450,6 +4673,16 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   cursor: pointer;
   transition: var(--bw-transition-colors);
 }
+/* The glyph follows the step, like the clear control's: the wave-e .bw-icon box
+ * (a raised fill and a larger default) must not show inside a chip. */
+.bw-combobox__chip-remove .bw-icon,
+.bw-combobox__chip-remove svg {
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
+  background: transparent;
+  border-radius: 0;
+  color: inherit;
+}
 .bw-combobox__chip-remove:hover {
   background-color: var(--bw-state-hover-overlay);
   color: var(--bw-color-fg);
@@ -4457,6 +4690,15 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 .bw-combobox__chip-remove:active {
   background-color: var(--bw-state-active-overlay);
   transition-duration: var(--bw-duration-instant);
+}
+/* Read-only or disabled (CMB-024, CMB-025): chips stay as text; their remove
+ * controls and the clear control are not operable, so they are not shown. */
+.bw-combobox__field:has(.bw-combobox__input[readonly], .bw-combobox__input:disabled) .bw-combobox__chip-remove,
+.bw-combobox__field:has(.bw-combobox__input[readonly], .bw-combobox__input:disabled) .bw-combobox__clear {
+  display: none;
+}
+.bw-combobox__field:has(.bw-combobox__input[readonly], .bw-combobox__input:disabled) .bw-combobox__chip {
+  padding-inline-end: var(--bw-space-3);
 }
 
 /* --- Dismissible exit (0.9.0 interaction set, CMP-010/012 adoption) ---------- */

@@ -30,7 +30,7 @@ States: disabled (a <span> for a link-button, since an <a> stays navigable
   The variant colours hold while busy; only a disabled control goes flat),
   icon-only (aria_label required, enforced by the tag, never the include),
   plus four variant treatments (primary/secondary/ghost/danger) each with
-  their own hover and active colour, and three sizes (sm/md/lg).
+  their own hover and active colour, and five sizes (xs/sm/md/lg/xl, ADR-125).
 Fit (ADR-126): fit="fill" adds bw-btn--fit-fill and the button takes the width
   of its container; "auto" (the default) emits no class. bw_button rejects
   fill with icon_only (a square control, so fill would do nothing).
@@ -45,7 +45,7 @@ Accessibility: enforced at render time by {% bw_button %}, not this include:
   catalogue manifest), including the loading and disabled states rendered
   directly in list-*.html/form-*.html.
 Responsive: no breakpoint switch; no width-dependent CSS on any .bw-btn*
-  selector. Size is a fixed token-driven scale (sm/md/lg), not a
+  selector. Size is a fixed token-driven scale (xs/sm/md/lg/xl), not a
   viewport-driven one.
 {% endcomment %}
 {% partialdef btn_inner %}{% if loading %}{% include "brickwork/components/_spinner.html" %}{% elif icon %}{% bw_icon icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}

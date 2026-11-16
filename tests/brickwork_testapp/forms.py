@@ -27,6 +27,17 @@ TAG_CHOICES = [("alpha", "Alpha"), ("beta", "Beta"), ("gamma", "Gamma")]
 SKILL_OPTIONS = [("python", "Python"), ("django", "Django"), ("javascript", "JavaScript")]
 
 
+# The completion-pass demo set (docs/components/combobox.md): grouped, one row
+# disabled, shared by the groups, clear, readonly, disabled and size specimens.
+DEPOT_OPTIONS = [
+    {"value": "aberdeen", "label": "Aberdeen", "group": "Scotland"},
+    {"value": "dundee", "label": "Dundee", "group": "Scotland"},
+    {"value": "bristol", "label": "Bristol", "group": "England"},
+    {"value": "leicester", "label": "Leicester (closed)", "group": "England", "disabled": True},
+    {"value": "cardiff", "label": "Cardiff", "group": "Wales"},
+]
+
+
 class ComboDemoForm(forms.Form):
     """The combobox demo form (04-interfaces 4b, 0.9.0): a single-select
     ChoiceField (server filter mode) plus a MultipleChoiceField chips case
