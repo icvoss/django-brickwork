@@ -1,25 +1,25 @@
 {
   "text": {
-    "$description": "Type roles (DESIGN.md section 7.4): each role bundles family, size, line-height, weight and tracking. Every value is a literal var() reference into the --bw-font-* scales, so a brand override of a scale step cascades through every role that uses it. Components consume roles, never raw scale steps.",
+    "$description": "Type roles (DESIGN.md section 7.4): each role bundles family, size, line-height, weight and tracking. Every size is a named pick on the computed font-size ladder (ADR-127: a role never carries a literal rem or its own multiplier), so a brand override of the type base or a step cascades through every role that uses it. Components consume roles, never raw scale steps. At comfortable density each role renders the size it always has; the raw step names above lg moved up one step.",
     "$type": "other",
     "heading-display": {
-      "$description": "Marketing display type role (1.2.0, BR-BW-MKT marketing tokens): the hero/section headline voice, above the app's largest heading role (heading-2xl). Bundles the display family at the 5xl size step with a tight line-height, bold weight and tight tracking, matching heading-2xl's bundling shape one step up the scale.",
+      "$description": "Marketing display type role (1.2.0, BR-BW-MKT marketing tokens): the hero/section headline voice, above the app's largest heading role (heading-2xl). Bundles the display family at the 6xl size step (the 3.75rem the role has always been) with a tight line-height, bold weight and tight tracking, matching heading-2xl's bundling shape one step up the scale.",
       "family": { "$value": "var(--bw-font-family-display)" },
-      "size": { "$value": "var(--bw-font-size-5xl)" },
+      "size": { "$value": "var(--bw-font-size-6xl)" },
       "line-height": { "$value": "var(--bw-font-line-height-tight)" },
       "weight": { "$value": "var(--bw-font-weight-bold)" },
       "tracking": { "$value": "var(--bw-font-tracking-tight)" }
     },
     "heading-2xl": {
       "family": { "$value": "var(--bw-font-family-display)" },
-      "size": { "$value": "var(--bw-font-size-2xl)" },
+      "size": { "$value": "var(--bw-font-size-3xl)" },
       "line-height": { "$value": "var(--bw-font-line-height-tight)" },
       "weight": { "$value": "var(--bw-font-weight-bold)" },
       "tracking": { "$value": "var(--bw-font-tracking-tight)" }
     },
     "heading-xl": {
       "family": { "$value": "var(--bw-font-family-display)" },
-      "size": { "$value": "var(--bw-font-size-xl)" },
+      "size": { "$value": "var(--bw-font-size-2xl)" },
       "line-height": { "$value": "var(--bw-font-line-height-tight)" },
       "weight": { "$value": "var(--bw-font-weight-semibold)" },
       "tracking": { "$value": "var(--bw-font-tracking-tight)" }
@@ -27,7 +27,7 @@
     "heading-section": {
       "$description": "Marketing section-intro type role (icvoss/django-brickwork#643). Independently themeable from the page-header title's heading-xl role. Defaults duplicate heading-xl's scale references (display family, xl size, tight leading, semibold, tight tracking) so package-default renders stay visually identical while a brand can size section intros without moving page titles, and vice versa.",
       "family": { "$value": "var(--bw-font-family-display)" },
-      "size": { "$value": "var(--bw-font-size-xl)" },
+      "size": { "$value": "var(--bw-font-size-2xl)" },
       "line-height": { "$value": "var(--bw-font-line-height-tight)" },
       "weight": { "$value": "var(--bw-font-weight-semibold)" },
       "tracking": { "$value": "var(--bw-font-tracking-tight)" }

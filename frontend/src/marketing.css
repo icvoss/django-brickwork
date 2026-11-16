@@ -1558,7 +1558,7 @@ never colour alone to signal "recommended" (the badge
 }
 
 .bw-pricing-tier__price-value {
-  font-size: var(--bw-font-size-3xl);
+  font-size: var(--bw-font-size-4xl);
   font-weight: var(--bw-font-weight-bold);
   line-height: var(--bw-font-line-height-tight);
   font-variant-numeric: tabular-nums;
@@ -2142,7 +2142,7 @@ same shape as .bw-cta--bleed). */
   margin: 0;
   color: var(--bw-color-fg-on-inverse);
   font-family: var(--bw-text-heading-display-family);
-  font-size: clamp(1.75rem, 6vw, var(--bw-font-size-3xl));
+  font-size: clamp(1.75rem, 6vw, var(--bw-font-size-4xl));
   overflow-wrap: break-word;
   font-weight: var(--bw-text-heading-display-weight);
   line-height: var(--bw-text-heading-display-line-height);
@@ -2767,7 +2767,7 @@ so dark surfaces return to the plain elevation ramp here.
 .bw-portrait__name {
   margin: 0;
   font-family: var(--bw-font-family-display);
-  font-size: var(--bw-font-size-3xl);
+  font-size: var(--bw-font-size-4xl);
   font-weight: var(--bw-font-weight-semibold);
   color: var(--bw-color-fg);
   line-height: var(--bw-font-line-height-tight);
@@ -2967,7 +2967,7 @@ ADR-108 reusable marketing proof primitive) ------
 .bw-proof-collage__heading {
   margin: 0;
   font-family: var(--bw-font-family-display);
-  font-size: var(--bw-font-size-3xl);
+  font-size: var(--bw-font-size-4xl);
   font-weight: var(--bw-font-weight-semibold);
   color: var(--bw-color-fg);
   line-height: var(--bw-font-line-height-tight);

@@ -173,6 +173,10 @@ def test_projection_is_exactly_the_semantic_contract() -> None:
             expected.add(f"--text-{role}")
             if f"--bw-text-{role}-line-height" in emitted:
                 expected.add(f"--text-{role}--line-height")
+        elif m := re.match(r"^--bw-font-size-(xs|sm|md|lg|xl)$", name):
+            # ADR-127 section 5: text-xs to text-xl map onto the ladder tokens, so
+            # text-sm in a Tailwind consumer and bw-text-sm agree.
+            expected.add(f"--text-{m.group(1)}")
         elif m := re.match(r"^--bw-font-family-([a-z0-9-]+)$", name):
             expected.add(f"--font-{m.group(1)}")
     projected = set(_declarations())

@@ -2,6 +2,10 @@
   "density": {
     "$description": "Density axis: COMFORTABLE (default). Density scales spacing/sizing component tokens only, never colour (BR-BW-TOK-004). Same token names as the compact/spacious files. Selected via [data-density='comfortable'] (the default, also emitted on :root).",
     "$type": "dimension",
+    "font-size-base": {
+      "$value": "1rem",
+      "$description": "ADR-127: the type base for this density. The font-size ladder is this value times --bw-font-scale-<step> (md is the base). A gentler spread than control height (about 6 percent against 20 percent): density answers how tight the interface is, and body text does not shrink as fast as the boxes around it. Selected with the other density bases; --bw-font-size-base defaults to it."
+    },
     "control-height": {
       "$value": "2.5rem"
     },
