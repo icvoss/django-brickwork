@@ -54,12 +54,26 @@
   --bw-size-control-padding-inline-md: var(--bw-density-control-padding-inline);
   --bw-size-control-padding-inline-lg: calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-lg));
   --bw-size-control-padding-inline-xl: calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-xl));
+  --bw-size-control-icon-xs: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xs));
+  --bw-size-control-icon-sm: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-sm));
+  --bw-size-control-icon-md: var(--bw-component-icon-size-sm);
+  --bw-size-control-icon-lg: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-lg));
+  --bw-size-control-icon-xl: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xl));
+  --bw-size-control-gap-xs: var(--bw-space-1-5);
+  --bw-size-control-gap-sm: var(--bw-space-2);
+  --bw-size-control-gap-md: var(--bw-space-2);
+  --bw-size-control-gap-lg: var(--bw-space-3);
+  --bw-size-control-gap-xl: var(--bw-space-3);
   --bw-size-touch-target-min: 2.75rem;
   --bw-size-max-width-prose: 65ch;
   --bw-size-max-width-form: 32rem;
   --bw-size-max-width-modal-sm: 28rem;
   --bw-size-max-width-modal-md: 32rem;
   --bw-size-max-width-modal-lg: 48rem;
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
   --bw-component-icon-size-sm: 1rem;
   --bw-component-icon-size-md: 1.25rem;
   --bw-component-icon-size-lg: 1.5rem;
@@ -616,6 +630,20 @@
   --bw-size-control-padding-inline-md: var(--bw-density-control-padding-inline);
   --bw-size-control-padding-inline-lg: calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-lg));
   --bw-size-control-padding-inline-xl: calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-xl));
+  --bw-size-control-icon-xs: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xs));
+  --bw-size-control-icon-sm: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-sm));
+  --bw-size-control-icon-md: var(--bw-component-icon-size-sm);
+  --bw-size-control-icon-lg: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-lg));
+  --bw-size-control-icon-xl: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xl));
+  --bw-size-control-gap-xs: var(--bw-space-1-5);
+  --bw-size-control-gap-sm: var(--bw-space-2);
+  --bw-size-control-gap-md: var(--bw-space-2);
+  --bw-size-control-gap-lg: var(--bw-space-3);
+  --bw-size-control-gap-xl: var(--bw-space-3);
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
 }
 
 [data-density="compact"] {
@@ -642,6 +670,20 @@
   --bw-size-control-padding-inline-md: var(--bw-density-control-padding-inline);
   --bw-size-control-padding-inline-lg: calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-lg));
   --bw-size-control-padding-inline-xl: calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-xl));
+  --bw-size-control-icon-xs: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xs));
+  --bw-size-control-icon-sm: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-sm));
+  --bw-size-control-icon-md: var(--bw-component-icon-size-sm);
+  --bw-size-control-icon-lg: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-lg));
+  --bw-size-control-icon-xl: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xl));
+  --bw-size-control-gap-xs: var(--bw-space-1-5);
+  --bw-size-control-gap-sm: var(--bw-space-2);
+  --bw-size-control-gap-md: var(--bw-space-2);
+  --bw-size-control-gap-lg: var(--bw-space-3);
+  --bw-size-control-gap-xl: var(--bw-space-3);
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
 }
 
 [data-density="spacious"] {
@@ -668,6 +710,20 @@
   --bw-size-control-padding-inline-md: var(--bw-density-control-padding-inline);
   --bw-size-control-padding-inline-lg: calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-lg));
   --bw-size-control-padding-inline-xl: calc(var(--bw-density-control-padding-inline) * var(--bw-size-step-xl));
+  --bw-size-control-icon-xs: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xs));
+  --bw-size-control-icon-sm: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-sm));
+  --bw-size-control-icon-md: var(--bw-component-icon-size-sm);
+  --bw-size-control-icon-lg: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-lg));
+  --bw-size-control-icon-xl: calc(var(--bw-component-icon-size-sm) * var(--bw-size-step-xl));
+  --bw-size-control-gap-xs: var(--bw-space-1-5);
+  --bw-size-control-gap-sm: var(--bw-space-2);
+  --bw-size-control-gap-md: var(--bw-space-2);
+  --bw-size-control-gap-lg: var(--bw-space-3);
+  --bw-size-control-gap-xl: var(--bw-space-3);
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
 }
 
 :root {
