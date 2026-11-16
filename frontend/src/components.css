@@ -33,9 +33,9 @@
   font: inherit;
   font-family: var(--bw-text-label-family);
   /* Type follows the step: the size is the fifth role variable (ADR-126
-   * section 4), the label role size at md and scaled by the text step ratio at
-   * the other steps, never below the 12 px legibility floor. Family, weight,
-   * line height and tracking stay the label role at every step (BTN-011). */
+   * section 4, ADR-127 section 6), the ladder step with the button's own step
+   * name (md is --bw-font-size-md, 1rem at comfortable). Family, weight, line
+   * height and tracking stay the label role at every step (BTN-011). */
   font-size: var(--bw-control-font-size);
   font-weight: var(--bw-text-label-weight);
   line-height: var(--bw-text-label-line-height);
@@ -60,9 +60,10 @@
  * role variables at the resolved step tokens: height, padding, icon, gap and
  * the label font size. The box tokens are the density control base times the
  * kit-wide multiplier (--bw-size-step-*), so every density keeps five distinct
- * heights; the font size is the label role size times the gentler text
- * multiplier (--bw-size-text-step-*), clamped to the 12 px legibility floor.
- * No rule here computes a multiplier. Button earns all five steps, xs to xl
+ * heights; the font size is the computed type ladder step with the SAME name
+ * (ADR-127 section 6: --bw-font-size-<step>, so button sm and bw-text-sm are
+ * one token, floored at 12 px by the ladder itself). There is no control font
+ * table and no text multiplier here. No rule here computes a multiplier. Button earns all five steps, xs to xl
  * (BTN-003). The 1.5rem target floor is carried by the height tokens (compact
  * xs is exactly 1.5rem), not by a rule here. xs and xl have no bare spelling:
  * they were never shipped, so they are new-grammar only and are not part of the
@@ -82,35 +83,35 @@
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
   --bw-control-icon-size: var(--bw-size-control-icon-xs);
   --bw-control-gap: var(--bw-size-control-gap-xs);
-  --bw-control-font-size: var(--bw-size-control-font-size-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
 }
 .bw-btn--sm, .bw-btn--size-sm {
   --bw-control-height: var(--bw-size-control-height-sm);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
   --bw-control-icon-size: var(--bw-size-control-icon-sm);
   --bw-control-gap: var(--bw-size-control-gap-sm);
-  --bw-control-font-size: var(--bw-size-control-font-size-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
 }
 .bw-btn--md, .bw-btn--size-md {
   --bw-control-height: var(--bw-size-control-height-md);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
   --bw-control-icon-size: var(--bw-size-control-icon-md);
   --bw-control-gap: var(--bw-size-control-gap-md);
-  --bw-control-font-size: var(--bw-size-control-font-size-md);
+  --bw-control-font-size: var(--bw-font-size-md);
 }
 .bw-btn--lg, .bw-btn--size-lg {
   --bw-control-height: var(--bw-size-control-height-lg);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
   --bw-control-icon-size: var(--bw-size-control-icon-lg);
   --bw-control-gap: var(--bw-size-control-gap-lg);
-  --bw-control-font-size: var(--bw-size-control-font-size-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
 }
 .bw-btn--size-xl {
   --bw-control-height: var(--bw-size-control-height-xl);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
   --bw-control-icon-size: var(--bw-size-control-icon-xl);
   --bw-control-gap: var(--bw-size-control-gap-xl);
-  --bw-control-font-size: var(--bw-size-control-font-size-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
 }
 /* The glyph and the label are one line of content. The icon is a bw-icon, and
  * a bare .bw-icon (wave-e) paints a raised box and a muted ink, which showed
@@ -2010,7 +2011,7 @@ button.bw-account-menu__item {
  * to point at, so the literal lives inline in the fallback slot. */
 .bw-skeleton--title {
   inline-size: var(--bw-skeleton-w, 40%);
-  block-size: var(--bw-skeleton-h, var(--bw-font-size-2xl));
+  block-size: var(--bw-skeleton-h, var(--bw-font-size-3xl));
   margin-block-end: var(--bw-space-2);
 }
 .bw-skeleton--text {
@@ -2469,9 +2470,10 @@ a.bw-stat:hover {
 .bw-stat__value {
   margin: 0;
   /* The component token scales the numeral (VIZ-001, AC-BW-075); until it is
-     emitted by the token build it falls back to the 3xl step, the same
+     emitted by the token build it falls back to the 4xl step (ADR-127: the
+     2.5rem the default tile has always rendered at comfortable), the same
      inline-token-with-fallback mechanism as .bw-spinner's size. */
-  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-3xl));
+  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-4xl));
   font-weight: var(--bw-font-weight-semibold);
   line-height: var(--bw-font-line-height-tight);
   font-variant-numeric: tabular-nums; /* a column of tiles never jitters as digits change */
@@ -2485,11 +2487,11 @@ a.bw-stat:hover {
 /* size arg (VIZ-027): modifiers re-point the value-size component token, so
    the numeral rule itself never forks. */
 .bw-stat--sm, .bw-stat--size-sm {
-  --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-3xl);
   padding: var(--bw-space-3);
 }
 .bw-stat--lg, .bw-stat--size-lg {
-  --bw-component-stat-tile-value-size: var(--bw-font-size-4xl);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-5xl);
   padding: var(--bw-space-6);
 }
 /* chrome="plain" (#694): proof figures without card chrome. Default remains
@@ -2660,7 +2662,7 @@ a.bw-stat--chrome-plain:hover {
 }
 .bw-stat-comparison__current {
   margin: 0;
-  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-3xl));
+  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-4xl));
   font-weight: var(--bw-font-weight-semibold);
   line-height: var(--bw-font-line-height-tight);
   font-variant-numeric: tabular-nums;
@@ -2682,11 +2684,11 @@ a.bw-stat--chrome-plain:hover {
    same value-size component token _stat.html uses, so a comparison tile
    sits at the same scale as a plain stat tile sharing its grid. */
 .bw-stat-comparison--sm, .bw-stat-comparison--size-sm {
-  --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-3xl);
   padding: var(--bw-space-3);
 }
 .bw-stat-comparison--lg, .bw-stat-comparison--size-lg {
-  --bw-component-stat-tile-value-size: var(--bw-font-size-4xl);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-5xl);
   padding: var(--bw-space-6);
 }
 /* The trend row (_trend_indicator.html's css_class seam, matching #334's own
@@ -4266,35 +4268,35 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
   --bw-control-icon-size: var(--bw-size-control-icon-xs);
   --bw-control-gap: var(--bw-size-control-gap-xs);
-  --bw-control-font-size: var(--bw-size-control-font-size-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
 }
 .bw-combobox--size-sm {
   --bw-control-height: var(--bw-size-control-height-sm);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
   --bw-control-icon-size: var(--bw-size-control-icon-sm);
   --bw-control-gap: var(--bw-size-control-gap-sm);
-  --bw-control-font-size: var(--bw-size-control-font-size-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
 }
 .bw-combobox--size-md {
   --bw-control-height: var(--bw-size-control-height-md);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
   --bw-control-icon-size: var(--bw-size-control-icon-md);
   --bw-control-gap: var(--bw-size-control-gap-md);
-  --bw-control-font-size: var(--bw-size-control-font-size-md);
+  --bw-control-font-size: var(--bw-font-size-md);
 }
 .bw-combobox--size-lg {
   --bw-control-height: var(--bw-size-control-height-lg);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
   --bw-control-icon-size: var(--bw-size-control-icon-lg);
   --bw-control-gap: var(--bw-size-control-gap-lg);
-  --bw-control-font-size: var(--bw-size-control-font-size-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
 }
 .bw-combobox--size-xl {
   --bw-control-height: var(--bw-size-control-height-xl);
   --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
   --bw-control-icon-size: var(--bw-size-control-icon-xl);
   --bw-control-gap: var(--bw-size-control-gap-xl);
-  --bw-control-font-size: var(--bw-size-control-font-size-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
 }
 .bw-combobox {
   /* Chip block size (CMB-038): the control height less the frame's own
@@ -6331,7 +6333,7 @@ a.bw-chip {
 .bw-token-specimen__heading {
   margin: 0;
   font-family: var(--bw-font-family-sans);
-  font-size: var(--bw-font-size-xl);
+  font-size: var(--bw-font-size-2xl);
   font-weight: var(--bw-font-weight-semibold);
   color: var(--bw-color-fg);
   line-height: var(--bw-font-line-height-snug);

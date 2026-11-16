@@ -104,8 +104,8 @@
   "stat-tile": {
     "value-size": {
       "$type": "dimension",
-      "$value": "var(--bw-font-size-3xl)",
-      "$description": "Stat tile numeral size (VIZ-001, AC-BW-075); a live var() reference so the font scale cascades, and the size modifiers re-point it per tile."
+      "$value": "var(--bw-font-size-4xl)",
+      "$description": "Stat tile numeral size (VIZ-001, AC-BW-075); a live var() reference so the font scale cascades, and the size modifiers re-point it per tile. ADR-127: a pick on the ladder (4xl, the 2.5rem the default tile has always rendered at comfortable)."
     },
     "sparkline-height": {
       "$type": "dimension",
@@ -353,36 +353,81 @@
     },
     "size": {
       "$type": "dimension",
+      "$description": "ADR-127: the font-size ladder is computed, never authored per step. Each step is the type base (--bw-font-size-base, density-selected) times the unitless type-owned multiplier --bw-font-scale-<step>, floored (2xs never below 0.6875rem, xs and above never below 0.75rem); md is the base. Named text steps, the type roles, the control font size and the bw-text-* utilities are picks on this one ladder. Sizes stay in rem. Re-emitted inside every [data-density] block so a density scoped to a subtree recomputes type with the control geometry.",
+      "base": {
+        "$value": "var(--bw-density-font-size-base)",
+        "$description": "ADR-127: the type base. Defaults to the density type base; retune a whole brand type size by overriding --bw-density-font-size-base per density (or this token on the element that carries data-density). Not a step: nothing sizes to it by name except md."
+      },
       "2xs": {
-        "$value": "0.6875rem",
+        "$value": "max(0.6875rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-2xs)))",
         "$description": "Chrome-text floor (TYP-022): overlines and micro-labels only; never body, interactive labels, form help/error, or table cell content. Scales with rem / browser zoom."
       },
       "xs": {
-        "$value": "0.75rem"
+        "$value": "max(0.75rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-xs)))"
       },
       "sm": {
-        "$value": "0.875rem"
+        "$value": "max(0.75rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-sm)))"
       },
       "md": {
-        "$value": "1rem"
+        "$value": "var(--bw-font-size-base)"
       },
       "lg": {
-        "$value": "1.125rem"
+        "$value": "max(0.75rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-lg)))"
       },
       "xl": {
-        "$value": "1.5rem"
+        "$value": "max(0.75rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-xl)))"
       },
       "2xl": {
-        "$value": "2rem"
+        "$value": "max(0.75rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-2xl)))"
       },
       "3xl": {
-        "$value": "2.5rem"
+        "$value": "max(0.75rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-3xl)))"
       },
       "4xl": {
-        "$value": "3rem"
+        "$value": "max(0.75rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-4xl)))"
       },
       "5xl": {
-        "$value": "3.75rem"
+        "$value": "max(0.75rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-5xl)))"
+      },
+      "6xl": {
+        "$value": "max(0.75rem, calc(var(--bw-font-size-base) * var(--bw-font-scale-6xl)))"
+      }
+    },
+    "scale": {
+      "$type": "number",
+      "$description": "ADR-127: unitless type multipliers applied to the type base. Type-owned: deliberately not the control multipliers --bw-size-step-* (ADR-125), even though the first six values coincide, so retuning controls cannot resize text. Starting ratios confirmed by the three-density visual check; the shape is fixed.",
+      "2xs": {
+        "$value": 0.6875
+      },
+      "xs": {
+        "$value": 0.75
+      },
+      "sm": {
+        "$value": 0.875
+      },
+      "md": {
+        "$value": 1
+      },
+      "lg": {
+        "$value": 1.125
+      },
+      "xl": {
+        "$value": 1.25
+      },
+      "2xl": {
+        "$value": 1.5
+      },
+      "3xl": {
+        "$value": 2
+      },
+      "4xl": {
+        "$value": 2.5
+      },
+      "5xl": {
+        "$value": 3
+      },
+      "6xl": {
+        "$value": 3.75
       }
     },
     "weight": {

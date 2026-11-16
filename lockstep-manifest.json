@@ -7,25 +7,25 @@
     "frontend-js"
   ],
   "editorial_home": "icvoss/brickwork",
-  "synced_at": "2026-11-16T12:34:20.610Z",
+  "synced_at": "2026-11-16T12:50:55.204Z",
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
-      "component.tokens.json": "1f41bf59f2bc2fab3a756f1b46eed433c88117e20a94ab34db6bd64ae0539565",
-      "density.comfortable.tokens.json": "3dad471d1ccc48c1248eafcb6f5a34aebd7a3a50291c2067202b4fd837708ce4",
-      "density.compact.tokens.json": "00dbea7f5a50425987e00dbaf5e58e0e35262bdd35acf74b5989a10f1dbf8814",
-      "density.spacious.tokens.json": "e9c77d94ae36ccfb293aa7402de8a541b8e4aafc204ee2a1162a923059f2bb6c",
+      "component.tokens.json": "3419c50f0d44bdd1c28c2606e727eff2a8a1a7db1c53de944a5f2c75067bacca",
+      "density.comfortable.tokens.json": "627040391332b8f85ccbaff3cbc1c0cb7fc123422bd25ebf97cbd2f65af5c05d",
+      "density.compact.tokens.json": "53c47b91860032f3bff4990da94fb93b2e164af031c3a19f1ff35949c25e4e98",
+      "density.spacious.tokens.json": "53649c92cab8e52e2d14e508aef6f779ba0b5775fe853fb868b5203a029187d4",
       "motion.tokens.json": "5b0f3771b0a812abcba4c2b0d6ccf0cbd2c36bd5fc8d128d24080bddd5b27584",
-      "primitive.tokens.json": "2525e05d3dadc729864c3200662d9cb3cdc84d158218b93fef5e4ea3d361c564",
+      "primitive.tokens.json": "e00c09873dcd797a7e5e78dc557d82d3fb8aaa88e31ca0a03d5302bc66b5cd11",
       "semantic.dark.tokens.json": "1e9fc38d257673a3db474e9bb5d34eca4f92e1558e12097e1a3ef75ca4c18dfa",
       "semantic.light.tokens.json": "39ffb2ebf14c0f38ea50c4fcc0d7bc5b7cb354870615f170baa7bc16e67c440b",
-      "typography.tokens.json": "3326540e70716969db8503f349af99fa354f141cbc636237aad2761fe4b211e8"
+      "typography.tokens.json": "18a5124590eb82ee49f6f10d81f62a33269dae574014ebaaccdbcaaf7c7fc004"
     },
     "css": {
       "shell.css": "6f44d6f6f815dc373db7dc56e8391c85a9ea16489841041a692af1f72bd8ae63",
       "nav.css": "fb336f329be04ea7b4d67de5309a15dd57c4ca368d03464e0a63582b11582177",
-      "components.css": "ae8ef69fbc2986a4401e6e33de389ccfd258d2332c5b020b160fc8049a982f87",
-      "marketing.css": "fec04e26119ba73362b5f7aa488712ac9c1605c91c76f92179c54c74dfa55848"
+      "components.css": "2e3fd216874690446f577c7c5da78696b71ce21642468710ec22fe844f3fd1eb",
+      "marketing.css": "480d8b31c71d1f67684a555c4bd449ef9f521490cedca1e3f0d512d022b48afa"
     },
     "templates": {
       "brickwork/components/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

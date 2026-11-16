@@ -116,6 +116,11 @@
   --text-overline--line-height: var(--bw-text-overline-line-height);
   --text-code: var(--bw-text-code-size);
   --text-code--line-height: var(--bw-text-code-line-height);
+  --text-xs: var(--bw-font-size-xs);
+  --text-sm: var(--bw-font-size-sm);
+  --text-md: var(--bw-font-size-md);
+  --text-lg: var(--bw-font-size-lg);
+  --text-xl: var(--bw-font-size-xl);
   --font-sans: var(--bw-font-family-sans);
   --font-display: var(--bw-font-family-display);
   --font-mono: var(--bw-font-family-mono);
