@@ -56,7 +56,10 @@ def size_subset(*steps: str, extra: tuple[str, ...] = ()) -> frozenset[str]:
 # Explicit per-component size subsets. Each lists only the steps the shipped
 # stylesheet renders for that component (ADR-125 section 6: xs and xl exist as
 # tokens and appear on a component only when it earns them).
-BUTTON_SIZES: Final[frozenset[str]] = size_subset("sm", "md", "lg")
+# Button earns all five steps (owner ruling 2026-11-16, docs/components/button.md
+# BTN-003 in icvoss/brickwork): the stylesheet ships bw-btn--size-xs to -xl, so
+# the set is the whole grammar, spelt out rather than inherited by omission.
+BUTTON_SIZES: Final[frozenset[str]] = size_subset(*SIZE_STEPS)
 GAUGE_SIZES: Final[frozenset[str]] = size_subset("sm", "md", "lg")
 AVATAR_SIZES: Final[frozenset[str]] = size_subset("sm", "md", "lg")
 

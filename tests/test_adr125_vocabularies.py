@@ -99,14 +99,24 @@ def test_density_subset_components_reject_spacious(component: str) -> None:
 # --- each accepted step changes the output -----------------------------------
 
 
-@pytest.mark.parametrize("size", ["sm", "md", "lg"])
+@pytest.mark.parametrize("size", ["xs", "sm", "md", "lg", "xl"])
 def test_bw_button_each_step_emits_its_size_class(size: str) -> None:
     out = _tag('{% bw_button label="Go" size=size %}', size=size)
     assert f"bw-btn--size-{size}" in out
 
 
-@pytest.mark.parametrize("size", ["xs", "xl"])
-def test_bw_button_rejects_unearned_steps(size: str) -> None:
+def test_bw_button_earns_the_whole_grammar_and_each_step_changes_the_output() -> None:
+    # Button is the first component to earn all five steps (owner ruling
+    # 2026-11-16). Each accepted step emits its own class, so none is a no-op.
+    from brickwork.appearance import BUTTON_SIZES
+
+    assert BUTTON_SIZES == frozenset(SIZE_STEPS)
+    outputs = {size: _tag('{% bw_button label="Go" size=size %}', size=size) for size in SIZE_STEPS}
+    assert len(set(outputs.values())) == len(SIZE_STEPS)
+
+
+@pytest.mark.parametrize("size", ["xxs", "2xl", "huge", "full"])
+def test_bw_button_rejects_a_step_outside_the_grammar(size: str) -> None:
     with pytest.raises(TemplateSyntaxError, match="bw_button size"):
         _tag('{% bw_button label="Go" size=size %}', size=size)
 

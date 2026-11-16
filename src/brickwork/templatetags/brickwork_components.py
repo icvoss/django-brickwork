@@ -50,6 +50,9 @@ def list_item(sequence, index):
 
 
 _BUTTON_VARIANTS = {"primary", "secondary", "ghost", "danger"}
+# ADR-126 section 3: width is a closed choice. "auto" sizes to the content and
+# emits no class; "fill" takes the width of the container (bw-btn--fit-fill).
+_BUTTON_FITS = {"auto", "fill"}
 _ALERT_VARIANTS = {"info", "success", "warning", "danger"}
 _SKELETON_VARIANTS = {"text", "title", "row", "block"}
 # ADR-060 rule 2: bw_badge was the one tag with a documented closed set and no
@@ -471,6 +474,7 @@ def bw_button(
     *,
     variant: str = "primary",
     size: str = "md",
+    fit: str = "auto",
     type: str = "button",
     href: str = "",
     icon: str = "",
@@ -481,8 +485,17 @@ def bw_button(
     name: str = "",
     value: str = "",
 ) -> dict:
-    """A button or link-button. ICO-008: an icon-only button REQUIRES an
-    accessible name (aria_label), else it is a render error (WCAG 4.1.2).
+    """A button or link-button.
+
+    ``size`` is any of ``xs``, ``sm``, ``md``, ``lg``, ``xl`` (ADR-125, all five
+    earned by Button); the size class re-points the control role variables, so
+    box, icon, gap and label text all follow the step. ``fit`` is ``auto``
+    (default) or ``fill`` (ADR-126 section 3, ``bw-btn--fit-fill``); ``fill``
+    with ``icon_only`` is a render error, because an icon-only button is a
+    square at its step and fill would do nothing (ADR-060 section 3).
+
+    ICO-008: an icon-only button REQUIRES an accessible name (aria_label),
+    else it is a render error (WCAG 4.1.2).
 
     ``name``/``value`` (icvoss/django-brickwork#119) carry WHICH submit was
     pressed back to the server, which is the whole mechanism a bulk-actions bar
@@ -496,6 +509,13 @@ def bw_button(
         raise TemplateSyntaxError(f"bw_button variant must be one of {sorted(_BUTTON_VARIANTS)}, got {variant!r}")
     if size not in BUTTON_SIZES:
         raise TemplateSyntaxError(f"bw_button size must be one of {sorted(BUTTON_SIZES)}, got {size!r}")
+    if fit not in _BUTTON_FITS:
+        raise TemplateSyntaxError(f"bw_button fit must be one of {sorted(_BUTTON_FITS)}, got {fit!r}")
+    if fit == "fill" and icon_only:
+        raise TemplateSyntaxError(
+            "bw_button fit=\"fill\" cannot be combined with icon_only=True: an icon-only "
+            "button is a square at its size step, so fill would do nothing (ADR-060 section 3)."
+        )
     # Stripped before testing, not merely truthiness-tested: a whitespace-only
     # aria_label is truthy in Python and is NOT an accessible name to any
     # screen reader (the same accepted cost bw_chart_mount's own aria_label
@@ -529,6 +549,7 @@ def bw_button(
         "label": label,
         "variant": variant,
         "size": size,
+        "fit": fit,
         "type": type,
         "href": href,
         "icon": icon,

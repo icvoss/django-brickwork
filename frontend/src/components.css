@@ -19,17 +19,24 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--bw-space-2);
+  /* ADR-126 section 4: the button reads only the five control role variables.
+   * They are declared on :root and in every [data-density] block (md at the
+   * density in force) and are inherited here, so a bare .bw-btn is md, a size
+   * class re-points them, and a control container can set one step for its
+   * children. The button never reads a density or step token itself. */
+  gap: var(--bw-control-gap);
   padding-block: 0;
-  /* ADR-125: md is the base size. Height and padding resolve from the density
-   * control base through the computed size step, never from a literal. */
-  padding-inline: var(--bw-size-control-padding-inline-md);
-  block-size: var(--bw-size-control-height-md);
+  padding-inline: var(--bw-control-padding-inline);
+  block-size: var(--bw-control-height);
   border: var(--bw-size-border-hairline) solid transparent;
   border-radius: var(--bw-component-button-radius);
   font: inherit;
   font-family: var(--bw-text-label-family);
-  font-size: var(--bw-text-label-size);
+  /* Type follows the step: the size is the fifth role variable (ADR-126
+   * section 4), the label role size at md and scaled by the text step ratio at
+   * the other steps, never below the 12 px legibility floor. Family, weight,
+   * line height and tracking stay the label role at every step (BTN-011). */
+  font-size: var(--bw-control-font-size);
   font-weight: var(--bw-text-label-weight);
   line-height: var(--bw-text-label-line-height);
   letter-spacing: var(--bw-text-label-tracking);
@@ -48,34 +55,62 @@
 .bw-btn:hover {
   text-decoration: none;
 }
-/* Size classes (ADR-125 section 6): the grammar is bw-<component>--size-<step>.
+/* Size classes (ADR-125 section 6, ADR-126 section 4): the grammar is
+ * bw-<component>--size-<step>, and a size class only re-points the five control
+ * role variables at the resolved step tokens: height, padding, icon, gap and
+ * the label font size. The box tokens are the density control base times the
+ * kit-wide multiplier (--bw-size-step-*), so every density keeps five distinct
+ * heights; the font size is the label role size times the gentler text
+ * multiplier (--bw-size-text-step-*), clamped to the 12 px legibility floor.
+ * No rule here computes a multiplier. Button earns all five steps, xs to xl
+ * (BTN-003). The 1.5rem target floor is carried by the height tokens (compact
+ * xs is exactly 1.5rem), not by a rule here. xs and xl have no bare spelling:
+ * they were never shipped, so they are new-grammar only and are not part of the
+ * deprecation window.
+ *
  * The bare spelling (bw-btn--sm, and the same for gauge, icon, modal,
  * slide-over, stat and stat-comparison) is DEPRECATED. Both selectors stay in
  * one grouped rule for the deprecation window; the bare ones are removed in
  * the next major of django-brickwork and in the @bwui/css release shipped with
- * it. Templates, React, Vue and the gallery emit the new class. */
+ * it. Templates, React, Vue and the gallery emit the new class.
+ *
+ * md has its own rule (icvoss/django-brickwork#130) so the class that markup
+ * emits is named in the stylesheet, and so a button that names md keeps md
+ * inside a container that scoped a different step. */
+.bw-btn--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-size-control-font-size-xs);
+}
 .bw-btn--sm, .bw-btn--size-sm {
-  block-size: var(--bw-size-control-height-sm);
-  padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-size-control-font-size-sm);
 }
-/* md is the base .bw-btn size (icvoss/django-brickwork#130): every shipped
- * template that names a size emits bw-btn--md explicitly rather than leaving
- * it implicit, so the class needs its own rule even though it restates the
- * base values, exactly as .bw-btn--sm and .bw-btn--lg restate theirs relative
- * to the base. Without this rule the class existed in markup with nothing in
- * the stylesheet naming it, which is the defect class this issue is about:
- * the base values happened to make it look correct by accident. */
 .bw-btn--md, .bw-btn--size-md {
-  block-size: var(--bw-size-control-height-md);
-  padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-size-control-font-size-md);
 }
-/* ADR-125: sm, md and lg resolve from the density control base times a
- * kit-wide step multiplier (--bw-size-step-*), not from absolute rem values,
- * so every density keeps three distinct heights. xs and xl exist in the token
- * scale; Button does not ship them (BTN-003). */
 .bw-btn--lg, .bw-btn--size-lg {
-  block-size: var(--bw-size-control-height-lg);
-  padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-size-control-font-size-lg);
+}
+.bw-btn--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-size-control-font-size-xl);
 }
 /* The glyph and the label are one line of content. The icon is a bw-icon, and
  * a bare .bw-icon (wave-e) paints a raised box and a muted ink, which showed
@@ -86,6 +121,16 @@
   background: transparent;
   border-radius: 0;
   color: inherit;
+}
+/* The glyph and the busy spinner follow the control's step through the role
+ * variable (ADR-125 section 5: an icon inside a control follows its step). The
+ * box is set directly, not through --bw-icon-size, because {% bw_icon %} writes
+ * that custom property inline and an inline declaration would outrank this
+ * rule. Markup in a button carries no inline size. */
+.bw-btn .bw-btn__icon,
+.bw-btn .bw-spinner {
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
 }
 /* Solid buttons carry a border in their own hue (0.7.0 craft): 80% of the fill
  * toward black is the Radix solid-button edge, a shade the fill visibly sits
@@ -185,16 +230,18 @@
   }
 }
 .bw-btn--icon-only {
-  inline-size: var(--bw-size-control-height-md);
+  inline-size: var(--bw-control-height);
   padding-inline: 0;
 }
-/* Exact square at every size (0.7.0 craft): the sm/lg heights bring their own
- * widths, so an icon button's optical padding is identical on all four sides. */
-.bw-btn--sm.bw-btn--icon-only, .bw-btn--size-sm.bw-btn--icon-only {
-  inline-size: var(--bw-size-control-height-sm);
-}
-.bw-btn--lg.bw-btn--icon-only, .bw-btn--size-lg.bw-btn--icon-only {
-  inline-size: var(--bw-size-control-height-lg);
+/* Exact square at every size (0.7.0 craft): the role variable carries the
+ * step's height, so the optical padding is identical on all four sides with no
+ * per-size rule. */
+/* fit (ADR-126 section 3): auto is the default and emits no class; fill takes
+ * the width of its container. After the icon-only rule so the two never fight.
+ * Django and React reject fit="fill" with icon_only: an icon-only control is a
+ * square, so fill would be a silent no-op (ADR-060 section 3). */
+.bw-btn--fit-fill {
+  inline-size: 100%;
 }
 /* Flat disabled colours (COL-018 / #282), not opacity: opacity failed
  * contrast on most surfaces and cannot be gated under brand overrides. Three
@@ -386,6 +433,10 @@
 }
 .bw-form__actions {
   display: flex;
+  /* .bw-btn is white-space: nowrap (0.1.5, "a label stays on one line"), so a
+   * row of buttons cannot shrink; it wraps onto further lines instead of
+   * widening the document at narrow widths (icvoss/brickwork#52). */
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--bw-space-3);
   margin-block-start: var(--bw-space-2);
@@ -1737,6 +1788,7 @@ button.bw-account-menu__item {
 }
 .bw-filter-bar__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--bw-space-2);
 }
@@ -3757,6 +3809,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  * render nothing at the template, so no :empty rule is needed. */
 .bw-modal__footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--bw-space-3);
@@ -3967,6 +4020,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 }
 .bw-slide-over__footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--bw-space-3);

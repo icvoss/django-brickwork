@@ -1,6 +1,6 @@
 {
-  "tokens": "0.1.6",
-  "css": "0.1.6",
+  "tokens": "0.1.7",
+  "css": "0.1.7",
   "vendored": [
     "tokens.css",
     "tailwind-theme.css",

@@ -36,7 +36,7 @@ def _classes(tag: str) -> list[str]:
 
 
 @pytest.mark.parametrize("variant", ["primary", "secondary", "ghost", "danger"])
-@pytest.mark.parametrize("size", ["sm", "md", "lg"])
+@pytest.mark.parametrize("size", ["xs", "sm", "md", "lg", "xl"])
 def test_button_emits_variant_and_explicit_size_class(variant: str, size: str) -> None:
     tag = _root_tag(_render(f'{{% bw_button "Go" variant="{variant}" size="{size}" %}}'))
     assert _classes(tag) == ["bw-btn", f"bw-btn--{variant}", f"bw-btn--size-{size}"]
@@ -48,9 +48,32 @@ def test_button_default_is_primary_md_and_type_button() -> None:
     assert 'type="button"' in tag
 
 
+@pytest.mark.parametrize("size", ["xs", "sm", "md", "lg", "xl"])
+@pytest.mark.parametrize("host", ["", 'href="/x/"', 'href="/x/" disabled=True', 'href="/x/" loading=True'])
+def test_every_size_step_is_emitted_on_every_host_and_changes_the_output(size: str, host: str) -> None:
+    # ADR-060 section 3: each accepted step must change the output. The class
+    # list differs per step on the <button>, <a> and both non-navigable spans.
+    tag = _root_tag(_render(f'{{% bw_button "Go" size="{size}" {host} %}}'))
+    assert f"bw-btn--size-{size}" in _classes(tag)
+    others = {
+        _classes(_root_tag(_render(f'{{% bw_button "Go" size="{other}" {host} %}}')))[2]
+        for other in ("xs", "sm", "md", "lg", "xl")
+    }
+    assert len(others) == 5
+
+
+@pytest.mark.parametrize("size", ["xs", "sm", "md", "lg", "xl"])
+def test_icon_only_button_carries_every_size_step(size: str) -> None:
+    tag = _root_tag(_render(f'{{% bw_button icon="plus" icon_only=True aria_label="Add" size="{size}" %}}'))
+    assert _classes(tag) == ["bw-btn", "bw-btn--primary", f"bw-btn--size-{size}", "bw-btn--icon-only"]
+
+
 def test_button_never_emits_the_bare_size_spelling_or_solid() -> None:
-    out = _render('{% bw_button "A" size="sm" %}{% bw_button "B" size="lg" %}')
-    assert not re.search(r"bw-btn--(sm|md|lg)\b", out)
+    out = _render(
+        '{% bw_button "A" size="xs" %}{% bw_button "B" size="sm" %}{% bw_button "C" size="lg" %}'
+        '{% bw_button "D" size="xl" %}'
+    )
+    assert not re.search(r"bw-btn--(xs|sm|md|lg|xl)\b", out)
     assert "bw-btn--solid" not in out
     assert "bw-btn--outline" not in out
 
@@ -170,11 +193,10 @@ def test_css_mirror_has_no_accent_fg_token() -> None:
     assert "--bw-color-accent-fg" not in re.sub(r"/\*.*?\*/", "", _button_block(), flags=re.S)
 
 
-# --- ADR-126: the fit class on the template mirror --------------------------
-# The CSS rule for bw-btn--fit-fill, and the control role variables it sits
-# beside, ship in the @bwui/css and @bwui/tokens release after 0.1.4. Until the
-# pin moves, only the template emits the class; bw_button takes no fit option
-# (ADR-060 section 3: an option with no rule would be a silent no-op).
+# --- ADR-126: the fit class on the template mirror and the tag ---------------
+# The CSS rule for bw-btn--fit-fill ships in the vendored @bwui/css (0.1.5 on),
+# so bw_button takes the fit option (django-brickwork#748): it is never a silent
+# no-op (ADR-060 section 3).
 
 
 def test_button_template_emits_fit_fill_on_every_host_after_icon_only() -> None:
@@ -199,6 +221,49 @@ def test_button_template_emits_no_fit_class_for_auto_or_absent(fit: str) -> None
     assert "bw-btn--fit-fill" not in Template(tpl).render(Context(ctx))
 
 
-def test_bw_button_tag_takes_no_fit_option_until_the_css_ships() -> None:
-    with pytest.raises(TemplateSyntaxError):
-        _render('{% bw_button "Go" fit="fill" %}')
+@pytest.mark.parametrize("host", ["", 'href="/x/"', 'href="/x/" disabled=True', 'href="/x/" loading=True'])
+def test_bw_button_fit_fill_adds_the_class_on_every_host(host: str) -> None:
+    tag = _root_tag(_render(f'{{% bw_button "Go" fit="fill" {host} %}}'))
+    assert "bw-btn--fit-fill" in _classes(tag)
+    assert "bw-btn--fit-fill" not in _classes(_root_tag(_render(f'{{% bw_button "Go" {host} %}}')))
+
+
+@pytest.mark.parametrize("size", ["xs", "sm", "md", "lg", "xl"])
+def test_bw_button_fit_fill_keeps_the_size_class_and_orders_after_it(size: str) -> None:
+    classes = _classes(_root_tag(_render(f'{{% bw_button "Go" size="{size}" fit="fill" %}}')))
+    assert classes == ["bw-btn", "bw-btn--primary", f"bw-btn--size-{size}", "bw-btn--fit-fill"]
+
+
+def test_bw_button_fit_auto_is_the_default_and_emits_no_class() -> None:
+    assert _classes(_root_tag(_render('{% bw_button "Go" fit="auto" %}'))) == _classes(
+        _root_tag(_render('{% bw_button "Go" %}'))
+    )
+
+
+def test_bw_button_rejects_an_unknown_fit_and_fill_with_icon_only() -> None:
+    with pytest.raises(TemplateSyntaxError, match="fit must be one of"):
+        _render('{% bw_button "Go" fit="block" %}')
+    with pytest.raises(TemplateSyntaxError, match="icon_only"):
+        _render('{% bw_button icon="plus" icon_only=True aria_label="Add" fit="fill" %}')
+
+
+# --- five sizes and type that follows the step (owner ruling 2026-11-16) ------
+
+
+def test_css_mirror_has_all_five_size_classes_each_repointing_the_five_role_variables() -> None:
+    block = re.sub(r"/\*.*?\*/", "", _button_block(), flags=re.S)
+    for step in ("xs", "sm", "md", "lg", "xl"):
+        rule = re.search(rf"\.bw-btn--size-{step} \{{([^}}]*)\}}", block)
+        assert rule, f".bw-btn--size-{step} has a rule"
+        for role in ("height", "padding-inline", "icon", "gap", "font-size"):
+            target = "icon-size" if role == "icon" else role
+            assert f"--bw-control-{target}: var(--bw-size-control-{role}-{step});" in rule.group(1), (step, role)
+    # xs and xl were never shipped bare, so they exist in the new grammar only.
+    assert not re.search(r"\.bw-btn--(xs|xl)\b", block)
+
+
+def test_css_mirror_label_reads_the_font_size_role_variable() -> None:
+    block = re.sub(r"/\*.*?\*/", "", _button_block(), flags=re.S)
+    base = re.search(r"\n\.bw-btn \{([^}]*)\}", block).group(1)
+    assert "font-size: var(--bw-control-font-size);" in base
+    assert "--bw-text-label-size" not in base
