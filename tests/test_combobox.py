@@ -151,7 +151,13 @@ def test_listbox_follows_the_stable_id_convention() -> None:
 def test_client_mode_prerenders_the_option_list() -> None:
     # client mode filters in place, so every option must already be in the DOM
     html = _render('{% bw_combobox field=field filter_mode="client" %}')
-    options = re.findall(r'<li[^>]*role="option"[^>]*>', html)
+    # the empty and failure rows are also role="option" (aria-disabled, below),
+    # but they are messages, not choices
+    options = [
+        row
+        for row in re.findall(r'<li[^>]*role="option"[^>]*>', html)
+        if "bw-combobox__empty" not in row and "bw-combobox__error" not in row
+    ]
     assert len(options) == 3
     for option in options:
         assert "data-bw-value=" in option
@@ -176,6 +182,20 @@ def test_empty_message_defaults_translated_and_overrides() -> None:
     assert "No matches" in html  # CMP-029: the package-supplied fallback
     custom = _render('{% bw_combobox field=field options_url="/o/" empty_message="Nothing here" %}')
     assert "Nothing here" in custom
+
+
+def test_empty_and_failure_rows_are_disabled_options_so_the_listbox_is_never_childless() -> None:
+    # axe aria-required-children: a visible listbox must own an option. When no
+    # option matches (or a server request failed) the only visible row is the
+    # message, so it is an aria-disabled option: announced, never chosen.
+    client = _render('{% bw_combobox field=field filter_mode="client" %}')
+    empty = _tag_of(client, "bw-combobox__empty")
+    assert 'role="option"' in empty
+    assert 'aria-disabled="true"' in empty
+    server = _render('{% bw_combobox field=field options_url="/o/" %}')
+    error = _tag_of(server, "data-bw-combobox-error")
+    assert 'role="option"' in error
+    assert 'aria-disabled="true"' in error
 
 
 def test_placeholder_flows_to_the_enhanced_input() -> None:

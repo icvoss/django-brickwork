@@ -181,11 +181,11 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
           hidden
           data-bw-combobox-create>{% translate "Create" %} <span class="bw-combobox__create-query" data-bw-combobox-create-query></span></li>
       {% endif %}
-      {# Empty message row (CMP-029): revealed by bwCombobox when no option matches; kept across server swaps by re-appending. #}
-      <li class="bw-combobox__empty" role="presentation" data-bw-combobox-empty hidden>{{ empty_message }}</li>
+      {# Empty message row (CMP-029): role="option" aria-disabled="true" because a visible listbox must own at least one option (axe aria-required-children), and the row is neither choosable nor arrowed to; revealed by bwCombobox when no option matches; kept across server swaps by re-appending. #}
+      <li class="bw-combobox__empty" role="option" aria-disabled="true" data-bw-combobox-empty hidden>{{ empty_message }}</li>
       {% if filter_mode == "server" %}
       {# Server-filter failure row (CMB-019): revealed by bwCombobox when the options request fails; the previous options stay; kept across swaps by re-appending. #}
-      <li class="bw-combobox__error" role="presentation" data-bw-combobox-error hidden>{% translate "Options could not be loaded. Type to try again." %}</li>
+      <li class="bw-combobox__error" role="option" aria-disabled="true" data-bw-combobox-error hidden>{% translate "Options could not be loaded. Type to try again." %}</li>
       {% endif %}
     </ul>
     {# Live region (CMB-052): bwCombobox writes the result count, "No matches", loading and failure here. Strings are template-supplied so no English originates in script; {count} is replaced in script. #}

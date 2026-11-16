@@ -429,11 +429,14 @@ select.bw-input {
 [dir="rtl"] select.bw-input {
   background-position: left var(--bw-density-control-padding-inline) center;
 }
+/* background-color, not the shorthand: the shorthand also reset
+ * background-image, so a disabled select.bw-input lost its chevron (the
+ * select rule is less specific than these state rules). */
 .bw-input[readonly] {
-  background: var(--bw-color-surface-sunken);
+  background-color: var(--bw-color-surface-sunken);
 }
 .bw-input:disabled {
-  background: var(--bw-color-action-disabled-bg);
+  background-color: var(--bw-color-action-disabled-bg);
   color: var(--bw-color-action-disabled-text);
   border-color: var(--bw-color-action-disabled-border);
   cursor: not-allowed;
@@ -4166,11 +4169,17 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 /* Placeholder colour (CMB-035, GAP-CMB-15): the shipped bundle had no
  * placeholder rule, so the UA default applied. Scoped to the combobox input;
  * opacity is reset because Firefox dims ::placeholder on top of its colour.
- * fg-subtle is the contract's target colour; its measured ratio is still to be
- * recorded (combobox.md 4.3). */
+ * fg-muted, not fg-subtle: composed on the frame fill fg-subtle measures
+ * 2.62:1 light and 3.84:1 dark, under the 4.5:1 text floor (AC-CMB-019),
+ * where fg-muted clears it in both themes (combobox.md 4.3). */
 .bw-combobox__input::placeholder {
-  color: var(--bw-color-fg-subtle);
+  color: var(--bw-color-fg-muted);
   opacity: 1;
+}
+/* A disabled control prompts in its disabled ink, not the live placeholder
+ * colour, so the whole field reads as one inactive surface. */
+.bw-combobox__input:disabled::placeholder {
+  color: var(--bw-color-action-disabled-text);
 }
 /* Multiple-mode frame (CMB-031, deliberate break, combobox.md 13.3): the chips
  * and the input share ONE frame. The frame moves from the input to the field
@@ -4226,7 +4235,10 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 .bw-combobox--multiple .bw-combobox__input[readonly] {
   /* The frame owns border, fill, well and ring; the input only types. The
    * block-size mirrors a chip so a wrapped row keeps one baseline rhythm. */
-  flex-basis: 4rem; /* a length literal: a short typing run beside chips, no sizing-ramp step */
+  /* A length literal: a typing run beside chips, no sizing-ramp step. Wide
+   * enough for a short placeholder ("Add team"), so a row with no room wraps
+   * the input to its own line instead of clipping the prompt. */
+  flex-basis: 6rem;
   block-size: auto;
   min-block-size: var(--bw-combobox-chip-size, 1.5rem);
   padding-inline: var(--bw-space-1);
@@ -4373,7 +4385,9 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   background: transparent;
   border: 0;
   border-radius: var(--bw-radius-full);
-  color: var(--bw-color-icon-muted);
+  /* fg-muted, not icon-muted: composed on the chip fill icon-muted measures
+   * 2.39:1 in light, under the 3:1 non-text floor (AC-CMB-019, CMB-054). */
+  color: var(--bw-color-fg-muted);
   cursor: pointer;
   transition: var(--bw-transition-colors);
 }
