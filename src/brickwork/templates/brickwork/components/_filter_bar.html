@@ -46,10 +46,10 @@ Responsive: no breakpoint switch. Both the bar and its fields row are
   </div>
   <div class="bw-filter-bar__actions">
     {% translate "Filter" as default_submit_label %}
-    <button type="submit" class="bw-btn bw-btn--primary bw-btn--md">{% firstof submit_label default_submit_label %}</button>
+    <button type="submit" class="bw-btn bw-btn--primary bw-btn--size-md">{% firstof submit_label default_submit_label %}</button>
     {% if clear_href %}
       {% translate "Clear" as default_clear_label %}
-      <a class="bw-btn bw-btn--ghost bw-btn--md" {% bw_attr "href" clear_href %}>{% firstof clear_label default_clear_label %}</a>
+      <a class="bw-btn bw-btn--ghost bw-btn--size-md" {% bw_attr "href" clear_href %}>{% firstof clear_label default_clear_label %}</a>
     {% endif %}
   </div>
 </form>

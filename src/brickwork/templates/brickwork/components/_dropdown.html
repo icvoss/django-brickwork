@@ -55,7 +55,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
 {% endcomment %}
 <details class="bw-dropdown{% if placement == 'end' %} bw-dropdown--end{% endif %}"
          x-data="bwDropdown({ triggerMode: '{{ trigger_mode }}', closeOnSelect: {{ close_on_select|yesno:'true,false' }} })">
-  <summary class="bw-dropdown__trigger bw-btn bw-btn--{{ trigger_variant }} bw-btn--md{% if icon_only %} bw-btn--icon-only{% endif %}"
+  <summary class="bw-dropdown__trigger bw-btn bw-btn--{{ trigger_variant }} bw-btn--size-md{% if icon_only %} bw-btn--icon-only{% endif %}"
            {% if icon_only %}{% bw_attr "aria-label" aria_label %}{% endif %}
            data-bw-dropdown-trigger>
     {% if trigger_icon %}{% bw_icon trigger_icon size="sm" decorative=True css_class="bw-btn__icon" %}{% endif %}

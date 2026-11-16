@@ -37,7 +37,7 @@ unsupported, never ignored.
 |---|---|---|
 | `surface` | `default` \| `raised` \| `tint` \| `inverse` \| `muted` | Fill family from `--bw-color-surface*` / marketing tint / inverse |
 | `elevation` | `0` \| `1` \| `2` \| `3` | Shadow ladder (`--bw-elevation-*`). Default per component stays authored |
-| `size` | `sm` \| `md` \| `lg` (+ component extras e.g. modal `full`) | Scale; already common |
+| `size` | One closed five-step grammar `xs` \| `sm` \| `md` \| `lg` \| `xl` (ADR-125). There is **no shared default set**: each component declares the subset it renders, and an undeclared one rejects `size=`. Today every component renders a subset of `sm` \| `md` \| `lg` (chip `sm` \| `md`; modal adds `full`); `xs` and `xl` are tokens that a component earns when its stylesheet ships them. Emitted as `bw-<component>--size-<step>` | Scale; already common |
 | `radius` | `default` \| `sm` \| `lg` \| `xl` \| `none` | Corner scale via `--bw-card-radius` (card). `default` / `lg` omit the modifier |
 | `header_recipe` | `none` \| `plain` \| `bordered` \| `muted` \| `inverse` \| `accent` | Header region recipe (not the `header` **block**) |
 | `footer_recipe` | `none` \| `plain` \| `muted` \| `actions` | Footer region recipe (not the `footer` **block**) |
@@ -47,7 +47,7 @@ unsupported, never ignored.
 | `tone` | `muted` \| `strong` | Divider hairline weight (Beat Phase B) |
 | `spacing` | `sm` \| `md` \| `lg` | Divider vertical rhythm (Beat Phase B) |
 | `shape` | `circle` \| `square` | Avatar corner treatment (Beat Phase B) |
-| `density` | `comfortable` \| `compact` | Table / list row density (Beat Phase C) |
+| `density` | `comfortable` \| `compact` \| `spacious` (ADR-125: the one global axis, also `{% bw_form density= %}`) | Data table and list item render `comfortable` \| `compact` only and reject `spacious` rather than ignore it |
 | `variant` | per-component | Status / behavioural treatment; validated when `component=` names a registered set (chip, callout, button_group) |
 | `align` / `placement` / `media_placement` | existing | Layout axes unchanged (ADR-060) |
 

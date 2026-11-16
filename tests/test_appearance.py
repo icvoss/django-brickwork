@@ -12,7 +12,7 @@ from brickwork.appearance import (
     HEADER_RECIPES,
     MEDIA_RECIPES,
     RADII,
-    SIZES,
+    SIZE_STEPS,
     SURFACES,
     validate_options,
 )
@@ -23,7 +23,6 @@ def test_validate_options_accepts_every_closed_value() -> None:
         component="test",
         surface="inverse",
         elevation="2",
-        size="lg",
         radius="xl",
         header_recipe="accent",
         footer_recipe="actions",
@@ -56,7 +55,6 @@ def test_validate_options_skips_omitted_values() -> None:
     [
         ("surface", "shiny"),
         ("elevation", "4"),
-        ("size", "xl"),
         ("radius", "full"),
         ("header_recipe", "dark"),
         ("footer_recipe", "toolbar"),
@@ -88,7 +86,7 @@ def test_bw_options_tag_is_quiet_when_valid() -> None:
 def test_shared_vocabularies_match_appearance_doc_table() -> None:
     assert frozenset({"default", "raised", "tint", "inverse", "muted"}) == SURFACES
     assert frozenset({"0", "1", "2", "3"}) == ELEVATIONS
-    assert frozenset({"sm", "md", "lg"}) == SIZES
+    assert SIZE_STEPS == ("xs", "sm", "md", "lg", "xl")
     assert frozenset({"default", "sm", "lg", "xl", "none"}) == RADII
     assert frozenset({"none", "plain", "bordered", "muted", "inverse", "accent"}) == HEADER_RECIPES
     assert frozenset({"none", "plain", "muted", "actions"}) == FOOTER_RECIPES

@@ -90,8 +90,10 @@ _GENERIC_VALUE = re.compile("|".join(f"(?:{p})" for p in _GENERIC_VALUE_PATTERNS
 
 # Complex shorthands the closed patterns above do not enumerate (box-shadow,
 # transition, min()/max(), color-mix on component tokens, and so on). Still
-# injection-guarded: no braces, semicolons, or remote url().
-_GENERIC_FALLBACK = re.compile(r"^[\w\s\"'(),./%+:#\\=-]+$")
+# injection-guarded: no braces, semicolons, or remote url(). ``*`` is allowed
+# so the computed control-size tokens (ADR-125: ``calc(var(--bw-density-...) *
+# var(--bw-size-step-...))``) validate as shipped; it cannot open a rule.
+_GENERIC_FALLBACK = re.compile(r"^[\w\s\"'(),./%+*:#\\=-]+$")
 
 # Belt and braces alongside the allowlist above: these can never appear in a valid
 # colour value, so if a future syntax addition widens _VALUE too far, the hole does

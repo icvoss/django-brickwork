@@ -54,7 +54,7 @@ Optional:
         brickwork does not validate URL schemes; href values are emitted as
         given and callers passing user-supplied URLs must validate them first.
   loading (bool): renders skeleton rows instead of the content (STA-004).
-  size ("sm" | "md" | "lg", default "md"): emitted as bw-stat--<value> only
+  size ("sm" | "md" | "lg", default "md"): emitted as bw-stat--size-<value> only
         when supplied (VIZ-027).
   chrome ("card" default | "plain", #694): tile surface treatment. Omitted
         (or "card") keeps the KPI card chrome (border, elevation, card
@@ -106,7 +106,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-stat*
   the surrounding grid (a dashboard's bw-stat-grid or this component's own
   bw-stat-band) owns whatever column-count responsiveness a page shows.
 {% endcomment %}
-{% if href %}<a class="bw-stat{% if size == "sm" %} bw-stat--sm{% elif size == "lg" %} bw-stat--lg{% elif size == "md" %} bw-stat--md{% endif %}{% if chrome == "plain" %} bw-stat--chrome-plain{% endif %}" {% bw_attr "href" href %}{% bw_data_attrs data "stat" %}>{% else %}<div class="bw-stat{% if size == "sm" %} bw-stat--sm{% elif size == "lg" %} bw-stat--lg{% elif size == "md" %} bw-stat--md{% endif %}{% if chrome == "plain" %} bw-stat--chrome-plain{% endif %}"{% bw_data_attrs data "stat" %}>{% endif %}
+{% if href %}<a class="bw-stat{% if size == "sm" %} bw-stat--size-sm{% elif size == "lg" %} bw-stat--size-lg{% elif size == "md" %} bw-stat--size-md{% endif %}{% if chrome == "plain" %} bw-stat--chrome-plain{% endif %}" {% bw_attr "href" href %}{% bw_data_attrs data "stat" %}>{% else %}<div class="bw-stat{% if size == "sm" %} bw-stat--size-sm{% elif size == "lg" %} bw-stat--size-lg{% elif size == "md" %} bw-stat--size-md{% endif %}{% if chrome == "plain" %} bw-stat--chrome-plain{% endif %}"{% bw_data_attrs data "stat" %}>{% endif %}
   {% if loading %}
     <div class="bw-skeleton bw-skeleton--text" aria-hidden="true"></div>
     <div class="bw-skeleton bw-skeleton--title" aria-hidden="true"></div>

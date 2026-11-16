@@ -24,13 +24,15 @@ Contract:
                topbar. In the mobile drawer, render the full tree through a
                plain {% bw_nav %} (the drawer keeps the no-JS floor fully
                navigable, NAV-016/BR-BW-HTMX-001).
-  Density      "labelled" (default): caption-size labels stay VISIBLE, a
+  Variant      "labelled" (default): caption-size labels stay VISIBLE, a
                designed compact state, not the collapsed sidebar's clipped
                labels (SHL-004). "icons" (brickwork#701): resting state is
                icon-only at --bw-density-rail-width; hover/focus-within
                expands to --bw-density-rail-width-expanded and reveals
                labels. Labels stay in the accessibility tree (clip technique)
-               so the no-JS floor remains fully named without hover.
+               so the no-JS floor remains fully named without hover. The
+               choice is the tag's `variant` argument (ADR-125: `density` is
+               reserved for the global comfortable|compact|spacious axis).
   Link items   Every navigable rail entry is a REAL link (never a JS-only
                navigate trigger). Flat by design: a section header
                contributes its children as rail entries and its own label is
@@ -89,6 +91,6 @@ Contract:
   {% endif %}
 {% endpartialdef %}
 
-<ul class="bw-nav-rail__list{% if density == 'icons' %} bw-nav-rail__list--icons{% endif %}" role="list">
+<ul class="bw-nav-rail__list{% if variant == 'icons' %} bw-nav-rail__list--icons{% endif %}" role="list">
   {% for item in bw_nav_tree %}{% partial nav_rail_item %}{% endfor %}
 </ul>

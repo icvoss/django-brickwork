@@ -25,7 +25,7 @@ from django.utils.html import conditional_escape, escape, format_html
 from django.utils.safestring import SafeData, SafeString, mark_safe
 from django.utils.translation import gettext
 
-from brickwork.appearance import validate_options
+from brickwork.appearance import AVATAR_SIZES, BUTTON_SIZES, GAUGE_SIZES, validate_options
 
 register = template.Library()
 
@@ -51,7 +51,6 @@ def list_item(sequence, index):
 
 _BUTTON_VARIANTS = {"primary", "secondary", "ghost", "danger"}
 _ALERT_VARIANTS = {"info", "success", "warning", "danger"}
-_SIZES = {"sm", "md", "lg"}
 _SKELETON_VARIANTS = {"text", "title", "row", "block"}
 # ADR-060 rule 2: bw_badge was the one tag with a documented closed set and no
 # enforcement, so a typo emitted a .bw-badge--<typo> class that does not exist
@@ -495,8 +494,8 @@ def bw_button(
     """
     if variant not in _BUTTON_VARIANTS:
         raise TemplateSyntaxError(f"bw_button variant must be one of {sorted(_BUTTON_VARIANTS)}, got {variant!r}")
-    if size not in _SIZES:
-        raise TemplateSyntaxError(f"bw_button size must be one of {sorted(_SIZES)}, got {size!r}")
+    if size not in BUTTON_SIZES:
+        raise TemplateSyntaxError(f"bw_button size must be one of {sorted(BUTTON_SIZES)}, got {size!r}")
     # Stripped before testing, not merely truthiness-tested: a whitespace-only
     # aria_label is truthy in Python and is NOT an accessible name to any
     # screen reader (the same accepted cost bw_chart_mount's own aria_label
@@ -568,11 +567,11 @@ def bw_avatar_group(
     ``+N`` overflow chip for the remainder. ``size`` / ``shape`` are defaults
     for children that omit their own.
     """
-    from brickwork.appearance import SHAPES, SIZES, validate_options
+    from brickwork.appearance import SHAPES, validate_options
 
     validate_options(component="brickwork/components/_avatar.html", size=size, shape=shape)
-    if size not in SIZES:
-        raise TemplateSyntaxError(f"bw_avatar_group size must be one of {sorted(SIZES)}, got {size!r}")
+    if size not in AVATAR_SIZES:
+        raise TemplateSyntaxError(f"bw_avatar_group size must be one of {sorted(AVATAR_SIZES)}, got {size!r}")
     if shape not in SHAPES:
         raise TemplateSyntaxError(f"bw_avatar_group shape must be one of {sorted(SHAPES)}, got {shape!r}")
     if avatars is None:
@@ -1086,7 +1085,6 @@ def _shape_ranked_list_row(raw: Mapping, *, amount: Decimal, denominator: Decima
 # and .bw-ranked-list__bar__before both key off --bw-color-accent), so this
 # component ships no new colour token at all (colour tokens are semantic-tier
 # and per-theme-authored; this closed set already exists in both themes).
-_GAUGE_SIZES = _SIZES
 _GAUGE_THRESHOLD_TOKENS = {"accent", "success", "warning", "danger"}
 # A full circle's centre-to-edge angle in a 0-100 viewBox: r=40 leaves enough
 # margin inside a 100x100 box for the stroke width without clipping (VIZ-010
@@ -1588,8 +1586,8 @@ def bw_gauge(
       dash maths) is fixed at every size: only the rendered diameter, via
       CSS, changes.
     """
-    if size not in _GAUGE_SIZES:
-        raise TemplateSyntaxError(f"bw_gauge size must be one of {sorted(_GAUGE_SIZES)}, got {size!r}")
+    if size not in GAUGE_SIZES:
+        raise TemplateSyntaxError(f"bw_gauge size must be one of {sorted(GAUGE_SIZES)}, got {size!r}")
     min_value = _gauge_numeric(min, name="min")
     max_value = _gauge_numeric(max, name="max")
     if max_value <= min_value:

@@ -299,10 +299,13 @@ inside a labelled `<nav>` landmark (the shells already provide one per slot).
   are real links; `menu_trigger=True` items render as
   `<button aria-haspopup="menu" aria-expanded="false">` (brickwork#702) and
   the flyout panel stays consumer-owned. Children are never rendered by the
-  rail: they belong to the contextual second tier / mobile tree. Density
+  rail: they belong to the contextual second tier / mobile tree. `variant`
   defaults to `"labelled"` (caption labels always visible); pass
-  `density="icons"` for an icon-only resting rail that expands on
-  hover/focus-within (brickwork#701).
+  `variant="icons"` for an icon-only resting rail that expands on
+  hover/focus-within (brickwork#701). The former `density="labelled|icons"`
+  spelling still works for the deprecation window (it raises a
+  `DeprecationWarning`) and is removed in the next major: `density` names the
+  global comfortable, compact and spacious axis (ADR-125, #745).
 
   **Nested two-tier** (default `layout="sidebar"`): pair the tiers inside
   `{% block sidebar %}` and widen the sidebar to seat both:
@@ -327,13 +330,13 @@ inside a labelled `<nav>` landmark (the shells already provide one per slot).
   `.bw-nav-two-tier` here). An unfilled `{% block rail %}` or
   `{% block sidebar %}` collapses that column and reclaims the width, as does
   overriding `rail_region` or `sidebar_region` to omit the corresponding
-  markup (brickwork#703). With `density="icons"`, the rail expands its grid
+  markup (brickwork#703). With `variant="icons"`, the rail expands its grid
   column on hover or keyboard focus so its labels remain visible:
 
   ```django
   {# context: layout="regions" #}
   {% block rail %}
-    {% bw_nav_rail items=bw_nav_items active=bw_active_nav_item density="icons" %}
+    {% bw_nav_rail items=bw_nav_items active=bw_active_nav_item variant="icons" %}
   {% endblock %}
   {% block sidebar %}
     {% bw_nav items=contextual_items active=bw_active_nav_item %}

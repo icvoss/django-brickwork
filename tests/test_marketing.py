@@ -1934,7 +1934,7 @@ def test_stat_band_align_omitted_output_is_byte_identical_to_pre_align_axis() ->
         '\n\n<section class="bw-stat-band-section">\n'
         '  <h2 class="bw-stat-band-section__heading">By the numbers</h2>\n'
         '  \n    <div class="bw-stat-band">\n      \n        '
-        '\n\n<div class="bw-stat bw-stat--lg">\n  \n    \n    '
+        '\n\n<div class="bw-stat bw-stat--size-lg">\n  \n    \n    '
         '<span class="bw-stat__label">Uptime</span>\n    '
         '<span class="bw-stat__value">99.9%</span>\n    \n\n\n\n    \n  \n'
         "</div>\n\n      \n    </div>\n  \n</section>\n\n"
@@ -2324,7 +2324,7 @@ def test_marketing_shell_actions_block_branches_on_auth_state() -> None:
 
 def test_slide_over_default_size_md_has_a_css_rule() -> None:
     css = (_DIST / "brickwork.css").read_text()
-    assert ".bw-slide-over--md .bw-slide-over__panel{" in css
+    assert ".bw-slide-over--size-md .bw-slide-over__panel{" in css
 
 
 def test_tabs_default_variant_underline_has_a_css_rule() -> None:

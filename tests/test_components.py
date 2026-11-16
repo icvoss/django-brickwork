@@ -333,7 +333,7 @@ def test_button_output_is_byte_identical_to_pre_119_for_ordinary_callers() -> No
     # still changing every existing render).
     out = _render('{% bw_button "Save" %}')
     assert out == (
-        '<button class="bw-btn bw-btn--primary bw-btn--md"\n'
+        '<button class="bw-btn bw-btn--primary bw-btn--size-md"\n'
         '        type="button"\n'
         "        \n"
         "        \n"
@@ -517,7 +517,7 @@ class _RegressionFilterForm(forms.Form):
     ("name", "render"),
     [
         (
-            "_empty_state.html (with an action link, bw-btn--md on the CTA)",
+            "_empty_state.html (with an action link, bw-btn--size-md on the CTA)",
             lambda: Template(
                 '{% include "brickwork/components/_empty_state.html" with '
                 'heading="No widgets yet" body="Create your first one." '
@@ -566,7 +566,7 @@ def test_shipped_component_classes_it_emits_are_actually_styled(name: str, rende
 
     #120/#130 both slipped past test_examples.py's equivalent check because it
     only sweeps the copy-paste example pages, not brickwork's OWN shipped
-    component templates. bw-btn--md, bw-field__control and (by the same
+    component templates. bw-btn--size-md, bw-field__control and (by the same
     mechanism) any future emitted-but-unstyled class are caught here instead,
     against the six render paths #130 named. Every fixture supplies real
     context so the emitted markup is not a bare skeleton that happens to skip

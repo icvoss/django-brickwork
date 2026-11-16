@@ -68,7 +68,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any .bw-toast*
   <p class="bw-toast__message">{{ message }}</p>
   {% if action_label %}<a class="bw-toast__action" href="{{ action_href }}">{{ action_label }}</a>{% endif %}
   {% translate "Dismiss" as bw_toast_close_label %}
-  <button class="bw-toast__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only"
+  <button class="bw-toast__close bw-btn bw-btn--ghost bw-btn--size-sm bw-btn--icon-only"
           type="button"
           {% bw_attr "aria-label" bw_toast_close_label %}
           data-bw-toast-close>

@@ -50,7 +50,7 @@ def _dash_offset(html: str) -> float:
 
 def test_floor_is_a_gauge_with_visible_percentage_text() -> None:
     out = _render()
-    assert '<div class="bw-gauge bw-gauge--md"' in out
+    assert '<div class="bw-gauge bw-gauge--size-md"' in out
     assert '<svg class="bw-gauge__svg" viewBox="0 0 100 100" role="img"' in out
     assert '<circle class="bw-gauge__track"' in out
     assert '<circle\n      class="bw-gauge__arc bw-gauge__arc--accent"' in out
@@ -116,7 +116,7 @@ def test_non_numeric_value_is_rejected() -> None:
 @pytest.mark.parametrize("size", ["sm", "md", "lg"])
 def test_size_emits_its_modifier_class(size: str) -> None:
     out = _render('{% bw_gauge value=value size="' + size + '" %}')
-    assert f"bw-gauge--{size}" in out
+    assert f"bw-gauge--size-{size}" in out
 
 
 def test_size_rejects_anything_outside_the_closed_vocabulary() -> None:
@@ -688,7 +688,7 @@ def test_gauge_label_void_element_fix_does_not_invert_the_safe_direction(markup:
 
 def test_data_attrs_render_on_the_gauge_root() -> None:
     out = _render("{% bw_gauge value=value data=data %}", data={"data-testid": "storage-gauge"})
-    assert 'class="bw-gauge bw-gauge--md" data-testid="storage-gauge"' in out
+    assert 'class="bw-gauge bw-gauge--size-md" data-testid="storage-gauge"' in out
 
 
 def test_gauge_root_is_a_div_not_a_span() -> None:
@@ -780,7 +780,7 @@ def test_documented_stat_tile_composition_actually_renders() -> None:
         },
     )
     assert 'class="bw-stat__sparkline"' in out
-    assert 'class="bw-gauge bw-gauge--sm"' in out
+    assert 'class="bw-gauge bw-gauge--size-sm"' in out
     assert '<span class="bw-gauge__label">73%</span>' in out
 
 

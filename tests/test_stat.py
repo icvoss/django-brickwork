@@ -190,8 +190,8 @@ def test_loading_shows_a_skeleton() -> None:
 def test_size_maps_to_modifier_classes() -> None:
     # The modifier is emitted only when supplied: the default (md) tile
     # carries the bare bw-stat class.
-    assert "bw-stat--sm" in _render(label="X", value="1", size="sm")
-    assert "bw-stat--lg" in _render(label="X", value="1", size="lg")
+    assert "bw-stat--size-sm" in _render(label="X", value="1", size="sm")
+    assert "bw-stat--size-lg" in _render(label="X", value="1", size="lg")
     assert "bw-stat--" not in _render(label="X", value="1")
 
 
