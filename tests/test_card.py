@@ -166,9 +166,7 @@ def test_card_css_pads_via_the_density_token() -> None:
         or "var(--bw-component-card-inset" in body
         or "var(--bw-density-card-padding)" in body
         for body in card_bodies
-    ), (
-        "no card rule composes padding from the density-backed inset scale"
-    )
+    ), "no card rule composes padding from the density-backed inset scale"
 
 
 def test_size_argument_maps_to_modifier_classes() -> None:

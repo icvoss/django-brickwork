@@ -106,9 +106,7 @@ _TOL_ALPHA = 0.01
 _TOL_H = 4.0
 _HUE_CHROMA_FLOOR = 0.02
 
-_OKLCH = re.compile(
-    r"^oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+(none|[\d.]+)\s*(?:/\s*([\d.]+)\s*)?\)$"
-)
+_OKLCH = re.compile(r"^oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+(none|[\d.]+)\s*(?:/\s*([\d.]+)\s*)?\)$")
 _ALIAS = re.compile(r"^\{([a-z0-9.-]+)\}$")
 # The full derivation grammar (DESIGN.md section 3): a single color-mix over a
 # --bw-color-* reference with an achromatic or token partner, or a plain alias.
@@ -139,9 +137,7 @@ def _parse_oklch(value: str) -> tuple[float, float, float, float]:
     m = _OKLCH.match(value)
     assert m, f"not an oklch literal: {value!r}"
     lightness, chroma, hue, alpha = m.groups()
-    lightness_value = (
-        float(lightness[:-1]) / 100.0 if lightness.endswith("%") else float(lightness)
-    )
+    lightness_value = float(lightness[:-1]) / 100.0 if lightness.endswith("%") else float(lightness)
     hue_value = 0.0 if hue == "none" else float(hue)
     return (lightness_value, float(chroma), hue_value, float(alpha) if alpha else 1.0)
 

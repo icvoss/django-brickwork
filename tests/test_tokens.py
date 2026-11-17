@@ -79,9 +79,7 @@ def test_primitive_colour_literals_are_all_oklch() -> None:
     assert values, "expected colour tokens in the primitive tier"
     for v in values:
         # ADR-128: pure black/white may ship as hex; every other primitive is oklch.
-        assert _OKLCH.match(v) or v.lower() in _PURE_BW_HEX, (
-            f"primitive colour {v!r} is not oklch (BR-BW-TOK-003)"
-        )
+        assert _OKLCH.match(v) or v.lower() in _PURE_BW_HEX, f"primitive colour {v!r} is not oklch (BR-BW-TOK-003)"
 
 
 def test_semantic_colour_values_are_oklch_or_primitive_aliases() -> None:
@@ -100,9 +98,7 @@ def test_no_hex_or_hsl_in_any_colour_source() -> None:
     # ADR-128 allows pure black/white as #000/#fff; any other hex is still banned.
     for v in _primitive_colour_values() + _semantic_colour_values() + _elevation_values():
         for match in _HEX.finditer(v):
-            assert match.group(0).lower() in _PURE_BW_HEX, (
-                f"hex colour {v!r} found (BR-BW-TOK-003)"
-            )
+            assert match.group(0).lower() in _PURE_BW_HEX, f"hex colour {v!r} found (BR-BW-TOK-003)"
         assert not _HSL.search(v), f"hsl colour {v!r} found (BR-BW-TOK-003)"
 
 
@@ -182,9 +178,7 @@ def test_tokens_css_uses_namespaced_bw_names_in_oklch() -> None:
     assert "oklch(" in css
     root_block = css.split(":root")[1].split("}")[0]
     for match in _HEX.finditer(root_block):
-        assert match.group(0).lower() in _PURE_BW_HEX, (
-            f"non-pure hex leaked into :root colours: {match.group(0)!r}"
-        )
+        assert match.group(0).lower() in _PURE_BW_HEX, f"non-pure hex leaked into :root colours: {match.group(0)!r}"
 
 
 def test_typography_tokens_are_shipped() -> None:

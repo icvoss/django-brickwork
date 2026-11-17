@@ -4879,6 +4879,109 @@ def render_search(theme: str) -> str:
     )
 
 
+# --- @bwui 0.1.11 lockstep surfaces (banner, media_text, number_stepper, popover) ---
+#
+# lockstep-components-<theme>.html covers the four catalogue components that
+# landed with the 0.1.11 vendor and had no prior axe fixture. One page resolves
+# every templatePath the coverage gate requires without four parallel shells.
+
+_LOCKSTEP_COMPONENTS_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lockstep components (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Lockstep components</h1>
+  <section aria-labelledby="banner-heading">
+    <h2 id="banner-heading">Banner</h2>
+    __BANNER__
+  </section>
+  <section aria-labelledby="media-text-heading">
+    <h2 id="media-text-heading">Media and text</h2>
+    __MEDIA_TEXT__
+  </section>
+  <section aria-labelledby="number-stepper-heading">
+    <h2 id="number-stepper-heading">Number stepper</h2>
+    __NUMBER_STEPPER__
+  </section>
+  <section aria-labelledby="popover-heading">
+    <h2 id="popover-heading">Popover</h2>
+    __POPOVER__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+_LOCKSTEP_POPOVER_SOURCE = (
+    "{% extends 'brickwork/components/_popover.html' %}"
+    "{% load i18n %}"
+    "{% block trigger %}Filters{% endblock %}"
+    "{% block body %}<p>Filter the list by status.</p>{% endblock %}"
+)
+
+
+def render_lockstep_components(theme: str) -> str:
+    """Standalone axe page for the four 0.1.11 catalogue components."""
+    from django.utils.safestring import mark_safe
+
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    banner = render_to_string(
+        "brickwork/components/_banner.html",
+        {
+            "title": "Scheduled maintenance",
+            "message": "The workspace will be briefly unavailable tonight.",
+            "variant": "info",
+            "dismissible": True,
+        },
+    )
+    media_svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" '
+        'role="img" aria-label="Neutral product frame">'
+        '<rect width="400" height="240" fill="#d4d4d8"></rect></svg>'
+    )
+    media_text = render_to_string(
+        "brickwork_marketing/components/_media_text.html",
+        {
+            "heading": "Ship faster",
+            "lede": "Compose the public surface from shipped craft.",
+            "media": mark_safe(media_svg),  # noqa: S308 (fixture-authored trusted markup)
+            "caption": "Product frame",
+            "cta_label": "Read the docs",
+            "cta_href": "/docs/",
+        },
+    )
+    number_stepper = render_to_string(
+        "brickwork/components/_number_stepper.html",
+        {
+            "id": "fx-qty",
+            "name": "qty",
+            "value": 2,
+            "min": 0,
+            "max": 10,
+            "size": "md",
+            "label": "Quantity",
+        },
+    )
+    popover = (
+        engines["django"]
+        .from_string(_LOCKSTEP_POPOVER_SOURCE)
+        .render({"id": "fx-help-pop", "title": "Help", "placement": "bottom"})
+    )
+    return (
+        _LOCKSTEP_COMPONENTS_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__BANNER__", banner)
+        .replace("__MEDIA_TEXT__", media_text)
+        .replace("__NUMBER_STEPPER__", number_stepper)
+        .replace("__POPOVER__", popover)
+    )
+
+
 # --- version switcher (icvoss/django-brickwork#414) --------------------------
 #
 # version-switch-<theme>.html is a standalone page mirroring render_search:
@@ -5527,6 +5630,9 @@ def main() -> None:
         # search + loading button (#226): bw_search and _spinner.html's
         # loading=True mount, neither previously rendered by any fixture
         _emit(OUT / f"search-{theme}.html", render_search(theme), written)
+        # @bwui 0.1.11 lockstep catalogue surfaces (#757): banner, media_text,
+        # number_stepper, popover — none previously resolved by any fixture
+        _emit(OUT / f"lockstep-components-{theme}.html", render_lockstep_components(theme), written)
         # version switcher (#414): bw_version_switch current-version disclosure
         _emit(OUT / f"version-switch-{theme}.html", render_version_switch(theme), written)
         # docs on-this-page toc (#627): bw_toc nested entries + aria-current

@@ -177,15 +177,11 @@ def test_hidden_mode_wraps_the_table_in_the_visually_hidden_clip_wrapper() -> No
 
     # Rule lives in @bwui/css layout.css (F01); the wheel ships it in dist.
     css = (
-        Path(__file__).resolve().parent.parent
-        / "src"
-        / "brickwork"
-        / "static"
-        / "brickwork"
-        / "dist"
-        / "brickwork.css"
+        Path(__file__).resolve().parent.parent / "src" / "brickwork" / "static" / "brickwork" / "dist" / "brickwork.css"
     ).read_text(encoding="utf-8")
-    rule_start = css.index(".bw-visually-hidden{") if ".bw-visually-hidden{" in css else css.index(".bw-visually-hidden {")
+    rule_start = (
+        css.index(".bw-visually-hidden{") if ".bw-visually-hidden{" in css else css.index(".bw-visually-hidden {")
+    )
     rule = css[rule_start : css.index("}", rule_start)]
     assert "clip-path" in rule, f"bw-visually-hidden must stay a clip pattern, got: {rule!r}"
     assert "display: none" not in rule, (
