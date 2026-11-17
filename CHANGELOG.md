@@ -10,7 +10,7 @@ versioning contract).
 
 ## [4.5.0] - 2026-11-17
 
-Lockstep with `@bwui` 0.1.11 (the post-0.1.9 batch from icvoss/brickwork;
+Lockstep with `@bwui` 0.1.12 (the post-0.1.9 batch from icvoss/brickwork, plus the 0.1.12 a11y patch;
 `v0.1.10` was tagged but never reached npm). Pip consumers get the new CSS and
 tokens via `{% static %}` with no npm step of their own.
 
@@ -142,8 +142,8 @@ tokens via `{% static %}` with no npm step of their own.
   icon and spinner are 14 px (was 16 px), and an `lg` button's are 18 px with a
   12 px icon-to-label gap (was 16 px and 8 px). `md` is unchanged.
 
-- **Vendored substrate moves to `@bwui/tokens` and `@bwui/css` 0.1.11.**
-  Lockstep with the post-0.1.9 `@bwui` batch (icvoss/brickwork `v0.1.11`;
+- **Vendored substrate moves to `@bwui/tokens` and `@bwui/css` 0.1.12.**
+  Lockstep with the post-0.1.9 `@bwui` batch plus the 0.1.12 a11y patch (icvoss/brickwork `v0.1.12`;
   `v0.1.10` was tagged but never reached npm). Consumer-visible substrate
   includes Channels kit primitives (`bw-progress__elapsed`, `bw-stat-summary`,
   chart-card head/total, `bw-window-control`, `bw-insight`, glyph entity marks,
