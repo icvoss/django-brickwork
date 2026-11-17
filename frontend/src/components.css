@@ -2834,7 +2834,9 @@ button.bw-account-menu__item {
 }
 
 .bw-filter-bar__actions {
-  margin-block-end: var(--bw-space-1);
+  /* No trailing margin: .bw-field__errors:empty is display:none, so the field
+   * stack ends at the control and flex-end already shares that bottom edge. */
+  margin-block-end: 0;
 }
 
 /* --- Search (#155) --------------------------------------------------------- */
@@ -6060,7 +6062,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  * override is needed to satisfy MOT-007's clear-quickly contract. */
 @media (prefers-reduced-motion: reduce) {
   .bw-banner[data-bw-dismissing] {
-    transition-duration: 0s !important;
+    transition-duration: var(--bw-duration-instant) !important;
   }
 }
 /* The badge's close control skips the bw-btn chrome (a control-height button
