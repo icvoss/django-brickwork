@@ -139,12 +139,11 @@ def _parse_oklch(value: str) -> tuple[float, float, float, float]:
     m = _OKLCH.match(value)
     assert m, f"not an oklch literal: {value!r}"
     lightness, chroma, hue, alpha = m.groups()
-    if lightness.endswith("%"):
-        l = float(lightness[:-1]) / 100.0
-    else:
-        l = float(lightness)
-    h = 0.0 if hue == "none" else float(hue)
-    return (l, float(chroma), h, float(alpha) if alpha else 1.0)
+    lightness_value = (
+        float(lightness[:-1]) / 100.0 if lightness.endswith("%") else float(lightness)
+    )
+    hue_value = 0.0 if hue == "none" else float(hue)
+    return (lightness_value, float(chroma), hue_value, float(alpha) if alpha else 1.0)
 
 
 def _resolve_alias(value: str, primitives: dict) -> str:
