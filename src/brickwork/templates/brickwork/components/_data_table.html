@@ -64,7 +64,11 @@ Optional:
       pairing rule),
   querystring, selectable (bool, records only, see below), sticky_header
   sticky_header (bool, either name, see below), responsive
-  ("scroll" default | "stack", see below).
+  ("scroll" default | "stack", see below),
+  caption (str, rendered as <caption class="bw-data-table__caption">),
+  footnote (str, grouping rule / N/A exclusion note under the table),
+  row.kind ("group" | "group-child" | "totals" | omit for a plain record),
+  row.expanded (bool, group rows only, drives aria-expanded).
 
 --- Bulk selection (brickwork#54, records variant only) --------------------
 
@@ -161,6 +165,7 @@ marker into ids and attributes; firstof resolves with failures ignored.
     {% include "brickwork/components/_empty_state.html" with variant="no_data" heading=empty_heading_resolved body=empty_body_resolved action_href=empty_action_href_resolved action_label=empty_action_label_resolved %}
   {% elif variant == "definition" %}
     <table class="bw-data-table bw-data-table--definition">
+      {% if caption %}<caption class="bw-data-table__caption">{{ caption }}</caption>{% endif %}
       <tbody>
         {% for row in rows %}
           <tr class="bw-data-table__row">
@@ -188,6 +193,7 @@ marker into ids and attributes; firstof resolves with failures ignored.
     </a>
     {% endpartialdef %}
     <table class="bw-data-table{% if responsive == "stack" %} bw-data-table--stack{% endif %}">
+      {% if caption %}<caption class="bw-data-table__caption">{{ caption }}</caption>{% endif %}
       <thead>
         <tr>
           {% if selectable %}
@@ -202,7 +208,7 @@ marker into ids and attributes; firstof resolves with failures ignored.
             {% endcomment %}
             <th scope="col" class="bw-data-table__th bw-data-table__th--select">
               <label class="bw-visually-hidden" {% bw_attr "for" table_id suffix="-select-all" %}>{% translate "Select all rows" %}</label>
-              <input type="checkbox" class="bw-checkbox"
+              <input type="checkbox" class="bw-checkbox bw-checkbox--size-xs"
                      {% bw_attr "id" table_id suffix="-select-all" %}
                      data-bw-select-all
                      aria-label="{% translate 'Select all rows' %}">
@@ -294,7 +300,7 @@ marker into ids and attributes; firstof resolves with failures ignored.
         {% partialdef table_rows inline %}
         {% for row in rows %}
           {% with row_id_prefix=table_id|add:"-row-" %}
-          <tr {% bw_attr "id" row.id prefix=row_id_prefix %} class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}{% if row.selected %} bw-data-table__row--selected{% endif %}"{% if row.data %}{% bw_data_attrs row.data %}{% endif %}>
+          <tr {% bw_attr "id" row.id prefix=row_id_prefix %} class="bw-data-table__row{% if row.url %} bw-data-table__row--linked{% endif %}{% if row.selected %} bw-data-table__row--selected{% endif %}{% if row.kind == 'group' %} bw-data-table__row--group{% elif row.kind == 'group-child' %} bw-data-table__row--group-child{% elif row.kind == 'totals' %} bw-data-table__row--totals{% endif %}"{% if row.data %}{% bw_data_attrs row.data %}{% endif %}>
             {% if selectable %}
               {% comment %}
               #54: the selection contract. name="selected" value="{{ row.id }}"
@@ -308,7 +314,7 @@ marker into ids and attributes; firstof resolves with failures ignored.
               {% endcomment %}
               <td class="bw-data-table__td bw-data-table__td--select">
                 <label class="bw-visually-hidden" {% bw_attr "for" row.id prefix=row_id_prefix suffix="-select" %}>{% blocktranslate with row_id=row.id %}Select row {{ row_id }}{% endblocktranslate %}</label>
-                <input type="checkbox" class="bw-checkbox" name="selected" {% bw_attr "value" row.id %}
+                <input type="checkbox" class="bw-checkbox bw-checkbox--size-xs" name="selected" {% bw_attr "value" row.id %}
                        {% bw_attr "id" row.id prefix=row_id_prefix suffix="-select" %}
                        data-bw-row-select>
               </td>
@@ -325,4 +331,5 @@ marker into ids and attributes; firstof resolves with failures ignored.
       </tbody>
     </table>
   {% endif %}
+{% if footnote %}<div class="bw-data-table__footnote">{{ footnote }}</div>{% endif %}
 </div>

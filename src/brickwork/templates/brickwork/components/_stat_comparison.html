@@ -148,7 +148,7 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
   .bw-stat-comparison* selector, matching _stat.html's own responsive
   posture. Size is the fixed sm/md/lg token scale, never viewport-driven.
 {% endcomment %}
-<div class="bw-stat-comparison{% if size == "sm" %} bw-stat-comparison--size-sm{% elif size == "lg" %} bw-stat-comparison--size-lg{% endif %}">
+<div class="bw-stat-comparison{% if size == "sm" %} bw-stat-comparison--size-sm{% elif size == "lg" %} bw-stat-comparison--size-lg{% else %} bw-stat-comparison--size-md{% endif %}">
   {% if label %}<span class="bw-stat-comparison__label">{{ label }}</span>{% endif %}
   <span class="bw-stat-comparison__current">{{ current }}</span>
   <span class="bw-stat-comparison__previous">{{ previous }}{% if period_label %} <span class="bw-stat-comparison__period">{{ period_label }}</span>{% endif %}</span>

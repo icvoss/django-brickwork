@@ -1,0 +1,47 @@
+{% load i18n brickwork_icons brickwork_components %}
+{% comment %}
+Banner (H19 / R16): full-bleed edge-anchored announcement strip. Distinct from
+_alert.html (in-flow status, role=alert) and _callout.html (editorial).
+
+variant ("info" | "success" | "warning" | "danger" | "neutral", default "info")
+edge ("top" | "bottom", default "top")
+title, message (optional strings)
+title_id (optional): id for the title element and aria-labelledby target.
+  Defaults to "bw-banner-title". Pass a unique value when more than one
+  banner is rendered on the page.
+icon (optional registered icon name); decorative when present.
+aria_label (optional): required for an accessible name when title is absent.
+dismissible (bool): progressive enhancement via bwDismissible(); close ships
+  with hidden so the no-JS floor shows no dead control.
+
+Named blocks (semver-public, BR-BW-TPL-001):
+  body: rich body under title/message
+  actions: CTA cluster (compose buttons)
+
+Accessibility: role="region" with aria-labelledby when title is present, else
+  aria_label. Never role="alert". Craft: docs/components/banner.md.
+{% endcomment %}
+{% firstof variant "info" as bw_banner_variant %}
+{% firstof edge "top" as bw_banner_edge %}
+{% firstof title_id "bw-banner-title" as bw_banner_title_id %}
+<div class="bw-banner bw-banner--{{ bw_banner_variant }} bw-banner--edge-{{ bw_banner_edge }}"
+     role="region"
+     {% if title %}aria-labelledby="{{ bw_banner_title_id }}"{% elif aria_label %}aria-label="{{ aria_label }}"{% endif %}
+     {% if dismissible %}x-data="bwDismissible()"{% endif %}>
+  {% if icon %}
+    {% bw_icon icon size="sm" decorative=True css_class="bw-banner__icon" %}
+  {% endif %}
+  <div class="bw-banner__body">
+    {% if title %}<p class="bw-banner__title" id="{{ bw_banner_title_id }}">{{ title }}</p>{% endif %}
+    {% if message %}<p class="bw-banner__message">{{ message }}</p>{% endif %}
+    {% block body %}{% endblock %}
+  </div>
+  {% block actions %}{% endblock %}
+{% if dismissible %}{% translate "Dismiss" as bw_banner_close_label %}  <button class="bw-banner__close bw-btn bw-btn--ghost bw-btn--size-sm bw-btn--icon-only"
+          type="button"
+          hidden
+          {% bw_attr "aria-label" bw_banner_close_label %}
+          data-bw-dismiss>
+    {% bw_icon "close" size="sm" decorative=True %}
+  </button>
+{% endif %}</div>

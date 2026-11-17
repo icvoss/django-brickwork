@@ -3,7 +3,7 @@
     "$description": "Semantic tier, LIGHT theme. Role-named tokens (surface, fg, border, accent, status) that ARE the public contract (BR-BW-TOK-001): names are stable, values are brand-overridable. This file holds the authored light values; semantic.dark.tokens.json holds the authored dark values (BR-BW-TOK-002: dark is authored, never derived from light). Both files define the SAME token names. Derived tokens carry their live color-mix expression in $extensions.bw.derived (emitted as the CSS value); $value stays the resolved default and the regression baseline (docs/DESIGN.md section 3).",
     "$type": "color",
     "surface": {
-      "$value": "{primitive.gray.0}",
+      "$value": "{primitive.white}",
       "$extensions": {
         "bw": {
           "loadBearing": true
@@ -11,7 +11,7 @@
       }
     },
     "surface-sunken": {
-      "$value": "{primitive.gray.100}",
+      "$value": "{primitive.zinc.100}",
       "$description": "0.4.0 polish: deepened from the 98.5% mix (gray.50), which was indistinguishable from the white chrome; the canvas now lands on gray.100 so cards, header bands and zebra stripes separate.",
       "$extensions": {
         "bw": {
@@ -20,7 +20,7 @@
       }
     },
     "surface-raised": {
-      "$value": "{primitive.gray.0}",
+      "$value": "{primitive.white}",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-surface)"
@@ -28,7 +28,7 @@
       }
     },
     "surface-inverse": {
-      "$value": "{primitive.gray.900}",
+      "$value": "{primitive.zinc.900}",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg)",
@@ -38,7 +38,7 @@
       }
     },
     "surface-overlay": {
-      "$value": "oklch(0.205 0.005 265 / 0.5)",
+      "$value": "oklch(0.21 0.006 285.885 / 0.5)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-surface-inverse) 50%, transparent)"
@@ -46,7 +46,7 @@
       }
     },
     "fg": {
-      "$value": "{primitive.gray.900}",
+      "$value": "{primitive.zinc.900}",
       "$extensions": {
         "bw": {
           "loadBearing": true
@@ -63,7 +63,7 @@
       }
     },
     "fg-subtle": {
-      "$value": "{primitive.gray.400}",
+      "$value": "{primitive.zinc.400}",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-fg) 37%, var(--bw-color-surface))"
@@ -71,7 +71,7 @@
       }
     },
     "fg-on-accent": {
-      "$value": "{primitive.gray.0}",
+      "$value": "{primitive.white}",
       "$extensions": {
         "bw": {
           "loadBearing": true,
@@ -82,7 +82,7 @@
       }
     },
     "fg-on-inverse": {
-      "$value": "{primitive.gray.0}",
+      "$value": "{primitive.white}",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-surface)"
@@ -90,14 +90,14 @@
       }
     },
     "status-fg-ink": {
-      "$value": "{primitive.gray.900}",
+      "$value": "{primitive.zinc.900}",
       "$description": "brickwork#289 review round 2: the fixed dark-ink partner every X-fg (danger/success/warning/info) mixes toward. Deliberately NOT var(--bw-color-fg): fg is one of the seven load-bearing tokens BRANDING.md tells every brand to author, so a derivation that tracked fg would let an ordinary, documented fg override quietly break status-text contrast (the same AA trap #289 closed for --bw-color-surface, one token over). This token defaults to the same value as --bw-color-fg (gray.900) so the shipped X-fg ratios are unchanged, but it is a distinct name a brand does not touch when it authors fg: overriding fg alone leaves status-text contrast exactly where base-theme verified it. A brand wanting different status-text ink authors this token directly (rare) and re-verifies the contrastPairs pairings itself.",
       "$extensions": {
         "bw": {}
       }
     },
     "border": {
-      "$value": "{primitive.gray.200}",
+      "$value": "{primitive.zinc.200}",
       "$extensions": {
         "bw": {
           "loadBearing": true
@@ -105,7 +105,7 @@
       }
     },
     "border-strong": {
-      "$value": "{primitive.gray.300}",
+      "$value": "{primitive.zinc.300}",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-border) 94%, black)"
@@ -122,7 +122,7 @@
       }
     },
     "action-disabled-bg": {
-      "$value": "{primitive.gray.100}",
+      "$value": "{primitive.zinc.100}",
       "$description": "Flat disabled control fill (COL-018 / icvoss/django-brickwork#282). Replaces opacity dimming so disabled contrast is a gated token pair rather than a blend against an unknown backdrop. Same mix as surface-sunken so a brand surface override flows through; expressed as color-mix (not a var() alias) so render_brand_css can resolve the contrastPair.",
       "$extensions": {
         "bw": {
@@ -224,7 +224,7 @@
       }
     },
     "danger-on-fg": {
-      "$value": "{primitive.gray.0}"
+      "$value": "{primitive.white}"
     },
     "warning": {
       "$value": "{primitive.amber.600}",
@@ -275,7 +275,7 @@
       }
     },
     "warning-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "success": {
       "$value": "{primitive.green.600}",
@@ -326,7 +326,7 @@
       }
     },
     "success-on-fg": {
-      "$value": "{primitive.gray.950}",
+      "$value": "{primitive.zinc.950}",
       "$description": "Near-black ink, the same treatment as warning: white on the solid green base fails AA (3.32); this ink measures 5.97."
     },
     "info": {
@@ -380,11 +380,11 @@
       }
     },
     "info-on-fg": {
-      "$value": "{primitive.gray.950}",
+      "$value": "{primitive.zinc.950}",
       "$description": "Near-black ink, the same treatment as warning: white on the solid cyan base fails AA (3.83); this ink measures 5.17."
     },
     "icon-muted": {
-      "$value": "{primitive.gray.400}",
+      "$value": "{primitive.zinc.400}",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg-subtle)"
@@ -426,7 +426,7 @@
       }
     },
     "nav-item-disabled-text": {
-      "$value": "{primitive.gray.400}",
+      "$value": "{primitive.zinc.400}",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg-subtle)"
@@ -443,7 +443,7 @@
       }
     },
     "breadcrumb-current": {
-      "$value": "{primitive.gray.900}",
+      "$value": "{primitive.zinc.900}",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg)"
@@ -451,7 +451,7 @@
       }
     },
     "breadcrumb-separator": {
-      "$value": "{primitive.gray.400}",
+      "$value": "{primitive.zinc.400}",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg-subtle)"
@@ -459,7 +459,7 @@
       }
     },
     "skeleton-bg": {
-      "$value": "{primitive.gray.200}",
+      "$value": "{primitive.zinc.200}",
       "$description": "One step deeper than the sunken canvas so the placeholder reads as one. 0.4.0 polish: constant retuned 94% to 96% to hold the gray.200 landing above the deeper 96.5% sunken.",
       "$extensions": {
         "bw": {
@@ -494,7 +494,7 @@
       }
     },
     "stage-grid": {
-      "$value": "oklch(0.928 0.004 265 / 0.6)",
+      "$value": "oklch(0.92 0.004 286.32 / 0.6)",
       "$description": "4.2.0 soft-stage grid line (BR-BW-MKT-007 / #570): border at 60% over transparent, a faint line on the light surface rather than a hard rule.",
       "$extensions": {
         "bw": {

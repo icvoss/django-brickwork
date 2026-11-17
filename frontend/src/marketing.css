@@ -22,7 +22,7 @@
 .bw-marketing {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-block-size: 100vh;
 }
 
 /* --- Overlay mode (ADR-105, icvoss/django-brickwork#565) --------------------
@@ -75,7 +75,11 @@
   );
 }
 
-/* Enhanced: transparent until scrolled; ink follows panel context. */
+/* Enhanced: transparent until scrolled; ink follows panel context.
+ * Context ink is theme-stable via light-dark() against --bw-color-fg /
+ * --bw-color-surface (ADR-128 / CB-16: no raw oklch literals).
+ * nav-context="dark" = dark band behind the chrome (need light ink).
+ * nav-context="light" = light band behind the chrome (need dark ink). */
 .bw-site-header--overlay[data-bw-overlay-ready]:not([data-bw-scrolled="true"]) {
   background: transparent;
   border-block-end-color: transparent;
@@ -83,25 +87,38 @@
 }
 
 .bw-site-header--overlay[data-bw-overlay-ready][data-bw-nav-context="dark"] {
-  --bw-overlay-ink: oklch(0.98 0.002 265);
-  --bw-overlay-ink-muted: color-mix(in oklab, oklch(0.98 0.002 265) 72%, transparent);
-  --bw-overlay-frost: color-mix(in oklab, oklch(0.16 0.02 265) 78%, transparent);
-  --bw-overlay-line: oklch(1 0 0 / 0.14);
+  --bw-overlay-ink: light-dark(var(--bw-color-surface), var(--bw-color-fg));
+  --bw-overlay-ink-muted: color-mix(in oklab, var(--bw-overlay-ink) 72%, transparent);
+  --bw-overlay-frost: color-mix(
+    in oklab,
+    light-dark(var(--bw-color-fg), var(--bw-color-surface)) 78%,
+    transparent
+  );
+  --bw-overlay-line: color-mix(in oklab, var(--bw-overlay-ink) 14%, transparent);
 }
 
 .bw-site-header--overlay[data-bw-overlay-ready][data-bw-nav-context="light"] {
-  --bw-overlay-ink: oklch(0.205 0.005 265);
-  --bw-overlay-ink-muted: color-mix(in oklab, oklch(0.205 0.005 265) 68%, transparent);
-  --bw-overlay-frost: color-mix(in oklab, oklch(1 0 0) 82%, transparent);
-  --bw-overlay-line: oklch(0.205 0.005 265 / 0.14);
+  --bw-overlay-ink: light-dark(var(--bw-color-fg), var(--bw-color-surface));
+  --bw-overlay-ink-muted: color-mix(in oklab, var(--bw-overlay-ink) 68%, transparent);
+  --bw-overlay-frost: color-mix(in oklab, var(--bw-color-surface) 82%, transparent);
+  --bw-overlay-line: color-mix(in oklab, var(--bw-overlay-ink) 14%, transparent);
 }
 
 .bw-site-header--overlay[data-bw-overlay-ready][data-bw-scrolled="true"] {
-  background: var(--bw-overlay-frost, color-mix(in oklab, oklch(1 0 0) 82%, transparent));
-  border-block-end-color: var(--bw-overlay-line, oklch(0.205 0.005 265 / 0.14));
+  background: var(--bw-overlay-frost);
+  border-block-end-color: var(--bw-overlay-line);
   box-shadow: var(--bw-elevation-1);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
   backdrop-filter: blur(12px) saturate(140%);
+}
+
+.bw-site-header--overlay[data-bw-overlay-ready] {
+  color: var(--bw-overlay-ink);
+  transition:
+    background var(--bw-duration-normal) var(--bw-ease-standard),
+    border-color var(--bw-duration-normal) var(--bw-ease-standard),
+    box-shadow var(--bw-duration-normal) var(--bw-ease-standard),
+    color var(--bw-duration-normal) var(--bw-ease-standard);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -114,15 +131,6 @@
   }
 }
 
-.bw-site-header--overlay[data-bw-overlay-ready] {
-  color: var(--bw-overlay-ink, oklch(0.205 0.005 265));
-  transition:
-    background var(--bw-duration-normal) var(--bw-ease-standard),
-    border-color var(--bw-duration-normal) var(--bw-ease-standard),
-    box-shadow var(--bw-duration-normal) var(--bw-ease-standard),
-    color var(--bw-duration-normal) var(--bw-ease-standard);
-}
-
 .bw-site-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark,
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-site-header__nav
@@ -130,10 +138,7 @@
 .bw-site-header--overlay[data-bw-overlay-ready]
   .bw-site-header__actions
   > :where(a):not(.bw-btn) {
-  color: var(
-    --bw-overlay-ink-muted,
-    color-mix(in oklab, oklch(0.205 0.005 265) 68%, transparent)
-  );
+  color: var(--bw-overlay-ink-muted);
 }
 
 .bw-site-header--overlay[data-bw-overlay-ready]
@@ -143,7 +148,7 @@
   .bw-site-header__actions
   > :where(a:hover):not(.bw-btn),
 .bw-site-header--overlay[data-bw-overlay-ready] .bw-site-header__brand-wordmark:hover {
-  color: var(--bw-overlay-ink, oklch(0.205 0.005 265));
+  color: var(--bw-overlay-ink);
 }
 
 /* Open mobile disclosure under overlay: keep opaque panel readable. */
@@ -491,7 +496,7 @@ so the slot's layout does not shift there. */
 .bw-marketing-footer__groups {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--bw-space-6);
+  gap: var(--bw-size-gap-lg);
 }
 
 @media (width >= --theme(--breakpoint-sm)) {
@@ -503,7 +508,7 @@ so the slot's layout does not shift there. */
 .bw-marketing-footer__group {
   display: flex;
   flex-direction: column;
-  gap: var(--bw-space-2);
+  gap: var(--bw-size-gap-sm);
   align-items: flex-start;
 }
 
@@ -1254,11 +1259,9 @@ so the narrow case needs no rule (ADR-057 section 1: a section
   gap: var(--bw-space-6);
 }
 
-/* Bordered gap-less variant (#646): cells share one rule (1px gap over the
- * border colour,
-strong outer border,
-no per-card radius or shadow). The
- * default gapped cards stay byte-identical when variant is omitted. */
+/* Bordered gap-less variant (django-brickwork issue 646): cells share one rule
+ * (1px gap over the border colour, strong outer border, no per-card radius or
+ * shadow). The default gapped cards stay byte-identical when variant is omitted. */
 .bw-feature-grid--bordered {
   gap: var(--bw-size-border-hairline);
   background: var(--bw-color-border);
@@ -1287,8 +1290,7 @@ no per-card radius or shadow). The
 }
 
 /* Feature cards inside a feature grid carry a quiet surface role
- * (icvoss/django-brickwork#510): hairline + elevation-1,
-not bare
+ * (icvoss/django-brickwork issue 510): hairline + elevation-1, not bare
  * icon-plus-copy. Scoped to the grid so footer link groups that reuse
  * .bw-feature-card for stacking do not pick up card chrome. Edge and
  * ambient mirror the zero-kwargs .bw-card craft so tiles read on white. */
@@ -1385,9 +1387,8 @@ not a stack of cards. Hover shifts surface
 }
 
 /* Meta and CTA sit on a shared baseline at the foot of the card when the
- * body lengths differ across a row (#641). When both are present,
-meta
- * takes the auto push and CTA follows under the card gap. */
+ * body lengths differ across a row (django-brickwork issue 641). When both are
+ * present, meta takes the auto push and CTA follows under the card gap. */
 .bw-feature-card__meta,
 .bw-feature-card__cta {
   margin-block-start: auto;
@@ -1413,8 +1414,9 @@ meta
   text-transform: uppercase;
 }
 
-/* Pending (#641): reduced emphasis via the muted opacity token. Without a
- * url the card is already non-interactive; with a url it stays a link. */
+/* Pending (django-brickwork issue 641): reduced emphasis via the muted opacity
+ * token. Without a url the card is already non-interactive; with a url it stays
+ * a link. Opacity drops below AA text contrast by design (visual hold state). */
 .bw-feature-card--pending {
   opacity: var(--bw-opacity-muted);
 }
@@ -1424,11 +1426,10 @@ meta
   background: var(--bw-color-surface);
 }
 
-/* Linked feature card (#99): the whole card is an anchor (a.bw-card's
- * contract: content keeps its own ink,
-no underline smears across the card;
- * the focus ring comes from the global :focus-visible rule). Inside a feature
- * grid the card also carries the quiet surface chrome above; the hover
+/* Linked feature card (django-brickwork issue 99): the whole card is an anchor
+ * (a.bw-card's contract: content keeps its own ink, no underline smears across
+ * the card; the focus ring comes from the global :focus-visible rule). Inside a
+ * feature grid the card also carries the quiet surface chrome above; the hover
  * affordance remains the marketing kit's link ink treatment on the heading
  * (accent ink with the standard colour transition). Colour is reinforcement
  * only; the pointer cursor and focus ring carry the interactivity signal. */
@@ -1625,7 +1626,7 @@ contrast-checked
 }
 
 /* width="bleed" CTA extras on top of the shared .bw-section--bleed /
- * .bw-cta--bleed escape (#667). Declared AFTER .bw-cta--tint so a tinted
+ * .bw-cta--bleed escape (issue 667). Declared AFTER .bw-cta--tint so a tinted
  * full-bleed band takes THIS rule's inline gutter rather than tint's
  * --bw-space-8 (specificity-tie / source-order,
 ADR-057 §1a). CTA keeps
@@ -1670,7 +1671,7 @@ not the
   gap: var(--bw-space-3);
 }
 
-/* align="start" (#697): quiet contact-foot stack. Centre remains the
+/* align="start" (issue 697): quiet contact-foot stack. Centre remains the
  * default (no modifier). Pair with band="plain" for a soft left close. */
 .bw-cta--align-start {
   text-align: start;
@@ -2116,7 +2117,7 @@ BR-BW-MKT-004). */
 /* CTA / full-bleed --------------------------------------------------------- */
 
 /* Escape size/margin come from the shared .bw-section--bleed / .bw-cta-bleed
- * rule (#667). This block keeps the inverse band treatment and its own
+ * rule (issue 667). This block keeps the inverse band treatment and its own
  * gutter (prose __inner,
 same shape as .bw-cta--bleed). */
 .bw-cta-bleed {
@@ -2385,7 +2386,9 @@ where a naked number
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-2);
-  padding: var(--bw-space-8);
+  /* D06 raise (STA-R33): padding raised from raw --bw-space-8 to the
+     inset scale (ADR-126 section 5, CB-17). md matches the app stat tile. */
+  padding: var(--bw-size-inset-md);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-radius: var(--bw-radius-lg);
   background: var(--bw-color-surface-raised);

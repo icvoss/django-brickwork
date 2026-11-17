@@ -8,6 +8,24 @@ versioning contract).
 
 ## Unreleased
 
+## [4.5.0] - 2026-11-17
+
+Lockstep with `@bwui` 0.1.11 (the post-0.1.9 batch from icvoss/brickwork;
+`v0.1.10` was tagged but never reached npm). Pip consumers get the new CSS and
+tokens via `{% static %}` with no npm step of their own.
+
+### Changed
+
+- **Bump `@bwui/tokens` and `@bwui/css` pins to 0.1.11** and re-vendor
+  `static/brickwork/dist`. Consumer-visible substrate includes Channels kit
+  primitives (`bw-progress__elapsed`, `bw-stat-summary`, chart-card head/total,
+  `bw-window-control`, `bw-insight`, glyph entity marks, chart-mount height),
+  the large raised control and marketing surface since 0.1.9, ADR-128 palette
+  source, and Combobox signed-off. See the `@bwui` 0.1.11 changelog.
+- **Monorepo source mirror sync** (tokens DTCG, CSS layers, Django templates,
+  frontend JS) from `icvoss/brickwork` at the 0.1.11 cut via
+  `npm run sync:monorepo`.
+
 ## [4.4.0] - 2026-11-14
 
 First-run and lockstep release: clean-directory `startsite`, selectable

@@ -70,7 +70,7 @@
       }
     },
     "fg-on-accent": {
-      "$value": "{primitive.gray.950}",
+      "$value": "{primitive.zinc.950}",
       "$extensions": {
         "bw": {
           "loadBearing": true,
@@ -96,7 +96,7 @@
       }
     },
     "border": {
-      "$value": "{primitive.gray.800}",
+      "$value": "{primitive.zinc.800}",
       "$extensions": {
         "bw": {
           "loadBearing": true
@@ -104,7 +104,7 @@
       }
     },
     "border-strong": {
-      "$value": "{primitive.gray.700}",
+      "$value": "{primitive.zinc.700}",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-border) 86%, white)"
@@ -218,7 +218,7 @@
       }
     },
     "danger-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "warning": {
       "$value": "{primitive.amber.500}",
@@ -263,7 +263,7 @@
       }
     },
     "warning-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "success": {
       "$value": "{primitive.green.500}",
@@ -308,7 +308,7 @@
       }
     },
     "success-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "info": {
       "$value": "{primitive.cyan.400}",
@@ -355,7 +355,7 @@
       }
     },
     "info-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "icon-muted": {
       "$value": "oklch(0.548 0.004 265)",
@@ -466,7 +466,7 @@
       }
     },
     "stage-grid": {
-      "$value": "oklch(0.269 0.006 265 / 0.7)",
+      "$value": "oklch(0.274 0.006 286.033 / 0.7)",
       "$description": "4.2.0 soft-stage grid line (BR-BW-MKT-007 / #570), AUTHORED for dark: border at 70% over transparent so the grid stays visible on graphite.",
       "$extensions": {
         "bw": {
