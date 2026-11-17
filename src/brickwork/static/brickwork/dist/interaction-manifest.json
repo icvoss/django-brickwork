@@ -28,6 +28,9 @@
       "name": "bwTooltip"
     },
     {
+      "name": "bwPopover"
+    },
+    {
       "name": "bwTagInput"
     },
     {
@@ -88,6 +91,12 @@
     },
     {
       "name": "bw:modal:open"
+    },
+    {
+      "name": "bw:popover:close"
+    },
+    {
+      "name": "bw:popover:open"
     },
     {
       "name": "bw:sidebar:collapse"

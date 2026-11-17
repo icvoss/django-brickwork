@@ -35,9 +35,9 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     # --- the three defaults that shipped with no rule (fixed in 3.0.0) -------
     ("_tabs", "variant", "underline", "bw-tabs--underline"),
     ("_tabs", "variant", "pill", "bw-tabs--pill"),
-    ("_slide_over", "size", "sm", "bw-slide-over--sm"),
-    ("_slide_over", "size", "md", "bw-slide-over--md"),
-    ("_slide_over", "size", "lg", "bw-slide-over--lg"),
+    ("_slide_over", "size", "sm", "bw-slide-over--size-sm"),
+    ("_slide_over", "size", "md", "bw-slide-over--size-md"),
+    ("_slide_over", "size", "lg", "bw-slide-over--size-lg"),
     ("_hero", "align", "start", "bw-hero--start"),
     ("_hero", "align", "center", "bw-hero--center"),
     ("_hero", "align", "end", "bw-hero--end"),

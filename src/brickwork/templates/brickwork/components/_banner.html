@@ -18,8 +18,11 @@ Named blocks (semver-public, BR-BW-TPL-001):
   body: rich body under title/message
   actions: CTA cluster (compose buttons)
 
+States: visible; dismissed when dismissible=True (x-data="bwDismissible()",
+  close control hidden on the no-JS floor).
 Accessibility: role="region" with aria-labelledby when title is present, else
   aria_label. Never role="alert". Craft: docs/components/banner.md.
+Responsive: no breakpoint switch; edge placement is authorial, not viewport-driven.
 {% endcomment %}
 {% firstof variant "info" as bw_banner_variant %}
 {% firstof edge "top" as bw_banner_edge %}

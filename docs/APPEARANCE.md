@@ -170,6 +170,7 @@ Status values:
 | avatar | Adopted | `size`, `shape` via `{% bw_options %}` |
 | avatar_group | N/A (local) | `size` / overlap craft; no extra shared axis |
 | badge | N/A (local) | Intent via `variant`; soft/outline `tone` stays Could |
+| banner | Adopted | `variant`, `edge`, dismissible; full-bleed announcement strip |
 | bio | N/A (local) | Marketing person strip; Phase C depth family |
 | breadcrumbs | N/A (defaults) | Current-page weight authored |
 | bulk_actions_bar | N/A (defaults) | Matches filter_bar surface craft from Phase A |
@@ -209,6 +210,7 @@ Status values:
 | methods | N/A (local) | Quiet columns band (#675); not a feature-grid variant; no shared surface |
 | outcomes | N/A (local) | Quiet outcome columns (#696); section foot link; sibling of methods, not a variant |
 | mobile_nav_toggle | N/A (keep lean) | Shell seam only |
+| media_text | Adopted | Marketing media+copy band; L1 costume via tokens |
 | modal | Adopted | `size`, `header_recipe`, `footer_recipe` |
 | page_header | Adopted | `surface` default/tint |
 | pager | N/A (defaults) | Matches pagination craft |
@@ -219,6 +221,8 @@ Status values:
 | pricing_table | N/A (local) | Tier count is data; highlighted recipe on tier |
 | pricing_tier | N/A (local) | `highlighted` raises elevation; shared `surface`/`elevation` refused |
 | product_shot | N/A (local) | `window` none (default) / light decorative chrome; structural media wrap, no shared `surface`/`elevation` axis (BR-BW-MKT-008, #571) |
+| number_stepper | Adopted | `size` axis; native number input with inc/dec |
+| popover | Adopted | `placement`; disclosure panel on details/summary |
 | progress | N/A (keep lean) | Single authored track; consumer drives `--bw-progress-value` |
 | proof_collage | N/A (local) | Marketing proof section; band/width local |
 | ranked_list | N/A (compose) | Empty path uses `_empty_state`; list itself stays unframed |
@@ -284,7 +288,6 @@ viable-primitives integration (`input_group`, `date_picker_chrome`,
 |---|---|---|
 | command_palette | N/A (deferred) | ROADMAP Wave 5 / #156 |
 | notification_list | N/A (deferred) | ROADMAP Wave 5 |
-| popover | N/A (deferred) | Refuse while dropdown covers most cases |
 | newsletter_band | N/A (deferred) | Marketing demand |
 
 <!-- phase5-adoption:end -->

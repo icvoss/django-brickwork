@@ -56,7 +56,7 @@ _EXCLUDED_SELECTOR_FRAGMENTS = (
     # Interactive control labels
     (r"\.bw-btn\s*\{[^}]*font-size:\s*([^;]+);", "button label"),
     # Form help / error
-    (r"\.bw-field__help\s*\{[^}]*font-size:\s*([^;]+);", "field help"),
+    (r"\.bw-field__help(?:,\s*\.[a-z0-9_-]+)*\s*\{[^}]*font-size:\s*([^;]+);", "field help"),
     (r"\.bw-field__error\s*\{[^}]*font-size:\s*([^;]+);", "field error"),
     # Table cell content
     (r"\.bw-data-table__td\s*\{[^}]*font-size:\s*([^;]+);", "data-table cell"),

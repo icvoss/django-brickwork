@@ -3201,7 +3201,7 @@ button.bw-account-menu__item {
   font-variant-numeric: tabular-nums;
   color: var(--bw-color-fg);
 }
-@media (width < 48rem) {
+@media (width < --theme(--breakpoint-md)) {
   .bw-stat-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     row-gap: var(--bw-space-3);
@@ -3291,7 +3291,7 @@ button.bw-account-menu__item {
   font-size: var(--bw-font-size-xs);
   line-height: 1.65;
 }
-@media (width < 64rem) {
+@media (width < --theme(--breakpoint-lg)) {
   .bw-insight-grid {
     grid-template-columns: 1fr;
   }

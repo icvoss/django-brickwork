@@ -215,18 +215,18 @@ def test_label_is_escaped() -> None:
 def test_size_maps_to_modifier_classes() -> None:
     assert "bw-stat-comparison--size-sm" in _render(current="1", previous="1", size="sm")
     assert "bw-stat-comparison--size-lg" in _render(current="1", previous="1", size="lg")
-    assert "bw-stat-comparison--" not in _render(current="1", previous="1")
+    assert "bw-stat-comparison--size-md" in _render(current="1", previous="1")
 
 
 def test_an_unrecognised_size_value_renders_the_bare_class_with_no_modifier() -> None:
     # size is matched against the closed set with explicit literals, not
-    # interpolated: a value outside {"sm", "lg"} (including the default
-    # "md") must render the bare bw-stat-comparison class, never a
-    # bw-stat-comparison--<whatever the caller passed> false affordance.
+    # interpolated: sm/lg emit their modifiers; every other value (including
+    # the default md and an unknown xl) falls through to size-md.
     out = _render(current="1", previous="1", size="md")
-    assert "bw-stat-comparison--" not in out
+    assert "bw-stat-comparison--size-md" in out
     out = _render(current="1", previous="1", size="xl")
-    assert "bw-stat-comparison--" not in out
+    assert "bw-stat-comparison--size-md" in out
+    assert "bw-stat-comparison--size-xl" not in out
 
 
 class _AttributeCollector(HTMLParser):
@@ -288,7 +288,7 @@ def test_size_attribute_injection_payload_cannot_open_a_live_event_handler() -> 
     # modifier class at all (the constrain-not-escape fix), so the
     # payload neither opens a new attribute NOR appears as an unexpected
     # modifier or as text anywhere in the output.
-    assert "bw-stat-comparison--" not in out
+    assert "bw-stat-comparison--size-md" in out
     assert "onclick" not in out
     assert "alert(1)" not in out
 

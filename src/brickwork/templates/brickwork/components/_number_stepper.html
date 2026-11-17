@@ -18,16 +18,21 @@ Context keys (all optional unless noted):
   aria_label      string  aria-label on the root group (when label is not used).
   aria_labelledby string  aria-labelledby on the root group.
 
+States: enabled; disabled (input + both buttons); readonly (input readonly,
+  buttons disabled); aria-invalid when aria_invalid is set.
+Accessibility: role="group" with aria-labelledby/aria-label; each button has an
+  accessible name; native number input keeps keyboard step behaviour.
+Responsive: no breakpoint switch; size axis is authorial density, not viewport.
 Delivery note: wheel lockstep pin deferred (GAP-NST-1). The monorepo mirror
 ships in this raise; the published django-brickwork wheel is updated in the next
 batch, matching Switch (GAP-SW-4) and Input (GAP-INP-1) practice.
 {% endcomment %}
 {% spaceless %}
-{% with size|default:"md" as _size %}
+{% with size|default:"md" as bw_size %}
 {% if label %}
 <label{% if id %} for="{{ id }}" id="{{ id }}-label"{% endif %} class="bw-field__label">{{ label }}</label>
 {% endif %}
-<div class="bw-number-stepper bw-number-stepper--size-{{ _size }}"
+<div class="bw-number-stepper bw-number-stepper--size-{{ bw_size }}"
      role="group"
      {% if aria_labelledby %}aria-labelledby="{{ aria_labelledby }}"{% elif aria_label %}aria-label="{{ aria_label }}"{% elif label and id %}aria-labelledby="{{ id }}-label"{% endif %}>
   <button class="bw-number-stepper__button bw-number-stepper__button--decrement"

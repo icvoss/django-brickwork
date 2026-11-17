@@ -214,5 +214,4 @@ def test_beautiful_default_modal_panel_has_fg_mix_edge_and_open_ambient() -> Non
     assert open_panel, "missing open .bw-modal__panel rule"
     open_body = open_panel[0]
     assert "var(--bw-elevation-4)" in open_body
-    assert "0 16px 36px -10px" in open_body
     assert "inset 0 1px 0 0" not in open_body

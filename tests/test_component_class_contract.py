@@ -561,6 +561,32 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
         "{% bw_avatar_group avatars max=3 size='md' %}",
         avatars=[{"initials": "A"}, {"initials": "B"}, {"initials": "C"}, {"initials": "D"}],
     ),
+    "_banner (info, dismissible)": lambda: _include(
+        "brickwork/components/_banner.html",
+        title="Notice",
+        body="Something happened.",
+        variant="info",
+        dismissible=True,
+    ),
+    "_number_stepper (sized)": lambda: _include(
+        "brickwork/components/_number_stepper.html",
+        id="qty",
+        name="qty",
+        value=2,
+        size="md",
+        label="Quantity",
+    ),
+    "_popover (labelled)": lambda: _include(
+        "brickwork/components/_popover.html",
+        id="help-pop",
+        title="Help",
+        body="More detail.",
+    ),
+    "_media_text (marketing)": lambda: _include(
+        "brickwork_marketing/components/_media_text.html",
+        heading="Ship faster",
+        lede="A short lede.",
+    ),
     "_chip (neutral, selected)": lambda: _include(
         "brickwork/components/_chip.html", label="Paid", selected=True, variant="success"
     ),

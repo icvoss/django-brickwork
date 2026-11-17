@@ -246,7 +246,7 @@ def test_composes_a_real_stat_tile_unchanged() -> None:
     # not a hand-written stand-in that merely looks like a stat tile.
     stat_html = _stat_markup(label="Revenue", value="£48,290")
     out = _render(items=[{"content": stat_html}])
-    assert 'class="bw-stat"' in out
+    assert 'bw-stat bw-stat--size-md' in out
     assert "£48,290" in out
     assert "Revenue" in out
 
@@ -267,7 +267,7 @@ def test_composes_a_stat_tile_and_a_chart_card_in_the_same_grid() -> None:
             {"content": _chart_card_markup(mount="Trend mount"), "span": 2},
         ]
     )
-    assert 'class="bw-stat"' in out
+    assert 'bw-stat bw-stat--size-md' in out
     assert "Active users" in out
     assert 'class="bw-chart-card"' in out
     assert "Trend mount" in out

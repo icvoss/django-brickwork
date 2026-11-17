@@ -96,6 +96,9 @@ UNSTYLED_BY_DESIGN: set[str] = {
     # (investigated for icvoss/django-brickwork#137: page-header root and
     # __titles now carry layout craft under #541; they are no longer bare.)
     "bw-stepper__marker-number",  # plain digit glyph; .bw-stepper__marker carries the circle.
+    # Default popover placement marker; panel already opens below the summary,
+    # so --top/--start/--end carry the offset rules and --bottom is a no-op class.
+    "bw-popover--bottom",
     "bw-stepper__step--upcoming",  # variant carries no visual distinction: only
     # --complete/--current change the marker glyph.
     "bw-progress--indeterminate",  # state marker on the root; .bw-progress__fill--indeterminate
