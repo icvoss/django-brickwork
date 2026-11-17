@@ -39,10 +39,6 @@ rendering every field readonly.
   {% comment %}Error container: id matches what aria-describedby references.
   role=alert so a screen reader announces a newly-swapped-in error (the 422
   re-render).{% endcomment %}
-  <div class="bw-field__errors" id="{{ error_id }}" role="alert">
-    {% for error in errors %}
-      <p class="bw-field__error">{{ error }}</p>
-    {% endfor %}
-  </div>
+  <div class="bw-field__errors" id="{{ error_id }}" role="alert">{% for error in errors %}<p class="bw-field__error">{{ error }}</p>{% endfor %}</div>
 </div>
 {% endwith %}

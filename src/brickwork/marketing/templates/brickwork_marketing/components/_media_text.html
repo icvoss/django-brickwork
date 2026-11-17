@@ -1,0 +1,55 @@
+{% comment %}
+Media and text (icvoss/django-brickwork#R86): a two-column figure-and-prose
+grid. Structural include. Consumed via {% include %}
+(BR-BW-MKT §4d structural-include doctrine).
+
+Required context: none.
+
+Optional context:
+  media      (safe HTML): the figure content (<img>, <svg>, or other
+             inline markup). The caller owns `alt` and escaping; mark
+             trusted content safe at the call site. Gates the figure
+             element: absent or empty means no <figure> is emitted.
+  caption    (str): optional <figcaption> under the media.
+  heading    (str): the prose column <h2>. Uses .bw-section__heading.
+  lede       (str): the prose column body paragraph. Uses .bw-section__lede.
+  cta_label  (str): CTA button label. Ignored without cta_href.
+  cta_href   (str): CTA button URL. Ignored without cta_label.
+
+When both media and heading are absent or empty the template emits
+nothing at all.
+
+The DOM order controls column position: figure first = media-left at
+two columns (the standard case); swap the children in a custom template
+variant for media-right. No CSS modifier exists for column reversal
+(GAP-MDT-5); DOM order is the documented contract.
+
+States: none.
+Accessibility: <figure> associates media with its figcaption. The <img>
+  alt is caller-supplied. The prose heading is an <h2>. Covered by
+  media-text-axe.e2e.ts against review/media-text.html, both themes.
+Responsive: single column below --bw-breakpoint-md; two equal columns
+  from md up. Layout: root carries .bw-section; content sits in
+  .bw-section__inner (ADR-057 Phase A / #667).
+{% endcomment %}
+{% if media or heading %}
+<section class="bw-section">
+  <div class="bw-section__inner">
+    <div class="bw-media-text">
+      {% if media %}
+      <figure class="bw-media-text__figure">
+        {{ media }}
+        {% if caption %}<figcaption>{{ caption }}</figcaption>{% endif %}
+      </figure>
+      {% endif %}
+      <div>
+        {% if heading %}<h2 class="bw-section__heading">{{ heading }}</h2>{% endif %}
+        {% if lede %}<p class="bw-section__lede">{{ lede }}</p>{% endif %}
+        {% if cta_label and cta_href %}
+          <a class="bw-btn bw-btn--secondary bw-btn--size-md" href="{{ cta_href }}">{{ cta_label }}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}

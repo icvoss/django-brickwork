@@ -183,6 +183,7 @@
     "--bw-component-checkbox-glyph",
     "--bw-component-content-max-width",
     "--bw-component-content-max-width-marketing",
+    "--bw-component-description-list-term-size",
     "--bw-component-disabled-opacity",
     "--bw-component-docs-nav-inline-size",
     "--bw-component-drawer-width",
@@ -352,7 +353,23 @@
     "--bw-size-control-padding-inline-sm",
     "--bw-size-control-padding-inline-xl",
     "--bw-size-control-padding-inline-xs",
+    "--bw-size-gap-lg",
+    "--bw-size-gap-md",
+    "--bw-size-gap-sm",
+    "--bw-size-gap-xl",
+    "--bw-size-gap-xs",
+    "--bw-size-grid-min-lg",
+    "--bw-size-grid-min-md",
+    "--bw-size-grid-min-sm",
+    "--bw-size-grid-min-xl",
+    "--bw-size-grid-min-xs",
+    "--bw-size-inset-lg",
+    "--bw-size-inset-md",
+    "--bw-size-inset-sm",
+    "--bw-size-inset-xl",
+    "--bw-size-inset-xs",
     "--bw-size-max-width-form",
+    "--bw-size-max-width-intro",
     "--bw-size-max-width-modal-lg",
     "--bw-size-max-width-modal-md",
     "--bw-size-max-width-modal-sm",
@@ -460,5 +477,2023 @@
     "--bw-z-sticky",
     "--bw-z-toast",
     "--bw-z-tooltip"
+  ],
+  "paletteCatalogue": [
+    {
+      "hue": "red",
+      "stop": "50",
+      "property": "--bw-palette-red-50",
+      "value": "oklch(97.1% 0.013 17.38)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "100",
+      "property": "--bw-palette-red-100",
+      "value": "oklch(93.6% 0.032 17.717)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "200",
+      "property": "--bw-palette-red-200",
+      "value": "oklch(88.5% 0.062 18.334)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "300",
+      "property": "--bw-palette-red-300",
+      "value": "oklch(80.8% 0.114 19.571)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "400",
+      "property": "--bw-palette-red-400",
+      "value": "oklch(70.4% 0.191 22.216)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "500",
+      "property": "--bw-palette-red-500",
+      "value": "oklch(63.7% 0.237 25.331)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "600",
+      "property": "--bw-palette-red-600",
+      "value": "oklch(57.7% 0.245 27.325)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "700",
+      "property": "--bw-palette-red-700",
+      "value": "oklch(50.5% 0.213 27.518)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "800",
+      "property": "--bw-palette-red-800",
+      "value": "oklch(44.4% 0.177 26.899)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "900",
+      "property": "--bw-palette-red-900",
+      "value": "oklch(39.6% 0.141 25.723)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "red",
+      "stop": "950",
+      "property": "--bw-palette-red-950",
+      "value": "oklch(25.8% 0.092 26.042)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "50",
+      "property": "--bw-palette-orange-50",
+      "value": "oklch(98% 0.016 73.684)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "100",
+      "property": "--bw-palette-orange-100",
+      "value": "oklch(95.4% 0.038 75.164)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "200",
+      "property": "--bw-palette-orange-200",
+      "value": "oklch(90.1% 0.076 70.697)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "300",
+      "property": "--bw-palette-orange-300",
+      "value": "oklch(83.7% 0.128 66.29)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "400",
+      "property": "--bw-palette-orange-400",
+      "value": "oklch(75% 0.183 55.934)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "500",
+      "property": "--bw-palette-orange-500",
+      "value": "oklch(70.5% 0.213 47.604)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "600",
+      "property": "--bw-palette-orange-600",
+      "value": "oklch(64.6% 0.222 41.116)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "700",
+      "property": "--bw-palette-orange-700",
+      "value": "oklch(55.3% 0.195 38.402)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "800",
+      "property": "--bw-palette-orange-800",
+      "value": "oklch(47% 0.157 37.304)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "900",
+      "property": "--bw-palette-orange-900",
+      "value": "oklch(40.8% 0.123 38.172)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "orange",
+      "stop": "950",
+      "property": "--bw-palette-orange-950",
+      "value": "oklch(26.6% 0.079 36.259)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "50",
+      "property": "--bw-palette-amber-50",
+      "value": "oklch(98.7% 0.022 95.277)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "100",
+      "property": "--bw-palette-amber-100",
+      "value": "oklch(96.2% 0.059 95.617)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "200",
+      "property": "--bw-palette-amber-200",
+      "value": "oklch(92.4% 0.12 95.746)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "300",
+      "property": "--bw-palette-amber-300",
+      "value": "oklch(87.9% 0.169 91.605)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "400",
+      "property": "--bw-palette-amber-400",
+      "value": "oklch(82.8% 0.189 84.429)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "500",
+      "property": "--bw-palette-amber-500",
+      "value": "oklch(76.9% 0.188 70.08)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "600",
+      "property": "--bw-palette-amber-600",
+      "value": "oklch(66.6% 0.179 58.318)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "700",
+      "property": "--bw-palette-amber-700",
+      "value": "oklch(55.5% 0.163 48.998)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "800",
+      "property": "--bw-palette-amber-800",
+      "value": "oklch(47.3% 0.137 46.201)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "900",
+      "property": "--bw-palette-amber-900",
+      "value": "oklch(41.4% 0.112 45.904)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "amber",
+      "stop": "950",
+      "property": "--bw-palette-amber-950",
+      "value": "oklch(27.9% 0.077 45.635)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "50",
+      "property": "--bw-palette-yellow-50",
+      "value": "oklch(98.7% 0.026 102.212)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "100",
+      "property": "--bw-palette-yellow-100",
+      "value": "oklch(97.3% 0.071 103.193)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "200",
+      "property": "--bw-palette-yellow-200",
+      "value": "oklch(94.5% 0.129 101.54)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "300",
+      "property": "--bw-palette-yellow-300",
+      "value": "oklch(90.5% 0.182 98.111)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "400",
+      "property": "--bw-palette-yellow-400",
+      "value": "oklch(85.2% 0.199 91.936)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "500",
+      "property": "--bw-palette-yellow-500",
+      "value": "oklch(79.5% 0.184 86.047)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "600",
+      "property": "--bw-palette-yellow-600",
+      "value": "oklch(68.1% 0.162 75.834)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "700",
+      "property": "--bw-palette-yellow-700",
+      "value": "oklch(55.4% 0.135 66.442)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "800",
+      "property": "--bw-palette-yellow-800",
+      "value": "oklch(47.6% 0.114 61.907)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "900",
+      "property": "--bw-palette-yellow-900",
+      "value": "oklch(42.1% 0.095 57.708)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "yellow",
+      "stop": "950",
+      "property": "--bw-palette-yellow-950",
+      "value": "oklch(28.6% 0.066 53.813)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "50",
+      "property": "--bw-palette-lime-50",
+      "value": "oklch(98.6% 0.031 120.757)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "100",
+      "property": "--bw-palette-lime-100",
+      "value": "oklch(96.7% 0.067 122.328)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "200",
+      "property": "--bw-palette-lime-200",
+      "value": "oklch(93.8% 0.127 124.321)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "300",
+      "property": "--bw-palette-lime-300",
+      "value": "oklch(89.7% 0.196 126.665)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "400",
+      "property": "--bw-palette-lime-400",
+      "value": "oklch(84.1% 0.238 128.85)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "500",
+      "property": "--bw-palette-lime-500",
+      "value": "oklch(76.8% 0.233 130.85)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "600",
+      "property": "--bw-palette-lime-600",
+      "value": "oklch(64.8% 0.2 131.684)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "700",
+      "property": "--bw-palette-lime-700",
+      "value": "oklch(53.2% 0.157 131.589)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "800",
+      "property": "--bw-palette-lime-800",
+      "value": "oklch(45.3% 0.124 130.933)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "900",
+      "property": "--bw-palette-lime-900",
+      "value": "oklch(40.5% 0.101 131.063)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "lime",
+      "stop": "950",
+      "property": "--bw-palette-lime-950",
+      "value": "oklch(27.4% 0.072 132.109)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "50",
+      "property": "--bw-palette-green-50",
+      "value": "oklch(98.2% 0.018 155.826)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "100",
+      "property": "--bw-palette-green-100",
+      "value": "oklch(96.2% 0.044 156.743)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "200",
+      "property": "--bw-palette-green-200",
+      "value": "oklch(92.5% 0.084 155.995)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "300",
+      "property": "--bw-palette-green-300",
+      "value": "oklch(87.1% 0.15 154.449)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "400",
+      "property": "--bw-palette-green-400",
+      "value": "oklch(79.2% 0.209 151.711)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "500",
+      "property": "--bw-palette-green-500",
+      "value": "oklch(72.3% 0.219 149.579)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "600",
+      "property": "--bw-palette-green-600",
+      "value": "oklch(62.7% 0.194 149.214)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "700",
+      "property": "--bw-palette-green-700",
+      "value": "oklch(52.7% 0.154 150.069)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "800",
+      "property": "--bw-palette-green-800",
+      "value": "oklch(44.8% 0.119 151.328)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "900",
+      "property": "--bw-palette-green-900",
+      "value": "oklch(39.3% 0.095 152.535)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "green",
+      "stop": "950",
+      "property": "--bw-palette-green-950",
+      "value": "oklch(26.6% 0.065 152.934)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "50",
+      "property": "--bw-palette-emerald-50",
+      "value": "oklch(97.9% 0.021 166.113)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "100",
+      "property": "--bw-palette-emerald-100",
+      "value": "oklch(95% 0.052 163.051)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "200",
+      "property": "--bw-palette-emerald-200",
+      "value": "oklch(90.5% 0.093 164.15)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "300",
+      "property": "--bw-palette-emerald-300",
+      "value": "oklch(84.5% 0.143 164.978)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "400",
+      "property": "--bw-palette-emerald-400",
+      "value": "oklch(76.5% 0.177 163.223)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "500",
+      "property": "--bw-palette-emerald-500",
+      "value": "oklch(69.6% 0.17 162.48)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "600",
+      "property": "--bw-palette-emerald-600",
+      "value": "oklch(59.6% 0.145 163.225)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "700",
+      "property": "--bw-palette-emerald-700",
+      "value": "oklch(50.8% 0.118 165.612)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "800",
+      "property": "--bw-palette-emerald-800",
+      "value": "oklch(43.2% 0.095 166.913)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "900",
+      "property": "--bw-palette-emerald-900",
+      "value": "oklch(37.8% 0.077 168.94)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "emerald",
+      "stop": "950",
+      "property": "--bw-palette-emerald-950",
+      "value": "oklch(26.2% 0.051 172.552)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "50",
+      "property": "--bw-palette-teal-50",
+      "value": "oklch(98.4% 0.014 180.72)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "100",
+      "property": "--bw-palette-teal-100",
+      "value": "oklch(95.3% 0.051 180.801)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "200",
+      "property": "--bw-palette-teal-200",
+      "value": "oklch(91% 0.096 180.426)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "300",
+      "property": "--bw-palette-teal-300",
+      "value": "oklch(85.5% 0.138 181.071)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "400",
+      "property": "--bw-palette-teal-400",
+      "value": "oklch(77.7% 0.152 181.912)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "500",
+      "property": "--bw-palette-teal-500",
+      "value": "oklch(70.4% 0.14 182.503)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "600",
+      "property": "--bw-palette-teal-600",
+      "value": "oklch(60% 0.118 184.704)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "700",
+      "property": "--bw-palette-teal-700",
+      "value": "oklch(51.1% 0.096 186.391)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "800",
+      "property": "--bw-palette-teal-800",
+      "value": "oklch(43.7% 0.078 188.216)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "900",
+      "property": "--bw-palette-teal-900",
+      "value": "oklch(38.6% 0.063 188.416)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "teal",
+      "stop": "950",
+      "property": "--bw-palette-teal-950",
+      "value": "oklch(27.7% 0.046 192.524)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "50",
+      "property": "--bw-palette-cyan-50",
+      "value": "oklch(98.4% 0.019 200.873)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "100",
+      "property": "--bw-palette-cyan-100",
+      "value": "oklch(95.6% 0.045 203.388)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "200",
+      "property": "--bw-palette-cyan-200",
+      "value": "oklch(91.7% 0.08 205.041)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "300",
+      "property": "--bw-palette-cyan-300",
+      "value": "oklch(86.5% 0.127 207.078)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "400",
+      "property": "--bw-palette-cyan-400",
+      "value": "oklch(78.9% 0.154 211.53)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "500",
+      "property": "--bw-palette-cyan-500",
+      "value": "oklch(71.5% 0.143 215.221)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "600",
+      "property": "--bw-palette-cyan-600",
+      "value": "oklch(60.9% 0.126 221.723)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "700",
+      "property": "--bw-palette-cyan-700",
+      "value": "oklch(52% 0.105 223.128)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "800",
+      "property": "--bw-palette-cyan-800",
+      "value": "oklch(45% 0.085 224.283)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "900",
+      "property": "--bw-palette-cyan-900",
+      "value": "oklch(39.8% 0.07 227.392)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "cyan",
+      "stop": "950",
+      "property": "--bw-palette-cyan-950",
+      "value": "oklch(30.2% 0.056 229.695)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "50",
+      "property": "--bw-palette-sky-50",
+      "value": "oklch(97.7% 0.013 236.62)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "100",
+      "property": "--bw-palette-sky-100",
+      "value": "oklch(95.1% 0.026 236.824)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "200",
+      "property": "--bw-palette-sky-200",
+      "value": "oklch(90.1% 0.058 230.902)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "300",
+      "property": "--bw-palette-sky-300",
+      "value": "oklch(82.8% 0.111 230.318)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "400",
+      "property": "--bw-palette-sky-400",
+      "value": "oklch(74.6% 0.16 232.661)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "500",
+      "property": "--bw-palette-sky-500",
+      "value": "oklch(68.5% 0.169 237.323)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "600",
+      "property": "--bw-palette-sky-600",
+      "value": "oklch(58.8% 0.158 241.966)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "700",
+      "property": "--bw-palette-sky-700",
+      "value": "oklch(50% 0.134 242.749)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "800",
+      "property": "--bw-palette-sky-800",
+      "value": "oklch(44.3% 0.11 240.79)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "900",
+      "property": "--bw-palette-sky-900",
+      "value": "oklch(39.1% 0.09 240.876)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "sky",
+      "stop": "950",
+      "property": "--bw-palette-sky-950",
+      "value": "oklch(29.3% 0.066 243.157)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "50",
+      "property": "--bw-palette-blue-50",
+      "value": "oklch(97% 0.014 254.604)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "100",
+      "property": "--bw-palette-blue-100",
+      "value": "oklch(93.2% 0.032 255.585)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "200",
+      "property": "--bw-palette-blue-200",
+      "value": "oklch(88.2% 0.059 254.128)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "300",
+      "property": "--bw-palette-blue-300",
+      "value": "oklch(80.9% 0.105 251.813)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "400",
+      "property": "--bw-palette-blue-400",
+      "value": "oklch(70.7% 0.165 254.624)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "500",
+      "property": "--bw-palette-blue-500",
+      "value": "oklch(62.3% 0.214 259.815)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "600",
+      "property": "--bw-palette-blue-600",
+      "value": "oklch(54.6% 0.245 262.881)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "700",
+      "property": "--bw-palette-blue-700",
+      "value": "oklch(48.8% 0.243 264.376)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "800",
+      "property": "--bw-palette-blue-800",
+      "value": "oklch(42.4% 0.199 265.638)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "900",
+      "property": "--bw-palette-blue-900",
+      "value": "oklch(37.9% 0.146 265.522)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "blue",
+      "stop": "950",
+      "property": "--bw-palette-blue-950",
+      "value": "oklch(28.2% 0.091 267.935)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "50",
+      "property": "--bw-palette-indigo-50",
+      "value": "oklch(96.2% 0.018 272.314)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "100",
+      "property": "--bw-palette-indigo-100",
+      "value": "oklch(93% 0.034 272.788)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "200",
+      "property": "--bw-palette-indigo-200",
+      "value": "oklch(87% 0.065 274.039)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "300",
+      "property": "--bw-palette-indigo-300",
+      "value": "oklch(78.5% 0.115 274.713)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "400",
+      "property": "--bw-palette-indigo-400",
+      "value": "oklch(67.3% 0.182 276.935)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "500",
+      "property": "--bw-palette-indigo-500",
+      "value": "oklch(58.5% 0.233 277.117)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "600",
+      "property": "--bw-palette-indigo-600",
+      "value": "oklch(51.1% 0.262 276.966)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "700",
+      "property": "--bw-palette-indigo-700",
+      "value": "oklch(45.7% 0.24 277.023)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "800",
+      "property": "--bw-palette-indigo-800",
+      "value": "oklch(39.8% 0.195 277.366)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "900",
+      "property": "--bw-palette-indigo-900",
+      "value": "oklch(35.9% 0.144 278.697)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "indigo",
+      "stop": "950",
+      "property": "--bw-palette-indigo-950",
+      "value": "oklch(25.7% 0.09 281.288)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "50",
+      "property": "--bw-palette-violet-50",
+      "value": "oklch(96.9% 0.016 293.756)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "100",
+      "property": "--bw-palette-violet-100",
+      "value": "oklch(94.3% 0.029 294.588)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "200",
+      "property": "--bw-palette-violet-200",
+      "value": "oklch(89.4% 0.057 293.283)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "300",
+      "property": "--bw-palette-violet-300",
+      "value": "oklch(81.1% 0.111 293.571)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "400",
+      "property": "--bw-palette-violet-400",
+      "value": "oklch(70.2% 0.183 293.541)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "500",
+      "property": "--bw-palette-violet-500",
+      "value": "oklch(60.6% 0.25 292.717)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "600",
+      "property": "--bw-palette-violet-600",
+      "value": "oklch(54.1% 0.281 293.009)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "700",
+      "property": "--bw-palette-violet-700",
+      "value": "oklch(49.1% 0.27 292.581)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "800",
+      "property": "--bw-palette-violet-800",
+      "value": "oklch(43.2% 0.232 292.759)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "900",
+      "property": "--bw-palette-violet-900",
+      "value": "oklch(38% 0.189 293.745)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "violet",
+      "stop": "950",
+      "property": "--bw-palette-violet-950",
+      "value": "oklch(28.3% 0.141 291.089)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "50",
+      "property": "--bw-palette-purple-50",
+      "value": "oklch(97.7% 0.014 308.299)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "100",
+      "property": "--bw-palette-purple-100",
+      "value": "oklch(94.6% 0.033 307.174)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "200",
+      "property": "--bw-palette-purple-200",
+      "value": "oklch(90.2% 0.063 306.703)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "300",
+      "property": "--bw-palette-purple-300",
+      "value": "oklch(82.7% 0.119 306.383)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "400",
+      "property": "--bw-palette-purple-400",
+      "value": "oklch(71.4% 0.203 305.504)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "500",
+      "property": "--bw-palette-purple-500",
+      "value": "oklch(62.7% 0.265 303.9)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "600",
+      "property": "--bw-palette-purple-600",
+      "value": "oklch(55.8% 0.288 302.321)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "700",
+      "property": "--bw-palette-purple-700",
+      "value": "oklch(49.6% 0.265 301.924)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "800",
+      "property": "--bw-palette-purple-800",
+      "value": "oklch(43.8% 0.218 303.724)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "900",
+      "property": "--bw-palette-purple-900",
+      "value": "oklch(38.1% 0.176 304.987)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "purple",
+      "stop": "950",
+      "property": "--bw-palette-purple-950",
+      "value": "oklch(29.1% 0.149 302.717)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "50",
+      "property": "--bw-palette-fuchsia-50",
+      "value": "oklch(97.7% 0.017 320.058)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "100",
+      "property": "--bw-palette-fuchsia-100",
+      "value": "oklch(95.2% 0.037 318.852)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "200",
+      "property": "--bw-palette-fuchsia-200",
+      "value": "oklch(90.3% 0.076 319.62)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "300",
+      "property": "--bw-palette-fuchsia-300",
+      "value": "oklch(83.3% 0.145 321.434)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "400",
+      "property": "--bw-palette-fuchsia-400",
+      "value": "oklch(74% 0.238 322.16)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "500",
+      "property": "--bw-palette-fuchsia-500",
+      "value": "oklch(66.7% 0.295 322.15)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "600",
+      "property": "--bw-palette-fuchsia-600",
+      "value": "oklch(59.1% 0.293 322.896)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "700",
+      "property": "--bw-palette-fuchsia-700",
+      "value": "oklch(51.8% 0.253 323.949)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "800",
+      "property": "--bw-palette-fuchsia-800",
+      "value": "oklch(45.2% 0.211 324.591)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "900",
+      "property": "--bw-palette-fuchsia-900",
+      "value": "oklch(40.1% 0.17 325.612)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "fuchsia",
+      "stop": "950",
+      "property": "--bw-palette-fuchsia-950",
+      "value": "oklch(29.3% 0.136 325.661)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "50",
+      "property": "--bw-palette-pink-50",
+      "value": "oklch(97.1% 0.014 343.198)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "100",
+      "property": "--bw-palette-pink-100",
+      "value": "oklch(94.8% 0.028 342.258)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "200",
+      "property": "--bw-palette-pink-200",
+      "value": "oklch(89.9% 0.061 343.231)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "300",
+      "property": "--bw-palette-pink-300",
+      "value": "oklch(82.3% 0.12 346.018)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "400",
+      "property": "--bw-palette-pink-400",
+      "value": "oklch(71.8% 0.202 349.761)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "500",
+      "property": "--bw-palette-pink-500",
+      "value": "oklch(65.6% 0.241 354.308)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "600",
+      "property": "--bw-palette-pink-600",
+      "value": "oklch(59.2% 0.249 0.584)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "700",
+      "property": "--bw-palette-pink-700",
+      "value": "oklch(52.5% 0.223 3.958)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "800",
+      "property": "--bw-palette-pink-800",
+      "value": "oklch(45.9% 0.187 3.815)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "900",
+      "property": "--bw-palette-pink-900",
+      "value": "oklch(40.8% 0.153 2.432)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "pink",
+      "stop": "950",
+      "property": "--bw-palette-pink-950",
+      "value": "oklch(28.4% 0.109 3.907)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "50",
+      "property": "--bw-palette-rose-50",
+      "value": "oklch(96.9% 0.015 12.422)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "100",
+      "property": "--bw-palette-rose-100",
+      "value": "oklch(94.1% 0.03 12.58)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "200",
+      "property": "--bw-palette-rose-200",
+      "value": "oklch(89.2% 0.058 10.001)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "300",
+      "property": "--bw-palette-rose-300",
+      "value": "oklch(81% 0.117 11.638)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "400",
+      "property": "--bw-palette-rose-400",
+      "value": "oklch(71.2% 0.194 13.428)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "500",
+      "property": "--bw-palette-rose-500",
+      "value": "oklch(64.5% 0.246 16.439)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "600",
+      "property": "--bw-palette-rose-600",
+      "value": "oklch(58.6% 0.253 17.585)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "700",
+      "property": "--bw-palette-rose-700",
+      "value": "oklch(51.4% 0.222 16.935)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "800",
+      "property": "--bw-palette-rose-800",
+      "value": "oklch(45.5% 0.188 13.697)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "900",
+      "property": "--bw-palette-rose-900",
+      "value": "oklch(41% 0.159 10.272)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "rose",
+      "stop": "950",
+      "property": "--bw-palette-rose-950",
+      "value": "oklch(27.1% 0.105 12.094)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "50",
+      "property": "--bw-palette-slate-50",
+      "value": "oklch(98.4% 0.003 247.858)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "100",
+      "property": "--bw-palette-slate-100",
+      "value": "oklch(96.8% 0.007 247.896)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "200",
+      "property": "--bw-palette-slate-200",
+      "value": "oklch(92.9% 0.013 255.508)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "300",
+      "property": "--bw-palette-slate-300",
+      "value": "oklch(86.9% 0.022 252.894)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "400",
+      "property": "--bw-palette-slate-400",
+      "value": "oklch(70.4% 0.04 256.788)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "500",
+      "property": "--bw-palette-slate-500",
+      "value": "oklch(55.4% 0.046 257.417)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "600",
+      "property": "--bw-palette-slate-600",
+      "value": "oklch(44.6% 0.043 257.281)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "700",
+      "property": "--bw-palette-slate-700",
+      "value": "oklch(37.2% 0.044 257.287)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "800",
+      "property": "--bw-palette-slate-800",
+      "value": "oklch(27.9% 0.041 260.031)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "900",
+      "property": "--bw-palette-slate-900",
+      "value": "oklch(20.8% 0.042 265.755)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "slate",
+      "stop": "950",
+      "property": "--bw-palette-slate-950",
+      "value": "oklch(12.9% 0.042 264.695)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "50",
+      "property": "--bw-palette-gray-50",
+      "value": "oklch(98.5% 0.002 247.839)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "100",
+      "property": "--bw-palette-gray-100",
+      "value": "oklch(96.7% 0.003 264.542)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "200",
+      "property": "--bw-palette-gray-200",
+      "value": "oklch(92.8% 0.006 264.531)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "300",
+      "property": "--bw-palette-gray-300",
+      "value": "oklch(87.2% 0.01 258.338)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "400",
+      "property": "--bw-palette-gray-400",
+      "value": "oklch(70.7% 0.022 261.325)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "500",
+      "property": "--bw-palette-gray-500",
+      "value": "oklch(55.1% 0.027 264.364)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "600",
+      "property": "--bw-palette-gray-600",
+      "value": "oklch(44.6% 0.03 256.802)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "700",
+      "property": "--bw-palette-gray-700",
+      "value": "oklch(37.3% 0.034 259.733)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "800",
+      "property": "--bw-palette-gray-800",
+      "value": "oklch(27.8% 0.033 256.848)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "900",
+      "property": "--bw-palette-gray-900",
+      "value": "oklch(21% 0.034 264.665)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "gray",
+      "stop": "950",
+      "property": "--bw-palette-gray-950",
+      "value": "oklch(13% 0.028 261.692)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "50",
+      "property": "--bw-palette-zinc-50",
+      "value": "oklch(98.5% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "100",
+      "property": "--bw-palette-zinc-100",
+      "value": "oklch(96.7% 0.001 286.375)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "200",
+      "property": "--bw-palette-zinc-200",
+      "value": "oklch(92% 0.004 286.32)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "300",
+      "property": "--bw-palette-zinc-300",
+      "value": "oklch(87.1% 0.006 286.286)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "400",
+      "property": "--bw-palette-zinc-400",
+      "value": "oklch(70.5% 0.015 286.067)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "500",
+      "property": "--bw-palette-zinc-500",
+      "value": "oklch(55.2% 0.016 285.938)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "600",
+      "property": "--bw-palette-zinc-600",
+      "value": "oklch(44.2% 0.017 285.786)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "700",
+      "property": "--bw-palette-zinc-700",
+      "value": "oklch(37% 0.013 285.805)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "800",
+      "property": "--bw-palette-zinc-800",
+      "value": "oklch(27.4% 0.006 286.033)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "900",
+      "property": "--bw-palette-zinc-900",
+      "value": "oklch(21% 0.006 285.885)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "zinc",
+      "stop": "950",
+      "property": "--bw-palette-zinc-950",
+      "value": "oklch(14.1% 0.005 285.823)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "50",
+      "property": "--bw-palette-neutral-50",
+      "value": "oklch(98.5% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "100",
+      "property": "--bw-palette-neutral-100",
+      "value": "oklch(97% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "200",
+      "property": "--bw-palette-neutral-200",
+      "value": "oklch(92.2% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "300",
+      "property": "--bw-palette-neutral-300",
+      "value": "oklch(87% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "400",
+      "property": "--bw-palette-neutral-400",
+      "value": "oklch(70.8% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "500",
+      "property": "--bw-palette-neutral-500",
+      "value": "oklch(55.6% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "600",
+      "property": "--bw-palette-neutral-600",
+      "value": "oklch(43.9% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "700",
+      "property": "--bw-palette-neutral-700",
+      "value": "oklch(37.1% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "800",
+      "property": "--bw-palette-neutral-800",
+      "value": "oklch(26.9% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "900",
+      "property": "--bw-palette-neutral-900",
+      "value": "oklch(20.5% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "neutral",
+      "stop": "950",
+      "property": "--bw-palette-neutral-950",
+      "value": "oklch(14.5% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "50",
+      "property": "--bw-palette-stone-50",
+      "value": "oklch(98.5% 0.001 106.423)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "100",
+      "property": "--bw-palette-stone-100",
+      "value": "oklch(97% 0.001 106.424)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "200",
+      "property": "--bw-palette-stone-200",
+      "value": "oklch(92.3% 0.003 48.717)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "300",
+      "property": "--bw-palette-stone-300",
+      "value": "oklch(86.9% 0.005 56.366)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "400",
+      "property": "--bw-palette-stone-400",
+      "value": "oklch(70.9% 0.01 56.259)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "500",
+      "property": "--bw-palette-stone-500",
+      "value": "oklch(55.3% 0.013 58.071)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "600",
+      "property": "--bw-palette-stone-600",
+      "value": "oklch(44.4% 0.011 73.639)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "700",
+      "property": "--bw-palette-stone-700",
+      "value": "oklch(37.4% 0.01 67.558)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "800",
+      "property": "--bw-palette-stone-800",
+      "value": "oklch(26.8% 0.007 34.298)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "900",
+      "property": "--bw-palette-stone-900",
+      "value": "oklch(21.6% 0.006 56.043)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "stone",
+      "stop": "950",
+      "property": "--bw-palette-stone-950",
+      "value": "oklch(14.7% 0.004 49.25)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "50",
+      "property": "--bw-palette-mauve-50",
+      "value": "oklch(98.5% 0 none)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "100",
+      "property": "--bw-palette-mauve-100",
+      "value": "oklch(96% 0.003 325.6)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "200",
+      "property": "--bw-palette-mauve-200",
+      "value": "oklch(92.2% 0.005 325.62)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "300",
+      "property": "--bw-palette-mauve-300",
+      "value": "oklch(86.5% 0.012 325.68)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "400",
+      "property": "--bw-palette-mauve-400",
+      "value": "oklch(71.1% 0.019 323.02)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "500",
+      "property": "--bw-palette-mauve-500",
+      "value": "oklch(54.2% 0.034 322.5)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "600",
+      "property": "--bw-palette-mauve-600",
+      "value": "oklch(43.5% 0.029 321.78)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "700",
+      "property": "--bw-palette-mauve-700",
+      "value": "oklch(36.4% 0.029 323.89)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "800",
+      "property": "--bw-palette-mauve-800",
+      "value": "oklch(26.3% 0.024 320.12)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "900",
+      "property": "--bw-palette-mauve-900",
+      "value": "oklch(21.2% 0.019 322.12)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mauve",
+      "stop": "950",
+      "property": "--bw-palette-mauve-950",
+      "value": "oklch(14.5% 0.008 326)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "50",
+      "property": "--bw-palette-olive-50",
+      "value": "oklch(98.8% 0.003 106.5)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "100",
+      "property": "--bw-palette-olive-100",
+      "value": "oklch(96.6% 0.005 106.5)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "200",
+      "property": "--bw-palette-olive-200",
+      "value": "oklch(93% 0.007 106.5)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "300",
+      "property": "--bw-palette-olive-300",
+      "value": "oklch(88% 0.011 106.6)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "400",
+      "property": "--bw-palette-olive-400",
+      "value": "oklch(73.7% 0.021 106.9)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "500",
+      "property": "--bw-palette-olive-500",
+      "value": "oklch(58% 0.031 107.3)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "600",
+      "property": "--bw-palette-olive-600",
+      "value": "oklch(46.6% 0.025 107.3)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "700",
+      "property": "--bw-palette-olive-700",
+      "value": "oklch(39.4% 0.023 107.4)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "800",
+      "property": "--bw-palette-olive-800",
+      "value": "oklch(28.6% 0.016 107.4)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "900",
+      "property": "--bw-palette-olive-900",
+      "value": "oklch(22.8% 0.013 107.4)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "olive",
+      "stop": "950",
+      "property": "--bw-palette-olive-950",
+      "value": "oklch(15.3% 0.006 107.1)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "50",
+      "property": "--bw-palette-mist-50",
+      "value": "oklch(98.7% 0.002 197.1)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "100",
+      "property": "--bw-palette-mist-100",
+      "value": "oklch(96.3% 0.002 197.1)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "200",
+      "property": "--bw-palette-mist-200",
+      "value": "oklch(92.5% 0.005 214.3)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "300",
+      "property": "--bw-palette-mist-300",
+      "value": "oklch(87.2% 0.007 219.6)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "400",
+      "property": "--bw-palette-mist-400",
+      "value": "oklch(72.3% 0.014 214.4)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "500",
+      "property": "--bw-palette-mist-500",
+      "value": "oklch(56% 0.021 213.5)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "600",
+      "property": "--bw-palette-mist-600",
+      "value": "oklch(45% 0.017 213.2)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "700",
+      "property": "--bw-palette-mist-700",
+      "value": "oklch(37.8% 0.015 216)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "800",
+      "property": "--bw-palette-mist-800",
+      "value": "oklch(27.5% 0.011 216.9)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "900",
+      "property": "--bw-palette-mist-900",
+      "value": "oklch(21.8% 0.008 223.9)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "mist",
+      "stop": "950",
+      "property": "--bw-palette-mist-950",
+      "value": "oklch(14.8% 0.004 228.8)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "50",
+      "property": "--bw-palette-taupe-50",
+      "value": "oklch(98.6% 0.002 67.8)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "100",
+      "property": "--bw-palette-taupe-100",
+      "value": "oklch(96% 0.002 17.2)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "200",
+      "property": "--bw-palette-taupe-200",
+      "value": "oklch(92.2% 0.005 34.3)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "300",
+      "property": "--bw-palette-taupe-300",
+      "value": "oklch(86.8% 0.007 39.5)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "400",
+      "property": "--bw-palette-taupe-400",
+      "value": "oklch(71.4% 0.014 41.2)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "500",
+      "property": "--bw-palette-taupe-500",
+      "value": "oklch(54.7% 0.021 43.1)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "600",
+      "property": "--bw-palette-taupe-600",
+      "value": "oklch(43.8% 0.017 39.3)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "700",
+      "property": "--bw-palette-taupe-700",
+      "value": "oklch(36.7% 0.016 35.7)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "800",
+      "property": "--bw-palette-taupe-800",
+      "value": "oklch(26.8% 0.011 36.5)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "900",
+      "property": "--bw-palette-taupe-900",
+      "value": "oklch(21.4% 0.009 43.1)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "taupe",
+      "stop": "950",
+      "property": "--bw-palette-taupe-950",
+      "value": "oklch(14.7% 0.004 49.3)",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "black",
+      "stop": null,
+      "property": "--bw-palette-black",
+      "value": "#000",
+      "source": "tailwindcss@4.3.3"
+    },
+    {
+      "hue": "white",
+      "stop": null,
+      "property": "--bw-palette-white",
+      "value": "#fff",
+      "source": "tailwindcss@4.3.3"
+    }
   ]
 }

@@ -143,7 +143,7 @@
  * .bw-btn--solid is the early-draft name of primary. It is DEPRECATED, kept
  * here as an alias through :is() (class weight) for the window ADR-125 sets
  * for the bare size classes, and removed with them. Its old standalone rule
- * read --bw-color-accent-fg, which is not a token, so it needed a per-page
+ * read --bw-color-accent-fg (now --bw-color-fg-on-accent, fixed in #48), which was not a token
  * shim (GAP-BTN-6). */
 :is(.bw-btn--primary, .bw-btn--solid) {
   background: var(--bw-color-accent);
@@ -285,70 +285,115 @@
   }
 }
 
-/* --- Badges ---------------------------------------------------------------- */
+/* --- Badges (docs/components/badge.md) ------------------------------------- */
 
+/* Status tag and pace or delta pill. Display atom on the container inset
+ * scale (SIZE-COVERAGE: S for badge). Closed size subset sm and md; md is the
+ * default and always emitted by React and Vue. Padding fractions match Chip's
+ * sm/md so the two pills share one inset reading; Badge stays non-interactive
+ * (no 1.5rem floor). Neutral is the default tone (STA-008): a badge carries
+ * status information, never error communication (use Alert for that). */
 .bw-badge {
   display: inline-flex;
   align-items: center;
   gap: var(--bw-space-1);
-  padding-block: var(--bw-space-0-5);
-  padding-inline: var(--bw-space-2);
+  /* md default: same inset fractions as .bw-chip--size-md */
+  padding-block: calc(var(--bw-size-inset-xs) / 3);
+  padding-inline: var(--bw-size-inset-xs);
   /* transparent hairline so intent variants (tinted borders) keep the same
      geometry as the neutral badge */
   border: var(--bw-size-border-hairline) solid transparent;
   border-radius: var(--bw-radius-full);
   font-size: var(--bw-text-caption-size);
   font-weight: var(--bw-font-weight-medium);
+  line-height: var(--bw-text-caption-line-height);
   font-variant-numeric: tabular-nums;
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg-muted);
+  white-space: nowrap;
 }
-/* The documented default variant (#100): bw_badge's no-args default is
- * variant="neutral", so the contract needs a real .bw-badge--neutral rule,
- * not a look left implicit in the base class. The values restate the base's
- * neutral chip treatment (sunken surface, muted fg, the transparent hairline
- * that keeps every variant on the same geometry); fg-muted on surface-sunken
- * measures AA in both themes (the same pairing muted body text already
- * relies on). Neutral is the correct default per the badge-vs-alert rule
- * (STA-008): a badge carries neutral information, never error communication. */
+
+.bw-badge--size-sm {
+  padding-block: calc(var(--bw-size-inset-xs) / 6);
+  padding-inline: calc(var(--bw-size-inset-xs) * 2 / 3);
+}
+
+.bw-badge--size-md {
+  padding-block: calc(var(--bw-size-inset-xs) / 3);
+  padding-inline: var(--bw-size-inset-xs);
+}
+
 .bw-badge--neutral {
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg-muted);
   border-color: transparent;
 }
+
+/* Quiet bordered tag (APP-007 sample / provenance). Transparent fill, hairline
+ * border, muted ink; never a filled status tone. */
+.bw-badge--outline {
+  background: transparent;
+  color: var(--bw-color-fg-muted);
+  /* border-control: same 3:1 non-text floor as Input / Radio rings */
+  border-color: var(--bw-color-border-control);
+}
+
 .bw-badge--success {
   background: var(--bw-color-success-subtle);
   color: var(--bw-color-success-fg);
   border-color: var(--bw-color-success-border);
 }
+
 .bw-badge--warning {
   background: var(--bw-color-warning-subtle);
   color: var(--bw-color-warning-fg);
   border-color: var(--bw-color-warning-border);
 }
+
 .bw-badge--danger {
   background: var(--bw-color-danger-subtle);
   color: var(--bw-color-danger-fg);
   border-color: var(--bw-color-danger-border);
 }
+
 .bw-badge--info {
   background: var(--bw-color-info-subtle);
   color: var(--bw-color-info-fg);
   border-color: var(--bw-color-info-border);
 }
 
-/* --- Alerts ---------------------------------------------------------------- */
+.bw-badge__icon {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  flex-shrink: 0;
+  color: inherit;
+}
 
+/* --- Alerts (docs/components/alert.md) ------------------------------------ */
+
+/* Feedback unit (SIZE-COVERAGE Feedback column). Status colour grammar:
+ * subtle fill + tint border; icon full intent; title intent-fg; message fg.
+ * Modifier required: info | success | warning | danger (default info). */
 .bw-alert {
   display: flex;
+  align-items: flex-start;
   gap: var(--bw-space-3);
   padding: var(--bw-space-4);
   border-radius: var(--bw-radius-lg); /* joins the card radius family */
   border: var(--bw-size-border-hairline) solid var(--bw-color-border);
   margin-block-end: var(--bw-density-stack-gap);
+  color: var(--bw-color-fg);
+  background: var(--bw-color-surface);
+}
+/* Decorative status icon (R13 Icon cites this class; Alert does not own Icon). */
+.bw-alert__icon {
+  flex-shrink: 0;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin-block-start: 0.125rem; /* optically centre beside heading-sm */
 }
 /* The text region between the icon and the optional close button
- * (icvoss/django-brickwork#137): without a flex-grow rule of its own it
+ * (icvoss/django-brickwork issue 137): without a flex-grow rule of its own it
  * collapses to content width instead of filling the row, matching
  * .bw-toast__message and .bw-modal__body's own flex: 1 1 auto. min-inline-size:
  * 0 lets it actually shrink below its content's natural width (the row is
@@ -371,10 +416,14 @@
   font-size: var(--bw-text-body-sm-size);
   font-weight: var(--bw-text-body-sm-weight);
   line-height: var(--bw-text-body-sm-line-height);
+  color: var(--bw-color-fg);
+}
+.bw-alert__title + .bw-alert__message {
+  margin-block-start: var(--bw-space-1);
 }
 /* Variant borders use the per-intent tint-border tokens (decorative tint,
  * softer than the full-strength intent colour and not relied on for
- * contrast); icon carries the intent, title accents via X-fg (DESIGN.md 4.5). */
+ * contrast); icon carries the intent, title accents via X-fg. */
 .bw-alert--info {
   background: var(--bw-color-info-subtle);
   border-color: var(--bw-color-info-border);
@@ -415,13 +464,156 @@
 .bw-alert--danger .bw-alert__title {
   color: var(--bw-color-danger-fg);
 }
-/* The dismiss control (icvoss/django-brickwork#137): flex-shrink: 0 so it
+/* The dismiss control (icvoss/django-brickwork issue 137): flex-shrink: 0 so it
  * does not compress, matching .bw-modal__close/.bw-slide-over__close/
  * .bw-toast__close. No margin-inline-start: auto needed here: .bw-alert__body
  * already carries flex: 1 1 auto, so it fills the remaining row space and
  * pushes the close button to the trailing edge on its own. */
 .bw-alert__close {
   flex-shrink: 0;
+}
+
+/* --- Banner (H19 / R16) ---------------------------------------------------- */
+/*
+ * Full-bleed edge-anchored announcement strip. Distinct from .bw-alert
+ * (in-flow status, role=alert, rounded) and .bw-callout (editorial).
+ * Status colour grammar reuses Alert's public intent tokens; neutral is
+ * sunken/surface for non-status announcements. Inner-edge borders use the
+ * solid intent (not the softer *-border tint) so the hairline clears 3:1
+ * against the subtle fill (CB-03 / BAN-053). docs/components/banner.md.
+ */
+.bw-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bw-space-3);
+  /* Density-following inset (Feedback class): sm step of the shared inset
+   * scale, which recomputes from --bw-density-card-padding. */
+  padding-block: var(--bw-size-inset-sm);
+  padding-inline: var(--bw-size-inset-md);
+  border-radius: 0;
+  border: 0;
+  color: var(--bw-color-fg);
+  background: var(--bw-color-info-subtle);
+  inline-size: 100%;
+  box-sizing: border-box;
+}
+.bw-banner--edge-top {
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-info);
+}
+.bw-banner--edge-bottom {
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-info);
+  border-block-end: 0;
+}
+.bw-banner__icon {
+  flex-shrink: 0;
+  inline-size: var(--bw-component-icon-size-sm);
+  block-size: var(--bw-component-icon-size-sm);
+  color: var(--bw-color-info);
+}
+.bw-banner__body {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+.bw-banner__title {
+  margin: 0;
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+  color: var(--bw-color-info-fg);
+}
+.bw-banner__message {
+  margin: 0;
+  margin-block-start: var(--bw-space-1);
+  max-inline-size: var(--bw-size-max-width-prose);
+  font-size: var(--bw-text-body-sm-size);
+  font-weight: var(--bw-text-body-sm-weight);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+.bw-banner__actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-2);
+}
+.bw-banner__close {
+  flex-shrink: 0;
+}
+.bw-banner--success {
+  background: var(--bw-color-success-subtle);
+}
+.bw-banner--success.bw-banner--edge-top {
+  border-block-end-color: var(--bw-color-success-fg);
+}
+.bw-banner--success.bw-banner--edge-bottom {
+  border-block-start-color: var(--bw-color-success-fg);
+}
+.bw-banner--success .bw-banner__icon {
+  color: var(--bw-color-success);
+}
+.bw-banner--success .bw-banner__title {
+  color: var(--bw-color-success-fg);
+}
+.bw-banner--warning {
+  background: var(--bw-color-warning-subtle);
+}
+.bw-banner--warning.bw-banner--edge-top {
+  border-block-end-color: var(--bw-color-warning-fg);
+}
+.bw-banner--warning.bw-banner--edge-bottom {
+  border-block-start-color: var(--bw-color-warning-fg);
+}
+.bw-banner--warning .bw-banner__icon {
+  color: var(--bw-color-warning);
+}
+.bw-banner--warning .bw-banner__title {
+  color: var(--bw-color-warning-fg);
+}
+.bw-banner--danger {
+  background: var(--bw-color-danger-subtle);
+}
+.bw-banner--danger.bw-banner--edge-top {
+  border-block-end-color: var(--bw-color-danger);
+}
+.bw-banner--danger.bw-banner--edge-bottom {
+  border-block-start-color: var(--bw-color-danger);
+}
+.bw-banner--danger .bw-banner__icon {
+  color: var(--bw-color-danger);
+}
+.bw-banner--danger .bw-banner__title {
+  color: var(--bw-color-danger-fg);
+}
+.bw-banner--neutral {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-banner--neutral.bw-banner--edge-top {
+  border-block-end-color: var(--bw-color-fg-muted);
+}
+.bw-banner--neutral.bw-banner--edge-bottom {
+  border-block-start-color: var(--bw-color-fg-muted);
+}
+.bw-banner--neutral .bw-banner__icon {
+  color: var(--bw-color-fg-muted);
+}
+.bw-banner--neutral .bw-banner__title {
+  color: var(--bw-color-fg);
+}
+.bw-banner--info {
+  background: var(--bw-color-info-subtle);
+}
+.bw-banner--info.bw-banner--edge-top {
+  border-block-end-color: var(--bw-color-info);
+}
+.bw-banner--info.bw-banner--edge-bottom {
+  border-block-start-color: var(--bw-color-info);
+}
+.bw-banner--info .bw-banner__icon {
+  color: var(--bw-color-info);
+}
+.bw-banner--info .bw-banner__title {
+  color: var(--bw-color-info-fg);
 }
 
 /* --- Form fields ----------------------------------------------------------- */
@@ -445,18 +637,25 @@
 .bw-field {
   display: flex;
   flex-direction: column;
-  gap: var(--bw-space-1);
-  margin-block-end: var(--bw-density-stack-gap);
+  /* Internal stack (label → control → help → error): layout gap xs, density-
+   * following (ADR-126 section 6 / SIZE-COVERAGE gate 5). Was --bw-space-1. */
+  gap: var(--bw-size-gap-xs);
+  /* Space before the next sibling field: layout gap md (= density stack gap). */
+  margin-block-end: var(--bw-size-gap-md);
   max-inline-size: var(--bw-size-max-width-form);
 }
 .bw-field__label {
+  color: var(--bw-color-fg);
+  font-family: var(--bw-text-label-family);
   font-size: var(--bw-text-label-size);
   font-weight: var(--bw-text-label-weight);
   line-height: var(--bw-text-label-line-height);
+  letter-spacing: var(--bw-text-label-tracking);
 }
 .bw-field__required {
   /* danger-fg, not raw danger: the text-duty tier holds AA at caption size. */
   color: var(--bw-color-danger-fg);
+  font-weight: var(--bw-text-label-weight);
 }
 /* The widget wrapper (icvoss/django-brickwork#130): every field renderer
  * (_field.html, _combobox.html, _dropzone.html, _tag_input.html) wraps its
@@ -469,15 +668,66 @@
   display: block;
   min-inline-size: 0;
 }
-.bw-input {
+/* Input size classes: re-point the five control role variables at the
+ * resolved step tokens, same grammar as .bw-btn--size-* and
+ * .bw-combobox--size-* (ADR-125; SIZE-COVERAGE gate 2). The base .bw-input
+ * reads the role variables and defaults to md; a size class overrides them
+ * for the input and any element inside the same subtree that reads the same
+ * role variables (e.g. an attached addon). */
+.bw-input--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+.bw-input--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+.bw-input--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+.bw-input--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+.bw-input--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+}
+/* .bw-input is canonical for single-line and multi-line text controls.
+ * .bw-textarea is a shipped alias (React Early / Free gallery) that paints
+ * identically; size always uses bw-input--size-* (INP-003). Native Select
+ * chrome lives on .bw-select (R04); select.bw-input remains a Django-widget
+ * alias of that unit. */
+.bw-input,
+.bw-textarea {
   inline-size: 100%;
-  block-size: var(--bw-density-control-height);
-  padding-inline: var(--bw-density-control-padding-inline);
+  block-size: var(--bw-control-height);
+  padding-inline: var(--bw-control-padding-inline);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
   border-radius: var(--bw-radius-md);
   background: var(--bw-color-surface);
   color: var(--bw-color-fg);
   font: inherit;
+  /* Step-aware size: inherit sets the family, weight, etc., then the role
+   * variable overrides the size so a size class (bw-input--size-*) resizes
+   * the field. */
+  font-size: var(--bw-control-font-size);
   /* Inner top hairline (0.7.0 craft): black at 4% alpha, the faint recessed
    * top edge that makes the field read as a well rather than a flat rectangle
    * (the button bevel's counterpart, same black-literal shadow convention as
@@ -488,12 +738,24 @@
 /* Textareas share .bw-input chrome but must honour rows= (and grow with
  * content). Fixed block-size on .bw-input collapsed every textarea to a
  * single-line control height (icvoss/django-brickwork#521). */
-textarea.bw-input {
+textarea.bw-input,
+.bw-textarea {
   block-size: auto;
-  min-block-size: calc(var(--bw-density-control-height) * 3);
-  padding-block: var(--bw-density-control-padding-inline);
+  min-block-size: calc(var(--bw-control-height) * 3);
+  padding-block: var(--bw-control-padding-inline);
   resize: vertical;
   field-sizing: content;
+}
+/* Placeholder (INP-035): fg-muted, not fg-subtle (same floor as Combobox
+ * CMB-035). Opacity reset because Firefox dims ::placeholder on top of colour. */
+.bw-input::placeholder,
+.bw-textarea::placeholder {
+  color: var(--bw-color-fg-muted);
+  opacity: 1;
+}
+.bw-input:disabled::placeholder,
+.bw-textarea:disabled::placeholder {
+  color: var(--bw-color-action-disabled-text);
 }
 /* Hover pre-light: one perceptible step from the control border toward ink.
  * Mixing toward fg (82% border-control, 18% fg) is theme-correct in both
@@ -501,7 +763,8 @@ textarea.bw-input {
  * against the light surface and 4.61:1 against the dark (the resting border's
  * 3.23/3.39 stays the 1.4.11 floor). :where() keeps the guards at zero
  * specificity so the later focus-visible and invalid border rules still win. */
-.bw-input:hover:where(:not(:disabled):not([readonly]):not(:focus-visible)) {
+.bw-input:hover:where(:not(:disabled):not([readonly]):not(:focus-visible)),
+.bw-textarea:hover:where(:not(:disabled):not([readonly]):not(:focus-visible)) {
   border-color: color-mix(in oklab, var(--bw-color-border-control) 82%, var(--bw-color-fg));
 }
 /* The focus ring itself comes from the global :focus-visible rule; the border
@@ -511,134 +774,310 @@ textarea.bw-input {
  * the surface, purely decorative) hugs the input's own radius beneath the
  * offset outline, so focus reads at the control edge as well as the ring;
  * the inner hairline is restated so the well doesn't pop flat on focus. */
-.bw-input:focus-visible {
+.bw-input:focus-visible,
+.bw-textarea:focus-visible {
   border-color: var(--bw-color-accent);
   box-shadow:
     inset 0 1px 2px 0 oklch(0 0 0 / 0.04),
     0 0 0 3px color-mix(in oklab, var(--bw-color-accent) 18%, transparent);
 }
-/* Select (0.7.0 craft): the UA chrome goes, the input's own drawing stays, and
- * the affordance is an embedded chevron (--bw-component-select-indicator, a component
- * token carrying a data-URI SVG; its baked mid-grey and measured ratios are
- * documented on the token). Sized to the sm icon step, seated inside the
- * control padding; the end padding clears glyph plus a breathing space.
- * background-position has no logical form, so RTL swaps the corner via
- * [dir="rtl"], the same mechanism as .bw-icon-directional. */
-select.bw-input {
-  appearance: none;
-  background-image: var(--bw-component-select-indicator);
-  background-repeat: no-repeat;
-  background-position: right var(--bw-density-control-padding-inline) center;
-  background-size: var(--bw-component-icon-size-sm);
-  padding-inline-end: calc(
-    var(--bw-density-control-padding-inline) + var(--bw-component-icon-size-sm) + var(--bw-space-1)
-  );
-}
-[dir="rtl"] select.bw-input {
-  background-position: left var(--bw-density-control-padding-inline) center;
-}
-/* background-color, not the shorthand: the shorthand also reset
- * background-image, so a disabled select.bw-input lost its chevron (the
- * select rule is less specific than these state rules). */
-.bw-input[readonly] {
+.bw-input[readonly],
+.bw-textarea[readonly] {
   background-color: var(--bw-color-surface-sunken);
 }
-.bw-input:disabled {
+.bw-input:disabled,
+.bw-textarea:disabled {
   background-color: var(--bw-color-action-disabled-bg);
   color: var(--bw-color-action-disabled-text);
   border-color: var(--bw-color-action-disabled-border);
   cursor: not-allowed;
 }
 .bw-field--invalid .bw-input,
-.bw-input[aria-invalid="true"] {
+.bw-field--invalid .bw-textarea,
+.bw-input[aria-invalid="true"],
+.bw-textarea[aria-invalid="true"] {
   border-color: var(--bw-color-danger);
 }
 
-/* --- Checkbox + radio (drawn controls, 0.7.0 craft) ------------------------- */
+/* --- Select (native, R04 / C03) --------------------------------------------- */
+
+/* Size classes: same five role-variable re-points as Input (ADR-125;
+ * SEL-003). md is the default emitted by React. */
+.bw-select--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+.bw-select--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+.bw-select--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+.bw-select--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+.bw-select--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+}
+/* .bw-select is canonical. select.bw-input is the Django bw_field_widget
+ * alias (widget class still emits bw-input for Select until the lockstep
+ * pin lands); it paints the same chrome and chevron (SEL-001). */
+.bw-select,
+select.bw-input {
+  appearance: none;
+  display: block;
+  inline-size: 100%;
+  block-size: var(--bw-control-height);
+  padding-inline: var(--bw-control-padding-inline);
+  /* End padding clears the chevron glyph plus a breathing space (SEL-012). */
+  padding-inline-end: calc(
+    var(--bw-control-padding-inline) + var(--bw-control-icon-size) + var(--bw-space-1)
+  );
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-md);
+  /* background-color + background-image, never the shorthand: state rules that
+   * change fill must not wipe the chevron (0.7.0 craft). */
+  background-color: var(--bw-color-surface);
+  background-image: var(--bw-component-select-indicator);
+  background-repeat: no-repeat;
+  background-position: right var(--bw-control-padding-inline) center;
+  background-size: var(--bw-control-icon-size);
+  color: var(--bw-color-fg);
+  font: inherit;
+  font-size: var(--bw-control-font-size);
+  box-shadow: inset 0 1px 2px 0 oklch(0 0 0 / 0.04);
+  transition: var(--bw-transition-colors), var(--bw-transition-shadow);
+}
+/* background-position has no logical form; RTL swaps the corner via
+ * [dir="rtl"], the same mechanism as .bw-icon-directional (SEL-015). */
+[dir="rtl"] .bw-select,
+[dir="rtl"] select.bw-input {
+  background-position: left var(--bw-control-padding-inline) center;
+}
+.bw-select:hover:where(:not(:disabled):not(:focus-visible)),
+select.bw-input:hover:where(:not(:disabled):not(:focus-visible)) {
+  border-color: color-mix(in oklab, var(--bw-color-border-control) 82%, var(--bw-color-fg));
+}
+.bw-select:focus-visible,
+select.bw-input:focus-visible {
+  border-color: var(--bw-color-accent);
+  box-shadow:
+    inset 0 1px 2px 0 oklch(0 0 0 / 0.04),
+    0 0 0 3px color-mix(in oklab, var(--bw-color-accent) 18%, transparent);
+}
+.bw-select:disabled,
+select.bw-input:disabled {
+  background-color: var(--bw-color-action-disabled-bg);
+  color: var(--bw-color-action-disabled-text);
+  border-color: var(--bw-color-action-disabled-border);
+  cursor: not-allowed;
+}
+.bw-field--invalid .bw-select,
+.bw-field--invalid select.bw-input,
+.bw-select[aria-invalid="true"],
+select.bw-input[aria-invalid="true"] {
+  border-color: var(--bw-color-danger);
+}
+/* Multiple: grow like a textarea; drop the single-select chevron (SEL-004). */
+.bw-select[multiple],
+select.bw-input[multiple] {
+  block-size: auto;
+  min-block-size: calc(var(--bw-control-height) * 3);
+  padding-block: var(--bw-control-padding-inline);
+  padding-inline-end: var(--bw-control-padding-inline);
+  background-image: none;
+}
+
+/* --- Checkbox (R05) + Radio (R06) ------------------------------------------- */
 
 /* appearance:none swaps the UA widget for a control drawn on our tokens (the
  * moderncss pattern: with appearance removed, every modern engine renders the
  * input as a plain box, including its ::before). inline-grid centres the
  * glyph; vertical-align + the end margin seat the control against label
- * text. The resting border is border-control (the WCAG 1.4.11 boundary,
- * measured 3.23:1 light / 3.39:1 dark, same contract as .bw-input); the focus
- * ring comes from the global :where(input):focus-visible rule. Every selector
- * is input-qualified: RadioSelect/CheckboxSelectMultiple rendering puts the
- * class on the group wrapper div as well as on each option input (the
- * option_inherits_attrs route), and the wrapper must stay unstyled.
+ * text. The resting border is border-control (the WCAG 1.4.11 boundary);
+ * the focus ring comes from the global :where(input):focus-visible rule.
+ * Every selector is input-qualified: RadioSelect/CheckboxSelectMultiple
+ * rendering puts the class on the group wrapper div as well as on each
+ * option input (the option_inherits_attrs route), and the wrapper must stay
+ * unstyled.
  *
- * icvoss/django-brickwork#208: both controls render as bare native inputs
- * with no wrapping label (the data table's select-all/select-row cells, and
- * bw_field_widget's own .bw-field__control), so there is no clickable
- * wrapper to extend the hit area through; the box itself IS the whole
- * target. The box is 1.5rem (24px), the exact WCAG 2.5.8 floor, grown from
- * the previous 1.125rem (18px). This does change the control's visual
- * size (the issue's own "changing visual weight is a regression in its own
- * right" applies), but a clip/padding trick to keep an 18px-looking box
- * inside a 24px hit area needs the border moved off `border` onto a layered
- * box-shadow to stop it tracking the padding box, which is exactly the kind
- * of fragile, non-obvious CSS this codebase avoids elsewhere; growing the
- * real box is the KISS option and is verified not to unbalance the label
- * row (row height already had headroom: the data table's select column and
- * .bw-field__control both size to the row/control height, not to the
- * checkbox). */
-input.bw-checkbox,
+ * Checkbox (R05) and Radio (R06) each read the control role variables: the
+ * box is --bw-control-height (floored at 1.5rem by the step tokens), the
+ * checkbox tick is --bw-control-icon-size, and the label gap is
+ * --bw-control-gap. Size classes bw-checkbox--size-* and bw-radio--size-*
+ * re-point those variables (ADR-125). The two grammars stay separate. */
+
+input.bw-checkbox {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  inline-size: var(--bw-control-height);
+  block-size: var(--bw-control-height);
+  flex-shrink: 0;
+  margin: 0;
+  margin-inline-end: var(--bw-control-gap);
+  vertical-align: middle;
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-sm);
+  background: var(--bw-color-surface);
+  transition: var(--bw-transition-colors);
+}
+/* Size classes: re-point role variables only (CBX-003). md is the default
+ * from :root; React always emits an explicit size class. */
+input.bw-checkbox.bw-checkbox--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+input.bw-checkbox.bw-checkbox--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+input.bw-checkbox.bw-checkbox--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+input.bw-checkbox.bw-checkbox--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+input.bw-checkbox.bw-checkbox--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+}
+
+
+/* Radio size classes (docs/components/radio.md RAD-003): same grammar as
+ * .bw-input--size-*, re-pointing the five control role variables at the
+ * resolved step tokens (ADR-125). The radio reads height (its square box)
+ * and gap (its label offset); the control height floor of 1.5rem keeps every
+ * step and density on the WCAG 2.5.8 target (RAD-052). */
+.bw-radio--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+.bw-radio--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+.bw-radio--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+.bw-radio--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+.bw-radio--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+}
 input.bw-radio {
   appearance: none;
   display: inline-grid;
   place-content: center;
-  inline-size: 1.5rem;
-  block-size: 1.5rem;
+  inline-size: var(--bw-control-height);
+  block-size: var(--bw-control-height);
   flex-shrink: 0;
   margin: 0;
-  margin-inline-end: var(--bw-space-2);
+  margin-inline-end: var(--bw-control-gap);
   vertical-align: middle;
   border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-full);
   background: var(--bw-color-surface);
   transition: var(--bw-transition-colors);
 }
-input.bw-checkbox {
-  border-radius: var(--bw-radius-sm);
-}
-input.bw-radio {
-  border-radius: var(--bw-radius-full);
-}
+
 /* Shared hover pre-light, the input's own mix (constant documented there). */
-input.bw-checkbox:hover:where(:not(:disabled):not(:checked)),
+input.bw-checkbox:hover:where(:not(:disabled):not(:checked):not(:indeterminate)),
 input.bw-radio:hover:where(:not(:disabled):not(:checked)) {
   border-color: color-mix(in oklab, var(--bw-color-border-control) 82%, var(--bw-color-fg));
 }
-/* Checked: solid accent fill (measured 5.11:1 light / 7.14:1 dark against the
- * surface, the 1.4.11 state boundary). */
+/* Checked / indeterminate: solid accent fill (measured 5.11:1 light /
+ * 7.14:1 dark against the surface, the 1.4.11 state boundary). */
 input.bw-checkbox:checked,
+input.bw-checkbox:indeterminate,
 input.bw-radio:checked {
   border-color: var(--bw-color-accent);
   background-color: var(--bw-color-accent);
 }
-/* The tick: --bw-component-checkbox-glyph is a colour-free alpha shape consumed as a
- * mask and PAINTED with fg-on-accent, so the glyph ink flips with the theme
- * like every other ink-on-accent (white on the light accent, near-black on
- * the lighter dark accent; measured 5.11:1 light / 7.52:1 dark against the
- * fill; a baked white tick would fail dark at 2.63:1, documented on the
- * token). No entrance animation: the fill change is feedback enough and the
- * reduced-motion floor stays trivially honoured. */
+/* The tick: --bw-component-checkbox-glyph is a colour-free alpha shape
+ * consumed as a mask and PAINTED with fg-on-accent, so the glyph ink flips
+ * with the theme. Glyph size follows --bw-control-icon-size. No entrance
+ * animation: the fill change is feedback enough. */
 input.bw-checkbox:checked::before {
   content: "";
-  inline-size: 1rem; /* 16px glyph centred in the 24px box, same ~66% fill ratio as the previous 12px-in-18px */
-  block-size: 1rem;
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
   background-color: var(--bw-color-fg-on-accent);
   mask-image: var(--bw-component-checkbox-glyph);
   mask-repeat: no-repeat;
   mask-size: 100% 100%;
 }
-/* The radio dot uses the border-width trick, the cleanest cross-browser
- * drawing: the accent border thickens and the background becomes the dot
- * (the same theme-correct ink pair as the tick). No pseudo-element, no
- * image; box-sizing: border-box keeps the geometry fixed so nothing shifts
- * on check. Border width scaled with the 18px->24px box (#208) to keep the
- * same ~duplicate dot-to-box proportion as before. */
+/* Indeterminate dash: a centred bar painted with fg-on-accent (data-table
+ * select-all partial state). Width follows the icon role; thickness is the
+ * hairline border token so no parallel rem table appears. */
+input.bw-checkbox:indeterminate::before {
+  content: "";
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-size-border-hairline);
+  background-color: var(--bw-color-fg-on-accent);
+  border-radius: var(--bw-radius-full);
+  box-shadow: 0 0 0 var(--bw-size-border-hairline) var(--bw-color-fg-on-accent);
+}
+/* The radio dot uses the border-width trick: accent border thickens and the
+ * background becomes the dot. Width is 0.278 of the box (5/18 of the original
+ * 18px control), so the dot keeps its proportion at every step (RAD-013). */
 input.bw-radio:checked {
-  border-width: 0.4167rem; /* ~6.7px: 5px was 5/18 of the old box; keeps the same ratio at 24px */
+  border-width: calc(var(--bw-control-height) * 0.278);
   background-color: var(--bw-color-fg-on-accent);
 }
 input.bw-checkbox:disabled,
@@ -647,16 +1086,30 @@ input.bw-radio:disabled {
   background: var(--bw-color-action-disabled-bg);
   cursor: not-allowed;
 }
-input.bw-checkbox:disabled:checked {
+input.bw-checkbox:disabled:checked,
+input.bw-checkbox:disabled:indeterminate {
   border-color: var(--bw-color-action-disabled-border);
   background-color: var(--bw-color-action-disabled-text);
 }
-input.bw-checkbox:disabled:checked::before {
+input.bw-checkbox:disabled:checked::before,
+input.bw-checkbox:disabled:indeterminate::before {
   background-color: var(--bw-color-action-disabled-bg);
+  box-shadow: none;
 }
 input.bw-radio:disabled:checked {
   border-color: var(--bw-color-action-disabled-text);
   background-color: var(--bw-color-action-disabled-bg);
+}
+/* Invalid: Field chrome or aria-invalid paints a danger border (CBX-034). */
+.bw-field--invalid input.bw-checkbox,
+input.bw-checkbox[aria-invalid="true"] {
+  border-color: var(--bw-color-danger);
+}
+/* Invalid (RAD-034): danger ring on unchecked, enabled radios of an invalid
+ * group only. A checked radio keeps its accent ring; disabled keeps disabled. */
+.bw-field--invalid input.bw-radio:where(:not(:checked):not(:disabled)),
+input.bw-radio[aria-invalid="true"]:where(:not(:checked):not(:disabled)) {
+  border-color: var(--bw-color-danger);
 }
 
 /* --- Toggle switch (0.13.0, BR-BW-INPUT-001, brickwork#57) ------------------ */
@@ -781,6 +1234,519 @@ input.bw-toggle:disabled::before {
   font-size: var(--bw-text-label-size);
   font-weight: var(--bw-text-label-weight);
   line-height: var(--bw-text-label-line-height);
+}
+
+/* --- Switch (docs/components/switch.md, R07 / C06) --------------------------- */
+
+/* .bw-switch is the canonical switch (SW-001): a span root holding a native
+ * <input type="checkbox" role="switch">, then a decorative track and thumb.
+ * input.bw-toggle above is the retained Django alias (GAP-SW-1), left as it
+ * is until the lockstep that moves Django onto this block.
+ *
+ * The block reads the role variables only (SW-010). Size classes re-point all
+ * five, same grammar as .bw-input--size-* and .bw-btn--size-* (ADR-125); the
+ * switch itself needs --bw-control-height, which carries both the density and
+ * the step. The track is half that height, the proportion the toggle tokens
+ * draw at the comfortable md step (2.5rem control, 1.25rem track, 0.875rem
+ * thumb, 2.25rem track width), so md is exactly the toggle geometry and every
+ * other density and step scales with it. The floor is the toggle thumb token,
+ * so a compact xs track never collapses. The ratios 1.8 (width), 0.7 (thumb)
+ * and 0.2 (inset) are the toggle tokens' own proportions, kept as unitless
+ * multipliers of the track height so the shape stays recognisably a switch at
+ * every step. The --bw-switch-* names are private to this block (the same
+ * convention as --bw-combobox-chip-size), not tokens.
+ *
+ * Hit area (WCAG 2.5.8, SW-052): the root is never shorter than 1.5rem; the
+ * invisible input fills the whole root, so the target is the root, not the
+ * drawn track. Track and thumb take no pointer events, so a click anywhere on
+ * the switch reaches the input. */
+.bw-switch--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+.bw-switch--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+.bw-switch--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+.bw-switch--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+.bw-switch--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+}
+.bw-switch {
+  --bw-switch-track-block: max(
+    var(--bw-component-toggle-thumb-size),
+    calc(var(--bw-control-height) / 2)
+  );
+  --bw-switch-track-inline: calc(var(--bw-switch-track-block) * 1.8);
+  --bw-switch-thumb: calc(var(--bw-switch-track-block) * 0.7);
+  --bw-switch-inset: calc(var(--bw-switch-track-block) * 0.2);
+  --bw-switch-travel: calc(
+    var(--bw-switch-track-inline) - var(--bw-switch-thumb) - (var(--bw-switch-inset) * 2)
+  );
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  vertical-align: middle;
+  inline-size: var(--bw-switch-track-inline);
+  block-size: max(1.5rem, var(--bw-switch-track-block));
+}
+/* The native input is the control (SW-002): it keeps the checkbox semantics,
+ * form value, keyboard and label wiring, and is drawn invisibly over the whole
+ * root. */
+.bw-switch > input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.bw-switch__track {
+  box-sizing: border-box;
+  inline-size: 100%;
+  block-size: var(--bw-switch-track-block);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-surface-sunken);
+  pointer-events: none;
+  transition: var(--bw-transition-colors);
+}
+.bw-switch__thumb {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: var(--bw-switch-inset);
+  inline-size: var(--bw-switch-thumb);
+  block-size: var(--bw-switch-thumb);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-surface);
+  box-shadow: var(--bw-elevation-1);
+  pointer-events: none;
+  transform: translate(var(--bw-switch-offset, 0), -50%);
+  transition: var(--bw-transition-transform);
+}
+/* Hover pre-light: the border moves one step toward ink, the same 82/18 mix as
+ * the input and the checkbox. :where() keeps the guards at zero specificity so
+ * the checked and disabled rules below still win. */
+.bw-switch > input:hover:where(:not(:disabled):not(:checked)) ~ .bw-switch__track {
+  border-color: color-mix(in oklab, var(--bw-color-border-control) 82%, var(--bw-color-fg));
+}
+/* Checked: accent track (the 1.4.11 state boundary) and the thumb travels to
+ * the inline end. The offset is a signed custom property so the transform and
+ * the RTL flip share one declaration; direction is read from [dir], the same
+ * mechanism as .bw-icon-directional. */
+.bw-switch > input:checked ~ .bw-switch__track {
+  border-color: var(--bw-color-accent);
+  background: var(--bw-color-accent);
+}
+.bw-switch > input:checked ~ .bw-switch__thumb {
+  --bw-switch-offset: var(--bw-switch-travel);
+}
+[dir="rtl"] .bw-switch > input:checked ~ .bw-switch__thumb {
+  --bw-switch-offset: calc(var(--bw-switch-travel) * -1);
+}
+.bw-switch > input:hover:where(:not(:disabled)):checked ~ .bw-switch__track {
+  border-color: var(--bw-color-accent-hover);
+  background: var(--bw-color-accent-hover);
+}
+/* Focus: the global ring is drawn on the invisible input and so cannot be
+ * seen; the same ring (token, width, offset) is drawn on the track. */
+.bw-switch > input:focus-visible ~ .bw-switch__track {
+  outline: 2px solid var(--bw-color-focus-ring, var(--bw-color-accent));
+  outline-offset: 2px;
+}
+.bw-switch > input:disabled {
+  cursor: not-allowed;
+}
+.bw-switch > input:disabled ~ .bw-switch__track {
+  border-color: var(--bw-color-action-disabled-border);
+  background: var(--bw-color-action-disabled-bg);
+}
+.bw-switch > input:disabled:checked ~ .bw-switch__track {
+  border-color: var(--bw-color-action-disabled-border);
+  background: var(--bw-color-action-disabled-text);
+}
+.bw-switch > input:disabled ~ .bw-switch__thumb {
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-switch__track,
+  .bw-switch__thumb {
+    transition: none;
+  }
+}
+
+
+/* --- Slider (docs/components/slider.md, R49 / C18) --------------------------- */
+
+/* .bw-slider is a span root holding a native <input type="range"> (SLD-001,
+ * SLD-002). The block reads the role variables only (SLD-010). Size classes
+ * re-point all five, same grammar as .bw-input--size-* (ADR-125). Track block
+ * size is 0.2 x control height; thumb diameter is 0.5 x control height
+ * (SLD-011). The fill is --bw-slider-percent (0-100), Progress convention
+ * (SLD-017). --bw-slider-* geometry names are private to this block.
+ *
+ * Hit area (WCAG 2.5.8, SLD-052): the root is never shorter than 1.5rem; the
+ * range input fills the root. */
+.bw-slider--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+.bw-slider--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+.bw-slider--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+.bw-slider--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+.bw-slider--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+}
+.bw-slider {
+  --bw-slider-track-block: calc(var(--bw-control-height) * 0.2);
+  --bw-slider-thumb: calc(var(--bw-control-height) * 0.5);
+  --bw-slider-percent: 0;
+  --bw-slider-fill-dir: right;
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  block-size: max(1.5rem, var(--bw-slider-thumb));
+}
+[dir="rtl"] .bw-slider {
+  --bw-slider-fill-dir: left;
+}
+.bw-slider__input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.bw-slider__input:disabled {
+  cursor: not-allowed;
+}
+.bw-slider__input::-webkit-slider-runnable-track {
+  box-sizing: border-box;
+  inline-size: 100%;
+  block-size: var(--bw-slider-track-block);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-full);
+  background: linear-gradient(
+    to var(--bw-slider-fill-dir),
+    var(--bw-color-accent) 0%,
+    var(--bw-color-accent) calc(var(--bw-slider-percent, 0) * 1%),
+    var(--bw-color-surface-sunken) calc(var(--bw-slider-percent, 0) * 1%),
+    var(--bw-color-surface-sunken) 100%
+  );
+  transition: var(--bw-transition-colors);
+}
+.bw-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  inline-size: var(--bw-slider-thumb);
+  block-size: var(--bw-slider-thumb);
+  margin-block-start: calc((var(--bw-slider-track-block) - var(--bw-slider-thumb)) / 2);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-surface);
+  box-shadow: var(--bw-elevation-1);
+  transition: var(--bw-transition-colors);
+}
+.bw-slider__input::-moz-range-track {
+  box-sizing: border-box;
+  inline-size: 100%;
+  block-size: var(--bw-slider-track-block);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-surface-sunken);
+  transition: var(--bw-transition-colors);
+}
+.bw-slider__input::-moz-range-progress {
+  block-size: var(--bw-slider-track-block);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-accent);
+  transition: var(--bw-transition-colors);
+}
+.bw-slider__input::-moz-range-thumb {
+  box-sizing: border-box;
+  inline-size: var(--bw-slider-thumb);
+  block-size: var(--bw-slider-thumb);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-surface);
+  box-shadow: var(--bw-elevation-1);
+  transition: var(--bw-transition-colors);
+}
+.bw-slider__input:hover:where(:not(:disabled))::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to var(--bw-slider-fill-dir),
+    var(--bw-color-accent-hover) 0%,
+    var(--bw-color-accent-hover) calc(var(--bw-slider-percent, 0) * 1%),
+    var(--bw-color-surface-sunken) calc(var(--bw-slider-percent, 0) * 1%),
+    var(--bw-color-surface-sunken) 100%
+  );
+}
+.bw-slider__input:hover:where(:not(:disabled))::-webkit-slider-thumb {
+  border-color: color-mix(in oklab, var(--bw-color-border-control) 82%, var(--bw-color-fg));
+}
+.bw-slider__input:hover:where(:not(:disabled))::-moz-range-progress {
+  background: var(--bw-color-accent-hover);
+}
+.bw-slider__input:hover:where(:not(:disabled))::-moz-range-thumb {
+  border-color: color-mix(in oklab, var(--bw-color-border-control) 82%, var(--bw-color-fg));
+}
+.bw-slider__input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--bw-color-focus-ring, var(--bw-color-accent));
+  outline-offset: 2px;
+}
+.bw-slider__input:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--bw-color-focus-ring, var(--bw-color-accent));
+  outline-offset: 2px;
+}
+.bw-slider__input:disabled::-webkit-slider-runnable-track {
+  border-color: var(--bw-color-action-disabled-border);
+  background: linear-gradient(
+    to var(--bw-slider-fill-dir),
+    var(--bw-color-action-disabled-text) 0%,
+    var(--bw-color-action-disabled-text) calc(var(--bw-slider-percent, 0) * 1%),
+    var(--bw-color-action-disabled-bg) calc(var(--bw-slider-percent, 0) * 1%),
+    var(--bw-color-action-disabled-bg) 100%
+  );
+}
+.bw-slider__input:disabled::-webkit-slider-thumb {
+  border-color: var(--bw-color-action-disabled-border);
+  background: var(--bw-color-action-disabled-bg);
+  box-shadow: none;
+}
+.bw-slider__input:disabled::-moz-range-track {
+  border-color: var(--bw-color-action-disabled-border);
+  background: var(--bw-color-action-disabled-bg);
+}
+.bw-slider__input:disabled::-moz-range-progress {
+  background: var(--bw-color-action-disabled-text);
+}
+.bw-slider__input:disabled::-moz-range-thumb {
+  border-color: var(--bw-color-action-disabled-border);
+  background: var(--bw-color-action-disabled-bg);
+  box-shadow: none;
+}
+.bw-field--invalid .bw-slider__input:where(:not(:disabled))::-webkit-slider-runnable-track,
+.bw-slider__input[aria-invalid="true"]:where(:not(:disabled))::-webkit-slider-runnable-track {
+  border-color: var(--bw-color-danger);
+}
+.bw-field--invalid .bw-slider__input:where(:not(:disabled))::-moz-range-track,
+.bw-slider__input[aria-invalid="true"]:where(:not(:disabled))::-moz-range-track {
+  border-color: var(--bw-color-danger);
+}
+.bw-field--invalid .bw-slider__input:hover:where(:not(:disabled))::-webkit-slider-runnable-track,
+.bw-slider__input[aria-invalid="true"]:hover:where(:not(:disabled))::-webkit-slider-runnable-track {
+  border-color: var(--bw-color-danger);
+}
+.bw-field--invalid .bw-slider__input:hover:where(:not(:disabled))::-moz-range-track,
+.bw-slider__input[aria-invalid="true"]:hover:where(:not(:disabled))::-moz-range-track {
+  border-color: var(--bw-color-danger);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-slider__input::-webkit-slider-runnable-track,
+  .bw-slider__input::-webkit-slider-thumb,
+  .bw-slider__input::-moz-range-track,
+  .bw-slider__input::-moz-range-progress,
+  .bw-slider__input::-moz-range-thumb {
+    transition: none;
+  }
+}
+
+/* --- Copy button (docs/components/copy-button.md, R51 / C20) ---------------- */
+
+/* First build of the missing copy-to-clipboard control. Ghost chrome, five
+ * ADR-125 size steps via the control role variables only (CPY-010). Icon-only
+ * is square at --bw-control-height; a labelled control keeps inline padding.
+ * Colour is tokens only (CPY-012). */
+.bw-copy {
+  /* Bare host is md: role variables default to the md step tokens so HTML
+   * without a size class still has geometry (CPY-002). */
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bw-control-gap);
+  box-sizing: border-box;
+  block-size: max(1.5rem, var(--bw-control-height));
+  inline-size: max(1.5rem, var(--bw-control-height));
+  padding-block: 0;
+  padding-inline: 0;
+  border: var(--bw-size-border-hairline) solid transparent;
+  border-radius: var(--bw-component-button-radius);
+  background: transparent;
+  color: var(--bw-color-fg-muted);
+  font: inherit;
+  font-family: var(--bw-text-label-family);
+  font-size: var(--bw-control-font-size);
+  font-weight: var(--bw-text-label-weight);
+  line-height: var(--bw-text-label-line-height);
+  letter-spacing: var(--bw-text-label-tracking);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+.bw-copy:has(.bw-copy__label) {
+  inline-size: auto;
+  padding-inline: var(--bw-control-padding-inline);
+}
+.bw-copy:hover:where(:not(:disabled)) {
+  background-color: var(--bw-state-hover-overlay);
+  color: var(--bw-color-fg);
+}
+.bw-copy:active:where(:not(:disabled)) {
+  background-color: var(--bw-state-active-overlay);
+}
+.bw-copy:focus-visible {
+  outline: 2px solid var(--bw-color-focus-ring, var(--bw-color-accent));
+  outline-offset: 2px;
+}
+.bw-copy:disabled {
+  background: var(--bw-color-action-disabled-bg);
+  color: var(--bw-color-action-disabled-text);
+  border-color: var(--bw-color-action-disabled-border);
+  cursor: not-allowed;
+}
+.bw-copy__icon,
+.bw-copy__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
+  color: inherit;
+  flex-shrink: 0;
+}
+.bw-copy__icon > svg,
+.bw-copy__mark > svg {
+  inline-size: 100%;
+  block-size: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Outcome marks: shape change, not colour alone (CPY-051, CB-06). Idle shows
+ * the consumer icon; copied shows the check; failed shows the cross. */
+.bw-copy__mark {
+  display: none;
+}
+.bw-copy[data-bw-copy-state="copied"],
+.bw-copy[data-bw-copy-state="failed"] {
+  color: var(--bw-color-fg);
+}
+.bw-copy[data-bw-copy-state="copied"] .bw-copy__icon,
+.bw-copy[data-bw-copy-state="failed"] .bw-copy__icon {
+  display: none;
+}
+.bw-copy[data-bw-copy-state="copied"] .bw-copy__mark--done {
+  display: inline-flex;
+}
+.bw-copy[data-bw-copy-state="failed"] .bw-copy__mark--fail {
+  display: inline-flex;
+}
+.bw-copy__label {
+  color: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-copy {
+    transition: none;
+  }
+}
+.bw-copy--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+.bw-copy--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+.bw-copy--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+.bw-copy--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+.bw-copy--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
 }
 
 /* --- Theme switch (icvoss/django-brickwork#117) ----------------------------- */
@@ -998,9 +1964,15 @@ input.bw-toggle:disabled::before {
   }
 }
 
-.bw-field__help {
+/* Help and hint are one treatment (FLD-003). Django emits .bw-field__help
+ * (BoundField.help_text); React Hint and Free gallery markup emit
+ * .bw-field__hint. Both paint as caption muted. The wave-b divergent
+ * .bw-field__hint (body-sm size, extra margin) is removed. */
+.bw-field__help,
+.bw-field__hint {
   margin: 0;
   color: var(--bw-color-fg-muted);
+  font-family: var(--bw-text-caption-family);
   font-size: var(--bw-text-caption-size);
   font-weight: var(--bw-text-caption-weight);
   line-height: var(--bw-text-caption-line-height);
@@ -1013,6 +1985,7 @@ input.bw-toggle:disabled::before {
   /* danger-fg, not raw danger: the smallest text on the form carries the most
    * important message, so it gets the text-duty danger tier (AA at 12px). */
   color: var(--bw-color-danger-fg);
+  font-family: var(--bw-text-caption-family);
   font-size: var(--bw-text-caption-size);
   font-weight: var(--bw-text-caption-weight);
   line-height: var(--bw-text-caption-line-height);
@@ -1059,7 +2032,7 @@ input.bw-toggle:disabled::before {
  * fight (grid: capping a field's width mid-column) the row's own layout, so
  * they are neutralised here and the row takes over spacing/sizing. */
 .bw-form-fields--stacked .bw-field-row {
-  margin-block-end: var(--bw-density-stack-gap);
+  margin-block-end: var(--bw-size-gap-md);
 }
 .bw-form-fields--stacked .bw-field-row:last-child {
   margin-block-end: 0;
@@ -1074,7 +2047,7 @@ input.bw-toggle:disabled::before {
 .bw-field-row--grouped {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--bw-space-3);
+  gap: var(--bw-size-gap-sm);
 }
 .bw-field-row--grouped .bw-field {
   flex: 1 1 0;
@@ -1092,7 +2065,7 @@ input.bw-toggle:disabled::before {
 .bw-form-fields--grid {
   display: grid;
   grid-template-columns: repeat(var(--bw-form-grid-columns, 2), minmax(0, 1fr));
-  gap: var(--bw-density-stack-gap) var(--bw-space-4);
+  gap: var(--bw-size-gap-md) var(--bw-size-gap-md);
   max-inline-size: none;
 }
 .bw-form-fields--grid .bw-field-row {
@@ -1136,7 +2109,14 @@ input.bw-toggle:disabled::before {
     color-mix(in oklab, var(--bw-color-fg) 10%, var(--bw-color-surface-sunken));
   border-radius: var(--bw-radius-lg);
 }
+/* Title row: h1 and at most one status Badge sit on one wrapping line;
+ * description takes the full inline track beneath (H05 / R59, APP-009). */
 .bw-page-header__titles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--bw-space-3);
+  row-gap: var(--bw-space-1);
   flex: 1 1 12rem;
   min-inline-size: 0;
 }
@@ -1156,6 +2136,7 @@ input.bw-toggle:disabled::before {
   letter-spacing: var(--bw-text-heading-xl-tracking);
 }
 .bw-page-header__description {
+  flex: 1 1 100%;
   margin: var(--bw-space-1) 0 0;
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-text-body-md-size);
@@ -1294,40 +2275,26 @@ input.bw-toggle:disabled::before {
 .bw-data-table-wrap {
   overflow-x: auto;
   background: var(--bw-color-surface);
-  /* Edge + ambient match zero-kwargs .bw-card so the table reads on white;
-   * sunken header, zebra, hover and selected stay on the inner rows. */
   border: var(--bw-size-border-hairline) solid
     color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
-  box-shadow:
-    var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
-  /* Wide tables scroll inside the card: thin, border-toned scrollbar so the
-   * apparatus stays quieter than the data (decorative chrome). */
+  /* Token-only elevation (CB-16): no raw oklch shadow. */
+  box-shadow: var(--bw-elevation-1);
   scrollbar-width: thin;
   scrollbar-color: var(--bw-color-border) transparent;
-  /* Paint containment: without it, an ancestor that still blows out (a
-   * consumer's own wrapper, not just the .bw-card/.bw-section-stack fixed
-   * above) can let this wrap's overflow paint outside its own box instead of
-   * clipping to it, which is what let the wide table drag the PAGE sideways
-   * rather than scrolling within its own card (icvoss/django-brickwork#136).
-   * contain: paint guarantees this element is the clipping boundary for its
-   * own descendants regardless of what an ancestor does. */
   contain: paint;
 }
-/* density="compact" (Beat Phase C): ops/console tables with tighter rows. */
 .bw-data-table-wrap--density-compact .bw-data-table__th,
 .bw-data-table-wrap--density-compact .bw-data-table__td {
   padding-block: var(--bw-space-2);
   padding-inline: var(--bw-space-3);
-  font-size: var(--bw-text-body-sm-size);
 }
 .bw-data-table {
   inline-size: 100%;
   border-collapse: collapse;
 }
-/* Column headers speak in the small tracked-uppercase voice so the sunken band
- * reads as column apparatus, not a first data row. */
+/* APP-001 data-head: 12 px (--bw-font-size-xs), medium, normal tracking.
+ * Named text.data-head lands with F02 / R29; this raise cites the tokens. */
 .bw-data-table__th {
   text-align: start;
   padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
@@ -1335,16 +2302,25 @@ input.bw-toggle:disabled::before {
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border-strong);
   color: var(--bw-color-fg-muted);
   font-size: var(--bw-font-size-xs);
-  font-weight: var(--bw-font-weight-semibold);
-  line-height: var(--bw-text-label-line-height);
-  letter-spacing: var(--bw-font-tracking-wide);
-  text-transform: uppercase;
+  font-weight: var(--bw-font-weight-medium);
+  line-height: var(--bw-font-line-height-normal);
+  letter-spacing: var(--bw-font-tracking-normal);
+  text-transform: none;
 }
-/* icvoss/django-brickwork#208: inline-flex with no minimum sized the target
- * to whatever the label's line-height gave it (measured 74x16 at 375px),
- * under the WCAG 2.5.8 floor. min-block-size only: the label text already
- * centres via align-items, so this changes no visual weight, just the
- * clickable/tappable extent above and below the text. */
+.bw-data-table__caption {
+  caption-side: top;
+  text-align: start;
+  padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-font-size-xs);
+  font-weight: var(--bw-font-weight-medium);
+}
+.bw-data-table__footnote {
+  padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-font-size-xs);
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
 .bw-data-table__sort {
   display: inline-flex;
   align-items: center;
@@ -1357,11 +2333,13 @@ input.bw-toggle:disabled::before {
 .bw-data-table__sort:hover {
   color: var(--bw-color-accent);
 }
-/* Idle sort arrows are noise until pointed at: hidden at rest, revealed on
- * hover and (for keyboard users) focus-visible; the affordance also stays in
- * the accessible name. Opacity transition only, so the reduced-motion floor
- * caps it globally. */
+/* Idle sort chevron: CSS triangle, no letter glyph (CB-14). */
 .bw-data-table__sort-idle {
+  display: inline-block;
+  inline-size: 0;
+  block-size: 0;
+  border-inline: 0.25rem solid transparent;
+  border-block-start: 0.3rem solid currentColor;
   opacity: 0;
   transition: var(--bw-transition-opacity);
 }
@@ -1372,40 +2350,28 @@ input.bw-toggle:disabled::before {
 .bw-data-table__td {
   padding: var(--bw-density-row-padding-block) var(--bw-density-row-padding-inline);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
-  font-size: var(--bw-text-body-sm-size);
-  line-height: var(--bw-text-body-sm-line-height);
-  font-variant-numeric: tabular-nums; /* numeric columns align digit-for-digit */
+  font-size: var(--bw-font-size-xs);
+  line-height: var(--bw-font-line-height-normal);
+  font-variant-numeric: tabular-nums;
+  color: var(--bw-color-fg);
 }
-/* The last row's bottom hairline would double against the card's own border. */
 .bw-data-table__row:last-child > .bw-data-table__td,
 .bw-data-table__row:last-child > .bw-data-table__th--label {
   border-block-end: 0;
 }
-/* Records-variant zebra + hover. Even rows stripe so row 1 stays on the plain
-   surface next to the sunken header band. Hover is an overlay image so it
-   composes with the stripe rather than replacing it (DESIGN.md 4.6 stacking
-   order). The definition variant stays plain: key/value reads better without
-   stripes. */
-.bw-data-table:not(.bw-data-table--definition) .bw-data-table__row:nth-child(even) {
+.bw-data-table:not(.bw-data-table--definition)
+  .bw-data-table__row:where(
+    :not(.bw-data-table__row--group):not(.bw-data-table__row--group-child):not(.bw-data-table__row--totals)
+  ):nth-child(even) {
   background-color: var(--bw-color-surface-sunken);
 }
-/* Selected row (records rows carry the hook): equal specificity to the zebra
-   rule, later in source order, so selection beats the stripe; hover still
-   layers its overlay image on top. */
 .bw-data-table:not(.bw-data-table--definition) .bw-data-table__row.bw-data-table__row--selected {
   background-color: var(--bw-state-selected-bg);
 }
-.bw-data-table:not(.bw-data-table--definition) .bw-data-table__row:hover {
+.bw-data-table:not(.bw-data-table--definition) .bw-data-table__row:hover,
+.bw-data-table:not(.bw-data-table--definition) .bw-data-table__row:focus-within {
   background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
 }
-
-/* A clickable record row (row.url, #10): the row-link fills its cell and
-   inherits colour, so the whole first cell is the target and the row reads as
-   actionable. The hover already comes from the records-variant row hover.
-   min-block-size (#208): the compact density's row padding leaves less than
-   24px of line-height alone, so the row-link's own tap target fell under
-   the WCAG 2.5.8 floor there; comfortable/spacious density already clear it
-   without this, so the floor is a no-op visual change for them. */
 .bw-data-table__row-link {
   display: block;
   min-block-size: 1.5rem;
@@ -1415,21 +2381,123 @@ input.bw-toggle:disabled::before {
 .bw-data-table__row-link:hover {
   text-decoration: underline;
 }
-
-/* Definition-list mode (#18): a key/value fact table for one entity. The label
-   is a row header; give it the muted body-sm treatment (no header background,
-   the column is a key, not chrome). The table fills its card; the 1% nowrap
-   label column keeps the key column tight so values line up. */
+.bw-data-table__row--group > .bw-data-table__td,
+.bw-data-table__row--group > .bw-data-table__th {
+  background: var(--bw-color-surface-sunken);
+  font-weight: var(--bw-font-weight-semibold);
+}
+.bw-data-table__group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  min-block-size: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.bw-data-table__group-toggle::before {
+  content: "";
+  inline-size: 0;
+  block-size: 0;
+  border-block: 0.25rem solid transparent;
+  border-inline-start: 0.3rem solid currentColor;
+  transition: var(--bw-transition-transform);
+}
+.bw-data-table__group-toggle[aria-expanded="true"]::before {
+  transform: rotate(90deg);
+}
+.bw-data-table__row--group-child[hidden] {
+  display: none;
+}
+.bw-data-table__row--totals > .bw-data-table__td,
+.bw-data-table__row--totals > .bw-data-table__th {
+  background: color-mix(in oklab, var(--bw-color-accent) 8%, var(--bw-color-surface));
+  font-weight: var(--bw-font-weight-semibold);
+  border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border-strong);
+}
+.bw-data-table__entity {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  min-inline-size: 0;
+}
+.bw-data-table__entity-mark {
+  flex: 0 0 auto;
+  inline-size: var(--bw-space-2);
+  block-size: var(--bw-space-2);
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-chart-1);
+}
+/* Glyph form (APP-008): short letter mark (1-2 chars). Colour is the text;
+ * the surface stays bordered so colour is never the only cue. Empty marks
+ * keep the swatch treatment above. */
+.bw-data-table__entity-mark:not(:empty) {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.8125rem;
+  block-size: 1.8125rem;
+  border-radius: var(--bw-radius-md);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  background: var(--bw-color-surface);
+  color: var(--bw-color-chart-1);
+  font-size: var(--bw-font-size-xs);
+  font-weight: var(--bw-font-weight-bold);
+  line-height: 1;
+}
+.bw-data-table__entity-mark--chart-1 { background: var(--bw-color-chart-1); }
+.bw-data-table__entity-mark--chart-2 { background: var(--bw-color-chart-2); }
+.bw-data-table__entity-mark--chart-3 { background: var(--bw-color-chart-3); }
+.bw-data-table__entity-mark--chart-4 { background: var(--bw-color-chart-4); }
+.bw-data-table__entity-mark--chart-5 { background: var(--bw-color-chart-5); }
+.bw-data-table__entity-mark--chart-6 { background: var(--bw-color-chart-6); }
+.bw-data-table__entity-mark--chart-7 { background: var(--bw-color-chart-7); }
+.bw-data-table__entity-mark--chart-8 { background: var(--bw-color-chart-8); }
+.bw-data-table__entity-mark--chart-1:not(:empty) { background: var(--bw-color-surface); color: var(--bw-color-chart-1); }
+.bw-data-table__entity-mark--chart-2:not(:empty) { background: var(--bw-color-surface); color: var(--bw-color-chart-2); }
+.bw-data-table__entity-mark--chart-3:not(:empty) { background: var(--bw-color-surface); color: var(--bw-color-chart-3); }
+.bw-data-table__entity-mark--chart-4:not(:empty) { background: var(--bw-color-surface); color: var(--bw-color-chart-4); }
+.bw-data-table__entity-mark--chart-5:not(:empty) { background: var(--bw-color-surface); color: var(--bw-color-chart-5); }
+.bw-data-table__entity-mark--chart-6:not(:empty) { background: var(--bw-color-surface); color: var(--bw-color-chart-6); }
+.bw-data-table__entity-mark--chart-7:not(:empty) { background: var(--bw-color-surface); color: var(--bw-color-chart-7); }
+.bw-data-table__entity-mark--chart-8:not(:empty) { background: var(--bw-color-surface); color: var(--bw-color-chart-8); }
+.bw-data-table__entity-text {
+  display: grid;
+  min-inline-size: 0;
+}
+.bw-data-table__entity-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bw-data-table__entity-subline {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-font-size-xs);
+}
+.bw-data-table__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-1);
+}
+.bw-data-table__na {
+  display: grid;
+}
+.bw-data-table__na-label {
+  color: var(--bw-color-fg-muted);
+  font-variant-numeric: normal;
+}
+.bw-data-table__na-reason {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-font-size-xs);
+}
 .bw-data-table--definition {
   inline-size: 100%;
 }
-/* A key/value fact card hugs its facts rather than stretching the workspace.
-   Graceful no-op in engines without :has(). */
 .bw-data-table-wrap:has(.bw-data-table--definition) {
   max-inline-size: var(--bw-size-max-width-prose);
 }
-/* The value is the payload: muted-regular key against medium value gives the
-   quiet two-rank rhythm. */
 .bw-data-table--definition .bw-data-table__td {
   font-weight: var(--bw-font-weight-medium);
 }
@@ -1441,20 +2509,12 @@ input.bw-toggle:disabled::before {
   padding-inline-end: var(--bw-space-6);
   vertical-align: baseline;
   color: var(--bw-color-fg-muted);
-  font-size: var(--bw-text-body-sm-size);
-  line-height: var(--bw-text-body-sm-line-height);
-  /* Reset the column-header voice: this cell also carries __th, but it is a
-     row key, not chrome, so it keeps the plain body-sm treatment. */
-  font-weight: var(--bw-text-label-weight);
+  font-size: var(--bw-font-size-xs);
+  line-height: var(--bw-font-line-height-normal);
+  font-weight: var(--bw-font-weight-medium);
   letter-spacing: var(--bw-font-tracking-normal);
   text-transform: none;
 }
-
-/* --- Data table: bulk selection, sticky header, responsive (brickwork#54) -- */
-
-/* The leading checkbox column: 1% width hugs the control (the __th--label
- * inline-size:1% trick reused), centred so it does not drag the header text
- * baseline off the other columns. */
 .bw-data-table__th--select,
 .bw-data-table__td--select {
   inline-size: 1%;
@@ -1462,9 +2522,6 @@ input.bw-toggle:disabled::before {
   text-align: center;
   vertical-align: middle;
 }
-/* Column alignment vocabulary (icvoss/django-brickwork#522): closed set
- * start (default, no modifier) | center | end, applied to both header and
- * body cells from the column dict's align key. */
 .bw-data-table__th--center,
 .bw-data-table__td--center {
   text-align: center;
@@ -1474,14 +2531,6 @@ input.bw-toggle:disabled::before {
   text-align: end;
   font-variant-numeric: tabular-nums;
 }
-
-/* loading=True skeleton (icvoss/django-brickwork#137): without padding of its
- * own the placeholder bars sit flush to the wrap's card border, then jump
- * inward once real rows arrive with their __td/__th row-density padding. Uses
- * the same row-density tokens as the real cells so the loading and loaded
- * states share one inset, and .bw-skeleton-group's own stack-with-gap shape
- * (flex column, --bw-space-2 gap) so the bars read as the same house pattern
- * for stacked skeletons rather than a one-off. */
 .bw-data-table__skeleton {
   display: flex;
   flex-direction: column;
@@ -1489,31 +2538,14 @@ input.bw-toggle:disabled::before {
   padding-block: var(--bw-density-row-padding-block);
   padding-inline: var(--bw-density-row-padding-inline);
 }
-
-/* scroll_container / sticky_header: the wrap keeps its own scroll (unchanged
- * from the plain wrap), the <thead> pins to the top of that scroll region.
- * The header cells need an opaque background of their own (they already
- * carry --bw-color-surface-sunken) so scrolled body rows do not show through
- * underneath the pinned band; the z-index keeps it above the body but below
- * any overlay chrome (the shared --bw-z-sticky token, the same one the
- * shell topbar uses, so a table's sticky head never fights the app chrome
- * for stacking). */
 .bw-data-table-wrap--sticky {
   max-block-size: 100%;
 }
-.bw-data-table-wrap--sticky .bw-data-table__th {
+.bw-data-table-wrap--sticky thead .bw-data-table__th {
   position: sticky;
   inset-block-start: 0;
   z-index: var(--bw-z-sticky);
 }
-
-/* responsive="stack": below the breakpoint each row becomes a labelled card
- * (data-label per cell, stamped by the template from the column list) and
- * the header row is hidden (the labels replace it). Above the breakpoint
- * this is a no-op: the table renders exactly as the scroll default. The
- * breakpoint matches the shell's own mobile cut (DESIGN.md's sidebar
- * collapse breakpoint), so a table's card mode and the shell's mobile nav
- * change together. */
 @media (width < --theme(--breakpoint-md)) {
   .bw-data-table--stack thead {
     position: absolute;
@@ -1546,19 +2578,14 @@ input.bw-toggle:disabled::before {
     border-block-end: 0;
     text-align: end;
   }
-  /* The stamped label reads as the row's own column key, in the same muted
-   * voice _data_table.html--definition uses for its row headers, so a
-   * stacked card and a definition table share one "key: value" language. */
   .bw-data-table--stack .bw-data-table__td[data-label]::before {
     content: attr(data-label);
     flex: 0 0 auto;
     color: var(--bw-color-fg-muted);
-    font-size: var(--bw-text-body-sm-size);
+    font-size: var(--bw-font-size-xs);
     font-weight: var(--bw-font-weight-medium);
     text-align: start;
   }
-  /* The select column carries no data-label (it is a control, not a fact);
-   * it stays a plain leading row instead of a fake "key: value" pair. */
   .bw-data-table--stack .bw-data-table__td--select {
     justify-content: flex-start;
   }
@@ -1807,7 +2834,9 @@ button.bw-account-menu__item {
 }
 
 .bw-filter-bar__actions {
-  margin-block-end: var(--bw-space-1);
+  /* No trailing margin: .bw-field__errors:empty is display:none, so the field
+   * stack ends at the control and flex-end already shares that bottom edge. */
+  margin-block-end: 0;
 }
 
 /* --- Search (#155) --------------------------------------------------------- */
@@ -2020,7 +3049,7 @@ button.bw-account-menu__item {
 }
 .bw-skeleton--row {
   inline-size: var(--bw-skeleton-w, 100%);
-  block-size: var(--bw-skeleton-h, var(--bw-density-control-height));
+  block-size: var(--bw-skeleton-h, var(--bw-control-height));
   margin-block-end: var(--bw-space-2);
 }
 /* Filled rectangle (0.12.0, #56): a chart/image placeholder with no natural
@@ -2067,14 +3096,35 @@ button.bw-account-menu__item {
   gap: var(--bw-space-2);
 }
 .bw-progress__track {
+  position: relative;
   flex: 1 1 auto;
   block-size: var(--bw-component-progress-track-height);
   background: var(--bw-color-surface-sunken);
   border-radius: var(--bw-radius-full);
+  /* Default track clips the fill to the trough. When an elapsed/pace marker
+   * is present (APP-010), overflow must be visible so the tick can sit
+   * slightly proud of the track. */
   overflow: hidden;
   /* The track's own visible contrast against the fill is the non-colour
    * signal STA-007 requires: a sunken trough is legible even if the fill
    * hue is indistinguishable to the viewer. */
+}
+.bw-progress__track:has(> .bw-progress__elapsed) {
+  overflow: visible;
+}
+/* Pace marker (APP-010 / R25): a 2px tick at --bw-progress-elapsed (0-100).
+ * Sibling of the fill inside the track. aria-hidden: the progressbar's
+ * accessible name states both used and elapsed. */
+.bw-progress__elapsed {
+  position: absolute;
+  inset-block-start: -0.2rem;
+  inset-inline-start: calc(var(--bw-progress-elapsed, 0) * 1%);
+  inline-size: 0.125rem;
+  block-size: calc(var(--bw-component-progress-track-height) + 0.4rem);
+  background: var(--bw-color-fg-muted);
+  border-radius: var(--bw-radius-full);
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 .bw-progress__fill {
   block-size: 100%;
@@ -2118,6 +3168,137 @@ button.bw-account-menu__item {
   }
 }
 
+
+
+/* --- Stat summary strip (APP-010 second tier) ------------------------------- */
+
+/* Plain supporting metrics under a primary bw-stat-grid. Hairline column
+ * dividers; not a card and not the marketing bw-stat-band. */
+.bw-stat-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-block: var(--bw-space-4) var(--bw-space-5);
+}
+.bw-stat-summary > * {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--bw-space-2);
+  padding-inline: var(--bw-space-4);
+  border-inline-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+.bw-stat-summary > *:first-child {
+  padding-inline-start: 0;
+}
+.bw-stat-summary > *:last-child {
+  border-inline-end: 0;
+}
+.bw-stat-summary__label {
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-font-size-xs);
+}
+.bw-stat-summary__value {
+  font-size: var(--bw-font-size-sm);
+  font-weight: var(--bw-font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--bw-color-fg);
+}
+@media (width < --theme(--breakpoint-md)) {
+  .bw-stat-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: var(--bw-space-3);
+  }
+  .bw-stat-summary > *:nth-child(2) {
+    border-inline-end: 0;
+  }
+  .bw-stat-summary > *:nth-child(3) {
+    padding-inline-start: 0;
+  }
+}
+
+/* --- Reporting window control (APP craft date chip) ------------------------- */
+
+.bw-window-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-md);
+  background: var(--bw-color-surface);
+  padding: var(--bw-space-2) var(--bw-space-3);
+  color: var(--bw-color-fg);
+}
+.bw-window-control__icon {
+  display: inline-flex;
+  color: var(--bw-color-fg-muted);
+  flex-shrink: 0;
+}
+.bw-window-control select,
+.bw-window-control .bw-select {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--bw-font-size-sm);
+  padding: 0 var(--bw-space-1);
+  max-inline-size: 100%;
+}
+.bw-window-control__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--bw-space-1);
+}
+.bw-window-control__hint {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-font-size-xs);
+}
+
+/* --- Insight notes (APP craft under dense tables) --------------------------- */
+
+.bw-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--bw-space-4);
+}
+.bw-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bw-space-3);
+  padding: var(--bw-space-3) var(--bw-space-4);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-md);
+  background: var(--bw-color-surface);
+}
+.bw-insight__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 1.7rem;
+  block-size: 1.7rem;
+  border-radius: var(--bw-radius-md);
+  background: color-mix(in oklab, var(--bw-color-accent) 16%, var(--bw-color-surface));
+  color: var(--bw-color-accent);
+  flex-shrink: 0;
+}
+.bw-insight__title {
+  margin: 0 0 var(--bw-space-1);
+  font-size: var(--bw-font-size-xs);
+  font-weight: var(--bw-font-weight-semibold);
+  color: var(--bw-color-fg);
+}
+.bw-insight__body {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-font-size-xs);
+  line-height: 1.65;
+}
+@media (width < --theme(--breakpoint-lg)) {
+  .bw-insight-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- Card (CMP-014 to CMP-017, 0.5.0) --------------------------------------- */
 
 /* The composition surface: the same chrome family as the data-table wrap and
@@ -2147,10 +3328,19 @@ button.bw-account-menu__item {
   box-shadow:
     var(--bw-elevation-1),
     0 4px 14px -4px oklch(0 0 0 / 0.1);
-  padding: var(--bw-density-card-padding);
+  /* The active inset is declared once as a component variable (the same
+   * inline-token mechanism as --bw-component-stat-tile-value-size), so the
+   * padding and every bleed margin below read one value and a size step
+   * cannot leave a bleed region short or long (CRD-012). */
+  --bw-component-card-inset: var(--bw-size-inset-md);
+  padding: var(--bw-size-inset-md);
 }
-/* Flat-design variant (CMP-015): the hairline carries the boundary alone. */
+/* Flat mode (CMP-015, APP-002, CRD-020): the hairline carries the boundary
+   alone. The edge is the app hairline token, not the soft ink-mix edge the
+   elevated default keeps for marketing depth. Opt-in: the default card stays
+   elevation-1 plus ambient. An explicit elevation modifier below still wins. */
 .bw-card--bordered {
+  border-color: var(--bw-color-border);
   box-shadow: var(--bw-elevation-0);
 }
 /* Appearance suite (docs/APPEARANCE.md, #535): CSS-only surface / elevation /
@@ -2205,6 +3395,15 @@ button.bw-account-menu__item {
     var(--bw-elevation-1),
     0 4px 14px -4px oklch(0 0 0 / 0.1);
 }
+/* Flat mode outranks the recipe and inverse ambient stacks above (two classes
+   against one), and loses to an explicit elevation compound below. */
+.bw-card--bordered.bw-card--surface-inverse,
+.bw-card--bordered.bw-card--header-inverse,
+.bw-card--bordered.bw-card--header-muted,
+.bw-card--bordered.bw-card--header-accent,
+.bw-card--bordered.bw-card--media-bleed {
+  box-shadow: var(--bw-elevation-0);
+}
 .bw-card--surface-inverse.bw-card--elevation-0,
 .bw-card--header-inverse.bw-card--elevation-0,
 .bw-card--header-muted.bw-card--elevation-0,
@@ -2226,16 +3425,21 @@ button.bw-account-menu__item {
 .bw-card--media-bleed.bw-card--elevation-3 {
   box-shadow: var(--bw-elevation-3);
 }
-/* padding arg (04-interfaces): md restates the density default so an explicit
-   padding="md" and the bare card always agree. */
+/* padding arg (04-interfaces), ADR-126 section 5 / SIZE-COVERAGE gate 6: the
+   container inset scale (--bw-size-inset-*, md = --bw-density-card-padding).
+   md restates the default so an explicit padding="md" and the bare card
+   always agree; every step is density-aware (no absolute --bw-space-*). */
 .bw-card--size-sm {
-  padding: var(--bw-space-3);
+  --bw-component-card-inset: var(--bw-size-inset-sm);
+  padding: var(--bw-size-inset-sm);
 }
 .bw-card--size-md {
-  padding: var(--bw-density-card-padding);
+  --bw-component-card-inset: var(--bw-size-inset-md);
+  padding: var(--bw-size-inset-md);
 }
 .bw-card--size-lg {
-  padding: var(--bw-space-6);
+  --bw-component-card-inset: var(--bw-size-inset-lg);
+  padding: var(--bw-size-inset-lg);
 }
 /* Card-as-link (CMP-017): the whole card is an anchor; content keeps its own
    ink and no underline smears across the card. The focus ring comes from the
@@ -2248,16 +3452,38 @@ a.bw-card {
 /* Interactive variant (MOT-010, AC-BW-071): the shadow raises 1 to 2 on
    hover/focus-within, never a transform; elevation 2+ pairs with the raised
    surface in both themes (DESIGN.md 4.1: in light the raised surface equals
-   surface, so only the shadow moves; in dark the surface lightens too). */
+   surface, so only the shadow moves; in dark the surface lightens too).
+   Flat cards (CRD-021, APP-002) never gain a shadow on hover: the hairline
+   steps to the strong border and the surface to raised instead. */
 .bw-card--interactive {
   transition: var(--bw-transition-shadow), var(--bw-transition-colors);
 }
-.bw-card--interactive:hover,
-.bw-card--interactive:focus-within {
+.bw-card--interactive:not(.bw-card--bordered):hover,
+.bw-card--interactive:not(.bw-card--bordered):focus-within {
   box-shadow:
     var(--bw-elevation-2),
     0 8px 20px -6px oklch(0 0 0 / 0.12);
   background: var(--bw-color-surface-raised);
+}
+.bw-card--bordered.bw-card--interactive:hover,
+.bw-card--bordered.bw-card--interactive:focus-within {
+  border-color: var(--bw-color-border-strong);
+  background: var(--bw-color-surface-raised);
+}
+/* A tinted, muted or inverse fill keeps its own fill on hover (CRD-022):
+   swapping in the raised surface would leave inverse text on a light fill. */
+.bw-card--interactive.bw-card--surface-tint:hover,
+.bw-card--interactive.bw-card--surface-tint:focus-within {
+  background: var(--bw-color-surface-marketing-tint);
+}
+.bw-card--interactive.bw-card--surface-muted:hover,
+.bw-card--interactive.bw-card--surface-muted:focus-within {
+  background: var(--bw-color-surface-sunken);
+}
+.bw-card--interactive.bw-card--surface-inverse:hover,
+.bw-card--interactive.bw-card--surface-inverse:focus-within {
+  background: var(--bw-color-surface-inverse);
+  border-color: transparent;
 }
 .bw-card__header {
   display: flex;
@@ -2275,18 +3501,18 @@ a.bw-card {
 }
 .bw-card__header--muted,
 .bw-card--header-muted .bw-card__header {
-  margin: calc(-1 * var(--bw-density-card-padding));
+  margin: calc(-1 * var(--bw-component-card-inset, var(--bw-size-inset-md)));
   margin-block-end: var(--bw-space-3);
-  padding: var(--bw-density-card-padding);
+  padding: var(--bw-component-card-inset, var(--bw-size-inset-md));
   background: var(--bw-color-surface-sunken);
   border-start-start-radius: inherit;
   border-start-end-radius: inherit;
 }
 .bw-card__header--inverse,
 .bw-card--header-inverse .bw-card__header {
-  margin: calc(-1 * var(--bw-density-card-padding));
+  margin: calc(-1 * var(--bw-component-card-inset, var(--bw-size-inset-md)));
   margin-block-end: var(--bw-space-3);
-  padding: var(--bw-density-card-padding);
+  padding: var(--bw-component-card-inset, var(--bw-size-inset-md));
   background: var(--bw-color-surface-inverse);
   color: var(--bw-color-fg-on-inverse);
   border-start-start-radius: inherit;
@@ -2294,9 +3520,9 @@ a.bw-card {
 }
 .bw-card__header--accent,
 .bw-card--header-accent .bw-card__header {
-  margin: calc(-1 * var(--bw-density-card-padding));
+  margin: calc(-1 * var(--bw-component-card-inset, var(--bw-size-inset-md)));
   margin-block-end: var(--bw-space-3);
-  padding: var(--bw-density-card-padding);
+  padding: var(--bw-component-card-inset, var(--bw-size-inset-md));
   background: var(--bw-color-accent-subtle);
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-accent);
   border-start-start-radius: inherit;
@@ -2331,6 +3557,36 @@ a.bw-card {
   color: var(--bw-color-fg-on-inverse);
   background-color: var(--bw-state-hover-overlay);
 }
+/* Description (CRD-014): the supporting line under a title, on muted ink in
+   the body-sm role. React CardDescription emits it; Django's caption and body
+   strings use .bw-card__footer and .bw-card__body. */
+.bw-card__description {
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-text-body-sm-size);
+  font-weight: var(--bw-text-body-sm-weight);
+  line-height: var(--bw-text-body-sm-line-height);
+  text-wrap: pretty;
+}
+.bw-card__title + .bw-card__description {
+  margin-block-start: var(--bw-space-1);
+}
+/* Whole-card inverse fill (CRD-023): the region ink flips to the on-inverse
+   token. Without this the title and body (which speak in --bw-color-fg) would
+   paint the inverse fill's own colour on itself. */
+.bw-card--surface-inverse .bw-card__title,
+.bw-card--surface-inverse .bw-card__description,
+.bw-card--surface-inverse .bw-card__body,
+.bw-card--surface-inverse .bw-card__footer {
+  color: var(--bw-color-fg-on-inverse);
+}
+.bw-card--surface-inverse .bw-card__footer {
+  border-block-start-color: color-mix(
+    in oklab,
+    var(--bw-color-fg-on-inverse) 30%,
+    var(--bw-color-surface-inverse)
+  );
+}
 /* Plain include-path body string (APPEARANCE.md): escaped text, not rich HTML. */
 .bw-card__body {
   margin: 0;
@@ -2341,6 +3597,7 @@ a.bw-card {
   text-wrap: pretty;
 }
 .bw-card__title + .bw-card__body,
+.bw-card__description + .bw-card__body,
 .bw-card__header + .bw-card__body,
 .bw-card__media + .bw-card__body,
 .bw-card__media + .bw-card__header,
@@ -2367,7 +3624,7 @@ a.bw-card {
 }
 .bw-card__media--bleed,
 .bw-card--media-bleed .bw-card__media {
-  margin: calc(-1 * var(--bw-density-card-padding));
+  margin: calc(-1 * var(--bw-component-card-inset, var(--bw-size-inset-md)));
   margin-block-end: 0;
   border-start-start-radius: inherit;
   border-start-end-radius: inherit;
@@ -2404,9 +3661,9 @@ a.bw-card {
 }
 .bw-card__footer--muted,
 .bw-card--footer-muted .bw-card__footer {
-  margin-inline: calc(-1 * var(--bw-density-card-padding));
-  margin-block-end: calc(-1 * var(--bw-density-card-padding));
-  padding: var(--bw-space-3) var(--bw-density-card-padding);
+  margin-inline: calc(-1 * var(--bw-component-card-inset, var(--bw-size-inset-md)));
+  margin-block-end: calc(-1 * var(--bw-component-card-inset, var(--bw-size-inset-md)));
+  padding: var(--bw-space-3) var(--bw-component-card-inset, var(--bw-size-inset-md));
   background: var(--bw-color-surface-sunken);
   border-block-start: var(--bw-size-border-hairline) solid var(--bw-color-border);
   border-end-start-radius: inherit;
@@ -2434,14 +3691,20 @@ a.bw-card {
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-1);
+  /* APP-002 (STA-002): hairline + tinted ground separate tiles; no ambient
+     shadow at rest (the raw oklch drop shadow is removed). Shadow is
+     reserved for overlays and linked-tile hover elevation only. */
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid
-    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
+    color-mix(in oklab, var(--bw-color-fg) 50%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
-  box-shadow:
-    var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
-  padding: var(--bw-density-card-padding);
+  /* Value-size component token: points at 2xl (1.5rem at comfortable) per
+     APP-CRAFT section 4 (kpi-value pick). Re-stated here so an explicit
+     size="md" and the bare tile agree. The token is re-emitted for every
+     density in @bwui/tokens so density cascades work without a component-
+     level density block. */
+  --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
+  padding: var(--bw-size-inset-md);
 }
 /* Clickable tile (VIZ-024): an anchor stat is definitionally hoverable, so it
    takes the interactive card's shadow raise; same no-transform rule. */
@@ -2451,10 +3714,15 @@ a.bw-stat {
   transition: var(--bw-transition-shadow), var(--bw-transition-colors);
 }
 a.bw-stat:hover {
-  box-shadow:
-    var(--bw-elevation-2),
-    0 8px 20px -6px oklch(0 0 0 / 0.12);
+  /* APP-002: linked hover may use elevation tokens only (no raw oklch, CB-16). */
+  box-shadow: var(--bw-elevation-2);
   background: var(--bw-color-surface-raised);
+}
+/* Optional leading icon (decorative; Django bw_icon sizes it). */
+.bw-stat__icon {
+  block-size: var(--bw-space-5);
+  inline-size: var(--bw-space-5);
+  flex-shrink: 0;
 }
 /* Overline voice for the label (uppercase applied here at the component, per
    the role contract), on muted ink. */
@@ -2469,14 +3737,17 @@ a.bw-stat:hover {
 }
 .bw-stat__value {
   margin: 0;
-  /* The component token scales the numeral (VIZ-001, AC-BW-075); until it is
-     emitted by the token build it falls back to the 4xl step (ADR-127: the
-     2.5rem the default tile has always rendered at comfortable), the same
-     inline-token-with-fallback mechanism as .bw-spinner's size. */
-  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-4xl));
+  /* The component token scales the numeral (VIZ-001, AC-BW-075). Token is
+     now emitted by the token build (2xl, 1.5rem at comfortable, APP-CRAFT
+     section 4 kpi-value pick); the fallback retains the token so the cascade
+     always wins when the stylesheet ships. */
+  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-2xl));
   font-weight: var(--bw-font-weight-semibold);
   line-height: var(--bw-font-line-height-tight);
-  font-variant-numeric: tabular-nums; /* a column of tiles never jitters as digits change */
+  /* STA-007 (CB-17 typography, APP-001): tight tracking on large numerals
+     (tabular-nums + tight tracking together reduce jitter in KPI rows). */
+  letter-spacing: var(--bw-font-tracking-tight);
+  font-variant-numeric: tabular-nums;
 }
 /* The trend row itself (icvoss/django-brickwork#334): _stat.html now
    {% include %}s _trend_indicator.html rather than rendering its own trend
@@ -2486,13 +3757,23 @@ a.bw-stat:hover {
    consumer stylesheet that selects .bw-stat__trend directly; #334). */
 /* size arg (VIZ-027): modifiers re-point the value-size component token, so
    the numeral rule itself never forks. */
+/* Padding rides the container inset scale (ADR-126 section 5, gate 6); md
+   restates the default so an explicit size="md" and the bare tile agree. */
+/* Size steps (STA-003, CB-17 subset sm|md|lg matching Card's own subset):
+   re-point the value-size token coherently with the md base (xl→sm, 2xl→md,
+   3xl→lg). Padding rides the container inset scale (ADR-126 section 5). md
+   restates the base so an explicit size="md" and the bare tile agree. */
 .bw-stat--sm, .bw-stat--size-sm {
-  --bw-component-stat-tile-value-size: var(--bw-font-size-3xl);
-  padding: var(--bw-space-3);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-xl);
+  padding: var(--bw-size-inset-sm);
+}
+.bw-stat--md, .bw-stat--size-md {
+  --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
+  padding: var(--bw-size-inset-md);
 }
 .bw-stat--lg, .bw-stat--size-lg {
-  --bw-component-stat-tile-value-size: var(--bw-font-size-5xl);
-  padding: var(--bw-space-6);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-3xl);
+  padding: var(--bw-size-inset-lg);
 }
 /* chrome="plain" (#694): proof figures without card chrome. Default remains
    the KPI card (border, elevation, card padding). Size modifiers' padding is
@@ -2642,14 +3923,14 @@ a.bw-stat--chrome-plain:hover {
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-1);
+  /* APP-002 (STA-002): same hairline-only resting chrome as .bw-stat above;
+     raw oklch drop shadow removed (CB-16). */
+  --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
   background: var(--bw-color-surface);
   border: var(--bw-size-border-hairline) solid
-    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
+    color-mix(in oklab, var(--bw-color-fg) 50%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
-  box-shadow:
-    var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
-  padding: var(--bw-density-card-padding);
+  padding: var(--bw-size-inset-md);
 }
 .bw-stat-comparison__label {
   color: var(--bw-color-fg-muted);
@@ -2662,9 +3943,10 @@ a.bw-stat--chrome-plain:hover {
 }
 .bw-stat-comparison__current {
   margin: 0;
-  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-4xl));
+  font-size: var(--bw-component-stat-tile-value-size, var(--bw-font-size-2xl));
   font-weight: var(--bw-font-weight-semibold);
   line-height: var(--bw-font-line-height-tight);
+  letter-spacing: var(--bw-font-tracking-tight);
   font-variant-numeric: tabular-nums;
 }
 /* The previous-period value and its period_label caption share one line:
@@ -2680,16 +3962,21 @@ a.bw-stat--chrome-plain:hover {
 .bw-stat-comparison__period {
   color: var(--bw-color-fg-muted);
 }
-/* size arg (mirrors _stat.html's VIZ-027 seam): modifiers re-point the
-   same value-size component token _stat.html uses, so a comparison tile
-   sits at the same scale as a plain stat tile sharing its grid. */
+/* size arg (mirrors _stat.html's VIZ-027 seam, STA-003): modifiers re-point
+   the same value-size component token _stat.html uses, so a comparison tile
+   sits at the same scale as a plain stat tile sharing its grid. Steps are
+   coherent with .bw-stat: sm→xl, (md default→2xl), lg→3xl. */
 .bw-stat-comparison--sm, .bw-stat-comparison--size-sm {
-  --bw-component-stat-tile-value-size: var(--bw-font-size-3xl);
-  padding: var(--bw-space-3);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-xl);
+  padding: var(--bw-size-inset-sm);
+}
+.bw-stat-comparison--md, .bw-stat-comparison--size-md {
+  --bw-component-stat-tile-value-size: var(--bw-font-size-2xl);
+  padding: var(--bw-size-inset-md);
 }
 .bw-stat-comparison--lg, .bw-stat-comparison--size-lg {
-  --bw-component-stat-tile-value-size: var(--bw-font-size-5xl);
-  padding: var(--bw-space-6);
+  --bw-component-stat-tile-value-size: var(--bw-font-size-3xl);
+  padding: var(--bw-size-inset-lg);
 }
 /* The trend row (_trend_indicator.html's css_class seam, matching #334's own
    .bw-stat__trend alias above): this template passes
@@ -3023,6 +4310,49 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   flex-direction: column;
   gap: var(--bw-space-4);
 }
+/* Optional chrome above the mount (APP craft trend panel): title row with
+ * optional metric segmented control, then an inline total + delta. Engine
+ * ownership stays with the consumer; these classes are layout only. */
+.bw-chart-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--bw-space-3);
+  flex-wrap: wrap;
+}
+.bw-chart-card__title {
+  margin: 0;
+  font-size: var(--bw-font-size-sm);
+  font-weight: var(--bw-font-weight-semibold);
+  line-height: var(--bw-font-line-height-snug, 1.4);
+  color: var(--bw-color-fg);
+}
+.bw-chart-card__subtitle {
+  margin: var(--bw-space-1) 0 0;
+  color: var(--bw-color-fg-muted);
+  font-size: var(--bw-font-size-xs);
+}
+.bw-chart-card__total-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bw-space-2);
+  flex-wrap: wrap;
+}
+.bw-chart-card__total {
+  font-size: var(--bw-font-size-xl);
+  font-weight: var(--bw-font-weight-semibold);
+  letter-spacing: var(--bw-font-tracking-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--bw-color-fg);
+}
+.bw-chart-card__delta {
+  font-size: var(--bw-font-size-xs);
+  color: var(--bw-color-success);
+}
+.bw-chart-card__delta.is-down,
+.bw-chart-card__delta[data-bw-trend="down"] {
+  color: var(--bw-color-warning);
+}
 .bw-chart-card--legend-bottom {
   flex-direction: column-reverse;
 }
@@ -3061,7 +4391,13 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   display: block;
   inline-size: 100%;
   min-block-size: var(--bw-chart-mount-min-height, auto);
+  /* Prefer an explicit height reservation when the consumer sets one; Chart.js
+   * (and other engines that size the canvas from parent clientHeight) need a
+   * definite block-size, not only min-block-size, or the canvas intrinsic
+   * ratio expands the box past the CHT-024 reservation. */
+  block-size: var(--bw-chart-mount-height, auto);
   aspect-ratio: var(--bw-chart-mount-aspect-ratio, auto);
+  overflow: hidden;
 }
 /* The consumer's engine draws a <canvas> or <svg> into the mount; either
  * fills the reserved box exactly rather than adding its own intrinsic
@@ -3208,21 +4544,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   block-size: 100%;
 }
 
-/* Visually hidden, screen-reader-available text: the stat trend's directional
-   fallback ("increased"/"decreased", AC-BW-074) and any other markup whose
-   meaning must survive with CSS colour stripped. Standard clip pattern; the
-   px token keeps it out of the literal ban. */
-.bw-visually-hidden {
-  position: absolute;
-  inline-size: var(--bw-space-px);
-  block-size: var(--bw-space-px);
-  margin: calc(var(--bw-space-px) * -1);
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
+/* .bw-visually-hidden lives in layout.css (F01 / R20). */
 
 /* --- Scorecard (VIZ-011/012, CHT-026) --------------------------------------- */
 
@@ -3588,14 +4910,14 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   transition-duration: var(--bw-duration-instant);
 }
 /* Active tab: the nav band recipe (accent-duty text tier + accent marker).
- * Two equivalent state carriers, one rule: the server-rendered floor marks
- * the active anchor with the --active class; bwTabs marks its JS-selected
- * tab with [data-bw-active] as selection moves (the class is the floor's,
- * the attribute the enhancement's). The :hover restatement outranks the
+ * Three equivalent state carriers, one rule: the server-rendered floor
+ * marks the active anchor with the --active class; bwTabs marks its
+ * JS-selected tab with [data-bw-active]; React and upgraded markup also
+ * set aria-selected="true" (APP-003). The :hover restatement outranks the
  * plain hover rule so the active tab never dims back to fg on
  * pointer-over. */
-.bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]),
-.bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]):hover {
+.bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active], [aria-selected="true"]),
+.bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active], [aria-selected="true"]):hover {
   color: var(--bw-component-nav-item-active-text);
   border-block-end-color: var(--bw-component-nav-item-active-border);
 }
@@ -3615,10 +4937,12 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   line-height: var(--bw-font-line-height-none);
   text-align: center;
 }
-/* Pill style (CMP-024): no rail, no marker; selection is a selected-bg fill
- * at radius-full. Hover/pressed take the overlay physics because a pill is
- * a shape, not a rail position. The active pill's hover layers the overlay
- * over the persistent fill (DESIGN.md 4.6 stacking). */
+/* Pill style (CMP-024): no rail, no underline marker; selection uses the
+ * APP-003 pressed grammar owned by Segmented (accent-subtle fill, accent
+ * text, accent border) at radius-full. Hover/pressed take the overlay
+ * physics because a pill is a shape, not a rail position. The active
+ * pill's hover layers the overlay over the persistent fill (DESIGN.md
+ * 4.6 stacking). */
 /* --underline is the DOCUMENTED DEFAULT. It previously had no rule at all, so
  * the default variant emitted a class the stylesheet never matched (#120 defect
  * class). The underline treatment is the base .bw-tabs__tab marker, so this
@@ -3642,12 +4966,13 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   background-color: var(--bw-state-active-overlay);
   transition-duration: var(--bw-duration-instant);
 }
-.bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]),
-.bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]):hover {
-  background-color: var(--bw-state-selected-bg);
+.bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active], [aria-selected="true"]),
+.bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active], [aria-selected="true"]):hover {
+  background-color: var(--bw-color-accent-subtle);
   color: var(--bw-component-nav-item-active-text);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-accent);
 }
-.bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active]):hover {
+.bw-tabs--pill .bw-tabs__tab:is(.bw-tabs__tab--active, [data-bw-active], [aria-selected="true"]):hover {
   background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
 }
 /* Panel spacing: the stack gap between the tablist and the panel. */
@@ -3690,6 +5015,10 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 #bw-modal-root .bw-modal:not(.bw-modal--open):not([data-bw-open]) {
   display: none;
 }
+/* Floor and overlay roots never force the page wider than the viewport. */
+.bw-modal {
+  max-inline-size: 100%;
+}
 /* The resting (floor) panel: the alone-on-a-page altitude of the auth and
  * centred panels (elevation-2), raised surface, the modal radius row.
  * Flex column so the header and footer hold still while the body scrolls
@@ -3698,11 +5027,11 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   display: flex;
   flex-direction: column;
   inline-size: 100%;
-  max-inline-size: var(--bw-size-max-width-modal-md);
+  max-inline-size: min(100%, var(--bw-size-max-width-modal-md));
   margin-inline: auto;
   background: var(--bw-color-surface-raised);
   border: var(--bw-size-border-hairline) solid
-    color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
+    color-mix(in oklab, var(--bw-color-fg) 50%, var(--bw-color-surface-raised));
   border-radius: var(--bw-radius-xl);
   box-shadow: var(--bw-elevation-2);
 }
@@ -3741,9 +5070,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   position: relative;
   z-index: var(--bw-z-modal);
   max-block-size: 100%;
-  box-shadow:
-    var(--bw-elevation-4),
-    0 16px 36px -10px oklch(0 0 0 / 0.16);
+  box-shadow: var(--bw-elevation-4);
   animation: bw-modal-in var(--bw-duration-normal) var(--bw-ease-out);
 }
 @keyframes bw-modal-in {
@@ -3760,10 +5087,13 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  * panel honours them too); full is full-viewport, gutterless, radius
  * squared off, and only means anything as an overlay. */
 .bw-modal--sm .bw-modal__panel, .bw-modal--size-sm .bw-modal__panel {
-  max-inline-size: var(--bw-size-max-width-modal-sm);
+  max-inline-size: min(100%, var(--bw-size-max-width-modal-sm));
+}
+.bw-modal--md .bw-modal__panel, .bw-modal--size-md .bw-modal__panel {
+  max-inline-size: min(100%, var(--bw-size-max-width-modal-md));
 }
 .bw-modal--lg .bw-modal__panel, .bw-modal--size-lg .bw-modal__panel {
-  max-inline-size: var(--bw-size-max-width-modal-lg);
+  max-inline-size: min(100%, var(--bw-size-max-width-modal-lg));
 }
 .bw-modal--full:is(.bw-modal--open, [data-bw-open]), .bw-modal--size-full:is(.bw-modal--open, [data-bw-open]) {
   padding: 0;
@@ -3841,10 +5171,13 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 /* --- Slide-over / side panel (0.14.0, brickwork#55) -------------------------- */
 
 /* Consumed by extending _slide_over.html; two render paths, one partial
- * (BR-BW-HTMX-001), same shape as the modal above. Markup (per
- * _slide_over.html):
+ * (BR-BW-HTMX-001), same shape as the modal above. One unit (Sheet and
+ * slide-over, docs/components/sheet.md): .bw-slide-over is the canonical
+ * root, and .bw-sheet is its narrower mobile sheet mode (a modifier on the
+ * same root, never a second primitive). The drawer (.bw-drawer) is the
+ * Sidebar unit's, not this one. Markup (per _slide_over.html):
  *
- *   <div class="bw-slide-over bw-slide-over--sm|--md|--lg bw-slide-over--start|--end">
+ *   <div class="bw-slide-over bw-slide-over--size-sm|md|lg bw-slide-over--start|end [bw-sheet]">
  *     <div class="bw-slide-over__scrim" aria-hidden="true"></div>
  *     <div role="dialog" class="bw-slide-over__panel">
  *       <header class="bw-slide-over__header">
@@ -3917,9 +5250,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
   position: relative;
   z-index: var(--bw-z-modal);
   max-block-size: 100%;
-  box-shadow:
-    var(--bw-elevation-4),
-    0 16px 36px -10px oklch(0 0 0 / 0.16);
+  box-shadow: var(--bw-elevation-4);
   animation-duration: var(--bw-duration-normal);
   animation-timing-function: var(--bw-ease-out);
 }
@@ -3977,19 +5308,27 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
     animation: none;
   }
 }
-/* Size modifiers: reuse the modal's own width ramp. */
-.bw-slide-over--sm .bw-slide-over__panel, .bw-slide-over--size-sm .bw-slide-over__panel {
+/* Size axis (SHT-003): the width ramp only, on the modal's own tokens
+ * (--bw-size-max-width-modal-sm|md|lg, 28, 32 and 48rem). This is not the
+ * xs to xl control-height axis and not the inset axis (SIZE-COVERAGE).
+ * bw-slide-over--size-<step> is the only spelling; there is no bare
+ * bw-slide-over--sm. md is the documented default and the template emits
+ * it unconditionally, so it carries a real rule. */
+.bw-slide-over--size-sm .bw-slide-over__panel {
   max-inline-size: var(--bw-size-max-width-modal-sm);
 }
-/* --md is the DOCUMENTED DEFAULT and the template emits it unconditionally, so
- * it needs a real rule: without one the default size resolved to the panel's
- * base width by accident rather than by declaration (the #120 defect class,
- * found in the 3.0.0 options audit). */
-.bw-slide-over--md .bw-slide-over__panel, .bw-slide-over--size-md .bw-slide-over__panel {
+.bw-slide-over--size-md .bw-slide-over__panel {
   max-inline-size: var(--bw-size-max-width-modal-md);
 }
-.bw-slide-over--lg .bw-slide-over__panel, .bw-slide-over--size-lg .bw-slide-over__panel {
+.bw-slide-over--size-lg .bw-slide-over__panel {
   max-inline-size: var(--bw-size-max-width-modal-lg);
+}
+/* Sheet mode (SHT-004): the narrow mobile sheet, on either placement. It is
+ * a modifier on the same root and overrides the size ramp with a fixed
+ * narrower cap: the modal sm width less 4rem, which resolves to 24rem. The
+ * panel is still fluid below the cap. */
+.bw-slide-over.bw-sheet .bw-slide-over__panel {
+  max-inline-size: calc(var(--bw-size-max-width-modal-sm) - var(--bw-space-16));
 }
 /* Sticky header: title plus the always-present close control, divided
  * from the scrolling body by a hairline. Density card padding scales the
@@ -4060,7 +5399,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  *       <svg class="bw-icon bw-toast__icon" aria-hidden="true">...</svg>
  *       <p class="bw-toast__message">...</p>
  *       [<a class="bw-toast__action" href="...">label</a>]
- *       <button class="bw-toast__close bw-btn bw-btn--ghost bw-btn--sm bw-btn--icon-only">...</button>
+ *       <button class="bw-toast__close bw-btn bw-btn--ghost bw-btn--size-sm bw-btn--icon-only">...</button>
  *     </div>
  *     <button class="bw-toast-region__more" hidden>+N more</button>
  *   </div>
@@ -4130,9 +5469,7 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
     color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-raised));
   border-inline-start: var(--bw-size-border-thick) solid var(--bw-color-border);
   border-radius: var(--bw-radius-xl);
-  box-shadow:
-    var(--bw-elevation-5),
-    0 20px 44px -12px oklch(0 0 0 / 0.18);
+  box-shadow: var(--bw-elevation-5);
   opacity: 0;
   transform: translateY(calc(-1 * var(--bw-space-2)));
   transition:
@@ -4715,9 +6052,18 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
  * removal closes the gap in one reflow exactly as reduced motion does
  * (the global floor collapses this fade to an instant removal). */
 .bw-alert[data-bw-dismissing],
-.bw-badge[data-bw-dismissing] {
+.bw-badge[data-bw-dismissing],
+.bw-banner[data-bw-dismissing] {
   opacity: 0;
   transition: opacity var(--bw-duration-fast) var(--bw-ease-in);
+}
+/* reduced-motion: Banner dismiss must collapse to an instant removal; the
+ * global floor (0.001ms) is not identical to 0s, so an explicit banner-only
+ * override is needed to satisfy MOT-007's clear-quickly contract. */
+@media (prefers-reduced-motion: reduce) {
+  .bw-banner[data-bw-dismissing] {
+    transition-duration: var(--bw-duration-instant) !important;
+  }
 }
 /* The badge's close control skips the bw-btn chrome (a control-height button
  * would dwarf the compact badge; the template notes the hit area is owned
@@ -4797,6 +6143,165 @@ a.bw-ranked-list__row:focus-visible .bw-ranked-list__label {
 [data-theme="dark"] .bw-tooltip__bubble {
   box-shadow: var(--bw-elevation-3);
 }
+
+/* --- Popover (docs/components/popover.md, R39 / H15) -------------------------- */
+
+/* The small, non-modal panel that opens beside the control that asked for it
+ * and holds interactive content. The no-JS floor is a native <details> and
+ * <summary> (POP-003); script (@bwui/js initPopover, the Django bwPopover
+ * module, React, Vue) upgrades the same markup. The native HTML popover
+ * attribute is never used, so the panel stays on the --bw-z-dropdown rung.
+ * Expected markup:
+ *
+ *   <details class="bw-popover bw-popover--bottom">
+ *     <summary class="bw-popover__trigger bw-btn bw-btn--secondary bw-btn--size-md">
+ *       label
+ *     </summary>
+ *     <div class="bw-popover__panel" id="p" role="dialog" aria-labelledby="p-title">
+ *       <div class="bw-popover__header">
+ *         <h2 class="bw-popover__title" id="p-title">Title</h2>
+ *         [<button class="bw-popover__close" aria-label="Close" data-bw-popover-close>
+ *           <svg class="bw-icon" aria-hidden="true">...</svg>
+ *         </button>]
+ *       </div>
+ *       <div class="bw-popover__body">...</div>
+ *       [<div class="bw-popover__footer">...</div>]
+ *     </div>
+ *   </details>
+ *
+ * Open state is carried by [open] on the floor details and by
+ * [data-bw-open] on the root under script; React and Vue render a div root
+ * and a [hidden] panel, so one entrance rule serves every delivery. Close is
+ * an instant state removal (POP-015). A closed panel is hidden by the native
+ * details behaviour or by the [hidden] floor restated in index-extras.css.
+ * The panel never sets overflow (POP-005), so a combobox listbox or a
+ * date-picker panel inside it is not clipped. Every value reads a --bw-*
+ * token directly; the block keeps no private custom properties. */
+.bw-popover {
+  position: relative;
+  display: inline-block;
+}
+.bw-popover__trigger {
+  cursor: pointer;
+  list-style: none;
+}
+.bw-popover__trigger::-webkit-details-marker {
+  display: none;
+}
+/* Panel surface: raised fill, hairline border, radius-xl, elevation-3 at the
+ * dropdown rung (POP-010; dark reset list at the end of this file). Content
+ * sized and capped at the viewport less space-8 (POP-011); padding is the
+ * density-computed md inset. A root with no placement modifier resolves to
+ * bottom: the panel's inline-start edge aligns to the root's, never centred
+ * on the trigger (POP-012). */
+.bw-popover__panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--bw-space-1));
+  inset-inline-start: 0;
+  z-index: var(--bw-z-dropdown);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-3);
+  inline-size: max-content;
+  max-inline-size: calc(100vw - var(--bw-space-8));
+  padding: var(--bw-size-inset-md);
+  background: var(--bw-color-surface-raised);
+  color: var(--bw-color-fg);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  border-radius: var(--bw-radius-xl);
+  box-shadow: var(--bw-elevation-3);
+  text-align: start;
+}
+.bw-popover--top .bw-popover__panel {
+  inset-block-start: auto;
+  inset-block-end: calc(100% + var(--bw-space-1));
+}
+/* start and end are logical: they flip under dir="rtl" (POP-016). The
+ * panel's block-start edge aligns to the root's. */
+.bw-popover--start .bw-popover__panel {
+  inset-block-start: 0;
+  inset-inline-start: auto;
+  inset-inline-end: calc(100% + var(--bw-space-1));
+}
+.bw-popover--end .bw-popover__panel {
+  inset-block-start: 0;
+  inset-inline-start: calc(100% + var(--bw-space-1));
+}
+.bw-popover[open] > .bw-popover__panel,
+.bw-popover[data-bw-open] > .bw-popover__panel {
+  animation: bw-fade-in-up var(--bw-duration-normal) var(--bw-ease-out);
+}
+.bw-popover__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--bw-space-3);
+}
+.bw-popover__title {
+  margin: 0;
+  color: var(--bw-color-fg);
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
+}
+.bw-popover__body {
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+.bw-popover__footer:empty {
+  display: none;
+}
+.bw-popover__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--bw-space-3);
+  font-size: var(--bw-text-body-sm-size);
+  line-height: var(--bw-text-body-sm-line-height);
+}
+/* Close control (POP-014): its own icon-only button, painted like the
+ * combobox clear control. The 2rem box is above the 24px target floor. */
+.bw-popover__close {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: calc(var(--bw-component-icon-size-sm) + 2 * var(--bw-space-2));
+  block-size: calc(var(--bw-component-icon-size-sm) + 2 * var(--bw-space-2));
+  margin-inline-start: auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--bw-radius-full);
+  color: var(--bw-color-fg-muted);
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+.bw-popover__close .bw-icon,
+.bw-popover__close svg {
+  inline-size: var(--bw-component-icon-size-sm);
+  block-size: var(--bw-component-icon-size-sm);
+  background: transparent;
+  border-radius: 0;
+  color: inherit;
+}
+.bw-popover__close:hover {
+  background-color: var(--bw-state-hover-overlay);
+  color: var(--bw-color-fg);
+}
+.bw-popover__close:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bw-popover[open] > .bw-popover__panel,
+  .bw-popover[data-bw-open] > .bw-popover__panel {
+    animation: none;
+  }
+}
+/* --- end Popover --- */
 
 /* reduced-motion (interaction set): explicit caret overrides on top of the
  * global floor; a half-rotated caret reads as broken (DESIGN.md 8.4). The
@@ -5126,7 +6631,7 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   box-shadow: var(--bw-elevation-3);
   padding: var(--bw-space-4);
   inline-size: max-content;
-  max-inline-size: calc(100vw - var(--bw-space-8));
+  max-inline-size: 100%;
 }
 .bw-date-picker-chrome__panel[hidden] {
   display: none;
@@ -5928,38 +7433,75 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   flex: 0 0 var(--bw-space-6);
 }
 
-/* --- Avatar (Beat Phase B, #542) ------------------------------------------- */
-/* Box size reuses shipped control-height tokens (DESIGN.md §10 keeps
-   --bw-avatar-size-* reserved until a consumer needs a distinct scale). */
+/* --- Avatar and avatar group (docs/components/avatar.md) --------------------- */
+/* Display atom. The box is the control height: the avatar reads only the five
+ * control role variables (ADR-126 section 4), declared on :root and in every
+ * [data-density] block (md at the density in force) and inherited here. A bare
+ * .bw-avatar is md, a size class re-points them (ADR-125), and a control
+ * container can set one step for its children. The avatar never reads a
+ * density token or a --bw-size-control-* step token outside the size classes
+ * (AVR-010). The 1.5rem target floor is carried by the height tokens, so a
+ * linked avatar meets WCAG 2.5.8 at every step and density (AVR-052). There is
+ * no bare spelling (bw-avatar--sm). --bw-avatar-size-* stays reserved. */
 
 .bw-avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: var(--bw-size-control-height-md);
-  block-size: var(--bw-size-control-height-md);
+  inline-size: var(--bw-control-height);
+  block-size: var(--bw-control-height);
   overflow: hidden;
   border-radius: var(--bw-radius-full);
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg-muted);
   border: var(--bw-size-border-hairline) solid color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
+  /* Type follows the step (ADR-127 section 6): the letters take the fifth role
+   * variable, the ladder step of the same name, floored by the ladder. They
+   * are not a ratio of the box (AVR-013). */
+  font-size: var(--bw-control-font-size);
+  line-height: 1;
   vertical-align: middle;
   flex-shrink: 0;
 }
 
+.bw-avatar--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+
 .bw-avatar--size-sm {
-  inline-size: var(--bw-size-control-height-sm);
-  block-size: var(--bw-size-control-height-sm);
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
 }
 
 .bw-avatar--size-md {
-  inline-size: var(--bw-size-control-height-md);
-  block-size: var(--bw-size-control-height-md);
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
 }
 
 .bw-avatar--size-lg {
-  inline-size: var(--bw-size-control-height-lg);
-  block-size: var(--bw-size-control-height-lg);
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+
+.bw-avatar--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
 }
 
 /* circle is the documented default shape (#120/#130): restates the base
@@ -5973,33 +7515,44 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
 }
 
 .bw-avatar__image {
+  display: block;
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
 }
 
 .bw-avatar__initials {
-  font-size: calc(var(--bw-size-control-height-md) * 0.375);
   font-weight: var(--bw-font-weight-semibold);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  white-space: nowrap;
   max-inline-size: 100%;
   overflow: hidden;
 }
 
-.bw-avatar--size-sm .bw-avatar__initials {
-  font-size: calc(var(--bw-size-control-height-sm) * 0.375);
-}
-
-.bw-avatar--size-lg .bw-avatar__initials {
-  font-size: calc(var(--bw-size-control-height-lg) * 0.375);
+/* The letters content shape (initials fallback, no image). The ink is the full
+ * foreground so the letters clear 4.5:1 on the sunken fill in both themes
+ * (AVR-014, section 4.3 of the craft document). */
+.bw-avatar--initials {
+  color: var(--bw-color-fg);
 }
 
 .bw-avatar--overflow {
   background: var(--bw-color-surface-raised);
   color: var(--bw-color-fg);
   border-color: var(--bw-color-border);
+  /* Wide counts such as +120 must not clip; grow the box on the inline axis.
+   * The box is the minimum; the inline padding is half the step's control gap. */
+  inline-size: auto;
+  min-inline-size: var(--bw-control-height);
+  padding-inline: calc(var(--bw-control-gap) * 0.5);
+}
+
+.bw-avatar--overflow .bw-avatar__initials {
+  max-inline-size: none;
+  overflow: visible;
+  text-transform: none;
 }
 
 .bw-avatar-group {
@@ -6011,23 +7564,78 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   box-shadow: 0 0 0 var(--bw-size-border-thick) var(--bw-color-surface);
 }
 
+/* Overlap follows each avatar's --bw-control-gap (set by its size class). */
 .bw-avatar-group .bw-avatar + .bw-avatar {
-  margin-inline-start: calc(var(--bw-space-2) * -1);
+  margin-inline-start: calc(var(--bw-control-gap) * -1);
 }
 
-/* --- Chip / filter chip (Beat Phase B, #542) ------------------------------- */
+/* --- Chip (R09, A04; docs/components/chip.md) ----------------------------- */
+
+/* Size grammar (CHP-003): bw-chip--size-xs to -xl re-point the five control
+ * role variables at the step they name, exactly as Button, Radio and Switch do
+ * (ADR-125, ADR-126 section 4), and name the matching container inset step in
+ * the block-private --bw-chip-inset (the inset axis, SIZE-COVERAGE gate 6).
+ * There is no bare spelling. A bare .bw-chip inherits the role variables in
+ * force (md from :root) and falls back to the md inset; emit the class to pin
+ * a step. */
+.bw-chip--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+  --bw-chip-inset: var(--bw-size-inset-xs);
+}
+.bw-chip--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+  --bw-chip-inset: var(--bw-size-inset-sm);
+}
+.bw-chip--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+  --bw-chip-inset: var(--bw-size-inset-md);
+}
+.bw-chip--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+  --bw-chip-inset: var(--bw-size-inset-lg);
+}
+.bw-chip--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+  --bw-chip-inset: var(--bw-size-inset-xl);
+}
 
 .bw-chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--bw-space-1);
-  padding-block: var(--bw-space-1);
-  padding-inline: var(--bw-space-3);
+  /* Gap, text and the interactive height floor read the role variables
+   * (CHP-010). Padding is the compact-pill model: a fixed fraction of the
+   * container inset step the size names (inline three quarters, block a
+   * quarter), so a chip stays a pill at every step and tracks density through
+   * --bw-size-inset-<step>. At comfortable md that is 0.75rem and 0.25rem. */
+  gap: var(--bw-control-gap);
+  padding-block: calc(var(--bw-chip-inset, var(--bw-size-inset-md)) / 4);
+  padding-inline: calc(var(--bw-chip-inset, var(--bw-size-inset-md)) * 0.75);
+  margin: 0;
   border: var(--bw-size-border-hairline) solid transparent;
   border-radius: var(--bw-radius-full);
-  font-size: var(--bw-text-caption-size);
+  font-size: var(--bw-control-font-size);
   font-weight: var(--bw-font-weight-medium);
-  line-height: var(--bw-text-caption-line-height);
+  line-height: var(--bw-font-line-height-tight);
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg-muted);
   text-decoration: none;
@@ -6035,22 +7643,27 @@ input.bw-input[type="datetime-local"]:hover::-webkit-calendar-picker-indicator {
   transition: var(--bw-transition-colors);
 }
 
+/* Interactive chips (a toggle button, a link). WCAG 2.5.8 floor: never below
+ * 1.5rem however small the density resolves; above it the floor follows the
+ * control height (CHP-011). Only the font family is inherited: the size, weight
+ * and line height stay the chip's own. */
 button.bw-chip,
 a.bw-chip {
+  justify-content: center;
+  min-block-size: max(1.5rem, calc(var(--bw-control-height) * 0.6));
+  min-inline-size: 1.5rem;
+  font-family: inherit;
   cursor: pointer;
-  font: inherit;
 }
 
-.bw-chip--size-sm {
-  padding-block: var(--bw-space-0-5);
-  padding-inline: var(--bw-space-2);
+button.bw-chip:where(:hover:not(:disabled)),
+a.bw-chip:where(:hover:not([aria-disabled="true"])) {
+  background-image: linear-gradient(var(--bw-state-hover-overlay), var(--bw-state-hover-overlay));
 }
-
-/* md is the documented default chip size (#120/#130): restates the base
- * padding so the emitted class has a named rule. */
-.bw-chip--size-md {
-  padding-block: var(--bw-space-1);
-  padding-inline: var(--bw-space-3);
+button.bw-chip:where(:active:not(:disabled)),
+a.bw-chip:where(:active:not([aria-disabled="true"])) {
+  background-image: linear-gradient(var(--bw-state-active-overlay), var(--bw-state-active-overlay));
+  transition-duration: var(--bw-duration-instant);
 }
 
 .bw-chip--neutral {
@@ -6083,29 +7696,187 @@ a.bw-chip {
   border-color: var(--bw-color-info-border);
 }
 
+/* Pressed / selected paint is owned by Segmented (APP-003 / SEG-020). Chip
+ * filter membership keeps .bw-chip--selected as the class name; the treatment
+ * matches .bw-segmented__item[aria-pressed="true"]. GAP-CHP-1 closed by R11.
+ */
 .bw-chip--selected {
-  box-shadow: inset 0 0 0 var(--bw-size-border-thick) var(--bw-color-accent);
-  color: var(--bw-color-fg);
+  background: var(--bw-color-accent-subtle);
+  color: var(--bw-component-nav-item-active-text);
+  border-color: var(--bw-color-accent);
+  box-shadow: none;
 }
 
+/* Disabled (CHP-023): a disabled toggle, or an aria-disabled link. Outranks
+ * the tone classes so the chip is flat whatever its tone. */
+button.bw-chip:disabled,
+a.bw-chip[aria-disabled="true"] {
+  background: var(--bw-color-action-disabled-bg);
+  background-image: none;
+  color: var(--bw-color-action-disabled-text);
+  border-color: var(--bw-color-action-disabled-border);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* The dismiss control (CHP-030): a real button inside a span chip. Its hit
+ * area is at least 1.5rem square (WCAG 2.5.8); the negative block margin lets
+ * that box overlap the chip's own padding so a dismissible chip is no taller
+ * than a static one of the same step, and the negative end margin tucks it
+ * into the inline padding. The glyph is the control icon size. */
 .bw-chip__close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-inline-end: calc(var(--bw-space-1) * -1);
-  padding: var(--bw-space-0-5);
+  flex-shrink: 0;
+  min-inline-size: 1.5rem;
+  min-block-size: 1.5rem;
+  margin-block: min(0px, calc((var(--bw-control-font-size) * var(--bw-font-line-height-tight) - 1.5rem) / 2));
+  margin-inline-end: calc(var(--bw-control-gap) * -0.5);
+  padding: 0;
   background: transparent;
   border: 0;
   border-radius: var(--bw-radius-full);
   color: inherit;
   cursor: pointer;
-  opacity: 0.75;
+  transition: var(--bw-transition-colors);
+}
+.bw-chip__close .bw-icon,
+.bw-chip__close svg {
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
+  background: transparent;
+  border-radius: 0;
+  color: inherit;
+}
+.bw-chip__close:hover {
+  background-color: var(--bw-state-hover-overlay);
+}
+.bw-chip__close:active {
+  background-color: var(--bw-state-active-overlay);
+  transition-duration: var(--bw-duration-instant);
 }
 
-.bw-chip__close:hover,
-.bw-chip__close:focus-visible {
-  opacity: 1;
+/* Dismissal exit, keyed on the marker bwDismissible stamps (CHP-032). The
+ * global reduced-motion floor collapses it to an instant removal. */
+.bw-chip[data-bw-dismissing] {
+  opacity: 0;
+  transition: opacity var(--bw-duration-fast) var(--bw-ease-in);
+}
+
+/* --- Segmented control (docs/components/segmented.md, R11 / C14) ------------ */
+
+/* APP-003 pressed grammar owner. Size classes re-point the five control role
+ * variables (SEG-010). Items read height, padding, gap and font from those
+ * roles. Pressed paint is tinted fill, accent text and tinted border; the same
+ * three tokens are applied to .bw-chip--selected and
+ * .bw-button-group--segmented selected items (SEG-020). */
+
+.bw-segmented--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+.bw-segmented--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+.bw-segmented--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+.bw-segmented--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+.bw-segmented--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+}
+
+.bw-segmented {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: var(--bw-control-gap);
+  padding: var(--bw-space-1);
+  border-radius: var(--bw-radius-md);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  background: var(--bw-color-surface-sunken);
+  vertical-align: middle;
+}
+
+.bw-segmented__item {
+  appearance: none;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  min-block-size: max(1.5rem, var(--bw-control-height));
+  padding-block: 0;
+  padding-inline: var(--bw-control-padding-inline);
+  border: var(--bw-size-border-hairline) solid transparent;
+  border-radius: calc(var(--bw-radius-md) - 2px);
+  background: transparent;
+  color: var(--bw-color-fg-muted);
+  font: inherit;
+  font-size: var(--bw-control-font-size);
+  line-height: 1;
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+}
+
+.bw-segmented__item:hover:where(:not(:disabled):not([aria-pressed="true"]):not([data-bw-active])) {
+  color: var(--bw-color-fg);
   background: var(--bw-state-hover-overlay);
+}
+
+.bw-segmented__item[aria-pressed="true"],
+.bw-segmented__item[data-bw-active] {
+  background: var(--bw-color-accent-subtle);
+  color: var(--bw-component-nav-item-active-text);
+  border-color: var(--bw-color-accent);
+}
+
+.bw-segmented__item:focus-visible {
+  outline: 2px solid var(--bw-color-focus-ring, var(--bw-color-accent));
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+.bw-segmented__item:disabled {
+  color: var(--bw-color-action-disabled-text);
+  background: transparent;
+  border-color: transparent;
+  cursor: not-allowed;
+}
+
+.bw-segmented__item:disabled[aria-pressed="true"],
+.bw-segmented__item:disabled[data-bw-active] {
+  background: var(--bw-color-action-disabled-bg);
+  color: var(--bw-color-action-disabled-text);
+  border-color: var(--bw-color-action-disabled-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-segmented__item {
+    transition: none;
+  }
 }
 
 /* --- Button group (Beat Phase B, #542) ------------------------------------- */
@@ -6169,11 +7940,15 @@ a.bw-chip {
   box-shadow: none;
 }
 
+/* Selected item uses the Segmented pressed grammar (APP-003 / SEG-020), not
+ * a raised surface card. Elevation is not the selected cue. */
 .bw-button-group--segmented .bw-button-group__item--selected,
-.bw-button-group--segmented .bw-button-group__item[aria-checked="true"] {
-  background: var(--bw-color-surface);
-  color: var(--bw-color-fg);
-  box-shadow: var(--bw-elevation-1);
+.bw-button-group--segmented .bw-button-group__item[aria-checked="true"],
+.bw-button-group--segmented .bw-button-group__item[aria-pressed="true"] {
+  background: var(--bw-color-accent-subtle);
+  color: var(--bw-component-nav-item-active-text);
+  border-color: var(--bw-color-accent);
+  box-shadow: none;
 }
 
 /* --- List item / media row (Beat Phase B, #542) ---------------------------- */
@@ -6293,8 +8068,8 @@ a.bw-chip {
 [data-theme="dark"] .bw-card--elevation-3 {
   box-shadow: var(--bw-elevation-3);
 }
-[data-theme="dark"] .bw-card--interactive:hover,
-[data-theme="dark"] .bw-card--interactive:focus-within,
+[data-theme="dark"] .bw-card--interactive:not(.bw-card--bordered):hover,
+[data-theme="dark"] .bw-card--interactive:not(.bw-card--bordered):focus-within,
 [data-theme="dark"] a.bw-stat:hover {
   box-shadow: var(--bw-elevation-2);
 }
@@ -6305,6 +8080,7 @@ a.bw-chip {
 [data-theme="dark"] .bw-dropdown__panel,
 [data-theme="dark"] .bw-version-switch__panel,
 [data-theme="dark"] .bw-theme-switch__panel,
+[data-theme="dark"] .bw-popover__panel,
 [data-theme="dark"] .bw-combobox__listbox {
   box-shadow: var(--bw-elevation-3);
 }
@@ -6312,9 +8088,6 @@ a.bw-chip {
   box-shadow: var(--bw-elevation-5);
 }
 [data-theme="dark"] .bw-modal:is(.bw-modal--open, [data-bw-open]) .bw-modal__panel {
-  box-shadow: var(--bw-elevation-4);
-}
-[data-theme="dark"] .bw-slide-over[data-bw-open] .bw-slide-over__panel {
   box-shadow: var(--bw-elevation-4);
 }
 
@@ -6793,6 +8566,44 @@ a.bw-article-meta__tag-link:focus-visible {
 
 /* --- Input group (prefix/suffix addons, #624) ------------------------------ */
 
+/* Size (ADR-125, ADR-126; SIZE-COVERAGE gate 2): the group re-points the
+ * five control role variables so the field and every addon inherit one step.
+ * Grammar matches bw-input--size-* / bw-btn--size-* / bw-combobox--size-*. */
+.bw-input-group--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+.bw-input-group--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+.bw-input-group--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+.bw-input-group--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+.bw-input-group--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+}
 .bw-input-group {
   display: flex;
   align-items: stretch;
@@ -6815,12 +8626,14 @@ a.bw-article-meta__tag-link:focus-visible {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: var(--bw-space-1);
-  padding-inline: var(--bw-density-control-padding-inline);
+  gap: var(--bw-control-gap);
+  padding-inline: var(--bw-control-padding-inline);
   border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
   background: var(--bw-color-surface-sunken);
   color: var(--bw-color-fg-muted);
-  font-size: var(--bw-text-body-sm-size);
+  /* Size follows the control step (role variable), not a fixed body-sm role,
+   * so an input-group--size-* class keeps the addon text with the field. */
+  font-size: var(--bw-control-font-size);
   line-height: var(--bw-text-body-sm-line-height);
   white-space: nowrap;
   position: relative;
@@ -6866,4 +8679,329 @@ a.bw-article-meta__tag-link:focus-visible {
 .bw-field--invalid .bw-input-group__addon,
 .bw-input-group:has(.bw-input[aria-invalid="true"]) .bw-input-group__addon {
   border-color: var(--bw-color-danger);
+}
+
+
+/* --- Description list (D15 / R19) ------------------------------------------- */
+
+/* A semantic <dl>-based key-value display atom: stacked (default) and inline
+ * layouts, with an optional divided hairline between groups.
+ *
+ * Grammar (closed; DDL-004):
+ *   .bw-description-list            root <dl>
+ *   .bw-description-list__term      <dt> element
+ *   .bw-description-list__details   <dd> element
+ *   .bw-description-list--inline    modifier: term and details on one row
+ *   .bw-description-list--divided   modifier: hairline between groups
+ *
+ * Tokens read (DDL-015; no raw colour):
+ *   --bw-size-gap-md                                   row gap between pairs / groups
+ *   --bw-color-fg-muted                                term ink (DDL-013)
+ *   --bw-color-fg                                      details ink (DDL-014)
+ *   --bw-color-border                                  divided hairline colour (DDL-012)
+ *   --bw-size-border-hairline                          divided hairline width
+ *   --bw-component-description-list-term-size          term column min-inline-size in inline layout
+ *
+ * Type utilities applied by HTML / React / Vue consumers (not set here):
+ *   bw-text-xs on <dt>  (caption role; DDL-013)
+ *   bw-text-md on <dd>  (body role; DDL-014)
+ *
+ * Logical properties throughout (DDL-016). No breakpoint switch on this
+ * component. At 320 px, details text wraps within its remaining column space;
+ * overflow-wrap: anywhere on <dd> handles long unbreakable strings (DDL-017).
+ *
+ * Grouping <div> wrappers are optional in stacked mode and required in inline
+ * and divided mode for column alignment and correct hairline placement (DDL-003).
+ * React auto-wraps pairs when layout="inline" or divided is set. */
+
+.bw-description-list {
+  /* Flex column so pair spacing can target successive groups (or bare
+   * dt/dd pairs) without putting the same gap between a term and its own
+   * details (DDL-010: term directly above details; gap between pairs). */
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+/* Gap between successive pairs when grouped in a <div>. */
+.bw-description-list > div + div {
+  margin-block-start: var(--bw-size-gap-md);
+}
+
+/* Gap between successive pairs when bare: after a details, before the next term. */
+.bw-description-list > .bw-description-list__details + .bw-description-list__term {
+  margin-block-start: var(--bw-size-gap-md);
+}
+
+.bw-description-list__term {
+  /* dt inherits display: block; reset the UA margin. */
+  margin: 0;
+  color: var(--bw-color-fg-muted);
+}
+
+.bw-description-list__details {
+  /* dd has a UA margin-inline-start; reset it. */
+  margin: 0;
+  color: var(--bw-color-fg);
+  /* Prevent long unbreakable strings from overflowing at 320 px (DDL-017). */
+  overflow-wrap: anywhere;
+}
+
+/* Inline layout: group <div>s become flex rows so term and details sit side
+ * by side. The term's min-inline-size aligns columns across all pairs. The
+ * details fill remaining inline space and wrap rather than overflow (DDL-011,
+ * DDL-017). align-items: baseline keeps short labels optically level with
+ * value text. */
+.bw-description-list--inline > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.bw-description-list--inline .bw-description-list__term {
+  min-inline-size: var(--bw-component-description-list-term-size);
+  flex-shrink: 0;
+}
+
+.bw-description-list--inline .bw-description-list__details {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+/* Divided mode: hairline border-block-end between successive groups.
+ * :not(:last-child) omits the trailing hairline on the final row (DDL-012,
+ * troubleshooting note). padding-block-end preserves the visual row gap
+ * between the content and the hairline so the hairline floats between pairs
+ * rather than abutting the lower row's term. Groups are required in divided
+ * mode; bare dt/dd divided is not supported (DDL-003). */
+.bw-description-list--divided > div:not(:last-child) {
+  border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  padding-block-end: var(--bw-size-gap-md);
+}
+
+/* --- Number stepper (docs/components/number-stepper.md, R50 / C19) ----------- */
+
+/* .bw-number-stepper is the quantity adjuster: a flex row of a decrement
+ * button, a native <input type="number">, and an increment button, all in a
+ * connected group. The block reads the five control role variables only
+ * (NST-010); size classes re-point them, same grammar as .bw-input--size-*
+ * and .bw-switch--size-* (ADR-125). md is the default; React and Vue always
+ * emit a size class.
+ *
+ * Connected group chrome (NST-012): outer corners carry --bw-radius-md via
+ * logical properties; shared internal borders are single hairlines via
+ * border-inline-end on the decrement button and border-inline-start on the
+ * increment button; the input carries no additional side borders. No gap
+ * between parts.
+ *
+ * RTL (NST-016): logical properties throughout. The flex row reverses through
+ * direction inheritance so the decrement button (first in DOM) appears at the
+ * inline end and the increment button at the inline start, which is the
+ * correct UX in both directions. The internal side-border rules keep the
+ * shared borders on the correct edges.
+ *
+ * Native spin arrows are suppressed (NST-013). No colour literals (NST-015).
+ * Motion uses --bw-transition-colors (NST-017). */
+
+.bw-number-stepper--size-xs {
+  --bw-control-height: var(--bw-size-control-height-xs);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xs);
+  --bw-control-icon-size: var(--bw-size-control-icon-xs);
+  --bw-control-gap: var(--bw-size-control-gap-xs);
+  --bw-control-font-size: var(--bw-font-size-xs);
+}
+.bw-number-stepper--size-sm {
+  --bw-control-height: var(--bw-size-control-height-sm);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-sm);
+  --bw-control-icon-size: var(--bw-size-control-icon-sm);
+  --bw-control-gap: var(--bw-size-control-gap-sm);
+  --bw-control-font-size: var(--bw-font-size-sm);
+}
+.bw-number-stepper--size-md {
+  --bw-control-height: var(--bw-size-control-height-md);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-md);
+  --bw-control-icon-size: var(--bw-size-control-icon-md);
+  --bw-control-gap: var(--bw-size-control-gap-md);
+  --bw-control-font-size: var(--bw-font-size-md);
+}
+.bw-number-stepper--size-lg {
+  --bw-control-height: var(--bw-size-control-height-lg);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-lg);
+  --bw-control-icon-size: var(--bw-size-control-icon-lg);
+  --bw-control-gap: var(--bw-size-control-gap-lg);
+  --bw-control-font-size: var(--bw-font-size-lg);
+}
+.bw-number-stepper--size-xl {
+  --bw-control-height: var(--bw-size-control-height-xl);
+  --bw-control-padding-inline: var(--bw-size-control-padding-inline-xl);
+  --bw-control-icon-size: var(--bw-size-control-icon-xl);
+  --bw-control-gap: var(--bw-size-control-gap-xl);
+  --bw-control-font-size: var(--bw-font-size-xl);
+}
+
+/* Root: flex row, no gap. The three children share borders to form one
+ * connected group. */
+.bw-number-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  min-inline-size: 0;
+  cursor: default;
+}
+
+/* Buttons: square at the control height; centred icon; connected-group
+ * outer corners via logical border-radius. */
+.bw-number-stepper__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  inline-size: var(--bw-control-height);
+  block-size: var(--bw-control-height);
+  min-block-size: 1.5rem;
+  min-inline-size: 1.5rem;
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  background: var(--bw-color-surface);
+  color: var(--bw-color-fg);
+  cursor: pointer;
+  transition: var(--bw-transition-colors);
+  /* Icon inside reads the control icon size role variable. */
+  font-size: var(--bw-control-icon-size);
+  line-height: 1;
+}
+
+.bw-number-stepper__button--decrement {
+  border-start-start-radius: var(--bw-radius-md);
+  border-end-start-radius: var(--bw-radius-md);
+  /* Outer corners only; border-inline-end (the shared hairline to the input)
+   * is kept so the internal boundary is visible (NST-012). */
+}
+
+.bw-number-stepper__button--increment {
+  border-start-end-radius: var(--bw-radius-md);
+  border-end-end-radius: var(--bw-radius-md);
+  /* Outer corners only; border-inline-start (the shared hairline to the input)
+   * is kept so the internal boundary is visible (NST-012). */
+}
+
+/* Input: fills remaining inline space; native spin arrows suppressed;
+ * centred numeric value. No side borders (they are on the buttons). */
+.bw-number-stepper__input {
+  flex: 1 1 auto;
+  min-inline-size: 2.5rem;
+  block-size: var(--bw-control-height);
+  min-block-size: 1.5rem;
+  padding-inline: var(--bw-control-gap);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border-control);
+  border-inline: none;
+  background: var(--bw-color-surface);
+  color: var(--bw-color-fg);
+  font: inherit;
+  font-size: var(--bw-control-font-size);
+  text-align: center;
+  transition: var(--bw-transition-colors);
+  /* Suppress native spin arrows (NST-013). */
+  appearance: none;
+  -moz-appearance: textfield;
+}
+
+/* Suppress WebKit/Blink spin pseudo-elements. */
+.bw-number-stepper__input::-webkit-inner-spin-button,
+.bw-number-stepper__input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Placeholder: fg-muted, same floor as Input. */
+.bw-number-stepper__input::placeholder {
+  color: var(--bw-color-fg-muted);
+  opacity: 1;
+}
+
+/* SVG icon inside the buttons: reads the icon-size role variable. */
+.bw-number-stepper__button .bw-icon {
+  inline-size: var(--bw-control-icon-size);
+  block-size: var(--bw-control-icon-size);
+  flex-shrink: 0;
+  fill: none;
+}
+
+/* ---- Hover states (NST-032) ---- */
+
+.bw-number-stepper__button:hover:where(:not(:disabled)) {
+  background: var(--bw-color-surface-sunken);
+}
+
+.bw-number-stepper__input:hover:where(:not(:disabled):not([readonly]):not(:focus-visible)) {
+  border-color: color-mix(in oklab, var(--bw-color-border-control) 82%, var(--bw-color-fg));
+}
+
+/* ---- Focus-visible (NST-033): ring on the focused element, not the group ---- */
+
+.bw-number-stepper__button:focus-visible,
+.bw-number-stepper__input:focus-visible {
+  outline: 2px solid var(--bw-color-focus-ring);
+  outline-offset: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.bw-number-stepper__input:focus-visible {
+  border-color: var(--bw-color-accent);
+}
+
+/* ---- Disabled (NST-040) ---- */
+
+.bw-number-stepper:has(.bw-number-stepper__input:disabled) {
+  cursor: not-allowed;
+}
+
+.bw-number-stepper__button:disabled {
+  background: var(--bw-color-action-disabled-bg);
+  color: var(--bw-color-action-disabled-text);
+  border-color: var(--bw-color-action-disabled-border);
+  cursor: not-allowed;
+}
+
+.bw-number-stepper__input:disabled {
+  background: var(--bw-color-action-disabled-bg);
+  color: var(--bw-color-action-disabled-text);
+  border-color: var(--bw-color-action-disabled-border);
+  cursor: not-allowed;
+}
+
+.bw-number-stepper__input:disabled::placeholder {
+  color: var(--bw-color-action-disabled-text);
+}
+
+/* ---- Readonly (NST-041): input sunken; buttons disabled-looking ---- */
+
+.bw-number-stepper__input[readonly] {
+  background: var(--bw-color-surface-sunken);
+}
+
+/* ---- Invalid (NST-053): danger border on the whole group ---- */
+
+.bw-number-stepper__input[aria-invalid="true"],
+.bw-field--invalid .bw-number-stepper__input {
+  border-color: var(--bw-color-danger);
+}
+
+.bw-number-stepper__input[aria-invalid="true"] ~ .bw-number-stepper__button--increment,
+.bw-field--invalid .bw-number-stepper__button--increment {
+  border-color: var(--bw-color-danger);
+}
+
+.bw-number-stepper:has(.bw-number-stepper__input[aria-invalid="true"]) .bw-number-stepper__button--decrement,
+.bw-field--invalid .bw-number-stepper__button--decrement {
+  border-color: var(--bw-color-danger);
+}
+
+/* ---- Reduced motion (NST-017) ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-number-stepper__button,
+  .bw-number-stepper__input {
+    transition: none;
+  }
 }

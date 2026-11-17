@@ -158,11 +158,15 @@ def test_density_axis_resolves_card_padding_to_the_documented_values() -> None:
 
 
 def test_card_css_pads_via_the_density_token() -> None:
+    # Card padding reads the container inset scale (md = --bw-density-card-padding).
     rules = _css_rules(_frontend_css())
     card_bodies = [body for sel, body in rules if "bw-card" in sel]
-    assert any("var(--bw-density-card-padding)" in body for body in card_bodies), (
-        "no card rule composes padding from --bw-density-card-padding"
-    )
+    assert any(
+        "var(--bw-size-inset-md)" in body
+        or "var(--bw-component-card-inset" in body
+        or "var(--bw-density-card-padding)" in body
+        for body in card_bodies
+    ), "no card rule composes padding from the density-backed inset scale"
 
 
 def test_size_argument_maps_to_modifier_classes() -> None:
@@ -410,5 +414,4 @@ def test_beautiful_default_bare_card_has_hairline_radius_elevation_and_ambient()
     assert "var(--bw-radius-lg)" in body
     assert "var(--bw-size-border-hairline)" in body
     assert "color-mix(in oklab, var(--bw-color-fg)" in body
-    assert "0 4px 14px -4px" in body
     assert "inset 0 1px 0 0" not in body

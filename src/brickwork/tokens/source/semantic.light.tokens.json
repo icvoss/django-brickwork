@@ -3,7 +3,7 @@
     "$description": "Semantic tier, LIGHT theme. Role-named tokens (surface, fg, border, accent, status) that ARE the public contract (BR-BW-TOK-001): names are stable, values are brand-overridable. This file holds the authored light values; semantic.dark.tokens.json holds the authored dark values (BR-BW-TOK-002: dark is authored, never derived from light). Both files define the SAME token names. Derived tokens carry their live color-mix expression in $extensions.bw.derived (emitted as the CSS value); $value stays the resolved default and the regression baseline (docs/DESIGN.md section 3).",
     "$type": "color",
     "surface": {
-      "$value": "{primitive.gray.0}",
+      "$value": "{primitive.white}",
       "$extensions": {
         "bw": {
           "loadBearing": true
@@ -11,7 +11,7 @@
       }
     },
     "surface-sunken": {
-      "$value": "{primitive.gray.100}",
+      "$value": "oklch(0.965 0 0)",
       "$description": "0.4.0 polish: deepened from the 98.5% mix (gray.50), which was indistinguishable from the white chrome; the canvas now lands on gray.100 so cards, header bands and zebra stripes separate.",
       "$extensions": {
         "bw": {
@@ -20,7 +20,7 @@
       }
     },
     "surface-raised": {
-      "$value": "{primitive.gray.0}",
+      "$value": "oklch(1 0 0)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-surface)"
@@ -28,7 +28,7 @@
       }
     },
     "surface-inverse": {
-      "$value": "{primitive.gray.900}",
+      "$value": "oklch(0.21 0.006 285.88)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg)",
@@ -38,7 +38,7 @@
       }
     },
     "surface-overlay": {
-      "$value": "oklch(0.205 0.005 265 / 0.5)",
+      "$value": "oklch(0.21 0.006 285.88 / 0.5)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-surface-inverse) 50%, transparent)"
@@ -46,7 +46,7 @@
       }
     },
     "fg": {
-      "$value": "{primitive.gray.900}",
+      "$value": "{primitive.zinc.900}",
       "$extensions": {
         "bw": {
           "loadBearing": true
@@ -54,7 +54,7 @@
       }
     },
     "fg-muted": {
-      "$value": "oklch(0.507 0.003 265)",
+      "$value": "oklch(0.5102 0.0037 285.88)",
       "$description": "0.4.0 polish: raised from the 56% mix (gray.500, borderline AA) for comfortable secondary-text contrast; measures 5.82:1 on surface and 5.26:1 on the deeper sunken canvas. A literal: the resolved L sits between ramp steps.",
       "$extensions": {
         "bw": {
@@ -63,7 +63,7 @@
       }
     },
     "fg-subtle": {
-      "$value": "{primitive.gray.400}",
+      "$value": "oklch(0.7077 0.0022 285.88)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-fg) 37%, var(--bw-color-surface))"
@@ -71,7 +71,7 @@
       }
     },
     "fg-on-accent": {
-      "$value": "{primitive.gray.0}",
+      "$value": "{primitive.white}",
       "$extensions": {
         "bw": {
           "loadBearing": true,
@@ -82,7 +82,7 @@
       }
     },
     "fg-on-inverse": {
-      "$value": "{primitive.gray.0}",
+      "$value": "oklch(1 0 0)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-surface)"
@@ -90,14 +90,14 @@
       }
     },
     "status-fg-ink": {
-      "$value": "{primitive.gray.900}",
+      "$value": "{primitive.zinc.900}",
       "$description": "brickwork#289 review round 2: the fixed dark-ink partner every X-fg (danger/success/warning/info) mixes toward. Deliberately NOT var(--bw-color-fg): fg is one of the seven load-bearing tokens BRANDING.md tells every brand to author, so a derivation that tracked fg would let an ordinary, documented fg override quietly break status-text contrast (the same AA trap #289 closed for --bw-color-surface, one token over). This token defaults to the same value as --bw-color-fg (gray.900) so the shipped X-fg ratios are unchanged, but it is a distinct name a brand does not touch when it authors fg: overriding fg alone leaves status-text contrast exactly where base-theme verified it. A brand wanting different status-text ink authors this token directly (rare) and re-verifies the contrastPairs pairings itself.",
       "$extensions": {
         "bw": {}
       }
     },
     "border": {
-      "$value": "{primitive.gray.200}",
+      "$value": "{primitive.zinc.200}",
       "$extensions": {
         "bw": {
           "loadBearing": true
@@ -105,7 +105,7 @@
       }
     },
     "border-strong": {
-      "$value": "{primitive.gray.300}",
+      "$value": "oklch(0.8648 0.0038 286.32)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-border) 94%, black)"
@@ -113,7 +113,7 @@
       }
     },
     "border-control": {
-      "$value": "oklch(0.65 0.002 265)",
+      "$value": "oklch(0.6524 0.0026 285.88)",
       "$description": "Input/control boundary. The divider border token stays light for calm chrome; controls need a WCAG 1.4.11 compliant boundary (measured 3.23:1 against the default light surface).",
       "$extensions": {
         "bw": {
@@ -122,7 +122,7 @@
       }
     },
     "action-disabled-bg": {
-      "$value": "{primitive.gray.100}",
+      "$value": "oklch(0.965 0 0)",
       "$description": "Flat disabled control fill (COL-018 / icvoss/django-brickwork#282). Replaces opacity dimming so disabled contrast is a gated token pair rather than a blend against an unknown backdrop. Same mix as surface-sunken so a brand surface override flows through; expressed as color-mix (not a var() alias) so render_brand_css can resolve the contrastPair.",
       "$extensions": {
         "bw": {
@@ -131,7 +131,7 @@
       }
     },
     "action-disabled-text": {
-      "$value": "oklch(0.507 0.003 265)",
+      "$value": "oklch(0.5102 0.0037 285.88)",
       "$description": "Flat disabled control ink (COL-018 / icvoss/django-brickwork#282). Same mix as fg-muted so disabled labels clear AA on the disabled fill; expressed as color-mix so render_brand_css gates the pair. Nav's quieter `--bw-component-nav-item-disabled-text` stays on fg-subtle for chrome rows.",
       "$extensions": {
         "bw": {
@@ -142,7 +142,7 @@
       }
     },
     "action-disabled-border": {
-      "$value": "oklch(0.65 0.002 265)",
+      "$value": "oklch(0.6524 0.0026 285.88)",
       "$description": "Flat disabled control boundary (COL-018 / icvoss/django-brickwork#282). Same mix as border-control so disabled borders keep the 1.4.11 floor without opacity.",
       "$extensions": {
         "bw": {
@@ -159,7 +159,7 @@
       }
     },
     "accent-hover": {
-      "$value": "{primitive.blue.700}",
+      "$value": "oklch(0.4859 0.218 262.88)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-accent) 89%, black)"
@@ -167,7 +167,7 @@
       }
     },
     "accent-subtle": {
-      "$value": "oklch(0.968 0.013 262)",
+      "$value": "oklch(0.9682 0.0172 262.88)",
       "$description": "Literal, not the blue.50 alias: the achromatic light surface is hue-powerless in the mix, so the resolved hue stays the accent's 262, not the ramp's 254.",
       "$extensions": {
         "bw": {
@@ -184,7 +184,7 @@
       }
     },
     "danger-subtle": {
-      "$value": "oklch(0.97 0.015 27)",
+      "$value": "oklch(0.9704 0.0172 27.32)",
       "$description": "Literal, not the red.50 alias: the achromatic surface is hue-powerless, so the resolved hue stays the danger base's 27, not the ramp's 18.",
       "$extensions": {
         "bw": {
@@ -193,7 +193,7 @@
       }
     },
     "danger-border": {
-      "$value": "oklch(0.873 0.065 27)",
+      "$value": "oklch(0.8731 0.0735 27.32)",
       "$description": "Tinted badge/alert border for the danger intent.",
       "$extensions": {
         "bw": {
@@ -202,7 +202,7 @@
       }
     },
     "danger-strong": {
-      "$value": "oklch(0.508 0.189 27)",
+      "$value": "oklch(0.5078 0.2156 27.32)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-danger) 88%, black)"
@@ -210,7 +210,7 @@
       }
     },
     "danger-fg": {
-      "$value": "oklch(0.529 0.187 26.83)",
+      "$value": "oklch(0.5293 0.213 27.12)",
       "$description": "brickwork#289: text on danger-subtle (and on plain surface: .bw-field__error, .bw-account-menu__item--danger). Was a fixed mix toward literal black, independent of --bw-color-surface; danger-subtle mixes toward surface, so a brand darkening surface closed the gap and dropped contrast below AA with no warning. brickwork#289 review round 2: mixing toward var(--bw-color-fg) traded that failure for an equivalent one under an --bw-color-fg override (fg is itself a documented, brand-authored token, BRANDING.md's load-bearing seven), so the mix now targets var(--bw-color-status-fg-ink), a dedicated token defaulting to the same gray.900 ink but never moved by an ordinary --bw-color-fg override. This keeps the SAME numeric floor as the var(--bw-color-fg) attempt (status-fg-ink defaults to that attempt's resolution) while closing the fg-override hole: verified >= 4.5:1 against both danger-subtle and plain surface for --bw-color-surface overridden anywhere down to L 0.94 (conservative; the measured worst-family crossing is L 0.9390), independent of any --bw-color-fg value. Not the red.700 alias: mixing toward status-fg-ink resolves a fractionally different hue than a pure-black mix. Robustness is one-directional: this pairing is NOT protected against overriding --bw-color-danger itself to an extreme lightness, which is out of scope for #289 (that failure mode is the fg-on-accent class, docs/BRANDING.md).",
       "$extensions": {
         "bw": {
@@ -224,7 +224,7 @@
       }
     },
     "danger-on-fg": {
-      "$value": "{primitive.gray.0}"
+      "$value": "{primitive.white}"
     },
     "warning": {
       "$value": "{primitive.amber.600}",
@@ -235,7 +235,7 @@
       }
     },
     "warning-subtle": {
-      "$value": "oklch(0.977 0.011 58)",
+      "$value": "oklch(0.9766 0.0125 58.32)",
       "$description": "Literal, not the amber.50 alias: the achromatic surface is hue-powerless, so the resolved hue stays the warning base's 58, not the ramp's 95.",
       "$extensions": {
         "bw": {
@@ -244,7 +244,7 @@
       }
     },
     "warning-border": {
-      "$value": "oklch(0.9 0.049 58)",
+      "$value": "oklch(0.8998 0.0537 58.32)",
       "$description": "Tinted badge/alert border for the warning intent.",
       "$extensions": {
         "bw": {
@@ -253,7 +253,7 @@
       }
     },
     "warning-strong": {
-      "$value": "oklch(0.586 0.143 58)",
+      "$value": "oklch(0.5861 0.1575 58.32)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-warning) 88%, black)"
@@ -261,7 +261,7 @@
       }
     },
     "warning-fg": {
-      "$value": "oklch(0.518 0.109 57.62)",
+      "$value": "oklch(0.5201 0.1204 57.64)",
       "$description": "brickwork#289: text on warning-subtle (and on plain surface: .bw-field__error, .bw-trend). Was a fixed mix toward literal black, independent of --bw-color-surface; warning-subtle mixes toward surface, so darkening surface closed the gap and dropped contrast below AA (the reported defect: default was only 4.67, and any surface darker than L 0.986 failed). brickwork#289 review round 2: mixing toward var(--bw-color-fg) traded that failure for an equivalent one under an --bw-color-fg override, so the mix now targets var(--bw-color-status-fg-ink), a dedicated token defaulting to the same gray.900 ink but never moved by an ordinary --bw-color-fg override. Verified >= 4.5:1 against both warning-subtle and plain surface for --bw-color-surface overridden anywhere down to L 0.94 (conservative; measured worst-family crossing L 0.9390), independent of --bw-color-fg.",
       "$extensions": {
         "bw": {
@@ -275,7 +275,7 @@
       }
     },
     "warning-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "success": {
       "$value": "{primitive.green.600}",
@@ -286,7 +286,7 @@
       }
     },
     "success-subtle": {
-      "$value": "oklch(0.974 0.011 149)",
+      "$value": "oklch(0.9739 0.0136 149.21)",
       "$description": "Literal, not the green.50 alias: the achromatic surface is hue-powerless, so the resolved hue stays the success base's 149, not the ramp's 155.",
       "$extensions": {
         "bw": {
@@ -295,7 +295,7 @@
       }
     },
     "success-border": {
-      "$value": "oklch(0.888 0.046 149)",
+      "$value": "oklch(0.8881 0.0582 149.21)",
       "$description": "Tinted badge/alert border for the success intent.",
       "$extensions": {
         "bw": {
@@ -304,7 +304,7 @@
       }
     },
     "success-strong": {
-      "$value": "oklch(0.552 0.136 149)",
+      "$value": "oklch(0.5518 0.1707 149.21)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-success) 88%, black)"
@@ -312,7 +312,7 @@
       }
     },
     "success-fg": {
-      "$value": "oklch(0.496 0.106 149.75)",
+      "$value": "oklch(0.4977 0.1325 149.77)",
       "$description": "brickwork#289: text on success-subtle (and on plain surface: .bw-field__error, .bw-trend). Was a fixed mix toward literal black, independent of --bw-color-surface; success-subtle mixes toward surface, so darkening surface closed the gap and dropped contrast below AA. brickwork#289 review round 2: mixing toward var(--bw-color-fg) traded that failure for an equivalent one under an --bw-color-fg override, so the mix now targets var(--bw-color-status-fg-ink), a dedicated token defaulting to the same gray.900 ink but never moved by an ordinary --bw-color-fg override. Verified >= 4.5:1 against both success-subtle and plain surface for --bw-color-surface overridden anywhere down to L 0.94 (conservative; measured worst-family crossing L 0.9390), independent of --bw-color-fg. Not the green.700 alias: mixing toward the ink literal resolves a fractionally different hue than a pure-black mix.",
       "$extensions": {
         "bw": {
@@ -326,7 +326,7 @@
       }
     },
     "success-on-fg": {
-      "$value": "{primitive.gray.950}",
+      "$value": "{primitive.zinc.950}",
       "$description": "Near-black ink, the same treatment as warning: white on the solid green base fails AA (3.32); this ink measures 5.97."
     },
     "info": {
@@ -340,7 +340,7 @@
       }
     },
     "info-subtle": {
-      "$value": "oklch(0.972 0.008 225)",
+      "$value": "oklch(0.9726 0.0088 221.72)",
       "$description": "Literal, not the cyan.50 alias: the achromatic surface is hue-powerless, so the resolved hue stays the info base's 225, not the ramp's 210.",
       "$extensions": {
         "bw": {
@@ -349,7 +349,7 @@
       }
     },
     "info-border": {
-      "$value": "oklch(0.88 0.033 225)",
+      "$value": "oklch(0.8827 0.0378 221.72)",
       "$description": "Tinted badge/alert border for the info intent.",
       "$extensions": {
         "bw": {
@@ -358,7 +358,7 @@
       }
     },
     "info-strong": {
-      "$value": "oklch(0.528 0.097 225)",
+      "$value": "oklch(0.5359 0.1109 221.72)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-info) 88%, black)"
@@ -366,7 +366,7 @@
       }
     },
     "info-fg": {
-      "$value": "oklch(0.501 0.083 225.55)",
+      "$value": "oklch(0.5092 0.0952 222.54)",
       "$description": "brickwork#289: text on info-subtle (and on plain surface: .bw-field__error, .bw-trend). Was a fixed mix toward literal black, independent of --bw-color-surface; info-subtle mixes toward surface, so darkening surface closed the gap and dropped contrast below AA. brickwork#289 review round 2: mixing toward var(--bw-color-fg) traded that failure for an equivalent one under an --bw-color-fg override, so the mix now targets var(--bw-color-status-fg-ink), a dedicated token defaulting to the same gray.900 ink but never moved by an ordinary --bw-color-fg override. Verified >= 4.5:1 against both info-subtle and plain surface for --bw-color-surface overridden anywhere down to L 0.94 (conservative; measured worst-family crossing L 0.9390), independent of --bw-color-fg. Not the cyan.700 alias: mixing toward the ink literal resolves a fractionally different hue than a pure-black mix.",
       "$extensions": {
         "bw": {
@@ -380,11 +380,11 @@
       }
     },
     "info-on-fg": {
-      "$value": "{primitive.gray.950}",
+      "$value": "{primitive.zinc.950}",
       "$description": "Near-black ink, the same treatment as warning: white on the solid cyan base fails AA (3.83); this ink measures 5.17."
     },
     "icon-muted": {
-      "$value": "{primitive.gray.400}",
+      "$value": "oklch(0.705 0.015 286.07)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg-subtle)"
@@ -392,7 +392,7 @@
       }
     },
     "focus-ring": {
-      "$value": "oklch(0.5187 0.1824 262)",
+      "$value": "oklch(0.5187 0.2327 262.88)",
       "$description": "brickwork#134: derived from accent, not a flat literal. A hardcoded amber broke brand-agnosticism: every white-label tenant would get an amber ring regardless of their brand accent, contradicting the overridable-manifest contract (this token was previously `derived: var(--bw-color-accent)`, which failed WCAG 1.4.11 at only 2.53:1 against surface). The fix keeps the accent's hue and mixes it toward black to force a contrast-safe lightness: 95% accent, 5% black, in oklab (never oklch, which rotates hue toward 0 on a tint mix). A tenant's `--bw-color-accent` still flows through as the ring's hue. Resolved literal for the default blue.600 accent, not an alias: clears 3:1 against every surface the ring is painted on (the global :focus-visible rule and the marketing hero/CTA bands) at surface/surface-raised 5.73:1 and surface-inverse (gray.900) 3.13:1.",
       "$extensions": {
         "bw": {
@@ -410,7 +410,7 @@
       }
     },
     "nav-item-active-text": {
-      "$value": "{primitive.blue.700}",
+      "$value": "oklch(0.4859 0.218 262.88)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-accent-hover)"
@@ -418,7 +418,7 @@
       }
     },
     "nav-item-active-border": {
-      "$value": "{primitive.blue.600}",
+      "$value": "oklch(0.546 0.245 262.88)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-accent)"
@@ -426,7 +426,7 @@
       }
     },
     "nav-item-disabled-text": {
-      "$value": "{primitive.gray.400}",
+      "$value": "oklch(0.705 0.015 286.07)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg-subtle)"
@@ -443,7 +443,7 @@
       }
     },
     "breadcrumb-current": {
-      "$value": "{primitive.gray.900}",
+      "$value": "oklch(0.21 0.006 285.88)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg)"
@@ -451,7 +451,7 @@
       }
     },
     "breadcrumb-separator": {
-      "$value": "{primitive.gray.400}",
+      "$value": "oklch(0.705 0.015 286.07)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-fg-subtle)"
@@ -459,7 +459,7 @@
       }
     },
     "skeleton-bg": {
-      "$value": "{primitive.gray.200}",
+      "$value": "oklch(0.9283 0.001 286.38)",
       "$description": "One step deeper than the sunken canvas so the placeholder reads as one. 0.4.0 polish: constant retuned 94% to 96% to hold the gray.200 landing above the deeper 96.5% sunken.",
       "$extensions": {
         "bw": {
@@ -468,7 +468,7 @@
       }
     },
     "skeleton-shimmer": {
-      "$value": "oklch(0.891 0.004 265)",
+      "$value": "oklch(0.8832 0.0038 286.32)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-skeleton-bg) 96%, black)"
@@ -476,7 +476,7 @@
       }
     },
     "surface-marketing-tint": {
-      "$value": "oklch(0.9637 0.0154 352.16)",
+      "$value": "oklch(0.9637 0.0196 262.88)",
       "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens): a subtle tinted section background for marketing bands (_cta.html and any tinted section), derived from the accent/surface pair so a brand recolours it for free. Mixed at a low percentage (8%, one step past accent-subtle's 7%) so text placed on it clears WCAG AA in both themes (BR-BW-MKT-002's both-themes axe gate). Resolved literal (hue rotates toward the achromatic surface's own hue under oklab interpolation, unlike accent-subtle which mixes toward an achromatic-in-oklch literal), not an alias.",
       "$extensions": {
         "bw": {
@@ -485,7 +485,7 @@
       }
     },
     "stage-wash": {
-      "$value": "oklch(0.546 0.192 262 / 0.08)",
+      "$value": "oklch(0.546 0.245 262.88 / 0.08)",
       "$description": "4.2.0 soft-stage wash (BR-BW-MKT-007 / #570): accent at 8% over transparent, the same low percentage as surface-marketing-tint so text on the band clears WCAG AA (BR-BW-MKT-002). Mixed toward transparent rather than toward surface: the wash is a decorative layer behind the copy, not a background fill, so alpha carries the whole effect.",
       "$extensions": {
         "bw": {
@@ -494,7 +494,7 @@
       }
     },
     "stage-grid": {
-      "$value": "oklch(0.928 0.004 265 / 0.6)",
+      "$value": "oklch(0.92 0.004 286.32 / 0.6)",
       "$description": "4.2.0 soft-stage grid line (BR-BW-MKT-007 / #570): border at 60% over transparent, a faint line on the light surface rather than a hard rule.",
       "$extensions": {
         "bw": {

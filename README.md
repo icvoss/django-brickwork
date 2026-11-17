@@ -46,7 +46,7 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 274 documents (168 hand-maintained fixtures
+axe-core WCAG 2.2 AA scan across 276 documents (170 hand-maintained fixtures
 plus 106 catalogue-document pages, being 53 catalogue documents, 52 archetypes
 and 1 skeleton, each x light and dark themes), plus a no-JS floor suite,
 keyboard suites,
@@ -58,7 +58,7 @@ over a background image reports "incomplete" rather than a violation); the
 gate catching its own blind spot and adding a check for it is stronger
 evidence than a gate that has never missed.
 
-> Status: **stable**. This checkout is version 4.4.0 (`pip install
+> Status: **stable**. This checkout is version 4.5.0 (`pip install
 > django-brickwork` for the published package);
 > [CHANGELOG.md](CHANGELOG.md) records the current release. The five
 > semver-governed public-API contracts (token, template, navigation,

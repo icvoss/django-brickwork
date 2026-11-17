@@ -92,8 +92,9 @@ def test_filter_actions_align_to_the_plain_field_control_edge() -> None:
     would not ship.
     """
     css = _COMPILED_CSS.replace(" ", "").replace("\n", "")
-    assert ".bw-filter-bar__fields.bw-field{margin-block-end:0}" in css
-    assert ".bw-filter-bar__actions{margin-block-end:var(--bw-space-1)}" in css
+    # 0.1.12: empty errors are display:none, so both the field and the actions
+    # flush to the control edge with margin-block-end: 0 (grouped in the build).
+    assert ".bw-filter-bar__fields.bw-field,.bw-filter-bar__actions{margin-block-end:0}" in css
 
 
 def test_filter_field_error_container_and_widget_wiring_survive_alignment() -> None:

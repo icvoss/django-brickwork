@@ -1,0 +1,116 @@
+{% load i18n brickwork_icons brickwork_components %}
+{% comment %}
+Popover (docs/components/popover.md, R39 / H15). The small, non-modal panel
+that opens beside the control that asked for it and holds interactive content.
+Consumed by EXTENDING, like _tooltip.html and patterns/: a consumer's popover
+partial opens with {% extends "brickwork/components/_popover.html" %} and fills
+the blocks, e.g.
+
+    {% extends "brickwork/components/_popover.html" %}
+    {% load i18n %}
+    {% block trigger %}{% translate "Filters" %}{% endblock %}
+    {% block body %}...{% endblock %}
+    {% block footer %}...{% endblock %}
+
+Named blocks (semver-public once shipped, BR-BW-TPL-001):
+  trigger:  the trigger's content (its label). Empty by default.
+  body:     the panel's content. Empty by default.
+  footer:   the action row's content. Empty by default; with nothing filled the
+            footer wrapper renders empty and the CSS hides it (:empty), so the
+            template emits no whitespace inside it.
+
+A block name this file does not define is SILENTLY DISCARDED by Django: no
+error, no warning, DEBUG=True does not catch it. Only the three names above
+exist.
+
+Required context:
+  id: a stable, id-safe token (letters, digits, hyphen, underscore; the same
+      convention {% bw_tabs %} enforces at render time). This is the PANEL's
+      id; the root carries "{{ id }}-root" so the two never collide. This is a
+      structural extends-consumed template, so an unsafe id cannot raise at
+      render time (the _tooltip.html doctrine): the caller supplies a safe id.
+  title or aria_label: the panel is role="dialog" and needs a name. title
+      renders the heading and aria-labelledby; aria_label names a panel with no
+      title. Neither is an authoring error (POP-051), which a static template
+      cannot raise.
+Optional:
+  placement ("bottom" default | "top" | "start" | "end"): always emitted as
+      bw-popover--<placement>. start and end are logical (inline-start and
+      inline-end) and flip under dir="rtl". There is no collision handling:
+      choose the placement for where the trigger sits.
+  closable (False default): renders the close control (POP-014).
+  close_label ("Close", translated): the close control's accessible name
+      (POP-053). The default is wrapped in translate (POP-076).
+  trigger_variant ("secondary" default | "primary" | "ghost" | "danger"): the
+      Button variant on the trigger.
+
+Progressive enhancement (BR-BW-HTMX-006): the markup below IS the no-JS floor.
+A native <details>/<summary> discloses the panel, with no scripted positioning
+or dismissal beyond what <details> gives (POP-003). The native HTML popover
+attribute is never used (it would promote the panel to the top layer, off the
+--bw-z-dropdown rung). The bwPopover Alpine component (semver-public,
+BR-BW-JS-004; django/frontend/src/js/popover.js) upgrades this exact markup:
+the trigger gains aria-haspopup="dialog", aria-expanded and aria-controls, the
+panel is hidden while closed, focus moves into the panel on open, Escape and a
+press outside close it, and focus returns to the trigger only if it was inside
+the panel or on the trigger. The panel's role and name are static markup here;
+script never adds or changes them (POP-051). It is NOT a modal: no scrim, no
+focus trap, no inert page, no scroll lock, no aria-modal, and Tab never closes
+it. Do not put a Tooltip and a Popover on one trigger.
+
+Events (optional conventions, BR-BW-HTMX-004): bw:popover:open (detail { id }),
+bw:popover:close (detail { id, reason }; reason is escape, outside,
+close-button, trigger or programmatic).
+
+The data-bw-popover-* attributes are bwPopover's internal upgrade hooks; the
+exception is data-bw-popover-close, which a consumer may put on any control in
+the panel to close it, and data-bw-autofocus, which marks the element that
+takes focus on open.
+
+Tokens (CSS lane): panel --bw-color-surface-raised, hairline --bw-color-border,
+radius --bw-radius-xl, --bw-elevation-3 at --bw-z-dropdown, padding
+--bw-size-inset-md (density-computed), stack gap --bw-space-3; enter
+bw-fade-in-up at --bw-duration-normal/--bw-ease-out, exit instant, all under
+the reduced-motion floor (BR-BW-TOK-009).
+
+States: closed (default, [open] absent) and open; four placements. A popover
+  has no disabled, loading, invalid or empty state of its own (POP-040).
+Accessibility: WAI-ARIA APG Dialog (non-modal) opened from a button. Not the
+  Tooltip pattern, not the Modal trap pattern, not the Menu Button pattern.
+Responsive: no breakpoint switch. The panel is content-sized and capped at the
+  viewport less --bw-space-8.
+
+Lockstep (GAP-POP-1): this template and the module are the MONOREPO mirror. The
+django-brickwork bw_popover tag, closed-vocabulary validation, pytest file,
+axe fixture and the version pin are batched later; nothing here is synced into
+the django-brickwork checkout by the raise.
+{% endcomment %}
+<details class="bw-popover bw-popover--{% firstof placement 'bottom' %}"
+         id="{{ id }}-root"
+         x-data="bwPopover({ id: '{{ id|escapejs }}' })">
+  <summary class="bw-popover__trigger bw-btn bw-btn--{% firstof trigger_variant 'secondary' %} bw-btn--size-md"
+           data-bw-popover-trigger>{% block trigger %}{% endblock %}</summary>
+  <div class="bw-popover__panel"
+       id="{{ id }}"
+       role="dialog"
+       tabindex="-1"
+       {% if title %}aria-labelledby="{{ id }}-title"{% else %}{% bw_attr "aria-label" aria_label %}{% endif %}
+       data-bw-popover-panel>
+    {% if title or closable %}
+    <div class="bw-popover__header">
+      {% if title %}<h2 class="bw-popover__title" id="{{ id }}-title">{{ title }}</h2>{% endif %}
+      {% if closable %}
+        {% translate "Close" as bw_popover_default_close_label %}
+        <button type="button"
+                class="bw-popover__close"
+                aria-label="{% firstof close_label bw_popover_default_close_label %}"
+                data-bw-popover-close>
+          {% bw_icon "close" size="sm" decorative=True %}
+        </button>
+      {% endif %}
+    </div>
+    {% endif %}
+    <div class="bw-popover__body">{% block body %}{% endblock %}</div>
+    <div class="bw-popover__footer">{% block footer %}{% endblock %}</div>
+  </div>
+</details>

@@ -1,4 +1,4 @@
-// bwDismissible: the dismiss behaviour for bw_alert and bw_badge
+// bwDismissible: the dismiss behaviour for bw_alert, bw_badge and bw_banner
 // (04-interfaces section 4b, dismissible amendment adopted from the
 // CMP-010/012 landing; interactions-2 tranche).
 //

@@ -39,14 +39,20 @@ Appearance options (closed; `{% bw_options %}` raises on unknown values):
       (nested interactive content). Rich action clusters stay extends-only.
 
 Existing flags (unchanged):
-  interactive (bool): raise to elevation-2 on hover/focus-within.
+  interactive (bool): raise to elevation-2 on hover/focus-within. On a
+      bordered card there is no shadow: the hairline steps to the strong
+      border and the surface to raised (APP-002).
   href: whole card is a clickable anchor; interactive always applies. Trust
       boundary: brickwork does not validate URL schemes; href values are
       emitted as given and callers passing user-supplied URLs must validate
       them first.
-  bordered (bool): hairline alone (elevation-0).
+  bordered (bool): the APP-002 flat hairline mode: a --bw-color-border edge
+      and no resting shadow. Opt-in; the default card keeps elevation-1 for
+      marketing depth. App screens use bordered. An explicit elevation still
+      wins over it.
 
-States: resting elevation-1; interactive/href raise shadow only (MOT-010).
+States: resting elevation-1; interactive/href raise shadow only (MOT-010),
+  except bordered cards, which never gain a shadow on hover.
 Accessibility: linked cards are real <a>; package header actions are omitted
   on linked cards. Axe: card-*.html.
 Responsive: no breakpoint switch; sizing is the fixed size token scale.

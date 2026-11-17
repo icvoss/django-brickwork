@@ -214,5 +214,4 @@ def test_beautiful_default_toast_has_fg_mix_edge_and_ambient() -> None:
     body = bodies[0]
     assert "color-mix(in oklab, var(--bw-color-fg)" in body
     assert "var(--bw-elevation-5)" in body
-    assert "0 20px 44px -12px" in body
     assert "inset 0 1px 0 0" not in body

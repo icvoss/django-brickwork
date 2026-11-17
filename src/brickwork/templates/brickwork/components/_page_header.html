@@ -19,8 +19,10 @@ in document order:
                 override replaces the heading markup entirely, mirroring
                 _modal.html's modal_title default-content convention. Not
                 rendered while loading=True (the skeleton stands in for it).
-  title_badge:  an inline status badge beside the title (CMP-036), e.g.
-                {% bw_badge "Draft" variant="warning" %}.
+  title_badge:  at most one inline status badge beside the title (APP-009 /
+                H05), e.g. {% bw_badge "Draft" variant="warning" %}. The
+                titles cluster is a wrapping flex row so the badge sits
+                beside the <h1>.
   description:  wraps the existing conditional {{ description }} paragraph
                 (CMP-034). Not rendered while loading=True.
   actions:      the page-level action cluster (CMP-034), e.g. one or more

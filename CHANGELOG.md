@@ -8,6 +8,275 @@ versioning contract).
 
 ## Unreleased
 
+## [4.5.0] - 2026-11-17
+
+Lockstep with `@bwui` 0.1.12 (the post-0.1.9 batch from icvoss/brickwork, plus the 0.1.12 a11y patch;
+`v0.1.10` was tagged but never reached npm). Pip consumers get the new CSS and
+tokens via `{% static %}` with no npm step of their own.
+
+### Added
+
+- **`{% bw_button %}` takes all five size steps and a `fit` option
+  (icvoss/django-brickwork#748, ADR-125, ADR-126 section 3).** `size` accepts
+  `xs`, `sm`, `md`, `lg` and `xl` (it was `sm`, `md` and `lg`); each step emits
+  `bw-btn--size-<step>` and changes the control's height, padding, icon, gap
+  and label size, with a 1.5 rem floor so `xs` still clears the WCAG 2.5.8
+  target minimum. `fit="auto"` (default) or `fit="fill"` emits
+  `bw-btn--fit-fill`; an unknown `fit` raises, and `fit="fill"` with
+  `icon_only=True` raises, because a square control has no width to fill (no
+  silent no-op, ADR-060). A `size` outside the five steps (`xxs`, `2xl`) still
+  raises. The bare spelling stays deprecated for the steps it already covered.
+
+- **Combobox: the whole craft contract** (owner ruling 2026-11-16, nothing
+  deferred; closes `icvoss/django-brickwork#742`). `{% bw_combobox %}` gains
+  `size` (`xs`, `sm`, `md`, `lg`, `xl`; default `md`), `disabled`, `readonly`
+  (shown and submitted, not editable: a disabled floor plus hidden inputs),
+  `disabled_options` (values; an options mapping may also carry
+  `"disabled": True` and `"group": "Label"`), `aria_label` and
+  `error_message`. A bound field's optgroup choices render as listbox groups
+  (a heading and a `role="group"` list) and floor `<optgroup>`s instead of
+  being flattened. Every combobox carries a clear control (hidden until a
+  value or query, a Tab stop after the input) and a chevron, a multiple-mode
+  chosen row shows a check, and multiple mode announces "added", "removed"
+  and "cleared" through the status region. A bound field with no label and no
+  `aria_label` raises. The text, frame, chips, rows and icons follow the size
+  step through the control role variables, so text scales with the size.
+
+- **Combobox status, busy and failure handling** (CMB-019, CMB-052). A visually
+  hidden polite `role="status"` region announces the result count, "No matches",
+  loading and failure. In server-filter mode the listbox carries `aria-busy`
+  while a request is in flight, and a failed request (a non-2xx response or a
+  network error) shows a translated error row beside the previous options and
+  announces it instead of failing silently; the next query clears it. A
+  disabled option (`aria-disabled="true"`, for example from a consumer's
+  server-filter partial) is skipped by the arrow keys and cannot be chosen.
+  The new `bw-combobox__error`, `bw-combobox__status` and `bw-combobox--multiple`
+  hooks are listed in the craft contract; the tag arguments for groups, clear,
+  disabled, readonly, `aria_label` and `error_message` remain with
+  `icvoss/django-brickwork#742`.
+
+### Changed
+
+- **`{% bw_nav_rail %}` takes `variant`, not `density`** (ADR-125, owner
+  ratified, icvoss/django-brickwork#745). The rail's labelled-or-icons choice
+  is `variant="labelled"` (default) or `variant="icons"`; `density` now names
+  only the global comfortable, compact and spacious axis. `density="labelled"`
+  and `density="icons"` keep working for the deprecation window, emit a
+  `DeprecationWarning`, and are removed in the next major. Passing `variant`
+  and a different `density` together raises. Change
+  `{% bw_nav_rail items=... density="icons" %}` to `variant="icons"`. The
+  `--bw-density-rail-width` tokens keep their names (they track the real
+  density axis).
+
+- **Control size is now a density base times a named step; `@bwui/tokens` and
+  `@bwui/css` pins move to 0.1.4** (ADR-125, icvoss/brickwork#31).
+  `--bw-size-control-height-<step>` is computed from the density base and a
+  kit-wide step ratio, so a density scoped to a subtree re-resolves the whole
+  scale. Upgrade, in your terms: at comfortable density `bw-btn--size-sm`
+  goes from 2rem to 2.1875rem and `lg` from 3rem to 2.8125rem; at compact `sm`
+  goes from 2rem to 1.75rem and `lg` from 3rem to 2.25rem; at spacious `sm`
+  goes from 2rem to 2.625rem and `lg` from 3rem to 3.375rem. `md` does not
+  move. Small and large button padding follows the same ratio, and anything
+  sized from `--bw-size-control-height-sm` or `-lg` (avatar, stepper marker,
+  toggle track offset) moves with it. A brand that overrode
+  `--bw-size-control-height-*` directly should override the density base
+  (`--bw-density-control-height`) or `--bw-size-step-*` instead. The token
+  manifest now lists 325 overridable names (was 313): the `xs` and `xl` height
+  and padding tokens and the five `--bw-size-step-*` ratios.
+- **One size class grammar, `bw-<component>--size-<step>`** (ADR-125 section 6,
+  icvoss/django-brickwork#744). Templates and tags now emit
+  `bw-btn--size-sm`, `bw-gauge--size-md`, `bw-modal--size-full`,
+  `bw-slide-over--size-lg`, `bw-stat--size-sm` and
+  `bw-stat-comparison--size-lg` (avatar, button group, card, chip and empty
+  state already did). The bare spelling (`bw-btn--sm`) is **deprecated**:
+  the vendored stylesheet keeps both selectors in one grouped rule for the
+  deprecation window, so your own CSS or raw HTML written against the bare
+  classes keeps working. The bare selectors are removed in the next major of
+  django-brickwork. Selectors in your tests or brand CSS that target the emitted
+  bare class names need to move to `--size-<step>`.
+- **One shared size grammar and one shared density axis**
+  (icvoss/django-brickwork#744). `brickwork.appearance.SIZE_STEPS` is the
+  closed five-step set `xs`, `sm`, `md`, `lg`, `xl`. It is a ceiling, not a
+  default: every component declares the subset it renders
+  (`COMPONENT_OPTIONS`, `BUTTON_SIZES`, `GAUGE_SIZES`, `AVATAR_SIZES`, built
+  with `size_subset()`), and `{% bw_options size= %}` on a component that
+  declares none now raises instead of inheriting `sm`, `md`, `lg`. `xs` and
+  `xl` are not accepted on any component yet, because none ships them.
+  `brickwork.appearance.SIZES` is removed (it was `sm`, `md`, `lg`); import
+  `SIZE_STEPS` or the component's own subset. `DENSITIES` is now the three-value
+  `comfortable`, `compact`, `spacious` axis shared by `{% bw_options %}` and
+  `{% bw_form density= %}`; the data table and list item declare
+  `comfortable` and `compact` only (their stylesheet renders nothing for
+  `spacious`) and reject `spacious` rather than ignore it.
+
+- **Button raise, mirrored from `icvoss/brickwork` (`docs/components/button.md`).**
+  The vendored `components.css` source mirror carries the raised Button; the
+  shipped `brickwork.css` carries it once the `@bwui/css` pin moves to the
+  release that includes it (a later pin bump, not this change). Behaviour that
+  changes for an existing consumer when it does: a disabled or loading button
+  no longer reacts to hover or press (a disabled ghost used to regain full ink,
+  a loading primary painted disabled ink on the hover fill); a link button no
+  longer underlines on hover; the leading icon is a plain glyph in the button's
+  ink (it picked up the `bw-icon` raised box and a muted ink); a label stays on
+  one line; a loading button keeps its variant colours instead of turning
+  grey; a host with only `aria-disabled="true"` takes the flat disabled look;
+  and `bw-btn--solid` (deprecated, never emitted by a template) is an alias of
+  primary. Button geometry reads `--bw-size-control-*-md` (identical values).
+  `tests/test_button.py` pins the state markup and the mirror.
+
+- **Button `fit` and spinner sizing on the template mirror, from
+  `icvoss/brickwork` (ADR-126 sections 3 and 4, `docs/components/button.md`
+  section 13.4).** `_button.html` emits `bw-btn--fit-fill` when `fit="fill"` is
+  in its context, after the icon-only class, and `_spinner.html` no longer
+  writes an inline `--bw-icon-size`, so the spinner can follow the button's
+  size step. The matching CSS and tokens (the four `--bw-control-*` role
+  variables, the `--bw-size-control-icon-<step>` and
+  `--bw-size-control-gap-<step>` tokens, `bw-btn--fit-fill`) are held back from
+  the vendored source mirrors until the `@bwui/tokens` and `@bwui/css` pins move
+  past 0.1.4, because the token-derivation test rightly refuses CSS that names
+  a token the shipped `tokens.css` does not emit. Until then the shipped
+  spinner keeps its 1 rem default, `fit="fill"` through a direct include has no
+  effect, and the `bw_button` tag does not take `fit` (django-brickwork#748
+  ships it with the pin bump, so the option is never a silent no-op). Behaviour
+  that changes for an existing consumer after the pin moves: an `sm` button's
+  icon and spinner are 14 px (was 16 px), and an `lg` button's are 18 px with a
+  12 px icon-to-label gap (was 16 px and 8 px). `md` is unchanged.
+
+- **Vendored substrate moves to `@bwui/tokens` and `@bwui/css` 0.1.12.**
+  Lockstep with the post-0.1.9 `@bwui` batch plus the 0.1.12 a11y patch (icvoss/brickwork `v0.1.12`;
+  `v0.1.10` was tagged but never reached npm). Consumer-visible substrate
+  includes Channels kit primitives (`bw-progress__elapsed`, `bw-stat-summary`,
+  chart-card head/total, `bw-window-control`, `bw-insight`, glyph entity marks,
+  chart-mount height), the raised control and marketing surface since 0.1.9,
+  ADR-128 palette source, and Combobox signed-off. Source mirrors (tokens DTCG,
+  CSS layers, Django templates, frontend JS) move with it via
+  `npm run sync:monorepo`. Pip consumers do not run npm; the CSS arrives with
+  the wheel.
+
+- **Vendored substrate moves to `@bwui/tokens` and `@bwui/css` 0.1.6.** The
+  wheel's `tokens.css`, `token-manifest.json` and `brickwork.css` now carry the
+  Button raise, the control role variables (`--bw-control-height`,
+  `--bw-control-padding-inline`, `--bw-control-icon-size`, `--bw-control-gap`)
+  and `bw-btn--fit-fill` (0.1.5), plus the 0.1.6 fix: buttons are `nowrap`, so
+  the button-holding rows `.bw-form__actions`, `.bw-filter-bar__actions`,
+  `.bw-modal__footer` and `.bw-slide-over__footer` now wrap onto a further line
+  when they do not fit instead of widening the page (three buttons overflowed
+  at 375 px on 0.1.5; icvoss/brickwork#52). Visible on upgrade: an `sm`
+  button's icon and spinner are 14 px (was 16 px), and an `lg` button's are
+  18 px with a 12 px icon-to-label gap (was 16 px and 8 px); `md` is unchanged.
+  Pip consumers do not run npm; the CSS arrives with the wheel.
+
+- **Vendored substrate moves to `@bwui/tokens` and `@bwui/css` 0.1.9, the
+  ADR-127 computed type scale.** The type scale is now a type base times a
+  multiplier (`--bw-font-size-base`, `--bw-font-scale-<step>`), the
+  `bw-text-xs` to `bw-text-xl` size utilities ship, and the control font size
+  (`--bw-control-font-size`) resolves onto the same ladder for Button and
+  Combobox. Visible on upgrade, in consumer terms: density now scales type
+  slightly (body text is 15 px at compact, 16 px at comfortable, 17 px at
+  spacious; comfortable roles are unchanged); the raw `--bw-font-size-xl` to
+  `-5xl` names moved up one step (`xl` 1.25rem, `2xl` 1.5rem, `3xl` 2rem, `4xl`
+  2.5rem, `5xl` 3rem, and `6xl` is new at 3.75rem), so a brand that reads or
+  overrides those raw names directly should re-pick them; a Button or Combobox
+  `md` label is 16 px (was 14 px) with `xs` 12, `sm` 14, `lg` 18 and `xl` 20 px
+  at comfortable; the legacy `bw-text-display-md`, `bw-text-title-*`,
+  `bw-text-body-*` and `bw-text-label-md` aliases are deprecated and removed in
+  the next major release (no django-brickwork template emits them). The source
+  mirrors (tokens, CSS layers) move with it. Pip consumers do not run npm; the
+  CSS arrives with the wheel (icvoss/django-brickwork#752).
+
+- **Combobox markup and styling change on upgrade** (in consumer terms). The
+  root now always carries a size class (`bw-combobox--size-md` by default), so a
+  stylesheet that matched the bare class list is unaffected but one that matched
+  the exact `class` string is not. The input and the option rows take the
+  control font size (`--bw-control-font-size`), so a brand that overrode
+  `--bw-text-label-size` moves them in proportion; at `md` the text is 14 px as
+  before. A chevron and, while there is a value or a query, a clear control now
+  sit at the inline end of the field; the clear control is a Tab stop after the
+  input. A bound field with optgroup choices now renders groups (it was
+  flattened). Needs the `@bwui/css` 0.1.7 pin carried by this release; the
+  markup keeps its previous appearance on an older stylesheet.
+
+- **Multiple-mode combobox: one frame for chips and input** (CMB-031,
+  deliberate break). `{% bw_combobox multiple=True %}` now renders
+  `bw-combobox--multiple` on the root. Once the vendored `@bwui/css` carries
+  the matching rules (the next pin bump; this release's CSS is unchanged), the
+  frame moves from the input to the field wrapper, the input becomes
+  borderless, the frame grows with wrapped chips, and chips shrink to fit the
+  control height (the remove control is 1.5rem, no longer 2.75rem). A consumer
+  that styles the multiple-mode chip row or the input border will see a layout
+  change. Single mode is unaffected. Until the pin is bumped the markup keeps
+  its previous appearance.
+
+### Fixed
+
+- **Brand token validation accepts the shipped computed control-size tokens.**
+  `render_brand_css` rejected `calc(var(--bw-density-control-height) *
+  var(--bw-size-step-md))` (a product, which the generic value fallback did not
+  allow), the same class of defect as icvoss/django-brickwork#473: the package
+  rejecting its own defaults. `*` is now permitted in the fallback; the
+  injection guard (no braces, semicolons, remote `url(`) is unchanged.
+
+- **`{% bw_button href=... loading=True %}` is no longer a navigable link.** A
+  link button that is loading now renders the same non-navigable
+  `<span aria-disabled="true" aria-busy="true">` a disabled link button
+  renders, because a busy control must not be operable and an anchor stays
+  focusable and navigable whatever `aria-disabled` says. Before this it stayed
+  a live `<a href>` with a spinner and no `aria-busy`. A link button with
+  both `disabled=True` and `loading=True` is busy, not flat. A plain `<button>`
+  with `loading=True` is unchanged (`aria-busy` plus `disabled`).
+  Mirrored from icvoss/brickwork (Button raise, `docs/components/button.md`,
+  `GAP-BTN-5`).
+
+- **The vendored substrate no longer carries the parallel control text tables.**
+  `@bwui/tokens` and `@bwui/css` 0.1.7 and 0.1.8 published
+  `--bw-size-text-step-<step>` and `--bw-size-control-font-size-<step>`, which
+  ADR-127 forbids; 0.1.9 removes them and points the control font size at
+  `--bw-font-size-<step>`. Nothing in django-brickwork read the removed names.
+  Closes icvoss/django-brickwork#752.
+
+- **`{% bw_combobox %}` behaves like a native select where it did not**
+  (craft contract `docs/components/combobox.md` in `icvoss/brickwork`, CMB-012,
+  013, 022, 023, 050). A click or tap on the input now opens the list
+  (keyboard focus alone still does not). Choosing, removing a chip, Backspace
+  removal and `clear()` now fire a bubbling native `change` event on the floor
+  `<select>`, only when the selection actually changed, so dependent fields and
+  `hx-trigger="change"` wiring work. In single mode the input text always
+  returns to the committed label when focus leaves without a choice (blur, Tab,
+  outside press, Escape on a closed list); previously emptying the box or
+  pressing Escape left it blank over a retained value that the form still
+  submitted. Choosing the blank option now empties the input and is treated as
+  no selection, as rehydration already did. Moving the pointer over an option
+  makes it the single active row. The enhanced input is named from the floor's
+  `<label>` (or `aria-label`) at init when the template supplied no
+  `aria-labelledby`, which names the explicit `name=`/`options=` trio path
+  when the consumer wrote a plain `<label for>`.
+
+- **Combobox and `bw-input` visual repairs, mirrored from `icvoss/brickwork` (c7b19b6)
+  (combobox sign-off, wave 1).** The vendored `components.css` source mirror
+  now carries the repairs; the shipped `brickwork.css` carries them once the
+  `@bwui/css` pin moves to the release that includes them (a later pin bump,
+  not this change). In the combobox: the placeholder uses `--bw-color-fg-muted`
+  (it measured 2.62:1 light and 3.84:1 dark as `fg-subtle`, under the 4.5:1
+  text floor), the chip remove control uses `--bw-color-fg-muted` (it measured
+  2.39:1 light as `icon-muted`, under the 3:1 non-text floor), a disabled
+  combobox input prompts in the disabled ink, and the multiple-mode typing run
+  basis grows from 4rem to 6rem so a short placeholder wraps to its own line
+  instead of being clipped. Every `bw-input` state rule for `[readonly]` and
+  `:disabled` now sets `background-color` rather than the `background`
+  shorthand, so a disabled `select.bw-input` keeps its chevron. In the
+  upstream `@bwui/css` the document-level input fallback is now zero
+  specificity, so disabled and read-only text inputs paint their own fill and
+  ink, and the page ground uses the defined surface token (icvoss/brickwork#25,
+  #26).
+- **`{% bw_combobox %}` empty and failure rows are `aria-disabled` options.**
+  Both rows were `role="presentation"`, so when no option matched (or an
+  options request failed) the visible listbox owned no option and axe reported
+  `aria-required-children`. They are now `role="option" aria-disabled="true"`:
+  announced as unavailable, never chosen, never reached by the arrow keys (the
+  script still selects options by class). A consumer that counted
+  `[role="option"]` rows to count choices should count `.bw-combobox__option`
+  instead.
+
 ## [4.4.0] - 2026-11-14
 
 First-run and lockstep release: clean-directory `startsite`, selectable

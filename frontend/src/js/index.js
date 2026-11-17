@@ -10,7 +10,9 @@
 // bwSlideOver (brickwork#55); the 0.15.0 tranche adds bwTableSelection
 // (brickwork#54); later additions are bwSortable (brickwork#214),
 // bwThemeSwitch (brickwork#117) and bwCodeCopy (brickwork#259, the
-// code-display content primitive's copy control). The disclosure ships no
+// code-display content primitive's copy control); bwPopover (the non-modal
+// popover, docs/components/popover.md, R39) is monorepo-only until the
+// django-brickwork lockstep (GAP-POP-1). The disclosure ships no
 // JS at all (native
 // <details>, see ./disclosure.js); the toggle switch likewise ships no JS
 // (native checkbox + role=switch, see forms/_field.html /
@@ -26,6 +28,7 @@ import { toastRegion, toast } from "./toast.js";
 import combobox from "./combobox.js";
 import dismissible from "./dismissible.js";
 import tooltip from "./tooltip.js";
+import popover from "./popover.js";
 import tagInput from "./tag_input.js";
 import dropzone from "./dropzone.js";
 import sidebarCollapse from "./sidebar_collapse.js";
@@ -71,6 +74,7 @@ export function registerBrickworkComponents(Alpine) {
   Alpine.data("bwCombobox", combobox);
   Alpine.data("bwDismissible", dismissible);
   Alpine.data("bwTooltip", tooltip);
+  Alpine.data("bwPopover", popover);
   Alpine.data("bwTagInput", tagInput);
   Alpine.data("bwDropzone", dropzone);
   Alpine.data("bwSidebarCollapse", sidebarCollapse);

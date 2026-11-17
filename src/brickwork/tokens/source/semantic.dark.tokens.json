@@ -12,7 +12,7 @@
       }
     },
     "surface-sunken": {
-      "$value": "oklch(0.137 0.004 265)",
+      "$value": "oklch(0.1368 0.0038 265)",
       "$description": "Resolved literal of the 76% mix over the 0.4.0 graphite surface.",
       "$extensions": {
         "bw": {
@@ -21,7 +21,7 @@
       }
     },
     "surface-raised": {
-      "$value": "oklch(0.237 0.005 265)",
+      "$value": "oklch(0.2374 0.0047 265)",
       "$description": "Resolved literal of the 93%-toward-white mix over the 0.4.0 graphite surface.",
       "$extensions": {
         "bw": {
@@ -53,7 +53,7 @@
       }
     },
     "fg-muted": {
-      "$value": "oklch(0.72 0.003 265)",
+      "$value": "oklch(0.72 0.0028 265)",
       "$description": "0.4.0 polish: mix raised 67% to 72% to companion the dimmed fg; measures 7.58:1 on surface and 6.68:1 on raised.",
       "$extensions": {
         "bw": {
@@ -62,7 +62,7 @@
       }
     },
     "fg-subtle": {
-      "$value": "oklch(0.548 0.004 265)",
+      "$value": "oklch(0.5475 0.0035 265)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-fg) 49%, var(--bw-color-surface))"
@@ -70,7 +70,7 @@
       }
     },
     "fg-on-accent": {
-      "$value": "{primitive.gray.950}",
+      "$value": "{primitive.zinc.950}",
       "$extensions": {
         "bw": {
           "loadBearing": true,
@@ -96,7 +96,7 @@
       }
     },
     "border": {
-      "$value": "{primitive.gray.800}",
+      "$value": "{primitive.zinc.800}",
       "$extensions": {
         "bw": {
           "loadBearing": true
@@ -104,7 +104,7 @@
       }
     },
     "border-strong": {
-      "$value": "{primitive.gray.700}",
+      "$value": "oklch(0.3756 0.0052 286.03)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-border) 86%, white)"
@@ -112,7 +112,7 @@
       }
     },
     "border-control": {
-      "$value": "oklch(0.518 0.004 265)",
+      "$value": "oklch(0.5175 0.0037 265)",
       "$description": "Input/control boundary. The divider border token stays subtle; controls need a WCAG 1.4.11 compliant boundary (measured 3.38:1 against the 0.4.0 graphite surface).",
       "$extensions": {
         "bw": {
@@ -121,7 +121,7 @@
       }
     },
     "action-disabled-bg": {
-      "$value": "oklch(0.137 0.004 265)",
+      "$value": "oklch(0.1368 0.0038 265)",
       "$description": "Flat disabled control fill (COL-018 / icvoss/django-brickwork#282). Dark authored; same mix as surface-sunken, expressed as color-mix for brand_css gating.",
       "$extensions": {
         "bw": {
@@ -130,7 +130,7 @@
       }
     },
     "action-disabled-text": {
-      "$value": "oklch(0.72 0.003 265)",
+      "$value": "oklch(0.72 0.0028 265)",
       "$description": "Flat disabled control ink (COL-018 / icvoss/django-brickwork#282). Dark authored; same mix as fg-muted, expressed as color-mix for brand_css gating.",
       "$extensions": {
         "bw": {
@@ -141,7 +141,7 @@
       }
     },
     "action-disabled-border": {
-      "$value": "oklch(0.518 0.004 265)",
+      "$value": "oklch(0.5175 0.0037 265)",
       "$description": "Flat disabled control boundary (COL-018 / icvoss/django-brickwork#282). Dark authored; same mix as border-control.",
       "$extensions": {
         "bw": {
@@ -158,7 +158,7 @@
       }
     },
     "accent-hover": {
-      "$value": "oklch(0.622 0.145 254)",
+      "$value": "oklch(0.6222 0.1452 254.62)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-accent) 88%, black)"
@@ -166,7 +166,7 @@
       }
     },
     "accent-subtle": {
-      "$value": "oklch(0.212 0.05 254)",
+      "$value": "oklch(0.2121 0.0495 254.62)",
       "$description": "0.4.0 polish: mix lowered 40% to 30% so selection and active-nav recede behind content instead of outshining it; nav-item-active-text gains contrast on the darker tint (14.47:1).",
       "$extensions": {
         "bw": {
@@ -183,7 +183,7 @@
       }
     },
     "danger-subtle": {
-      "$value": "oklch(0.166 0.054 25)",
+      "$value": "oklch(0.1656 0.0616 25.33)",
       "$description": "0.4.0 polish: mix lowered 41% to 26% so the dark tint whispers like its light counterpart; danger-fg measures 7.22:1 on it. A literal (the red.950 alias no longer matches).",
       "$extensions": {
         "bw": {
@@ -192,7 +192,7 @@
       }
     },
     "danger-border": {
-      "$value": "oklch(0.35 0.114 25)",
+      "$value": "oklch(0.3504 0.1304 25.33)",
       "$description": "Tinted badge/alert border for the danger intent; clears the black-mixed subtle tint by delta-L 0.184.",
       "$extensions": {
         "bw": {
@@ -201,7 +201,7 @@
       }
     },
     "danger-strong": {
-      "$value": "oklch(0.652 0.2 25)",
+      "$value": "oklch(0.6515 0.2275 25.33)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-danger) 96%, white)"
@@ -209,7 +209,7 @@
       }
     },
     "danger-fg": {
-      "$value": "oklch(0.735 0.152 25)",
+      "$value": "oklch(0.735 0.173 25.33)",
       "$description": "brickwork#289: constant tightened from 78% to 73% toward white. Dark-subtle mixes toward black (BR-BW-TOK-002 correction, not toward surface), so it does not carry this defect against danger-subtle; but danger-fg is also painted on plain surface/surface-raised (.bw-account-menu__item--danger), and DESIGN.md's own branding note already flagged that pairing degrades for a brand whose dark danger sits below about L 0.62. The retuned constant verifies >= 4.5:1 against plain surface for dark-surface L up to 0.35 (default dark surface is 0.18, surface-raised 0.237), well past any documented brand recipe. warning/success/info keep their existing 78% constant: it already clears this same plain-surface sweep without adjustment.",
       "$extensions": {
         "bw": {
@@ -218,7 +218,7 @@
       }
     },
     "danger-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "warning": {
       "$value": "{primitive.amber.500}",
@@ -229,7 +229,7 @@
       }
     },
     "warning-subtle": {
-      "$value": "oklch(0.169 0.037 70)",
+      "$value": "oklch(0.1692 0.0414 70.08)",
       "$description": "Literal, not an amber ramp alias: black is hue-powerless in the mix, so the resolved hue stays the warning base's 70, not the ramp's 46. 0.4.0 polish: mix lowered 36% to 22%; warning-fg measures 10.77:1 on it.",
       "$extensions": {
         "bw": {
@@ -238,7 +238,7 @@
       }
     },
     "warning-border": {
-      "$value": "oklch(0.423 0.091 70)",
+      "$value": "oklch(0.423 0.1034 70.08)",
       "$description": "Tinted badge/alert border for the warning intent; clears the black-mixed subtle tint by delta-L 0.254.",
       "$extensions": {
         "bw": {
@@ -247,7 +247,7 @@
       }
     },
     "warning-strong": {
-      "$value": "oklch(0.778 0.159 70)",
+      "$value": "oklch(0.7782 0.1805 70.08)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-warning) 96%, white)"
@@ -255,7 +255,7 @@
       }
     },
     "warning-fg": {
-      "$value": "oklch(0.82 0.129 70)",
+      "$value": "oklch(0.8198 0.1466 70.08)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-warning) 78%, white)"
@@ -263,7 +263,7 @@
       }
     },
     "warning-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "success": {
       "$value": "{primitive.green.500}",
@@ -274,7 +274,7 @@
       }
     },
     "success-subtle": {
-      "$value": "oklch(0.166 0.039 152)",
+      "$value": "oklch(0.1663 0.0504 149.58)",
       "$description": "0.4.0 polish: mix lowered 37% to 23%; success-fg measures 10.19:1 on it. A literal (the green.950 alias no longer matches).",
       "$extensions": {
         "bw": {
@@ -283,7 +283,7 @@
       }
     },
     "success-border": {
-      "$value": "oklch(0.398 0.093 152)",
+      "$value": "oklch(0.3977 0.1205 149.58)",
       "$description": "Tinted badge/alert border for the success intent; clears the black-mixed subtle tint by delta-L 0.232.",
       "$extensions": {
         "bw": {
@@ -292,7 +292,7 @@
       }
     },
     "success-strong": {
-      "$value": "oklch(0.734 0.162 152)",
+      "$value": "oklch(0.7341 0.2102 149.58)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-success) 96%, white)"
@@ -300,7 +300,7 @@
       }
     },
     "success-fg": {
-      "$value": "oklch(0.784 0.132 152)",
+      "$value": "oklch(0.7839 0.1708 149.58)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-success) 78%, white)"
@@ -308,7 +308,7 @@
       }
     },
     "success-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "info": {
       "$value": "{primitive.cyan.400}",
@@ -321,7 +321,7 @@
       }
     },
     "info-subtle": {
-      "$value": "oklch(0.187 0.029 220)",
+      "$value": "oklch(0.2051 0.04 211.53)",
       "$description": "Literal, not the cyan.950 alias: black is hue-powerless in the mix, so the resolved hue stays the info base's 220, not the ramp's 230. 0.4.0 polish: mix lowered 42% to 26%; info-fg measures 9.53:1 on it.",
       "$extensions": {
         "bw": {
@@ -330,7 +330,7 @@
       }
     },
     "info-border": {
-      "$value": "oklch(0.396 0.061 220)",
+      "$value": "oklch(0.434 0.0847 211.53)",
       "$description": "Tinted badge/alert border for the info intent; clears the black-mixed subtle tint by delta-L 0.209.",
       "$extensions": {
         "bw": {
@@ -339,7 +339,7 @@
       }
     },
     "info-strong": {
-      "$value": "oklch(0.731 0.106 220)",
+      "$value": "oklch(0.7974 0.1478 211.53)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-info) 96%, white)"
@@ -347,7 +347,7 @@
       }
     },
     "info-fg": {
-      "$value": "oklch(0.782 0.086 220)",
+      "$value": "oklch(0.8354 0.1201 211.53)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-info) 78%, white)"
@@ -355,7 +355,7 @@
       }
     },
     "info-on-fg": {
-      "$value": "{primitive.gray.950}"
+      "$value": "{primitive.zinc.950}"
     },
     "icon-muted": {
       "$value": "oklch(0.548 0.004 265)",
@@ -366,7 +366,7 @@
       }
     },
     "focus-ring": {
-      "$value": "oklch(0.5797 0.1353 254)",
+      "$value": "oklch(0.5797 0.1353 254.62)",
       "$description": "brickwork#134: derived from accent, not a flat literal. A hardcoded amber broke brand-agnosticism (see semantic.light.tokens.json for the full rationale). Derived by mixing accent (blue.400 by default) toward black, in oklab, to force a contrast-safe lightness: 82% accent, 18% black. Darkening, not lightening, is the correct direction here even though the theme is dark: surface-inverse in this theme is near-white (oklch L 0.93), so a ring lightened toward white would fail against it just as badly as the raw accent does (2.15:1). Darkening clears all three surfaces the ring is painted on at once. A tenant's `--bw-color-accent` still flows through as the ring's hue. Resolved literal for the default blue.400 dark accent, not an alias: surface 4.38:1, surface-raised (card) 3.86:1, surface-inverse (the near-white inverse/hero band) 3.50:1.",
       "$extensions": {
         "bw": {
@@ -383,7 +383,7 @@
       }
     },
     "nav-item-active-text": {
-      "$value": "{primitive.blue.100}",
+      "$value": "oklch(0.9267 0.0413 254.62)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-accent) 25%, white)"
@@ -391,7 +391,7 @@
       }
     },
     "nav-item-active-border": {
-      "$value": "{primitive.blue.400}",
+      "$value": "oklch(0.707 0.165 254.62)",
       "$extensions": {
         "bw": {
           "derived": "var(--bw-color-accent)"
@@ -431,7 +431,7 @@
       }
     },
     "skeleton-bg": {
-      "$value": "oklch(0.292 0.003 265)",
+      "$value": "oklch(0.2923 0.0033 265)",
       "$description": "Resolved literal of the 82%-toward-white mix over the 0.4.0 sunken canvas.",
       "$extensions": {
         "bw": {
@@ -440,7 +440,7 @@
       }
     },
     "skeleton-shimmer": {
-      "$value": "oklch(0.391 0.003 265)",
+      "$value": "oklch(0.3911 0.0026 265)",
       "$extensions": {
         "bw": {
           "derived": "color-mix(in oklab, var(--bw-color-skeleton-bg) 86%, white)"
@@ -448,7 +448,7 @@
       }
     },
     "surface-marketing-tint": {
-      "$value": "oklch(0.2432 0.0241 255.99)",
+      "$value": "oklch(0.2432 0.0241 256.51)",
       "$description": "1.2.0 marketing token (BR-BW-MKT marketing tokens), AUTHORED for dark per BR-BW-TOK-002 (never derived from the light value). Mixed toward the dark surface at 12% (mirroring the light theme's own accent-toward-surface shape, unlike accent-subtle's mix-toward-black, which would read as near-black at this low a percentage on an already-dark surface): a faint lift off surface (dark surface L 0.18, surface-raised L 0.237) rather than a heavy tint; text placed on it clears WCAG AA in both themes (BR-BW-MKT-002). brickwork#289: hue corrected from 263.68 to 255.99, the true resolved hue of mixing two chromatic sides (accent and the dark surface's own C 0.005) in Cartesian oklab; the previous value was computed by a circular hue-angle approximation the test harness used before that model was corrected, and never matched what color-mix(in oklab) actually renders.",
       "$extensions": {
         "bw": {
@@ -457,7 +457,7 @@
       }
     },
     "stage-wash": {
-      "$value": "oklch(0.707 0.165 254 / 0.16)",
+      "$value": "oklch(0.707 0.165 254.62 / 0.16)",
       "$description": "4.2.0 soft-stage wash (BR-BW-MKT-007 / #570), AUTHORED for dark: accent at 16% over transparent. Stronger than light so the wash reads on an already-dark surface. Text stays on the band surface, not on this wash.",
       "$extensions": {
         "bw": {
@@ -466,7 +466,7 @@
       }
     },
     "stage-grid": {
-      "$value": "oklch(0.269 0.006 265 / 0.7)",
+      "$value": "oklch(0.274 0.006 286.03 / 0.7)",
       "$description": "4.2.0 soft-stage grid line (BR-BW-MKT-007 / #570), AUTHORED for dark: border at 70% over transparent so the grid stays visible on graphite.",
       "$extensions": {
         "bw": {

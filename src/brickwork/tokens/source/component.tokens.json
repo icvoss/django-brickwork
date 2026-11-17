@@ -104,8 +104,8 @@
   "stat-tile": {
     "value-size": {
       "$type": "dimension",
-      "$value": "var(--bw-font-size-4xl)",
-      "$description": "Stat tile numeral size (VIZ-001, AC-BW-075); a live var() reference so the font scale cascades, and the size modifiers re-point it per tile. ADR-127: a pick on the ladder (4xl, the 2.5rem the default tile has always rendered at comfortable)."
+      "$value": "var(--bw-font-size-2xl)",
+      "$description": "Stat tile numeral size (VIZ-001, AC-BW-075, APP-CRAFT section 4 kpi-value pick); a live var() reference so the font scale cascades, and the size modifiers re-point it per tile. ADR-127 / APP-CRAFT: 2xl (1.5rem at comfortable) is the ladder pick for a compact KPI numeral; size-sm re-points to xl, size-lg to 3xl."
     },
     "sparkline-height": {
       "$type": "dimension",
@@ -520,6 +520,13 @@
         "$value": "4",
         "$description": "From --bw-breakpoint-lg."
       }
+    }
+  },
+  "description-list": {
+    "term-size": {
+      "$type": "dimension",
+      "$value": "10rem",
+      "$description": "Minimum inline-size of the term column in inline layout (DDL-011). Consumers may override via --bw-component-description-list-term-size on a containing element to widen or narrow the column without touching bw-* selectors."
     }
   }
 }

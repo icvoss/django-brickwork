@@ -179,7 +179,7 @@ def test_data_rejects_a_non_mapping_with_its_own_message() -> None:
 
 def test_data_omitted_keeps_the_existing_opening_tag() -> None:
     out = _render(label="Visitors", value="1,234")
-    assert '<div class="bw-stat">' in out
+    assert 'class="bw-stat bw-stat--size-md"' in out
 
 
 def test_loading_shows_a_skeleton() -> None:
@@ -192,7 +192,7 @@ def test_size_maps_to_modifier_classes() -> None:
     # carries the bare bw-stat class.
     assert "bw-stat--size-sm" in _render(label="X", value="1", size="sm")
     assert "bw-stat--size-lg" in _render(label="X", value="1", size="lg")
-    assert "bw-stat--" not in _render(label="X", value="1")
+    assert "bw-stat--size-md" in _render(label="X", value="1")
 
 
 # --- sparkline (#60, 0.12.0) -------------------------------------------------

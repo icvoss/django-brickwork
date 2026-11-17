@@ -48,6 +48,7 @@ _PER_INSTANCE_VAR_HOOKS = frozenset(
         "--bw-component-stat-tile-value-size",
         "--bw-chart-mount-min-height",
         "--bw-chart-mount-aspect-ratio",
+        "--bw-chart-mount-height",
         "--bw-overlay-frost",
         "--bw-overlay-line",
         "--bw-overlay-ink",
@@ -58,6 +59,12 @@ _PER_INSTANCE_VAR_HOOKS = frozenset(
         # Local chip block size on .bw-combobox (CMB-038); derived from density and
         # space tokens per instance, referenced with a 1.5rem fallback.
         "--bw-combobox-chip-size",
+        # Inline geometry hooks (0.1.11): templates / Alpine set these per instance.
+        "--bw-chip-inset",
+        "--bw-component-card-inset",
+        "--bw-progress-elapsed",
+        "--bw-slider-percent",
+        "--bw-switch-offset",
     }
 )
 
@@ -67,7 +74,28 @@ _PER_INSTANCE_VAR_HOOKS = frozenset(
 # control role variables per instance so a size step re-points them with no
 # token of their own. The test below requires each to be declared in the same
 # file, so a misspelled read still fails.
-_LOCALLY_DECLARED_VARS = frozenset({"--bw-combobox-end-gutter", "--bw-combobox-clear-size"})
+_LOCALLY_DECLARED_VARS = frozenset(
+    {
+        "--bw-combobox-end-gutter",
+        "--bw-combobox-clear-size",
+        "--bw-chip-inset",
+        "--bw-switch-inset",
+        "--bw-switch-offset",
+        "--bw-switch-thumb",
+        "--bw-switch-track-block",
+        "--bw-switch-track-inline",
+        "--bw-switch-travel",
+        "--bw-slider-fill-dir",
+        "--bw-slider-percent",
+        "--bw-slider-thumb",
+        "--bw-slider-track-block",
+        # Site-header overlay palette (marketing.css); set on the ready host.
+        "--bw-overlay-frost",
+        "--bw-overlay-line",
+        "--bw-overlay-ink",
+        "--bw-overlay-ink-muted",
+    }
+)
 
 # Tolerances for the linear oklab-model recomputation against the baseline.
 _TOL_L = 0.015
@@ -78,7 +106,7 @@ _TOL_ALPHA = 0.01
 _TOL_H = 4.0
 _HUE_CHROMA_FLOOR = 0.02
 
-_OKLCH = re.compile(r"^oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*(?:/\s*([\d.]+)\s*)?\)$")
+_OKLCH = re.compile(r"^oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+(none|[\d.]+)\s*(?:/\s*([\d.]+)\s*)?\)$")
 _ALIAS = re.compile(r"^\{([a-z0-9.-]+)\}$")
 # The full derivation grammar (DESIGN.md section 3): a single color-mix over a
 # --bw-color-* reference with an achromatic or token partner, or a plain alias.
@@ -93,11 +121,25 @@ def _load(name: str) -> dict:
     return json.loads((_SOURCE / f"{name}.tokens.json").read_text())
 
 
+_PURE_BW_HEX = {
+    "#000": (0.0, 0.0, 0.0, 1.0),
+    "#000000": (0.0, 0.0, 0.0, 1.0),
+    "#fff": (1.0, 0.0, 0.0, 1.0),
+    "#ffffff": (1.0, 0.0, 0.0, 1.0),
+}
+
+
 def _parse_oklch(value: str) -> tuple[float, float, float, float]:
+    # ADR-128: pure black/white may ship as hex; treat as achromatic oklch.
+    hex_key = value.strip().lower()
+    if hex_key in _PURE_BW_HEX:
+        return _PURE_BW_HEX[hex_key]
     m = _OKLCH.match(value)
     assert m, f"not an oklch literal: {value!r}"
     lightness, chroma, hue, alpha = m.groups()
-    return (float(lightness), float(chroma), float(hue), float(alpha) if alpha else 1.0)
+    lightness_value = float(lightness[:-1]) / 100.0 if lightness.endswith("%") else float(lightness)
+    hue_value = 0.0 if hue == "none" else float(hue)
+    return (lightness_value, float(chroma), hue_value, float(alpha) if alpha else 1.0)
 
 
 def _resolve_alias(value: str, primitives: dict) -> str:

@@ -1,0 +1,68 @@
+{% load i18n %}{% comment %}
+Number stepper component mirror (docs/components/number-stepper.md, NST).
+
+Context keys (all optional unless noted):
+  id              string  Required. The id for the input; matched to the label via `for`.
+  name            string  Form field name passed to the native input.
+  value           any     Initial value submitted with the form.
+  min             number  Minimum value; used for native validation and button clamping.
+  max             number  Maximum value; used for native validation and button clamping.
+  step            number  Step size for buttons and native Arrow keys. Defaults to 1.
+  size            string  Size step: xs, sm, md, lg, xl. Defaults to md.
+  label           string  Visible label text; rendered as a <label> associated with the input.
+  decrement_label string  Accessible name on the decrement button. Defaults to translated "Decrease".
+  increment_label string  Accessible name on the increment button. Defaults to translated "Increase".
+  disabled        bool    Disables the input and both buttons.
+  readonly        bool    Sets readonly on the input; disables both buttons.
+  aria_invalid    bool    Sets aria-invalid="true" on the input.
+  aria_label      string  aria-label on the root group (when label is not used).
+  aria_labelledby string  aria-labelledby on the root group.
+
+States: enabled; disabled (input + both buttons); readonly (input readonly,
+  buttons disabled); aria-invalid when aria_invalid is set.
+Accessibility: role="group" with aria-labelledby/aria-label; each button has an
+  accessible name; native number input keeps keyboard step behaviour.
+Responsive: no breakpoint switch; size axis is authorial density, not viewport.
+Delivery note: wheel lockstep pin deferred (GAP-NST-1). The monorepo mirror
+ships in this raise; the published django-brickwork wheel is updated in the next
+batch, matching Switch (GAP-SW-4) and Input (GAP-INP-1) practice.
+{% endcomment %}
+{% spaceless %}
+{% with size|default:"md" as bw_size %}
+{% if label %}
+<label{% if id %} for="{{ id }}" id="{{ id }}-label"{% endif %} class="bw-field__label">{{ label }}</label>
+{% endif %}
+<div class="bw-number-stepper bw-number-stepper--size-{{ bw_size }}"
+     role="group"
+     {% if aria_labelledby %}aria-labelledby="{{ aria_labelledby }}"{% elif aria_label %}aria-label="{{ aria_label }}"{% elif label and id %}aria-labelledby="{{ id }}-label"{% endif %}>
+  <button class="bw-number-stepper__button bw-number-stepper__button--decrement"
+          type="button"
+          aria-label="{% if decrement_label %}{% trans decrement_label %}{% else %}{% trans "Decrease" %}{% endif %}"
+          {% if disabled or readonly %}disabled{% endif %}>
+    <svg class="bw-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M4 8h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <input class="bw-number-stepper__input"
+         type="number"
+         {% if id %}id="{{ id }}"{% endif %}
+         {% if name %}name="{{ name }}"{% endif %}
+         {% if value is not None %}value="{{ value }}"{% endif %}
+         {% if min is not None %}min="{{ min }}"{% endif %}
+         {% if max is not None %}max="{{ max }}"{% endif %}
+         {% if step %}step="{{ step }}"{% else %}step="1"{% endif %}
+         {% if aria_invalid %}aria-invalid="true"{% endif %}
+         {% if disabled %}disabled{% endif %}
+         {% if readonly %}readonly{% endif %}
+         {% if label %}aria-label="{{ label }}"{% elif aria_label %}aria-label="{{ aria_label }}"{% endif %} />
+  <button class="bw-number-stepper__button bw-number-stepper__button--increment"
+          type="button"
+          aria-label="{% if increment_label %}{% trans increment_label %}{% else %}{% trans "Increase" %}{% endif %}"
+          {% if disabled or readonly %}disabled{% endif %}>
+    <svg class="bw-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M8 4v8M4 8h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </button>
+</div>
+{% endwith %}
+{% endspaceless %}
