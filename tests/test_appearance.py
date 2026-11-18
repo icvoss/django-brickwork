@@ -76,6 +76,16 @@ def test_bw_options_tag_raises_on_unknown_surface() -> None:
         Template("{% load brickwork_components %}{% bw_options surface=surface %}").render(Context({"surface": "neon"}))
 
 
+def test_validate_options_accepts_data_table_definition_width() -> None:
+    validate_options(component="brickwork/components/_data_table.html", width="full")
+    validate_options(component="brickwork/components/_data_table.html", width="prose")
+
+
+def test_validate_options_rejects_data_table_width_bleed() -> None:
+    with pytest.raises(TemplateSyntaxError, match="width"):
+        validate_options(component="brickwork/components/_data_table.html", width="bleed")
+
+
 def test_bw_options_tag_is_quiet_when_valid() -> None:
     html = Template("{% load brickwork_components %}{% bw_options surface=surface elevation=elevation %}").render(
         Context({"surface": "raised", "elevation": "3"})

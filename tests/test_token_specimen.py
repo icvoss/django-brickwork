@@ -91,3 +91,19 @@ def test_level_and_tokens_are_mutually_exclusive() -> None:
 def test_invalid_level_raises() -> None:
     with pytest.raises(TemplateSyntaxError, match="level="):
         _render('{% bw_token_specimen level="L9" %}')
+
+def test_show_heading_false_omits_specimen_heading() -> None:
+    html = _render("{% bw_token_specimen show_heading=False %}")
+    assert "bw-token-specimen__heading" not in html
+    assert "Brand tokens" not in html
+
+
+def test_heading_level_lg_emits_modifier() -> None:
+    html = _render('{% bw_token_specimen heading_level="lg" %}')
+    assert 'class="bw-token-specimen__heading bw-token-specimen__heading--lg"' in html
+
+
+def test_invalid_heading_level_raises() -> None:
+    with pytest.raises(TemplateSyntaxError, match="heading_level="):
+        _render('{% bw_token_specimen heading_level="xl" %}')
+

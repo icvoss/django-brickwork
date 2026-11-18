@@ -363,6 +363,7 @@ def bw_theme_switch(
 
 
 _SPECIMEN_LEVELS = frozenset({"L1", "L2", "L3", "L4"})
+_SPECIMEN_HEADING_LEVELS = frozenset({"sm", "md", "lg"})
 
 
 def _specimen_kind(name: str) -> str:
@@ -466,6 +467,8 @@ def bw_token_specimen(
     tokens: object | None = None,
     *,
     heading: str | None = None,
+    show_heading: bool = True,
+    heading_level: str = "md",
     level: str | None = None,
 ) -> dict[str, object]:
     """Live visual specimen for brand token values (THM-016, #268).
@@ -475,9 +478,18 @@ def bw_token_specimen(
     Pass ``level=`` (``L1`` to ``L4``) to render ``recommended_tokens_for_level``
     so radius, elevation, and type axes are visible for L3/L4 packs. ``tokens``
     and ``level`` are mutually exclusive.
+
+    Pass ``show_heading=False`` when a page header already titles the surface
+    (icvoss/django-brickwork#736). ``heading_level`` is ``sm`` / ``md`` (default) /
+    ``lg`` and sizes the specimen heading one step under the page title at ``md``.
     """
     if tokens is not None and level is not None:
         raise TemplateSyntaxError("bw_token_specimen accepts tokens= or level=, not both.")
+    normalised_level = heading_level.strip().lower()
+    if normalised_level not in _SPECIMEN_HEADING_LEVELS:
+        raise TemplateSyntaxError(
+            f"bw_token_specimen heading_level= must be one of {sorted(_SPECIMEN_HEADING_LEVELS)}, got {heading_level!r}."
+        )
     if level is not None:
         rows = _rows_from_level(level)
         default_heading = gettext("Theme tokens (%(level)s)") % {"level": level.strip().upper()}
@@ -487,8 +499,15 @@ def bw_token_specimen(
     else:
         rows = _rows_from_token_names(tokens)
         default_heading = gettext("Brand tokens")
+    if not show_heading:
+        resolved_heading = ""
+    elif heading is not None:
+        resolved_heading = heading
+    else:
+        resolved_heading = default_heading
     return {
-        "heading": heading or default_heading,
+        "heading": resolved_heading,
+        "heading_level": normalised_level,
         "rows": rows,
         "themes": _TOKEN_SPECIMEN_THEMES,
     }

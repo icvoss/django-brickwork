@@ -11,7 +11,7 @@
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
-      "component.tokens.json": "22f689b67ad7fb65587104343a0410611fa625ee21cd58df32ee75822ba00c04",
+      "component.tokens.json": "85f083cf090a172a99abb85eed81da73cc0dbe46c2cf41888e81b73e03274766",
       "density.comfortable.tokens.json": "627040391332b8f85ccbaff3cbc1c0cb7fc123422bd25ebf97cbd2f65af5c05d",
       "density.compact.tokens.json": "53c47b91860032f3bff4990da94fb93b2e164af031c3a19f1ff35949c25e4e98",
       "density.spacious.tokens.json": "53649c92cab8e52e2d14e508aef6f779ba0b5775fe853fb868b5203a029187d4",
@@ -22,10 +22,10 @@
       "typography.tokens.json": "18a5124590eb82ee49f6f10d81f62a33269dae574014ebaaccdbcaaf7c7fc004"
     },
     "css": {
-      "shell.css": "6f44d6f6f815dc373db7dc56e8391c85a9ea16489841041a692af1f72bd8ae63",
+      "shell.css": "6e5072c9784fdb73c2c3acf6c3eec1fef7b34451a0de8c5783c1643355805efe",
       "nav.css": "fb336f329be04ea7b4d67de5309a15dd57c4ca368d03464e0a63582b11582177",
-      "components.css": "ae8179d1aafd335f4e20605f41bc32f83e434841bc1a07b8a7a0b57ddf5ac258",
-      "marketing.css": "9d51e891876f25db671b4a2c0d2567113c1e038e59a92ff7cf38990da36bf539"
+      "components.css": "b9e64d22d4a8891041818f719824871b4669eb1cf2c5e5a9e1706e9d95a89dba",
+      "marketing.css": "ad776a3fbbd5666362d4a82882a3ffb5585f91aaae2536009596f8eff1190b9e"
     },
     "templates": {
       "brickwork/components/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -48,14 +48,14 @@
       "brickwork/components/_code.html": "cdc11c635cb1ee5dfde7d6715f419eb2c6a29f2316e4611a662a6dac62206d3e",
       "brickwork/components/_combobox.html": "5c1df9bf334e4d41f1a06673f0528998549318857f63f340974bcd75595b8c6d",
       "brickwork/components/_comparison_table.html": "936e6294558637e6f972fa2f186f57b5e8fa78d6f7c78f130171b110df4b74c7",
-      "brickwork/components/_data_table.html": "bff62a4999790d656be1e5ee395e2cd80fc3975d75b1af12affa58a0f4599d76",
+      "brickwork/components/_data_table.html": "9db8a2af53d31cef1785df908bae87431f27aa2816ee9e3a5454d6ac601a2f6a",
       "brickwork/components/_date_picker_chrome.html": "a90321b210f15ac19abca02c4f1c6a377b12f98793e26237e95ff442445f580e",
       "brickwork/components/_disclosure.html": "acb3f0170ea7a463d8d4f48b8eaf1b7b17088fd2c34986b7d8637c9f89355a18",
       "brickwork/components/_divider.html": "5a398d52d5c233ba9e3ec2a21e9d2c444e229432c392a4bc09c270ec10addd18",
       "brickwork/components/_dropdown.html": "f22d32dec73f0b6707e4afcd594f9a095c82241d32bd206b877ebb2905c0e4b7",
       "brickwork/components/_dropzone.html": "e653b6fa3723cc68d79f667ea166290a1e0da4e8f01d8f280b6a55462c4166aa",
       "brickwork/components/_empty_state.html": "6a8b78828458d3aaf796a762b5ed59f67b5d153428086ab88d901b923b47e140",
-      "brickwork/components/_filter_bar.html": "5df98b21e7406d38442e1484940abf0f2a68f7df867519262dc04c1a6facbc5d",
+      "brickwork/components/_filter_bar.html": "a91c70890cdb4976d8bb8b74f71369944d695319defe42fa0defb8c7fb292d47",
       "brickwork/components/_gauge.html": "f0752d45f7927c2bb110027f85ff663ab6154cb8ec1ac64d0903fbc7f8b41b1a",
       "brickwork/components/_input_group.html": "d55eb03a8c1c13bc45aa86028edf729e5327ee2f1e3269c4e2efcaaaab9754a4",
       "brickwork/components/_list_item.html": "0fa3d5d1c5cb38169d038906714e0712b054a10126880b2dbac8efbc9b40d63f",
@@ -86,7 +86,7 @@
       "brickwork/components/_toast_region.html": "fe01f4d91608c8718ad5e81524f270bb3f63a0861813a3560bb6c9959b41465f",
       "brickwork/components/_toc.html": "3e607d453a0d3f63a1d21ea364bec0232ffc3ab8c50b0e6a77a8cd9ffc8a6aa4",
       "brickwork/components/_toggle.html": "fdadca441c3614bdead74ef15ffb27c4142ccfbece1b6d33d800afe583f985d4",
-      "brickwork/components/_token_specimen.html": "47f416cd185e8fdfa70488afef47e490dd0c7e19f82004b42783f8a1a8ee2997",
+      "brickwork/components/_token_specimen.html": "4ee8cd480c726a74afad099e0a1d47de8d9cd8c9a439fb05c5360e34ff0d9992",
       "brickwork/components/_tooltip.html": "210bec1032ccd4bfcdef2b65bc09e440a95de3b0f7c0b3d32671819292452438",
       "brickwork/components/_trend_indicator.html": "afafa7b5bba57e89eec95f3ba59fc342c4d04b408d8d1aea5a1116004b34329c",
       "brickwork/components/_version_switch.html": "fde0ff7b62c80ecc26781e29eebd556a0dad05ea0ca71cdca1dd6ef62361457d",

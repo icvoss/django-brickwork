@@ -969,7 +969,7 @@ instead of making each one discover an override for
    * Dark theme strips the ambient at the end of this file. */
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
 }
 
 /* Decoration (#645): a watermark/stamp behind the copy on the ordinary
@@ -1305,7 +1305,7 @@ so the narrow case needs no rule (ADR-057 section 1: a section
   border-radius: var(--bw-radius-lg);
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
   transition: var(--bw-transition-shadow);
 }
 
@@ -1515,7 +1515,7 @@ not a stack of cards. Hover shifts surface
   border-radius: var(--bw-radius-lg);
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
   padding: var(--bw-space-6);
 }
 
@@ -1621,7 +1621,7 @@ contrast-checked
     color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface-marketing-tint));
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
   padding-inline: var(--bw-space-8);
 }
 
@@ -1715,7 +1715,7 @@ and a one-class consumer override still wins here. */
   border-radius: var(--bw-radius-lg);
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
   padding: var(--bw-space-8);
   max-inline-size: var(--bw-size-max-width-prose);
   margin-inline: auto;
@@ -1850,7 +1850,7 @@ using the marketing tint token
   border-radius: var(--bw-radius-xl);
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
 }
 
 /* align="start" (#673): airy proof-band layout. The default (omitted /
@@ -1897,7 +1897,7 @@ BR-BW-MKT-004). */
     color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
 }
 
 .bw-stat-band-section--align-start .bw-stat-band .bw-stat {
@@ -2818,7 +2818,7 @@ so dark surfaces return to the plain elevation ramp here.
   border-radius: var(--bw-radius-lg);
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
 }
 
 @media (width >= --theme(--breakpoint-md)) {

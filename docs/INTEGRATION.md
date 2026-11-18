@@ -219,9 +219,31 @@ NAV = [
 validate_nav_config(NAV)
 ```
 
-Read `visible_items(nav, request)` / `resolve_active_item(nav, request)` in your
-view or a context processor to get the gated, active-resolved tree the shell
-renders. Gating is per item via `visibility_policy` / permission callables;
+Wire visibility and active state in a context processor (or a view). Pass a
+`NavContext` into `visible_items`, not a bare `HttpRequest`; the resolver reads
+permission and feature callables from that object. Pass `request.resolver_match`
+into `resolve_active_item`, not the request itself:
+
+```python
+# yourapp/context_processors.py
+from brickwork.models import NavContext
+from brickwork.services.navigation import resolve_active_item, visible_items
+
+from yourapp.nav import NAV
+
+
+def nav(request):
+    perm = getattr(getattr(request, "user", None), "has_perm", lambda _p: True)
+    context = NavContext(request=request, permission_checker=perm)
+    items = visible_items(NAV, context)
+    active = resolve_active_item(items, request.resolver_match)
+    return {
+        "bw_nav_items": items,
+        "bw_active_nav_item": active,
+    }
+```
+
+Gating is per item via `visibility_policy` and the callables on `NavContext`;
 `active_url_names` is how a section stays highlighted across the several views
 that belong to it (multi-view active).
 

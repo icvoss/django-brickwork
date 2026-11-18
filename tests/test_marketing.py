@@ -2374,7 +2374,7 @@ def test_beautiful_default_marketing_surfaces_have_fg_mix_edge_and_ambient() -> 
         body = _rule_body(rules, selector)
         assert "color-mix(in oklab, var(--bw-color-fg)" in body
         assert "var(--bw-elevation-1)" in body
-        assert "0 4px 14px -4px" in body
+        assert "var(--bw-component-surface-ambient-shadow)" in body
 
     highlighted = _rule_body(rules, ".bw-pricing-tier--highlighted")
     assert "var(--bw-elevation-3)" in highlighted
@@ -2382,7 +2382,7 @@ def test_beautiful_default_marketing_surfaces_have_fg_mix_edge_and_ambient() -> 
 
     # Built bundle must carry the same ambient (package product, not only source).
     dist = (_DIST / "brickwork.css").read_text(encoding="utf-8")
-    assert "0 4px 14px -4px" in dist
+    assert "var(--bw-component-surface-ambient-shadow)" in dist
     assert ".bw-feature-grid>.bw-feature-card{" in dist.replace(" ", "")
     assert ".bw-testimonial{" in dist.replace(" ", "")
     assert ".bw-pricing-tier{" in dist.replace(" ", "")

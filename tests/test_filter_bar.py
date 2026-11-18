@@ -61,6 +61,16 @@ def test_custom_submit_label() -> None:
     assert "Apply" in out
 
 
+def test_submit_button_default_primary_variant() -> None:
+    out = _render(fields=_fields())
+    assert 'class="bw-btn bw-btn--primary bw-btn--size-md"' in out
+
+
+def test_submit_variant_kwarg() -> None:
+    out = _render(fields=_fields(), submit_variant="secondary")
+    assert 'class="bw-btn bw-btn--secondary bw-btn--size-md"' in out
+
+
 def test_clear_link_only_when_href_given() -> None:
     assert "Clear" not in _render(fields=_fields())
     out = _render(fields=_fields(), clear_href="/gadgets/")
@@ -81,6 +91,13 @@ def test_htmx_swap_contract_when_hx_get_given() -> None:
     assert 'hx-trigger="submit"' in out
     # the no-JS floor is unchanged: still a GET form
     assert 'method="get"' in out
+
+
+def test_filter_bar_in_section_stack_defers_trailing_margin_to_the_stack() -> None:
+    """#737: the bar's own stack-gap margin must not stack with section-gap."""
+    shell_css = (_ROOT / "frontend" / "src" / "shell.css").read_text(encoding="utf-8")
+    assert ".bw-section-stack > .bw-filter-bar" in shell_css
+    assert ".bw-section-stack > .bw-bulk-actions-bar" in shell_css
 
 
 def test_filter_actions_align_to_the_plain_field_control_edge() -> None:
@@ -122,8 +139,8 @@ def test_beautiful_default_filter_bar_has_fg_mix_edge_and_ambient() -> None:
     body = bodies[0]
     assert "color-mix(in oklab, var(--bw-color-fg)" in body
     assert "var(--bw-elevation-1)" in body
-    assert "0 4px 14px -4px" in body
+    assert "var(--bw-component-surface-ambient-shadow)" in body
     assert "inset 0 1px 0 0" not in body
     # Built bundle carries the ambient (package product, not only source).
-    assert "0 4px 14px -4px" in _COMPILED_CSS
+    assert "var(--bw-component-surface-ambient-shadow)" in _COMPILED_CSS
     assert ".bw-filter-bar{" in _COMPILED_CSS.replace(" ", "")

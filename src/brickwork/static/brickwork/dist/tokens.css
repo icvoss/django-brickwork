@@ -101,6 +101,7 @@
   --bw-component-button-elevation: var(--bw-elevation-1);
   --bw-component-button-elevation-hover: var(--bw-component-button-elevation);
   --bw-component-button-hover-translate: 0;
+  --bw-component-surface-ambient-shadow: 0 4px 14px -4px oklch(0 0 0 / 0.1);
   --bw-component-menu-min-width: 12rem;
   --bw-component-select-indicator: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='oklch(0.55 0.01 265)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
   --bw-component-checkbox-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m2.5 6.5 2.5 2.5 4.5-5.5'/%3E%3C/svg%3E");

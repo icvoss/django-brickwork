@@ -2144,6 +2144,12 @@ input.bw-toggle:disabled::before {
   line-height: var(--bw-text-body-md-line-height);
   max-inline-size: var(--bw-size-max-width-prose);
 }
+@media (width < --theme(--breakpoint-sm)) {
+  .bw-page-header__titles {
+    flex: 1 1 100%;
+  }
+}
+
 
 /* The band heading primitive (icvoss/django-brickwork#399, ruling on #371
  * gap 2): a standalone visible <h2> caption for one band in an app-surface
@@ -2187,7 +2193,7 @@ input.bw-toggle:disabled::before {
   border-radius: var(--bw-radius-lg);
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
 }
 .bw-empty-state__icon {
   color: var(--bw-color-icon-muted);
@@ -2278,8 +2284,10 @@ input.bw-toggle:disabled::before {
   border: var(--bw-size-border-hairline) solid
     color-mix(in oklab, var(--bw-color-fg) 12%, var(--bw-color-surface));
   border-radius: var(--bw-radius-lg);
-  /* Token-only elevation (CB-16): no raw oklch shadow. */
-  box-shadow: var(--bw-elevation-1);
+  /* elev-1 plus tokenised ambient (#734); dark reset at file end. */
+  box-shadow:
+    var(--bw-elevation-1),
+    var(--bw-component-surface-ambient-shadow);
   scrollbar-width: thin;
   scrollbar-color: var(--bw-color-border) transparent;
   contain: paint;
@@ -2495,7 +2503,7 @@ input.bw-toggle:disabled::before {
 .bw-data-table--definition {
   inline-size: 100%;
 }
-.bw-data-table-wrap:has(.bw-data-table--definition) {
+.bw-data-table-wrap:has(.bw-data-table--definition):not(.bw-data-table-wrap--width-full) {
   max-inline-size: var(--bw-size-max-width-prose);
 }
 .bw-data-table--definition .bw-data-table__td {
@@ -2611,7 +2619,7 @@ input.bw-toggle:disabled::before {
   border-radius: var(--bw-radius-lg);
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
   margin-block-end: var(--bw-density-stack-gap);
 }
 .bw-bulk-actions-bar__count {
@@ -2804,7 +2812,7 @@ button.bw-account-menu__item {
   border-radius: var(--bw-radius-lg);
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
   margin-block-end: var(--bw-density-stack-gap);
 }
 .bw-filter-bar__fields {
@@ -3327,7 +3335,7 @@ button.bw-account-menu__item {
    * resets at the end of this file return modifiers to plain elevation. */
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
   /* The active inset is declared once as a component variable (the same
    * inline-token mechanism as --bw-component-stat-tile-value-size), so the
    * padding and every bleed margin below read one value and a size step
@@ -3393,7 +3401,7 @@ button.bw-account-menu__item {
 .bw-card--media-bleed {
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-component-surface-ambient-shadow);
 }
 /* Flat mode outranks the recipe and inverse ambient stacks above (two classes
    against one), and loses to an explicit elevation compound below. */
@@ -8105,11 +8113,23 @@ a.bw-chip[aria-disabled="true"] {
 
 .bw-token-specimen__heading {
   margin: 0;
-  font-family: var(--bw-font-family-sans);
-  font-size: var(--bw-font-size-2xl);
-  font-weight: var(--bw-font-weight-semibold);
+  font-family: var(--bw-text-heading-md-family);
+  font-size: var(--bw-text-heading-md-size);
+  font-weight: var(--bw-text-heading-md-weight);
+  line-height: var(--bw-text-heading-md-line-height);
   color: var(--bw-color-fg);
-  line-height: var(--bw-font-line-height-snug);
+}
+.bw-token-specimen__heading--lg {
+  font-family: var(--bw-text-heading-lg-family);
+  font-size: var(--bw-text-heading-lg-size);
+  font-weight: var(--bw-text-heading-lg-weight);
+  line-height: var(--bw-text-heading-lg-line-height);
+}
+.bw-token-specimen__heading--sm {
+  font-family: var(--bw-text-heading-sm-family);
+  font-size: var(--bw-text-heading-sm-size);
+  font-weight: var(--bw-text-heading-sm-weight);
+  line-height: var(--bw-text-heading-sm-line-height);
 }
 
 .bw-token-specimen__panes {
