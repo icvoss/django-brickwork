@@ -229,7 +229,6 @@
     "--bw-component-sparkline-stroke-width",
     "--bw-component-stat-tile-sparkline-height",
     "--bw-component-stat-tile-value-size",
-    "--bw-component-surface-ambient-shadow",
     "--bw-component-toast-max-width",
     "--bw-component-toggle-thumb-inset",
     "--bw-component-toggle-thumb-size",

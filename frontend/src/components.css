@@ -2,6 +2,16 @@
  * Logical CSS properties throughout (RTL via `dir`). Nothing here needs JS.
  */
 
+/* Surface ambient (#734): brand-overridable soft second shadow under elev-1.
+ * Declared here until @bwui/tokens publishes --bw-component-surface-ambient-shadow
+ * (craft elevation ambient work); dark themes keep hairline-only surfaces. */
+:root {
+  --bw-component-surface-ambient-shadow: 0 4px 14px -4px oklch(0 0 0 / 0.1);
+}
+[data-bw-theme="dark"] {
+  --bw-component-surface-ambient-shadow: none;
+}
+
 /* --- Buttons (docs/components/button.md) ----------------------------------- */
 
 /* Operable guard. A state rule (hover, press) applies only to a control that is
