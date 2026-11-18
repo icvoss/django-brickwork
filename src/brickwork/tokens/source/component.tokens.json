@@ -60,18 +60,6 @@
       "$description": "Vertical translate on button hover (#649), consumed as translateY(). Default 0 keeps package defaults byte-identical; a brand sets e.g. -2px for a lift. Honoured only when prefers-reduced-motion allows transform."
     }
   },
-  "surface": {
-    "ambient-shadow": {
-      "$type": "other",
-      "$value": "0 4px 14px -4px oklch(0 0 0 / 0.1)",
-      "$description": "Soft ambient paired with --bw-elevation-1 on light surfaces (icvoss/django-brickwork#734). Override to none for hairline-first brands; dark-theme component rules still reset to plain elevation.",
-      "$extensions": {
-        "bw": {
-          "derived": "0 4px 14px -4px oklch(0 0 0 / 0.1)"
-        }
-      }
-    }
-  },
   "menu": {
     "min-width": {
       "$type": "dimension",

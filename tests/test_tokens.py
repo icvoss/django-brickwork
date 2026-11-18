@@ -709,17 +709,13 @@ def test_font_size_3xs_was_removed_at_4_0() -> None:
     assert "--bw-font-size-3xs" not in tokens_css
 
 
-def test_surface_ambient_shadow_token_ships_with_default() -> None:
-    """Surface ambient shadow is brand-overridable (icvoss/django-brickwork#734).
+def test_surface_ambient_shadow_still_pairs_with_elevation_on_light_surfaces() -> None:
+    """Light surfaces keep elev-1 plus the soft ambient halo (icvoss/django-brickwork#734).
 
-    Source of truth is component.tokens.json plus the frontend bridge until a
-    published @bwui/tokens pin carries the custom property (dist stays pin-true).
+    Tokenising the ambient into published @bwui/tokens waits on the craft-home
+    elevation-ambient pin; until then frontend and dist keep the shared literal.
     """
-    source = json.loads((_SOURCE / "component.tokens.json").read_text(encoding="utf-8"))
-    assert source["surface"]["ambient-shadow"]["$value"] == "0 4px 14px -4px oklch(0 0 0 / 0.1)"
     components = (_FRONTEND_SRC / "components.css").read_text()
-    assert "var(--bw-component-surface-ambient-shadow)" in components
-    assert re.search(
-        r"--bw-component-surface-ambient-shadow:\s*0 4px 14px -4px oklch\(0 0 0 / 0\.1\)\s*;",
-        components,
-    )
+    assert "var(--bw-elevation-1)" in components
+    assert "0 4px 14px -4px oklch(0 0 0 / 0.1)" in components
+    assert "--bw-component-surface-ambient-shadow" not in components

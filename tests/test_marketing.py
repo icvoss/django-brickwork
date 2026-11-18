@@ -2374,7 +2374,7 @@ def test_beautiful_default_marketing_surfaces_have_fg_mix_edge_and_ambient() -> 
         body = _rule_body(rules, selector)
         assert "color-mix(in oklab, var(--bw-color-fg)" in body
         assert "var(--bw-elevation-1)" in body
-        assert "var(--bw-component-surface-ambient-shadow)" in body
+        assert "0 4px 14px -4px oklch(0 0 0 / 0.1)" in body
 
     highlighted = _rule_body(rules, ".bw-pricing-tier--highlighted")
     assert "var(--bw-elevation-3)" in highlighted

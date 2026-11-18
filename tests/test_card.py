@@ -415,4 +415,4 @@ def test_beautiful_default_bare_card_has_hairline_radius_elevation_and_ambient()
     assert "var(--bw-size-border-hairline)" in body
     assert "color-mix(in oklab, var(--bw-color-fg)" in body
     assert "inset 0 1px 0 0" not in body
-    assert "var(--bw-component-surface-ambient-shadow)" in body
+    assert "0 4px 14px -4px oklch(0 0 0 / 0.1)" in body
