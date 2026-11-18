@@ -310,7 +310,8 @@ def test_beautiful_default_empty_state_has_surface_edge_and_ambient() -> None:
     assert "var(--bw-color-surface)" in body
     assert "color-mix(in oklab, var(--bw-color-fg)" in body
     assert "var(--bw-radius-lg)" in body
-    assert "0 4px 14px -4px" in body
+    assert "var(--bw-elevation-1)" in body
+    assert "0 4px 14px -4px oklch(0 0 0 / 0.1)" in body
 
     sm = [body for sel, body in rules if sel.strip() == ".bw-empty-state--size-sm"]
     assert sm, "missing .bw-empty-state--size-sm rule"

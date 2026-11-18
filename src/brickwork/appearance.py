@@ -122,6 +122,7 @@ COMPONENT_OPTIONS: Final[dict[str, dict[str, frozenset[str]]]] = {
     },
     "brickwork/components/_data_table.html": {
         "density": DENSITIES_COMFORTABLE_COMPACT,
+        "width": frozenset({"prose", "full"}),
     },
     "brickwork/components/_list_item.html": {
         "density": DENSITIES_COMFORTABLE_COMPACT,

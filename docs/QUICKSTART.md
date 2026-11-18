@@ -122,10 +122,12 @@ urlpatterns = [
 
 ```python
 from django.shortcuts import render
-from django.urls import resolve
-
-from brickwork.models import NavItem
-from brickwork.services.navigation import resolve_active_item, validate_nav_config
+from brickwork.models import NavContext, NavItem
+from brickwork.services.navigation import (
+    resolve_active_item,
+    validate_nav_config,
+    visible_items,
+)
 
 # The nav is declared once and validated at import, so a bad tree fails at
 # startup rather than at first render.
@@ -146,12 +148,14 @@ def index(request):
         {"id": "r1", "cells": ["Quarterly summary", "Finance", "2 hours ago"]},
         {"id": "r2", "cells": ["Churn review", "Customer success", "Yesterday"]},
     ]
+    nav_context = NavContext(request=request)
+    nav_items = visible_items(NAV, nav_context)
     return render(
         request,
         "reports/index.html",
         {
-            "nav_items": NAV,
-            "nav_active": resolve_active_item(NAV, resolve(request.path)),
+            "nav_items": nav_items,
+            "nav_active": resolve_active_item(nav_items, request.resolver_match),
             "report_columns": columns,
             "report_rows": rows,
         },

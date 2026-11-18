@@ -204,6 +204,8 @@ _VOCABULARIES: list[tuple[str, str, str, str]] = [
     # modifier class is the closed half of the grammar. Digit "1" stands for
     # any matching value that lights the column.
     ("_comparison_table", "highlighted", "1", "bw-comparison-table__col--highlighted"),
+    # #738 width=full: frontend has the modifier; shipped dist picks it up on the
+    # next @bwui/css pin. Keep out of this table until then so the gate stays honest.
 ]
 
 

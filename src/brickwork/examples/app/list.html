@@ -54,8 +54,9 @@ the current request. Build the tree once in your own nav config module and put
 the visibility-filtered items plus the active item into context from a context
 processor, so every page gets them without repeating the wiring:
 
-    nav_items   visible_items(MY_NAV, request)
-    nav_active  resolve_active_item(MY_NAV, request)
+    context = NavContext(request=request)
+    nav_items   visible_items(MY_NAV, context)
+    nav_active  resolve_active_item(nav_items, request.resolver_match)
 
 Rendered twice on purpose: once for the desktop sidebar and once inside the
 shell's mobile drawer. One nav definition, two containers.

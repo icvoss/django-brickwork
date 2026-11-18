@@ -157,6 +157,18 @@ def test_definition_mode_has_no_column_headers_or_sort() -> None:
     assert 'scope="col"' not in out
 
 
+def test_definition_width_full_emits_modifier() -> None:
+    rows = [{"label": "Slug", "value": "acme"}]
+    out = _render(table_id="facts", variant="definition", rows=rows, width="full")
+    assert "bw-data-table-wrap--width-full" in out
+    assert "bw-data-table--definition" in out
+
+
+def test_definition_width_prose_invalid_raises() -> None:
+    with pytest.raises(TemplateSyntaxError):
+        _render(table_id="facts", variant="definition", rows=[], width="bleed")
+
+
 def test_definition_mode_empty_shows_empty_state() -> None:
     out = _render(
         table_id="facts",

@@ -707,3 +707,15 @@ def test_font_size_3xs_was_removed_at_4_0() -> None:
     assert "--bw-font-size-3xs" not in manifest["overridable"]
     tokens_css = (_DIST / "tokens.css").read_text(encoding="utf-8")
     assert "--bw-font-size-3xs" not in tokens_css
+
+
+def test_surface_ambient_shadow_still_pairs_with_elevation_on_light_surfaces() -> None:
+    """Light surfaces keep elev-1 plus the soft ambient halo (icvoss/django-brickwork#734).
+
+    Tokenising the ambient into published @bwui/tokens waits on the craft-home
+    elevation-ambient pin; until then frontend and dist keep the shared literal.
+    """
+    components = (_FRONTEND_SRC / "components.css").read_text()
+    assert "var(--bw-elevation-1)" in components
+    assert "0 4px 14px -4px oklch(0 0 0 / 0.1)" in components
+    assert "--bw-component-surface-ambient-shadow" not in components

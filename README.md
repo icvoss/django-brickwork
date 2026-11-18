@@ -243,13 +243,18 @@ validate_nav_config(NAV)
 
 ```python
 # yourapp/context_processors.py
+from brickwork.models import NavContext
 from brickwork.services.navigation import resolve_active_item, visible_items
 from yourapp.nav import NAV
 
 def nav(request):
+    perm = getattr(getattr(request, "user", None), "has_perm", lambda _p: True)
+    context = NavContext(request=request, permission_checker=perm)
+    items = visible_items(NAV, context)
+    active = resolve_active_item(items, request.resolver_match)
     return {
-        "nav_items": visible_items(NAV, request),
-        "nav_active": resolve_active_item(NAV, request),
+        "nav_items": items,
+        "nav_active": active,
     }
 ```
 

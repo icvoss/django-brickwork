@@ -7,7 +7,9 @@ Private render target of {% bw_token_specimen %}
 builds the row list from the token manifest (or validates tokens=).
 
 Optional context (supplied only by the tag):
-  heading (str): section heading above the panes.
+  heading (str): section heading above the panes; empty when suppressed.
+  heading_level ("sm" | "md" | "lg"): type role for the heading (default md,
+      one step under a page title at heading-xl; #736).
   rows (list of dicts): {name, kind, contrast_pair?, min_contrast?, conditional?,
         authored_per_theme?, collapses_to?}. Built by the tag. ``kind`` is
         colour | radius | elevation | type | space | other and selects the
@@ -16,7 +18,8 @@ Optional context (supplied only by the tag):
   themes (tuple): theme pane ids, default ("light", "dark").
 
 Tag options: default load-bearing colours; ``tokens=`` custom list;
-  ``level="L1"|"L2"|"L3"|"L4"`` uses recommended_tokens_for_level (THEME.md).
+  ``level="L1"|"L2"|"L3"|"L4"`` uses recommended_tokens_for_level (THEME.md);
+  ``show_heading=False`` omits the heading; ``heading_level=`` sizes it.
 States: none of its own. Each pane scopes data-theme so light and dark
   resolve side by side without flipping the page theme. Progressive
   enhancement (token-specimen.js) fills resolved computed values and
@@ -32,7 +35,7 @@ Responsive: panes stack to one column below --bw-breakpoint-md; row grid
   wrapping under the name when needed.
 {% endcomment %}
 <section class="bw-token-specimen" data-bw-token-specimen>
-  {% if heading %}<h2 class="bw-token-specimen__heading">{{ heading }}</h2>{% endif %}
+  {% if heading %}<h2 class="bw-token-specimen__heading{% if heading_level != "md" %} bw-token-specimen__heading--{{ heading_level }}{% endif %}">{{ heading }}</h2>{% endif %}
   <div class="bw-token-specimen__panes">
     {% for theme in themes %}
       <div class="bw-token-specimen__pane" data-theme="{{ theme }}">
