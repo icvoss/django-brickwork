@@ -15,14 +15,17 @@ where the compiled tokens.css derives every colour (owner ruling
 2026-08-25, issue comment #5411464485: this is the whole of #117's scope).
 
 ``layout`` (ADR-060 structural carve-out, icvoss/django-brickwork#235): closed
-set "inline" (default, unchanged) | "compact". "inline" renders every
-fieldset side by side, exactly as before this option existed. "compact"
+set "inline" (default, unchanged) | "compact" | "cycle". "inline" renders
+every fieldset side by side, exactly as before this option existed. "compact"
 wraps the same fieldsets in a native <details>/<summary> disclosure (APG
 Disclosure, deliberately no ARIA menu roles, the _account_menu.html
-doctrine), sized for a header actions cluster. ``placement`` ("start" | "end",
-default "end") is only meaningful once "compact" wraps the fieldsets in a
-panel to anchor; passing it alongside "inline" is a render error, not a
-silently ignored option.
+doctrine), sized for a header actions cluster. "cycle" is one button that
+steps theme through light, then dark, then system, and requires
+``axes="theme"``. The theme value "system" is the stored preference;
+``<html data-theme>`` is always the resolved light or dark.
+``placement`` ("start" | "end", default "end") is only meaningful once
+"compact" wraps the fieldsets in a panel to anchor; passing it alongside
+"inline" or "cycle" is a render error, not a silently ignored option.
 
 ``axes`` (ADR-060: a closed, space-separated vocabulary, one name per
 concept, no new axis invented): "theme density dir" by default, per the
@@ -107,7 +110,7 @@ _AXES = ("theme", "density", "dir", "brand")
 # documented four-axis contract. brand has no closed set here: its values
 # are the consumer's own slugs, supplied via brands=.
 _AXIS_VALUES = {
-    "theme": ("light", "dark"),
+    "theme": ("light", "dark", "system"),
     "density": ("compact", "comfortable", "spacious"),
     "dir": ("ltr", "rtl"),
 }
@@ -138,7 +141,7 @@ _AXIS_CONTEXT_VARS = {
 # evidence: a content-heavy header cannot fit the full three-fieldset control
 # until roughly 1240px, and phone-width targets measured 53x21..100x21 px,
 # both well under the 44px floor).
-_LAYOUTS = ("inline", "compact")
+_LAYOUTS = ("inline", "compact", "cycle")
 
 # Which edge the compact disclosure's panel aligns to, the same vocabulary
 # and default ("end") bw_dropdown/_account_menu already use. Only meaningful
@@ -168,7 +171,11 @@ def _axis_label(axis: str) -> str:
 
 def _value_label(axis: str, value: str) -> str:
     return {
-        "theme": {"light": gettext("Light"), "dark": gettext("Dark")},
+        "theme": {
+            "light": gettext("Light"),
+            "dark": gettext("Dark"),
+            "system": gettext("System"),
+        },
         "density": {
             "compact": gettext("Compact"),
             "comfortable": gettext("Comfortable"),
@@ -238,9 +245,12 @@ def bw_theme_switch(
     value entirely rather than merging with it.
 
     ``layout`` (ADR-060 structural carve-out, #235): "inline" (default) |
-    "compact". "inline" is the pre-existing render, byte-identical to before
-    this option existed. "compact" wraps the same fieldsets in a native
-    <details>/<summary> disclosure sized for a header actions cluster.
+    "compact" | "cycle". "inline" is the pre-existing render, byte-identical
+    to before this option existed. "compact" wraps the same fieldsets in a
+    native <details>/<summary> disclosure sized for a header actions cluster.
+    "cycle" renders one button for the theme axis only (pass ``axes="theme"``)
+    and steps light, then dark, then system. "system" is stored as the
+    preference. ``<html data-theme>`` stays the resolved light or dark.
 
     ``placement`` ("start" | "end", default "end"): which edge the compact
     disclosure's panel aligns to. Only meaningful with ``layout="compact"``;
@@ -280,6 +290,10 @@ def bw_theme_switch(
     resolved_placement = placement or "end"
 
     axis_list = _parse_axes(axes)
+    if layout == "cycle" and list(axis_list) != ["theme"]:
+        raise TemplateSyntaxError(
+            'bw_theme_switch layout="cycle" cycles the theme axis only. Pass axes="theme".'
+        )
     if "brand" in axis_list:
         if not brands:
             raise TemplateSyntaxError(
@@ -357,6 +371,8 @@ def bw_theme_switch(
         "groups": groups,
         "valid_values": valid_values,
         "layout": layout,
+        "cycle_labels": {value: _value_label("theme", value) for value in _AXIS_VALUES["theme"]},
+        "cycle_labels_id": f"{instance_id}-cycle-labels",
         "placement": resolved_placement,
         "attrs_html": bw_data_attrs(data, "theme switch"),
     }

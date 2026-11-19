@@ -200,7 +200,7 @@ Responsive: no breakpoint switch; layout is a consumer-chosen option, not a
   media query, and no .bw-theme-switch* selector carries width-dependent
   CSS in either layout.
 {% endcomment %}
-<div class="bw-theme-switch bw-theme-switch--pre-init{% if layout == 'compact' %} bw-theme-switch--compact bw-theme-switch--{{ placement }}{% endif %}"
+<div class="bw-theme-switch bw-theme-switch--pre-init{% if layout == 'compact' %} bw-theme-switch--compact bw-theme-switch--{{ placement }}{% elif layout == 'cycle' %} bw-theme-switch--cycle{% endif %}"
      id="{{ instance_id }}"
      role="group"
      data-bw-theme-switch
@@ -208,7 +208,19 @@ Responsive: no breakpoint switch; layout is a consumer-chosen option, not a
      x-data="bwThemeSwitch()"
      {% bw_attr "aria-label" label %}{{ attrs_html }}>
   {{ valid_values|json_script:values_element_id }}
-  {% if layout == 'compact' %}
+  {% if layout == 'cycle' %}
+    {% for group in groups %}{% if group.axis == 'theme' %}
+    <button type="button"
+            class="bw-theme-switch__cycle bw-btn bw-btn--secondary bw-btn--size-md"
+            data-bw-theme-switch-cycle
+            data-bw-theme-switch-cycle-labels="{{ cycle_labels_id }}"
+            {% if group.locked %}disabled data-bw-locked data-bw-theme-switch-locked-value="{{ group.locked_value }}"{% endif %}>
+      <span class="bw-btn__label" data-bw-theme-switch-cycle-label></span>
+    </button>
+    {% endif %}{% endfor %}
+    {{ cycle_labels|json_script:cycle_labels_id }}
+  {% else %}
+    {% if layout == 'compact' %}
     <details class="bw-theme-switch__disclosure">
       <summary class="bw-theme-switch__trigger bw-btn bw-btn--secondary bw-btn--size-md">
         <span class="bw-btn__label">{{ label }}</span>
@@ -238,8 +250,9 @@ Responsive: no breakpoint switch; layout is a consumer-chosen option, not a
       {% endif %}
     </fieldset>
   {% endfor %}
-  {% if layout == 'compact' %}
+    {% if layout == 'compact' %}
       </div>
     </details>
+    {% endif %}
   {% endif %}
 </div>

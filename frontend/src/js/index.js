@@ -12,9 +12,10 @@
 // bwThemeSwitch (brickwork#117) and bwCodeCopy (brickwork#259, the
 // code-display content primitive's copy control); bwPopover (the non-modal
 // popover, docs/components/popover.md, R39) is monorepo-only until the
-// django-brickwork lockstep (GAP-POP-1). The disclosure ships no
-// JS at all (native
-// <details>, see ./disclosure.js); the toggle switch likewise ships no JS
+// django-brickwork lockstep (GAP-POP-1). bwDisclosure
+// (icvoss/brickwork#233) animates the close of a native details and, when
+// dismiss is left on, closes it from a pointer outside or Escape (see
+// ./disclosure.js); the toggle switch likewise ships no JS
 // (native checkbox + role=switch, see forms/_field.html /
 // components/_toggle.html); the stepper (brickwork#59) ships no JS either
 // (purely structural, server-driven step navigation); the whole-form
@@ -37,6 +38,7 @@ import tableSelection from "./table_selection.js";
 import sortable from "./sortable.js";
 import themeSwitch from "./theme_switch.js";
 import codeCopy from "./code_copy.js";
+import disclosure from "./disclosure.js";
 
 // The registered-marker attribute (brickwork#87): registerBrickworkComponents
 // stamps it on <html> at call time, so the shell's dev-only inline detector
@@ -83,6 +85,7 @@ export function registerBrickworkComponents(Alpine) {
   Alpine.data("bwSortable", sortable);
   Alpine.data("bwThemeSwitch", themeSwitch);
   Alpine.data("bwCodeCopy", codeCopy);
+  Alpine.data("bwDisclosure", disclosure);
 }
 
 /**

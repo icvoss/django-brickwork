@@ -198,6 +198,30 @@ const AXIS_ATTRS = Object.assign(Object.create(null), {
   brand: "data-bw-brand",
 });
 
+// "system" is a stored preference, never a value of <html data-theme>.
+// The attribute stays light or dark, resolved from the OS scheme, and
+// follows that scheme while the preference remains system
+// (icvoss/brickwork#232).
+const COLOR_SCHEME = "(prefers-color-scheme: dark)";
+const CYCLE_ORDER = ["light", "dark", "system"];
+
+function resolveTheme(value) {
+  if (value !== "system") return value;
+  return window.matchMedia(COLOR_SCHEME).matches ? "dark" : "light";
+}
+
+function readCycleLabels(button) {
+  const elementId = button.dataset.bwThemeSwitchCycleLabels;
+  const script = elementId ? document.getElementById(elementId) : null;
+  if (!script) return Object.create(null);
+  try {
+    const parsed = JSON.parse(script.textContent);
+    return Object.assign(Object.create(null), parsed);
+  } catch {
+    return Object.create(null);
+  }
+}
+
 // Read the closed value set the server emitted for this instance (review
 // fix, #117): a json_script sibling of the control root, referenced by
 // data-bw-theme-switch-values, never the DOM's own rendered radios. This
@@ -230,14 +254,18 @@ export default function themeSwitch() {
     _disclosureTrigger: null,
     _onDisclosureKeydown: null,
     _onOutsidePointerDown: null,
+    _schemeQuery: null,
+    _onSchemeChange: null,
 
     init() {
       const root = this.$el;
       this._root = root;
+      const cycle = root.querySelector("[data-bw-theme-switch-cycle]");
       const groups = root.querySelectorAll("[data-bw-theme-switch-axis]");
-      if (!groups.length) return; // floor markup absent: stay inert
+      if (!groups.length && !cycle) return; // floor markup absent: stay inert
 
       const validValues = readValidValues(root);
+      if (cycle) this._initCycle(cycle, validValues);
       for (const group of groups) {
         this._initGroup(group, validValues);
       }
@@ -319,6 +347,73 @@ export default function themeSwitch() {
       if (this._onOutsidePointerDown) {
         document.removeEventListener("pointerdown", this._onOutsidePointerDown);
       }
+      this._clearSchemeListener();
+    },
+
+    // layout="cycle" (icvoss/brickwork#232): one button, light then dark
+    // then system. The accessible name states the current preference.
+    // data-theme is the resolved light or dark, never the stored word.
+    _initCycle(button, validValues) {
+      const axis = "theme";
+      const attrName = AXIS_ATTRS.theme;
+      const axisValues = Object.hasOwn(validValues, axis) ? validValues[axis] : [];
+      const validSet = new Set(Array.isArray(axisValues) ? axisValues : []);
+      const order = CYCLE_ORDER.filter((value) => validSet.has(value));
+      if (!order.length) return;
+      const labels = readCycleLabels(button);
+      const stored = readStoredValue(axis);
+      let preference = order[0];
+      const paint = () => {
+        const label = Object.hasOwn(labels, preference) ? labels[preference] : preference;
+        const labelEl = button.querySelector("[data-bw-theme-switch-cycle-label]");
+        if (labelEl) labelEl.textContent = label;
+        button.setAttribute("aria-label", `Theme: ${label}`);
+      };
+      // A locked theme is resolved on the server. This button must not read
+      // storage or <html> to decide it, and must not write either back.
+      if (button.hasAttribute("data-bw-locked")) {
+        const lockedValue = button.dataset.bwThemeSwitchLockedValue || "";
+        if (order.includes(lockedValue)) preference = lockedValue;
+        if (stored !== null && !validSet.has(stored)) clearStoredValue(axis);
+        paint();
+        return;
+      }
+      if (stored !== null && validSet.has(stored)) {
+        preference = stored;
+      } else {
+        if (stored !== null) clearStoredValue(axis);
+        const current = document.documentElement.getAttribute(attrName) || "";
+        if (order.includes(current)) preference = current;
+      }
+      this._apply(attrName, preference);
+      paint();
+      button.addEventListener("click", () => {
+        const index = order.indexOf(preference);
+        preference = order[(index + 1) % order.length];
+        this._apply(attrName, preference);
+        writeStoredValue(axis, preference);
+        paint();
+        dispatch(this._root, "bw:theme-switch:change", { axis, value: preference });
+      });
+    },
+
+    _clearSchemeListener() {
+      if (this._schemeQuery && this._onSchemeChange) {
+        this._schemeQuery.removeEventListener("change", this._onSchemeChange);
+      }
+      this._onSchemeChange = null;
+    },
+
+    // Attach the OS-scheme listener only while the stored preference is
+    // system, and drop it on destroy() or when the preference moves on.
+    _syncSystemListener(preference) {
+      this._clearSchemeListener();
+      if (preference !== "system") return;
+      this._schemeQuery = window.matchMedia(COLOR_SCHEME);
+      this._onSchemeChange = () => {
+        document.documentElement.setAttribute("data-theme", this._schemeQuery.matches ? "dark" : "light");
+      };
+      this._schemeQuery.addEventListener("change", this._onSchemeChange);
     },
 
     _initGroup(group, validValues) {
@@ -409,7 +504,9 @@ export default function themeSwitch() {
     },
 
     _apply(attrName, value) {
-      document.documentElement.setAttribute(attrName, value);
+      const written = attrName === "data-theme" ? resolveTheme(value) : value;
+      document.documentElement.setAttribute(attrName, written);
+      if (attrName === "data-theme") this._syncSystemListener(value);
     },
   };
 }
