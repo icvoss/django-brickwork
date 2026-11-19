@@ -8,6 +8,45 @@ versioning contract).
 
 ## Unreleased
 
+## [4.6.0] - 2026-11-19
+
+Lockstep with `@bwui` 0.1.13. Pip consumers get the elevation ambient tokens, the single Card and Button CSS source, and the stronger light control borders through `{% static %}`, with no npm step of their own.
+
+`{% bw_filter_bar %}` gains `submit_variant` (default `primary`). Page-header actions stack below the `sm` breakpoint. A definition table can take `width="full"`. These change behaviour for existing pages, so the release is 4.6.0.
+
+### Added
+
+- **`{% bw_filter_bar %}` accepts `submit_variant`** (icvoss/django-brickwork#735).
+  The submit control defaults to `primary` and may be `secondary`, `ghost`, or
+  `danger`, so a page that already has a primary action is not forced into two.
+
+- **Definition `{% bw_data_table %}` accepts `width`** (icvoss/django-brickwork#738).
+  `width="prose"` (default) keeps the prose measure; `width="full"` lets a
+  definition table sit full-bleed beside sibling tables.
+
+### Changed
+
+- **Shipped stylesheet uses `--bw-elevation-ambient-*`** (icvoss/django-brickwork#734).
+  The wheel's `brickwork.css` and `tokens.css` come from `@bwui` 0.1.13, so light
+  cards carry the tokenised ambient halo beside `--bw-elevation-1`. Dark themes
+  set those ambient tokens to `none`.
+
+- **`{% bw_token_specimen %}` heading is controllable** (icvoss/django-brickwork#736).
+  The specimen title defaults to heading-md, accepts `heading_level` (`sm` /
+  `md` / `lg`), and can be omitted with `show_heading=False` when the page
+  header already names the surface.
+
+### Fixed
+
+- **Filter and bulk-action bars no longer double-gap inside section stacks**
+  (icvoss/django-brickwork#737). When a bar is a direct child of
+  `.bw-section-stack`, its trailing stack-gap margin yields to the stack's
+  own gap.
+
+- **Page-header actions stack and icon-collapse below the `sm` breakpoint**
+  (icvoss/django-brickwork#739). Icon-led action labels stay in the DOM for
+  assistive tech while the narrow layout stops squeezing the description.
+
 ## [4.5.0] - 2026-11-17
 
 Lockstep with `@bwui` 0.1.12 (the post-0.1.9 batch from icvoss/brickwork, plus the 0.1.12 a11y patch;

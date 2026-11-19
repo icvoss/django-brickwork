@@ -294,7 +294,7 @@
   --bw-color-status-fg-ink: oklch(21% 0.006 285.885);
   --bw-color-border: oklch(92% 0.004 286.32);
   --bw-color-border-strong: color-mix(in oklab, var(--bw-color-border) 94%, black);
-  --bw-color-border-control: color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface));
+  --bw-color-border-control: color-mix(in oklab, var(--bw-color-fg) 48%, var(--bw-color-surface));
   --bw-color-action-disabled-bg: color-mix(in oklab, var(--bw-color-surface) 96.5%, black);
   --bw-color-action-disabled-text: color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface));
   --bw-color-action-disabled-border: color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface));
@@ -363,6 +363,10 @@
   --bw-elevation-3: 0 4px 6px -1px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.1);
   --bw-elevation-4: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);
   --bw-elevation-5: 0 20px 25px -5px oklch(0 0 0 / 0.1), 0 8px 10px -6px oklch(0 0 0 / 0.1);
+  --bw-elevation-ambient-1: 0 4px 14px -4px oklch(0 0 0 / 0.1);
+  --bw-elevation-ambient-2: 0 8px 20px -6px oklch(0 0 0 / 0.12);
+  --bw-elevation-ambient-3: 0 12px 28px -8px oklch(0 0 0 / 0.14);
+  --bw-elevation-ambient-4: 0 8px 28px -10px oklch(0 0 0 / 0.14);
   --bw-density-font-size-base: 1rem;
   --bw-density-control-height: 2.5rem;
   --bw-density-control-padding-inline: 0.75rem;
@@ -397,7 +401,7 @@
   --bw-color-status-fg-ink: oklch(21% 0.006 285.885);
   --bw-color-border: oklch(92% 0.004 286.32);
   --bw-color-border-strong: color-mix(in oklab, var(--bw-color-border) 94%, black);
-  --bw-color-border-control: color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface));
+  --bw-color-border-control: color-mix(in oklab, var(--bw-color-fg) 48%, var(--bw-color-surface));
   --bw-color-action-disabled-bg: color-mix(in oklab, var(--bw-color-surface) 96.5%, black);
   --bw-color-action-disabled-text: color-mix(in oklab, var(--bw-color-fg) 62%, var(--bw-color-surface));
   --bw-color-action-disabled-border: color-mix(in oklab, var(--bw-color-fg) 44%, var(--bw-color-surface));
@@ -466,6 +470,10 @@
   --bw-elevation-3: 0 4px 6px -1px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.1);
   --bw-elevation-4: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);
   --bw-elevation-5: 0 20px 25px -5px oklch(0 0 0 / 0.1), 0 8px 10px -6px oklch(0 0 0 / 0.1);
+  --bw-elevation-ambient-1: 0 4px 14px -4px oklch(0 0 0 / 0.1);
+  --bw-elevation-ambient-2: 0 8px 20px -6px oklch(0 0 0 / 0.12);
+  --bw-elevation-ambient-3: 0 12px 28px -8px oklch(0 0 0 / 0.14);
+  --bw-elevation-ambient-4: 0 8px 28px -10px oklch(0 0 0 / 0.14);
 }
 
 [data-theme="dark"] {
@@ -551,6 +559,10 @@
   --bw-elevation-3: 0 4px 6px -1px oklch(0 0 0 / 0.4), 0 2px 4px -2px oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.04);
   --bw-elevation-4: 0 10px 15px -3px oklch(0 0 0 / 0.45), 0 4px 6px -4px oklch(0 0 0 / 0.35), inset 0 1px 0 0 oklch(1 0 0 / 0.05);
   --bw-elevation-5: 0 20px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.4), inset 0 1px 0 0 oklch(1 0 0 / 0.06);
+  --bw-elevation-ambient-1: none;
+  --bw-elevation-ambient-2: none;
+  --bw-elevation-ambient-3: none;
+  --bw-elevation-ambient-4: none;
 }
 
 .dark {
@@ -636,6 +648,10 @@
   --bw-elevation-3: 0 4px 6px -1px oklch(0 0 0 / 0.4), 0 2px 4px -2px oklch(0 0 0 / 0.3), inset 0 1px 0 0 oklch(1 0 0 / 0.04);
   --bw-elevation-4: 0 10px 15px -3px oklch(0 0 0 / 0.45), 0 4px 6px -4px oklch(0 0 0 / 0.35), inset 0 1px 0 0 oklch(1 0 0 / 0.05);
   --bw-elevation-5: 0 20px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.4), inset 0 1px 0 0 oklch(1 0 0 / 0.06);
+  --bw-elevation-ambient-1: none;
+  --bw-elevation-ambient-2: none;
+  --bw-elevation-ambient-3: none;
+  --bw-elevation-ambient-4: none;
 }
 
 [data-density="comfortable"] {

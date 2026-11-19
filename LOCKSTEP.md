@@ -11,15 +11,15 @@ repository keeps a **release mirror** of source that still lives here, and
 mirrored files here and treat that as source: change the monorepo, then
 sync and, for tokens/CSS, publish `@bwui/*` and bump the pins below.
 
-## Shipped token and CSS artefacts (npm, 2026-11-16)
+## Shipped token and CSS artefacts (npm, 2026-11-19)
 
 The wheel's `static/brickwork/dist/{tokens.css,tailwind-theme.css,tokens.js,token-manifest.json,brickwork.css}`
 are produced from published packages during `npm run build`:
 
 | Package | Pin | Dist files in the wheel |
 |---|---|---|
-| `@bwui/tokens` | `0.1.11` | `tokens.css`, `tailwind-theme.css`, `tokens.js`, `token-manifest.json` (copied) |
-| `@bwui/css` | `0.1.11` | `brickwork.css` (minified with lightningcss; includes index extras and document a11y from [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)) |
+| `@bwui/tokens` | `0.1.13` | `tokens.css`, `tailwind-theme.css`, `tokens.js`, `token-manifest.json` (copied) |
+| `@bwui/css` | `0.1.13` | `brickwork.css` (minified with lightningcss; includes index extras and document a11y from [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11)) |
 
 Integrity: `src/brickwork/static/brickwork/dist/bwui-pin.json` records the
 installed versions. CI's frontend-build job runs `npm ci` then `npm run build`
