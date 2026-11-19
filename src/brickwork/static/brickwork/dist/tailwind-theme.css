@@ -88,6 +88,10 @@
   --shadow-3: var(--bw-elevation-3);
   --shadow-4: var(--bw-elevation-4);
   --shadow-5: var(--bw-elevation-5);
+  --shadow-ambient-1: var(--bw-elevation-ambient-1);
+  --shadow-ambient-2: var(--bw-elevation-ambient-2);
+  --shadow-ambient-3: var(--bw-elevation-ambient-3);
+  --shadow-ambient-4: var(--bw-elevation-ambient-4);
   --text-heading-display: var(--bw-text-heading-display-size);
   --text-heading-display--line-height: var(--bw-text-heading-display-line-height);
   --text-heading-2xl: var(--bw-text-heading-2xl-size);

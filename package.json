@@ -25,8 +25,8 @@
     "sync:monorepo": "node scripts/sync-from-monorepo.mjs"
   },
   "dependencies": {
-    "@bwui/css": "0.1.12",
-    "@bwui/tokens": "0.1.12",
+    "@bwui/css": "0.1.13",
+    "@bwui/tokens": "0.1.13",
     "lightningcss": "1.32.0"
   },
   "devDependencies": {
