@@ -8,6 +8,34 @@ versioning contract).
 
 ## Unreleased
 
+## [4.7.0] - 2026-11-20
+
+Theme preference can follow the operating system, and header disclosures can
+close from outside while a named group stays exclusive with JavaScript off.
+The `@bwui` pin stays at 0.1.13: craft `v0.1.14` is tagged but not on npm yet
+(GitHub hosted minutes), so the disclosure exit animation waits for the next
+CSS pin. Outside click, Escape, and the `group` name work without that pin.
+These change behaviour for existing pages, so the release is 4.7.0.
+
+### Added
+
+- **Theme switch can follow the operating system** (icvoss/django-brickwork#761).
+  The theme axis accepts `system` as well as light and dark. The stored
+  preference is the word `system`. `<html data-theme>` is always the resolved
+  light or dark, and it updates when the operating system scheme changes
+  while that preference remains selected. `layout="cycle"` is one button
+  that steps light, then dark, then system. It does not replace inline or
+  compact, and `placement=` stays compact-only.
+
+- **Header disclosures dismiss outside and stay exclusive in a group**
+  (icvoss/django-brickwork#762). The account menu takes an optional `group`,
+  written as the native details `name`, so exclusive open works with
+  JavaScript off. `bwDisclosure` closes that menu on a pointer outside or
+  Escape. When the stylesheet provides the exit motion, the panel plays it
+  before `open` is removed; with the shipped `@bwui` 0.1.13 pin the close is
+  immediate. `prefers-reduced-motion: reduce` always closes immediately. A
+  content disclosure does not dismiss from outside.
+
 ## [4.6.0] - 2026-11-19
 
 Lockstep with `@bwui` 0.1.13. Pip consumers get the elevation ambient tokens, the single Card and Button CSS source, and the stronger light control borders through `{% static %}`, with no npm step of their own.
