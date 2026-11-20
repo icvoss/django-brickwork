@@ -2,9 +2,11 @@
 {% comment %}
 Disclosure (04-interfaces section 4b, 0.8.0): a native <details>/<summary>
 expand/collapse. Consumed via {% include %} (purely structural, matching
-_card.html). The no-JS floor holds BY CONSTRUCTION (BR-BW-HTMX-001/006): this
-component ships no JavaScript at all, registers no Alpine.data component, and
-re-emits no bw: event. Single-open accordion grouping rides the native
+_card.html). The no-JS floor is the native summary toggle
+(BR-BW-HTMX-001/006): this template ships no <script>, no inline handler, and
+no htmx, and it re-emits no bw: event. When Alpine is present,
+x-data="bwDisclosure({ dismiss: false })" animates the close only. Single-open
+accordion grouping rides the native
 <details name> exclusive-group attribute (Baseline 2024, CBH-016); a consumer
 wanting a hook listens for the element's native "toggle" event.
 

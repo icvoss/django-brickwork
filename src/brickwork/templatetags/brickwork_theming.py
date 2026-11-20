@@ -291,9 +291,7 @@ def bw_theme_switch(
 
     axis_list = _parse_axes(axes)
     if layout == "cycle" and list(axis_list) != ["theme"]:
-        raise TemplateSyntaxError(
-            'bw_theme_switch layout="cycle" cycles the theme axis only. Pass axes="theme".'
-        )
+        raise TemplateSyntaxError('bw_theme_switch layout="cycle" cycles the theme axis only. Pass axes="theme".')
     if "brand" in axis_list:
         if not brands:
             raise TemplateSyntaxError(

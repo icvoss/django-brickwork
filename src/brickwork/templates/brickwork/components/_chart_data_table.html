@@ -90,9 +90,10 @@ Accessibility: this component IS an accessibility contract, not a component
   column headers and <th scope="row"> row headers, so every data cell is
   announced with both of its coordinates rather than as a bare number. In
   "hidden" mode the table is present in the accessibility tree and absent
-  from the visual render; in "toggle" mode the no-JS floor holds BY
-  CONSTRUCTION (BR-BW-HTMX-001), because _disclosure.html ships no
-  JavaScript at all and the browser owns the open/close entirely. The
+  from the visual render; in "toggle" mode the no-JS floor is the native
+  summary toggle (BR-BW-HTMX-001). The disclosure's only script hook is
+  x-data="bwDisclosure({ dismiss: false })", which is inert when Alpine is
+  absent, so the browser still owns open and close. The
   table is inert in every mode (no links, no controls, no sort affordance,
   nothing focusable), because the chart beside it is the interactive
   surface and this is its transcript.

@@ -4,8 +4,9 @@ consumed via {% include %} (BR-BW-MKT §4d structural-include doctrine).
 Composes _disclosure.html per BR-BW-MKT-004 (a marketing component reuses
 an existing primitive rather than reimplementing it): this template is only
 the heading + a stack of disclosures, never a new accordion interaction
-primitive. The no-JS floor is therefore free by construction
-(BR-BW-HTMX-001/006): _disclosure.html ships no JavaScript at all.
+primitive. The no-JS floor is the native summary toggle
+(BR-BW-HTMX-001/006). _disclosure.html ships no script of its own; its
+Alpine hook only animates the close when Alpine is already on the page.
 
 Required context: none.
 

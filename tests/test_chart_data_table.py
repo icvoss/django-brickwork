@@ -520,20 +520,25 @@ def test_a_safestring_caption_renders_its_markup_because_a_caption_is_text_posit
 
 
 def test_toggle_mode_ships_no_javascript_at_all() -> None:
-    """_disclosure.html registers no Alpine component and ships no script, so
-    the no-JS floor is not "tested to work", it is unable to break
-    (BR-BW-HTMX-001). Asserted over the rendered output: no <script>, no
-    inline event handler, and no Alpine directive."""
+    """Toggle mode composes _disclosure.html. The no-JS floor is the native
+    summary toggle (BR-BW-HTMX-001): no <script>, no inline handler, and no
+    htmx. The only Alpine hook is bwDisclosure({ dismiss: false }), which
+    animates the close when Alpine is present and is inert when it is not.
+    Any other Alpine directive would make the floor depend on script."""
     out = _table(data_table_mode="toggle")
     root = _parse(out)
     assert not _find_all(root, "script")
+    alpine: list[tuple[str, str]] = []
     for node in _walk(root):
-        for name in node["attrs"]:  # type: ignore[union-attr]
+        attrs = node["attrs"]  # type: ignore[union-attr]
+        for name, value in attrs.items():
             assert not name.startswith("on"), f"inline event handler {name!r} would make the floor JS-dependent"
-            assert not name.startswith("x-"), f"Alpine directive {name!r} would make the floor JS-dependent"
             assert not name.startswith("hx-"), f"htmx attribute {name!r} would make the floor JS-dependent"
-    # Presence half: the disclosure really rendered, so "no JS" is a statement
-    # about a real <details>, not about an empty string.
+            if name.startswith("x-"):
+                alpine.append((name, value or ""))
+    assert alpine == [("x-data", "bwDisclosure({ dismiss: false })")]
+    # Presence half: the disclosure really rendered, so the floor is a
+    # statement about a real <details>, not about an empty string.
     assert _find_all(root, "details")
     assert _find_all(root, "summary")
 
