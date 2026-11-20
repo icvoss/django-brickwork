@@ -11,10 +11,12 @@ repository keeps a **release mirror** of source that still lives here, and
 mirrored files here and treat that as source: change the monorepo, then
 sync and, for tokens/CSS, publish `@bwui/*` and bump the pins below.
 
-## Shipped token and CSS artefacts (npm, 2026-11-19)
+## Shipped token and CSS artefacts (npm, still 0.1.13 for django-brickwork 4.7.0)
 
 The wheel's `static/brickwork/dist/{tokens.css,tailwind-theme.css,tokens.js,token-manifest.json,brickwork.css}`
-are produced from published packages during `npm run build`:
+are produced from published packages during `npm run build`. django-brickwork
+4.7.0 keeps these pins: craft `@bwui` `v0.1.14` is tagged but not on npm yet,
+so the disclosure exit CSS waits for a later pin bump.
 
 | Package | Pin | Dist files in the wheel |
 |---|---|---|
