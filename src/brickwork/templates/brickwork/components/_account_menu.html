@@ -34,6 +34,11 @@ Optional:
          used by the a11y fixtures so axe sees the open panel). Named
          menu_open, not open, so an inherited page-context variable named
          open can never toggle the disclosure by accident.
+  group (str, optional): native <details name> so several header menus in
+         the same group stay exclusive with JavaScript off. Omit it and each
+         menu opens on its own. When Alpine is present, bwDisclosure also
+         closes this menu on a pointer outside or Escape, and plays the exit
+         motion. The no-JS floor remains the native summary toggle.
 
 States: closed (default) and open, toggled by the native <details> element,
   so opening requires no JavaScript. The caret icon rotates on [open]
@@ -52,13 +57,13 @@ Responsive: no breakpoint switch; no width-dependent CSS on any
 {% translate "Account" as default_trigger_label %}
 {% firstof trigger_label default_trigger_label as bw_account_menu_label %}
 {% firstof trigger_icon "user" as bw_account_menu_icon %}
-<details class="bw-account-menu bw-account-menu--{% firstof placement 'end' %}"{% if menu_open %} open{% endif %}>
+<details class="bw-account-menu bw-account-menu--{% firstof placement 'end' %}" x-data="bwDisclosure()"{% if group %} {% bw_attr "name" group %}{% endif %}{% if menu_open %} open{% endif %}>
   <summary class="bw-account-menu__trigger">
     {% bw_icon bw_account_menu_icon size="md" decorative=True %}
     <span class="bw-account-menu__trigger-label">{{ bw_account_menu_label }}</span>
     {% bw_icon "chevron-down" size="sm" decorative=True css_class="bw-account-menu__caret" %}
   </summary>
-  <nav class="bw-account-menu__panel" {% bw_attr "aria-label" bw_account_menu_label %}>
+  <nav class="bw-account-menu__panel" data-bw-disclosure-panel {% bw_attr "aria-label" bw_account_menu_label %}>
     {% for item in items %}
       {% if item.method == "post" %}
         <form method="post" {% bw_attr "action" item.url %} class="bw-account-menu__item-form">

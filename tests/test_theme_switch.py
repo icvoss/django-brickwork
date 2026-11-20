@@ -193,10 +193,12 @@ def test_brands_valid_slugs_render() -> None:
 # --- the closed value vocabularies (ADR-060 rule 2: validated, not a suggestion)
 
 
-def test_theme_values_are_light_and_dark() -> None:
+def test_theme_values_are_light_dark_and_system() -> None:
     html = _render('{% bw_theme_switch axes="theme" %}')
     assert 'value="light"' in html
     assert 'value="dark"' in html
+    assert 'value="system"' in html
+    assert ">System<" in html
 
 
 def test_density_values_are_the_three_documented_steps() -> None:
@@ -360,7 +362,7 @@ def test_payload_script_carries_the_closed_value_sets() -> None:
     end = html.index("</script>", start)
     payload = json.loads(html[start:end])
     assert payload == {
-        "theme": ["light", "dark"],
+        "theme": ["light", "dark", "system"],
         "density": ["compact", "comfortable", "spacious"],
         "dir": ["ltr", "rtl"],
     }
@@ -411,7 +413,7 @@ def test_two_instances_do_not_share_radio_group_names() -> None:
     html = _render("{% bw_theme_switch axes='theme' %}{% bw_theme_switch axes='theme' %}")
     import re
 
-    # Each instance's "theme" axis renders two radios (light/dark) sharing
+    # Each instance's "theme" axis renders three radios (light/dark/system) sharing
     # one name=, so dedupe to the per-instance group names before asserting
     # the two instances themselves do not collide.
     names = sorted(set(re.findall(r'name="([^"]+)"', html)))
@@ -549,6 +551,37 @@ def test_placement_start_is_honoured() -> None:
 def test_unknown_placement_raises() -> None:
     with pytest.raises(TemplateSyntaxError):
         _render('{% bw_theme_switch layout="compact" placement="middle" %}')
+
+
+def test_cycle_layout_renders_one_button_and_no_fieldset() -> None:
+    html = _render('{% bw_theme_switch axes="theme" layout="cycle" %}')
+    assert "bw-theme-switch--cycle" in html
+    assert "data-bw-theme-switch-cycle" in html
+    assert "<fieldset" not in html
+    assert "<details" not in html
+    assert '"light"' in html and '"dark"' in html and '"system"' in html
+
+
+def test_cycle_layout_rejects_any_axis_besides_theme() -> None:
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_theme_switch layout="cycle" %}')
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_theme_switch axes="theme density" layout="cycle" %}')
+
+
+def test_cycle_locked_theme_disables_the_button_and_names_the_server_value() -> None:
+    html = _render(
+        '{% bw_theme_switch axes="theme" layout="cycle" locked_axes="theme" %}',
+        bw_theme="dark",
+    )
+    assert "disabled" in html
+    assert "data-bw-locked" in html
+    assert 'data-bw-theme-switch-locked-value="dark"' in html
+
+
+def test_placement_with_cycle_layout_raises() -> None:
+    with pytest.raises(TemplateSyntaxError):
+        _render('{% bw_theme_switch axes="theme" layout="cycle" placement="end" %}')
 
 
 def test_placement_with_inline_layout_raises() -> None:

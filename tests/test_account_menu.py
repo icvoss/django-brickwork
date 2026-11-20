@@ -63,6 +63,16 @@ def test_inherited_open_variable_does_not_toggle_the_disclosure() -> None:
     assert " open" not in _details_tag(_render(open=True))
 
 
+def test_group_writes_a_native_details_name_and_wires_disclosure() -> None:
+    tag = _details_tag(_render(group="header-menus"))
+    assert 'name="header-menus"' in tag
+    assert 'x-data="bwDisclosure()"' in tag
+    assert "data-bw-disclosure-panel" in _render(group="header-menus")
+    bare = _details_tag(_render())
+    assert "name=" not in bare
+    assert 'role="menu"' not in _render(group="header-menus")
+
+
 def test_no_aria_menu_semantics_anywhere() -> None:
     # A details/summary disclosure of links must NOT claim menu semantics:
     # role="menu"/"menuitem" promise arrow-key handling no-JS markup cannot keep.
@@ -73,7 +83,7 @@ def test_no_aria_menu_semantics_anywhere() -> None:
 
 def test_panel_is_a_nav_landmark_labelled_from_the_trigger_label() -> None:
     html = _render(trigger_label="My account")
-    assert '<nav class="bw-account-menu__panel" aria-label="My account">' in html
+    assert '<nav class="bw-account-menu__panel" data-bw-disclosure-panel aria-label="My account">' in html
     assert '<span class="bw-account-menu__trigger-label">My account</span>' in html
 
 

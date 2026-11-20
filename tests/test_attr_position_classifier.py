@@ -190,6 +190,8 @@ _KNOWN_EXEMPT: dict[str, int] = {
     "components/_tag_input.html|id|help_id": 1,
     "components/_tag_input.html|id|id": 2,
     "components/_theme_switch.html|data-bw-theme-switch-axis|group.axis": 1,
+    "components/_theme_switch.html|data-bw-theme-switch-cycle-labels|cycle_labels_id": 1,
+    "components/_theme_switch.html|data-bw-theme-switch-locked-value|group.locked_value": 1,
     "components/_theme_switch.html|data-bw-theme-switch-values|values_element_id": 1,
     "components/_theme_switch.html|id|instance_id": 1,
     "components/_theme_switch.html|name|group.name": 1,

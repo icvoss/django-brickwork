@@ -128,9 +128,9 @@ test.describe("no-JS floor", () => {
       // hidden propagates to every descendant: no radio is visible, focusable
       // or reachable by the accessibility tree without JS
       const radios = page.locator("[data-bw-theme-switch-value]");
-      // default (theme 2 + density 3 + dir 2 = 7) + brand (theme 2 + density
-      // 3 + dir 2 + brand 2 = 9) + locked (theme 2) = 18, see the fixture
-      await expect(radios).toHaveCount(18);
+      // default (theme 3 + density 3 + dir 2 = 8) + brand (theme 3 + density
+      // 3 + dir 2 + brand 2 = 10) + locked (theme 3) = 21, see the fixture
+      await expect(radios).toHaveCount(21);
       for (const radio of await radios.all()) {
         await expect(radio).toBeHidden();
       }
@@ -178,7 +178,7 @@ test.describe("no-JS floor", () => {
       const trigger = page.locator(".bw-theme-switch__trigger");
       await expect(trigger).toBeHidden();
       const radios = page.locator("[data-bw-theme-switch-value]");
-      await expect(radios).toHaveCount(7); // theme 2 + density 3 + dir 2, see the fixture
+      await expect(radios).toHaveCount(8); // theme 3 + density 3 + dir 2, see the fixture
       for (const radio of await radios.all()) {
         await expect(radio).toBeHidden();
       }
@@ -421,6 +421,17 @@ test.describe("changing an axis", () => {
     expect(stored).toEqual("dark");
     const events = await page.evaluate(() => window.__bw);
     expect(events).toEqual([{ type: "bw:theme-switch:change", detail: { axis: "theme", value: "dark" } }]);
+  });
+
+  test("selecting system stores the preference and follows the operating system scheme", async ({ page }) => {
+    const system = section(page, "default-heading").locator('input[value="system"]');
+    await system.check();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    expect(await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"))).toEqual("system");
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(system).toBeChecked();
+    expect(await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"))).toEqual("system");
   });
 
   test("a stored preference from a prior visit wins over <html>'s current attribute on the next load", async ({
@@ -759,8 +770,16 @@ test.describe("layout=\"compact\"", () => {
     expect(stored).toEqual("dark");
     const events = await page.evaluate(() => window.__bw);
     expect(events).toEqual([{ type: "bw:theme-switch:change", detail: { axis: "theme", value: "dark" } }]);
-    // ArrowRight is the row-direction equivalent (LTR): press it once more
-    // to move back to light and confirm it behaves identically to ArrowDown
+    // The theme group is light, dark, then system. ArrowRight steps to
+    // system: the stored preference is the word, and data-theme stays the
+    // resolved scheme (light in this fixture).
+    const system = compactSection(page).locator('[data-bw-theme-switch-axis="theme"] input[value="system"]');
+    await page.keyboard.press("ArrowRight");
+    await expect(system).toBeFocused();
+    await expect(system).toBeChecked();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    expect(await page.evaluate(() => window.localStorage.getItem("bw-theme-switch-theme"))).toEqual("system");
+    // One more ArrowRight wraps to light.
     await page.keyboard.press("ArrowRight");
     await expect(light).toBeFocused();
     await expect(light).toBeChecked();

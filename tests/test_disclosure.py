@@ -2,9 +2,10 @@
 
 Renders the shipped _disclosure.html include directly (no testapp needed).
 The component is a native <details>/<summary> element, so the no-JS floor
-holds by construction (BR-BW-HTMX-001/006): it ships no JavaScript at all,
-registers no Alpine.data component, and re-emits no bw: event. Single-open
-accordion grouping rides the native <details name> attribute (CBH-016).
+holds by construction (BR-BW-HTMX-001/006): without Alpine the summary still
+toggles. With Alpine, bwDisclosure({ dismiss: false }) animates the close
+and does not dismiss on an outside pointer or Escape. Single-open accordion
+grouping rides the native <details name> attribute (CBH-016).
 """
 
 from __future__ import annotations
@@ -47,22 +48,24 @@ def test_default_output_is_byte_identical_to_pre_slot_blocks() -> None:
     # new block.
     html = _render()
     assert html == (
-        '\n\n<details class="bw-disclosure bw-disclosure--divided">\n  '
+        '\n\n<details x-data="bwDisclosure({ dismiss: false })" class="bw-disclosure bw-disclosure--divided">\n  '
         '<summary class="bw-disclosure__trigger">\n    '
         '<span class="bw-disclosure__label">What is brickwork?</span>\n    \n    '
         '<svg class="bw-icon bw-disclosure__caret" style="--bw-icon-size: var(--bw-component-icon-size-sm)" '
         'viewBox="0 0 24 24" fill="none" stroke="currentColor" '
         'stroke-width="var(--bw-component-icon-stroke-width, 2)" stroke-linecap="round" stroke-linejoin="round" '
         'aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>\n  </summary>\n  '
-        '<div class="bw-disclosure__panel">\n    '
+        '<div class="bw-disclosure__panel" data-bw-disclosure-panel>\n    '
         '<div class="bw-disclosure__panel-inner"><p>Building blocks.</p></div>\n  </div>\n</details>\n'
     )
 
 
-def test_ships_no_javascript_at_all() -> None:
-    # JS-free by construction: no Alpine wiring, no htmx wiring, no script.
+def test_enhanced_close_does_not_dismiss_from_outside() -> None:
+    # The native summary is the no-JS floor. The Alpine hook animates close
+    # and explicitly refuses outside dismiss for in-flow content.
     html = _render()
-    assert "x-data" not in html
+    assert 'x-data="bwDisclosure({ dismiss: false })"' in html
+    assert "data-bw-disclosure-panel" in html
     assert "hx-get" not in html and "hx-trigger" not in html
     assert "<script" not in html.lower()
 

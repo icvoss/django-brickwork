@@ -2004,8 +2004,9 @@ def bw_chart_data_table(
         never ``display: none``, which would remove it from that tree and
         defeat the whole contract); "visible" renders it plainly, as the
         base state with no wrapper; "toggle" composes ``_disclosure.html``'s
-        native ``<details>``, whose no-JS floor holds by construction
-        (BR-BW-HTMX-001: that component ships no JavaScript at all).
+        native ``<details>``. The no-JS floor is that summary toggle
+        (BR-BW-HTMX-001): the only script hook is
+        ``x-data="bwDisclosure({ dismiss: false })"``, inert without Alpine.
     toggle_label: the ``<summary>`` text, used in "toggle" mode only and
         ignored in the other two. Blank in toggle mode falls back to a
         translated default rather than rendering an unlabelled disclosure
