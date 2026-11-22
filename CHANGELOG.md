@@ -8,6 +8,20 @@ versioning contract).
 
 ## Unreleased
 
+## [4.7.1] - 2026-11-22
+
+Lockstep with `@bwui` 0.1.14. The disclosure exit animation that 4.7.0
+shipped in behaviour, but held behind the CSS pin, is now in the vendored
+stylesheet.
+
+### Changed
+
+- **Shipped stylesheet pins `@bwui/css` and `@bwui/tokens` at 0.1.14**.
+  `brickwork.css` includes the disclosure exit motion
+  (`.bw-disclosure-closing` and related keyframes). Outside click, Escape,
+  and group exclusivity from 4.7.0 now play that exit before `open` is
+  removed, unless `prefers-reduced-motion: reduce` is set.
+
 ## [4.7.0] - 2026-11-20
 
 Theme preference can follow the operating system, and header disclosures can
