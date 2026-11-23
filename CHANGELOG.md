@@ -8,6 +8,23 @@ versioning contract).
 
 ## Unreleased
 
+## [4.7.2] - 2026-11-23
+
+Lockstep with `@bwui` 0.1.15. Pip consumers get the display icon ramp and
+wave-b density geometry through `{% static %}`, with no npm step of their own.
+
+Visible on upgrade from 4.7.1:
+
+- **Display icons scale from one base.** Vendored tokens carry OQ-SZ-3
+  `--bw-icon-scale-*` and derived `--bw-component-icon-size-md` to `-2xl`.
+- **Wave-b control geometry follows density tokens.** Vendored CSS reads
+  `--bw-space-*` / `--bw-control-height` for kbd, tags, OTP digit and password
+  controls instead of hard-coded rem.
+
+### Changed
+
+- **Shipped stylesheet pins `@bwui/css` and `@bwui/tokens` at 0.1.15**.
+
 ## [4.7.1] - 2026-11-22
 
 Lockstep with `@bwui` 0.1.14. The disclosure exit animation that 4.7.0
