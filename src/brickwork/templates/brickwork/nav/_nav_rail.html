@@ -40,19 +40,21 @@ Contract:
                (they belong to the contextual second tier / mobile tree).
   Menu trigger menu_trigger=True items render as
                <button type="button" aria-haspopup="menu" aria-expanded="false">
-               (brickwork#702). The flyout panel is consumer-owned; wire
-               aria-expanded and the panel against this button. Children of a
-               trigger are not rendered in the rail: surface them via
-               {% bw_nav %} in the mobile drawer (or as the contextual tier)
-               for the no-JS floor.
+               (brickwork#702). Pair with the optional package-owned
+               {% bw_flyout %} companion (brickwork#758) for the panel, or keep
+               host wiring; bwNavFlyout syncs aria-expanded against
+               data-bw-nav-menu-trigger. Children of a trigger are not rendered
+               in the rail: surface them via {% bw_nav %} in the mobile drawer
+               (or as the contextual tier) for the no-JS floor.
   A11y         Link entries: real anchors, fully navigable with no JS. The
                exact active item carries aria-current="page"; an active
                ancestor gets the visual treatment only. Disabled fallback
                items (BRICKWORK_NAV_FALLBACK="disabled") render as
                aria-disabled spans. Icons are decorative: the visible (or
                clipped) label is the accessible name. External links keep the
-               external glyph and new-tab affordance. Menu triggers: button
-               with aria-haspopup/aria-expanded; consumer owns the panel.
+               external                glyph and new-tab affordance. Menu triggers: button
+               with aria-haspopup/aria-expanded; optional {% bw_flyout %}
+               owns the panel when used.
 {% endcomment %}
 
 {% partialdef nav_rail_item %}

@@ -308,7 +308,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     document_count = manifest["counts"]["archetypes"] + manifest["counts"]["skeletons"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 170 + (document_count * 2)
+    assert _leading_int(value) == 172 + (document_count * 2)
     assert f"{document_count} catalogue documents x light and dark" in note
 
 

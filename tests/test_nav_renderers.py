@@ -13,7 +13,7 @@ test at the bottom pins that no new class vocabulary leaks into it.
 from __future__ import annotations
 
 import pytest
-from django.template import Context, Template
+from django.template import Context, Template, TemplateSyntaxError
 from django.test import RequestFactory, override_settings
 
 from brickwork.models import NavItem
@@ -284,7 +284,7 @@ def test_rail_variant_and_conflicting_density_raises() -> None:
 
 
 def test_rail_menu_trigger_renders_button_with_aria_haspopup() -> None:
-    # brickwork#702: menu triggers are buttons, not links; panel is consumer-owned
+    # brickwork#702: menu triggers are buttons, not links; pair with {% bw_flyout %}
     out = _render(
         "bw_nav_rail",
         (NavItem(key="channels", label="Channels", menu_trigger=True, icon="folder"),),
@@ -338,3 +338,49 @@ def test_bw_nav_output_carries_no_new_renderer_vocabulary() -> None:
     assert "bw-nav__section-label" in out
     assert "bw-nav-header" not in out
     assert "bw-nav-rail" not in out
+
+# --- {% bw_flyout %}: rail flyout companion (#758) -------------------------
+
+
+def test_bw_flyout_from_panels_mapping() -> None:
+    source = (
+        "{% load brickwork_nav %}"
+        "{% bw_flyout panels=panels %}"
+    )
+    panels = {
+        "channels": (
+            {"href": "/channels/email/", "label": "Email", "badge": 3},
+            {"href": "/channels/sms/", "label": "SMS"},
+        ),
+    }
+    out = Template(source).render(Context({"panels": panels}))
+    assert 'class="bw-flyout"' in out
+    assert 'x-data="bwNavFlyout()"' in out
+    assert 'data-bw-flyout-panel="channels"' in out
+    assert 'href="/channels/email/"' in out
+    assert "bw-flyout__badge" in out
+    assert "Email" in out
+    assert "SMS" in out
+
+
+def test_bw_flyout_from_menu_trigger_items() -> None:
+    child = NavItem(key="email", label="Email", href="/channels/email/")
+    parent = NavItem(key="channels", label="Channels", menu_trigger=True, children=(child,))
+    source = "{% load brickwork_nav %}{% bw_flyout items=items %}"
+    out = Template(source).render(Context({"items": (parent,)}))
+    assert 'data-bw-flyout-panel="channels"' in out
+    assert 'href="/channels/email/"' in out
+    assert "Email" in out
+
+
+def test_bw_flyout_rejects_both_panels_and_items() -> None:
+    with pytest.raises(TemplateSyntaxError, match="not both"):
+        Template("{% load brickwork_nav %}{% bw_flyout panels=panels items=items %}").render(
+            Context({"panels": {}, "items": ()})
+        )
+
+
+def test_bw_flyout_requires_panels_or_items() -> None:
+    with pytest.raises(TemplateSyntaxError, match="requires panels"):
+        Template("{% load brickwork_nav %}{% bw_flyout %}").render(Context())
+

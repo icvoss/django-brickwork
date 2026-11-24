@@ -354,7 +354,8 @@
  * (brickwork#701) rests icon-only and expands on hover/focus-within. Link
  * entries are real anchors; menu_trigger items share the link skin as
  * buttons (brickwork#702). Children belong to the paired contextual
- * {% bw_nav %}, so no flyout panel CSS ships (BR-BW-HTMX-001). */
+ * {% bw_nav %} (no-JS floor) or the optional {% bw_flyout %} companion
+ * (brickwork#758); the rail itself never renders children. */
 .bw-nav-rail__list {
   list-style: none;
   margin: 0;
@@ -563,4 +564,62 @@
   block-size: 100%;
   padding-inline-end: var(--bw-space-2);
   border-inline-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
+}
+
+/* --- Rail flyout panel ({% bw_flyout %}, brickwork#758) --------------------- */
+
+/* Optional companion to menu_trigger rail buttons: fixed beside the capability
+ * rail at --bw-z-overlay. Progressive enhancement only; the no-JS floor keeps
+ * trigger children reachable via {% bw_nav %} in the mobile drawer (BR-BW-HTMX-001).
+ * Anchors to --bw-density-rail-width so the icons variant's resting width seats
+ * the panel; the host (or bwNavFlyout) toggles visibility and aria-expanded. */
+.bw-flyout {
+  position: fixed;
+  inset-block-start: calc(var(--bw-space-12) + var(--bw-space-2));
+  inset-inline-start: calc(var(--bw-density-rail-width, 3.5rem) + var(--bw-space-2));
+  z-index: var(--bw-z-overlay);
+}
+
+.bw-flyout__panel {
+  min-inline-size: 11rem;
+  padding: var(--bw-space-2);
+  border-radius: var(--bw-radius-md);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  background: var(--bw-color-surface);
+  box-shadow: var(--bw-elevation-3);
+}
+
+.bw-flyout__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bw-flyout__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bw-space-2);
+  padding: var(--bw-space-2) var(--bw-space-3);
+  border-radius: var(--bw-radius-sm);
+  color: var(--bw-color-fg);
+  font-size: var(--bw-font-size-sm);
+  text-decoration: none;
+}
+
+.bw-flyout__link:hover {
+  background-color: var(--bw-state-hover-overlay);
+  color: var(--bw-color-fg);
+}
+
+.bw-flyout__link:focus-visible {
+  outline: var(--bw-size-border-thick) solid var(--bw-color-focus-ring);
+  outline-offset: var(--bw-space-0-5);
+}
+
+.bw-flyout__badge {
+  flex-shrink: 0;
+  font-size: var(--bw-font-size-xs);
+  color: var(--bw-color-fg-muted);
+  font-variant-numeric: tabular-nums;
 }

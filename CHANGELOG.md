@@ -8,6 +8,21 @@ versioning contract).
 
 ## Unreleased
 
+### Added
+
+- **`{% bw_flyout %}` rail flyout companion** (icvoss/django-brickwork#758).
+  Kit CSS classes `.bw-flyout*` (craft Unreleased; pending `@bwui/css` pin),
+  `nav/_flyout.html`, and `bwNavFlyout` Alpine PE that wires
+  `data-bw-nav-menu-trigger` to panel visibility and `aria-expanded`. Pass
+  `panels=` (key to link dicts) or `items=` (derive from `menu_trigger`
+  children). No-JS floor remains `{% bw_nav %}` in the mobile drawer.
+- **`{% bw_notifications %}` topbar shell** (icvoss/django-brickwork#758).
+  Native `<details>` bell trigger, count badge, and empty panel body for
+  `{% block topbar_notifications %}`. Extend `_notifications.html` and fill
+  `{% block body %}` for a custom list; rich feed models stay host-owned.
+- **Forge chrome package-versus-host docs** in INTEGRATION.md and
+  INTERFACE-SYSTEM.md for the three seams (cmdk stays on #156).
+
 ## [4.7.1] - 2026-11-22
 
 Lockstep with `@bwui` 0.1.14. The disclosure exit animation that 4.7.0

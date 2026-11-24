@@ -134,10 +134,15 @@ Still explicitly deferred (do not silent-ship):
 
 - `timeline` and `saved_views` (ADR-092 scoped)
 - advanced filters, chart annotation, chart export (ADR-092 refusals)
-- Wave 5 / P2 command surfaces: `command_palette` (#156), `notification_list`,
-  `popover`, `newsletter_band`
+- Wave 5 / P2: `command_palette` / cmdk composition (#156), rich
+  `notification_list` feed (shell trigger/panel shipped under #758),
+  `newsletter_band`
 - Beat residuals #570 / #571 (soft-stage / product-shot)
 - #493 / #494 (DRF theme API / DB nav)
+
+Forge chrome package-versus-host split (brickwork#758; see INTEGRATION.md):
+rail flyout panel and notifications trigger/panel shell are package-owned;
+cmdk composition stays on #156; rich notification models stay host-owned.
 
 The versioned interaction surfaces (Alpine.data names, `bw:` events, and
 package-owned HTMX target IDs) are declared in the generated

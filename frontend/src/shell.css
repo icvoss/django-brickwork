@@ -261,7 +261,7 @@
   /* Light elev-1 + soft ambient so sticky chrome reads on a white canvas. */
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-elevation-ambient-1);
   position: var(--bw-component-topbar-position);
   inset-block-start: 0;
   z-index: var(--bw-z-sticky);
@@ -286,6 +286,80 @@
 .bw-topbar__notifications,
 .bw-topbar__account {
   flex-shrink: 0;
+}
+
+/* --- Topbar notifications shell ({% bw_notifications %}, brickwork#758) ---- */
+
+/* Trigger + panel chrome only; the list body is a consumer slot. Native
+ * <details>/<summary> is the no-JS floor (same pattern as popover/disclosure).
+ * Rich notification feed models stay host-owned. */
+.bw-notifications {
+  position: relative;
+}
+
+.bw-notifications__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: var(--bw-space-2);
+  border-radius: var(--bw-radius-md);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  list-style: none;
+}
+
+.bw-notifications__trigger::-webkit-details-marker {
+  display: none;
+}
+
+.bw-notifications__trigger:hover {
+  background-color: var(--bw-state-hover-overlay);
+}
+
+.bw-notifications__trigger:focus-visible {
+  outline: var(--bw-size-border-thick) solid var(--bw-color-focus-ring);
+  outline-offset: var(--bw-space-0-5);
+}
+
+.bw-notifications__count {
+  position: absolute;
+  inset-block-start: 0.15rem;
+  inset-inline-end: 0.1rem;
+  min-inline-size: 1rem;
+  block-size: 1rem;
+  padding-inline: 0.2rem;
+  border-radius: var(--bw-radius-full);
+  background: var(--bw-color-danger);
+  color: var(--bw-color-fg-on-accent);
+  font-size: 0.625rem;
+  font-weight: var(--bw-font-weight-bold);
+  display: grid;
+  place-items: center;
+  font-variant-numeric: tabular-nums;
+  line-height: var(--bw-font-line-height-none);
+}
+
+.bw-notifications__panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--bw-space-1));
+  inset-inline-end: 0;
+  inline-size: 16rem;
+  padding: var(--bw-space-3);
+  border-radius: var(--bw-radius-md);
+  border: var(--bw-size-border-hairline) solid var(--bw-color-border);
+  background: var(--bw-color-surface);
+  color: var(--bw-color-fg);
+  box-shadow: var(--bw-elevation-2);
+  z-index: var(--bw-z-dropdown);
+}
+
+.bw-notifications__empty {
+  margin: 0;
+  font-size: var(--bw-font-size-xs);
+  color: var(--bw-color-fg-muted);
 }
 
 .bw-workspace {
@@ -411,40 +485,6 @@
   margin-block-end: var(--bw-density-section-gap);
 }
 
-/* Narrow viewports: seat title + description full width before page actions
- * (icvoss/django-brickwork#739). */
-@media (width < --theme(--breakpoint-sm)) {
-  .bw-page-header-region {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .bw-page-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--bw-space-2);
-    align-items: center;
-    justify-content: flex-start;
-  }
-  .bw-page-actions .bw-btn .bw-btn__label {
-    white-space: nowrap;
-  }
-  /* Icon-led actions collapse to icon-only so labels do not wrap at 375px. */
-  .bw-page-actions .bw-btn:has(.bw-btn__icon) .bw-btn__label {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-  .bw-page-actions .bw-btn:has(.bw-btn__icon) {
-    position: relative;
-  }
-}
-
 /* --- Page patterns (0.5.0): composition scaffolding only -------------------- */
 
 /* The dashboard stat row (patterns/dashboard.html): a responsive auto-fit
@@ -471,14 +511,6 @@
  * (icvoss/django-brickwork#136). */
 .bw-section-stack > * {
   min-inline-size: 0;
-}
-
-/* Listing control decks keep stack-gap margin when they sit on the page
- * canvas alone. Inside .bw-section-stack the grid gap is the spacing owner
- * (icvoss/django-brickwork#737). */
-.bw-section-stack > .bw-filter-bar,
-.bw-section-stack > .bw-bulk-actions-bar {
-  margin-block-end: 0;
 }
 
 /* The app-surface N-column arrangement primitive (icvoss/django-brickwork#399,
@@ -684,7 +716,7 @@
   border-block-end: var(--bw-size-border-hairline) solid var(--bw-color-border);
   box-shadow:
     var(--bw-elevation-1),
-    0 4px 14px -4px oklch(0 0 0 / 0.1);
+    var(--bw-elevation-ambient-1);
   position: sticky;
   inset-block-start: 0;
   z-index: var(--bw-z-sticky);
@@ -1274,7 +1306,7 @@
   /* Alone on a sunken page: elev-2 plus soft ambient under the token. */
   box-shadow:
     var(--bw-elevation-2),
-    0 8px 20px -6px oklch(0 0 0 / 0.12);
+    var(--bw-elevation-ambient-2);
   padding: var(--bw-space-8);
   outline: none;
 }

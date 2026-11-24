@@ -46,6 +46,7 @@
         "brickwork/components/_empty_state.html",
         "brickwork/components/_list_item.html",
         "brickwork/components/_modal.html",
+        "brickwork/components/_notifications.html",
         "brickwork/components/_popover.html",
         "brickwork/components/_slide_over.html",
         "brickwork_marketing/components/_bio.html",
@@ -913,6 +914,15 @@
       ],
       "consumption": [
         "extend"
+      ]
+    },
+    {
+      "name": "trigger_icon",
+      "declaredIn": [
+        "brickwork/components/_notifications.html"
+      ],
+      "consumption": [
+        "tag"
       ]
     },
     {
