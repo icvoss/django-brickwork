@@ -74,9 +74,9 @@ def test_empty_items_still_render_the_palette_shell() -> None:
     "source, message, context",
     [
         ('{% bw_command items="nope" %}', "list or tuple", {}),
-        ('{% bw_command items=items %}', "mappings", {"items": ["x"]}),
-        ('{% bw_command items=items %}', "non-empty \"label\"", {"items": [{"href": "/x/"}]}),
-        ('{% bw_command items=items %}', "href", {"items": [{"label": "X"}]}),
+        ("{% bw_command items=items %}", "mappings", {"items": ["x"]}),
+        ("{% bw_command items=items %}", 'non-empty "label"', {"items": [{"href": "/x/"}]}),
+        ("{% bw_command items=items %}", "href", {"items": [{"label": "X"}]}),
         ('{% bw_command items=items name="" %}', "non-empty name=", {"items": _ITEMS}),
     ],
 )

@@ -706,9 +706,7 @@ def _shape_command_item(raw: object) -> RenderedCommandItem:
         raise TemplateSyntaxError(f'bw_command items require a non-empty "label", got {dict(raw)!r}')
     href = str(raw.get("href") or raw.get("url") or "").strip()
     if not href:
-        raise TemplateSyntaxError(
-            f'bw_command items require a non-empty "href" (or "url" alias), got {dict(raw)!r}'
-        )
+        raise TemplateSyntaxError(f'bw_command items require a non-empty "href" (or "url" alias), got {dict(raw)!r}')
     return RenderedCommandItem(
         label=label,
         href=href,

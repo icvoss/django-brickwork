@@ -4916,10 +4916,7 @@ __CSS__
 def _render_command_fixture() -> str:
     from django.template import Context, Template
 
-    return Template(
-        "{% load brickwork_components %}"
-        "{% bw_command action='/search/' items=items %}"
-    ).render(
+    return Template("{% load brickwork_components %}{% bw_command action='/search/' items=items %}").render(
         Context(
             {
                 "items": (
@@ -4954,7 +4951,6 @@ def render_command(theme: str) -> str:
         .replace("__SEARCH__", _render_search_fixture())
         .replace("__COMMAND__", _render_command_fixture())
     )
-
 
 
 # --- @bwui 0.1.11 lockstep surfaces (banner, media_text, number_stepper, popover) ---

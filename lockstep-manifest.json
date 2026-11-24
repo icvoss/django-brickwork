@@ -7,7 +7,7 @@
     "frontend-js"
   ],
   "editorial_home": "icvoss/brickwork",
-  "synced_at": "2026-11-20T10:26:47.093Z",
+  "synced_at": "2026-11-24T19:31:17.721Z",
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
@@ -129,7 +129,8 @@
       "brickwork_marketing/components/_section_intro.html": "add85818e149ba48fd270965c479d34220291d12a25adbc61d09f339785df2ff",
       "brickwork_marketing/components/_stat_band.html": "0572c500b90bb1aca2546cfad35392ef1003d84ae57c679f92da4882dc5d7655",
       "brickwork_marketing/components/_testimonial.html": "43bd58c55f0ec32afb5f83f8cbde18642762b9b9393f4035a5d84db7f50118c9",
-      "brickwork_marketing/shell/marketing.html": "1f657b20bcc333d5cfdc3ff627f4c10d9d15512f89b2dfcb458ac657251a16fd"
+      "brickwork_marketing/shell/marketing.html": "1f657b20bcc333d5cfdc3ff627f4c10d9d15512f89b2dfcb458ac657251a16fd",
+      "brickwork/components/_command.html": "fd3d5495ab44e615ca3466f5c39f4828ffa4d2a50f67fdf349f9772a80f818da"
     },
     "frontend-js": {
       "js/code_copy.js": "cb15d7087e379773ff608ee9f662b36161a1a66f1833fb1995781ce810b788e5",
@@ -138,7 +139,7 @@
       "js/dismissible.js": "0b773c44c98abb2e4337d11f96a22e1179d1c5778142103bae6685a4486f1ebf",
       "js/dropdown.js": "a9c581c0084b5b020de13ea95c71337c91f4c48dd5aa35ae5890dd201b932550",
       "js/dropzone.js": "94290ef352d098d8bcb3a31665485bab32061050d7edf8eda71b56763f7c7f0f",
-      "js/index.js": "71c9440e2d7135cf3fffc35ba4865e02a174d5100d2202dc91fcf4a0d9aadba9",
+      "js/index.js": "813a8cf8473ea5dcfc2cadce96fed2172f18dc41600ae86f4a72ef963722fd0c",
       "js/marketing_overlay.js": "7132f17ab327575aa5b22f6707ab359b052658555ad10a72de8af06bf8571b0e",
       "js/modal.js": "d8c33ae50579d91da613bb5e49a7ebf30227fc0b76b481979f2a971889a8747c",
       "js/overlay_shared.js": "8121b0c4df56be2b49df5bd1ff8f539edfd1483a6830a7c82bb5fb0bee78464f",
@@ -153,7 +154,8 @@
       "js/toast.js": "2dfd6fc69ea65066bfb8f6237143fb211b8e992664146dda7e7ecf46e98d4f6c",
       "js/tooltip.js": "7618c6d106ba14adba4643dacd61d2b6c08dd74f404c402076123cf6b457e0e1",
       "index.js": "815e68a03c66e21a97037d9d9d5dad2ed2b59e5e7c9e98d2fc871888488d3a9d",
-      "index.css": "b998407bc5baa6256f8388b403961945c91a6d4bb3e543760bf0e450d5943d27"
+      "index.css": "b998407bc5baa6256f8388b403961945c91a6d4bb3e543760bf0e450d5943d27",
+      "js/command.js": "ae354bf4d4119f2539eaddf209e0ce0956c5b4389a5beb64cc45eb0aa8f5baaf"
     }
   }
 }
