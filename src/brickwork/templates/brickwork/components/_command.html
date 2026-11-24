@@ -1,0 +1,106 @@
+{% load brickwork_components %}
+{% comment %}
+Command palette (cmdk), progressive enhancement over {% bw_search %}
+(icvoss/django-brickwork#156). Rendered only by {% bw_command %}.
+
+No-JS floor: this overlay is display:none until [data-bw-open] is set by
+bwCommand, so with JavaScript off it never appears. The consumer keeps a
+plain {% bw_search action=... %} GET form in the chrome; that form remains
+the whole search experience without JS. This palette must NOT be the only
+way to search.
+
+With Alpine registered (registerBrickworkComponents) and the host's focus
+plugin applied: Cmd/Ctrl+K toggles the palette, Escape and scrim click
+close it, Tab cycles inside x-trap on the panel, and typing filters the
+item list. Clicking any [data-bw-cmdk-open] in the document opens it
+(craft kit parity with data-bw-cmdk-open).
+
+Kit chrome: shipped .bw-cmdk* classes from @bwui/css (already in the
+vendored brickwork.css). Do not invent parallel host classes.
+
+Arguments (via {% bw_command %}):
+  items: sequence of mappings {label, href} (url accepted as href alias);
+         optional group, hint, keywords.
+  action / name: optional, same semantics as bw_search; when set, a search
+         row appears for a non-empty query and navigates to action?name=.
+  placeholder, empty_label, id, label (accessible name).
+
+Items contract (consumer-facing):
+  Each item is a mapping after resolution:
+    label (required): visible primary text, also used for filtering.
+    href (required): navigation target. "url" is accepted as an alias so
+      hosts that already shape Vendably-style suggestion dicts can pass
+      them through unchanged.
+    group (optional): consecutive items sharing a group get one
+      .bw-cmdk__group-label before the run.
+    hint (optional): secondary text on the trailing edge.
+    keywords (optional): extra filter text (not shown).
+
+  Compose from nav by flattening a prepared NavItem tree into that shape
+  (label + resolved href + optional section as group). Compose from search
+  suggestions the same way. Brickwork does not call the nav resolver from
+  this tag: the consumer owns URL resolution and visibility.
+
+States: closed (default, aria-hidden, no data-bw-open) / open
+  (data-bw-open, focus in the input). Filtering hides non-matching items
+  and empty groups; the empty row shows when nothing matches.
+Accessibility: role="dialog" aria-modal on the root (craft gallery
+  parity); listbox/option on the list; focus trap via x-trap.inert.noscroll
+  on the panel (BR-BW-JS-003). Covered by command-<theme>.html.
+Responsive: no breakpoint switch; panel width is the kit's min(100%, 36rem).
+{% endcomment %}
+<div
+  class="bw-cmdk"
+  {% bw_attr "id" id %}
+  role="dialog"
+  aria-modal="true"
+  {% bw_attr "aria-label" label %}
+  aria-hidden="true"
+  x-data="bwCommand({ id: '{{ id|escapejs }}', action: '{{ action|escapejs }}', name: '{{ name|escapejs }}' })"
+>
+  <div class="bw-cmdk__scrim" data-bw-command-scrim aria-hidden="true"></div>
+  <div class="bw-cmdk__panel" x-trap.inert.noscroll="isOpen">
+    <div class="bw-cmdk__search">
+      <input
+        class="bw-cmdk__input"
+        type="search"
+        {% bw_attr "placeholder" placeholder %}
+        {% bw_attr "aria-label" placeholder %}
+        autocomplete="off"
+        spellcheck="false"
+        data-bw-autofocus
+      >
+      <kbd class="bw-kbd">Esc</kbd>
+    </div>
+    <ul class="bw-cmdk__list" role="listbox" {% bw_attr "aria-label" label %}>
+      {% for group in groups %}
+        {% if group.label %}
+          <li class="bw-cmdk__group-label">{{ group.label }}</li>
+        {% endif %}
+        {% for item in group.items %}
+          <li
+            class="bw-cmdk__item"
+            role="option"
+            {% bw_attr "data-bw-href" item.href %}
+            {% if item.keywords %}{% bw_attr "data-bw-keywords" item.keywords %}{% endif %}
+          >
+            <span>{{ item.label }}</span>
+            {% if item.hint %}<span>{{ item.hint }}</span>{% endif %}
+          </li>
+        {% endfor %}
+      {% endfor %}
+      {% if action %}
+        <li
+          class="bw-cmdk__item"
+          role="option"
+          data-bw-command-search
+          {% bw_attr "data-bw-command-search-template" search_template %}
+          hidden
+        >
+          <span data-bw-command-search-label></span>
+        </li>
+      {% endif %}
+      <li class="bw-cmdk__empty" hidden>{{ empty_label }}</li>
+    </ul>
+  </div>
+</div>
