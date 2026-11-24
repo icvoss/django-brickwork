@@ -3560,6 +3560,40 @@ def render_account_menu_post(theme: str) -> str:
     )
 
 
+_NOTIFICATIONS_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notifications shell (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Notifications shell (open, with count)</h1>
+  __NOTIFICATIONS__
+</main>
+</body>
+</html>
+"""
+
+
+def render_notifications(theme: str) -> str:
+    """Notifications trigger/panel shell (brickwork#758): open details with count."""
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    request = RequestFactory().get("/")
+    html = render_to_string(
+        "brickwork/components/_notifications.html",
+        {"count": 3, "open": True},
+        request=request,
+    )
+    return (
+        _NOTIFICATIONS_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__NOTIFICATIONS__", html)
+    )
+
+
 # --- the 1.2.0 marketing kit fixtures (brickwork.marketing, BR-BW-MKT-002) ---
 #
 # The three marketing pages went the same way as the app page tier in 2.0.0
@@ -5625,6 +5659,8 @@ def main() -> None:
         _emit(OUT / f"confirm-{theme}.html", render_confirm(theme), written)
         _emit(OUT / f"auth-signin-{theme}.html", render_auth_signin(theme), written)
         _emit(OUT / f"account-menu-post-{theme}.html", render_account_menu_post(theme), written)
+        # notifications trigger/panel shell (brickwork#758): open details + count
+        _emit(OUT / f"notifications-{theme}.html", render_notifications(theme), written)
         # the 1.2.0 marketing kit (brickwork.marketing, BR-BW-MKT-002): the
         # three shipped pages, each rendered through a consumer-shaped
         # extension carrying representative content

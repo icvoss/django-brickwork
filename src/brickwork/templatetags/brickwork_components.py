@@ -626,6 +626,35 @@ def bw_alert(message: str = "", *, variant: str = "info", title: str = "", dismi
     return {"message": message, "variant": variant, "title": title, "icon": icon, "dismissible": bool(dismissible)}
 
 
+@register.inclusion_tag("brickwork/components/_notifications.html")
+def bw_notifications(
+    *,
+    count: object = 0,
+    label: str = "",
+    empty_message: str = "",
+    opened: bool = False,
+) -> dict:
+    """Topbar notifications trigger/panel shell (brickwork#758).
+
+    Renders a native ``<details>`` bell trigger with an optional count badge
+    and a default empty panel body. Place inside ``{% block topbar_notifications %}``.
+    For a custom list body, extend ``brickwork/components/_notifications.html``
+    and fill ``{% block body %}`` instead of calling this tag.
+
+    ``count`` is omitted from the badge when falsy (0, None, empty). ``label``
+    and ``empty_message`` default to translated "Notifications" /
+    "No new notifications" in the template when left empty. ``opened`` stamps
+    the disclosure open for fixtures and tests. Rich notification models stay
+    host-owned; this is chrome only.
+    """
+    return {
+        "count": count,
+        "label": label,
+        "empty_message": empty_message,
+        "open": bool(opened),
+    }
+
+
 @register.inclusion_tag("brickwork/components/_search.html")
 def bw_search(
     action: str,

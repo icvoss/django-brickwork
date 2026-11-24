@@ -801,6 +801,15 @@ _COMPONENT_RENDERS: dict[str, Callable[[], str]] = {
     "_nav (bw_nav: populated tree)": lambda: _render_nav("bw_nav"),
     "_nav_header (bw_nav_header: populated tree)": lambda: _render_nav("bw_nav_header"),
     "_nav_rail (bw_nav_rail: populated tree)": lambda: _render_nav("bw_nav_rail"),
+    "_flyout (bw_flyout: panels mapping)": lambda: _tag(
+        "brickwork_nav",
+        "{% bw_flyout panels=panels %}",
+        panels={"channels": ({"href": "/channels/email/", "label": "Email", "badge": 2},)},
+    ),
+    "_notifications (bw_notifications: count)": lambda: _tag(
+        "brickwork_components",
+        "{% bw_notifications count=3 %}",
+    ),
     # --- marketing sub-app ----------------------------------------------
     "_hero (marketing: media, align=center, dict CTAs)": lambda: _include(
         "brickwork_marketing/components/_hero.html",

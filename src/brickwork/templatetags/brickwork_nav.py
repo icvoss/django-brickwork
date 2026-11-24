@@ -16,6 +16,9 @@ model (brickwork#82's founding constraint):
 - ``{% bw_nav_rail %}`` (brickwork#82): the compact icon+label rail
   (nav/_nav_rail.html), tier one of the capability-rail + contextual-sidebar
   layout, paired with an ordinary ``{% bw_nav %}`` as tier two.
+- ``{% bw_flyout %}`` (brickwork#758): optional rail flyout panel companion
+  for ``menu_trigger`` buttons (nav/_flyout.html). Progressive enhancement;
+  the no-JS floor stays the drawer ``{% bw_nav %}`` tree.
 
 Usage (in a shell block, after a context processor has run visible_items +
 resolve_active_item)::
@@ -27,8 +30,9 @@ resolve_active_item)::
 from __future__ import annotations
 
 import warnings
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django import template
 from django.template import TemplateSyntaxError
@@ -329,3 +333,111 @@ def bw_nav_rail(
         "bw_nav_tree": _prepare_tree(context, items, active, resolver_match),
         "variant": variant,
     }
+
+
+def _normalise_flyout_link(link: object, *, panel_key: str, index: int) -> dict[str, Any]:
+    """Coerce one flyout link mapping into the template contract."""
+    if not isinstance(link, Mapping):
+        raise TemplateSyntaxError(
+            f"bw_flyout panels[{panel_key!r}][{index}] must be a mapping with href and label, got {type(link).__name__}"
+        )
+    if "href" not in link or "label" not in link:
+        raise TemplateSyntaxError(f"bw_flyout panels[{panel_key!r}][{index}] requires href= and label= keys")
+    return {
+        "href": link["href"] or "#",
+        "label": link["label"],
+        "badge": link.get("badge"),
+    }
+
+
+def _panels_from_mapping(panels: Mapping[object, object]) -> list[dict[str, Any]]:
+    """Turn a key -> links mapping into ordered panel dicts for the template."""
+    out: list[dict[str, Any]] = []
+    for key, links in panels.items():
+        panel_key = str(key)
+        if isinstance(links, (str, bytes)) or not isinstance(links, Sequence):
+            raise TemplateSyntaxError(
+                f"bw_flyout panels[{panel_key!r}] must be a sequence of link mappings, got {type(links).__name__}"
+            )
+        out.append(
+            {
+                "key": panel_key,
+                "links": tuple(
+                    _normalise_flyout_link(link, panel_key=panel_key, index=i) for i, link in enumerate(links)
+                ),
+            }
+        )
+    return out
+
+
+def _panels_from_menu_triggers(
+    context,
+    items: tuple[NavItem, ...],
+    active: NavItem | None,
+    resolver_match,
+) -> list[dict[str, Any]]:
+    """Derive flyout panels from prepared menu_trigger items that have children."""
+    tree = _prepare_tree(context, items, active, resolver_match)
+    out: list[dict[str, Any]] = []
+
+    def walk(nodes: tuple[RenderedNavItem, ...]) -> None:
+        for node in nodes:
+            if node.is_menu_trigger and node.children:
+                out.append(
+                    {
+                        "key": node.key,
+                        "links": tuple(
+                            {
+                                "href": child.href or "#",
+                                "label": child.label,
+                                "badge": child.badge,
+                            }
+                            for child in node.children
+                            if not child.is_section_header and not child.is_menu_trigger
+                        ),
+                    }
+                )
+            if node.children:
+                walk(node.children)
+
+    walk(tree)
+    return out
+
+
+@register.inclusion_tag("brickwork/nav/_flyout.html", takes_context=True)
+def bw_flyout(
+    context,
+    panels: Mapping[object, object] | None = None,
+    items: tuple[NavItem, ...] | None = None,
+    active: NavItem | None = None,
+    resolver_match=None,
+) -> dict:
+    """Render the optional rail flyout panel companion (brickwork#758).
+
+    Pass either:
+
+    - ``panels``: a mapping of trigger key -> sequence of
+      ``{href, label, badge?}`` link dicts (the host-prepared shape used by
+      ui_studio), or
+    - ``items``: the same NavItem tree as ``{% bw_nav_rail %}``; panels are
+      derived from ``menu_trigger=True`` entries that have children.
+
+    Passing both raises. Passing neither raises. Pair with
+    ``{% bw_nav_rail %}`` buttons that emit ``data-bw-nav-menu-trigger``;
+    ``bwNavFlyout`` (or host Alpine) toggles visibility and ``aria-expanded``.
+    The no-JS floor is the drawer ``{% bw_nav %}`` tree, not this panel.
+    """
+    if panels is not None and items is not None:
+        raise TemplateSyntaxError("bw_flyout accepts panels= or items=, not both")
+    if panels is None and items is None:
+        raise TemplateSyntaxError("bw_flyout requires panels= or items=")
+    if panels is not None:
+        if not isinstance(panels, Mapping):
+            raise TemplateSyntaxError(
+                f"bw_flyout panels= must be a mapping of key to link sequences, got {type(panels).__name__}"
+            )
+        prepared = _panels_from_mapping(panels)
+    else:
+        assert items is not None
+        prepared = _panels_from_menu_triggers(context, items, active, resolver_match)
+    return {"panels": prepared}

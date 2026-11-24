@@ -59,6 +59,9 @@
     },
     {
       "name": "bwCommand"
+    },
+    {
+      "name": "bwNavFlyout"
     }
   ],
   "events": [
@@ -100,6 +103,12 @@
     },
     {
       "name": "bw:dropzone:change"
+    },
+    {
+      "name": "bw:flyout:close"
+    },
+    {
+      "name": "bw:flyout:open"
     },
     {
       "name": "bw:modal:close"

@@ -41,6 +41,7 @@ import themeSwitch from "./theme_switch.js";
 import codeCopy from "./code_copy.js";
 import disclosure from "./disclosure.js";
 import command from "./command.js";
+import navFlyout from "./nav_flyout.js";
 
 // The registered-marker attribute (brickwork#87): registerBrickworkComponents
 // stamps it on <html> at call time, so the shell's dev-only inline detector
@@ -89,6 +90,7 @@ export function registerBrickworkComponents(Alpine) {
   Alpine.data("bwCodeCopy", codeCopy);
   Alpine.data("bwDisclosure", disclosure);
   Alpine.data("bwCommand", command);
+  Alpine.data("bwNavFlyout", navFlyout);
 }
 
 /**
