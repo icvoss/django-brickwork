@@ -67,7 +67,8 @@ evidence than a gate that has never missed.
 > (elevation, state overlays, type
 > roles, motion, borders, with fine colours derived live from a small
 > load-bearing brand set via `color-mix()`), the interaction set (modal,
-> toast, dropdown, combobox, tabs, disclosure, tooltip, slide-over), forms
+> toast, dropdown, combobox, tabs, disclosure, command palette, tooltip,
+> slide-over), forms
 > with the whole-form renderer and the HTMX 422 loop, the data table with
 > sortable and selectable modes, the feedback and input-chrome primitives, the
 > wizard/stepper, and a machine-readable token contract with a per-tenant

@@ -724,6 +724,52 @@ with no error at all. Three aids now exist:
 The correct wiring remains unchanged: `Alpine.plugin(focus)`, then
 `registerBrickworkComponents(Alpine)`, then `Alpine.start()`.
 
+### Command palette over search (icvoss/django-brickwork#156)
+
+`{% bw_command %}` is progressive enhancement over `{% bw_search %}`, not a
+replacement. Keep the plain search GET form in the topbar; place the palette
+once per page (typically near the end of the shell). Without JavaScript the
+palette stays `display: none` (kit CSS needs `[data-bw-open]`), so search never
+depends on the overlay.
+
+```django
+{% load brickwork_components %}
+
+{# No-JS floor: always keep this #}
+{% bw_search action="/search/" value=request.GET.q %}
+
+{# Optional visible open affordance (inert without Alpine) #}
+<button type="button" class="bw-btn bw-btn--ghost bw-btn--size-sm" data-bw-cmdk-open>
+  <span class="bw-cmdk__hint" aria-hidden="true">
+    <kbd class="bw-kbd">Ctrl</kbd><kbd class="bw-kbd">K</kbd>
+  </span>
+  <span class="bw-visually-hidden">Open command palette</span>
+</button>
+
+{% bw_command action="/search/" items=command_items %}
+```
+
+**Items contract.** Pass a list or tuple of mappings:
+
+| Key | Required | Meaning |
+|---|---|---|
+| `label` | yes | Primary text; also the default filter haystack |
+| `href` | yes | Navigation target (`url` is accepted as an alias) |
+| `group` | no | Consecutive items with the same group share one group label |
+| `hint` | no | Secondary trailing text |
+| `keywords` | no | Extra filter text, not shown |
+
+Flatten a prepared `NavItem` tree or a search-suggestion list into that shape
+yourself (resolve hrefs and visibility in the host). Optional `action` / `name`
+mirror `bw_search`: a non-empty query reveals a search row that navigates to
+`action?name=<query>`.
+
+**Open / close.** Cmd/Ctrl+K toggles; Escape and scrim click close; focus is
+trapped in the panel via `x-trap` (host `@alpinejs/focus`). Any
+`[data-bw-cmdk-open]` click opens. Events: `bw:command:open`,
+`bw:command:close`, `bw:command:select`. Chrome uses the shipped `.bw-cmdk*`
+kit classes already in `brickwork.css`.
+
 ### A second brickwork.css link silently undoes your brand (brickwork#271)
 
 Brand overrides win only because they load **after** the single package

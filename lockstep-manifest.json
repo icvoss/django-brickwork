@@ -7,7 +7,7 @@
     "frontend-js"
   ],
   "editorial_home": "icvoss/brickwork",
-  "synced_at": "2026-11-24T19:32:07.551Z",
+  "synced_at": "2026-11-24T19:47:16.684Z",
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
@@ -47,6 +47,7 @@
       "brickwork/components/_chip.html": "425090c79320d690990f3c4990c740564ba6dbbb06986cc1e3da9a472598a056",
       "brickwork/components/_code.html": "cdc11c635cb1ee5dfde7d6715f419eb2c6a29f2316e4611a662a6dac62206d3e",
       "brickwork/components/_combobox.html": "5c1df9bf334e4d41f1a06673f0528998549318857f63f340974bcd75595b8c6d",
+      "brickwork/components/_command.html": "fd3d5495ab44e615ca3466f5c39f4828ffa4d2a50f67fdf349f9772a80f818da",
       "brickwork/components/_comparison_table.html": "936e6294558637e6f972fa2f186f57b5e8fa78d6f7c78f130171b110df4b74c7",
       "brickwork/components/_data_table.html": "9db8a2af53d31cef1785df908bae87431f27aa2816ee9e3a5454d6ac601a2f6a",
       "brickwork/components/_date_picker_chrome.html": "a90321b210f15ac19abca02c4f1c6a377b12f98793e26237e95ff442445f580e",
@@ -134,15 +135,16 @@
       "brickwork_marketing/shell/marketing.html": "1f657b20bcc333d5cfdc3ff627f4c10d9d15512f89b2dfcb458ac657251a16fd"
     },
     "frontend-js": {
-      "index.js": "815e68a03c66e21a97037d9d9d5dad2ed2b59e5e7c9e98d2fc871888488d3a9d",
       "index.css": "b998407bc5baa6256f8388b403961945c91a6d4bb3e543760bf0e450d5943d27",
+      "index.js": "815e68a03c66e21a97037d9d9d5dad2ed2b59e5e7c9e98d2fc871888488d3a9d",
       "js/code_copy.js": "cb15d7087e379773ff608ee9f662b36161a1a66f1833fb1995781ce810b788e5",
       "js/combobox.js": "dc6d6c95a61dc4c2b5b7396abccb92ac78a9a2f283e7706376c5a43fbccb5b6f",
+      "js/command.js": "ae354bf4d4119f2539eaddf209e0ce0956c5b4389a5beb64cc45eb0aa8f5baaf",
       "js/disclosure.js": "da93c97c8ae7cd899b6b725ce4b691887b95c56ac1a50d4595e8cf96631b98e8",
       "js/dismissible.js": "0b773c44c98abb2e4337d11f96a22e1179d1c5778142103bae6685a4486f1ebf",
       "js/dropdown.js": "a9c581c0084b5b020de13ea95c71337c91f4c48dd5aa35ae5890dd201b932550",
       "js/dropzone.js": "94290ef352d098d8bcb3a31665485bab32061050d7edf8eda71b56763f7c7f0f",
-      "js/index.js": "a10baad9168fae4cc5add82b0f91727a32ba377f850a87ec6fc4036f9be33be4",
+      "js/index.js": "9c728388a9e9f30f90d28b7224e67abc493789d34613eca327860a12a21d5003",
       "js/marketing_overlay.js": "7132f17ab327575aa5b22f6707ab359b052658555ad10a72de8af06bf8571b0e",
       "js/modal.js": "d8c33ae50579d91da613bb5e49a7ebf30227fc0b76b481979f2a971889a8747c",
       "js/nav_flyout.js": "09299c63c5a9b8cfea5f4d7ec351bc858e572a303f2af943f7dfc9d3c576a0a3",

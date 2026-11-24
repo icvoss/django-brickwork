@@ -709,6 +709,123 @@ def bw_search(
     }
 
 
+@dataclass(frozen=True)
+class RenderedCommandItem:
+    """One navigable row in ``{% bw_command %}`` after validation."""
+
+    label: str
+    href: str
+    hint: str
+    keywords: str
+
+
+@dataclass(frozen=True)
+class RenderedCommandGroup:
+    """A labelled run of command items (empty label = ungrouped)."""
+
+    label: str
+    items: tuple[RenderedCommandItem, ...]
+
+
+def _shape_command_item(raw: object) -> RenderedCommandItem:
+    if not isinstance(raw, Mapping):
+        raise TemplateSyntaxError(f"bw_command items must be mappings, got {raw!r}")
+    label = normalise_accessible_name(raw.get("label", ""))
+    if not label:
+        raise TemplateSyntaxError(f'bw_command items require a non-empty "label", got {dict(raw)!r}')
+    href = str(raw.get("href") or raw.get("url") or "").strip()
+    if not href:
+        raise TemplateSyntaxError(f'bw_command items require a non-empty "href" (or "url" alias), got {dict(raw)!r}')
+    return RenderedCommandItem(
+        label=label,
+        href=href,
+        hint=str(raw.get("hint", "") or ""),
+        keywords=str(raw.get("keywords", "") or ""),
+    )
+
+
+def _group_command_items(raw_items: Iterable[object]) -> tuple[RenderedCommandGroup, ...]:
+    groups: list[RenderedCommandGroup] = []
+    current_label = ""
+    current_items: list[RenderedCommandItem] = []
+
+    def flush() -> None:
+        nonlocal current_items
+        if current_items:
+            groups.append(RenderedCommandGroup(label=current_label, items=tuple(current_items)))
+            current_items = []
+
+    for raw in raw_items:
+        if not isinstance(raw, Mapping):
+            raise TemplateSyntaxError(f"bw_command items must be mappings, got {raw!r}")
+        group_label = str(raw.get("group", "") or "")
+        item = _shape_command_item(raw)
+        if current_items and group_label != current_label:
+            flush()
+            current_label = group_label
+        elif not current_items:
+            current_label = group_label
+        current_items.append(item)
+    flush()
+    return tuple(groups)
+
+
+@register.inclusion_tag("brickwork/components/_command.html")
+def bw_command(
+    items: object = (),
+    *,
+    action: str = "",
+    name: str = "q",
+    placeholder: str = "",
+    empty_label: str = "",
+    label: str = "",
+    id: str = "bw-command",
+) -> dict:
+    """Command palette overlay, progressive enhancement over ``bw_search``.
+
+    Renders kit ``bw-cmdk`` chrome. Without Alpine the overlay stays closed
+    (CSS requires ``[data-bw-open]``), so a sibling ``{% bw_search %}`` GET
+    form remains the no-JS search floor. With Alpine, Cmd/Ctrl+K opens the
+    palette; Escape and scrim click close it; typing filters ``items``.
+
+    ``items`` is a sequence of mappings:
+
+    - ``label`` (required): primary text and default filter haystack.
+    - ``href`` (required): navigation target. ``url`` is accepted as an
+      alias for hosts that already shape suggestion dicts that way.
+    - ``group`` (optional): consecutive items with the same group share one
+      group label in the list.
+    - ``hint`` (optional): secondary trailing text.
+    - ``keywords`` (optional): extra filter text, not shown.
+
+    Optional ``action`` / ``name`` mirror ``bw_search``: a non-empty query
+    reveals a search row that navigates to ``action?name=<query>``, so the
+    palette enhances the same GET surface rather than replacing it.
+
+    Open triggers: Cmd/Ctrl+K, and any element with ``data-bw-cmdk-open``
+    (craft kit parity). Place a hint or button near ``bw_search`` if you
+    want a visible affordance; never remove the search form.
+    """
+    if items is None:
+        items = ()
+    if not isinstance(items, list | tuple):
+        raise TemplateSyntaxError("bw_command items= must be a list or tuple of item mappings.")
+    if not name:
+        raise TemplateSyntaxError("bw_command requires a non-empty name= for the search query field.")
+    instance_id = str(id or "").strip() or "bw-command"
+
+    return {
+        "groups": _group_command_items(items),
+        "action": action or "",
+        "name": name,
+        "placeholder": placeholder or gettext("Type a command or search..."),
+        "empty_label": empty_label or gettext("No results"),
+        "label": label or gettext("Command palette"),
+        "id": instance_id,
+        "search_template": gettext('Search for "{query}"'),
+    }
+
+
 _VERSION_STATUSES = frozenset({"", "latest", "deprecated"})
 _VERSION_SWITCH_PLACEMENTS = frozenset({"start", "end"})
 

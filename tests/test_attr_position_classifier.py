@@ -94,6 +94,7 @@ _COMPOSED: dict[str, int] = {
     "components/_token_specimen.html|style|row.name": 5,
     "forms/_form.html|class|layout": 1,
     "forms/_form.html|style|grid_columns": 1,
+    "components/_command.html|x-data|id|escapejs|action|escapejs|name|escapejs": 1,
     "nav/_flyout.html|id|panel.key": 1,
     "nav/_flyout.html|x-show|panel.key|escapejs": 1,
 }
