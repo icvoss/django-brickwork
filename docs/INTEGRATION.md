@@ -895,7 +895,7 @@ stay registered (they are, out of the box, via the seed) for the chrome itself
 to render:
 
 <!-- chrome-icon-names:start -->
-`arrow-down`, `arrow-up`, `check`, `chevron-back`, `chevron-down`,
+`arrow-down`, `arrow-up`, `bell`, `check`, `chevron-back`, `chevron-down`,
 `chevron-forward`, `close`, `copy`, `external-link`, `folder`, `info`,
 `menu`, `minus`, `search`, `sidebar`, `sort`, `upload`
 <!-- chrome-icon-names:end -->
@@ -925,6 +925,7 @@ which family drew a glyph. Three supported shapes, in increasing effort:
    | brickwork chrome name | nearest Heroicons name |
    |---|---|
    | `arrow-down` / `arrow-up` | `arrow-down` / `arrow-up` |
+| `bell` | `bell` |
    | `check` | `check` |
    | `chevron-back` / `chevron-forward` | `chevron-left` / `chevron-right` |
    | `chevron-down` | `chevron-down` |

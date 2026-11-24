@@ -30,8 +30,7 @@ def test_bw_notifications_zero_count_omits_badge() -> None:
 
 def test_bw_notifications_custom_label_and_empty() -> None:
     out = Template(
-        "{% load brickwork_components %}"
-        '{% bw_notifications label="Alerts" empty_message="Inbox clear" %}'
+        '{% load brickwork_components %}{% bw_notifications label="Alerts" empty_message="Inbox clear" %}'
     ).render(Context())
     assert 'aria-label="Alerts"' in out
     assert "Inbox clear" in out
@@ -39,4 +38,4 @@ def test_bw_notifications_custom_label_and_empty() -> None:
 
 def test_bw_notifications_opened_stamps_open() -> None:
     out = Template("{% load brickwork_components %}{% bw_notifications opened=True %}").render(Context())
-    assert "<details class=\"bw-notifications\" open>" in out or 'open>' in out
+    assert '<details class="bw-notifications" open>' in out or "open>" in out

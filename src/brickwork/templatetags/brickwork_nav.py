@@ -339,13 +339,10 @@ def _normalise_flyout_link(link: object, *, panel_key: str, index: int) -> dict[
     """Coerce one flyout link mapping into the template contract."""
     if not isinstance(link, Mapping):
         raise TemplateSyntaxError(
-            f"bw_flyout panels[{panel_key!r}][{index}] must be a mapping with href and label, "
-            f"got {type(link).__name__}"
+            f"bw_flyout panels[{panel_key!r}][{index}] must be a mapping with href and label, got {type(link).__name__}"
         )
     if "href" not in link or "label" not in link:
-        raise TemplateSyntaxError(
-            f"bw_flyout panels[{panel_key!r}][{index}] requires href= and label= keys"
-        )
+        raise TemplateSyntaxError(f"bw_flyout panels[{panel_key!r}][{index}] requires href= and label= keys")
     return {
         "href": link["href"] or "#",
         "label": link["label"],
@@ -360,8 +357,7 @@ def _panels_from_mapping(panels: Mapping[object, object]) -> list[dict[str, Any]
         panel_key = str(key)
         if isinstance(links, (str, bytes)) or not isinstance(links, Sequence):
             raise TemplateSyntaxError(
-                f"bw_flyout panels[{panel_key!r}] must be a sequence of link mappings, "
-                f"got {type(links).__name__}"
+                f"bw_flyout panels[{panel_key!r}] must be a sequence of link mappings, got {type(links).__name__}"
             )
         out.append(
             {

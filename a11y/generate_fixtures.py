@@ -3560,8 +3560,6 @@ def render_account_menu_post(theme: str) -> str:
     )
 
 
-
-
 _NOTIFICATIONS_PAGE = """<!doctype html>
 <html lang="en" data-theme="__THEME__">
 <head>
@@ -3594,6 +3592,7 @@ def render_notifications(theme: str) -> str:
         .replace("__CSS__", f"<style>{css}</style>")
         .replace("__NOTIFICATIONS__", html)
     )
+
 
 # --- the 1.2.0 marketing kit fixtures (brickwork.marketing, BR-BW-MKT-002) ---
 #

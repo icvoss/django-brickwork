@@ -485,6 +485,40 @@
   margin-block-end: var(--bw-density-section-gap);
 }
 
+/* Narrow viewports: seat title + description full width before page actions
+ * (icvoss/django-brickwork#739). */
+@media (width < --theme(--breakpoint-sm)) {
+  .bw-page-header-region {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .bw-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--bw-space-2);
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .bw-page-actions .bw-btn .bw-btn__label {
+    white-space: nowrap;
+  }
+  /* Icon-led actions collapse to icon-only so labels do not wrap at 375px. */
+  .bw-page-actions .bw-btn:has(.bw-btn__icon) .bw-btn__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .bw-page-actions .bw-btn:has(.bw-btn__icon) {
+    position: relative;
+  }
+}
+
 /* --- Page patterns (0.5.0): composition scaffolding only -------------------- */
 
 /* The dashboard stat row (patterns/dashboard.html): a responsive auto-fit
@@ -511,6 +545,14 @@
  * (icvoss/django-brickwork#136). */
 .bw-section-stack > * {
   min-inline-size: 0;
+}
+
+/* Listing control decks keep stack-gap margin when they sit on the page
+ * canvas alone. Inside .bw-section-stack the grid gap is the spacing owner
+ * (icvoss/django-brickwork#737). */
+.bw-section-stack > .bw-filter-bar,
+.bw-section-stack > .bw-bulk-actions-bar {
+  margin-block-end: 0;
 }
 
 /* The app-surface N-column arrangement primitive (icvoss/django-brickwork#399,

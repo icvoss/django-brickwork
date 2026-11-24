@@ -339,14 +339,12 @@ def test_bw_nav_output_carries_no_new_renderer_vocabulary() -> None:
     assert "bw-nav-header" not in out
     assert "bw-nav-rail" not in out
 
+
 # --- {% bw_flyout %}: rail flyout companion (#758) -------------------------
 
 
 def test_bw_flyout_from_panels_mapping() -> None:
-    source = (
-        "{% load brickwork_nav %}"
-        "{% bw_flyout panels=panels %}"
-    )
+    source = "{% load brickwork_nav %}{% bw_flyout panels=panels %}"
     panels = {
         "channels": (
             {"href": "/channels/email/", "label": "Email", "badge": 3},
@@ -383,4 +381,3 @@ def test_bw_flyout_rejects_both_panels_and_items() -> None:
 def test_bw_flyout_requires_panels_or_items() -> None:
     with pytest.raises(TemplateSyntaxError, match="requires panels"):
         Template("{% load brickwork_nav %}{% bw_flyout %}").render(Context())
-

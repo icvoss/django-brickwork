@@ -212,6 +212,7 @@ Status values:
 | mobile_nav_toggle | N/A (keep lean) | Shell seam only |
 | media_text | Adopted | Marketing media+copy band; L1 costume via tokens |
 | modal | Adopted | `size`, `header_recipe`, `footer_recipe` |
+| notifications | N/A (defaults) | Topbar bell/panel shell (#758); rich list stays host-owned |
 | page_header | Adopted | `surface` default/tint |
 | pager | N/A (defaults) | Matches pagination craft |
 | pagination | N/A (defaults) | Hit targets/spacing authored |
@@ -287,7 +288,7 @@ viable-primitives integration (`input_group`, `date_picker_chrome`,
 | Missing | Status | Notes |
 |---|---|---|
 | command_palette | N/A (deferred) | ROADMAP Wave 5 / #156 |
-| notification_list | N/A (deferred) | ROADMAP Wave 5 |
+| notification_list | N/A (deferred) | Shell ships as catalogue `notifications` (#758); rich list stays Wave 5 |
 | newsletter_band | N/A (deferred) | Marketing demand |
 
 <!-- phase5-adoption:end -->
