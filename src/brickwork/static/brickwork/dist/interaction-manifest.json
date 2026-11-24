@@ -56,6 +56,9 @@
     },
     {
       "name": "bwDisclosure"
+    },
+    {
+      "name": "bwCommand"
     }
   ],
   "events": [
@@ -76,6 +79,15 @@
     },
     {
       "name": "bw:combobox:select"
+    },
+    {
+      "name": "bw:command:close"
+    },
+    {
+      "name": "bw:command:open"
+    },
+    {
+      "name": "bw:command:select"
     },
     {
       "name": "bw:dismiss"

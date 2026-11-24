@@ -15,8 +15,9 @@
 // django-brickwork lockstep (GAP-POP-1). bwDisclosure
 // (icvoss/brickwork#233) animates the close of a native details and, when
 // dismiss is left on, closes it from a pointer outside or Escape (see
-// ./disclosure.js); the toggle switch likewise ships no JS
-// (native checkbox + role=switch, see forms/_field.html /
+// ./disclosure.js); bwCommand (icvoss/django-brickwork#156) is the cmdk
+// progressive enhancement over {% bw_search %}; the toggle switch likewise
+// ships no JS (native checkbox + role=switch, see forms/_field.html /
 // components/_toggle.html); the stepper (brickwork#59) ships no JS either
 // (purely structural, server-driven step navigation); the whole-form
 // renderer (brickwork#53) ships no JS either (structure only,
@@ -39,6 +40,7 @@ import sortable from "./sortable.js";
 import themeSwitch from "./theme_switch.js";
 import codeCopy from "./code_copy.js";
 import disclosure from "./disclosure.js";
+import command from "./command.js";
 
 // The registered-marker attribute (brickwork#87): registerBrickworkComponents
 // stamps it on <html> at call time, so the shell's dev-only inline detector
@@ -86,6 +88,7 @@ export function registerBrickworkComponents(Alpine) {
   Alpine.data("bwThemeSwitch", themeSwitch);
   Alpine.data("bwCodeCopy", codeCopy);
   Alpine.data("bwDisclosure", disclosure);
+  Alpine.data("bwCommand", command);
 }
 
 /**
