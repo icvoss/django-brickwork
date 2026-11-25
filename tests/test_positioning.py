@@ -295,7 +295,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     product-shot-placement, marketing-reveal), moving the real count to
     83/166.)
     The hero width="bleed" work (icvoss/django-brickwork#710) then added a
-    hero-bleed-soft-stage fixture pair, moving the real count to 84/168, then lockstep-components (#757) to 85/170.
+    hero-bleed-soft-stage fixture pair, moving the real count to 84/168, then lockstep-components (#757) to 85/170, then command palette (#156) to 86/172.
     The archetype half is different: it is walked from the SAME shipped
     manifest every other gated row already reads, so it is genuinely free
     to check here.
@@ -308,7 +308,7 @@ def test_a11y_gate_archetype_fixture_count_matches_the_shipped_manifest() -> Non
     document_count = manifest["counts"]["archetypes"] + manifest["counts"]["skeletons"]
 
     value, note = _table_rows()["A11y gate"]
-    assert _leading_int(value) == 170 + (document_count * 2)
+    assert _leading_int(value) == 174 + (document_count * 2)
     assert f"{document_count} catalogue documents x light and dark" in note
 
 

@@ -319,10 +319,12 @@ inside a labelled `<nav>` landmark (the shells already provide one per slot).
 - **`{% bw_nav_rail %}`**: the compact icon+label rail, tier one of the
   capability-rail + contextual-sidebar (two-tier) layout. Navigable entries
   are real links; `menu_trigger=True` items render as
-  `<button aria-haspopup="menu" aria-expanded="false">` (brickwork#702) and
-  the flyout panel stays consumer-owned. Children are never rendered by the
-  rail: they belong to the contextual second tier / mobile tree. `variant`
-  defaults to `"labelled"` (caption labels always visible); pass
+  `<button aria-haspopup="menu" aria-expanded="false">` (brickwork#702). Pair
+  with the optional `{% bw_flyout %}` companion (brickwork#758) for the panel,
+  or keep host Alpine wiring; `bwNavFlyout` syncs `aria-expanded` against
+  `data-bw-nav-menu-trigger`. Children are never rendered by the rail: they
+  belong to the contextual second tier / mobile tree / flyout panels.
+  `variant` defaults to `"labelled"` (caption labels always visible); pass
   `variant="icons"` for an icon-only resting rail that expands on
   hover/focus-within (brickwork#701). The former `density="labelled|icons"`
   spelling still works for the deprecation window (it raises a
@@ -370,9 +372,39 @@ inside a labelled `<nav>` landmark (the shells already provide one per slot).
 
   Mobile keeps **one** drawer tree below `--bw-breakpoint-md`: both desktop
   columns hide; fill `{% block mobile_nav %}` with the full reachable tree
-  (including children of any `menu_trigger` items). Neither compact renderer
-  ships a flyout panel: hover/flyout enhancement is consumer-owned
-  progressive enhancement, never a requirement.
+  (including children of any `menu_trigger` items). That drawer tree is the
+  no-JS floor for flyout destinations; `{% bw_flyout %}` is progressive
+  enhancement beside the rail, never a requirement.
+
+### Forge chrome seams (brickwork#758)
+
+Three forge-chrome gaps that first showed up on ui.vendably.com
+(`layout="regions"`). Package versus host split:
+
+| Seam | Package owns | Host owns | Tracker |
+|---|---|---|---|
+| Command palette / cmdk | Not in this slice; composition lands under #156 (`bw_command` over `bw_search`) | Shortcut contract, suggestion data, Able/AI sections until #156 ships | [#156](https://github.com/icvoss/django-brickwork/issues/156) |
+| Rail flyout | Kit CSS (`.bw-flyout*`), `{% bw_flyout %}`, `bwNavFlyout` Alpine PE | Panel link data (or pass `items=` with `menu_trigger` children); may keep host JS when the flyout must share state with host chrome | #758 |
+| Notifications | Kit CSS (`.bw-notifications*`), `{% bw_notifications %}` trigger/panel shell with empty default body | Rich notification list / feed models; fill `{% block body %}` via extends when needed | #758 (shell now; rich list later) |
+
+```django
+{% block rail %}
+  {% bw_nav_rail items=rail_items active=nav_active variant="icons" %}
+{% endblock %}
+{# Place the flyout once per page, typically near the topbar / shell root #}
+{% bw_flyout panels=flyout_panels %}
+{# or: {% bw_flyout items=rail_items %} #}
+
+{% block topbar_notifications %}
+  {% bw_notifications count=notification_count %}
+{% endblock %}
+```
+
+`panels` is a mapping of trigger key (matching `data-bw-nav-menu-trigger`) to
+a sequence of `{href, label, badge?}` dicts. Kit CSS for these classes lands
+with the next `@bwui/css` pin after the craft Unreleased cut; until then the
+source mirrors carry the rules and class-contract tests allowlist the pending
+pin.
 
 ## 3. The context processor (the sharp edge, brickwork#22)
 
@@ -692,6 +724,52 @@ with no error at all. Three aids now exist:
 The correct wiring remains unchanged: `Alpine.plugin(focus)`, then
 `registerBrickworkComponents(Alpine)`, then `Alpine.start()`.
 
+### Command palette over search (icvoss/django-brickwork#156)
+
+`{% bw_command %}` is progressive enhancement over `{% bw_search %}`, not a
+replacement. Keep the plain search GET form in the topbar; place the palette
+once per page (typically near the end of the shell). Without JavaScript the
+palette stays `display: none` (kit CSS needs `[data-bw-open]`), so search never
+depends on the overlay.
+
+```django
+{% load brickwork_components %}
+
+{# No-JS floor: always keep this #}
+{% bw_search action="/search/" value=request.GET.q %}
+
+{# Optional visible open affordance (inert without Alpine) #}
+<button type="button" class="bw-btn bw-btn--ghost bw-btn--size-sm" data-bw-cmdk-open>
+  <span class="bw-cmdk__hint" aria-hidden="true">
+    <kbd class="bw-kbd">Ctrl</kbd><kbd class="bw-kbd">K</kbd>
+  </span>
+  <span class="bw-visually-hidden">Open command palette</span>
+</button>
+
+{% bw_command action="/search/" items=command_items %}
+```
+
+**Items contract.** Pass a list or tuple of mappings:
+
+| Key | Required | Meaning |
+|---|---|---|
+| `label` | yes | Primary text; also the default filter haystack |
+| `href` | yes | Navigation target (`url` is accepted as an alias) |
+| `group` | no | Consecutive items with the same group share one group label |
+| `hint` | no | Secondary trailing text |
+| `keywords` | no | Extra filter text, not shown |
+
+Flatten a prepared `NavItem` tree or a search-suggestion list into that shape
+yourself (resolve hrefs and visibility in the host). Optional `action` / `name`
+mirror `bw_search`: a non-empty query reveals a search row that navigates to
+`action?name=<query>`.
+
+**Open / close.** Cmd/Ctrl+K toggles; Escape and scrim click close; focus is
+trapped in the panel via `x-trap` (host `@alpinejs/focus`). Any
+`[data-bw-cmdk-open]` click opens. Events: `bw:command:open`,
+`bw:command:close`, `bw:command:select`. Chrome uses the shipped `.bw-cmdk*`
+kit classes already in `brickwork.css`.
+
 ### A second brickwork.css link silently undoes your brand (brickwork#271)
 
 Brand overrides win only because they load **after** the single package
@@ -863,7 +941,7 @@ stay registered (they are, out of the box, via the seed) for the chrome itself
 to render:
 
 <!-- chrome-icon-names:start -->
-`arrow-down`, `arrow-up`, `check`, `chevron-back`, `chevron-down`,
+`arrow-down`, `arrow-up`, `bell`, `check`, `chevron-back`, `chevron-down`,
 `chevron-forward`, `close`, `copy`, `external-link`, `folder`, `info`,
 `menu`, `minus`, `search`, `sidebar`, `sort`, `upload`
 <!-- chrome-icon-names:end -->
@@ -893,6 +971,7 @@ which family drew a glyph. Three supported shapes, in increasing effort:
    | brickwork chrome name | nearest Heroicons name |
    |---|---|
    | `arrow-down` / `arrow-up` | `arrow-down` / `arrow-up` |
+| `bell` | `bell` |
    | `check` | `check` |
    | `chevron-back` / `chevron-forward` | `chevron-left` / `chevron-right` |
    | `chevron-down` | `chevron-down` |

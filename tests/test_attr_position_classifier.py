@@ -94,6 +94,9 @@ _COMPOSED: dict[str, int] = {
     "components/_token_specimen.html|style|row.name": 5,
     "forms/_form.html|class|layout": 1,
     "forms/_form.html|style|grid_columns": 1,
+    "components/_command.html|x-data|id|escapejs|action|escapejs|name|escapejs": 1,
+    "nav/_flyout.html|id|panel.key": 1,
+    "nav/_flyout.html|x-show|panel.key|escapejs": 1,
 }
 
 # ADR-097 section 6: extends-group residual attribute sites.
@@ -213,6 +216,8 @@ _KNOWN_EXEMPT: dict[str, int] = {
     "forms/_form.html|data-density|density": 1,
     "nav/_nav.html|href|item.href|default:'#'": 1,
     "nav/_nav_header.html|href|item.href|default:'#'": 1,
+    "nav/_flyout.html|data-bw-flyout-panel|panel.key": 1,
+    "nav/_flyout.html|href|link.href": 1,
     "nav/_nav_rail.html|data-bw-nav-menu-trigger|item.key": 1,
     "nav/_nav_rail.html|href|item.href|default:'#'": 1,
     "shell/app.html|data-bw-sidebar-collapse-label|bw_sidebar_collapse_label": 1,

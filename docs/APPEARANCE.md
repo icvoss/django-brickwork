@@ -183,6 +183,7 @@ Status values:
 | chart_data_table | N/A (defaults) | Header chrome shares data_table tokens |
 | chip | Adopted | `variant`, `size` |
 | code | N/A (defaults) | Muted/raised panel authored; line numbers stay Could |
+| command | N/A (defaults) | Cmdk over search; kit `.bw-cmdk*` already pinned; Alpine PE (#156) |
 | combobox | Adopted | `size` (xs, sm, md, lg, xl) | Listbox panel matches dropdown craft; the frame, text, chips and icons follow the step |
 | comparison_table | Adopted | `highlighted` (0-based index or plan name); emits `__col--highlighted` |
 | cta | Adopted | `band`, `width` (ADR-057); `align` center (default) / start (#697) |
@@ -212,6 +213,7 @@ Status values:
 | mobile_nav_toggle | N/A (keep lean) | Shell seam only |
 | media_text | Adopted | Marketing media+copy band; L1 costume via tokens |
 | modal | Adopted | `size`, `header_recipe`, `footer_recipe` |
+| notifications | N/A (defaults) | Topbar bell/panel shell (#758); rich list stays host-owned |
 | page_header | Adopted | `surface` default/tint |
 | pager | N/A (defaults) | Matches pagination craft |
 | pagination | N/A (defaults) | Hit targets/spacing authored |
@@ -286,8 +288,8 @@ viable-primitives integration (`input_group`, `date_picker_chrome`,
 
 | Missing | Status | Notes |
 |---|---|---|
-| command_palette | N/A (deferred) | ROADMAP Wave 5 / #156 |
-| notification_list | N/A (deferred) | ROADMAP Wave 5 |
+| command_palette | N/A (deferred) | Shipped as catalogue `command` (#156); row kept for Wave 5 history |
+| notification_list | N/A (deferred) | Shell ships as catalogue `notifications` (#758); rich list stays Wave 5 |
 | newsletter_band | N/A (deferred) | Marketing demand |
 
 <!-- phase5-adoption:end -->

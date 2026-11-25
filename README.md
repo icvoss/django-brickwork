@@ -46,7 +46,7 @@ density x direction). Rebranding is token-first: every visual value is a
 by touching component classes.
 
 Accessibility is tested, not asserted by design. CI blocks every push on an
-axe-core WCAG 2.2 AA scan across 276 documents (170 hand-maintained fixtures
+axe-core WCAG 2.2 AA scan across 280 documents (174 hand-maintained fixtures
 plus 106 catalogue-document pages, being 53 catalogue documents, 52 archetypes
 and 1 skeleton, each x light and dark themes), plus a no-JS floor suite,
 keyboard suites,
@@ -67,7 +67,8 @@ evidence than a gate that has never missed.
 > (elevation, state overlays, type
 > roles, motion, borders, with fine colours derived live from a small
 > load-bearing brand set via `color-mix()`), the interaction set (modal,
-> toast, dropdown, combobox, tabs, disclosure, tooltip, slide-over), forms
+> toast, dropdown, combobox, tabs, disclosure, command palette, tooltip,
+> slide-over), forms
 > with the whole-form renderer and the HTMX 422 loop, the data table with
 > sortable and selectable modes, the feedback and input-chrome primitives, the
 > wizard/stepper, and a machine-readable token contract with a per-tenant

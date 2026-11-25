@@ -1,0 +1,42 @@
+{% load i18n brickwork_icons %}
+{% comment %}
+Topbar notifications shell (brickwork#758): trigger (bell) + panel chrome with
+an empty default body. Rich notification feeds stay host-owned.
+
+Consumption modes:
+  Tag          {% bw_notifications %} (load brickwork_components) for the
+               default empty shell inside {% block topbar_notifications %}.
+  Extends      Fill {% block body %} for a custom list; optional block
+               trigger_icon for a different glyph.
+
+Named blocks (semver-public, BR-BW-TPL-001):
+  trigger_icon:  glyph inside the summary. Default: bell icon.
+  body:          panel contents. Default: the empty-state paragraph.
+
+Required context (tag supplies defaults):
+  count (0):           unread count; badge omitted when zero / None / falsy.
+  label:               accessible name for the trigger and panel.
+  empty_message:       default empty-state copy when body is not overridden.
+  open (False):        stamp the details open (fixtures / tests).
+
+No-JS floor: native <details>/<summary>. No Alpine upgrade in this slice;
+the host may enhance later. Count badge is decorative relative to the
+labelled trigger (the label already names the control).
+States: closed (default); open when the details is expanded or opened=True.
+Accessibility: summary carries aria-label; panel is a named region; count badge
+  is decorative relative to the labelled trigger.
+Responsive: no breakpoint switch; panel anchors under the trigger at end edge.
+{% endcomment %}
+{% translate "Notifications" as bw_notifications_default_label %}
+{% translate "No new notifications" as bw_notifications_default_empty %}
+<details class="bw-notifications"{% if open %} open{% endif %}>
+  <summary class="bw-notifications__trigger" aria-label="{% firstof label bw_notifications_default_label %}">
+    {% block trigger_icon %}{% bw_icon "bell" size="md" decorative=True %}{% endblock %}
+    {% if count %}<span class="bw-notifications__count">{{ count }}</span>{% endif %}
+  </summary>
+  <div class="bw-notifications__panel" aria-label="{% firstof label bw_notifications_default_label %}">
+    {% block body %}
+      <p class="bw-notifications__empty">{% firstof empty_message bw_notifications_default_empty %}</p>
+    {% endblock %}
+  </div>
+</details>

@@ -3560,6 +3560,40 @@ def render_account_menu_post(theme: str) -> str:
     )
 
 
+_NOTIFICATIONS_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notifications shell (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Notifications shell (open, with count)</h1>
+  __NOTIFICATIONS__
+</main>
+</body>
+</html>
+"""
+
+
+def render_notifications(theme: str) -> str:
+    """Notifications trigger/panel shell (brickwork#758): open details with count."""
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    request = RequestFactory().get("/")
+    html = render_to_string(
+        "brickwork/components/_notifications.html",
+        {"count": 3, "open": True},
+        request=request,
+    )
+    return (
+        _NOTIFICATIONS_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__NOTIFICATIONS__", html)
+    )
+
+
 # --- the 1.2.0 marketing kit fixtures (brickwork.marketing, BR-BW-MKT-002) ---
 #
 # The three marketing pages went the same way as the app page tier in 2.0.0
@@ -4879,6 +4913,80 @@ def render_search(theme: str) -> str:
     )
 
 
+# --- command palette fixture (icvoss/django-brickwork#156) -------------------
+#
+# command-<theme>.html is a standalone page composing the REAL {% bw_command %}
+# tag beside a plain {% bw_search %} so the progressive-enhancement contract
+# (search form remains the no-JS floor; palette is closed without [data-bw-open])
+# is what axe, keyboard and no-JS gates examine.
+
+_COMMAND_PAGE = """<!doctype html>
+<html lang="en" data-theme="__THEME__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Command palette (__THEME__)</title>
+__CSS__
+</head>
+<body class="bw-body">
+<main>
+  <h1>Command palette</h1>
+
+  <section aria-labelledby="command-search-heading">
+    <h2 id="command-search-heading">Search floor</h2>
+    __SEARCH__
+  </section>
+
+  <section aria-labelledby="command-palette-heading">
+    <h2 id="command-palette-heading">Palette</h2>
+    __COMMAND__
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def _render_command_fixture() -> str:
+    from django.template import Context, Template
+
+    return Template("{% load brickwork_components %}{% bw_command action='/search/' items=items %}").render(
+        Context(
+            {
+                "items": (
+                    {
+                        "label": "Dashboard",
+                        "href": "/app/",
+                        "group": "Navigation",
+                        "hint": "Home",
+                    },
+                    {
+                        "label": "Settings",
+                        "href": "/settings/",
+                        "group": "Navigation",
+                    },
+                    {
+                        "label": "New project",
+                        "href": "/projects/new/",
+                        "group": "Actions",
+                        "keywords": "create",
+                    },
+                )
+            }
+        )
+    )
+
+
+def render_command(theme: str) -> str:
+    css = (ROOT / "src/brickwork/static/brickwork/dist/brickwork.css").read_text()
+    return (
+        _COMMAND_PAGE.replace("__THEME__", theme)
+        .replace("__CSS__", f"<style>{css}</style>")
+        .replace("__SEARCH__", _render_search_fixture())
+        .replace("__COMMAND__", _render_command_fixture())
+    )
+
+
 # --- @bwui 0.1.11 lockstep surfaces (banner, media_text, number_stepper, popover) ---
 #
 # lockstep-components-<theme>.html covers the four catalogue components that
@@ -5551,6 +5659,8 @@ def main() -> None:
         _emit(OUT / f"confirm-{theme}.html", render_confirm(theme), written)
         _emit(OUT / f"auth-signin-{theme}.html", render_auth_signin(theme), written)
         _emit(OUT / f"account-menu-post-{theme}.html", render_account_menu_post(theme), written)
+        # notifications trigger/panel shell (brickwork#758): open details + count
+        _emit(OUT / f"notifications-{theme}.html", render_notifications(theme), written)
         # the 1.2.0 marketing kit (brickwork.marketing, BR-BW-MKT-002): the
         # three shipped pages, each rendered through a consumer-shaped
         # extension carrying representative content
@@ -5630,6 +5740,8 @@ def main() -> None:
         # search + loading button (#226): bw_search and _spinner.html's
         # loading=True mount, neither previously rendered by any fixture
         _emit(OUT / f"search-{theme}.html", render_search(theme), written)
+        # command palette (#156): bw_command kit chrome beside bw_search floor
+        _emit(OUT / f"command-{theme}.html", render_command(theme), written)
         # @bwui 0.1.11 lockstep catalogue surfaces (#757): banner, media_text,
         # number_stepper, popover — none previously resolved by any fixture
         _emit(OUT / f"lockstep-components-{theme}.html", render_lockstep_components(theme), written)

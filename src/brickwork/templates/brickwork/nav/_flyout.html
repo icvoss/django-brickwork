@@ -1,0 +1,50 @@
+{% comment %}
+Rail flyout panel (brickwork#758): optional companion to {% bw_nav_rail %}
+menu_trigger buttons. Renders prepared panel link lists beside the capability
+rail. Private render target of {% bw_flyout %} (load brickwork_nav): call the
+tag, never include this partial.
+
+Contract:
+  Consumption  panels arrive as an ordered sequence of {key, links} where each
+               link is {href, label, badge?}. The tag prepares that shape from
+               a panels mapping or from menu_trigger NavItems with children.
+  PE           Root carries x-data="bwNavFlyout()" (semver-public Alpine name).
+               With registration, clicks on [data-bw-nav-menu-trigger] toggle
+               the matching panel and sync aria-expanded. Without JS the root
+               stays hidden (x-cloak / x-show); the no-JS floor keeps children
+               reachable via {% bw_nav %} in the mobile drawer (BR-BW-HTMX-001).
+  Placement    CSS anchors the root beside --bw-density-rail-width at
+               --bw-z-overlay. Host may keep its own Alpine wiring instead of
+               bwNavFlyout when the flyout must share state with host chrome
+               (for example a command palette); document that choice.
+  A11y         Each panel is role="menu"; links are role="menuitem". Triggers
+               already emit aria-haspopup="menu" from the rail renderer.
+{% endcomment %}
+<div
+  class="bw-flyout"
+  x-data="bwNavFlyout()"
+  x-cloak
+  x-show="isOpen"
+  @keydown.escape.window="close('escape')"
+>
+  {% for panel in panels %}
+  <div
+    class="bw-flyout__panel"
+    x-show="activeKey === '{{ panel.key|escapejs }}'"
+    id="bw-flyout-{{ panel.key }}"
+    role="menu"
+    data-bw-flyout-panel="{{ panel.key }}"
+  >
+    <ul class="bw-flyout__list" role="list">
+      {% for link in panel.links %}
+      <li role="none">
+        <a class="bw-flyout__link" href="{{ link.href }}" role="menuitem">
+          {{ link.label }}
+          {% if link.badge is not None %}<span class="bw-flyout__badge">{{ link.badge }}</span>{% endif %}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</div>

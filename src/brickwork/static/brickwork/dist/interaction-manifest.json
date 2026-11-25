@@ -56,6 +56,12 @@
     },
     {
       "name": "bwDisclosure"
+    },
+    {
+      "name": "bwCommand"
+    },
+    {
+      "name": "bwNavFlyout"
     }
   ],
   "events": [
@@ -78,6 +84,15 @@
       "name": "bw:combobox:select"
     },
     {
+      "name": "bw:command:close"
+    },
+    {
+      "name": "bw:command:open"
+    },
+    {
+      "name": "bw:command:select"
+    },
+    {
       "name": "bw:dismiss"
     },
     {
@@ -88,6 +103,12 @@
     },
     {
       "name": "bw:dropzone:change"
+    },
+    {
+      "name": "bw:flyout:close"
+    },
+    {
+      "name": "bw:flyout:open"
     },
     {
       "name": "bw:modal:close"
