@@ -11,17 +11,17 @@ repository keeps a **release mirror** of source that still lives here, and
 mirrored files here and treat that as source: change the monorepo, then
 sync and, for tokens/CSS, publish `@bwui/*` and bump the pins below.
 
-## Shipped token and CSS artefacts (npm, 0.1.14 for django-brickwork 4.7.1)
+## Shipped token and CSS artefacts (npm, 0.1.15 for django-brickwork 4.7.2)
 
 The wheel's `static/brickwork/dist/{tokens.css,tailwind-theme.css,tokens.js,token-manifest.json,brickwork.css}`
 are produced from published packages during `npm run build`. django-brickwork
-4.7.1 pins `@bwui` at 0.1.14, so the disclosure exit CSS that 4.7.0 waited
-on is now in the vendored stylesheet.
+4.7.2 pins `@bwui` at 0.1.15, so pip consumers get the OQ-SZ-3 display icon
+ramp and wave-b density geometry that craft cut in that train.
 
 | Package | Pin | Dist files in the wheel |
 |---|---|---|
-| `@bwui/tokens` | `0.1.14` | `tokens.css`, `tailwind-theme.css`, `tokens.js`, `token-manifest.json` (copied) |
-| `@bwui/css` | `0.1.14` | `brickwork.css` (minified with lightningcss; includes index extras and document a11y from [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11), plus disclosure exit from 0.1.14) |
+| `@bwui/tokens` | `0.1.15` | `tokens.css`, `tailwind-theme.css`, `tokens.js`, `token-manifest.json` (copied) |
+| `@bwui/css` | `0.1.15` | `brickwork.css` (minified with lightningcss; includes index extras and document a11y from [icvoss/brickwork#11](https://github.com/icvoss/brickwork/issues/11), disclosure exit from 0.1.14, plus density / display-icon work from 0.1.15) |
 
 Integrity: `src/brickwork/static/brickwork/dist/bwui-pin.json` records the
 installed versions. CI's frontend-build job runs `npm ci` then `npm run build`
