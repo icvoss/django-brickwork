@@ -10,8 +10,10 @@ versioning contract).
 
 ## [4.7.2] - 2026-11-23
 
-Lockstep with `@bwui` 0.1.15. Pip consumers get the display icon ramp and
-wave-b density geometry through `{% static %}`, with no npm step of their own.
+Lockstep with `@bwui` 0.1.15, plus the forge chrome and command palette
+surfaces that landed on `main` after 4.7.1. Pip consumers get the display
+icon ramp and wave-b density geometry through `{% static %}`, with no npm
+step of their own.
 
 Visible on upgrade from 4.7.1:
 
@@ -20,6 +22,36 @@ Visible on upgrade from 4.7.1:
 - **Wave-b control geometry follows density tokens.** Vendored CSS reads
   `--bw-space-*` / `--bw-control-height` for kbd, tags, OTP digit and password
   controls instead of hard-coded rem.
+
+### Added
+
+- **`{% bw_command %}` command palette (cmdk), progressive enhancement over
+  `{% bw_search %}`** (icvoss/django-brickwork#156; forge chrome seam under
+  icvoss/django-brickwork#758). Renders kit `.bw-cmdk*` chrome. Without
+  JavaScript the overlay stays closed, so a sibling search GET form remains
+  the floor. With Alpine (`bwCommand`), Cmd/Ctrl+K opens it, Escape and
+  scrim click close it, focus is trapped in the panel, and typing filters
+  consumer-supplied items. Optional `action` / `name` mirror `bw_search` so
+  a query can navigate to the same GET surface. Items contract and wiring:
+  `docs/INTEGRATION.md` (Command palette over search). Craft CSS/JS needed
+  no pin bump for cmdk: `.bw-cmdk*` is already in the vendored stylesheet;
+  django PE is Alpine, parallel to craft's `initCmdk`.
+
+- **`{% bw_flyout %}` rail flyout companion** (icvoss/django-brickwork#758).
+  Kit CSS classes `.bw-flyout*` (craft Unreleased after `@bwui` 0.1.15;
+  pending a later `@bwui/css` pin), `nav/_flyout.html`, and `bwNavFlyout`
+  Alpine PE that wires `data-bw-nav-menu-trigger` to panel visibility and
+  `aria-expanded`. Pass `panels=` (key to link dicts) or `items=` (derive
+  from `menu_trigger` children). No-JS floor remains `{% bw_nav %}` in the
+  mobile drawer.
+
+- **`{% bw_notifications %}` topbar shell** (icvoss/django-brickwork#758).
+  Native `<details>` bell trigger, count badge, and empty panel body for
+  `{% block topbar_notifications %}`. Extend `_notifications.html` and fill
+  `{% block body %}` for a custom list; rich feed models stay host-owned.
+
+- **Forge chrome package-versus-host docs** in INTEGRATION.md and
+  INTERFACE-SYSTEM.md for the three seams (cmdk stays on #156).
 
 ### Changed
 

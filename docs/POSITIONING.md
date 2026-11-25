@@ -264,7 +264,7 @@ distinction; do not imply RTL is axe-tested.
 
 Consumers build a **Brickwork Theme** by overriding `--bw-*` tokens, never by
 touching component classes ([docs/THEME.md](THEME.md), ADR-110). 358 unique
-`--bw-*` tokens exist (dated at 3.12.0), 375 overridable. 10 are load-bearing,
+`--bw-*` tokens exist (dated at 3.12.0), 380 overridable. 10 are load-bearing,
 of which 8 are unconditional.
 
 **L1 Recolour** (the load-bearing colour minimum plus `fg-on-accent`, light and
@@ -326,7 +326,7 @@ sight, and are refreshed by hand at the next audit.
 | Archetypes | 52 | **Gated** against `catalogue-manifest.json`. `examples/base.html` moved out of this count into its own `skeleton` kind (icvoss/django-brickwork#464): it is a raw document skeleton a consumer copies, not a complete page, and was the only archetype ever carrying `family: null` |
 | Template tag registrations | 35 total | 24 `inclusion_tag`, 10 `simple_tag`, 1 `filter`. Write "24 component tags" or state the 35 total; never a bare "24 template tags". **Gated** by importing the templatetags libraries and counting `register.tags`/`register.filters` |
 
-| Tokens | 358 unique `--bw-*` | 375 overridable; 10 load-bearing, 8 unconditional. **Overridable count gated** against `token-manifest.json`; the 358 total (all custom properties in compiled `tokens.css`) is **dated** at 3.12.0 |
+| Tokens | 358 unique `--bw-*` | 380 overridable; 10 load-bearing, 8 unconditional. **Overridable count gated** against `token-manifest.json`; the 358 total (all custom properties in compiled `tokens.css`) is **dated** at 3.12.0 |
 | Alpine components | 20 | bwDropdown, bwTabs, bwModal, bwToastRegion, bwToast, bwCombobox, bwDismissible, bwTooltip, bwPopover, bwTagInput, bwDropzone, bwSidebarCollapse, bwSlideOver, bwTableSelection, bwSortable, bwThemeSwitch, bwCodeCopy, bwDisclosure, bwCommand, bwNavFlyout. **Gated** by parsing the `Alpine.data(...)` calls in `frontend/src/js/index.js`'s single registration point |
 | Examples | 96 | 52 archetype pages, 44 sections. **Gated** against `catalogue-manifest.json` |
 | Icons | 50 vendored Lucide SVG files | exposed as 53 callable names (3 aliases). State precisely; never a bare "50" or bare "53". **Dated** at 3.10.0 |
