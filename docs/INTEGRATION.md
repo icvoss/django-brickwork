@@ -421,6 +421,14 @@ DjangoTemplates backend lists `brickwork.context_processors.theme`. If your
 project deliberately uses only the component or marketing layers and never
 renders a shell, silence it with `SILENCED_SYSTEM_CHECKS = ["brickwork.W001"]`.
 
+A second system check, `brickwork.E001` (ADR-101 decision 3), is an Error: it
+fails `manage.py check`, `runserver` and `migrate` when no logging handler can
+receive records from the `brickwork` logger (a handler on `brickwork` or on the
+root logger, with `propagate` left on). Add one to `LOGGING`, for example a
+root `StreamHandler`, or silence it with
+`SILENCED_SYSTEM_CHECKS = ["brickwork.E001"]` if you accept that those records
+are discarded.
+
 Do not hand-map it. Add the shipped processor and the mapping is done for you:
 
 ```python

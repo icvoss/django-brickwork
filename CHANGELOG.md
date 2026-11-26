@@ -8,6 +8,32 @@ versioning contract).
 
 ## Unreleased
 
+## [4.7.3] - 2026-11-26
+
+### Added
+
+- **`brickwork.E001` logging-handler boot check** (ADR-101 decision 3,
+  `docs/STANDARDS.md` section 15, umbrella icvoss/icv-oss-umbrella#678).
+  `manage.py check`, `check --deploy`, `runserver` and `migrate` fail with an
+  Error when no logging handler is reachable from the `brickwork` logger (a handler on the
+  logger itself, or on an ancestor while `propagate` stays true;
+  `logging.lastResort` does not count). Without one, the failures this
+  package logs (navigation warnings from `brickwork.navigation`) are invisible. It is an Error, not a Warning, as
+  ADR-101 and STANDARDS require. Projects emitted by
+  `python -m brickwork startsite` now include a root `LOGGING` handler in
+  their `settings.py`, and the Path B quickstart settings block adds one, so
+  both pass `manage.py check` out of the box.
+
+### On upgrade
+
+- **Behaviour change: `manage.py check` and `check --deploy` now error.** A
+  project whose `LOGGING` configures no handler for `brickwork` or the root logger
+  will see `brickwork.E001`, and the commands that run system checks
+  (`check`, `runserver`, `migrate`, `makemigrations`) stop until it is fixed.
+  Add a handler for `brickwork` (or the root logger) in `LOGGING`, e.g.
+  `LOGGING["loggers"]["brickwork"] = {"handlers": [...], "level": "WARNING",
+  "propagate": True}`, or list `brickwork.E001` in `SILENCED_SYSTEM_CHECKS`.
+
 ## [4.7.2] - 2026-11-23
 
 Lockstep with `@bwui` 0.1.15, plus the forge chrome and command palette
