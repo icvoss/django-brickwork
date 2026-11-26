@@ -185,6 +185,17 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# brickwork.E001 (ADR-101): `manage.py check` fails when no logging handler
+# can receive records from the `brickwork` logger. A root handler covers it;
+# point it at your own destination (a file, your error tracker's handler)
+# before deploying.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+}
 '''
 
 

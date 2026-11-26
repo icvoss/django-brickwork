@@ -104,6 +104,16 @@ TEMPLATES[0]["OPTIONS"]["context_processors"] += [
 
 # Your own static directory, where the brand stylesheet below lives.
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# brickwork.E001 fails `manage.py check` when no logging handler can receive
+# records from the `brickwork` logger. A root handler is enough; point it at
+# your own destination before deploying.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+}
 ```
 
 **`mysite/urls.py`**
