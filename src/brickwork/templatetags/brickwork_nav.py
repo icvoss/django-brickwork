@@ -72,6 +72,20 @@ class RenderedNavItem:
     children: tuple[RenderedNavItem, ...]
 
 
+def _walk_rendered(tree: tuple[RenderedNavItem, ...]):
+    """Yield every prepared item in the tree, depth-first."""
+    for item in tree:
+        yield item
+        if item.children:
+            yield from _walk_rendered(item.children)
+
+
+def _collapsible_open_inactive(tree: tuple[RenderedNavItem, ...]) -> bool:
+    """True when no section header in the tree is an active ancestor (#773)."""
+    return not any(
+        item.is_section_header and item.is_active_ancestor for item in _walk_rendered(tree)
+    )
+
 def _kwarg_name_pair(kwarg_name: str | tuple[str, str]) -> tuple[str, str]:
     """Normalise a ``kwarg_name`` to a (source, target) pair. A bare string means
     the source and target names are the same."""
@@ -238,6 +252,7 @@ def bw_nav(
     resolver_match=None,
     orientation: str = "vertical",
     labels: str = "truncate",
+    collapsible_sections: bool = False,
 ) -> dict:
     """Render the nav tree. ``items`` should already be visibility-filtered
     (via visible_items in a context processor); ``active`` from resolve_active_item.
@@ -257,14 +272,24 @@ def bw_nav(
     ``labels`` is ``"truncate"`` (default: ellipsis on overflow, right for an
     app sidebar) or ``"wrap"`` (multi-line labels, right for a docs rail of
     document titles). Closed vocabulary (icvoss/django-brickwork#671).
+    
+    collapsible_sections opts vertical section_header rows with children
+    into native <details> folds (icvoss/django-brickwork#773). Default
+    False preserves the historical span markup. Horizontal orientation and
+    menu_trigger rows ignore the flag; the tag passes
+    collapsible_open_inactive when no section in the tree is an active
+    ancestor so top-level routes keep every section expanded.
     """
     resolved = orientation if orientation == "horizontal" else "vertical"
     if labels not in _NAV_LABELS:
         raise TemplateSyntaxError(f"bw_nav labels must be one of {sorted(_NAV_LABELS)}, got {labels!r}")
+    tree = _prepare_tree(context, items, active, resolver_match)
     return {
-        "bw_nav_tree": _prepare_tree(context, items, active, resolver_match),
+        "bw_nav_tree": tree,
         "orientation": resolved,
         "labels": labels,
+        "collapsible_sections": collapsible_sections,
+        "collapsible_open_inactive": _collapsible_open_inactive(tree),
     }
 
 

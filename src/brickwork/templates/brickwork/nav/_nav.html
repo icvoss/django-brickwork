@@ -17,17 +17,32 @@ Optional context from the tag:
   labels ("truncate"|"wrap", default "truncate"). Wrap adds
   bw-nav__list--labels-wrap so long labels break rather than ellipsis (#671);
   docs rails should pass labels="wrap", app sidebars keep the default.
+  collapsible_sections (bool, default false). When true on a vertical render,
+  section_header rows with children become native <details class="bw-nav__section-fold">
+  (menu_trigger unchanged). open when the section is an active ancestor or when
+  collapsible_open_inactive is true (no section in the tree is an active
+  ancestor, so Home and other top-level routes keep every section expanded).
+  Horizontal orientation ignores collapsible_sections (#773).
 {% endcomment %}
 
 {% partialdef nav_item %}
   {% comment %} `item` is a RenderedNavItem. {% endcomment %}
   {% if item.is_section_header or item.is_menu_trigger %}
     <li class="bw-nav__section">
-      <span class="bw-nav__section-label">{{ item.label }}</span>
-      {% if item.children %}
-        <ul class="bw-nav__list">
-          {% for item in item.children %}{% partial nav_item %}{% endfor %}
-        </ul>
+      {% if collapsible_sections and orientation != "horizontal" and item.is_section_header and item.children %}
+        <details class="bw-nav__section-fold"{% if item.is_active_ancestor or collapsible_open_inactive %} open{% endif %}>
+          <summary class="bw-nav__section-label">{{ item.label }}</summary>
+          <ul class="bw-nav__list">
+            {% for item in item.children %}{% partial nav_item %}{% endfor %}
+          </ul>
+        </details>
+      {% else %}
+        <span class="bw-nav__section-label">{{ item.label }}</span>
+        {% if item.children %}
+          <ul class="bw-nav__list">
+            {% for item in item.children %}{% partial nav_item %}{% endfor %}
+          </ul>
+        {% endif %}
       {% endif %}
     </li>
   {% else %}
