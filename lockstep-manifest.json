@@ -7,7 +7,7 @@
     "frontend-js"
   ],
   "editorial_home": "icvoss/brickwork",
-  "synced_at": "2026-11-24T19:47:16.684Z",
+  "synced_at": "2026-11-27T15:54:37.225Z",
   "units": {
     "tokens": {
       "breakpoint.tokens.json": "343537e2e931ed8730fb0f4eabe8ffd2be73c96083a00e6138bc4d44cb4a388b",
@@ -23,7 +23,7 @@
     },
     "css": {
       "shell.css": "8a42bd94ab17315b9f33a54bd8bc77a7d61d600c123470f7b0b5d550698b3e8b",
-      "nav.css": "0a0b05fdf92f35957d5d9e3a000a484d5af448b30513f2aada2ec91dbadd097d",
+      "nav.css": "2b11031b181e5b645c2b9a3add81dfb35cc82e8d89c97e5b4d71541110f695ff",
       "components.css": "076a817c32fc7e6d1e215b4ee8bc3da4a5e3887384759f788464177dabb3c0fc",
       "marketing.css": "9d51e891876f25db671b4a2c0d2567113c1e038e59a92ff7cf38990da36bf539"
     },
@@ -96,7 +96,7 @@
       "brickwork/forms/_form.html": "037cc8ba358b8ea4560c79ef2b217a9ae20adfb031c6a2730513e59960b2e094",
       "brickwork/forms/_form_errors.html": "fe0b4e96c441970b34759cc55c8a0f62f0b6a415e83f1eb798a5c3f008db87a4",
       "brickwork/nav/_flyout.html": "1bdd7a20454d4bb010fb923b3634efa07c22051be33c6d921e7ec9739d5a0bbb",
-      "brickwork/nav/_nav.html": "4ca3714081a0547004d33e71963bb90d8bf1f98d62b5529716333a23ffc84183",
+      "brickwork/nav/_nav.html": "1b3ed2a6e4adb630026156e4ed815d62bc1d6f80d6dd4cafcb5905cd463d027b",
       "brickwork/nav/_nav_header.html": "5cd70fb62efbf3b3d0a5a0498d2e3604acc92846cbe8e02b9d9839f325d7581c",
       "brickwork/nav/_nav_rail.html": "1d62d2109d5b100641520d9dc7e8c8ff2d11cf72f210a5a014a27383726467b1",
       "brickwork/shell/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

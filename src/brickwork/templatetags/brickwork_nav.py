@@ -82,9 +82,8 @@ def _walk_rendered(tree: tuple[RenderedNavItem, ...]):
 
 def _collapsible_open_inactive(tree: tuple[RenderedNavItem, ...]) -> bool:
     """True when no section header in the tree is an active ancestor (#773)."""
-    return not any(
-        item.is_section_header and item.is_active_ancestor for item in _walk_rendered(tree)
-    )
+    return not any(item.is_section_header and item.is_active_ancestor for item in _walk_rendered(tree))
+
 
 def _kwarg_name_pair(kwarg_name: str | tuple[str, str]) -> tuple[str, str]:
     """Normalise a ``kwarg_name`` to a (source, target) pair. A bare string means
@@ -272,12 +271,12 @@ def bw_nav(
     ``labels`` is ``"truncate"`` (default: ellipsis on overflow, right for an
     app sidebar) or ``"wrap"`` (multi-line labels, right for a docs rail of
     document titles). Closed vocabulary (icvoss/django-brickwork#671).
-    
-    collapsible_sections opts vertical section_header rows with children
-    into native <details> folds (icvoss/django-brickwork#773). Default
-    False preserves the historical span markup. Horizontal orientation and
-    menu_trigger rows ignore the flag; the tag passes
-    collapsible_open_inactive when no section in the tree is an active
+
+    ``collapsible_sections`` opts vertical ``section_header`` rows with
+    children into native ``<details>`` folds (icvoss/django-brickwork#773).
+    Default False preserves the historical span markup. Horizontal
+    orientation and ``menu_trigger`` rows ignore the flag; the tag passes
+    ``collapsible_open_inactive`` when no section in the tree is an active
     ancestor so top-level routes keep every section expanded.
     """
     resolved = orientation if orientation == "horizontal" else "vertical"
