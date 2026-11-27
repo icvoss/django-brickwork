@@ -374,3 +374,107 @@ def test_labels_wrap_clears_ellipsis_on_nav_label() -> None:
     wrap_body = wrap_match.group(1)
     assert "white-space:normal" in wrap_body
     assert "overflow:visible" in wrap_body
+
+
+# --- Collapsible section headers (icvoss/django-brickwork#773) ----------------
+
+
+def _two_section_tree():
+    return (
+        NavItem(key="home", label="Home", external_url="https://x.test/home"),
+        NavItem(
+            key="admin",
+            label="Admin",
+            section_header=True,
+            children=(NavItem(key="users", label="Users", external_url="https://x.test/users"),),
+        ),
+        NavItem(
+            key="shop",
+            label="Shop",
+            section_header=True,
+            children=(NavItem(key="orders", label="Orders", external_url="https://x.test/orders"),),
+        ),
+    )
+
+
+def _render_bw_nav(items, **extra):
+    bits = ["{% load brickwork_nav %}{% bw_nav items=items"]
+    ctx: dict = {"items": items}
+    for key, val in extra.items():
+        if isinstance(val, bool):
+            bits.append(f"{key}={val}")
+        elif key == "active":
+            bits.append("active=active")
+            ctx["active"] = val
+        elif isinstance(val, str):
+            bits.append(f"{key}='{val}'")
+    bits.append("%}")
+    return Template(" ".join(bits)).render(Context(ctx))
+
+
+def _section_fold_tag(html: str, label: str) -> str:
+    match = re.search(
+        rf'<details class="bw-nav__section-fold"([^>]*)>\s*<summary class="bw-nav__section-label">{label}</summary>',
+        html,
+    )
+    assert match is not None, f"no fold for {label!r}"
+    return match.group(1)
+
+
+def test_default_section_header_stays_span_not_details() -> None:
+    items = (
+        NavItem(
+            key="grp",
+            label="Admin",
+            section_header=True,
+            children=(NavItem(key="e", label="E", external_url="https://x.test"),),
+        ),
+    )
+    html = _render_bw_nav(items)
+    assert '<span class="bw-nav__section-label">' in html
+    assert "bw-nav__section-fold" not in html
+
+
+def test_collapsible_sections_render_details_summary() -> None:
+    html = _render_bw_nav(_two_section_tree(), collapsible_sections=True)
+    assert '<details class="bw-nav__section-fold"' in html
+    assert '<summary class="bw-nav__section-label">' in html
+    assert '<span class="bw-nav__section-label">' not in html
+
+
+def test_collapsible_active_child_opens_ancestor_section_only() -> None:
+    items = _two_section_tree()
+    active = NavItem(key="users", label="Users", external_url="https://x.test/users")
+    html = _render_bw_nav(items, collapsible_sections=True, active=active)
+    assert " open" in _section_fold_tag(html, "Admin")
+    assert " open" not in _section_fold_tag(html, "Shop")
+
+
+def test_collapsible_all_open_when_top_level_active() -> None:
+    items = _two_section_tree()
+    active = NavItem(key="home", label="Home", external_url="https://x.test/home")
+    html = _render_bw_nav(items, collapsible_sections=True, active=active)
+    assert " open" in _section_fold_tag(html, "Admin")
+    assert " open" in _section_fold_tag(html, "Shop")
+
+
+def test_collapsible_all_open_when_active_none() -> None:
+    html = _render_bw_nav(_two_section_tree(), collapsible_sections=True)
+    assert " open" in _section_fold_tag(html, "Admin")
+    assert " open" in _section_fold_tag(html, "Shop")
+
+
+def test_collapsible_horizontal_ignores_flag() -> None:
+    html = _render_bw_nav(_two_section_tree(), collapsible_sections=True, orientation="horizontal")
+    assert "bw-nav__section-fold" not in html
+    assert '<span class="bw-nav__section-label">' in html
+
+
+def test_bw_nav_dict_includes_collapsible_context() -> None:
+    items = _two_section_tree()
+    active = NavItem(key="users", label="Users", external_url="https://x.test/users")
+    result = bw_nav({}, items=items, active=active, collapsible_sections=True)
+    assert result["collapsible_sections"] is True
+    assert result["collapsible_open_inactive"] is False
+    home_only = bw_nav({}, items=items, active=items[0], collapsible_sections=True)
+    assert home_only["collapsible_open_inactive"] is True

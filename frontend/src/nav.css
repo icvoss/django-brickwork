@@ -174,6 +174,48 @@
   text-transform: uppercase;
   letter-spacing: var(--bw-text-overline-tracking);
 }
+/* Collapsible section headers ({% bw_nav collapsible_sections=True %}, #773). */
+.bw-nav__section-fold {
+  list-style: none;
+}
+
+.bw-nav__section-fold > .bw-nav__section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bw-space-2);
+  list-style: none;
+  cursor: pointer;
+  padding-block: var(--bw-space-1);
+}
+
+.bw-nav__section-fold > .bw-nav__section-label::-webkit-details-marker {
+  display: none;
+}
+
+.bw-nav__section-fold > .bw-nav__section-label::after {
+  content: "";
+  flex-shrink: 0;
+  inline-size: 0.35em;
+  block-size: 0.35em;
+  border-inline-end: var(--bw-size-border-thick) solid var(--bw-color-fg-muted);
+  border-block-end: var(--bw-size-border-thick) solid var(--bw-color-fg-muted);
+  transform: rotate(45deg);
+  margin-inline-end: var(--bw-space-1);
+  transition: var(--bw-transition-transform);
+}
+
+.bw-nav__section-fold[open] > .bw-nav__section-label::after {
+  transform: rotate(225deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-nav__section-fold > .bw-nav__section-label::after {
+    transition: none;
+  }
+}
+
+
 
 /* --- Horizontal band (SHL-001 topbar + {% bw_nav orientation="horizontal" }) */
 
