@@ -131,19 +131,5 @@ UNSTYLED_BY_DESIGN: set[str] = {
 # design": tests/test_combobox.py::test_pending_pin_classes_expire_once_the_pin_styles_them
 # fails the moment the vendored CSS styles one of them, so an entry here cannot
 # go stale. Add an entry only when a template ships ahead of the pin.
-PENDING_BWUI_CSS_PIN: set[str] = {
-    # brickwork#758 forge chrome: kit CSS lands in icvoss/brickwork Unreleased;
-    # expires when django-brickwork vendors the next @bwui/css pin that carries
-    # .bw-flyout* and .bw-notifications*.
-    "bw-flyout",
-    "bw-flyout__panel",
-    "bw-flyout__list",
-    "bw-flyout__link",
-    "bw-flyout__badge",
-    "bw-notifications",
-    "bw-notifications__trigger",
-    "bw-notifications__count",
-    "bw-notifications__panel",
-    "bw-notifications__empty",
-}
+PENDING_BWUI_CSS_PIN: set[str] = set()  # cleared at @bwui/css@0.1.16 (forge + section-fold)
 UNSTYLED_BY_DESIGN |= PENDING_BWUI_CSS_PIN
