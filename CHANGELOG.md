@@ -8,6 +8,29 @@ versioning contract).
 
 ## Unreleased
 
+## [4.7.4] - 2026-11-28
+
+Lockstep with `@bwui` 0.1.16. Pip consumers get forge chrome flyout/notifications
+styles and opt-in nav section-fold CSS through `{% static %}`, with no npm step
+of their own. The `#773` tag landed on `main` ahead of this pin; this cut puts
+the matching stylesheet in the wheel.
+
+Visible on upgrade from 4.7.3:
+
+- **Vendored stylesheet pins `@bwui/css` and `@bwui/tokens` at 0.1.16.**
+  `.bw-flyout*` / `.bw-notifications*` (django-brickwork#758) and
+  `.bw-nav__section-fold` (#773) are styled in the shipped `brickwork.css`.
+- **`{% bw_nav collapsible_sections=True %}`** folds vertical section headers
+  as native `<details>` (already on `main` from #774; CSS arrives with this pin).
+
+### Added
+
+- **`{% bw_nav collapsible_sections=True %}` folds vertical section headers** (icvoss/django-brickwork#773). Section headers with children render as native `<details class="bw-nav__section-fold">` with a styled summary; the default remains the historical span markup. Sections open when they contain the active route, or when no section is an active ancestor so top-level routes keep the sidebar discoverable. Horizontal orientation and menu triggers are unchanged.
+
+### Changed
+
+- **Vendored `@bwui/tokens` and `@bwui/css` 0.1.16**: forge chrome (`.bw-flyout*`, `.bw-notifications*`) and opt-in nav section-fold styles for #773 / #758.
+
 ## [4.7.3] - 2026-11-26
 
 ### Added
